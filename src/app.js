@@ -121,17 +121,43 @@ function refreshChrome() {
   else hint = "正確率再高一點（需 ≥80%）就能挑戰本關。";
   ui.renderBanner(cur, ls, ready, hint, startChallenge);
   if (!ui.summaryHidden()) ui.renderSummary(store.summary(WORDS));
+
+  // ⚠️ 今日指定測驗進行中或待開始：強制隱藏偷看按鈕、模式列、關卡列
+  if (taskState.active || taskState.pending) {
+    const peekBtn = document.getElementById("peekBtn");
+    if (peekBtn) peekBtn.style.display = "none";
+    const modesEl = document.getElementById("modes");
+    if (modesEl) modesEl.style.display = "none";
+    const levelBar = document.getElementById("levelbar");
+    if (levelBar) levelBar.style.display = "none";
+  }
 }
 
 function renderCurrent() {
-  state.round = ui.renderRound(state.word, state.mode, { onAnswer: answer, onCheck: check });
+  const isTask = taskState.active;
+  state.round = ui.renderRound(state.word, state.mode, { 
+    onAnswer: answer, 
+    onCheck: check,
+    disablePeek: isTask 
+  });
   
-  // 若為任務模式，更新頂部提示
-  if (taskState.active && taskState.task) {
+  // ── 若為今日任務模式：嚴格鎖定純聽拼、禁止偷看、隱藏模式與關卡 ──
+  if (isTask && taskState.task) {
     const catLabel = document.getElementById("catlabel");
     const modeHint = document.getElementById("modehint");
-    if (catLabel) catLabel.textContent = `🎯 今日任務 (${taskState.index + 1}/${taskState.pool.length})`;
+    if (catLabel) {
+      catLabel.textContent = `🎯 今日任務 (${taskState.index + 1}/${taskState.pool.length})`;
+      catLabel.style.background = "linear-gradient(135deg, #6366f1, #8b5cf6)";
+    }
     if (modeHint) modeHint.textContent = `【${taskState.task.taskName}】純聽拼測驗中`;
+
+    // 嚴格強制隱藏偷看按鈕與關卡/模式列
+    const peekBtn = document.getElementById("peekBtn");
+    if (peekBtn) peekBtn.style.display = "none";
+    const modesEl = document.getElementById("modes");
+    if (modesEl) modesEl.style.display = "none";
+    const levelBar = document.getElementById("levelbar");
+    if (levelBar) levelBar.style.display = "none";
   }
 }
 
@@ -187,6 +213,11 @@ function answer(correct) {
     taskState.index++;
     // 每作答完一題立即更新持久化進度！
     persistTaskProgress();
+
+    // 答題後顯示下一題時，依然強制隱藏偷看按鈕
+    const peekBtn = document.getElementById("peekBtn");
+    if (peekBtn) peekBtn.style.display = "none";
+
     ui.setActionNext();
     return;
   }
@@ -418,14 +449,21 @@ function showTaskIntroScreen(task) {
     resumeIndex = savedProgress.index || 0;
     resumeCorrect = savedProgress.correct || 0;
   } else {
-    // 首次準備字庫
+    // 首次準備字庫：100% 完整對應老師勾選之單字清單
     const targetWordsLower = task.words.map(w => String(w).trim().toLowerCase());
-    let matched = WORDS.filter(w => targetWordsLower.includes(w.word.toLowerCase()));
-    if (matched.length === 0) {
-      matched = targetWordsLower.map(w => ({
-        id: "cust_" + w, word: w, level: 1, zh: "指定測驗單字", sent: `Spell the word "${w}".`
-      }));
-    }
+    let matched = targetWordsLower.map(tw => {
+      const found = WORDS.find(w => w.word.toLowerCase() === tw);
+      if (found) return found;
+      return {
+        id: "task_" + tw,
+        word: tw,
+        display: tw,
+        level: 1,
+        zh: "指定測驗單字",
+        sent: `Spell the word "${tw}".`,
+        mask: new Array(tw.length).fill(false)
+      };
+    });
     if (task.count !== "ALL" && Number(task.count) < matched.length) {
       pool = sample(matched, Number(task.count));
     } else {
