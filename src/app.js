@@ -611,4 +611,49 @@ function finishTaskMode() {
   if (typeof window.uploadLocalStorageData === "function") {
     window.uploadLocalStorageData(true);
   }
+}
+
+// ---- wiring ----
+ui.initModes(state.mode, (mode) => {
+  if (taskState.active || taskState.pending) {
+    alert("今日指定練習進行中，不可更換模式！");
+    return;
+  }
+  state.mode = mode; 
+  state.answered = false; 
+  renderCurrent(); 
+});
+
+ui.onCheckClick(check);
+ui.onPeek(() => { 
+  if (taskState.active || taskState.pending) return; // 任務模式中禁止偷看
+  if (state.word) ui.peek(state.word); 
+});
+
+ui.onReset(() => { 
+  if (confirm("確定要清除所有進度嗎？（會重新測程度）")) { 
+    store.reset(); 
+    startPlacement(); 
+  } 
+});
+
+ui.onSummary(() => ui.toggleSummary(store.summary(WORDS)));
+ui.onPlace(() => startPlacement());
+
+// ---- boot ----
+(async function boot() {
+  try {
+    WORDS = await loadWordBank();
+  } catch (e) {
+    document.querySelector("#stage").innerHTML =
+      `<p style="color:var(--coral);font-weight:700">載入單字失敗：${e.message}<br>請用伺服器開啟（見 README）。</p>`;
+    return;
+  }
+  if (store.progress().placed) { 
+    ui.setScreen("play"); 
+    refreshChrome(); 
+    checkAndStartDailyTask(); 
+  } else {
+    startPlacement();
+  }
 })();
