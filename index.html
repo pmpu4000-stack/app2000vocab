@@ -156,6 +156,13 @@
           // 若有今日指定任務，存入 sessionStorage 供 app.js 抓取
           if (result.assignedTask) {
             sessionStorage.setItem("assigned_task", JSON.stringify(result.assignedTask));
+            if (result.assignedTask.alreadyCompleted) {
+              const d = new Date();
+              const ds1 = d.getFullYear() + "/" + String(d.getMonth() + 1).padStart(2, "0") + "/" + String(d.getDate()).padStart(2, "0");
+              const ds2 = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+              localStorage.setItem("task_done_" + ds1, "true");
+              localStorage.setItem("task_done_" + ds2, "true");
+            }
           } else {
             sessionStorage.removeItem("assigned_task");
           }
