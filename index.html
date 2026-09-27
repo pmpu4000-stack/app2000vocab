@@ -8,14 +8,10 @@
 </head>
 <body>
   <script>
-    // 1. 每次開啟或刷新網頁，保留重要紀錄，清空舊會話暫存
-    const savedMistakes = localStorage.getItem("weekTaskMistakes");
-    const savedTaskDone = localStorage.getItem("task_done_" + new Date().toISOString().substring(0,10));
-    const savedTaskSum  = localStorage.getItem("today_task_summary");
-    localStorage.clear();
-    if (savedMistakes) localStorage.setItem("weekTaskMistakes", savedMistakes);
-    if (savedTaskDone) localStorage.setItem("task_done_" + new Date().toISOString().substring(0,10), savedTaskDone);
-    if (savedTaskSum)  localStorage.setItem("today_task_summary", savedTaskSum);
+    // 每次開啟或刷新網頁時安全初始化
+    try {
+      sessionStorage.removeItem("assigned_task");
+    } catch(_) {}
   </script>
 
   <!-- 登入驗證遮罩 -->
@@ -177,13 +173,20 @@
 
           alert(result.records ? "登入成功！已載入雲端學習進度。" : "登入成功！開啟全新學習進度。");
 
-          // 1. 隱藏登入視窗
-          document.getElementById('login-overlay').style.display = 'none';
+          // 1. 動態載入遊戲核心模組（加上時間戳記防瀏覽器快取，此時 app.js 才會讀取剛剛存好的 LocalStorage）
+          msgEl.textContent = "登入成功，正在啟動遊戲...";
+          try {
+            const cacheBuster = Date.now();
+            await import(`./src/app.js?v=${cacheBuster}`);
+            document.getElementById('login-overlay').style.display = 'none';
+          } catch(importErr) {
+            console.error("載入遊戲失敗：", importErr);
+            alert("載入遊戲模組失敗：" + importErr.message + "\n請按 Ctrl + F5 強制重新整理或稍候再試！");
+            msgEl.textContent = "載入遊戲模組失敗：" + importErr.message;
+            return;
+          }
 
-          // 2. 動態載入遊戲核心模組（此時 app.js 才會讀取剛剛存好的 LocalStorage）
-          await import('./src/app.js');
-
-          // 3. 綁定上傳按鈕事件
+          // 2. 綁定上傳按鈕事件
           const uploadBtn = document.getElementById("btn-upload") || document.querySelector(".stat.upload");
           if (uploadBtn) {
             uploadBtn.style.cursor = "pointer";
