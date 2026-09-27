@@ -162,6 +162,7 @@
               const ds2 = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
               localStorage.setItem("task_done_" + ds1, "true");
               localStorage.setItem("task_done_" + ds2, "true");
+              localStorage.removeItem("today_task_in_progress");
             }
           } else {
             sessionStorage.removeItem("assigned_task");
@@ -219,10 +220,35 @@
 
       // 取出今日指定任務成績摘要 (若有)
       let todayTaskSummary = null;
-      try {
-        const rawSum = localStorage.getItem("today_task_summary");
-        if (rawSum) todayTaskSummary = JSON.parse(rawSum);
-      } catch(_) {}
+      let inProgressTask = null;
+
+      // 1. 先檢查是否有進行中的中途進度（中途存檔不代表作答結束）
+      const rawProgress = localStorage.getItem("today_task_in_progress");
+      if (rawProgress) {
+        try {
+          const prog = JSON.parse(rawProgress);
+          if (prog && prog.pool && prog.pool.length > 0) {
+            inProgressTask = prog;
+            todayTaskSummary = {
+              taskName   : prog.task ? prog.task.taskName : "今日指定練習",
+              score      : prog.correct || 0,
+              total      : prog.pool.length,
+              rate       : "—",
+              completed  : false, // ⚠️ 標記為未完成，防止鎖定
+              inProgress : true,
+              date       : prog.date || ""
+            };
+          }
+        } catch(_) {}
+      }
+
+      // 2. 若無中途進度，檢查是否有已完成的成績摘要
+      if (!todayTaskSummary) {
+        try {
+          const rawSum = localStorage.getItem("today_task_summary");
+          if (rawSum) todayTaskSummary = JSON.parse(rawSum);
+        } catch(_) {}
+      }
 
       try {
         let response = await fetch(scriptUrl, {
@@ -239,7 +265,17 @@
         let result = await response.json();
         
         if (result.status === "success") {
-          if (!isSilent) alert("🎉 上傳成功！學習紀錄與任務成績已同步至試算表。");
+          if (!isSilent) {
+            if (inProgressTask) {
+              const currentQ = (inProgressTask.index !== undefined ? inProgressTask.index + 1 : 1);
+              const totalQ   = (inProgressTask.pool ? inProgressTask.pool.length : "?");
+              alert("💾 目前作答進度已成功暫存！\n\n⚠️ 注意：今日指定練習尚未作答結束（目前進度：第 " + currentQ + " / " + totalQ + " 題）。\n途中存檔不代表測驗結束，請點選「開始今天的練習」繼續作答！");
+            } else if (todayTaskSummary && todayTaskSummary.completed) {
+              alert("🎉 上傳成功！今日指定練習成果與學習紀錄已同步至試算表。");
+            } else {
+              alert("🎉 上傳成功！學習紀錄已同步至試算表。");
+            }
+          }
         } else {
           if (!isSilent) alert("儲存失敗：" + (result.message || "未知原因"));
         }
