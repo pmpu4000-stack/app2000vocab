@@ -280,9 +280,36 @@ async function startChallenge() {
 // ════════════════════════════════════════════════════════════════════
 
 function checkAndStartDailyTask() {
-  const todayKey = "task_done_" + todayDateStr();
-  if (localStorage.getItem(todayKey) === "true") {
-    // 今日任務已完成，直接開始自由闖關
+  const todaySlash = todayDateStr(); // yyyy-mm-dd or yyyy/mm/dd
+  const todayAlt   = todaySlash.includes("/") ? todaySlash.replace(/\//g, "-") : todaySlash.replace(/-/g, "/");
+
+  // 1. 本地完成標記檢查
+  const isDoneLocal = (localStorage.getItem("task_done_" + todaySlash) === "true") ||
+                      (localStorage.getItem("task_done_" + todayAlt) === "true");
+
+  // 2. 雲端試算表回傳之「今日已完成」標記檢查
+  const rawAssigned = sessionStorage.getItem("assigned_task");
+  let assignedTaskObj = null;
+  if (rawAssigned) {
+    try { assignedTaskObj = JSON.parse(rawAssigned); } catch(_) {}
+  }
+  const isDoneRemote = !!(assignedTaskObj && assignedTaskObj.alreadyCompleted === true);
+
+  // 【核心規則】：當日一旦完成，當日即不再開放使用該功能，直接開放自由闖關！
+  if (isDoneLocal || isDoneRemote) {
+    localStorage.setItem("task_done_" + todaySlash, "true");
+    localStorage.setItem("task_done_" + todayAlt, "true");
+
+    // 確保按鈕恢復自由模式
+    const peekBtn = document.getElementById("peekBtn");
+    if (peekBtn) peekBtn.style.display = "";
+    const modesEl = document.getElementById("modes");
+    if (modesEl) modesEl.style.display = "";
+
+    const catLabel = document.getElementById("catlabel");
+    if (catLabel) catLabel.textContent = "✅ 今日指定練習已完成，明天再繼續！已開放自由升級闖關";
+
+    console.log("今日指定練習已完成，當日不再開放重複使用，進入自由闖關模式。");
     newRound();
     return;
   }
@@ -374,9 +401,12 @@ function finishTaskMode() {
   const correct = taskState.correct;
   const rate = total > 0 ? Math.round((correct / total) * 100) : 0;
 
-  // 標記今日任務已完成
-  const todayKey = "task_done_" + todayDateStr();
-  localStorage.setItem(todayKey, "true");
+  // 標記今日任務已完成（當日即不再開放使用該功能）
+  const todaySlash = todayDateStr();
+  const todayAlt   = todaySlash.includes("/") ? todaySlash.replace(/\//g, "-") : todaySlash.replace(/-/g, "/");
+  localStorage.setItem("task_done_" + todaySlash, "true");
+  localStorage.setItem("task_done_" + todayAlt, "true");
+  sessionStorage.setItem("assigned_task", JSON.stringify({ hasTask: false, alreadyCompleted: true }));
 
   // 儲存今日任務成績摘要（供上傳試算表時附帶）
   const summaryObj = {
