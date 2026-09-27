@@ -8,8 +8,14 @@
 </head>
 <body>
   <script>
-    // 1. 每次開啟或刷新網頁，清空舊練習暫存，確保載入最新雲端紀錄
+    // 1. 每次開啟或刷新網頁，保留重要紀錄，清空舊會話暫存
+    const savedMistakes = localStorage.getItem("weekTaskMistakes");
+    const savedTaskDone = localStorage.getItem("task_done_" + new Date().toISOString().substring(0,10));
+    const savedTaskSum  = localStorage.getItem("today_task_summary");
     localStorage.clear();
+    if (savedMistakes) localStorage.setItem("weekTaskMistakes", savedMistakes);
+    if (savedTaskDone) localStorage.setItem("task_done_" + new Date().toISOString().substring(0,10), savedTaskDone);
+    if (savedTaskSum)  localStorage.setItem("today_task_summary", savedTaskSum);
   </script>
 
   <!-- 登入驗證遮罩 -->
@@ -120,7 +126,7 @@
 
   <script type="module">
     // ⚠️ 請替換為你實際部署成功的 Apps Script Web App 網址
-    const scriptUrl = "https://script.google.com/macros/s/AKfycbx1hyCNJxqFMoaJgIxfZqLYIYH00NegI1Yd8NJP6gRjqwOndWGkmr-H9tGvVwK_axM9/exec";
+    const scriptUrl = "https://script.google.com/macros/s/AKfycbwYof_2clnG7fkWcEqQ5ZDGgBuNplMgNxAKPMY1-zeBzmwJj2LR6eHuUy6ljVxy8CQh/exec";
 
     // 登入驗證、抓取雲端紀錄並動態啟動遊戲 App
     document.getElementById('login-btn').addEventListener('click', async () => {
@@ -145,9 +151,15 @@
 
         if (result.status === "success") {
           localStorage.setItem("current_user", user);
-          // ✅ 暫存密碼於 sessionStorage（僅限當前視窗，關閉即失效，供後續上傳認證使用）
           sessionStorage.setItem("current_pass", pass);
           
+          // 若有今日指定任務，存入 sessionStorage 供 app.js 抓取
+          if (result.assignedTask) {
+            sessionStorage.setItem("assigned_task", JSON.stringify(result.assignedTask));
+          } else {
+            sessionStorage.removeItem("assigned_task");
+          }
+
           // 若有雲端歷史紀錄則寫入 LocalStorage
           if (result.records) {
             for (let key in result.records) {
@@ -167,7 +179,7 @@
           const uploadBtn = document.getElementById("btn-upload") || document.querySelector(".stat.upload");
           if (uploadBtn) {
             uploadBtn.style.cursor = "pointer";
-            uploadBtn.onclick = uploadLocalStorageData;
+            uploadBtn.onclick = () => uploadLocalStorageData(false);
           }
         } else {
           msgEl.textContent = result.message || "帳號或密碼錯誤";
@@ -179,12 +191,12 @@
     });
 
     // 上傳 LocalStorage 紀錄至 Google 試算表
-    async function uploadLocalStorageData() {
+    async function uploadLocalStorageData(isSilent = false) {
       const currentUser = localStorage.getItem("current_user");
       const currentPass = sessionStorage.getItem("current_pass");
 
       if (!currentUser || !currentPass) {
-        alert("未偵測到登入狀態，請重新整理頁面登入！");
+        if (!isSilent) alert("未偵測到登入狀態，請重新整理頁面登入！");
         return;
       }
 
@@ -198,33 +210,42 @@
         localData[key] = localStorage.getItem(key);
       }
 
+      // 取出今日指定任務成績摘要 (若有)
+      let todayTaskSummary = null;
       try {
-        // ✅ 附帶 password 進行身份驗證，後端安全存檔
+        const rawSum = localStorage.getItem("today_task_summary");
+        if (rawSum) todayTaskSummary = JSON.parse(rawSum);
+      } catch(_) {}
+
+      try {
         let response = await fetch(scriptUrl, {
           method: "POST",
           headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify({ 
-            action: "saveRecord", 
-            username: currentUser, 
-            password: currentPass, 
-            records: localData 
+            action           : "saveRecord", 
+            username         : currentUser, 
+            password         : currentPass, 
+            records          : localData,
+            todayTaskSummary : todayTaskSummary
           })
         });
         let result = await response.json();
         
         if (result.status === "success") {
-          alert("🎉 上傳成功！學習紀錄已同步至試算表。");
+          if (!isSilent) alert("🎉 上傳成功！學習紀錄與任務成績已同步至試算表。");
         } else {
-          alert("儲存失敗：" + (result.message || "未知原因"));
+          if (!isSilent) alert("儲存失敗：" + (result.message || "未知原因"));
         }
       } catch (err) {
         console.error("上傳失敗：", err);
-        alert("連線失敗，請檢查網路。");
+        if (!isSilent) alert("連線失敗，請檢查網路。");
       } finally {
-        // 2. 當彈出視窗（alert）按下確定關閉後，還原為嫩芽 🌱
         if (iconEl) iconEl.textContent = "🌱";
       }
     }
+
+    // 暴露全域給 app.js 在任務完成時自動靜默上傳
+    window.uploadLocalStorageData = uploadLocalStorageData;
   </script>
 </body>
 </html>
