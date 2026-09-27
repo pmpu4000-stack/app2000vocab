@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>拼字小特工 · Spelling Agent</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <script>
+    // 1. 每次開啟或刷新網頁，傳統清空 LocalStorage，強制每次重新登入
+    localStorage.clear();
+  </script>
+
+  <!-- 登入驗證遮罩 -->
+  <div id="login-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#0f1117; z-index:9999; display:flex; justify-content:center; align-items:center;">
+    <div style="background:#1a1d2e; padding:30px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.4); width:320px; text-align:center;">
+      <h2 style="color:#e8eaf0;">請先登入</h2>
+      <p style="color:#a0a6c0; font-size:14px; margin-bottom:20px;">請輸入您的帳號與密碼以使用拼字小特工</p>
+      <input type="text" id="login-user" placeholder="請輸入帳號" style="width:100%; padding:10px; margin-bottom:12px; border:1px solid #2a2e42; border-radius:6px; box-sizing:border-box; background:#15172a; color:#e8eaf0;">
+      <input type="password" id="login-pass" placeholder="請輸入密碼" style="width:100%; padding:10px; margin-bottom:20px; border:1px solid #2a2e42; border-radius:6px; box-sizing:border-box; background:#15172a; color:#e8eaf0;">
+      <button id="login-btn" style="width:100%; padding:10px; background:#8b6cf0; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">確認登入</button>
+      <p id="login-msg" style="color:#f87171; font-size:13px; margin-top:10px;"></p>
+    </div>
+  </div>
+
+  <canvas id="fx"></canvas>
+
+  <div class="app">
+    <header>
+      <div class="logo">拼</div>
+      <div class="title">
+        <h1>拼字小特工 <span style="font-size:13px;color:var(--ink3)">Spelling Agent</span></h1>
+        <p>破解英文拼字的 5 大關卡 · 每天 10 分鐘</p>
+      </div>
+      <div class="stats">
+        <div class="stat upload" id="btn-upload" style="cursor:pointer;">
+          <b id="s-upload" class="tnum">🌱</b>
+          <span>上傳紀錄</span>
+        </div>
+        <div class="stat lv"><b id="s-level" class="tnum">1</b><span>等級 LV</span></div>
+        <div class="stat ok"><b id="s-correct" class="tnum">0</b><span>答對字</span></div>
+        <div class="stat streak"><b id="s-streak" class="tnum">0</b><span>連勝</span></div>
+        <div class="stat rate"><b id="s-rate" class="tnum">0%</b><span>答對率</span></div>
+      </div>
+    </header>
+
+    <!-- ============ PLAY SCREEN ============ -->
+    <div id="screen-play">
+      <div class="session" id="session"></div>
+      <nav class="levelbar" id="levelbar" aria-label="選擇關卡"></nav>
+      <div class="modes" id="modes" role="tablist" aria-label="練習模式"></div>
+
+      <main class="card" id="card">
+        <div class="prompt-row">
+          <span class="catlabel" id="catlabel">關卡</span>
+          <span class="modehint" id="modehint"></span>
+        </div>
+        <div class="zh" id="zh"></div>
+        <div class="sent" id="sent"></div>
+        <div class="stage" id="stage"></div>
+        <div class="feedback" id="feedback"></div>
+        <div class="actions">
+          <button class="btn ghost" id="peekBtn" title="偷看一下答案">👀 偷看</button>
+          <button class="btn primary" id="checkBtn">檢查 Check</button>
+        </div>
+      </main>
+
+      <div class="banner" id="banner"></div>
+
+      <section class="progress">
+        <h3>
+          <span>學習進度 Progress</span>
+          <span style="display:flex;gap:14px">
+            <a id="placeBtn" title="重新測驗你的程度">🎯 測程度</a>
+            <a id="sumBtn" title="看學習總結與答對率">📊 總結</a>
+            <a id="resetBtn" title="清除所有進度">重來 reset</a>
+          </span>
+        </h3>
+        <div class="bar" title="連續答對越多次，字就越熟練">
+          <i class="learn" id="b-learn"></i>
+          <i class="prac" id="b-prac"></i>
+          <i class="mast" id="b-mast"></i>
+        </div>
+        <div class="legend">
+          <span title="答對 1 次（或最近答錯，需要再練）"><i style="background:#D9D5F2"></i>學習中 <b id="n-learn" class="tnum">0</b></span>
+          <span title="連續答對 2 次"><i style="background:#B9E8D3"></i>練習中 <b id="n-prac" class="tnum">0</b></span>
+          <span title="連續答對 3 次，獲得 ⭐"><i style="background:var(--green)"></i>精通 <b id="n-mast" class="tnum">0</b></span>
+          <span style="margin-left:auto;color:var(--ink3)">共 <b id="n-total" class="tnum">0</b> 字</span>
+        </div>
+        <p class="defs">熟練度定義：<b>學習中</b>＝答對 1 次 · <b>練習中</b>＝連續答對 2 次 · <b>精通</b>＝連續答對 3 次（答錯會退回「學習中」）</p>
+      </section>
+
+      <section class="summary" id="summary" hidden></section>
+
+      <p class="foot">
+        🔊 需要開啟聲音才能聽發音。進度儲存要按上傳紀錄。<br>
+      </p>
+    </div>
+
+    <!-- ============ QUIZ SCREEN (placement / challenge) ============ -->
+    <div id="screen-quiz" hidden>
+      <main class="card quizcard">
+        <div class="quizhead" id="quizhead"></div>
+        <div class="quizprog"><i id="quizprog-bar"></i></div>
+        <div class="stage" id="quizstage"></div>
+      </main>
+    </div>
+  </div>
+
+  <script type="module">
+    const scriptUrl = "https://script.google.com/macros/s/AKfycbwYof_2clnG7fkWcEqQ5ZDGgBuNplMgNxAKPMY1-zeBzmwJj2LR6eHuUy6ljVxy8CQh/exec";
+
+    // 登入驗證、抓取雲端紀錄並動態啟動遊戲 App
+    document.getElementById('login-btn').addEventListener('click', async () => {
+      const user = document.getElementById('login-user').value.trim();
+      const pass = document.getElementById('login-pass').value.trim();
+      const msgEl = document.getElementById('login-msg');
+
+      if (!user || !pass) {
+        msgEl.textContent = "請輸入帳號與密碼";
+        return;
+      }
+
+      msgEl.textContent = "正在驗證並讀取雲端紀錄...";
+
+      try {
+        let response = await fetch(scriptUrl, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ action: "login", username: user, password: pass })
+        });
+        let result = await response.json();
+
+        if (result.status === "success") {
+          localStorage.setItem("current_user", user);
+          
+          // 若有雲端歷史紀錄則寫入 LocalStorage
+          if (result.records) {
+            for (let key in result.records) {
+              localStorage.setItem(key, result.records[key]);
+            }
+          }
+
+          alert(result.records ? "登入成功！已載入雲端紀錄。" : "登入成功！開啟全新學習進度。");
+
+          // 1. 隱藏登入視窗
+          document.getElementById('login-overlay').style.display = 'none';
+
+          // 2. 動態載入遊戲核心模組（此時 app.js 才會讀取剛剛存好的 LocalStorage）
+          await import('./src/app.js');
+
+          // 3. 綁定上傳按鈕事件
+          const uploadBtn = document.getElementById("btn-upload") || document.querySelector(".stat.upload");
+          if (uploadBtn) {
+            uploadBtn.style.cursor = "pointer";
+            uploadBtn.onclick = uploadLocalStorageData;
+          }
+        } else {
+          msgEl.textContent = result.message;
+        }
+      } catch (err) {
+        console.error(err);
+        msgEl.textContent = "連線失敗，請檢查網路。";
+      }
+    });
+
+    // 上傳 LocalStorage 紀錄至 Google 試算表
+    async function uploadLocalStorageData() {
+      const currentUser = localStorage.getItem("current_user");
+      if (!currentUser) {
+        alert("未偵測到登入帳號，請重新登入！");
+        return;
+      }
+
+      // 1. 開始上傳：將嫩芽 🌱 轉為等待圖案 ⏳
+      const iconEl = document.getElementById("s-upload");
+      if (iconEl) iconEl.textContent = "⏳";
+
+      const localData = {};
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        localData[key] = localStorage.getItem(key);
+      }
+
+      try {
+        let response = await fetch(scriptUrl, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ action: "saveRecord", username: currentUser, records: localData })
+        });
+        let result = await response.json();
+        
+        if (result.status === "success") {
+          alert("上傳成功！紀錄已儲存。");
+        } else {
+          alert("儲存失敗：" + result.message);
+        }
+      } catch (err) {
+        console.error("上傳失敗：", err);
+        alert("連線失敗，請檢查網路。");
+      } finally {
+        // 2. 當彈出視窗（alert）按下確定關閉後，還原為嫩芽 🌱
+        if (iconEl) iconEl.textContent = "🌱";
+      }
+    }
+  </script>
+</body>
+</html>
