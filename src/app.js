@@ -411,6 +411,10 @@ function checkAndStartDailyTask() {
     if (modesEl) modesEl.style.display = "";
     const levelBar = document.getElementById("levelbar");
     if (levelBar) levelBar.style.display = "";
+    const catLabel = document.getElementById("catlabel");
+    if (catLabel) {
+      catLabel.textContent = "💡 今日尚無指派任務，已開放自由闖關升級";
+    }
     newRound();
     return;
   }
@@ -687,7 +691,20 @@ ui.onPlace(() => startPlacement());
       `<p style="color:var(--coral);font-weight:700">載入單字失敗：${e.message}<br>請用伺服器開啟（見 README）。</p>`;
     return;
   }
-  if (store.progress().placed) { 
+  // 優先檢查是否有今日指定任務或進行中進度
+  const rawAssigned = sessionStorage.getItem("assigned_task");
+  let assignedTaskObj = null;
+  if (rawAssigned) {
+    try { assignedTaskObj = JSON.parse(rawAssigned); } catch(_) {}
+  }
+  const hasInProgress = !!localStorage.getItem("today_task_in_progress");
+
+  // 若今日有指定任務（或上次未完之進度）：優先進入今日任務（免受程度分級測驗阻擋）
+  if ((assignedTaskObj && assignedTaskObj.hasTask) || hasInProgress) {
+    ui.setScreen("play"); 
+    refreshChrome(); 
+    checkAndStartDailyTask(); 
+  } else if (store.progress().placed) { 
     ui.setScreen("play"); 
     refreshChrome(); 
     checkAndStartDailyTask(); 
@@ -695,3 +712,10 @@ ui.onPlace(() => startPlacement());
     startPlacement();
   }
 })();
+
+// 暴露全域給老師出題預覽施測直接呼叫
+window.triggerDailyTaskIntro = (task) => {
+  ui.setScreen("play");
+  refreshChrome();
+  showTaskIntroScreen(task);
+};

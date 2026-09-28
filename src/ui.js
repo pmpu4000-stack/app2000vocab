@@ -80,9 +80,9 @@ export function initModes(mode, onPick) {
 }
 
 // ---------- one practice round ----------
-export function renderRound(word, mode, { onAnswer, onCheck }) {
+export function renderRound(word, mode, { onAnswer, onCheck, disablePeek }) {
   el.fb.textContent = ""; el.fb.className = "feedback";
-  el.peekBtn.style.display = mode === "pick" ? "none" : "";
+  el.peekBtn.style.display = (mode === "pick" || disablePeek) ? "none" : "";
   el.checkBtn.style.display = ""; el.checkBtn.disabled = false;
   el.checkBtn.textContent = "檢查 Check"; el.checkBtn.className = "btn primary";
 

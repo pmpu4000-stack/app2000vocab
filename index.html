@@ -50,6 +50,10 @@
           <b id="s-upload" class="tnum">🌱</b>
           <span>上傳紀錄</span>
         </div>
+        <div class="stat" id="btn-teacher-picker" style="cursor:pointer; display:none; background:rgba(99,102,241,0.25); border:1px solid #6366f1; border-radius:10px;" title="老師/管理員出題">
+          <b class="tnum" style="color:#a5b4fc">📝</b>
+          <span style="color:#c7d2fe; font-weight:700;">挑選單字出題</span>
+        </div>
         <div class="stat lv"><b id="s-level" class="tnum">1</b><span>等級 LV</span></div>
         <div class="stat ok"><b id="s-correct" class="tnum">0</b><span>答對字</span></div>
         <div class="stat streak"><b id="s-streak" class="tnum">0</b><span>連勝</span></div>
@@ -147,6 +151,11 @@
 
         if (result.status === "success") {
           localStorage.setItem("current_user", user);
+          localStorage.setItem("user_role", result.role || "student");
+          const teacherBtn = document.getElementById("btn-teacher-picker");
+          if (teacherBtn) {
+            teacherBtn.style.display = (result.role === "teacher" || result.isAdmin) ? "flex" : "none";
+          }
           sessionStorage.setItem("current_pass", pass);
           
           // 若有今日指定任務，存入 sessionStorage 供 app.js 抓取
@@ -292,6 +301,395 @@
 
     // 暴露全域給 app.js 在任務完成時自動靜默上傳
     window.uploadLocalStorageData = uploadLocalStorageData;
+
+    // ════════════════════════════════════════════════════════════════════
+    // 老師線上挑選單字出題 Modal 核心邏輯
+    // ════════════════════════════════════════════════════════════════════
+    let pickerWords = [];
+    let pickerMeanings = {};
+    let pickerSelectedWords = new Set();
+    let pickerLevel = "all";
+    let pickerSearch = "";
+
+    async function loadPickerData() {
+      if (pickerWords.length > 0) return;
+      try {
+        const [wRes, mRes] = await Promise.all([
+          fetch("data/words2000.json"),
+          fetch("data/meanings.json").catch(() => null)
+        ]);
+        pickerWords = await wRes.json();
+        if (mRes && mRes.ok) {
+          pickerMeanings = await mRes.json();
+        }
+      } catch (err) {
+        console.error("載入單字庫失敗：", err);
+      }
+    }
+
+    function renderPickerGrid() {
+      const grid = document.getElementById("t-word-grid");
+      if (!grid) return;
+      if (pickerWords.length === 0) {
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:15px;color:#94a3b8;">載入單字庫中...</div>';
+        return;
+      }
+
+      const q = pickerSearch.trim().toLowerCase();
+      const filtered = pickerWords.filter(item => {
+        const w = (item.w || "").toLowerCase();
+        const lv = String(item.lv);
+        if (pickerLevel !== "all" && lv !== String(pickerLevel)) return false;
+        if (!q) return true;
+        const m = pickerMeanings[item.w] || pickerMeanings[w] || {};
+        const zh = (m.zh || "").toLowerCase();
+        return w.includes(q) || zh.includes(q);
+      });
+
+      if (filtered.length === 0) {
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:15px;color:#94a3b8;">無符合條件的單字</div>';
+        return;
+      }
+
+      grid.innerHTML = filtered.slice(0, 300).map(item => {
+        const w = item.w;
+        const isChecked = pickerSelectedWords.has(w.toLowerCase());
+        const m = pickerMeanings[item.w] || pickerMeanings[w.toLowerCase()] || {};
+        const zh = m.zh ? m.zh.split(/[,;，；]/)[0].substring(0, 10) : "";
+        return `
+          <label style="display:flex; align-items:center; gap:6px; padding:4px 8px; border-radius:6px; background:${isChecked ? 'rgba(99,102,241,0.25)' : '#0f172a'}; border:1px solid ${isChecked ? '#6366f1' : '#334155'}; cursor:pointer; font-size:12.5px; user-select:none; transition:all 0.15s;">
+            <input type="checkbox" value="${w.toLowerCase()}" ${isChecked ? 'checked' : ''} onchange="togglePickerWord('${w.toLowerCase()}')" style="accent-color:#6366f1; width:15px; height:15px; cursor:pointer;">
+            <span style="font-weight:700; color:${isChecked ? '#c7d2fe' : '#f8fafc'};">${w}</span>
+            ${zh ? `<span style="font-size:11px; color:#94a3b8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${zh}</span>` : ''}
+          </label>
+        `;
+      }).join("");
+    }
+
+    window.togglePickerWord = function(word) {
+      if (pickerSelectedWords.has(word)) {
+        pickerSelectedWords.delete(word);
+      } else {
+        pickerSelectedWords.add(word);
+      }
+      updatePickerPreview();
+      renderPickerGrid();
+    };
+
+    function updatePickerPreview() {
+      const badge = document.getElementById("t-modal-count-badge");
+      const previewCount = document.getElementById("t-preview-count");
+      const tagsBox = document.getElementById("t-preview-tags");
+      const count = pickerSelectedWords.size;
+
+      if (badge) badge.textContent = `已選取 ${count} 個單字`;
+      if (previewCount) previewCount.textContent = count;
+
+      if (tagsBox) {
+        if (count === 0) {
+          tagsBox.innerHTML = '<span style="color:#64748b; font-size:12px;">尚未選取任何單字</span>';
+        } else {
+          tagsBox.innerHTML = Array.from(pickerSelectedWords).map(w => `
+            <span style="display:inline-flex; align-items:center; gap:4px; background:#312e81; color:#c7d2fe; border:1px solid #4338ca; border-radius:4px; padding:2px 8px; font-size:11.5px;">
+              ${w}
+              <button onclick="togglePickerWord('${w}')" style="background:none; border:none; color:#f87171; cursor:pointer; padding:0 2px; font-weight:bold; font-size:12px;">&times;</button>
+            </span>
+          `).join("");
+        }
+      }
+    }
+
+    window.openTeacherModal = function() {
+      const modal = document.getElementById("teacherTaskModal");
+      if (!modal) return;
+      modal.style.display = "flex";
+      loadPickerData().then(() => {
+        renderPickerGrid();
+        updatePickerPreview();
+      });
+    };
+
+    window.closeTeacherModal = function() {
+      const modal = document.getElementById("teacherTaskModal");
+      if (modal) modal.style.display = "none";
+    };
+
+    function initPickerEvents() {
+      const openBtn = document.getElementById("btn-teacher-picker");
+      if (openBtn) openBtn.onclick = window.openTeacherModal;
+
+      const closeBtn = document.getElementById("btnCloseTeacherModal");
+      if (closeBtn) closeBtn.onclick = window.closeTeacherModal;
+
+      // 篩選標籤
+      document.querySelectorAll(".btn-picker-chip").forEach(btn => {
+        btn.onclick = () => {
+          document.querySelectorAll(".btn-picker-chip").forEach(b => {
+            b.classList.remove("active");
+            b.style.background = "#1e293b";
+            b.style.borderColor = "#475569";
+            b.style.color = "#cbd5e1";
+          });
+          btn.classList.add("active");
+          btn.style.background = "#6366f1";
+          btn.style.borderColor = "#6366f1";
+          btn.style.color = "#fff";
+          pickerLevel = btn.dataset.lv;
+          renderPickerGrid();
+        };
+      });
+
+      // 搜尋
+      const searchInp = document.getElementById("t-modal-search");
+      if (searchInp) {
+        searchInp.oninput = () => {
+          pickerSearch = searchInp.value;
+          renderPickerGrid();
+        };
+      }
+
+      // 隨機抽取 10 字
+      const r10Btn = document.getElementById("t-btn-random10");
+      if (r10Btn) {
+        r10Btn.onclick = () => {
+          const pool = pickerWords.filter(item => pickerLevel === "all" || String(item.lv) === String(pickerLevel));
+          const shuffled = [...pool].sort(() => 0.5 - Math.random());
+          shuffled.slice(0, 10).forEach(item => pickerSelectedWords.add((item.w || "").toLowerCase()));
+          updatePickerPreview();
+          renderPickerGrid();
+        };
+      }
+
+      // 隨機抽取 20 字
+      const r20Btn = document.getElementById("t-btn-random20");
+      if (r20Btn) {
+        r20Btn.onclick = () => {
+          const pool = pickerWords.filter(item => pickerLevel === "all" || String(item.lv) === String(pickerLevel));
+          const shuffled = [...pool].sort(() => 0.5 - Math.random());
+          shuffled.slice(0, 20).forEach(item => pickerSelectedWords.add((item.w || "").toLowerCase()));
+          updatePickerPreview();
+          renderPickerGrid();
+        };
+      }
+
+      // 全選本組
+      const selAllBtn = document.getElementById("t-btn-selectall");
+      if (selAllBtn) {
+        selAllBtn.onclick = () => {
+          const pool = pickerWords.filter(item => pickerLevel === "all" || String(item.lv) === String(pickerLevel));
+          pool.forEach(item => pickerSelectedWords.add((item.w || "").toLowerCase()));
+          updatePickerPreview();
+          renderPickerGrid();
+        };
+      }
+
+      // 清空
+      const clearBtn = document.getElementById("t-btn-clear");
+      if (clearBtn) {
+        clearBtn.onclick = () => {
+          pickerSelectedWords.clear();
+          updatePickerPreview();
+          renderPickerGrid();
+        };
+      }
+
+      // 發布至試算表
+      const pubBtn = document.getElementById("t-btn-publish");
+      if (pubBtn) {
+        pubBtn.onclick = async () => {
+          if (pickerSelectedWords.size === 0) {
+            alert("請至少勾選 1 個單字！");
+            return;
+          }
+          const currentUser = localStorage.getItem("current_user");
+          const currentPass = sessionStorage.getItem("current_pass");
+          const targetClass = (document.getElementById("t-modal-class").value || "all").trim();
+          const taskName = (document.getElementById("t-modal-name").value || "今日指定測驗").trim();
+          const mode = document.getElementById("t-modal-mode").value;
+          const count = document.getElementById("t-modal-count").value;
+          const wordsStr = Array.from(pickerSelectedWords).join(", ");
+          const msgEl = document.getElementById("t-modal-msg");
+
+          msgEl.textContent = "正在發布至試算表...";
+          pubBtn.disabled = true;
+
+          try {
+            const resp = await fetch(scriptUrl, {
+              method: "POST",
+              headers: { "Content-Type": "text/plain;charset=utf-8" },
+              body: JSON.stringify({
+                action: "saveTeacherTask",
+                username: currentUser,
+                password: currentPass,
+                taskData: {
+                  className: targetClass,
+                  taskName: taskName,
+                  words: wordsStr,
+                  mode: mode,
+                  count: count,
+                  enabled: true
+                }
+              })
+            });
+            const res = await resp.json();
+            if (res.status === "success") {
+              alert("🎉 發布成功！\\n目標班級：" + targetClass + "\\n任務名稱：" + taskName + "\\n單字數量：" + pickerSelectedWords.size + " 字\\n\\n學生登入時即可進行純聽拼測驗！");
+              closeTeacherModal();
+            } else {
+              alert("發布失敗：" + (res.message || "未知原因"));
+              msgEl.textContent = "發布失敗：" + (res.message || "");
+            }
+          } catch(err) {
+            console.error(err);
+            alert("連線失敗，請檢查網路。");
+            msgEl.textContent = "連線失敗。";
+          } finally {
+            pubBtn.disabled = false;
+          }
+        };
+      }
+
+      // 立即以此單字開始測驗 (預覽)
+      const previewRunBtn = document.getElementById("t-btn-preview-run");
+      if (previewRunBtn) {
+        previewRunBtn.onclick = () => {
+          if (pickerSelectedWords.size === 0) {
+            alert("請至少勾選 1 個單字！");
+            return;
+          }
+          const taskName = (document.getElementById("t-modal-name").value || "今日指定測驗 (預覽)").trim();
+          const mode = document.getElementById("t-modal-mode").value;
+          const count = (mode === "全考") ? "ALL" : document.getElementById("t-modal-count").value;
+          const wordsArr = Array.from(pickerSelectedWords);
+
+          const taskObj = {
+            hasTask: true,
+            taskName: taskName,
+            words: wordsArr,
+            total: wordsArr.length,
+            mode: mode === "全考" ? "ALL" : "SAMPLE",
+            count: count
+          };
+
+          sessionStorage.setItem("assigned_task", JSON.stringify(taskObj));
+          closeTeacherModal();
+
+          // 重新整理遊戲狀態並展示今日測驗歡迎卡
+          if (typeof window.triggerDailyTaskIntro === "function") {
+            window.triggerDailyTaskIntro(taskObj);
+          } else {
+            location.reload();
+          }
+        };
+      }
+    }
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initPickerEvents);
+    } else {
+      initPickerEvents();
+    }
   </script>
+
+  <!-- ══════════════════════════════════════════
+       老師線上出題 (挑選 2000 單字) Modal
+  ══════════════════════════════════════════ -->
+  <div id="teacherTaskModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
+    <div style="background:#1e293b; border-radius:16px; padding:22px 24px; max-width:680px; width:94%; box-shadow:0 25px 60px rgba(0,0,0,0.5); max-height:92vh; overflow-y:auto; border:1.5px solid #475569; color:#f8fafc; font-family:system-ui, sans-serif;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <h3 style="margin:0; font-size:18px; display:flex; align-items:center; gap:8px; color:#fff;">
+          📝 今日指定測驗設定 (挑選單字出題)
+        </h3>
+        <button id="btnCloseTeacherModal" style="background:none; border:none; font-size:24px; cursor:pointer; color:#94a3b8;">&times;</button>
+      </div>
+
+      <p style="font-size:13px; color:#94a3b8; margin:0 0 14px 0; line-height:1.4;">
+        從 2000 單字庫中直接點選、搜尋或隨機抽取單字。學生登入時將優先進行純聽拼測驗（無偷看），考完自動解鎖自由闖關！
+      </p>
+
+      <div style="display:grid; grid-template-columns: 1fr 1.6fr; gap:12px; margin-bottom:12px;">
+        <div>
+          <label style="font-size:13px; font-weight:600; display:block; margin-bottom:4px; color:#cbd5e1;">目標班級：</label>
+          <input type="text" id="t-modal-class" placeholder="例：701 或 all" value="all"
+            style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #475569; background:#0f172a; color:#fff; font-size:14px; box-sizing:border-box;">
+        </div>
+        <div>
+          <label style="font-size:13px; font-weight:600; display:block; margin-bottom:4px; color:#cbd5e1;">任務名稱：</label>
+          <input type="text" id="t-modal-name" placeholder="例：第1課重要單字隨堂考" value="今日指定單字隨堂測驗"
+            style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #475569; background:#0f172a; color:#fff; font-size:14px; box-sizing:border-box;">
+        </div>
+      </div>
+
+      <div style="border:1px solid #334155; border-radius:12px; padding:12px 14px; background:#0f172a; margin-bottom:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+          <span style="font-size:13.5px; font-weight:700; color:#e2e8f0; display:flex; align-items:center; gap:6px;">
+            📚 從 2000 單字庫勾選單字
+          </span>
+          <span id="t-modal-count-badge" style="font-size:13px; color:#818cf8; font-weight:700; background:rgba(99,102,241,0.2); padding:3px 10px; border-radius:6px; border:1px solid rgba(99,102,241,0.3);">
+            已選取 0 個單字
+          </span>
+        </div>
+
+        <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px;" id="t-filter-chips">
+          <button type="button" class="btn-picker-chip active" data-lv="all" style="padding:4px 10px; font-size:12px; border-radius:6px; border:1px solid #6366f1; background:#6366f1; color:#fff; cursor:pointer;">全部 (2055)</button>
+          <button type="button" class="btn-picker-chip" data-lv="1" style="padding:4px 10px; font-size:12px; border-radius:6px; border:1px solid #475569; background:#1e293b; color:#cbd5e1; cursor:pointer;">Lv1 入門</button>
+          <button type="button" class="btn-picker-chip" data-lv="2" style="padding:4px 10px; font-size:12px; border-radius:6px; border:1px solid #475569; background:#1e293b; color:#cbd5e1; cursor:pointer;">Lv2 基礎</button>
+          <button type="button" class="btn-picker-chip" data-lv="3" style="padding:4px 10px; font-size:12px; border-radius:6px; border:1px solid #475569; background:#1e293b; color:#cbd5e1; cursor:pointer;">Lv3 進階</button>
+          <button type="button" class="btn-picker-chip" data-lv="4" style="padding:4px 10px; font-size:12px; border-radius:6px; border:1px solid #475569; background:#1e293b; color:#cbd5e1; cursor:pointer;">Lv4 挑戰</button>
+          <button type="button" class="btn-picker-chip" data-lv="5" style="padding:4px 10px; font-size:12px; border-radius:6px; border:1px solid #475569; background:#1e293b; color:#cbd5e1; cursor:pointer;">Lv5 大師</button>
+        </div>
+
+        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:10px;">
+          <input type="text" id="t-modal-search" placeholder="🔍 搜尋單字或中文..."
+            style="flex:1; min-width:140px; padding:6px 10px; border-radius:6px; border:1px solid #475569; font-size:13px; background:#1e293b; color:#fff; box-sizing:border-box;">
+          <button type="button" id="t-btn-random10" style="padding:6px 12px; font-size:12.5px; border-radius:6px; border:1px solid #475569; background:#334155; color:#fff; cursor:pointer;">🎲 隨機10字</button>
+          <button type="button" id="t-btn-random20" style="padding:6px 12px; font-size:12.5px; border-radius:6px; border:1px solid #475569; background:#334155; color:#fff; cursor:pointer;">🎲 隨機20字</button>
+          <button type="button" id="t-btn-selectall" style="padding:6px 12px; font-size:12.5px; border-radius:6px; border:1px solid #475569; background:#334155; color:#fff; cursor:pointer;">➕ 全選本組</button>
+          <button type="button" id="t-btn-clear" style="padding:6px 12px; font-size:12.5px; border-radius:6px; border:1px solid #dc2626; background:#991b1b; color:#fff; cursor:pointer;">🧹 清空</button>
+        </div>
+
+        <div id="t-word-grid" style="max-height:180px; overflow-y:auto; display:grid; grid-template-columns:repeat(auto-fill, minmax(130px, 1fr)); gap:6px; padding:6px; background:#1e293b; border:1px solid #334155; border-radius:8px;">
+          <div style="grid-column:1/-1; text-align:center; padding:15px; color:#94a3b8; font-size:13px;">載入單字庫中...</div>
+        </div>
+
+        <div style="margin-top:8px;">
+          <details open style="font-size:12.5px; color:#94a3b8;">
+            <summary style="cursor:pointer; font-weight:600; color:#818cf8; user-select:none; margin-bottom:4px;">
+              👁️ 已選單字預覽 (<span id="t-preview-count">0</span> 字，點擊 ✕ 可移除)
+            </summary>
+            <div id="t-preview-tags" style="display:flex; flex-wrap:wrap; gap:4px; max-height:85px; overflow-y:auto; padding:6px; background:#1e293b; border:1px solid #334155; border-radius:6px;">
+              <span style="color:#64748b; font-size:12px;">尚未選取任何單字</span>
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:12px; align-items:center; margin-bottom:12px;">
+        <div style="flex:1;">
+          <label style="font-size:13px; font-weight:600; display:block; margin-bottom:4px; color:#cbd5e1;">測驗模式：</label>
+          <select id="t-modal-mode" style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #475569; background:#0f172a; color:#fff; font-size:13.5px;">
+            <option value="抽測">🎲 隨機抽測 N 題</option>
+            <option value="全考">💯 全部都考 (考所選的所有單字)</option>
+          </select>
+        </div>
+        <div id="t-modal-count-wrap" style="width:130px;">
+          <label style="font-size:13px; font-weight:600; display:block; margin-bottom:4px; color:#cbd5e1;">抽測題數：</label>
+          <input type="number" id="t-modal-count" value="5" min="1" max="100"
+            style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #475569; background:#0f172a; color:#fff; font-size:13.5px; box-sizing:border-box;">
+        </div>
+      </div>
+
+      <div style="display:flex; gap:10px;">
+        <button id="t-btn-publish" style="flex:1.2; padding:11px; font-weight:bold; font-size:14px; border-radius:8px; background:#2563eb; color:#fff; border:none; cursor:pointer;">
+          💾 發布任務至試算表 (同步給全班)
+        </button>
+        <button id="t-btn-preview-run" style="flex:1; padding:11px; font-weight:bold; font-size:14px; border-radius:8px; background:#7c3aed; color:#fff; border:none; cursor:pointer;">
+          🎯 立即以此單字開始測驗 (預覽)
+        </button>
+      </div>
+
+      <div id="t-modal-msg" style="font-size:13px; text-align:center; min-height:18px; margin-top:8px; color:#38bdf8;"></div>
+    </div>
+  </div>
+
 </body>
 </html>
