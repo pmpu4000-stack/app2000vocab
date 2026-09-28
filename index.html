@@ -220,6 +220,14 @@
           if (teacherBtn) {
             teacherBtn.style.display = (result.role === "teacher" || result.isAdmin) ? "flex" : "none";
           }
+          if (result.role === "teacher") {
+            if (Array.isArray(result.classList) && result.classList.length > 0) {
+              localStorage.setItem("teacher_class_list", JSON.stringify(result.classList));
+            }
+            if (result.className) {
+              localStorage.setItem("teacher_my_class", result.className);
+            }
+          }
           sessionStorage.setItem("current_pass", pass);
           
           // 若有今日指定任務，存入 sessionStorage 與 localStorage 供 app.js 抓取
@@ -478,6 +486,57 @@
       }
     }
 
+    function populateTeacherClassOptions() {
+      const sel = document.getElementById("t-modal-class-select");
+      if (!sel) return;
+      
+      let savedClasses = [];
+      try {
+        const raw = localStorage.getItem("teacher_class_list");
+        if (raw) savedClasses = JSON.parse(raw);
+      } catch(_) {}
+      
+      const myClass = (localStorage.getItem("teacher_my_class") || "").replace(/班$/, "").trim();
+      const defaultClasses = ["701", "702", "703", "704", "705", "801", "802", "803", "804", "805", "901", "902", "903", "904", "905"];
+      const combinedSet = new Set([...savedClasses, ...defaultClasses]);
+      if (myClass && myClass !== "all") combinedSet.add(myClass);
+      
+      const sorted = Array.from(combinedSet).sort();
+      let html = `<option value="all">🌐 全校 / 所有班級 (all)</option>`;
+      if (myClass && myClass !== "all") {
+        html += `<option value="${myClass}">⭐ 我的班級：${myClass} 班</option>`;
+      }
+      
+      const g7 = sorted.filter(c => /^7\d{2}/.test(c) || c.startsWith("七"));
+      const g8 = sorted.filter(c => /^8\d{2}/.test(c) || c.startsWith("八"));
+      const g9 = sorted.filter(c => /^9\d{2}/.test(c) || c.startsWith("九"));
+      const others = sorted.filter(c => !g7.includes(c) && !g8.includes(c) && !g9.includes(c));
+
+      if (g7.length > 0) {
+        html += `<optgroup label="七年級 (國一)">` + g7.map(c => `<option value="${c}">🏫 ${c} 班</option>`).join("") + `</optgroup>`;
+      }
+      if (g8.length > 0) {
+        html += `<optgroup label="八年級 (國二)">` + g8.map(c => `<option value="${c}">🏫 ${c} 班</option>`).join("") + `</optgroup>`;
+      }
+      if (g9.length > 0) {
+        html += `<optgroup label="九年級 (國三)">` + g9.map(c => `<option value="${c}">🏫 ${c} 班</option>`).join("") + `</optgroup>`;
+      }
+      if (others.length > 0) {
+        html += `<optgroup label="其他班級/專班">` + others.map(c => `<option value="${c}">🏫 ${c}</option>`).join("") + `</optgroup>`;
+      }
+      html += `<option value="custom">✏️ 自訂輸入其他班級...</option>`;
+      sel.innerHTML = html;
+      
+      if (myClass && myClass !== "all") {
+        sel.value = myClass;
+      } else {
+        sel.value = "all";
+      }
+
+      const customInp = document.getElementById("t-modal-class-custom");
+      if (customInp) customInp.style.display = "none";
+    }
+
     window.openTeacherModal = function() {
       const modal = document.getElementById("teacherTaskModal");
       if (!modal) return;
@@ -488,6 +547,7 @@
       if (dateInp && !dateInp.value) {
         dateInp.value = todayDash;
       }
+      populateTeacherClassOptions();
       loadPickerData().then(() => {
         renderPickerGrid();
         updatePickerPreview();
@@ -505,6 +565,20 @@
 
       const closeBtn = document.getElementById("btnCloseTeacherModal");
       if (closeBtn) closeBtn.onclick = window.closeTeacherModal;
+
+      // 班級下拉選單切換
+      const classSel = document.getElementById("t-modal-class-select");
+      const customInp = document.getElementById("t-modal-class-custom");
+      if (classSel && customInp) {
+        classSel.onchange = () => {
+          if (classSel.value === "custom") {
+            customInp.style.display = "block";
+            customInp.focus();
+          } else {
+            customInp.style.display = "none";
+          }
+        };
+      }
 
       // 篩選標籤
       document.querySelectorAll(".btn-picker-chip").forEach(btn => {
@@ -587,9 +661,12 @@
             return;
           }
           const currentUser = localStorage.getItem("current_user");
-          const currentPass = sessionStorage.getItem("current_pass");
-          const targetClass = (document.getElementById("t-modal-class").value || "all").trim();
-          const d = new Date();
+          const selClass = document.getElementById("t-modal-class-select");
+          const customClassInp = document.getElementById("t-modal-class-custom");
+          let targetClass = selClass ? selClass.value : "all";
+          if (targetClass === "custom") {
+            targetClass = (customClassInp && customClassInp.value ? customClassInp.value.trim() : "all");
+          }
           const todayDash = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
           const dateInp = document.getElementById("t-modal-date");
           const targetDate = (dateInp && dateInp.value ? dateInp.value : todayDash).trim() || todayDash;
@@ -711,8 +788,36 @@
         </div>
         <div>
           <label style="font-size:13px; font-weight:600; display:block; margin-bottom:4px; color:#cbd5e1;">🏫 目標班級：</label>
-          <input type="text" id="t-modal-class" placeholder="例：701 或 all" value="all"
-            style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #475569; background:#0f172a; color:#fff; font-size:14px; box-sizing:border-box;">
+          <div style="display:flex; gap:6px; align-items:center;">
+            <select id="t-modal-class-select"
+              style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #475569; background:#0f172a; color:#fff; font-size:13.5px; box-sizing:border-box; cursor:pointer;">
+              <option value="all">🌐 全校 / 所有班級 (all)</option>
+              <optgroup label="七年級 (國一)">
+                <option value="701">🏫 701 班</option>
+                <option value="702">🏫 702 班</option>
+                <option value="703">🏫 703 班</option>
+                <option value="704">🏫 704 班</option>
+                <option value="705">🏫 705 班</option>
+              </optgroup>
+              <optgroup label="八年級 (國二)">
+                <option value="801">🏫 801 班</option>
+                <option value="802">🏫 802 班</option>
+                <option value="803">🏫 803 班</option>
+                <option value="804">🏫 804 班</option>
+                <option value="805">🏫 805 班</option>
+              </optgroup>
+              <optgroup label="九年級 (國三)">
+                <option value="901">🏫 901 班</option>
+                <option value="902">🏫 902 班</option>
+                <option value="903">🏫 903 班</option>
+                <option value="904">🏫 904 班</option>
+                <option value="905">🏫 905 班</option>
+              </optgroup>
+              <option value="custom">✏️ 自訂輸入其他班級...</option>
+            </select>
+            <input type="text" id="t-modal-class-custom" placeholder="請輸入班級"
+              style="display:none; width:110px; padding:8px 10px; border-radius:8px; border:1px solid #6366f1; background:#0f172a; color:#fff; font-size:13.5px; box-sizing:border-box;">
+          </div>
         </div>
         <div>
           <label style="font-size:13px; font-weight:600; display:block; margin-bottom:4px; color:#cbd5e1;">📝 任務名稱：</label>
