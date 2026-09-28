@@ -75,7 +75,6 @@
         <div class="stage" id="stage"></div>
         <div class="feedback" id="feedback"></div>
         <div class="actions">
-          <button class="btn ghost" id="peekBtn" title="偷看一下答案">👀 偷看</button>
           <button class="btn primary" id="checkBtn">檢查 Check</button>
         </div>
       </main>
@@ -86,7 +85,6 @@
         <h3>
           <span>學習進度 Progress</span>
           <span style="display:flex;gap:14px">
-            <a id="placeBtn" title="重新測驗你的程度">🎯 測程度</a>
             <a id="sumBtn" title="看學習總結與答對率">📊 總結</a>
           </span>
         </h3>
@@ -127,8 +125,23 @@
 
     function updateAccountDisplay(username, role) {
       const sUser = document.getElementById("s-user");
+      const statEl = document.getElementById("stat-user");
       if (sUser) {
         sUser.textContent = username || "-";
+        sUser.title = username || "";
+        // 帳號字數較長時自適應調整字體，防止破版：>10字元13px，>7字元15px，否則18px
+        if (username && username.length > 10) {
+          sUser.style.fontSize = "13px";
+        } else if (username && username.length > 7) {
+          sUser.style.fontSize = "15px";
+        } else {
+          sUser.style.fontSize = "18px";
+        }
+      }
+      if (statEl) {
+        statEl.title = username
+          ? `目前登入帳號：${username}${role ? ` (${role === 'teacher' ? '教師' : '學生'})` : ''}\n（若帳號過長將自動以省略號顯示，點擊可查看完整帳號或切換）`
+          : "登入帳號";
       }
     }
 
@@ -673,7 +686,7 @@
       </div>
 
       <p style="font-size:13px; color:#94a3b8; margin:0 0 14px 0; line-height:1.4;">
-        從 2000 單字庫中直接點選、搜尋或隨機抽取單字。學生登入時將優先進行純聽拼測驗（無偷看），考完自動解鎖自由闖關！
+        從 2000 單字庫中直接點選、搜尋或隨機抽取單字。學生登入時將優先進行純聽拼測驗，考完自動解鎖自由闖關！
       </p>
 
       <div style="display:grid; grid-template-columns: 1fr 1.6fr; gap:12px; margin-bottom:12px;">

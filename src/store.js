@@ -26,7 +26,7 @@ function fresh() {
   return {
     box: {}, stat: {}, lstat: {},
     mstat: { listen: { a: 0, c: 0 }, pick: { a: 0, c: 0 }, scramble: { a: 0, c: 0 }, trap: { a: 0, c: 0 } },
-    level: { current: 1, unlocked: 1, placed: false },
+    level: { current: 1, unlocked: 1, placed: true },
     // one day's training run; counters reset each time you "start today's training"
     session: { active: false, date: null, answered: 0, correct: 0, incorrect: 0, ids: {}, mastered: 0 },
     // per-day practice log, keyed by date -> { a: answered, c: correct, w: wrong, m: newly mastered }
@@ -43,7 +43,7 @@ function load() {
     const merged = {
       ...base, ...d,
       mstat: { ...base.mstat, ...(d.mstat || {}) },
-      level: { ...base.level, ...(d.level || {}) },
+      level: { ...base.level, ...(d.level || {}), placed: true },
       session: { ...base.session, ...(d.session || {}) },
       history: d.history || {},
     };

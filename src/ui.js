@@ -11,7 +11,7 @@ const el = {
   playScreen: $("#screen-play"), quizScreen: $("#screen-quiz"),
   levelbar: $("#levelbar"), modes: $("#modes"), stage: $("#stage"), fb: $("#feedback"),
   catlabel: $("#catlabel"), modehint: $("#modehint"), zh: $("#zh"), sent: $("#sent"),
-  peekBtn: $("#peekBtn"), checkBtn: $("#checkBtn"), summary: $("#summary"),
+  peekBtn: $("#peekBtn") || null, checkBtn: $("#checkBtn"), summary: $("#summary"),
   card: $("#card"), banner: $("#banner"), session: $("#session"),
   quizhead: $("#quizhead"), quizbar: $("#quizprog-bar"), quizstage: $("#quizstage"),
 };
@@ -82,7 +82,7 @@ export function initModes(mode, onPick) {
 // ---------- one practice round ----------
 export function renderRound(word, mode, { onAnswer, onCheck, disablePeek }) {
   el.fb.textContent = ""; el.fb.className = "feedback";
-  el.peekBtn.style.display = (mode === "pick" || disablePeek) ? "none" : "";
+  if (el.peekBtn) el.peekBtn.style.display = "none";
   el.checkBtn.style.display = ""; el.checkBtn.disabled = false;
   el.checkBtn.textContent = "檢查 Check"; el.checkBtn.className = "btn primary";
 
@@ -242,9 +242,7 @@ export function setActionNext() {
   el.checkBtn.textContent = "下一個 Next →"; el.checkBtn.className = "btn go";
 }
 export function peek(word) {
-  say(word.word);
-  el.fb.className = "feedback";
-  el.fb.innerHTML = `<span class="reveal" style="display:inline;font-size:26px">🔍 ${revealHtml(word)}</span>`;
+  // 偷看功能已全面移除
 }
 
 // ---------- header, progress bar, gate banner ----------
@@ -253,6 +251,19 @@ export function renderProgress(s) {
   const userEl = $("#s-user");
   if (userEl && u) {
     userEl.textContent = u;
+    userEl.title = u;
+    const statEl = document.getElementById("stat-user");
+    if (statEl) {
+      statEl.title = `目前登入帳號：${u}\n（若帳號過長將自動以省略號顯示，點擊可查看完整帳號或切換）`;
+    }
+    // 帳號字數較長時自適應調整字體，防止破版：>10字元13px，>7字元15px，否則18px
+    if (u.length > 10) {
+      userEl.style.fontSize = "13px";
+    } else if (u.length > 7) {
+      userEl.style.fontSize = "15px";
+    } else {
+      userEl.style.fontSize = "18px";
+    }
   }
   $("#s-level").textContent = s.currentLevel;
   $("#s-correct").textContent = s.distinctCorrect;
@@ -407,4 +418,4 @@ export function onPeek(fn) { el.peekBtn.onclick = fn; }
 export function onCheckClick(fn) { el.checkBtn.onclick = fn; }
 export function onReset(fn) { const btn = $("#resetBtn"); if (btn) btn.onclick = fn; }
 export function onSummary(fn) { $("#sumBtn").onclick = fn; }
-export function onPlace(fn) { $("#placeBtn").onclick = fn; }
+export function onPlace(fn) { const btn = $("#placeBtn"); if (btn) btn.onclick = fn; }

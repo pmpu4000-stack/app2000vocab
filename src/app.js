@@ -156,10 +156,8 @@ function refreshChrome() {
   ui.renderBanner(cur, ls, ready, hint, startChallenge);
   if (!ui.summaryHidden()) ui.renderSummary(store.summary(WORDS));
 
-  // ⚠️ 今日指定測驗進行中或待開始：強制隱藏偷看按鈕、模式列、關卡列
+  // ⚠️ 今日指定測驗進行中或待開始：強制隱藏模式列、關卡列
   if (taskState.active || taskState.pending) {
-    const peekBtn = document.getElementById("peekBtn");
-    if (peekBtn) peekBtn.style.display = "none";
     const modesEl = document.getElementById("modes");
     if (modesEl) modesEl.style.display = "none";
     const levelBar = document.getElementById("levelbar");
@@ -172,10 +170,10 @@ function renderCurrent() {
   state.round = ui.renderRound(state.word, state.mode, { 
     onAnswer: answer, 
     onCheck: check,
-    disablePeek: isTask 
+    disablePeek: true 
   });
   
-  // ── 若為今日任務模式：嚴格鎖定純聽拼、禁止偷看、隱藏模式與關卡 ──
+  // ── 若為今日任務模式：嚴格鎖定純聽拼、隱藏模式與關卡 ──
   if (isTask && taskState.task) {
     const catLabel = document.getElementById("catlabel");
     const modeHint = document.getElementById("modehint");
@@ -185,9 +183,7 @@ function renderCurrent() {
     }
     if (modeHint) modeHint.textContent = `【${taskState.task.taskName}】純聽拼測驗中`;
 
-    // 嚴格強制隱藏偷看按鈕與關卡/模式列
-    const peekBtn = document.getElementById("peekBtn");
-    if (peekBtn) peekBtn.style.display = "none";
+    // 嚴格強制隱藏關卡/模式列
     const modesEl = document.getElementById("modes");
     if (modesEl) modesEl.style.display = "none";
     const levelBar = document.getElementById("levelbar");
@@ -253,10 +249,6 @@ function answer(correct) {
     // 每作答完一題立即更新持久化進度並同步雲端！
     persistTaskProgress();
     refreshChrome();
-
-    // 答題後顯示下一題時，依然強制隱藏偷看按鈕
-    const peekBtn = document.getElementById("peekBtn");
-    if (peekBtn) peekBtn.style.display = "none";
 
     ui.setActionNext();
     return;
@@ -438,8 +430,6 @@ function checkAndStartDailyTask() {
     taskState.pending = false;
 
     // 確保按鈕恢復自由模式
-    const peekBtn = document.getElementById("peekBtn");
-    if (peekBtn) peekBtn.style.display = "";
     const checkBtn = document.getElementById("checkBtn");
     if (checkBtn) checkBtn.style.display = "";
     const modesEl = document.getElementById("modes");
@@ -499,8 +489,6 @@ function checkAndStartDailyTask() {
   if (!taskToRun) {
     taskState.active = false;
     taskState.pending = false;
-    const peekBtn = document.getElementById("peekBtn");
-    if (peekBtn) peekBtn.style.display = "";
     const checkBtn = document.getElementById("checkBtn");
     if (checkBtn) checkBtn.style.display = "";
     const modesEl = document.getElementById("modes");
@@ -588,9 +576,7 @@ function showTaskIntroScreen(task) {
   taskState.correct    = resumeCorrect;
   taskState.wrongWords = (savedProgress && Array.isArray(savedProgress.wrongWords)) ? savedProgress.wrongWords : [];
 
-  // 隱藏自由模式按鈕與偷看按鈕
-  const peekBtn = document.getElementById("peekBtn");
-  if (peekBtn) peekBtn.style.display = "none";
+  // 隱藏自由模式按鈕
   const checkBtn = document.getElementById("checkBtn");
   if (checkBtn) checkBtn.style.display = "none";
   const modesEl = document.getElementById("modes");
@@ -643,7 +629,7 @@ function showTaskIntroScreen(task) {
           </div>
           <div style="display:flex; justify-content:space-between; margin-bottom:3px;">
             <span>🎧 測驗模式：</span>
-            <b style="color:#f43f5e;">純聽拼音（防偷看）</b>
+            <b style="color:#6366f1;">純聽音拼字</b>
           </div>
           <div style="display:flex; justify-content:space-between;">
             <span>💾 隨時存檔防護：</span>
@@ -675,11 +661,9 @@ function startTaskExecution() {
   taskState.active  = true;
   state.mode        = "listen"; // 強制純聽音拼字
 
-  // 還原檢查按鈕，維持隱藏偷看
+  // 還原檢查按鈕
   const checkBtn = document.getElementById("checkBtn");
   if (checkBtn) checkBtn.style.display = "";
-  const peekBtn = document.getElementById("peekBtn");
-  if (peekBtn) peekBtn.style.display = "none";
   const modesEl = document.getElementById("modes");
   if (modesEl) modesEl.style.display = "none";
   const levelBar = document.getElementById("levelbar");
@@ -722,9 +706,7 @@ function finishTaskMode() {
   };
   localStorage.setItem("today_task_summary", JSON.stringify(summaryObj));
 
-  // 4. 還原自由模式按鈕與偷看
-  const peekBtn = document.getElementById("peekBtn");
-  if (peekBtn) peekBtn.style.display = "";
+  // 4. 還原自由模式按鈕
   const checkBtn = document.getElementById("checkBtn");
   if (checkBtn) checkBtn.style.display = "";
   const modesEl = document.getElementById("modes");
@@ -775,13 +757,7 @@ ui.initModes(state.mode, (mode) => {
 });
 
 ui.onCheckClick(check);
-ui.onPeek(() => { 
-  if (taskState.active || taskState.pending) return; // 任務模式中禁止偷看
-  if (state.word) ui.peek(state.word); 
-});
-
 ui.onSummary(() => ui.toggleSummary(store.summary(WORDS)));
-ui.onPlace(() => startPlacement());
 
 // ---- boot ----
 (async function boot() {
@@ -813,12 +789,10 @@ ui.onPlace(() => startPlacement());
     ui.setScreen("play"); 
     refreshChrome(); 
     checkAndStartDailyTask(); 
-  } else if (store.progress().placed) { 
+  } else { 
     ui.setScreen("play"); 
     refreshChrome(); 
     checkAndStartDailyTask(); 
-  } else {
-    startPlacement();
   }
 })();
 
