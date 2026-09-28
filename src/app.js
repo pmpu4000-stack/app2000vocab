@@ -247,7 +247,7 @@ function answer(correct) {
     }
     
     // 依然更新背單字進度
-    const info = store.grade(state.word.id, correct, store.progress().current);
+    const info = store.grade(state.word.id, correct, store.progress().current, state.mode);
     ui.showResult(correct, state.word, info);
     taskState.index++;
     // 每作答完一題立即更新持久化進度並同步雲端！
@@ -263,7 +263,7 @@ function answer(correct) {
   }
 
   // ── 自由闖關中答錯：正常升降級，但不收錄至週末錯題庫 ──
-  const info = store.grade(state.word.id, correct, store.progress().current);
+  const info = store.grade(state.word.id, correct, store.progress().current, state.mode);
   ui.showResult(correct, state.word, info);
   if (correct) burst();
   refreshChrome();

@@ -249,6 +249,11 @@ export function peek(word) {
 
 // ---------- header, progress bar, gate banner ----------
 export function renderProgress(s) {
+  const u = localStorage.getItem("current_user");
+  const userEl = $("#s-user");
+  if (userEl && u) {
+    userEl.textContent = u;
+  }
   $("#s-level").textContent = s.currentLevel;
   $("#s-correct").textContent = s.distinctCorrect;
   $("#s-streak").textContent = s.streak;
@@ -286,6 +291,8 @@ export function renderBanner(level, ls, ready, hint, onChallenge) {
 // ---------- summary ----------
 export function summaryHidden() { return el.summary.hidden; }
 export function renderSummary(d) {
+  const currentUser = localStorage.getItem("current_user") || "";
+  const userTagHtml = currentUser ? `<span style="font-size:13px;font-weight:700;color:var(--sky);background:rgba(56,189,248,0.12);padding:2px 8px;border-radius:999px;margin-left:8px;border:1px solid rgba(56,189,248,0.25);">👤 ${currentUser}</span>` : "";
   const lvRows = d.levels
     .map((L) => `<tr><td><span style="color:${levelColor(L.level)}">●</span> Level ${L.level}「${levelName(L.level)}」</td><td>正確率 ${L.rate}%／精通 ${L.mast}／共 ${L.total}</td></tr>`)
     .join("");
@@ -295,7 +302,7 @@ export function renderSummary(d) {
   const mastered = d.mastered.slice(0, 60), fixed = d.fixed.slice(0, 60);
 
   el.summary.innerHTML = `
-    <h3>📊 學習總結 Summary <a id="sumClose">收起 ✕</a></h3>
+    <h3>📊 學習總結 Summary ${userTagHtml} <a id="sumClose">收起 ✕</a></h3>
     <div class="bigrate">
       <b class="tnum">${d.passRate}%</b>
       <span>總答對率<br><small>${d.correct} 題對 / 共作答 ${d.attempts} 題</small></span>
@@ -305,6 +312,29 @@ export function renderSummary(d) {
     </div>
     <div class="subh">各關卡進度</div>
     <table class="sumtable">${lvRows}</table>
+    <div class="subh">🎮 4 大練習模式答題數</div>
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(110px, 1fr)); gap:8px; margin:8px 0 14px;">
+      <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:8px 10px; text-align:center;">
+        <div style="font-size:12px; color:var(--ink3); font-weight:700;">🎧 聽與拼</div>
+        <div style="font-weight:700; font-size:15px; margin:2px 0;">${(d.modeStats?.listen?.a || 0)} 題</div>
+        <div style="font-size:11px; color:var(--green);">答對 ${d.modeStats?.listen?.c || 0} (${d.modeStats?.listen?.a ? Math.round((d.modeStats.listen.c / d.modeStats.listen.a)*100) : 0}%)</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:8px 10px; text-align:center;">
+        <div style="font-size:12px; color:var(--ink3); font-weight:700;">✅ 選拼法</div>
+        <div style="font-weight:700; font-size:15px; margin:2px 0;">${(d.modeStats?.pick?.a || 0)} 題</div>
+        <div style="font-size:11px; color:var(--green);">答對 ${d.modeStats?.pick?.c || 0} (${d.modeStats?.pick?.a ? Math.round((d.modeStats.pick.c / d.modeStats.pick.a)*100) : 0}%)</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:8px 10px; text-align:center;">
+        <div style="font-size:12px; color:var(--ink3); font-weight:700;">🧩 重組</div>
+        <div style="font-weight:700; font-size:15px; margin:2px 0;">${(d.modeStats?.scramble?.a || 0)} 題</div>
+        <div style="font-size:11px; color:var(--green);">答對 ${d.modeStats?.scramble?.c || 0} (${d.modeStats?.scramble?.a ? Math.round((d.modeStats.scramble.c / d.modeStats.scramble.a)*100) : 0}%)</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:8px 10px; text-align:center;">
+        <div style="font-size:12px; color:var(--ink3); font-weight:700;">🖍️ 填陷阱</div>
+        <div style="font-weight:700; font-size:15px; margin:2px 0;">${(d.modeStats?.trap?.a || 0)} 題</div>
+        <div style="font-size:11px; color:var(--green);">答對 ${d.modeStats?.trap?.c || 0} (${d.modeStats?.trap?.a ? Math.round((d.modeStats.trap.c / d.modeStats.trap.a)*100) : 0}%)</div>
+      </div>
+    </div>
     <div class="subh">✅ 已精通 ${d.mastered.length} 字（連續答對 3 次）</div>
     <div class="chips-wrap">${mastered.length ? mastered.map(chip).join("") : none("還沒有，繼續加油！")}</div>
     <div class="subh">🛠️ 曾拼錯、現在已訂正 ${d.fixed.length} 字</div>

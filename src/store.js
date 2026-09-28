@@ -25,6 +25,7 @@ function dayAgo(offset) {
 function fresh() {
   return {
     box: {}, stat: {}, lstat: {},
+    mstat: { listen: { a: 0, c: 0 }, pick: { a: 0, c: 0 }, scramble: { a: 0, c: 0 }, trap: { a: 0, c: 0 } },
     level: { current: 1, unlocked: 1, placed: false },
     // one day's training run; counters reset each time you "start today's training"
     session: { active: false, date: null, answered: 0, correct: 0, incorrect: 0, ids: {}, mastered: 0 },
@@ -41,6 +42,7 @@ function load() {
     const base = fresh();
     const merged = {
       ...base, ...d,
+      mstat: { ...base.mstat, ...(d.mstat || {}) },
       level: { ...base.level, ...(d.level || {}) },
       session: { ...base.session, ...(d.session || {}) },
       history: d.history || {},
@@ -60,8 +62,8 @@ export function box(id) { return DB.box[id] || 0; }
 export function everWrong(id) { return !!(DB.stat[id] && DB.stat[id].ew); }
 export function correctCount(id) { return DB.stat[id] ? DB.stat[id].c : 0; }
 
-// Grade one practice attempt. `level` (optional) also updates that level's tally.
-export function grade(id, correct, level) {
+// Grade one practice attempt. `level` (optional) also updates that level's tally. `mode` (optional) tracks 4 practice modes.
+export function grade(id, correct, level, mode) {
   const before = box(id);
   const st = DB.stat[id] || (DB.stat[id] = { a: 0, c: 0, ew: false });
   st.a++; DB.attempts++;
@@ -82,6 +84,11 @@ export function grade(id, correct, level) {
   if (level) {
     const ls = DB.lstat[level] || (DB.lstat[level] = { a: 0, c: 0 });
     ls.a++; if (correct) ls.c++;
+  }
+  if (mode) {
+    if (!DB.mstat) DB.mstat = { listen: { a: 0, c: 0 }, pick: { a: 0, c: 0 }, scramble: { a: 0, c: 0 }, trap: { a: 0, c: 0 } };
+    const ms = DB.mstat[mode] || (DB.mstat[mode] = { a: 0, c: 0 });
+    ms.a++; if (correct) ms.c++;
   }
   if (DB.session.active) {
     const s = DB.session;
@@ -210,9 +217,11 @@ export function summary(words) {
     const ws = words.filter((w) => w.cat === k);
     return { name: CATS[k].name, color: CATS[k].color, total: ws.length, mast: ws.filter((w) => box(w.id) >= 3).length };
   });
+  const modeStats = DB.mstat || { listen: { a: 0, c: 0 }, pick: { a: 0, c: 0 }, scramble: { a: 0, c: 0 }, trap: { a: 0, c: 0 } };
   return {
     passRate: s.passRate, distinctCorrect: s.distinctCorrect,
     attempts: s.attempts, correct: s.correct, total: s.total,
     mastered, fixed, levels, catCounts, history: historyData(),
+    modeStats,
   };
 }

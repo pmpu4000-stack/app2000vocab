@@ -32,6 +32,9 @@ header{display:flex; align-items:center; gap:14px; margin-bottom:16px}
 .stat span{font-size:10px;color:var(--ink3);font-weight:700;letter-spacing:.4px;text-transform:uppercase}
 .stat.lv b{color:var(--violet)} .stat.st b{color:var(--marker);-webkit-text-stroke:.6px #E4B93B} .stat.streak b{color:var(--coral)}
 .stat.ok b{color:var(--green)}
+.stat.user{border-color:rgba(56,189,248,0.35);background:rgba(56,189,248,0.08);cursor:pointer;transition:all .15s ease}
+.stat.user:hover{border-color:var(--sky);background:rgba(56,189,248,0.18)}
+.stat.user b{color:var(--sky);font-size:13.5px}
 
 /* ---------- category chips ---------- */
 .cats{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 8px;margin-bottom:6px;scrollbar-width:none}
@@ -224,7 +227,7 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 @media (max-width:520px){
-  .stats{width:100%;margin:8px 0 0} header{flex-wrap:wrap}
+  .stats{width:100%;margin:8px 0 0;flex-wrap:wrap;justify-content:center;gap:6px} header{flex-wrap:wrap}
   .title h1{font-size:20px} .tile{width:40px;height:48px;font-size:22px}
   .lvchip{min-width:96px} .banner .gate{flex-wrap:wrap} .banner .challenge{margin-left:0;width:100%}
 }

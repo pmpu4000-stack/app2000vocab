@@ -36,10 +36,17 @@
     <header>
       <div class="logo">拼</div>
       <div class="title">
-        <h1>拼字小特工 <span style="font-size:13px;color:var(--ink3)">Spelling Agent</span></h1>
+        <h1>
+          拼字小特工 <span style="font-size:13px;color:var(--ink3)">Spelling Agent</span>
+          <span id="header-user-tag" style="display:none; font-size:12px; font-weight:700; color:var(--sky); background:rgba(56,189,248,0.12); padding:2px 10px; border-radius:999px; border:1px solid rgba(56,189,248,0.3); vertical-align:middle; margin-left:6px;">👤 <span id="header-username"></span></span>
+        </h1>
         <p>破解英文拼字的 5 大關卡 · 每天 10 分鐘</p>
       </div>
       <div class="stats">
+        <div class="stat user" id="stat-user" title="目前登入帳號（點擊可切換帳號或登出）">
+          <b id="s-user" class="tnum" style="max-width:85px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:inline-block;">-</b>
+          <span>登入帳號</span>
+        </div>
         <div class="stat upload" id="btn-upload" style="cursor:pointer;" title="點擊上傳目前練習進度">
           <b id="s-upload" class="tnum">🌱</b>
           <span>上傳紀錄</span>
@@ -122,6 +129,69 @@
     // ⚠️ 請替換為你實際部署成功的 Apps Script Web App 網址
     const scriptUrl = "https://script.google.com/macros/s/AKfycbx1hyCNJxqFMoaJgIxfZqLYIYH00NegI1Yd8NJP6gRjqwOndWGkmr-H9tGvVwK_axM9/exec";
 
+    function updateAccountDisplay(username, role) {
+      const sUser = document.getElementById("s-user");
+      if (sUser) {
+        sUser.textContent = username || "-";
+        sUser.title = `目前登入帳號：${username || "無"}${role ? ` (${role === 'teacher' ? '教師' : '學生'})` : ''}\n點擊可登出切換帳號`;
+      }
+      const tag = document.getElementById("header-user-tag");
+      const tagName = document.getElementById("header-username");
+      if (tag && tagName) {
+        if (username) {
+          tag.style.display = "inline-flex";
+          tag.style.alignItems = "center";
+          tagName.textContent = `${username}${role === 'teacher' ? ' (教師)' : ''}`;
+        } else {
+          tag.style.display = "none";
+        }
+      }
+    }
+
+    // 頁面載入時若已有儲存之帳號，預先填入並更新顯示
+    const savedUser = localStorage.getItem("current_user");
+    const savedRole = localStorage.getItem("user_role");
+    if (savedUser) {
+      const loginUser = document.getElementById("login-user");
+      if (loginUser && !loginUser.value) loginUser.value = savedUser;
+      updateAccountDisplay(savedUser, savedRole);
+    }
+
+    // 點擊「登入帳號」欄位可確認資訊或切換登出
+    const statUser = document.getElementById("stat-user");
+    if (statUser) {
+      statUser.onclick = () => {
+        const cur = localStorage.getItem("current_user") || "尚未登入";
+        const role = localStorage.getItem("user_role") === "teacher" ? "教師" : "學生";
+        if (confirm(`【帳號資訊】\n目前登入帳號：${cur} (${role})\n\n是否要登出並切換其他帳號？`)) {
+          sessionStorage.removeItem("current_pass");
+          sessionStorage.removeItem("assigned_task");
+          const overlay = document.getElementById("login-overlay");
+          if (overlay) {
+            overlay.style.display = "flex";
+            const msgEl = document.getElementById("login-msg");
+            if (msgEl) msgEl.textContent = "已登出，請重新輸入帳號與密碼。";
+            const passInput = document.getElementById("login-pass");
+            if (passInput) { passInput.value = ""; passInput.focus(); }
+          } else {
+            location.reload();
+          }
+        }
+      };
+    }
+
+    // 支援輸入框按下 Enter 鍵直接登入
+    ['login-user', 'login-pass'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            document.getElementById('login-btn').click();
+          }
+        });
+      }
+    });
+
     // 登入驗證、抓取雲端紀錄並動態啟動遊戲 App
     document.getElementById('login-btn').addEventListener('click', async () => {
       const user = document.getElementById('login-user').value.trim();
@@ -146,6 +216,7 @@
         if (result.status === "success") {
           localStorage.setItem("current_user", user);
           localStorage.setItem("user_role", result.role || "student");
+          updateAccountDisplay(user, result.role || "student");
           const teacherBtn = document.getElementById("btn-teacher-picker");
           if (teacherBtn) {
             teacherBtn.style.display = (result.role === "teacher" || result.isAdmin) ? "flex" : "none";
