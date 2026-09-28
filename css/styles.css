@@ -33,7 +33,7 @@ header{display:flex; align-items:center; gap:14px; margin-bottom:16px}
 .stat.lv b{color:var(--violet)} .stat.st b{color:var(--marker);-webkit-text-stroke:.6px #E4B93B} .stat.streak b{color:var(--coral)}
 .stat.user{cursor:pointer;transition:transform .12s,background .12s,border-color .12s}
 .stat.user:hover{border-color:var(--sky);background:rgba(56,189,248,.08)}
-.stat.user b{color:var(--sky);max-width:95px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+.stat.user b{color:var(--sky);white-space:nowrap;display:block}
 
 /* ---------- category chips ---------- */
 .cats{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 8px;margin-bottom:6px;scrollbar-width:none}

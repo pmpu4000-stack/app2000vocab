@@ -254,11 +254,13 @@ export function renderProgress(s) {
     userEl.title = u;
     const statEl = document.getElementById("stat-user");
     if (statEl) {
-      statEl.title = `目前登入帳號：${u}\n（若帳號過長將自動以省略號顯示，點擊可查看完整帳號或切換）`;
+      statEl.title = `目前登入帳號：${u}\n（點擊可查看帳號詳情或切換）`;
     }
-    // 帳號字數較長時自適應調整字體，防止破版：>10字元13px，>7字元15px，否則18px
-    if (u.length > 10) {
-      userEl.style.fontSize = "13px";
+    // 帳號字數較長時自適應調整字體，完整呈現不省略：>14字元12px，>10字元13.5px，>7字元15px，否則18px
+    if (u.length > 14) {
+      userEl.style.fontSize = "12px";
+    } else if (u.length > 10) {
+      userEl.style.fontSize = "13.5px";
     } else if (u.length > 7) {
       userEl.style.fontSize = "15px";
     } else {

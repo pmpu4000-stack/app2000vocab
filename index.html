@@ -40,19 +40,19 @@
         <p>破解英文拼字的 5 大關卡 · 每天 10 分鐘</p>
       </div>
       <div class="stats">
+        <div class="stat" id="btn-teacher-picker" style="cursor:pointer; display:none; background:rgba(99,102,241,0.25); border:1px solid #6366f1; border-radius:10px;" title="老師/管理員出題（可指定日期出題）">
+          <b class="tnum" style="color:#a5b4fc">📝</b>
+          <span style="color:#c7d2fe; font-weight:700;">每日測驗出題</span>
+        </div>
         <div class="stat upload" id="btn-upload" style="cursor:pointer;" title="點擊上傳目前練習進度">
           <b id="s-upload" class="tnum">🌱</b>
           <span>上傳紀錄</span>
-        </div>
-        <div class="stat" id="btn-teacher-picker" style="cursor:pointer; display:none; background:rgba(99,102,241,0.25); border:1px solid #6366f1; border-radius:10px;" title="老師/管理員出題">
-          <b class="tnum" style="color:#a5b4fc">📝</b>
-          <span style="color:#c7d2fe; font-weight:700;">挑選單字出題</span>
         </div>
         <div class="stat lv"><b id="s-level" class="tnum">1</b><span>等級 LV</span></div>
         <div class="stat ok"><b id="s-correct" class="tnum">0</b><span>答對字</span></div>
         <div class="stat streak"><b id="s-streak" class="tnum">0</b><span>連勝</span></div>
         <div class="stat rate"><b id="s-rate" class="tnum">0%</b><span>答對率</span></div>
-        <div class="stat user" id="stat-user" title="目前登入帳號（點擊可切換帳號或登出）">
+        <div class="stat user" id="stat-user" title="目前登入帳號">
           <b id="s-user" class="tnum">-</b>
           <span>登入帳號</span>
         </div>
@@ -129,9 +129,11 @@
       if (sUser) {
         sUser.textContent = username || "-";
         sUser.title = username || "";
-        // 帳號字數較長時自適應調整字體，防止破版：>10字元13px，>7字元15px，否則18px
-        if (username && username.length > 10) {
-          sUser.style.fontSize = "13px";
+        // 帳號字數較長時自適應調整字體，完整呈現不省略：>14字元12px，>10字元13.5px，>7字元15px，否則18px
+        if (username && username.length > 14) {
+          sUser.style.fontSize = "12px";
+        } else if (username && username.length > 10) {
+          sUser.style.fontSize = "13.5px";
         } else if (username && username.length > 7) {
           sUser.style.fontSize = "15px";
         } else {
@@ -140,7 +142,7 @@
       }
       if (statEl) {
         statEl.title = username
-          ? `目前登入帳號：${username}${role ? ` (${role === 'teacher' ? '教師' : '學生'})` : ''}\n（若帳號過長將自動以省略號顯示，點擊可查看完整帳號或切換）`
+          ? `目前登入帳號：${username}${role ? ` (${role === 'teacher' ? '教師' : '學生'})` : ''}\n（點擊可查看帳號詳情或切換）`
           : "登入帳號";
       }
     }
@@ -480,6 +482,12 @@
       const modal = document.getElementById("teacherTaskModal");
       if (!modal) return;
       modal.style.display = "flex";
+      const d = new Date();
+      const todayDash = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+      const dateInp = document.getElementById("t-modal-date");
+      if (dateInp && !dateInp.value) {
+        dateInp.value = todayDash;
+      }
       loadPickerData().then(() => {
         renderPickerGrid();
         updatePickerPreview();
@@ -581,7 +589,11 @@
           const currentUser = localStorage.getItem("current_user");
           const currentPass = sessionStorage.getItem("current_pass");
           const targetClass = (document.getElementById("t-modal-class").value || "all").trim();
-          const taskName = (document.getElementById("t-modal-name").value || "今日指定測驗").trim();
+          const d = new Date();
+          const todayDash = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+          const dateInp = document.getElementById("t-modal-date");
+          const targetDate = (dateInp && dateInp.value ? dateInp.value : todayDash).trim() || todayDash;
+          const taskName = (document.getElementById("t-modal-name").value || "每日指定單字測驗").trim();
           const mode = document.getElementById("t-modal-mode").value;
           const count = document.getElementById("t-modal-count").value;
           const wordsStr = Array.from(pickerSelectedWords).join(", ");
@@ -599,6 +611,8 @@
                 username: currentUser,
                 password: currentPass,
                 taskData: {
+                  targetDate: targetDate,
+                  date: targetDate,
                   className: targetClass,
                   taskName: taskName,
                   words: wordsStr,
@@ -610,7 +624,7 @@
             });
             const res = await resp.json();
             if (res.status === "success") {
-              alert("🎉 發布成功！\\n目標班級：" + targetClass + "\\n任務名稱：" + taskName + "\\n單字數量：" + pickerSelectedWords.size + " 字\\n\\n學生登入時即可進行純聽拼測驗！");
+              alert("🎉 發布成功！\n指定測驗日期：" + targetDate + "\n目標班級：" + targetClass + "\n任務名稱：" + taskName + "\n單字數量：" + pickerSelectedWords.size + " 字\n\n學生於該指定日期登入時即可進行純聽拼測驗！");
               closeTeacherModal();
             } else {
               alert("發布失敗：" + (res.message || "未知原因"));
@@ -680,24 +694,29 @@
     <div style="background:#1e293b; border-radius:16px; padding:22px 24px; max-width:680px; width:94%; box-shadow:0 25px 60px rgba(0,0,0,0.5); max-height:92vh; overflow-y:auto; border:1.5px solid #475569; color:#f8fafc; font-family:system-ui, sans-serif;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
         <h3 style="margin:0; font-size:18px; display:flex; align-items:center; gap:8px; color:#fff;">
-          📝 今日指定測驗設定 (挑選單字出題)
+          📝 每日測驗出題 (可指定測驗日期)
         </h3>
         <button id="btnCloseTeacherModal" style="background:none; border:none; font-size:24px; cursor:pointer; color:#94a3b8;">&times;</button>
       </div>
 
       <p style="font-size:13px; color:#94a3b8; margin:0 0 14px 0; line-height:1.4;">
-        從 2000 單字庫中直接點選、搜尋或隨機抽取單字。學生登入時將優先進行純聽拼測驗，考完自動解鎖自由闖關！
+        可指定測驗日期與目標班級，從 2000 單字庫勾選或隨機抽單字。學生於指定日期登入時將優先進行純聽拼測驗！
       </p>
 
-      <div style="display:grid; grid-template-columns: 1fr 1.6fr; gap:12px; margin-bottom:12px;">
+      <div style="display:grid; grid-template-columns: 1.15fr 1fr 1.6fr; gap:12px; margin-bottom:12px;">
         <div>
-          <label style="font-size:13px; font-weight:600; display:block; margin-bottom:4px; color:#cbd5e1;">目標班級：</label>
+          <label style="font-size:13px; font-weight:600; display:block; margin-bottom:4px; color:#cbd5e1;">📅 指定測驗日期：</label>
+          <input type="date" id="t-modal-date"
+            style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #475569; background:#0f172a; color:#fff; font-size:13.5px; box-sizing:border-box;">
+        </div>
+        <div>
+          <label style="font-size:13px; font-weight:600; display:block; margin-bottom:4px; color:#cbd5e1;">🏫 目標班級：</label>
           <input type="text" id="t-modal-class" placeholder="例：701 或 all" value="all"
             style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #475569; background:#0f172a; color:#fff; font-size:14px; box-sizing:border-box;">
         </div>
         <div>
-          <label style="font-size:13px; font-weight:600; display:block; margin-bottom:4px; color:#cbd5e1;">任務名稱：</label>
-          <input type="text" id="t-modal-name" placeholder="例：第1課重要單字隨堂考" value="今日指定單字隨堂測驗"
+          <label style="font-size:13px; font-weight:600; display:block; margin-bottom:4px; color:#cbd5e1;">📝 任務名稱：</label>
+          <input type="text" id="t-modal-name" placeholder="例：第1課重要單字隨堂考" value="每日指定單字隨堂測驗"
             style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #475569; background:#0f172a; color:#fff; font-size:14px; box-sizing:border-box;">
         </div>
       </div>
