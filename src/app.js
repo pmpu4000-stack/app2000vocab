@@ -240,7 +240,32 @@ function pickLevel(n) {
   newRound(); 
 }
 
-function onSessionStart() { store.sessionStart(); refreshChrome(); }
+function onSessionStart() {
+  store.sessionStart();
+
+  // ★ 核心修復：如果今日有指派任務待開始（或中途進度）：點擊「開始今天的練習」立即啟動純聽拼測驗！
+  if (taskState.pending || (taskState.task && !taskState.active)) {
+    startTaskExecution();
+    return;
+  }
+
+  // ★ 檢查 storage 中是否有未初始化的指派任務或中途進度
+  const rawAssigned = sessionStorage.getItem("assigned_task") || 
+                      localStorage.getItem("assigned_task_active") ||
+                      localStorage.getItem("assigned_task_backup");
+  const rawSaved = localStorage.getItem("today_task_in_progress");
+  if (rawAssigned || rawSaved) {
+    checkAndStartDailyTask();
+    if (taskState.pending || taskState.task) {
+      startTaskExecution();
+      return;
+    }
+  }
+
+  // ★ 一般自由練習
+  refreshChrome();
+  newRound();
+}
 function onSessionEnd() { showSessionSummary(store.sessionEnd()); }
 
 function showSessionSummary(sum) {
@@ -341,15 +366,30 @@ function checkAndStartDailyTask() {
                       (localStorage.getItem("task_done_" + todaySlash) === "true");
 
   // 2. 雲端試算表回傳之「今日已完成」標記檢查
-  const rawAssigned = sessionStorage.getItem("assigned_task");
+  const rawAssigned = sessionStorage.getItem("assigned_task") || 
+                      localStorage.getItem("assigned_task_active") ||
+                      localStorage.getItem("assigned_task_backup");
   let assignedTaskObj = null;
   if (rawAssigned) {
     try { assignedTaskObj = JSON.parse(rawAssigned); } catch(_) {}
   }
   const isDoneRemote = !!(assignedTaskObj && assignedTaskObj.alreadyCompleted === true);
+  const hasActiveAssignedTask = !!(assignedTaskObj && assignedTaskObj.hasTask && assignedTaskObj.words && assignedTaskObj.words.length > 0 && !assignedTaskObj.alreadyCompleted);
+  const hasInProgressTask = (() => {
+    try {
+      const rawSaved = localStorage.getItem("today_task_in_progress");
+      if (!rawSaved) return false;
+      const parsed = JSON.parse(rawSaved);
+      const parsedDate = String(parsed.date || "").replace(/\//g, "-");
+      const currentUser = String(localStorage.getItem("current_user") || "").trim().toLowerCase();
+      const parsedUser = String(parsed.username || "").trim().toLowerCase();
+      return (parsedDate === todayDash && (!parsedUser || parsedUser === currentUser) && parsed.pool && parsed.index < parsed.pool.length);
+    } catch(_) { return false; }
+  })();
 
   // 【核心規則 1】：當日一旦完成，當日即不再開放使用該功能，直接進入自由闖關！
-  if (isDoneLocal || isDoneRemote) {
+  // ⚠️ 關鍵保護：若老師明確指派了尚未完成之任務或有中途進行中進度，不應被舊的本地殘留旗標誤鎖定
+  if (isDoneRemote || (isDoneLocal && !hasActiveAssignedTask && !hasInProgressTask)) {
     localStorage.setItem("task_done_" + todayDash, "true");
     localStorage.setItem("task_done_" + todaySlash, "true");
     localStorage.removeItem("today_task_in_progress");
@@ -397,6 +437,22 @@ function checkAndStartDailyTask() {
   // 若平日（或週末無錯題），檢查是否有老師指定的單字任務
   if (!taskToRun && assignedTaskObj && assignedTaskObj.hasTask && assignedTaskObj.words && assignedTaskObj.words.length > 0) {
     taskToRun = assignedTaskObj;
+  }
+
+  // 若 sessionStorage 遺失（如重新開啟分頁），優先從今日未完成進度恢復 taskToRun
+  if (!taskToRun) {
+    const rawSaved = localStorage.getItem("today_task_in_progress");
+    if (rawSaved) {
+      try {
+        const parsed = JSON.parse(rawSaved);
+        const parsedDate = String(parsed.date || "").replace(/\//g, "-");
+        const currentUser = String(localStorage.getItem("current_user") || "").trim().toLowerCase();
+        const parsedUser = String(parsed.username || "").trim().toLowerCase();
+        if (parsedDate === todayDash && (!parsedUser || parsedUser === currentUser) && parsed.task && parsed.pool && parsed.pool.length > 0 && parsed.index < parsed.pool.length) {
+          taskToRun = parsed.task;
+        }
+      } catch(_) {}
+    }
   }
 
   // 若今日完全無任務，直接進入一般自由闖關
@@ -565,6 +621,7 @@ function showTaskIntroScreen(task) {
 }
 
 function startTaskExecution() {
+  store.sessionStart();
   taskState.pending = false;
   taskState.active  = true;
   state.mode        = "listen"; // 強制純聽音拼字
@@ -601,6 +658,7 @@ function finishTaskMode() {
   localStorage.setItem("task_done_" + todayDash, "true");
   localStorage.setItem("task_done_" + todaySlash, "true");
   sessionStorage.setItem("assigned_task", JSON.stringify({ hasTask: false, alreadyCompleted: true }));
+  localStorage.setItem("assigned_task_active", JSON.stringify({ hasTask: false, alreadyCompleted: true }));
 
   // 3. 儲存今日任務成績摘要（標記 completed: true）
   const summaryObj = {
@@ -692,7 +750,9 @@ ui.onPlace(() => startPlacement());
     return;
   }
   // 優先檢查是否有今日指定任務或進行中進度
-  const rawAssigned = sessionStorage.getItem("assigned_task");
+  const rawAssigned = sessionStorage.getItem("assigned_task") || 
+                      localStorage.getItem("assigned_task_active") ||
+                      localStorage.getItem("assigned_task_backup");
   let assignedTaskObj = null;
   if (rawAssigned) {
     try { assignedTaskObj = JSON.parse(rawAssigned); } catch(_) {}

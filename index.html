@@ -7,12 +7,6 @@
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-  <script>
-    // 每次開啟或刷新網頁時安全初始化
-    try {
-      sessionStorage.removeItem("assigned_task");
-    } catch(_) {}
-  </script>
 
   <!-- 登入驗證遮罩 -->
   <div id="login-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#0f1117; z-index:9999; display:flex; justify-content:center; align-items:center;">
@@ -158,19 +152,25 @@
           }
           sessionStorage.setItem("current_pass", pass);
           
-          // 若有今日指定任務，存入 sessionStorage 供 app.js 抓取
+          // 若有今日指定任務，存入 sessionStorage 與 localStorage 供 app.js 抓取
           if (result.assignedTask) {
             sessionStorage.setItem("assigned_task", JSON.stringify(result.assignedTask));
+            localStorage.setItem("assigned_task_active", JSON.stringify(result.assignedTask));
+            const d = new Date();
+            const ds1 = d.getFullYear() + "/" + String(d.getMonth() + 1).padStart(2, "0") + "/" + String(d.getDate()).padStart(2, "0");
+            const ds2 = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
             if (result.assignedTask.alreadyCompleted) {
-              const d = new Date();
-              const ds1 = d.getFullYear() + "/" + String(d.getMonth() + 1).padStart(2, "0") + "/" + String(d.getDate()).padStart(2, "0");
-              const ds2 = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
               localStorage.setItem("task_done_" + ds1, "true");
               localStorage.setItem("task_done_" + ds2, "true");
               localStorage.removeItem("today_task_in_progress");
+            } else {
+              // 老師指派了新任務或今日尚未完成，清除舊的當日鎖定標記，避免誤鎖
+              localStorage.removeItem("task_done_" + ds1);
+              localStorage.removeItem("task_done_" + ds2);
             }
           } else {
             sessionStorage.removeItem("assigned_task");
+            localStorage.removeItem("assigned_task_active");
           }
 
           // 若有雲端歷史紀錄則寫入 LocalStorage
@@ -572,6 +572,12 @@
           };
 
           sessionStorage.setItem("assigned_task", JSON.stringify(taskObj));
+          localStorage.setItem("assigned_task_active", JSON.stringify(taskObj));
+          const d = new Date();
+          const ds1 = d.getFullYear() + "/" + String(d.getMonth() + 1).padStart(2, "0") + "/" + String(d.getDate()).padStart(2, "0");
+          const ds2 = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+          localStorage.removeItem("task_done_" + ds1);
+          localStorage.removeItem("task_done_" + ds2);
           closeTeacherModal();
 
           // 重新整理遊戲狀態並展示今日測驗歡迎卡
