@@ -548,6 +548,14 @@ function showTaskIntroScreen(task) {
     pool = savedProgress.pool;
     resumeIndex = savedProgress.index || 0;
     resumeCorrect = savedProgress.correct || 0;
+    if (pool && pool.length > 0 && resumeIndex >= pool.length) {
+      taskState.task = task;
+      taskState.pool = pool;
+      taskState.correct = resumeCorrect;
+      taskState.wrongWords = savedProgress.wrongWords || [];
+      finishTaskMode();
+      return;
+    }
   } else {
     // 首次準備字庫：100% 完整對應老師勾選之單字清單
     const targetWordsLower = task.words.map(w => String(w).trim().toLowerCase());

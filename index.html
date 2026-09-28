@@ -255,11 +255,19 @@
         } catch(_) {}
       }
 
-      // 2. 若無中途進度，檢查是否有已完成的成績摘要
+      // 2. 若無中途進度，檢查是否有當日已完成的成績摘要 (防禦：舊日成績不誤傳)
       if (!todayTaskSummary) {
         try {
           const rawSum = localStorage.getItem("today_task_summary");
-          if (rawSum) todayTaskSummary = JSON.parse(rawSum);
+          if (rawSum) {
+            const parsedSum = JSON.parse(rawSum);
+            const now = new Date();
+            const todayDash = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0") + "-" + String(now.getDate()).padStart(2, "0");
+            const todaySlash = todayDash.replace(/-/g, "/");
+            if (parsedSum && (parsedSum.date === todayDash || parsedSum.date === todaySlash)) {
+              todayTaskSummary = parsedSum;
+            }
+          }
         } catch(_) {}
       }
 
