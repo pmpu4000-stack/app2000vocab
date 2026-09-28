@@ -261,29 +261,12 @@ export function renderProgress(s) {
 }
 
 export function renderSession(s, goal, onStart, onEnd, customTitle) {
-  if (!s.active) {
-    const idleTitle = customTitle || `今日練習 <span>Today's Session</span>`;
-    el.session.innerHTML = `<div class="sess-idle">
-      <div class="sess-title">${idleTitle}</div>
-      <button class="sess-start" id="sessStart">▶️ 開始今天的練習</button></div>`;
-    $("#sessStart").onclick = onStart;
-    return;
+  // 使用者需求：拿掉今日練習目標與結束練習條
+  if (el.session) {
+    el.session.style.display = "none";
+    el.session.hidden = true;
+    el.session.innerHTML = "";
   }
-  const ans = s.answered;
-  const filled = Math.min(100, (ans / goal) * 100);
-  const cw = ans ? (s.correct / ans) * filled : 0;
-  const ww = ans ? (s.incorrect / ans) * filled : 0;
-  const done = ans >= goal ? "　🎉 達成今日目標！" : "";
-  const liveTitle = customTitle || `今日練習 <span>目標 ${goal} 題</span>`;
-  el.session.innerHTML = `<div class="sess-live">
-    <div class="sess-head">
-      <span class="sess-title">${liveTitle}</span>
-      <button class="sess-end" id="sessEnd">⏹ 結束今天的練習</button>
-    </div>
-    <div class="sess-bar"><i class="c" style="width:${cw}%"></i><i class="w" style="width:${ww}%"></i></div>
-    <div class="sess-nums">作答 <b>${ans}</b> / ${goal}　·　✅ 答對 <b>${s.correct}</b>　·　❌ 答錯 <b>${s.incorrect}</b>　·　正確率 <b>${s.rate}%</b>${done}</div>
-  </div>`;
-  $("#sessEnd").onclick = onEnd;
 }
 
 export function renderBanner(level, ls, ready, hint, onChallenge) {

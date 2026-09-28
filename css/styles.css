@@ -159,7 +159,7 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 .stat.rate b{color:var(--sky)}
 
 /* ---------- today's session ---------- */
-.session{margin-bottom:12px}
+.session{display:none !important;}
 .sess-idle{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);
   border-radius:16px;padding:12px 16px;box-shadow:0 2px 0 var(--line)}
 .sess-title{font-size:14px;font-weight:800;color:var(--ink)}
