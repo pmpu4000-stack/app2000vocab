@@ -191,7 +191,16 @@
       }
     });
 
-    // 登入驗證、抓取雲端紀錄並動態啟動遊戲 App
+    // 自動填入前次登入帳號並聚焦密碼輸入框
+    const rememberedUser = localStorage.getItem("current_user");
+    if (rememberedUser) {
+      const uEl = document.getElementById("login-user");
+      if (uEl && !uEl.value) {
+        uEl.value = rememberedUser;
+        const pEl = document.getElementById("login-pass");
+        if (pEl) pEl.focus();
+      }
+    }
     document.getElementById('login-btn').addEventListener('click', async () => {
       const user = document.getElementById('login-user').value.trim();
       const pass = document.getElementById('login-pass').value.trim();
@@ -288,12 +297,20 @@
       }
     });
 
-    // 上傳 LocalStorage 紀錄至 Google 試算表
+    // 上傳 LocalStorage 紀錄至 Google 試算表（含防連點與重複請求鎖）
+    let isUploading = false;
     async function uploadLocalStorageData(isSilent = false) {
+      if (isUploading) {
+        if (!isSilent) console.log("資料同步中，請稍候...");
+        return;
+      }
+      isUploading = true;
+
       const currentUser = localStorage.getItem("current_user");
       const currentPass = sessionStorage.getItem("current_pass");
 
       if (!currentUser || !currentPass) {
+        isUploading = false;
         if (!isSilent) alert("未偵測到登入狀態，請重新整理頁面登入！");
         return;
       }
@@ -382,6 +399,7 @@
         console.error("上傳失敗：", err);
         if (!isSilent) alert("連線失敗，請檢查網路。");
       } finally {
+        isUploading = false;
         if (iconEl) iconEl.textContent = "🌱";
       }
     }

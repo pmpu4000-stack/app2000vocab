@@ -240,6 +240,7 @@ export function showResult(correct, word, info) {
 export function setActionNext() {
   el.checkBtn.style.display = ""; el.checkBtn.disabled = false;
   el.checkBtn.textContent = "下一個 Next →"; el.checkBtn.className = "btn go";
+  setTimeout(() => { try { el.checkBtn.focus(); } catch(_) {} }, 50);
 }
 export function peek(word) {
   // 偷看功能已全面移除

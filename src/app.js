@@ -156,12 +156,14 @@ function refreshChrome() {
   ui.renderBanner(cur, ls, ready, hint, startChallenge);
   if (!ui.summaryHidden()) ui.renderSummary(store.summary(WORDS));
 
-  // ⚠️ 今日指定測驗進行中或待開始：強制隱藏模式列、關卡列
+  // ⚠️ 今日指定測驗進行中或待開始：強制隱藏模式列、關卡列與等級挑戰橫幅
   if (taskState.active || taskState.pending) {
     const modesEl = document.getElementById("modes");
     if (modesEl) modesEl.style.display = "none";
     const levelBar = document.getElementById("levelbar");
     if (levelBar) levelBar.style.display = "none";
+    const bannerEl = document.getElementById("banner");
+    if (bannerEl) bannerEl.style.display = "none";
   }
 }
 
@@ -183,18 +185,20 @@ function renderCurrent() {
     }
     if (modeHint) modeHint.textContent = `【${taskState.task.taskName}】純聽拼測驗中`;
 
-    // 嚴格強制隱藏關卡/模式列
+    // 嚴格強制隱藏關卡/模式列與挑戰橫幅
     const modesEl = document.getElementById("modes");
     if (modesEl) modesEl.style.display = "none";
     const levelBar = document.getElementById("levelbar");
     if (levelBar) levelBar.style.display = "none";
+    const bannerEl = document.getElementById("banner");
+    if (bannerEl) bannerEl.style.display = "none";
   }
 }
 
 function newRound() {
   // ── 如果今日任務進行中 ──
   if (taskState.active) {
-    if (taskState.index < taskState.pool.length) {
+    if (taskState.pool && taskState.pool.length > 0 && taskState.index < taskState.pool.length) {
       state.word = taskState.pool[taskState.index];
       state.answered = false;
       renderCurrent();
@@ -436,6 +440,8 @@ function checkAndStartDailyTask() {
     if (modesEl) modesEl.style.display = "";
     const levelBar = document.getElementById("levelbar");
     if (levelBar) levelBar.style.display = "";
+    const bannerEl = document.getElementById("banner");
+    if (bannerEl) bannerEl.style.display = "";
 
     const catLabel = document.getElementById("catlabel");
     if (catLabel) catLabel.textContent = "✅ 今日指定練習已完成，明天再繼續！已開放自由升級闖關";
@@ -495,6 +501,8 @@ function checkAndStartDailyTask() {
     if (modesEl) modesEl.style.display = "";
     const levelBar = document.getElementById("levelbar");
     if (levelBar) levelBar.style.display = "";
+    const bannerEl = document.getElementById("banner");
+    if (bannerEl) bannerEl.style.display = "";
     const catLabel = document.getElementById("catlabel");
     if (catLabel) {
       catLabel.textContent = "💡 今日尚無指派任務，已開放自由闖關升級";
@@ -560,10 +568,11 @@ function showTaskIntroScreen(task) {
         mask: new Array(tw.length).fill(false)
       };
     });
-    if (task.count !== "ALL" && Number(task.count) < matched.length) {
+    if (task.mode !== "ALL" && task.count !== "ALL" && Number(task.count) > 0 && Number(task.count) < matched.length) {
       pool = sample(matched, Number(task.count));
     } else {
-      pool = sample(matched, matched.length);
+      // 全考或未抽測：100% 依教師指派之單字順序直接出題
+      pool = [...matched];
     }
   }
 
@@ -668,6 +677,8 @@ function startTaskExecution() {
   if (modesEl) modesEl.style.display = "none";
   const levelBar = document.getElementById("levelbar");
   if (levelBar) levelBar.style.display = "none";
+  const bannerEl = document.getElementById("banner");
+  if (bannerEl) bannerEl.style.display = "none";
 
   persistTaskProgress();
   refreshChrome();
@@ -713,6 +724,8 @@ function finishTaskMode() {
   if (modesEl) modesEl.style.display = "";
   const levelBar = document.getElementById("levelbar");
   if (levelBar) levelBar.style.display = "";
+  const bannerEl = document.getElementById("banner");
+  if (bannerEl) bannerEl.style.display = "";
 
   burst();
 
@@ -778,17 +791,28 @@ ui.onSummary(() => ui.toggleSummary(store.summary(WORDS)));
   }
   const hasInProgress = !!localStorage.getItem("today_task_in_progress");
 
-  // 若今日有指定任務（或上次未完之進度）：優先進入今日任務（免受程度分級測驗阻擋）
+  // ── 當天每日測驗自動啟動核心判定 ──
+  // 1. 若有中途斷線未完成之進度：直接無縫接續作答
+  // 2. 若當天尚未開始測驗且有指派任務：一登入就直接開始每日測驗，直接顯示當天指派單字，絕不受自由練習出題影響！
   if (hasInProgress) {
     ui.setScreen("play"); 
-    refreshChrome(); 
     checkAndStartDailyTask(); 
     // 斷線或關閉後重新登入，直接自動無縫接續未完進度！
     startTaskExecution();
-  } else if (assignedTaskObj && assignedTaskObj.hasTask) {
-    ui.setScreen("play"); 
-    refreshChrome(); 
-    checkAndStartDailyTask(); 
+  } else if (assignedTaskObj && assignedTaskObj.hasTask && !assignedTaskObj.alreadyCompleted) {
+    const todayDash = todayDateStr();
+    const isDone = (localStorage.getItem("task_done_" + todayDash) === "true") ||
+                   (localStorage.getItem("task_done_" + todayDash.replace(/-/g, "/")) === "true");
+    if (!isDone) {
+      ui.setScreen("play"); 
+      checkAndStartDailyTask(); 
+      // ★ 核心修復：當天還沒開始每日測驗，一登入就立即開始每日測驗，直接顯示當天指派單字（第 1 題），絕不受到自由練習出題影響！
+      startTaskExecution();
+    } else {
+      ui.setScreen("play"); 
+      refreshChrome(); 
+      checkAndStartDailyTask(); 
+    }
   } else { 
     ui.setScreen("play"); 
     refreshChrome(); 
@@ -796,9 +820,9 @@ ui.onSummary(() => ui.toggleSummary(store.summary(WORDS)));
   }
 })();
 
-// 暴露全域給老師出題預覽施測直接呼叫
+// 暴露全域給老師出題預覽施測直接呼叫（一鍵直接開始測驗展示）
 window.triggerDailyTaskIntro = (task) => {
   ui.setScreen("play");
-  refreshChrome();
   showTaskIntroScreen(task);
+  startTaskExecution();
 };
