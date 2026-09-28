@@ -405,6 +405,6 @@ export function quizResult({ emoji, headline, sub, extraHtml = "", btnLabel, col
 // ---------- one-time button wiring ----------
 export function onPeek(fn) { el.peekBtn.onclick = fn; }
 export function onCheckClick(fn) { el.checkBtn.onclick = fn; }
-export function onReset(fn) { $("#resetBtn").onclick = fn; }
+export function onReset(fn) { const btn = $("#resetBtn"); if (btn) btn.onclick = fn; }
 export function onSummary(fn) { $("#sumBtn").onclick = fn; }
 export function onPlace(fn) { $("#placeBtn").onclick = fn; }
