@@ -36,15 +36,12 @@
     <header>
       <div class="logo">拼</div>
       <div class="title">
-        <h1>
-          拼字小特工 <span style="font-size:13px;color:var(--ink3)">Spelling Agent</span>
-          <span id="header-user-tag" style="display:none; font-size:12px; font-weight:700; color:var(--sky); background:rgba(56,189,248,0.12); padding:2px 10px; border-radius:999px; border:1px solid rgba(56,189,248,0.3); vertical-align:middle; margin-left:6px;">👤 <span id="header-username"></span></span>
-        </h1>
+        <h1>拼字小特工 <span style="font-size:13px;color:var(--ink3)">Spelling Agent</span></h1>
         <p>破解英文拼字的 5 大關卡 · 每天 10 分鐘</p>
       </div>
       <div class="stats">
         <div class="stat user" id="stat-user" title="目前登入帳號（點擊可切換帳號或登出）">
-          <b id="s-user" class="tnum" style="max-width:85px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:inline-block;">-</b>
+          <b id="s-user" class="tnum">-</b>
           <span>登入帳號</span>
         </div>
         <div class="stat upload" id="btn-upload" style="cursor:pointer;" title="點擊上傳目前練習進度">
@@ -123,6 +120,34 @@
         <div class="stage" id="quizstage"></div>
       </main>
     </div>
+    <!-- ============ RESET CONFIRMATION MODAL ============ -->
+    <div id="reset-modal" style="position:fixed; inset:0; background:rgba(15,17,23,0.85); backdrop-filter:blur(5px); z-index:99999; display:none; justify-content:center; align-items:center; padding:16px;">
+      <div style="background:#1a1d2e; border:1px solid #2a2e42; border-radius:18px; padding:28px 24px; width:100%; max-width:340px; text-align:center; box-shadow:0 16px 40px rgba(0,0,0,0.6);">
+        <div style="font-size:36px; margin-bottom:8px;">⚠️</div>
+        <h3 style="color:#e8eaf0; font-size:18px; margin:0 0 6px 0; font-weight:800;">重來 RESET 進度驗證</h3>
+        <p style="color:#94a3b8; font-size:13px; line-height:1.5; margin:0 0 16px 0;">
+          重置將清空此帳號的所有進度並重新測驗。<br>
+          <span style="color:#f87171; font-weight:700;">須輸入該帳號密碼，且需經授課教師後端同意。</span>
+        </p>
+        
+        <div style="text-align:left; margin-bottom:12px;">
+          <label style="font-size:12px; color:#94a3b8; display:block; margin-bottom:4px; font-weight:700;">目前帳號</label>
+          <input type="text" id="reset-user-val" readonly style="width:100%; padding:10px 12px; border:1px solid #334155; border-radius:8px; background:#0f172a; color:#38bdf8; font-weight:700; font-size:15px; outline:none; box-sizing:border-box;">
+        </div>
+
+        <div style="text-align:left; margin-bottom:14px;">
+          <label style="font-size:12px; color:#94a3b8; display:block; margin-bottom:4px; font-weight:700;">請輸入該帳號密碼</label>
+          <input type="password" id="reset-pass-val" placeholder="請輸入密碼以驗證身分" style="width:100%; padding:10px 12px; border:1px solid #334155; border-radius:8px; background:#0f172a; color:#f8fafc; font-size:15px; outline:none; box-sizing:border-box;">
+        </div>
+
+        <div id="reset-modal-msg" style="min-height:18px; font-size:12.5px; margin-bottom:14px; color:#f87171; line-height:1.4; word-break:break-word;"></div>
+
+        <div style="display:flex; gap:10px;">
+          <button id="reset-cancel-btn" style="flex:1; padding:11px; background:#252840; color:#a0a6c0; border:none; border-radius:10px; font-weight:700; font-size:14px; cursor:pointer;">取消</button>
+          <button id="reset-submit-btn" style="flex:1; padding:11px; background:linear-gradient(135deg,#f87171,#ef4444); color:#fff; border:none; border-radius:10px; font-weight:700; font-size:14px; cursor:pointer;">確認重來</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script type="module">
@@ -135,18 +160,105 @@
         sUser.textContent = username || "-";
         sUser.title = `目前登入帳號：${username || "無"}${role ? ` (${role === 'teacher' ? '教師' : '學生'})` : ''}\n點擊可登出切換帳號`;
       }
-      const tag = document.getElementById("header-user-tag");
-      const tagName = document.getElementById("header-username");
-      if (tag && tagName) {
-        if (username) {
-          tag.style.display = "inline-flex";
-          tag.style.alignItems = "center";
-          tagName.textContent = `${username}${role === 'teacher' ? ' (教師)' : ''}`;
-        } else {
-          tag.style.display = "none";
-        }
-      }
     }
+
+    // ── 重來 RESET 驗證處理 ──
+    let onResetApprovedCallback = null;
+
+    window.triggerStudentReset = function(onApproved) {
+      const currentUser = localStorage.getItem("current_user");
+      if (!currentUser) {
+        alert("尚未登入帳號，無法重置！");
+        return;
+      }
+      onResetApprovedCallback = onApproved;
+      const modal = document.getElementById("reset-modal");
+      const userVal = document.getElementById("reset-user-val");
+      const passVal = document.getElementById("reset-pass-val");
+      const msgEl = document.getElementById("reset-modal-msg");
+
+      if (userVal) userVal.value = currentUser;
+      if (passVal) passVal.value = "";
+      if (msgEl) msgEl.textContent = "";
+      if (modal) {
+        modal.style.display = "flex";
+        setTimeout(() => { if (passVal) passVal.focus(); }, 100);
+      }
+    };
+
+    document.getElementById("reset-cancel-btn")?.addEventListener("click", () => {
+      const modal = document.getElementById("reset-modal");
+      if (modal) modal.style.display = "none";
+      onResetApprovedCallback = null;
+    });
+
+    document.getElementById("reset-submit-btn")?.addEventListener("click", async () => {
+      const currentUser = localStorage.getItem("current_user");
+      const passVal = document.getElementById("reset-pass-val")?.value.trim();
+      const msgEl = document.getElementById("reset-modal-msg");
+      const submitBtn = document.getElementById("reset-submit-btn");
+
+      if (!passVal) {
+        if (msgEl) {
+          msgEl.style.color = "#f87171";
+          msgEl.textContent = "請輸入此帳號之密碼！";
+        }
+        return;
+      }
+
+      if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "正在驗證..."; }
+      if (msgEl) { msgEl.style.color = "#38bdf8"; msgEl.textContent = "正在向後端驗證密碼與教師同意權限..."; }
+
+      try {
+        const response = await fetch(scriptUrl, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({
+            action: "resetStudentProgress",
+            username: currentUser,
+            password: passVal
+          })
+        });
+        const result = await response.json();
+
+        if (result && result.status === "success") {
+          const modal = document.getElementById("reset-modal");
+          if (modal) modal.style.display = "none";
+          alert(result.message || "✅ 已通過密碼驗證與教師審核，進度已成功重置！");
+          
+          // 清除所有本機任務暫存
+          localStorage.removeItem("today_task_in_progress");
+          localStorage.removeItem("today_task_summary");
+          localStorage.removeItem("weekTaskMistakes");
+          sessionStorage.removeItem("assigned_task");
+          
+          if (typeof onResetApprovedCallback === "function") {
+            onResetApprovedCallback();
+          } else {
+            location.reload();
+          }
+        } else {
+          if (msgEl) {
+            msgEl.style.color = "#f87171";
+            msgEl.textContent = result?.message || "驗證失敗，無法重置。";
+          }
+        }
+      } catch (err) {
+        console.error(err);
+        if (msgEl) {
+          msgEl.style.color = "#f87171";
+          msgEl.textContent = "連線失敗，請檢查網路連線或稍後再試。";
+        }
+      } finally {
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "確認重來"; }
+      }
+    });
+
+    document.getElementById("reset-pass-val")?.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        document.getElementById("reset-submit-btn")?.click();
+      }
+    });
 
     // 頁面載入時若已有儲存之帳號，預先填入並更新顯示
     const savedUser = localStorage.getItem("current_user");

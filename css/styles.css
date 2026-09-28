@@ -32,9 +32,9 @@ header{display:flex; align-items:center; gap:14px; margin-bottom:16px}
 .stat span{font-size:10px;color:var(--ink3);font-weight:700;letter-spacing:.4px;text-transform:uppercase}
 .stat.lv b{color:var(--violet)} .stat.st b{color:var(--marker);-webkit-text-stroke:.6px #E4B93B} .stat.streak b{color:var(--coral)}
 .stat.ok b{color:var(--green)}
-.stat.user{border-color:rgba(56,189,248,0.35);background:rgba(56,189,248,0.08);cursor:pointer;transition:all .15s ease}
-.stat.user:hover{border-color:var(--sky);background:rgba(56,189,248,0.18)}
-.stat.user b{color:var(--sky);font-size:13.5px}
+.stat.user{cursor:pointer;transition:transform .12s, border-color .12s}
+.stat.user:hover{transform:translateY(-1px);border-color:var(--sky)}
+.stat.user b{color:var(--sky);font-size:16px;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0 auto}
 
 /* ---------- category chips ---------- */
 .cats{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 8px;margin-bottom:6px;scrollbar-width:none}

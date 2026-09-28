@@ -781,7 +781,12 @@ ui.onPeek(() => {
 });
 
 ui.onReset(() => { 
-  if (confirm("確定要清除所有進度嗎？（會重新測程度）")) { 
+  if (typeof window.triggerStudentReset === "function") {
+    window.triggerStudentReset(() => {
+      store.reset(); 
+      startPlacement(); 
+    });
+  } else if (confirm("確定要清除所有進度嗎？（會重新測程度）")) { 
     store.reset(); 
     startPlacement(); 
   } 
