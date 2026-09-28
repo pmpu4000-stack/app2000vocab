@@ -248,7 +248,8 @@
               rate       : "—",
               completed  : false, // ⚠️ 標記為未完成，防止鎖定
               inProgress : true,
-              date       : prog.date || ""
+              date       : prog.date || "",
+              wrongWords : prog.wrongWords || []
             };
           }
         } catch(_) {}

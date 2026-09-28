@@ -18,12 +18,13 @@ const state = { mode: "listen", word: null, answered: false, round: null };
 
 // ── 今日指定任務與週末錯題狀態 ──
 const taskState = {
-  active  : false,
-  pending : false,
-  index   : 0,
-  pool    : [],
-  correct : 0,
-  task    : null
+  active     : false,
+  pending    : false,
+  index      : 0,
+  pool       : [],
+  correct    : 0,
+  task       : null,
+  wrongWords : []
 };
 
 // ── 隨時保存任務中途進度（中途存檔或強制關閉防護） ──
@@ -32,14 +33,20 @@ function persistTaskProgress() {
   try {
     const todayDash = todayDateStr();
     const saveObj = {
-      date     : todayDash,
-      username : localStorage.getItem("current_user") || "",
-      task     : taskState.task,
-      pool     : taskState.pool,
-      index    : taskState.index,
-      correct  : taskState.correct
+      date       : todayDash,
+      username   : localStorage.getItem("current_user") || "",
+      task       : taskState.task,
+      pool       : taskState.pool,
+      index      : taskState.index,
+      correct    : taskState.correct,
+      wrongWords : taskState.wrongWords || []
     };
     localStorage.setItem("today_task_in_progress", JSON.stringify(saveObj));
+
+    // 每題作答完畢立即自動背景同步上傳雲端（斷線防護！）
+    if (typeof window.uploadLocalStorageData === "function") {
+      window.uploadLocalStorageData(true);
+    }
   } catch(e) {
     console.error("persistTaskProgress error:", e);
   }
@@ -109,7 +116,34 @@ function levelInfo() {
 }
 
 function refreshChrome() {
-  ui.renderSession(store.sessionState(), DAILY_GOAL, onSessionStart, onSessionEnd);
+  const taskGoal = (taskState.pool && taskState.pool.length > 0) 
+    ? taskState.pool.length 
+    : (taskState.task && taskState.task.words ? taskState.task.words.length : DAILY_GOAL);
+
+  let sessionS = store.sessionState();
+  let sessionGoal = DAILY_GOAL;
+  let sessionTitle = null;
+
+  if (taskState.active && taskState.task) {
+    sessionGoal = taskGoal;
+    const ansCount = taskState.index;
+    const correctCount = taskState.correct;
+    const incorrCount = ansCount - correctCount;
+    const rRate = ansCount > 0 ? Math.round((correctCount / ansCount) * 100) : 0;
+    sessionS = {
+      active: true,
+      answered: ansCount,
+      correct: correctCount,
+      incorrect: incorrCount,
+      rate: rRate
+    };
+    sessionTitle = `今日指定測驗 <span>【${taskState.task.taskName}】目標 ${taskGoal} 題</span>`;
+  } else if (taskState.pending && taskState.task) {
+    sessionGoal = taskGoal;
+    sessionTitle = `今日指定測驗 <span>【${taskState.task.taskName}】目標 ${taskGoal} 題</span>`;
+  }
+
+  ui.renderSession(sessionS, sessionGoal, onSessionStart, onSessionEnd, sessionTitle);
   ui.renderProgress(store.stats(WORDS));
   ui.renderLevelBar(levelInfo(), pickLevel);
   const cur = store.progress().current;
@@ -203,16 +237,22 @@ function answer(correct) {
       taskState.correct++;
       burst();
     } else {
+      const w = String(state.word.word).trim().toLowerCase();
+      taskState.wrongWords = taskState.wrongWords || [];
+      if (!taskState.wrongWords.includes(w)) {
+        taskState.wrongWords.push(w);
+      }
       // ⚠️ 僅在指定任務中答錯，才收錄進週末錯題補救庫！
-      recordTaskMistake(state.word.word);
+      recordTaskMistake(w);
     }
     
     // 依然更新背單字進度
     const info = store.grade(state.word.id, correct, store.progress().current);
     ui.showResult(correct, state.word, info);
     taskState.index++;
-    // 每作答完一題立即更新持久化進度！
+    // 每作答完一題立即更新持久化進度並同步雲端！
     persistTaskProgress();
+    refreshChrome();
 
     // 答題後顯示下一題時，依然強制隱藏偷看按鈕
     const peekBtn = document.getElementById("peekBtn");
@@ -532,12 +572,13 @@ function showTaskIntroScreen(task) {
   }
 
   // 設定待開始狀態
-  taskState.active  = false;
-  taskState.pending = true;
-  taskState.task    = task;
-  taskState.pool    = pool;
-  taskState.index   = resumeIndex;
-  taskState.correct = resumeCorrect;
+  taskState.active     = false;
+  taskState.pending    = true;
+  taskState.task       = task;
+  taskState.pool       = pool;
+  taskState.index      = resumeIndex;
+  taskState.correct    = resumeCorrect;
+  taskState.wrongWords = (savedProgress && Array.isArray(savedProgress.wrongWords)) ? savedProgress.wrongWords : [];
 
   // 隱藏自由模式按鈕與偷看按鈕
   const peekBtn = document.getElementById("peekBtn");
@@ -662,13 +703,14 @@ function finishTaskMode() {
 
   // 3. 儲存今日任務成績摘要（標記 completed: true）
   const summaryObj = {
-    taskName  : task.taskName,
-    score     : correct,
-    total     : total,
-    rate      : rate + "%",
-    completed : true,
-    isWeekend : !!task.isWeekend,
-    date      : todayDash
+    taskName   : task.taskName,
+    score      : correct,
+    total      : total,
+    rate       : rate + "%",
+    completed  : true,
+    isWeekend  : !!task.isWeekend,
+    date       : todayDash,
+    wrongWords : taskState.wrongWords || []
   };
   localStorage.setItem("today_task_summary", JSON.stringify(summaryObj));
 
@@ -760,7 +802,13 @@ ui.onPlace(() => startPlacement());
   const hasInProgress = !!localStorage.getItem("today_task_in_progress");
 
   // 若今日有指定任務（或上次未完之進度）：優先進入今日任務（免受程度分級測驗阻擋）
-  if ((assignedTaskObj && assignedTaskObj.hasTask) || hasInProgress) {
+  if (hasInProgress) {
+    ui.setScreen("play"); 
+    refreshChrome(); 
+    checkAndStartDailyTask(); 
+    // 斷線或關閉後重新登入，直接自動無縫接續未完進度！
+    startTaskExecution();
+  } else if (assignedTaskObj && assignedTaskObj.hasTask) {
     ui.setScreen("play"); 
     refreshChrome(); 
     checkAndStartDailyTask(); 
