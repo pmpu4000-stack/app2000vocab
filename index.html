@@ -44,7 +44,7 @@
           <b class="tnum" style="color:#a5b4fc">📝</b>
           <span style="color:#c7d2fe; font-weight:700;">每日測驗出題</span>
         </div>
-        <div class="stat upload" id="btn-upload" style="cursor:pointer;" title="點擊上傳目前練習進度">
+        <div class="stat upload" id="btn-upload" onclick="if(window.uploadLocalStorageData)window.uploadLocalStorageData(false);" style="cursor:pointer;" title="點擊上傳目前學習進度">
           <b id="s-upload" class="tnum">🌱</b>
           <span>上傳紀錄</span>
         </div>
@@ -297,7 +297,7 @@
       }
     });
 
-    // 上傳 LocalStorage 紀錄至 Google 試算表（含防連點與重複請求鎖）
+    // 上傳 LocalStorage 紀錄至 Google 試算表（含防連點、憑證重登入與容量防護）
     let isUploading = false;
     async function uploadLocalStorageData(isSilent = false) {
       if (isUploading) {
@@ -307,22 +307,41 @@
       isUploading = true;
 
       const currentUser = localStorage.getItem("current_user");
-      const currentPass = sessionStorage.getItem("current_pass");
+      let currentPass = sessionStorage.getItem("current_pass");
 
-      if (!currentUser || !currentPass) {
+      if (!currentUser) {
         isUploading = false;
-        if (!isSilent) alert("未偵測到登入狀態，請重新整理頁面登入！");
+        if (!isSilent) {
+          const overlay = document.getElementById("login-overlay");
+          if (overlay) overlay.style.display = "flex";
+          alert("未偵測到登入狀態，請先登入帳號！");
+        }
         return;
       }
 
-      // 1. 開始上傳：將嫩芽 🌱 轉為等待圖案 ⏳
+      // 若密碼憑證遺失（如重新開啟分頁），直接彈出提示輸入密碼，不需重新整理整個頁面
+      if (!currentPass) {
+        const inputPass = prompt(`【帳號：${currentUser}】憑證已逾期，請輸入密碼以同步進度：`);
+        if (!inputPass || !inputPass.trim()) {
+          isUploading = false;
+          return;
+        }
+        currentPass = inputPass.trim();
+        sessionStorage.setItem("current_pass", currentPass);
+      }
+
+      // 1. 開始上傳：將圖示切換為等待圖案 ⏳
       const iconEl = document.getElementById("s-upload");
       if (iconEl) iconEl.textContent = "⏳";
 
+      // 僅上傳遊戲與測驗相關之關鍵資料，防範無關快取污染與超出資料大小限制
+      const allowedPrefixes = ["spellAgent", "today_task", "task_done", "current_user", "user_role"];
       const localData = {};
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        localData[key] = localStorage.getItem(key);
+        if (allowedPrefixes.some(p => key.startsWith(p))) {
+          localData[key] = localStorage.getItem(key);
+        }
       }
 
       // 取出今日指定任務成績摘要 (若有)
@@ -381,6 +400,9 @@
         let result = await response.json();
         
         if (result.status === "success") {
+          if (iconEl) iconEl.textContent = "✅";
+          setTimeout(() => { if (iconEl) iconEl.textContent = "🌱"; }, 2500);
+
           if (!isSilent) {
             if (inProgressTask) {
               const currentQ = (inProgressTask.index !== undefined ? inProgressTask.index + 1 : 1);
@@ -393,19 +415,29 @@
             }
           }
         } else {
+          if (iconEl) iconEl.textContent = "❌";
+          setTimeout(() => { if (iconEl) iconEl.textContent = "🌱"; }, 2500);
           if (!isSilent) alert("儲存失敗：" + (result.message || "未知原因"));
         }
       } catch (err) {
         console.error("上傳失敗：", err);
+        if (iconEl) iconEl.textContent = "❌";
+        setTimeout(() => { if (iconEl) iconEl.textContent = "🌱"; }, 2500);
         if (!isSilent) alert("連線失敗，請檢查網路。");
       } finally {
         isUploading = false;
-        if (iconEl) iconEl.textContent = "🌱";
       }
     }
 
-    // 暴露全域給 app.js 在任務完成時自動靜默上傳
+    // 暴露全域給 app.js 與按鈕點擊呼叫
     window.uploadLocalStorageData = uploadLocalStorageData;
+
+    // 立即綁定按鈕點擊事件（無論是否登入皆即刻綁定）
+    const uploadBtnEl = document.getElementById("btn-upload") || document.querySelector(".stat.upload");
+    if (uploadBtnEl) {
+      uploadBtnEl.style.cursor = "pointer";
+      uploadBtnEl.onclick = () => uploadLocalStorageData(false);
+    }
 
     // ════════════════════════════════════════════════════════════════════
     // 老師線上挑選單字出題 Modal 核心邏輯
