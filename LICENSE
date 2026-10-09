@@ -1,6 +1,7 @@
 MIT License
 
-Copyright (c) 2026 pmpu4000
+Copyright (c) 2026 Dean Liao (Original Work & Architecture)
+Copyright (c) 2026 pmpu4000 (Modifications, Extensions & Data Adaptation)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +23,34 @@ SOFTWARE.
 
 ---
 
+### Copyright & Authorship Scope / 版權範圍與作者歸屬宣告
+
+This project is a collaborative and extended work. Copyright is divided as follows:
+本專案為包含原創與後續擴充修改之著作，各自著作權歸屬與範圍明確劃分如下：
+
+1. **Original Work / 原創著作權歸屬：Dean Liao**
+   - **Copyright (c) 2026 Dean Liao**
+   - 包含：原始專案核心架構、單字拼字遊戲核心引擎、初始資料結構與基礎前端頁面邏輯。
+   - Includes: Original project architecture, core spelling game engine, baseline data models, and initial UI logic.
+
+2. **Modifications & Extensions / 擴充修改著作權歸屬：pmpu4000**
+   - **Copyright (c) 2026 pmpu4000**
+   - 包含：
+     - 2,055 個單字全面改寫並校對為台灣國中標準 KK 音標（`data/meanings.json` 音標升級與對應修正）。
+     - 每日測驗系統、指派任務出題功能、年級班級智慧選單、即時答題進度儲存與斷點續答邏輯。
+     - 學生學習歷程儀表板、已通單字/待加強單字大數據解析、Google Apps Script (GAS) 雲端串接與整合。
+     - Web Speech API 語音發音抗斷音（GC 防回收）優化與各項介面定制擴充。
+   - Includes:
+     - Full overhaul and verification of General American KK phonetic symbols for all 2,055 words in `data/meanings.json`.
+     - Daily quiz assignment system, grade/class smart dropdown, auto-save per question, and resume session mechanisms.
+     - Student learning progress dashboard, mastered/error words decoding and analytics, Google Apps Script backend integration.
+     - SpeechSynthesis audio stability improvements (GC prevention) and customized UI/UX workflows.
+
+---
+
+### Third-Party Data / 第三方資料庫來源
+
 This project also redistributes third-party data: the Chinese meanings and
-phonetics in data/meanings.json are derived from ECDICT (MIT-licensed,
-Copyright (c) 2025 Linwei). See THIRD-PARTY-NOTICES.md for the required
+phonetics in `data/meanings.json` are derived from ECDICT (MIT-licensed,
+Copyright (c) 2025 Linwei). See `THIRD-PARTY-NOTICES.md` for the required
 attribution and full license text.
