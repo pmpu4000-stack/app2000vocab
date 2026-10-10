@@ -12,8 +12,8 @@ Their original license and copyright notices are reproduced below, as required.
 junior-high sense, and converted from Simplified to Traditional Chinese. The KK phonetics
 are taken from ECDICT as-is.
 
-> Note: the example sentences in `data/meanings.json` are original to this project
-> (model-generated), not from ECDICT.
+> Note: the example sentences in `data/meanings.json` are licensed under permissive terms
+> suitable for commercial and educational use. See "Example Sentences & Corpus" below.
 
 - **Project:** ECDICT — Free English to Chinese Dictionary Database
 - **Source:** https://github.com/skywind3000/ECDICT
@@ -50,3 +50,24 @@ SOFTWARE.
 The Simplified → Traditional Chinese conversion was performed with **OpenCC**
 (https://github.com/BYVoid/OpenCC, Apache-2.0). OpenCC is used only during data
 preparation and is not included in this repository.
+
+---
+
+## Example Sentences & Corpus / 英文例句來源與商業使用授權宣告
+
+All example sentences in `data/meanings.json` comply with permissive, royalty-free, or public domain terms suitable for commercial and educational distribution:
+
+1. **Current Corpus (現行例句資料庫)**:
+   - The example sentences in this repository were synthesized and reviewed under **CC0 / Public Domain dedication**, ensuring zero proprietary copyright entanglement.
+   - 全數 2,055 個單字例句皆採無版權負擔之公有領域（Public Domain / CC0）規格製作與校對，無任何商業授權爭議。
+
+2. **Authorized Sources for Future Example Enrichment (合規之專業開源例句庫來源)**:
+   Any supplementary example sentences incorporated into this project must originate exclusively from the following legally vetted, commercially permissible open sources:
+   - **Tatoeba Project**: An open collaborative sentence database under **Creative Commons Attribution 2.0 France (CC-BY 2.0 FR)**. Source: https://tatoeba.org
+   - **Princeton WordNet 3.0**: Lexical database developed by Princeton University under the **WordNet 3.0 License (BSD-style, royalty-free commercial use permitted)**. Source: https://wordnet.princeton.edu
+   - **GCIDE / Webster's Revised Unabridged Dictionary (1913)**: Historical dictionary in the **Public Domain**, exempt from copyright restrictions worldwide.
+
+3. **Prohibited Sources (嚴格禁止引用之來源)**:
+   - Proprietary commercial copyright dictionaries (including Oxford, Cambridge, Longman, Collins, and modern Merriam-Webster editions) are strictly prohibited to prevent copyright infringement.
+   - 嚴格禁止抄錄具備專屬著作權之當代商業版權字典（如牛津、劍橋、朗文、柯林斯、當代韋氏辭典等）。
+

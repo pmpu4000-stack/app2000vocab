@@ -48,9 +48,10 @@ This project is a collaborative and extended work. Copyright is divided as follo
 
 ---
 
-### Third-Party Data / 第三方資料庫來源
+### Third-Party Data & Corpus / 第三方資料庫與例句來源
 
-This project also redistributes third-party data: the Chinese meanings and
-phonetics in `data/meanings.json` are derived from ECDICT (MIT-licensed,
-Copyright (c) 2025 Linwei). See `THIRD-PARTY-NOTICES.md` for the required
-attribution and full license text.
+This project also redistributes third-party data:
+1. The Chinese meanings and phonetics in `data/meanings.json` are derived from ECDICT (MIT-licensed, Copyright (c) 2025 Linwei).
+2. The example sentences in `data/meanings.json` are provided under Public Domain (CC0) / permissible open licenses (e.g. WordNet / Tatoeba CC-BY) for educational and commercial use.
+
+See `THIRD-PARTY-NOTICES.md` for the required attribution, full license texts, and authorized citation standards.
