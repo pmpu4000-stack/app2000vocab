@@ -48,7 +48,6 @@
           <b id="s-upload" class="tnum">🌱</b>
           <span>上傳紀錄</span>
         </div>
-        <div class="stat lv"><b id="s-level" class="tnum">1</b><span>等級 LV</span></div>
         <div class="stat ok"><b id="s-correct" class="tnum">0</b><span>答對字</span></div>
         <div class="stat streak"><b id="s-streak" class="tnum">0</b><span>連勝</span></div>
         <div class="stat rate"><b id="s-rate" class="tnum">0%</b><span>答對率</span></div>
@@ -129,15 +128,13 @@
       if (sUser) {
         sUser.textContent = username || "-";
         sUser.title = username || "";
-        // 帳號字數較長時自適應調整字體，完整呈現不省略：>14字元12px，>10字元13.5px，>7字元15px，否則18px
-        if (username && username.length > 14) {
-          sUser.style.fontSize = "12px";
-        } else if (username && username.length > 10) {
-          sUser.style.fontSize = "13.5px";
-        } else if (username && username.length > 7) {
-          sUser.style.fontSize = "15px";
+        // 寬度隨帳號名稱長度自適應展開，字體維持清晰易讀
+        if (username && username.length > 16) {
+          sUser.style.fontSize = "13px";
+        } else if (username && username.length > 12) {
+          sUser.style.fontSize = "14.5px";
         } else {
-          sUser.style.fontSize = "18px";
+          sUser.style.fontSize = "17px";
         }
       }
       if (statEl) {

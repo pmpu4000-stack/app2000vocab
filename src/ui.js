@@ -257,18 +257,17 @@ export function renderProgress(s) {
     if (statEl) {
       statEl.title = `目前登入帳號：${u}\n（點擊可查看帳號詳情或切換）`;
     }
-    // 帳號字數較長時自適應調整字體，完整呈現不省略：>14字元12px，>10字元13.5px，>7字元15px，否則18px
-    if (u.length > 14) {
-      userEl.style.fontSize = "12px";
-    } else if (u.length > 10) {
-      userEl.style.fontSize = "13.5px";
-    } else if (u.length > 7) {
-      userEl.style.fontSize = "15px";
+    // 寬度隨帳號名稱長度自適應展開，字體維持清晰易讀
+    if (u.length > 16) {
+      userEl.style.fontSize = "13px";
+    } else if (u.length > 12) {
+      userEl.style.fontSize = "14.5px";
     } else {
-      userEl.style.fontSize = "18px";
+      userEl.style.fontSize = "17px";
     }
   }
-  $("#s-level").textContent = s.currentLevel;
+  const lvlEl = $("#s-level");
+  if (lvlEl) lvlEl.textContent = s.currentLevel;
   $("#s-correct").textContent = s.distinctCorrect;
   $("#s-streak").textContent = s.streak;
   $("#s-rate").textContent = s.passRate + "%";
