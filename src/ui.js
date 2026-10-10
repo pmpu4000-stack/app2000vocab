@@ -134,9 +134,6 @@ export function renderRound(word, mode, { onAnswer, onCheck, disablePeek }) {
       if (item.sentZh) {
         html += `  <div style="font-size:13px; color:var(--ink3); font-weight:normal; margin-top:4px; line-height:1.4; opacity:0.95;">${item.sentZh}</div>`;
       }
-      if (item.src) {
-        html += `  <div style="font-size:10.5px; color:#64748b; margin-top:3px; font-style:italic;">來源：${item.src}</div>`;
-      }
       html += `</div>`;
       
       el.sent.innerHTML = html;
@@ -177,7 +174,7 @@ function renderListen(word, onCheck) {
   btn.innerHTML = "🔊"; btn.onclick = () => say(word.word);
   const row = document.createElement("div");
   row.className = "mini-row";
-  row.append(miniBtn("🐢 一個字母一個字母", () => spellOut(word.word)));
+  row.append(miniBtn("🔊 朗讀整個單字", () => say(word.word, 0.88)));
   if (word.sent) row.append(miniBtn("💬 唸例句", () => say(word.sent, 0.88)));
   const inp = textInput("在這裡拼字…", onCheck);
   el.stage.append(btn, row, inp);
@@ -303,7 +300,7 @@ export function showResult(correct, word, info) {
   } else {
     el.fb.className = "feedback bad";
     el.fb.innerHTML = `❌ 再看一次！ 正確拼法：<span class="reveal" style="display:inline">${revealHtml(word)}</span>`;
-    pulse("shake"); spellOut(word.word);
+    pulse("shake"); say(word.word, 0.88);
   }
 }
 export function setActionNext() {

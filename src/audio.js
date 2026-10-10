@@ -31,27 +31,8 @@ export function say(text, rate = 0.88) {
   }
 }
 
-// Spell a word out one letter at a time (slower), for the "wrong answer" hint.
+// 朗讀整個單字發音 (原一個字母一個字母發音，改為完整單字朗讀)
 export function spellOut(word) {
   if (!supported || !word) return;
-  try {
-    speechSynthesis.cancel();
-    activeUtterances.clear();
-    if (speechSynthesis.paused) {
-      speechSynthesis.resume();
-    }
-    for (const c of word) {
-      const u = new SpeechSynthesisUtterance(c);
-      u.lang = "en-US";
-      u.rate = 0.7;
-
-      activeUtterances.add(u);
-      u.onend = () => activeUtterances.delete(u);
-      u.onerror = () => activeUtterances.delete(u);
-
-      speechSynthesis.speak(u);
-    }
-  } catch(e) {
-    console.warn("speechSynthesis spellOut error:", e);
-  }
+  say(word, 0.88);
 }
