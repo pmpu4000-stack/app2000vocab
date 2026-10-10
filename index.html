@@ -12,8 +12,8 @@
   <div id="login-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#0f1117; z-index:9999; display:flex; justify-content:center; align-items:center;">
     <div style="background:#1a1d2e; padding:32px; border-radius:16px; box-shadow:0 8px 30px rgba(0,0,0,0.5); width:320px; text-align:center; border:1px solid #2a2e42;">
       <div style="font-size:36px; margin-bottom:8px;">🎯</div>
-      <h2 style="color:#e8eaf0; margin:0 0 8px 0; font-size:20px;">拼字小特工 · 登入</h2>
-      <p style="color:#94a3b8; font-size:13px; margin-bottom:20px; line-height:1.5;">請輸入學號與密碼<br>練習進度將自動同步至雲端系統</p>
+      <h2 style="color:#e8eaf0; margin:0 0 8px 0; font-size:20px;">拼字小特工</h2>
+      <p style="color:#94a3b8; font-size:13px; margin-bottom:20px; line-height:1.5;">請輸入學號與密碼</p>
       
       <input type="text" id="login-user" placeholder="請輸入學號 (如: 70101)" 
         style="width:100%; padding:12px; margin-bottom:12px; border:1px solid #334155; border-radius:8px; box-sizing:border-box; background:#0f172a; color:#f8fafc; font-size:15px; outline:none;">
@@ -26,11 +26,10 @@
         確認登入
       </button>
       
-      <p id="login-msg" style="color:#f87171; font-size:13px; margin-top:12px; min-height:18px;"></p>
+      <p id="login-msg" style="color:#f87171; font-size:13px; margin-top:12px; min-height:18px; line-height:1.5;"></p>
 
       <div style="margin-top:14px; padding:9px 12px; background:rgba(255,255,255,0.04); border-radius:8px; border:1px dashed #334155; font-size:12px; color:#94a3b8; line-height:1.5; text-align:center;">
-        ⏰ 每日可作答時間依教師最新設定（支援個別學生指定）<br>
-        <span style="font-size:11.5px; color:#64748b;">其餘時段暫停開放（經老師特別解除除外）</span>
+        ⏰ 每日可作答時間為早上七點半到晚上十點
       </div>
     </div>
   </div>
@@ -371,10 +370,14 @@
             uploadBtn.onclick = () => uploadLocalStorageData(false);
           }
         } else {
-          msgEl.textContent = result.message || "帳號或密碼錯誤";
           if (result.curfew) {
+            msgEl.textContent = "目前非您的開放作答時間，如有需求請洽任課老師調整設定。";
             msgEl.style.color = "#fbbf24";
             msgEl.style.fontWeight = "bold";
+          } else {
+            msgEl.textContent = result.message || "帳號或密碼錯誤";
+            msgEl.style.color = "#f87171";
+            msgEl.style.fontWeight = "normal";
           }
         }
       } catch (err) {

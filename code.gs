@@ -113,6 +113,24 @@ function formatStandardDateYMD(val) {
 }
 
 /**
+ * 標準化時間格式 (HH:mm)
+ * 相容 Date 物件 (防試算表 1899 年預設日期)、含秒字串與標準 HH:mm
+ */
+function formatStandardTimeHHmm(val) {
+  if (!val) return "";
+  if (val instanceof Date) {
+    if (isNaN(val.getTime())) return "";
+    return Utilities.formatDate(val, "Asia/Taipei", "HH:mm");
+  }
+  const s = String(val).trim();
+  const m = s.match(/(\d{1,2}):(\d{2})/);
+  if (m) {
+    return String(m[1]).padStart(2, "0") + ":" + m[2];
+  }
+  return s;
+}
+
+/**
  * 標準化日期時間格式為 yyyy-MM-dd HH:mm:ss
  */
 function formatStandardDateTime(val) {
@@ -855,8 +873,8 @@ function checkTimeRestrictionAllowance(ss, username) {
         const name = String(data[i][1] || "").trim();
         const targetUser = String(data[i][2] || "").trim().toLowerCase();
         const studentInfo = String(data[i][3] || "").trim();
-        const sTime = String(data[i][4] || "").trim();
-        const eTime = String(data[i][5] || "").trim();
+        const sTime = formatStandardTimeHHmm(data[i][4]);
+        const eTime = formatStandardTimeHHmm(data[i][5]);
         const startD = formatStandardDateYMD(data[i][6]);
         const endD = formatStandardDateYMD(data[i][7]);
         const statusVal = String(data[i][8] || "").trim().toUpperCase();
@@ -967,8 +985,8 @@ function getTimeRestrictions(param1) {
       const name = String(data[i][1] || "").trim();
       const username = String(data[i][2] || "").trim();
       const studentInfo = String(data[i][3] || "").trim();
-      const sTime = String(data[i][4] || "").trim();
-      const eTime = String(data[i][5] || "").trim();
+      const sTime = formatStandardTimeHHmm(data[i][4]);
+      const eTime = formatStandardTimeHHmm(data[i][5]);
       const startD = formatStandardDateYMD(data[i][6]);
       const endD = formatStandardDateYMD(data[i][7]);
       const statusVal = String(data[i][8] || "").trim().toUpperCase();
@@ -1430,7 +1448,7 @@ function doPost(e) {
           curfew: true,
           startTime: timeAllowance.startTime,
           endTime: timeAllowance.endTime,
-          message: `⏰ 目前非您的開放作答時間！\n\n您的可作答時間為 早上 ${timeAllowance.startTime} ～ 晚上 ${timeAllowance.endTime}。\n其餘時間一律暫停使用，若有特殊需求請洽任課老師調整設定。`
+          message: "目前非您的開放作答時間，如有需求請洽任課老師調整設定。"
         });
       }
 
@@ -1475,7 +1493,7 @@ function doPost(e) {
           return jsonResponse({
             status: "error",
             curfew: true,
-            message: `⏰ 目前非您的開放作答時間（${timeAllowance.startTime}～${timeAllowance.endTime}），紀錄暫停同步。`
+            message: "目前非您的開放作答時間，如有需求請洽任課老師調整設定。"
           });
         }
       }
