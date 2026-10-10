@@ -301,6 +301,18 @@ export function renderBanner(level, ls, ready, hint, onChallenge) {
   $("#challengeBtn").onclick = () => { if (ready) onChallenge(); };
 }
 
+function normalizeDateStr(ds) {
+  if (!ds) return "";
+  const parts = String(ds).trim().replace(/\//g, "-").split("-");
+  if (parts.length === 3) {
+    const y = parts[0];
+    const m = parts[1].padStart(2, "0");
+    const d = parts[2].padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  }
+  return String(ds).trim();
+}
+
 function getCombinedTaskHistory() {
   const list = [];
   try {
@@ -723,7 +735,7 @@ export function renderSummary(d) {
   const initialFreeDetailsHtml = buildFreeDetailsHtml(initialFreeRecord, defaultSelectedDate, d.allPracticedWords);
 
   el.summary.innerHTML = `
-    <h3>📊 學習總結 Summary ${userTagHtml} <a id="sumClose">收起 ✕</a></h3>
+    <h3>📊 學習紀錄 Record ${userTagHtml} <a id="sumClose">收起 ✕</a></h3>
     <div class="bigrate">
       <b class="tnum">${d.passRate}%</b>
       <span>總答對率<br><small>${d.correct} 題對 / 共作答 ${d.attempts} 題</small></span>
@@ -882,8 +894,24 @@ export function renderSummary(d) {
   $("#sumClose").onclick = () => { el.summary.hidden = true; };
 }
 export function toggleSummary(data) {
-  el.summary.hidden = !el.summary.hidden;
-  if (!el.summary.hidden) { renderSummary(data); el.summary.scrollIntoView({ behavior: "smooth", block: "nearest" }); }
+  if (el.summary.hidden) {
+    el.summary.hidden = false;
+    try {
+      renderSummary(data);
+      el.summary.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    } catch (err) {
+      console.error("renderSummary error:", err);
+      el.summary.innerHTML = `
+        <div style="padding:18px; text-align:center; color:#f87171;">
+          <div style="font-size:20px; margin-bottom:6px;">⚠️</div>
+          <b>載入紀錄時發生問題：</b> ${err.message}<br>
+          <button onclick="document.getElementById('summary').hidden=true" style="margin-top:10px; padding:6px 14px; background:#334155; color:#fff; border:none; border-radius:6px; cursor:pointer;">關閉</button>
+        </div>
+      `;
+    }
+  } else {
+    el.summary.hidden = true;
+  }
 }
 
 // ---------- quiz (placement & challenge) ----------
