@@ -705,6 +705,8 @@ function finishTaskMode() {
   localStorage.setItem("assigned_task_active", JSON.stringify({ hasTask: false, alreadyCompleted: true }));
 
   // 3. 儲存今日任務成績摘要（標記 completed: true）
+  const allTaskWords = (taskState.pool || []).map(w => w.word || w.w || w);
+  const nowTs = new Date().toLocaleString("zh-TW", { hour12: false });
   const summaryObj = {
     taskName   : task.taskName,
     score      : correct,
@@ -713,9 +715,28 @@ function finishTaskMode() {
     completed  : true,
     isWeekend  : !!task.isWeekend,
     date       : todayDash,
-    wrongWords : taskState.wrongWords || []
+    wrongWords : taskState.wrongWords || [],
+    words      : allTaskWords,
+    updatedAt  : nowTs
   };
   localStorage.setItem("today_task_summary", JSON.stringify(summaryObj));
+
+  try {
+    const rawHist = localStorage.getItem("student_task_history");
+    const histList = rawHist ? JSON.parse(rawHist) : [];
+    const filtered = histList.filter(item => !(item.date === todayDash && item.taskName === task.taskName));
+    filtered.unshift({
+      date: todayDash,
+      taskName: task.taskName,
+      score: `${correct}/${total}`,
+      rate: rate + "%",
+      status: "🟢 已完成",
+      updatedAt: nowTs,
+      wrongWords: taskState.wrongWords || [],
+      words: allTaskWords
+    });
+    localStorage.setItem("student_task_history", JSON.stringify(filtered));
+  } catch(_) {}
 
   // 4. 還原自由模式按鈕
   const checkBtn = document.getElementById("checkBtn");

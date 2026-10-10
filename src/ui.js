@@ -301,6 +301,160 @@ export function renderBanner(level, ls, ready, hint, onChallenge) {
   $("#challengeBtn").onclick = () => { if (ready) onChallenge(); };
 }
 
+function getCombinedTaskHistory() {
+  const list = [];
+  try {
+    const raw = localStorage.getItem("student_task_history");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) list.push(...parsed);
+    }
+  } catch(_) {}
+
+  try {
+    const rawSum = localStorage.getItem("today_task_summary");
+    if (rawSum) {
+      const s = JSON.parse(rawSum);
+      if (s && s.date && s.taskName) {
+        const existIdx = list.findIndex(item => item.date === s.date && item.taskName === s.taskName);
+        const item = {
+          date: s.date,
+          taskName: s.taskName,
+          score: (s.score !== undefined && s.total !== undefined) ? `${s.score}/${s.total}` : "—",
+          rate: s.rate || "—",
+          status: s.completed ? "🟢 已完成" : "🟡 作答中",
+          updatedAt: s.updatedAt || `${s.date} (今日)`,
+          wrongWords: s.wrongWords || [],
+          words: s.words || []
+        };
+        if (existIdx >= 0) list[existIdx] = item;
+        else list.unshift(item);
+      }
+    }
+  } catch(_) {}
+
+  try {
+    const rawAssigned = sessionStorage.getItem("assigned_task") || localStorage.getItem("assigned_task_active");
+    if (rawAssigned) {
+      const a = JSON.parse(rawAssigned);
+      if (a && a.hasTask && a.taskName) {
+        const dStr = a.date || new Date().toISOString().split("T")[0];
+        const exist = list.find(item => item.date === dStr && item.taskName === a.taskName);
+        if (!exist) {
+          list.unshift({
+            date: dStr,
+            taskName: a.taskName,
+            score: a.alreadyCompleted ? "已完成" : "尚未開始",
+            rate: "—",
+            status: a.alreadyCompleted ? "🟢 已完成" : "🟡 待完成",
+            updatedAt: "今日指定任務",
+            wrongWords: [],
+            words: a.words || []
+          });
+        }
+      }
+    }
+  } catch(_) {}
+
+  return list;
+}
+
+function buildTaskDetailsHtml(record, selectedDate) {
+  if (!record) {
+    return `
+      <div class="task-history-card" style="text-align:center; padding:22px 14px; color:var(--ink3);">
+        <div style="font-size:26px; margin-bottom:6px;">📅</div>
+        <div style="font-size:13.5px; font-weight:700; color:var(--ink2);">該指定日期（${selectedDate}）尚無教師指派之測驗作答紀錄</div>
+        <div style="font-size:12px; margin-top:4px; color:var(--ink3);">可從上方下拉選單切換至其他日期查看詳細作答紀錄</div>
+      </div>
+    `;
+  }
+
+  const wrongSet = new Set((record.wrongWords || []).map(w => String(w).toLowerCase()));
+  const allWords = (Array.isArray(record.words) && record.words.length > 0) ? record.words : Array.from(wrongSet);
+  const scoreVal = record.score || "—";
+  const rateVal = record.rate || "—";
+  const statusStr = record.status || "🟢 已完成";
+  const statusColor = statusStr.includes("已完成") ? "#4ade80" : statusStr.includes("作答中") ? "#facc15" : "#94a3b8";
+  const statusBg = statusStr.includes("已完成") ? "rgba(34,197,94,0.15)" : statusStr.includes("作答中") ? "rgba(234,179,8,0.15)" : "rgba(148,163,184,0.15)";
+  const isFinished = statusStr.includes("已完成") || (scoreVal !== "—" && scoreVal !== "尚未開始");
+
+  let wrongWordsBlock = "";
+  if (record.wrongWords && record.wrongWords.length > 0) {
+    wrongWordsBlock = `
+      <div style="background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.25); border-radius:10px; padding:10px 12px; margin-bottom:12px;">
+        <div style="font-size:12px; font-weight:800; color:#f87171; margin-bottom:6px; display:flex; align-items:center; gap:5px;">
+          <span>❌ 答錯單字（共 ${record.wrongWords.length} 字）：</span>
+        </div>
+        <div style="display:flex; flex-wrap:wrap; gap:4px;">
+          ${record.wrongWords.map(w => `<span class="word-pill-tag wrong">${w}</span>`).join("")}
+        </div>
+      </div>
+    `;
+  } else if (isFinished) {
+    wrongWordsBlock = `
+      <div style="background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.22); border-radius:10px; padding:9px 12px; margin-bottom:12px; color:#4ade80; font-size:12.5px; font-weight:700; display:flex; align-items:center; gap:6px;">
+        🎉 太棒了！本次測驗全數答對，無任何錯題！
+      </div>
+    `;
+  }
+
+  let taskWordsBlock = "";
+  if (allWords.length > 0) {
+    const pills = allWords.map(w => {
+      const isWrong = wrongSet.has(String(w).toLowerCase());
+      if (isWrong) {
+        return `<span class="word-pill-tag wrong" title="此題答錯">✗ ${w}</span>`;
+      } else if (isFinished) {
+        return `<span class="word-pill-tag correct" title="此題答對">✓ ${w}</span>`;
+      } else {
+        return `<span class="word-pill-tag neutral">${w}</span>`;
+      }
+    }).join("");
+
+    taskWordsBlock = `
+      <div class="task-words-container">
+        <div style="font-size:12px; color:var(--ink2); font-weight:700; margin-bottom:6px;">📋 該任務測驗題目（共 ${allWords.length} 題）：</div>
+        <div style="display:flex; flex-wrap:wrap; gap:4px;">
+          ${pills}
+        </div>
+      </div>
+    `;
+  } else {
+    taskWordsBlock = `
+      <div style="font-size:12px; color:var(--ink3); font-style:italic; margin-top:6px;">（此筆歷程未載入詳細單字清單）</div>
+    `;
+  }
+
+  return `
+    <div class="task-history-card">
+      <div class="task-history-header">
+        <div>
+          <span style="font-size:15px; font-weight:800; color:#f8fafc;">${record.taskName}</span>
+          <span style="margin-left:8px; font-size:11.5px; font-weight:700; color:${statusColor}; background:${statusBg}; padding:2px 8px; border-radius:999px;">${statusStr}</span>
+        </div>
+        <div style="font-size:12px; color:var(--ink3); font-weight:600;">
+          🕒 作答時間：<span style="color:#cbd5e1; font-weight:700;">${record.updatedAt || record.date}</span>
+        </div>
+      </div>
+
+      <div class="task-score-grid">
+        <div class="task-score-item">
+          <div style="font-size:11.5px; color:var(--ink3); font-weight:700; margin-bottom:2px;">🎯 答對題數 / 總題數</div>
+          <div class="task-score-val" style="color:#38bdf8;">${scoreVal} 題</div>
+        </div>
+        <div class="task-score-item">
+          <div style="font-size:11.5px; color:var(--ink3); font-weight:700; margin-bottom:2px;">📊 正確率</div>
+          <div class="task-score-val" style="color:${parseInt(rateVal) >= 80 ? '#4ade80' : '#fb923c'};">${rateVal}</div>
+        </div>
+      </div>
+
+      ${wrongWordsBlock}
+      ${taskWordsBlock}
+    </div>
+  `;
+}
+
 // ---------- summary ----------
 export function summaryHidden() { return el.summary.hidden; }
 export function renderSummary(d) {
@@ -309,10 +463,26 @@ export function renderSummary(d) {
   const lvRows = d.levels
     .map((L) => `<tr><td><span style="color:${levelColor(L.level)}">●</span> Level ${L.level}「${levelName(L.level)}」</td><td>正確率 ${L.rate}%／精通 ${L.mast}／共 ${L.total}</td></tr>`)
     .join("");
-  const chip = (w) => `<span class="wchip">${w.word}</span>`;
-  const fchip = (w) => `<span class="wchip fixed">${w.word}</span>`;
-  const none = (t) => `<span style="color:var(--ink3);font-size:13px">${t}</span>`;
-  const mastered = d.mastered.slice(0, 60), fixed = d.fixed.slice(0, 60);
+
+  const historyList = getCombinedTaskHistory();
+  const todayDash = new Date().getFullYear() + "-" + String(new Date().getMonth() + 1).padStart(2, "0") + "-" + String(new Date().getDate()).padStart(2, "0");
+  
+  // 建立日期下拉選項
+  const dateSet = new Set();
+  historyList.forEach(item => { if (item.date) dateSet.add(item.date); });
+  dateSet.add(todayDash);
+  const sortedDates = Array.from(dateSet).sort((a, b) => b.localeCompare(a));
+  
+  const defaultSelectedDate = historyList.length > 0 ? historyList[0].date : todayDash;
+  const dateOptionsHtml = sortedDates.map(dateStr => {
+    const isToday = (dateStr === todayDash);
+    const matched = historyList.find(item => item.date === dateStr);
+    const label = `${dateStr}${isToday ? " (今日)" : ""}${matched ? ` - ${matched.taskName}` : " (無測驗)"}`;
+    return `<option value="${dateStr}" ${dateStr === defaultSelectedDate ? "selected" : ""}>${label}</option>`;
+  }).join("");
+
+  const initialRecord = historyList.find(item => item.date === defaultSelectedDate) || null;
+  const initialDetailsHtml = buildTaskDetailsHtml(initialRecord, defaultSelectedDate);
 
   el.summary.innerHTML = `
     <h3>📊 學習總結 Summary ${userTagHtml} <a id="sumClose">收起 ✕</a></h3>
@@ -348,14 +518,38 @@ export function renderSummary(d) {
         <div style="font-size:11px; color:var(--green);">答對 ${d.modeStats?.trap?.c || 0} (${d.modeStats?.trap?.a ? Math.round((d.modeStats.trap.c / d.modeStats.trap.a)*100) : 0}%)</div>
       </div>
     </div>
-    <div class="subh">✅ 已精通 ${d.mastered.length} 字（連續答對 3 次）</div>
-    <div class="chips-wrap">${mastered.length ? mastered.map(chip).join("") : none("還沒有，繼續加油！")}</div>
-    <div class="subh">🛠️ 曾拼錯、現在已訂正 ${d.fixed.length} 字</div>
-    <div class="chips-wrap">${fixed.length ? fixed.map(fchip).join("") : none("目前沒有")}</div>
+
+    <!-- 教師指定單字測驗作答紀錄 -->
+    <div class="subh" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+      <span>📝 教師指定單字測驗作答紀錄</span>
+      <div style="display:flex; align-items:center; gap:6px;">
+        <label for="task-date-select" style="font-size:11.5px; color:var(--ink3); font-weight:700;">指定日期：</label>
+        <select id="task-date-select" class="task-date-selector">
+          ${dateOptionsHtml}
+        </select>
+      </div>
+    </div>
+    <div id="task-record-details">
+      ${initialDetailsHtml}
+    </div>
+
     <div class="subh">📅 練習紀錄（最近 4 週）</div>
     <div class="streakline">🔥 連續 <b>${d.history.streak}</b> 天　·　最佳 <b>${d.history.best}</b> 天　·　累計練習 <b>${d.history.total}</b> 天</div>
     <div class="heatmap">${d.history.days.map((x) =>
       `<i class="hc h${x.level}" title="${x.key}：${x.a ? "作答 " + x.a + " · 正確率 " + x.rate + "%" : "沒有練習"}"></i>`).join("")}</div>`;
+
+  const dateSelect = $("#task-date-select");
+  if (dateSelect) {
+    dateSelect.onchange = (e) => {
+      const selectedDate = e.target.value;
+      const targetRecord = historyList.find(item => item.date === selectedDate) || null;
+      const detailsContainer = $("#task-record-details");
+      if (detailsContainer) {
+        detailsContainer.innerHTML = buildTaskDetailsHtml(targetRecord, selectedDate);
+      }
+    };
+  }
+
   $("#sumClose").onclick = () => { el.summary.hidden = true; };
 }
 export function toggleSummary(data) {
