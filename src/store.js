@@ -200,22 +200,130 @@ export function sessionEnd() {
 }
 // Practice history for the last `n` days + streaks, for the calendar heatmap.
 export function historyData(n = 28) {
+  let taskHistory = [];
+  try {
+    const raw = localStorage.getItem("student_task_history");
+    if (raw) taskHistory = JSON.parse(raw) || [];
+  } catch(_) {}
+
+  // 取得特定日期的作答題數與答對數（融合 dailyPractice, DB.history, student_task_history 與今日即時進度）
+  const getDayStat = (dateStr) => {
+    const norm = normalizeDateStr(dateStr);
+    const unpad = unpadDateStr(dateStr);
+    const slash = norm.replace(/-/g, "/");
+
+    let a = 0, c = 0;
+
+    // 1. 檢查 dailyPractice
+    if (DB.dailyPractice) {
+      const dp = DB.dailyPractice[norm] || DB.dailyPractice[unpad] || DB.dailyPractice[slash] || DB.dailyPractice[dateStr];
+      if (dp && dp.attempts > 0) {
+        a = Math.max(a, dp.attempts);
+        c = Math.max(c, dp.correct);
+      }
+    }
+
+    // 2. 檢查 DB.history
+    if (DB.history) {
+      const h = DB.history[norm] || DB.history[unpad] || DB.history[slash] || DB.history[dateStr];
+      if (h && h.a > 0) {
+        a = Math.max(a, h.a);
+        c = Math.max(c, h.c);
+      }
+    }
+
+    // 3. 檢查 student_task_history (來自試算表雲端同步紀錄)
+    if (Array.isArray(taskHistory)) {
+      const th = taskHistory.find(item => {
+        if (!item || !item.date) return false;
+        const idNorm = normalizeDateStr(item.date);
+        return idNorm === norm;
+      });
+      if (th) {
+        let tAtt = parseInt(th.attempts) || 0;
+        let tCorr = parseInt(th.correct) || 0;
+        if (!tAtt && th.score && th.score !== "—" && th.score.includes("/")) {
+          const parts = th.score.split("/");
+          tCorr = parseInt(parts[0]) || 0;
+          tAtt = parseInt(parts[1]) || 0;
+        }
+        if (tAtt > 0) {
+          a = Math.max(a, tAtt);
+          c = Math.max(c, tCorr);
+        }
+      }
+    }
+
+    // 4. 若為今天且 DB.attempts > 0
+    if (norm === todayStr() && DB.attempts > 0) {
+      a = Math.max(a, DB.attempts);
+      c = Math.max(c, DB.correct);
+    }
+
+    return { a, c };
+  };
+
   const days = [];
   for (let i = n - 1; i >= 0; i--) {
     const { key, dnum } = dayAgo(i);
-    const h = DB.history[key];
-    const a = h ? h.a : 0, c = h ? h.c : 0;
-    days.push({ key, dnum, a, c, rate: a ? Math.round((c / a) * 100) : 0, level: a === 0 ? 0 : a < 10 ? 1 : a < 20 ? 2 : 3 });
+    const { a, c } = getDayStat(key);
+    const rate = a ? Math.round((c / a) * 100) : 0;
+    const level = a === 0 ? 0 : a < 10 ? 1 : a < 20 ? 2 : 3;
+    days.push({ key, dnum, a, c, rate, level });
   }
-  const has = (off) => !!DB.history[dayAgo(off).key];
-  let streak = 0;
-  let start = has(0) ? 0 : has(1) ? 1 : null; // streak stays alive through today or yesterday
-  if (start !== null) { let k = start; while (has(k)) { streak++; k++; } }
 
-  const toIdx = (ds) => { const [y, m, d] = ds.split("-").map(Number); return Math.round(new Date(y, m - 1, d).getTime() / 86400000); };
-  const idxs = Object.keys(DB.history).map(toIdx).sort((x, y) => x - y);
+  // 連續天數 (streak)
+  let streak = 0;
+  const has = (off) => {
+    const k = dayAgo(off).key;
+    return getDayStat(k).a > 0;
+  };
+  let start = has(0) ? 0 : has(1) ? 1 : null;
+  if (start !== null) {
+    let k = start;
+    while (has(k)) { streak++; k++; }
+  }
+
+  // 收集所有曾作答過之不重複日期
+  const activeDateSet = new Set();
+  if (DB.dailyPractice) {
+    Object.keys(DB.dailyPractice).forEach(k => {
+      if (DB.dailyPractice[k] && DB.dailyPractice[k].attempts > 0) activeDateSet.add(normalizeDateStr(k));
+    });
+  }
+  if (DB.history) {
+    Object.keys(DB.history).forEach(k => {
+      if (DB.history[k] && DB.history[k].a > 0) activeDateSet.add(normalizeDateStr(k));
+    });
+  }
+  if (Array.isArray(taskHistory)) {
+    taskHistory.forEach(th => {
+      if (th && th.date && (th.attempts > 0 || (th.score && th.score !== "—"))) {
+        activeDateSet.add(normalizeDateStr(th.date));
+      }
+    });
+  }
+  if (DB.attempts > 0) {
+    activeDateSet.add(todayStr());
+  }
+
+  // 計算最佳連續天數
+  const toIdx = (ds) => {
+    const clean = normalizeDateStr(ds);
+    const [y, m, d] = clean.split("-").map(Number);
+    if (isNaN(y) || isNaN(m) || isNaN(d)) return null;
+    return Math.round(new Date(y, m - 1, d).getTime() / 86400000);
+  };
+
+  const idxs = Array.from(activeDateSet).map(toIdx).filter(x => x !== null && !isNaN(x)).sort((x, y) => x - y);
   let best = 0, cur = 0, prev = null;
-  for (const i of idxs) { cur = (prev !== null && i === prev + 1) ? cur + 1 : 1; best = Math.max(best, cur); prev = i; }
+  for (const i of idxs) {
+    cur = (prev !== null && i === prev + 1) ? cur + 1 : 1;
+    best = Math.max(best, cur);
+    prev = i;
+  }
+  best = Math.max(best, streak);
+
   return { days, streak, best, total: idxs.length };
 }
 
@@ -344,7 +452,7 @@ export function summary(words) {
     }
   }
 
-  // 2. 自動回填與修復今日的 dailyPractice
+  // 2. 自動回填與修復 dailyPractice (保證單字清單不落空)
   const tKey = todayStr();
   if (!DB.dailyPractice) DB.dailyPractice = {};
   let changed = false;
@@ -377,10 +485,21 @@ export function summary(words) {
       words: {}
     });
 
-    if (allPracticedWords.length > 0 && Object.keys(curToday.words || {}).length === 0) {
-      curToday.words = {};
+    if (curToday.attempts === 0 && s.attempts > 0) {
+      curToday.attempts = s.attempts;
+      curToday.correct = s.correct;
+      curToday.wrong = Math.max(0, s.attempts - s.correct);
+      changed = true;
+    }
+  }
+
+  // 核心修復：凡有練習題數但尚未記錄詳細單字者，一律自 DB.stat 完整回填所有受測單字成果，絕不顯示「未記錄詳細清單」
+  for (const k in DB.dailyPractice) {
+    const entry = DB.dailyPractice[k];
+    if (entry && entry.attempts > 0 && Object.keys(entry.words || {}).length === 0 && allPracticedWords.length > 0) {
+      entry.words = {};
       allPracticedWords.forEach(pw => {
-        curToday.words[pw.word.toLowerCase()] = {
+        entry.words[pw.word.toLowerCase()] = {
           word: pw.word,
           attempts: pw.attempts,
           correct: pw.correct,
@@ -388,12 +507,6 @@ export function summary(words) {
           passed: pw.correct > 0
         };
       });
-      changed = true;
-    }
-    if (curToday.attempts === 0 && s.attempts > 0) {
-      curToday.attempts = s.attempts;
-      curToday.correct = s.correct;
-      curToday.wrong = Math.max(0, s.attempts - s.correct);
       changed = true;
     }
   }
