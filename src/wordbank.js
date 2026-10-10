@@ -44,6 +44,7 @@ export async function loadWordBank() {
       sent: feat ? feat.sent : (m.sent || null),
       sentZh: feat ? (feat.sentZh || null) : (m.sentZh || null),
       sentSrc: feat ? "Curated" : (m.sentSrc || null),
+      sents: (Array.isArray(m.sents) && m.sents.length > 0) ? m.sents : (m.sent ? [{ level: 'normal', levelName: '普通', sent: m.sent, sentZh: m.sentZh || '', src: m.sentSrc || '' }] : []),
       ph: m.ph || null,
       cat: feat ? feat.cat : null,
     };

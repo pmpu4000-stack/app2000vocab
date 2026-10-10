@@ -103,14 +103,60 @@ export function renderRound(word, mode, { onAnswer, onCheck, disablePeek }) {
   }
 
   if (word.sent && mode !== "pick") {
-    let sentHtml = word.sent.replace(new RegExp("\\b" + word.word + "\\b", "i"), "<u>_____</u>") + ' <span style="font-size:12px; margin-left:6px; opacity:0.85; cursor:pointer;" title="點擊聆聽完整例句">🔊</span>';
-    if (word.sentZh) {
-      sentHtml += `<div style="font-size:13px; color:var(--ink3); font-weight:normal; margin-top:4px; opacity:0.9;">${word.sentZh}</div>`;
+    const sentsList = (Array.isArray(word.sents) && word.sents.length > 0)
+      ? word.sents
+      : [{ level: 'normal', levelName: '普通', sent: word.sent, sentZh: word.sentZh || '', src: word.sentSrc || '' }];
+
+    let curIdx = 0;
+    const normalIdx = sentsList.findIndex(s => s.level === 'normal');
+    if (normalIdx >= 0) curIdx = normalIdx;
+
+    function renderSentCard(idx) {
+      const item = sentsList[idx] || sentsList[0];
+      const maskedSent = item.sent.replace(new RegExp("\\b" + word.word + "\\b", "i"), "<u>_____</u>");
+      
+      let html = '';
+      if (sentsList.length > 1) {
+        html += '<div class="sent-level-tabs" style="display:inline-flex; gap:6px; margin-bottom:8px; justify-content:center; flex-wrap:wrap;">';
+        sentsList.forEach((s, i) => {
+          const badgeIcon = s.level === 'simple' ? '🌱' : s.level === 'advanced' ? '🌳' : '🌿';
+          const isAct = i === idx;
+          const bgStyle = isAct
+            ? 'background:#3b82f6; color:#fff; border-color:#3b82f6; box-shadow:0 2px 6px rgba(59,130,246,0.3);'
+            : 'background:#1e293b; color:#94a3b8; border-color:#334155;';
+          html += `<button type="button" class="sent-tab-pill" data-idx="${i}" style="padding:3px 10px; font-size:11.5px; font-weight:700; border-radius:12px; border:1px solid; cursor:pointer; transition:all 0.15s; ${bgStyle}">${badgeIcon} ${s.levelName || (i===0?'簡單':i===1?'普通':'進階')}</button>`;
+        });
+        html += '</div>';
+      }
+
+      html += `<div class="sent-content" style="cursor:pointer; padding:4px 8px; border-radius:8px; transition:background 0.2s;" title="點擊聆聽此例句朗讀">`;
+      html += `  <div style="font-size:14.5px; line-height:1.45;">${maskedSent} <span style="font-size:12px; margin-left:4px; opacity:0.85;">🔊</span></div>`;
+      if (item.sentZh) {
+        html += `  <div style="font-size:13px; color:var(--ink3); font-weight:normal; margin-top:4px; line-height:1.4; opacity:0.95;">${item.sentZh}</div>`;
+      }
+      if (item.src) {
+        html += `  <div style="font-size:10.5px; color:#64748b; margin-top:3px; font-style:italic;">來源：${item.src}</div>`;
+      }
+      html += `</div>`;
+      
+      el.sent.innerHTML = html;
+      el.sent.style.cursor = "default";
+      
+      const contentEl = el.sent.querySelector(".sent-content");
+      if (contentEl) {
+        contentEl.onclick = () => say(item.sent, 0.88);
+      }
+      el.sent.querySelectorAll(".sent-tab-pill").forEach(btn => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          const targetI = parseInt(btn.dataset.idx);
+          renderSentCard(targetI);
+          say(sentsList[targetI].sent, 0.88);
+        };
+      });
     }
-    el.sent.innerHTML = sentHtml;
-    el.sent.style.cursor = "pointer";
-    el.sent.title = "點擊聆聽完整例句朗讀";
-    el.sent.onclick = () => say(word.sent, 0.88);
+
+    renderSentCard(curIdx);
   } else {
     el.sent.innerHTML = "";
     el.sent.style.cursor = "";
