@@ -42,6 +42,8 @@ export async function loadWordBank() {
       featured: !!feat,
       zh: feat ? feat.zh : (m.zh || null),
       sent: feat ? feat.sent : (m.sent || null),
+      sentZh: feat ? (feat.sentZh || null) : (m.sentZh || null),
+      sentSrc: feat ? "Curated" : (m.sentSrc || null),
       ph: m.ph || null,
       cat: feat ? feat.cat : null,
     };

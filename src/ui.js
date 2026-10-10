@@ -103,7 +103,11 @@ export function renderRound(word, mode, { onAnswer, onCheck, disablePeek }) {
   }
 
   if (word.sent && mode !== "pick") {
-    el.sent.innerHTML = word.sent.replace(new RegExp("\\b" + word.word + "\\b", "i"), "<u>_____</u>") + ' <span style="font-size:12px; margin-left:6px; opacity:0.85; cursor:pointer;" title="點擊聆聽完整例句">🔊</span>';
+    let sentHtml = word.sent.replace(new RegExp("\\b" + word.word + "\\b", "i"), "<u>_____</u>") + ' <span style="font-size:12px; margin-left:6px; opacity:0.85; cursor:pointer;" title="點擊聆聽完整例句">🔊</span>';
+    if (word.sentZh) {
+      sentHtml += `<div style="font-size:13px; color:var(--ink3); font-weight:normal; margin-top:4px; opacity:0.9;">${word.sentZh}</div>`;
+    }
+    el.sent.innerHTML = sentHtml;
     el.sent.style.cursor = "pointer";
     el.sent.title = "點擊聆聽完整例句朗讀";
     el.sent.onclick = () => say(word.sent, 0.88);

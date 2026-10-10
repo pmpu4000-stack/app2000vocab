@@ -50,8 +50,10 @@ This project is a collaborative and extended work. Copyright is divided as follo
 
 ### Third-Party Data & Corpus / 第三方資料庫與例句來源
 
-This project also redistributes third-party data:
-1. The Chinese meanings and phonetics in `data/meanings.json` are derived from ECDICT (MIT-licensed, Copyright (c) 2025 Linwei).
-2. The example sentences in `data/meanings.json` are provided under Public Domain (CC0) / permissible open licenses (e.g. WordNet / Tatoeba CC-BY) for educational and commercial use.
+This project redistributes third-party data and educational linguistic corpora:
+1. **ECDICT (MIT License)**: Chinese definitions and General American phonetics in `data/meanings.json` (Copyright (c) 2025 Linwei).
+2. **Tatoeba Project (CC-BY 2.0 FR)**: Curated bilingual example sentences and native Chinese translations (tatoeba.org).
+3. **Princeton WordNet 3.0 (WordNet License / BSD-style)**: Lexical definitions, illustrative usage examples, and synset data (Copyright (c) 2006 Princeton University).
+4. **Webster's Revised Unabridged Dictionary 1913 / GCIDE (Public Domain)**: Classic definitions and illustrative corpus examples.
 
-See `THIRD-PARTY-NOTICES.md` for the required attribution, full license texts, and authorized citation standards.
+All open datasets strictly comply with commercial and educational licensing requirements. See `THIRD-PARTY-NOTICES.md` for the full license texts, author acknowledgments, and attribution notices.

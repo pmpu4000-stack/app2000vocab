@@ -53,21 +53,67 @@ preparation and is not included in this repository.
 
 ---
 
-## Example Sentences & Corpus / 英文例句來源與商業使用授權宣告
+## Example Sentences & Bilingual Corpus / 英文例句來源與商業使用授權宣告
 
-All example sentences in `data/meanings.json` comply with permissive, royalty-free, or public domain terms suitable for commercial and educational distribution:
+All example sentences and bilingual translations in `data/meanings.json` comply with permissive open licenses and public domain terms suitable for commercial, educational, and personal distribution without infringement risks:
 
-1. **Current Corpus (現行例句資料庫)**:
-   - The example sentences in this repository were synthesized and reviewed under **CC0 / Public Domain dedication**, ensuring zero proprietary copyright entanglement.
-   - 全數 2,055 個單字例句皆採無版權負擔之公有領域（Public Domain / CC0）規格製作與校對，無任何商業授權爭議。
+---
 
-2. **Authorized Sources for Future Example Enrichment (合規之專業開源例句庫來源)**:
-   Any supplementary example sentences incorporated into this project must originate exclusively from the following legally vetted, commercially permissible open sources:
-   - **Tatoeba Project**: An open collaborative sentence database under **Creative Commons Attribution 2.0 France (CC-BY 2.0 FR)**. Source: https://tatoeba.org
-   - **Princeton WordNet 3.0**: Lexical database developed by Princeton University under the **WordNet 3.0 License (BSD-style, royalty-free commercial use permitted)**. Source: https://wordnet.princeton.edu
-   - **GCIDE / Webster's Revised Unabridged Dictionary (1913)**: Historical dictionary in the **Public Domain**, exempt from copyright restrictions worldwide.
+### 1. Tatoeba Project (CC-BY 2.0 FR)
 
-3. **Prohibited Sources (嚴格禁止引用之來源)**:
-   - Proprietary commercial copyright dictionaries (including Oxford, Cambridge, Longman, Collins, and modern Merriam-Webster editions) are strictly prohibited to prevent copyright infringement.
-   - 嚴格禁止抄錄具備專屬著作權之當代商業版權字典（如牛津、劍橋、朗文、柯林斯、當代韋氏辭典等）。
+- **Project:** Tatoeba Project — Open Collaborative Bilingual Sentence Database
+- **Website:** https://tatoeba.org / http://www.manythings.org/anki/
+- **License:** Creative Commons Attribution 2.0 France (`CC-BY 2.0 FR`)
+- **License Summary:** Free for commercial use, copying, adaptation, and redistribution under the condition of attribution.
+- **Attribution Statement:**
+  Example sentences and bilingual translations are contributed by volunteer authors and editors of the Tatoeba Project (tatoeba.org). Under CC-BY 2.0 FR, attribution is hereby given to Tatoeba and its contributing authors.
+
+---
+
+### 2. Princeton WordNet 3.0 (WordNet License)
+
+- **Project:** Princeton University WordNet 3.0 Lexical Database
+- **Website:** https://wordnet.princeton.edu
+- **Copyright:** WordNet 3.0 Copyright 2006 by Princeton University. All rights reserved.
+- **License:** WordNet License (BSD-style permissive open license)
+
+```
+WordNet 3.0 License
+
+This software and database is being provided to you, the LICENSEE, by Princeton
+University under the following license. By obtaining, using and/or copying this
+software and database, you agree that you have read, understood, and will comply
+with these terms and conditions.:
+
+Permission to use, copy, modify and distribute this software and database and its
+documentation for any purpose and without fee or royalty is hereby granted, provided
+that you agree to comply with the following copyright notice and statements,
+including the disclaimer, and that the same appear on ALL copies of the software,
+database and documentation, including modifications that you make for internal use
+or for distribution.
+
+WordNet 3.0 Copyright 2006 by Princeton University. All rights reserved.
+
+THIS SOFTWARE AND DATABASE IS PROVIDED "AS IS" AND PRINCETON UNIVERSITY MAKES NO
+REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED. BY WAY OF EXAMPLE, BUT NOT
+LIMITATION, PRINCETON UNIVERSITY MAKES NO REPRESENTATIONS OR WARRANTIES OF
+MERCHANTABILITY OR FITNESS FOR ANY PARTICULAR PURPOSE OR THAT THE USE OF THE
+LICENSED SOFTWARE, DATABASE OR DOCUMENTATION WILL NOT INFRINGE ANY THIRD PARTY
+PATENTS, COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.
+```
+
+---
+
+### 3. Webster's Revised Unabridged Dictionary (1913) / GCIDE
+
+- **Source:** Noah Porter, G. & C. Merriam Company (1913) / GNU Collaborative International Dictionary of English (GCIDE)
+- **Legal Status:** Public Domain worldwide (Published prior to 1928; copyright expired under US and international copyright laws).
+- **Terms:** Fully exempt from copyright restrictions. Completely free for reproduction, commercial derivative works, and redistribution worldwide.
+
+---
+
+### 4. Prohibited Commercial Dictionary Warning / 嚴格禁止引用之來源
+
+Proprietary commercial copyright dictionaries (including Oxford University Press, Cambridge University Press, Longman/Pearson, Collins/HarperCollins, and contemporary editions of Merriam-Webster) are **strictly prohibited** in this project to prevent copyright infringement.
+嚴格禁止抄錄具備專利與著作權之現代商業出版字典（如牛津、劍橋、朗文、柯林斯等）。
 
