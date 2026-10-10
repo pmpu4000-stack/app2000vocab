@@ -945,7 +945,8 @@ function checkTimeRestrictionAllowance(ss, username) {
 /**
  * 讀取目前所有的時間設定 (供教師管理介面)
  */
-function getTimeRestrictions(ss) {
+function getTimeRestrictions(param1) {
+  const ss = (param1 && typeof param1.getSheetByName === "function") ? param1 : SpreadsheetApp.getActiveSpreadsheet();
   const sheet = ensureTimeSettingsSheet(ss);
   const statusInfo = checkTimeRestrictionAllowance(ss, "");
 
@@ -1044,7 +1045,17 @@ function getTimeRestrictions(ss) {
 /**
  * 儲存全校預設作答時間（儲存後自動成為下次預設）
  */
-function saveGlobalTimeSetting(ss, teacherUser, timeData) {
+function saveGlobalTimeSetting(param1, param2, param3) {
+  let ss, teacherUser, timeData;
+  if (param1 && typeof param1.getSheetByName === "function") {
+    ss = param1;
+    teacherUser = param2;
+    timeData = param3;
+  } else {
+    ss = SpreadsheetApp.getActiveSpreadsheet();
+    teacherUser = (param1 && param1.username) ? param1.username : "教師";
+    timeData = (param1 && param1.timeData) ? param1.timeData : param1;
+  }
   const sheet = ensureTimeSettingsSheet(ss);
   const sTime = String(timeData.startTime || "07:30").trim();
   const eTime = String(timeData.endTime || "22:00").trim();
@@ -1097,13 +1108,23 @@ function saveGlobalTimeSetting(ss, teacherUser, timeData) {
 /**
  * 儲存個別學生自訂作答時間
  */
-function saveStudentTimeSetting(ss, teacherUser, studentData) {
+function saveStudentTimeSetting(param1, param2, param3) {
+  let ss, teacherUser, studentData;
+  if (param1 && typeof param1.getSheetByName === "function") {
+    ss = param1;
+    teacherUser = param2;
+    studentData = param3;
+  } else {
+    ss = SpreadsheetApp.getActiveSpreadsheet();
+    teacherUser = (param1 && param1.username) ? param1.username : "教師";
+    studentData = (param1 && param1.studentData) ? param1.studentData : param1;
+  }
   const sheet = ensureTimeSettingsSheet(ss);
-  const username = String(studentData.username || "").trim();
-  const studentInfo = String(studentData.studentInfo || "").trim();
-  const sTime = String(studentData.startTime || "").trim();
-  const eTime = String(studentData.endTime || "").trim();
-  const remark = String(studentData.remark || "個別學生特別時間").trim();
+  const username = String((studentData && studentData.username) || "").trim();
+  const studentInfo = String((studentData && studentData.studentInfo) || "").trim();
+  const sTime = String((studentData && studentData.startTime) || "").trim();
+  const eTime = String((studentData && studentData.endTime) || "").trim();
+  const remark = String((studentData && studentData.remark) || "個別學生特別時間").trim();
 
   if (!username) {
     return { status: "error", message: "未指定目標學生學號" };
@@ -1157,7 +1178,15 @@ function saveStudentTimeSetting(ss, teacherUser, studentData) {
 /**
  * 刪除個別學生自訂作答時間
  */
-function deleteStudentTimeSetting(ss, username) {
+function deleteStudentTimeSetting(param1, param2) {
+  let ss, username;
+  if (param1 && typeof param1.getSheetByName === "function") {
+    ss = param1;
+    username = param2;
+  } else {
+    ss = SpreadsheetApp.getActiveSpreadsheet();
+    username = (param1 && param1.targetUsername) ? param1.targetUsername : (param1 && param1.username ? param1.username : param1);
+  }
   const sheet = ss.getSheetByName("時間限制設定");
   if (!sheet || sheet.getLastRow() < 2) return { status: "error", message: "找不到時間限制設定" };
 
@@ -1179,13 +1208,23 @@ function deleteStudentTimeSetting(ss, username) {
 /**
  * 儲存特別日期全天解除限制設定
  */
-function saveTimeRestriction(ss, teacherUser, ruleData) {
+function saveTimeRestriction(param1, param2, param3) {
+  let ss, teacherUser, ruleData;
+  if (param1 && typeof param1.getSheetByName === "function") {
+    ss = param1;
+    teacherUser = param2;
+    ruleData = param3;
+  } else {
+    ss = SpreadsheetApp.getActiveSpreadsheet();
+    teacherUser = (param1 && param1.username) ? param1.username : "教師";
+    ruleData = (param1 && param1.ruleData) ? param1.ruleData : param1;
+  }
   const sheet = ensureTimeSettingsSheet(ss);
-  const name = String(ruleData.name || "特別解除限制").trim();
-  const startD = formatStandardDateYMD(ruleData.startDate);
-  const endD = formatStandardDateYMD(ruleData.endDate || ruleData.startDate);
-  const remark = String(ruleData.remark || "").trim();
-  const isEnabled = ruleData.enabled !== false;
+  const name = String((ruleData && ruleData.name) || "特別解除限制").trim();
+  const startD = formatStandardDateYMD(ruleData && ruleData.startDate);
+  const endD = formatStandardDateYMD((ruleData && ruleData.endDate) || (ruleData && ruleData.startDate));
+  const remark = String((ruleData && ruleData.remark) || "").trim();
+  const isEnabled = (ruleData && ruleData.enabled) !== false;
 
   if (!startD || !endD) {
     return { status: "error", message: "請指定正確的起始與結束日期" };
@@ -1240,12 +1279,20 @@ function saveTimeRestriction(ss, teacherUser, ruleData) {
 /**
  * 刪除特別日期全天解除限制設定
  */
-function deleteTimeRestriction(ss, ruleData) {
+function deleteTimeRestriction(param1, param2) {
+  let ss, ruleData;
+  if (param1 && typeof param1.getSheetByName === "function") {
+    ss = param1;
+    ruleData = param2;
+  } else {
+    ss = SpreadsheetApp.getActiveSpreadsheet();
+    ruleData = (param1 && param1.ruleData) ? param1.ruleData : param1;
+  }
   const sheet = ss.getSheetByName("時間限制設定");
   if (!sheet || sheet.getLastRow() < 2) return { status: "error", message: "找不到時間限制設定" };
 
-  const startD = formatStandardDateYMD(ruleData.startDate);
-  const endD = formatStandardDateYMD(ruleData.endDate);
+  const startD = formatStandardDateYMD(ruleData && ruleData.startDate);
+  const endD = formatStandardDateYMD(ruleData && ruleData.endDate);
 
   const data = sheet.getDataRange().getValues();
   for (let i = data.length - 1; i >= 1; i--) {
@@ -1265,7 +1312,15 @@ function deleteTimeRestriction(ss, ruleData) {
 /**
  * 教師快捷操作：一鍵切換今日解除限制狀態
  */
-function quickToggleTodayUnlock(ss, teacherUser) {
+function quickToggleTodayUnlock(param1, param2) {
+  let ss, teacherUser;
+  if (param1 && typeof param1.getSheetByName === "function") {
+    ss = param1;
+    teacherUser = param2;
+  } else {
+    ss = SpreadsheetApp.getActiveSpreadsheet();
+    teacherUser = (param1 && param1.username) ? param1.username : "教師";
+  }
   const sheet = ensureTimeSettingsSheet(ss);
   const todayYMD = Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy-MM-dd");
   const nowStr = Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy-MM-dd HH:mm:ss");
