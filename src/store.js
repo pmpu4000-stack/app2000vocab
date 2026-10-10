@@ -19,6 +19,19 @@ export function normalizeDateStr(ds) {
   return String(ds).trim();
 }
 
+// Calendar date without leading zeros "YYYY-M-D"
+export function unpadDateStr(ds) {
+  if (!ds) return "";
+  const parts = String(ds).trim().replace(/\//g, "-").split("-");
+  if (parts.length === 3) {
+    const y = parts[0];
+    const m = String(parseInt(parts[1], 10));
+    const d = String(parseInt(parts[2], 10));
+    return `${y}-${m}-${d}`;
+  }
+  return String(ds).trim();
+}
+
 // Local calendar date "YYYY-MM-DD" (used to scope a training session or daily practice).
 function todayStr() {
   const d = new Date();
@@ -264,16 +277,18 @@ export function stats(words) {
 // ---- daily free practice helpers ----
 export function getDailyPractice(dateStr) {
   const norm = normalizeDateStr(dateStr);
-  let dp = (DB.dailyPractice && (DB.dailyPractice[norm] || DB.dailyPractice[dateStr])) || null;
-  if (!dp) {
-    const h = (DB.history && (DB.history[norm] || DB.history[dateStr])) || null;
+  const unpadded = unpadDateStr(dateStr);
+  const slashed = norm.replace(/-/g, "/");
+  let dp = (DB.dailyPractice && (DB.dailyPractice[norm] || DB.dailyPractice[unpadded] || DB.dailyPractice[slashed] || DB.dailyPractice[dateStr])) || null;
+  if (!dp || !dp.attempts) {
+    const h = (DB.history && (DB.history[norm] || DB.history[unpadded] || DB.history[slashed] || DB.history[dateStr])) || null;
     if (h && h.a > 0) {
       dp = {
         date: norm,
         attempts: h.a,
         correct: h.c,
         wrong: (h.w !== undefined) ? h.w : Math.max(0, h.a - h.c),
-        words: {}
+        words: (dp && dp.words) ? dp.words : {}
       };
     }
   }
@@ -313,6 +328,78 @@ export function summary(words) {
     return { name: CATS[k].name, color: CATS[k].color, total: ws.length, mast: ws.filter((w) => box(w.id) >= 3).length };
   });
   const modeStats = DB.mstat || { listen: { a: 0, c: 0 }, pick: { a: 0, c: 0 }, scramble: { a: 0, c: 0 }, trap: { a: 0, c: 0 } };
+
+  // 1. 整理 DB.stat 中所有曾作答過之單字成果
+  const allPracticedWords = [];
+  for (const w of words) {
+    const st = DB.stat[w.id];
+    if (st && st.a > 0) {
+      allPracticedWords.push({
+        word: w.word,
+        attempts: st.a,
+        correct: st.c,
+        wrong: Math.max(0, st.a - st.c),
+        ew: !!st.ew
+      });
+    }
+  }
+
+  // 2. 自動回填與修復今日的 dailyPractice
+  const tKey = todayStr();
+  if (!DB.dailyPractice) DB.dailyPractice = {};
+  let changed = false;
+
+  // 將 DB.history 內舊有日期之題數自動整合至 dailyPractice
+  if (DB.history) {
+    for (const hDate in DB.history) {
+      const h = DB.history[hDate];
+      const normH = normalizeDateStr(hDate);
+      if (h && h.a > 0 && (!DB.dailyPractice[normH] || DB.dailyPractice[normH].attempts === 0)) {
+        DB.dailyPractice[normH] = {
+          date: normH,
+          attempts: h.a,
+          correct: h.c,
+          wrong: (h.w !== undefined) ? h.w : Math.max(0, h.a - h.c),
+          words: {}
+        };
+        changed = true;
+      }
+    }
+  }
+
+  // 若今日有作答（或 DB.attempts > 0），確保今日有完整的自由練習受測單字紀錄
+  if (s.attempts > 0) {
+    const curToday = DB.dailyPractice[tKey] || (DB.dailyPractice[tKey] = {
+      date: tKey,
+      attempts: s.attempts,
+      correct: s.correct,
+      wrong: Math.max(0, s.attempts - s.correct),
+      words: {}
+    });
+
+    if (allPracticedWords.length > 0 && Object.keys(curToday.words || {}).length === 0) {
+      curToday.words = {};
+      allPracticedWords.forEach(pw => {
+        curToday.words[pw.word.toLowerCase()] = {
+          word: pw.word,
+          attempts: pw.attempts,
+          correct: pw.correct,
+          wrong: pw.wrong,
+          passed: pw.correct > 0
+        };
+      });
+      changed = true;
+    }
+    if (curToday.attempts === 0 && s.attempts > 0) {
+      curToday.attempts = s.attempts;
+      curToday.correct = s.correct;
+      curToday.wrong = Math.max(0, s.attempts - s.correct);
+      changed = true;
+    }
+  }
+
+  if (changed) save();
+
   return {
     passRate: s.passRate, distinctCorrect: s.distinctCorrect,
     attempts: s.attempts, correct: s.correct, total: s.total,
@@ -320,5 +407,7 @@ export function summary(words) {
     modeStats,
     dailyPractice: DB.dailyPractice || {},
     practiceDates: getPracticeDates(),
+    rawHistory: DB.history || {},
+    allPracticedWords,
   };
 }

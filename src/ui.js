@@ -539,6 +539,89 @@ function buildFreeDetailsHtml(record, selectedDate) {
   `;
 }
 
+function resolveDailyPracticeRecord(dateStr, d, historyList) {
+  if (!dateStr) return null;
+  const norm = String(dateStr).trim().replace(/\//g, "-");
+  const parts = norm.split("-");
+  const normYMD = (parts.length === 3) ? `${parts[0]}-${parts[1].padStart(2, "0")}-${parts[2].padStart(2, "0")}` : norm;
+  const unpadYMD = (parts.length === 3) ? `${parts[0]}-${parseInt(parts[1], 10)}-${parseInt(parts[2], 10)}` : norm;
+  const slashYMD = normYMD.replace(/-/g, "/");
+
+  const today = new Date();
+  const todayDash = today.getFullYear() + "-" + String(today.getMonth() + 1).padStart(2, "0") + "-" + String(today.getDate()).padStart(2, "0");
+  const isToday = (normYMD === todayDash || dateStr === todayDash);
+
+  // 1. 從 d.dailyPractice 尋找
+  const dpMap = (d && d.dailyPractice) || {};
+  let rec = dpMap[normYMD] || dpMap[unpadYMD] || dpMap[slashYMD] || dpMap[dateStr] || null;
+  if (rec && rec.attempts > 0) {
+    return rec;
+  }
+
+  // 2. 從 d.rawHistory 尋找 (早期記錄於 DB.history)
+  const hMap = (d && d.rawHistory) || {};
+  const h = hMap[normYMD] || hMap[unpadYMD] || hMap[slashYMD] || hMap[dateStr] || null;
+  if (h && h.a > 0) {
+    return {
+      date: normYMD,
+      attempts: h.a,
+      correct: h.c,
+      wrong: (h.w !== undefined) ? h.w : Math.max(0, h.a - h.c),
+      words: (rec && rec.words) ? rec.words : {}
+    };
+  }
+
+  // 3. 從 student_task_history 尋找 (Google Sheets 雲端同步各日作答歷程)
+  if (Array.isArray(historyList)) {
+    const matchedTask = historyList.find(item => {
+      if (!item || !item.date) return false;
+      const iDate = String(item.date).trim().replace(/\//g, "-");
+      const iParts = iDate.split("-");
+      const iNorm = (iParts.length === 3) ? `${iParts[0]}-${iParts[1].padStart(2, "0")}-${iParts[2].padStart(2, "0")}` : iDate;
+      return iNorm === normYMD;
+    });
+
+    if (matchedTask) {
+      const att = parseInt(matchedTask.attempts) || 0;
+      const corr = parseInt(matchedTask.correct) || 0;
+      if (att > 0) {
+        return {
+          date: normYMD,
+          attempts: att,
+          correct: corr,
+          wrong: Math.max(0, att - corr),
+          words: (rec && rec.words) ? rec.words : {}
+        };
+      }
+    }
+  }
+
+  // 4. 若為今天且總作答題數大於 0 (DB.attempts > 0)，但今日紀錄尚未持久化
+  if (isToday && d && d.attempts > 0) {
+    const wordsMap = {};
+    if (Array.isArray(d.allPracticedWords) && d.allPracticedWords.length > 0) {
+      d.allPracticedWords.forEach(pw => {
+        wordsMap[pw.word.toLowerCase()] = {
+          word: pw.word,
+          attempts: pw.attempts,
+          correct: pw.correct,
+          wrong: pw.wrong,
+          passed: pw.correct > 0
+        };
+      });
+    }
+    return {
+      date: normYMD,
+      attempts: d.attempts,
+      correct: d.correct,
+      wrong: Math.max(0, d.attempts - d.correct),
+      words: wordsMap
+    };
+  }
+
+  return rec;
+}
+
 // ---------- summary ----------
 export function summaryHidden() { return el.summary.hidden; }
 export function renderSummary(d) {
@@ -559,6 +642,9 @@ export function renderSummary(d) {
   historyList.forEach(item => { if (item.date) dateSet.add(item.date); });
   practiceDates.forEach(dateStr => { if (dateStr) dateSet.add(dateStr); });
   Object.keys(dailyPracticeMap).forEach(dateStr => { if (dateStr) dateSet.add(dateStr); });
+  if (d.rawHistory) {
+    Object.keys(d.rawHistory).forEach(dateStr => { if (dateStr) dateSet.add(dateStr); });
+  }
   dateSet.add(todayDash);
 
   const sortedDates = Array.from(dateSet).sort((a, b) => b.localeCompare(a));
@@ -572,11 +658,11 @@ export function renderSummary(d) {
     return `<option value="${dateStr}" ${dateStr === defaultSelectedDate ? "selected" : ""}>${label}</option>`;
   }).join("");
 
-  // 自由練習作答下拉選單
+  // 自由練習作答下拉選單 (完整相容 DB.dailyPractice、DB.history 與雲端同步資料)
   const freeDateOptionsHtml = sortedDates.map(dateStr => {
     const isToday = (dateStr === todayDash);
-    const matched = dailyPracticeMap[dateStr];
-    const attempts = matched ? (matched.attempts || 0) : 0;
+    const rec = resolveDailyPracticeRecord(dateStr, d, historyList);
+    const attempts = rec ? (rec.attempts || 0) : 0;
     const label = `${dateStr}${isToday ? " (今日)" : ""}${attempts > 0 ? ` - ${attempts} 題` : " (無自主練習)"}`;
     return `<option value="${dateStr}" ${dateStr === defaultSelectedDate ? "selected" : ""}>${label}</option>`;
   }).join("");
@@ -584,7 +670,7 @@ export function renderSummary(d) {
   const initialTaskRecord = historyList.find(item => item.date === defaultSelectedDate) || null;
   const initialTaskDetailsHtml = buildTaskDetailsHtml(initialTaskRecord, defaultSelectedDate);
 
-  const initialFreeRecord = dailyPracticeMap[defaultSelectedDate] || null;
+  const initialFreeRecord = resolveDailyPracticeRecord(defaultSelectedDate, d, historyList);
   const initialFreeDetailsHtml = buildFreeDetailsHtml(initialFreeRecord, defaultSelectedDate);
 
   el.summary.innerHTML = `
@@ -665,7 +751,7 @@ export function renderSummary(d) {
       taskDetailsContainer.innerHTML = buildTaskDetailsHtml(targetTaskRecord, selectedDate);
     }
 
-    const targetFreeRecord = dailyPracticeMap[selectedDate] || null;
+    const targetFreeRecord = resolveDailyPracticeRecord(selectedDate, d, historyList);
     const freeDetailsContainer = $("#free-record-details");
     if (freeDetailsContainer) {
       freeDetailsContainer.innerHTML = buildFreeDetailsHtml(targetFreeRecord, selectedDate);
