@@ -1,0 +1,3584 @@
+/**
+ * 學生學習歷程系統 - 後端服務 (Code.gs)
+ * v4.1：全面效能最佳化 + 老師線上出題介面 + 今日指定單字測驗 + 週末錯題補救成效 + 每日任務紀錄
+ *
+ * 【工作表架構】：
+ *   1. 使用者清單：A=帳號 | B=密碼(SHA-256) | C=角色 | D=班級 | E=姓名
+ *   2. 指定單字任務：A=班級 | B=任務名稱 | C=指定單字清單 | D=測驗模式(全考/抽測) | E=題數 | F=啟用狀態(TRUE/FALSE)
+ *   3. 每日任務紀錄：A=日期 | B=班級 | C=學號 | D=姓名 | E=任務名稱 | F=指定測驗成績 | G=正確率 | H=今日總作答 | I=今日總答對 | J=總正確率 | K=狀態 | L=更新時間
+ *   4. 全班學習總覽 / 系統目標設定 / 錯誤日誌 / 各學生專屬歷程表
+ */
+
+const SYS = {
+  CACHE_OVERVIEW_KEY : "class_overview_v41",
+  CACHE_OVERVIEW_TTL : 300,
+  CACHE_AUTH_TTL     : 300,
+  LOGIN_MAX_FAIL     : 5,
+  LOGIN_LOCK_SEC     : 600,
+  MAX_JSON_BYTES     : 500000,
+  MAX_BACKUP_FILES   : 30,
+  BACKUP_FOLDER      : "【備份庫】學生學習歷程資料",
+  SYSTEM_SHEETS      : new Set([
+    "全班學習總覽","使用者清單","指定單字任務","錯誤日誌"
+  ])
+};
+
+// ════════════════════════════════════════════════════════════════════
+// 0. 密碼雜湊與資安防護
+// ════════════════════════════════════════════════════════════════════
+
+function hashPassword(plainText) {
+  const bytes = Utilities.computeDigest(
+    Utilities.DigestAlgorithm.SHA_256,
+    String(plainText).trim(),
+    Utilities.Charset.UTF_8
+  );
+  return bytes.map(b => ("0" + (b & 0xFF).toString(16)).slice(-2)).join("");
+}
+
+function isHashedPassword(str) {
+  return /^[a-f0-9]{64}$/.test(String(str || "").trim());
+}
+
+function _failKey(u)     { return "lf_" + u; }
+function _lockKey(u)     { return "lk_" + u; }
+function _authKey(u, hp) { return "au_" + u + "_" + hp.substring(0,12); }
+
+function checkLoginAttempts(username) {
+  try {
+    if (CacheService.getScriptCache().get(_lockKey(username))) {
+      return { locked: true, message: `帳號已鎖定，請 ${SYS.LOGIN_LOCK_SEC/60} 分鐘後再試` };
+    }
+    return { locked: false };
+  } catch(_) { return { locked: false }; }
+}
+
+function recordLoginFailure(username) {
+  try {
+    const cache = CacheService.getScriptCache();
+    const n = parseInt(cache.get(_failKey(username)) || "0") + 1;
+    cache.put(_failKey(username), String(n), SYS.LOGIN_LOCK_SEC);
+    if (n >= SYS.LOGIN_MAX_FAIL) {
+      cache.put(_lockKey(username), "1", SYS.LOGIN_LOCK_SEC);
+      logError("登入保護", `帳號 ${username} 連續失敗 ${n} 次，已鎖定`, username, "");
+    }
+  } catch(_) {}
+}
+
+function clearLoginFailures(username) {
+  try {
+    const cache = CacheService.getScriptCache();
+    cache.remove(_failKey(username));
+    cache.remove(_lockKey(username));
+  } catch(_) {}
+}
+
+function getStudentClass(username, rawClass) {
+  const c = String(rawClass || "").trim();
+  if (c) return c;
+  const m = String(username || "").match(/^([0-9]{3}|[A-Za-z]+[0-9]{1,2})([0-9]{2})$/);
+  return (m && m[1]) ? m[1] + "班" : "預設班級";
+}
+
+function isAdminTeacher(className) {
+  const c = String(className || "").trim().toLowerCase();
+  return !c || c === "all" || c === "全校" || c === "教師群" || c === "admin";
+}
+
+/**
+ * 標準化日期格式為 yyyy-MM-dd
+ * 相容 Date 物件、斜線字串 (yyyy/M/d, yyyy/MM/dd)、橫線字串 (yyyy-M-d, yyyy-MM-dd) 與含時間字串
+ */
+function formatStandardDateYMD(val) {
+  if (!val) return "";
+  if (val instanceof Date) {
+    if (isNaN(val.getTime())) return "";
+    return Utilities.formatDate(val, "Asia/Taipei", "yyyy-MM-dd");
+  }
+  const s = String(val).trim().replace(/\//g, "-");
+  const m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (m) {
+    const y = m[1];
+    const mo = m[2].padStart(2, "0");
+    const d = m[3].padStart(2, "0");
+    return `${y}-${mo}-${d}`;
+  }
+  try {
+    const parsed = new Date(s);
+    if (!isNaN(parsed.getTime())) {
+      return Utilities.formatDate(parsed, "Asia/Taipei", "yyyy-MM-dd");
+    }
+  } catch(_) {}
+  return s;
+}
+
+/**
+ * 標準化日期時間格式為 yyyy-MM-dd HH:mm:ss
+ */
+function formatStandardDateTime(val) {
+  if (!val) return "";
+  if (val instanceof Date) {
+    if (isNaN(val.getTime())) return "";
+    return Utilities.formatDate(val, "Asia/Taipei", "yyyy-MM-dd HH:mm:ss");
+  }
+  const s = String(val).trim();
+  const m = s.match(/^(\d{4})[/-](\d{1,2})[/-](\d{1,2})\s+(\d{1,2}):(\d{1,2})(:(\d{1,2}))?/);
+  if (m) {
+    const y = m[1];
+    const mo = m[2].padStart(2, "0");
+    const d = m[3].padStart(2, "0");
+    const h = m[4].padStart(2, "0");
+    const mi = m[5].padStart(2, "0");
+    const sec = (m[7] || "00").padStart(2, "0");
+    return `${y}-${mo}-${d} ${h}:${mi}:${sec}`;
+  }
+  try {
+    const parsed = new Date(s);
+    if (!isNaN(parsed.getTime())) {
+      return Utilities.formatDate(parsed, "Asia/Taipei", "yyyy-MM-dd HH:mm:ss");
+    }
+  } catch(_) {}
+  return s;
+}
+
+function isSystemSheet(name) {
+  return SYS.SYSTEM_SHEETS.has(name);
+}
+
+/**
+ * 確保學生分頁具備 23 欄每日任務欄位，並將表頭與欄寬美化為高可讀性、清楚簡潔之分組色彩
+ */
+function ensureStudentSheetColumns(sheet) {
+  if (!sheet) return;
+  try {
+    const maxCols = sheet.getMaxColumns();
+    if (maxCols < 23) {
+      sheet.insertColumnsAfter(maxCols, 23 - maxCols);
+    }
+    const lastCol = sheet.getLastColumn();
+    if (lastCol < 23) {
+      const addHdr = ["任務名稱","指定測驗成績","指定測驗正確率","練習狀態","測驗錯題單字"];
+      sheet.getRange(1, 19, 1, addHdr.length).setValues([addHdr]);
+    }
+
+    // 1. 凍結第 1 列 (表頭) 與第 1 欄 (紀錄時間)，方便管理者水平滑動對照
+    if (sheet.getFrozenRows() < 1) sheet.setFrozenRows(1);
+    if (sheet.getFrozenColumns() < 1) sheet.setFrozenColumns(1);
+    sheet.setRowHeight(1, 38);
+
+    // 2. 隱藏龐大的 JSON 備份欄（第 B 欄），避免管理者視覺雜亂干擾
+    sheet.hideColumns(2);
+
+    // 3. 管理者高對比、護眼分組色塊美化
+    sheet.getRange("A1").setBackground("#f1f5f9").setFontColor("#334155").setFontWeight("bold"); // 紀錄時間
+    sheet.getRange("B1").setBackground("#e2e8f0").setFontColor("#64748b").setFontWeight("normal"); // 完整JSON
+    sheet.getRange("C1:F1").setBackground("#dbeafe").setFontColor("#1e40af").setFontWeight("bold"); // 等級積分
+    sheet.getRange("G1:I1").setBackground("#dcfce7").setFontColor("#065f46").setFontWeight("bold"); // 答題統計
+    sheet.getRange("J1:N1").setBackground("#f3e8ff").setFontColor("#6b21a8").setFontWeight("bold"); // 關卡進度
+    sheet.getRange("O1:R1").setBackground("#fef3c7").setFontColor("#92400e").setFontWeight("bold"); // 單字掌握度
+    sheet.getRange("S1:W1").setBackground("#e0e7ff").setFontColor("#3730a3").setFontWeight("bold"); // 任務與錯題
+
+    sheet.getRange("1:1").setWrap(true).setHorizontalAlignment("center").setVerticalAlignment("middle");
+
+    // 4. 精簡最佳化欄寬（簡潔、緊湊、不截斷）
+    const widths = [
+      155, 40, 65, 70, 65, 75,
+      75, 75, 75,
+      105, 105, 105, 105, 105,
+      80, 75, 75, 75,
+      140, 95, 95, 110, 220
+    ];
+    widths.forEach((w, idx) => sheet.setColumnWidth(idx + 1, w));
+
+    // 5. 效能優化：裁切多餘空白列（保留最多 120 列），大幅提升 Google Sheets 開啟與捲動速度
+    const maxR = sheet.getMaxRows();
+    const lastR = sheet.getLastRow();
+    if (maxR > 120 && maxR > lastR + 20) {
+      sheet.deleteRows(Math.max(lastR + 10, 50), maxR - Math.max(lastR + 10, 50));
+    }
+  } catch(e) {
+    logError("ensureStudentSheetColumns", e, sheet.getName(), "");
+  }
+}
+
+function compressData(jsonStr) {
+  const blob = Utilities.newBlob(jsonStr, "application/json", "d.json");
+  return "GZ:" + Utilities.base64Encode(Utilities.gzip(blob).getBytes());
+}
+
+function decompressData(stored) {
+  const s = String(stored || "").trim();
+  if (!s) return "";
+  if (!s.startsWith("GZ:")) return s;
+  try {
+    const bytes = Utilities.base64Decode(s.substring(3));
+    return Utilities.ungzip(Utilities.newBlob(bytes, "application/x-gzip", "d.gz"))
+      .getDataAsString("UTF-8");
+  } catch(e) {
+    logError("decompressData", e, "", s.substring(0,30));
+    return s;
+  }
+}
+
+function sanitizeLogDetails(input) {
+  if (!input) return "";
+  let str = (typeof input === "object") ? JSON.stringify(input) : String(input);
+  str = str.replace(/"(password|oldPassword|newPassword|confirmPassword)"\s*:\s*"[^"]*"/gi, '"$1":"***"');
+  str = str.replace(/&(password|oldPassword|newPassword|confirmPassword)=[^&]*/gi, '&$1=***');
+  return str;
+}
+
+/**
+ * 將技術性錯誤代碼與堆疊轉譯為一般師生容易看懂的白話說明與處理建議
+ */
+function translateErrorForHuman(action, rawMsg, details) {
+  let friendlyAction = action;
+  let friendlyMsg = rawMsg;
+  let suggestion = "";
+
+  const a = String(action || "").toLowerCase();
+  const m = String(rawMsg || "");
+  const d = String(details || "");
+
+  // 1. 動作分類轉譯
+  if (a.includes("curfew") || a.includes("時間限制")) {
+    friendlyAction = "⏰ 時間管制攔截";
+  } else if (a.includes("login") || a.includes("登入")) {
+    friendlyAction = "🔑 學生/教師登入";
+  } else if (a.includes("saverecord") || a.includes("儲存")) {
+    friendlyAction = "💾 儲存學習進度";
+  } else if (a.includes("teacher") || a.includes("任務")) {
+    friendlyAction = "📝 教師派發任務";
+  } else if (a.includes("analytics") || a.includes("統計")) {
+    friendlyAction = "📊 讀取分析大數據";
+  } else if (a.includes("decompress")) {
+    friendlyAction = "📦 讀取歷史進度";
+  } else if (a.includes("cleanup")) {
+    friendlyAction = "🧹 試算表清理分頁";
+  } else {
+    friendlyAction = `⚙️ ${action}`;
+  }
+
+  // 2. 情況說明與因應建議
+  if (m.includes("帳號或密碼錯誤")) {
+    friendlyMsg = "帳號或密碼輸入錯誤";
+    suggestion = "💡 一般學生操作疏失。請提醒學生核對學號與密碼大小寫後重新輸入即可。";
+  } else if (m.includes("連續失敗") || m.includes("鎖定")) {
+    friendlyMsg = "密碼連續打錯 5 次已觸發防護鎖定";
+    suggestion = "🛡️ 系統安全防護中。請學生等待 10 分鐘自動解鎖，或由老師在試算表重設密碼。";
+  } else if (m.includes("未提供帳號或密碼")) {
+    friendlyMsg = "登入欄位空白";
+    suggestion = "💡 請學生輸入帳號與密碼後再點擊登入。";
+  } else if (m.includes("伺服器忙碌")) {
+    friendlyMsg = "多人同時交卷，伺服器排隊中";
+    suggestion = "⏳ 瞬間連線人數過多。請學生稍候 3~5 秒再次點擊儲存即可順利上傳。";
+  } else if (m.includes("資料過大")) {
+    friendlyMsg = "學習紀錄累積資料超出限制";
+    suggestion = "⚠️ 該學生紀錄過多，建議備份後清理該學生分頁早期資料。";
+  } else if (m.includes("找不到【使用者清單】")) {
+    friendlyMsg = "試算表中缺少【使用者清單】工作表";
+    suggestion = "⚠️ 系統關鍵分頁缺失，請確認試算表內是否有【使用者清單】分頁，不可誤刪。";
+  } else if (m.includes("無權限")) {
+    friendlyMsg = "帳號權限不足";
+    suggestion = "🔒 學生帳號無法操作教師後台功能，屬正常防護。";
+  } else {
+    friendlyMsg = m.length > 100 ? m.substring(0, 100) + "..." : m;
+    suggestion = d ? `技術細節：${d.substring(0, 200)}` : "系統一般運行日誌。";
+  }
+
+  return { friendlyAction, friendlyMsg, suggestion };
+}
+
+function logError(action, err, username, details) {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    let logSheet = ss.getSheetByName("錯誤日誌");
+    const headers = ["紀錄時間","功能項目","使用者","情況說明 (白話)","建議因應措施 / 技術詳細"];
+    if (!logSheet) {
+      logSheet = ss.insertSheet("錯誤日誌");
+      logSheet.appendRow(headers);
+      logSheet.getRange("1:1")
+        .setFontWeight("bold").setBackground("#fee2e2")
+        .setFontColor("#991b1b").setHorizontalAlignment("center").setVerticalAlignment("middle");
+      logSheet.setRowHeight(1, 36);
+      [160,160,110,240,450].forEach((w,i) => logSheet.setColumnWidth(i+1, w));
+      logSheet.setFrozenRows(1);
+    } else if (logSheet.getLastRow() >= 1 && logSheet.getRange(1, 4).getValue() === "錯誤訊息") {
+      // 自動升級舊版表頭為易讀白話表頭
+      logSheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+      [160,160,110,240,450].forEach((w,i) => logSheet.setColumnWidth(i+1, w));
+    }
+    const ts  = Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy-MM-dd HH:mm:ss");
+    const msg = err ? (err.message || String(err)) : "未知錯誤";
+    let det   = "";
+    if (err && err.stack)             det = String(err.stack);
+    else if (typeof details==="object") { try { det = JSON.stringify(details); } catch(_) { det = String(details); } }
+    else                              det = String(details || "");
+    det = sanitizeLogDetails(det);
+
+    const translated = translateErrorForHuman(action, msg, det);
+
+    logSheet.insertRowBefore(2);
+    logSheet.getRange(2,1,1,5)
+      .setValues([[ts, translated.friendlyAction, String(username||"系統").trim(), translated.friendlyMsg, translated.suggestion]])
+      .setVerticalAlignment("middle").setWrap(true);
+    const last = logSheet.getLastRow();
+    if (last > 501) logSheet.deleteRows(502, last - 501);
+  } catch(e) { Logger.log("logError 寫入失敗: " + e); }
+}
+
+// ════════════════════════════════════════════════════════════════════
+// 1. 共用身分驗證
+// ════════════════════════════════════════════════════════════════════
+
+function authenticateUser(ss, inputUser, inputPass) {
+  const username = String(inputUser || "").trim();
+  const password = String(inputPass || "").trim();
+  if (!username || !password) return { success:false, message:"未提供帳號或密碼" };
+
+  const lockChk = checkLoginAttempts(username);
+  if (lockChk.locked) return { success:false, message:lockChk.message };
+
+  const hashedInput = hashPassword(password);
+  const cache       = CacheService.getScriptCache();
+  const cacheKey    = _authKey(username, hashedInput);
+  try {
+    const hit = cache.get(cacheKey);
+    if (hit) return JSON.parse(hit);
+  } catch(_) {}
+
+  const sheet = ss.getSheetByName("使用者清單") || ss.getSheetByName("學生帳密");
+  if (!sheet) {
+    if (username === "admin" && password === "admin123") {
+      const r = {success:true,username:"admin",role:"teacher",className:"all",realName:"系統管理員",isAdmin:true};
+      try { cache.put(cacheKey, JSON.stringify(r), SYS.CACHE_AUTH_TTL); } catch(_) {}
+      return r;
+    }
+    return {success:false, message:"找不到【使用者清單】工作表"};
+  }
+
+  const data = sheet.getDataRange().getValues();
+  let foundAnyTeacher = false;
+
+  for (let i = 1; i < data.length; i++) {
+    const rowUser = String(data[i][0] || "").trim();
+    const rowPass = String(data[i][1] || "").trim();
+    const role    = String(data[i][2] || "student").trim().toLowerCase() || "student";
+    if (role === "teacher") foundAnyTeacher = true;
+
+    if (rowUser === username) {
+      const match = rowPass === hashedInput || (!isHashedPassword(rowPass) && rowPass === password);
+      if (!match) { recordLoginFailure(username); return {success:false, message:"帳號或密碼錯誤"}; }
+
+      // 自動無感升級明文密碼為 SHA-256 雜湊
+      if (!isHashedPassword(rowPass)) {
+        try { sheet.getRange(i + 1, 2).setValue(hashedInput); } catch(_) {}
+      }
+
+      clearLoginFailures(username);
+      const rawClass  = String(data[i][3] || "").trim();
+      const className = role === "teacher" ? (rawClass || "all") : getStudentClass(username, rawClass);
+      const realName  = String(data[i][4] || "").trim();
+      const isAdmin   = role === "teacher" && isAdminTeacher(className);
+      const result    = {success:true, username, role, className, realName, isAdmin};
+      try { cache.put(cacheKey, JSON.stringify(result), SYS.CACHE_AUTH_TTL); } catch(_) {}
+      return result;
+    }
+  }
+
+  // 僅當使用者清單內完全沒有任何一筆教師帳號時，才允許初始 admin 救援登入
+  if (!foundAnyTeacher && username === "admin" && password === "admin123") {
+    const r = {success:true,username:"admin",role:"teacher",className:"all",realName:"系統管理員",isAdmin:true};
+    clearLoginFailures("admin");
+    try { cache.put(cacheKey, JSON.stringify(r), SYS.CACHE_AUTH_TTL); } catch(_) {}
+    return r;
+  }
+
+  recordLoginFailure(username);
+  return {success:false, message:"帳號或密碼錯誤"};
+}
+
+function clearOverviewCache() {
+  try { CacheService.getScriptCache().remove(SYS.CACHE_OVERVIEW_KEY); } catch(_) {}
+}
+
+// ════════════════════════════════════════════════════════════════════
+// 2. 老師指定單字任務核心函式
+// ════════════════════════════════════════════════════════════════════
+
+function getActiveTaskForClass(ss, studentClass, username) {
+  const defaultRes = { hasTask: false };
+
+  // 1. 若該學生今日已完成指定測驗，檢查已完成之任務清單（直接檢查學生個人分頁）
+  const todayStrDash = Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy-MM-dd");
+  const completedTasksToday = new Set();
+  let hasAnyCompletedToday = false;
+
+  if (username) {
+    const uSheet = ss.getSheetByName(username);
+    if (uSheet && uSheet.getLastRow() >= 2) {
+      const lastCol = uSheet.getLastColumn();
+      if (lastCol >= 1) {
+        const maxRows = Math.min(uSheet.getLastRow() - 1, 15);
+        const vals = uSheet.getRange(2, 1, maxRows, lastCol).getValues();
+        for (let i = 0; i < vals.length; i++) {
+          const dStr = formatStandardDateYMD(vals[i][0]);
+          const status = String(vals[i][21] || "").trim();
+          const taskScore = String(vals[i][19] || "").trim();
+          const tName = String(vals[i][18] || "").trim();
+          if (dStr === todayStrDash && status.includes("已完成") && taskScore !== "—" && taskScore !== "") {
+            hasAnyCompletedToday = true;
+            if (tName) completedTasksToday.add(tName.toLowerCase());
+          }
+        }
+      }
+    }
+  }
+
+  let sheet = ss.getSheetByName("指定單字任務");
+  if (!sheet || sheet.getLastRow() < 2) {
+    if (hasAnyCompletedToday) {
+      return { hasTask: false, alreadyCompleted: true, message: "今日指定練習已全數完成！" };
+    }
+    return defaultRes;
+  }
+
+  const cleanClass = String(studentClass || "").replace(/班$/, "").trim().toLowerCase();
+  const data = sheet.getDataRange().getValues();
+
+  let foundTodayClassTask = null;
+  let foundAnyClassTask   = null;
+  let foundTodayAllTask   = null;
+  let foundAnyAllTask     = null;
+  let totalMatchingTasksCount = 0;
+
+  for (let i = 1; i < data.length; i++) {
+    const taskClass = String(data[i][0] || "").replace(/班$/, "").trim().toLowerCase();
+    const taskName  = String(data[i][1] || "").trim();
+    const rawWords  = String(data[i][2] || "").trim();
+    const mode      = String(data[i][3] || "抽測").trim();
+    const countVal  = String(data[i][4] || "ALL").trim().toUpperCase();
+    const enabled   = data[i][5] === true || String(data[i][5]).trim().toUpperCase() === "TRUE";
+    const taskDate  = data[i][6] ? formatStandardDateYMD(data[i][6]) : "";
+
+    if (!enabled || !taskName || !rawWords) continue;
+
+    // 若任務有設定指定日期，且日期不是今天，則今天不開放此任務
+    if (taskDate && taskDate !== todayStrDash) continue;
+
+    const isClassMatch = (taskClass === cleanClass || taskClass === "all" || taskClass === "全校");
+    if (!isClassMatch) continue;
+
+    totalMatchingTasksCount++;
+
+    // 若此特定任務學生今日已經完成，尋找下一個尚未完成的任務
+    if (completedTasksToday.has(taskName.toLowerCase())) continue;
+
+    const words = [...new Set(
+      rawWords.split(/[\s,;\n\r]+/)
+        .map(w => w.trim().toLowerCase())
+        .filter(w => w.length > 0 && /^[a-z\-']+$/.test(w))
+    )];
+
+    if (words.length === 0) continue;
+
+    const taskObj = {
+      hasTask  : true,
+      taskName : taskName,
+      words    : words,
+      total    : words.length,
+      mode     : mode === "全考" ? "ALL" : "SAMPLE",
+      count    : countVal === "ALL" ? words.length : (parseInt(countVal) || words.length),
+      date     : taskDate || todayStrDash
+    };
+
+    if (taskClass === cleanClass) {
+      if (taskDate === todayStrDash) {
+        foundTodayClassTask = taskObj;
+        break; // 今天該班專屬未完成任務，最優先！
+      } else if (!foundAnyClassTask) {
+        foundAnyClassTask = taskObj;
+      }
+    } else if (taskClass === "all" || taskClass === "全校") {
+      if (taskDate === todayStrDash) {
+        if (!foundTodayAllTask) foundTodayAllTask = taskObj;
+      } else if (!foundAnyAllTask) {
+        foundAnyAllTask = taskObj;
+      }
+    }
+  }
+
+  const nextTask = foundTodayClassTask || foundAnyClassTask || foundTodayAllTask || foundAnyAllTask;
+  if (nextTask) return nextTask;
+
+  // ── 週末自動檢核：學生於週一至週五沒有答對（包含沒有作答/缺考）的單字一律自動變成六日的指派單字測驗 ──
+  const nowT = new Date();
+  const dayOfWeek = nowT.getDay(); // 0=Sun, 6=Sat
+  if (dayOfWeek === 0 || dayOfWeek === 6) {
+    const weekendRemediationTask = getWeekendRemediationTask(ss, cleanClass, username, completedTasksToday, todayStrDash);
+    if (weekendRemediationTask) return weekendRemediationTask;
+  }
+
+  // 若今日有符合的任務且學生已全數完成
+  if (totalMatchingTasksCount > 0 && completedTasksToday.size >= totalMatchingTasksCount) {
+    return {
+      hasTask: false,
+      alreadyCompleted: true,
+      message: `今日 ${completedTasksToday.size} 項指定測驗已全數挑戰完成！當日已開放自由升級闖關。`
+    };
+  }
+
+  if (hasAnyCompletedToday) {
+    return {
+      hasTask: false,
+      alreadyCompleted: true,
+      message: "今日指定練習已完成，當日不再開放重複使用。"
+    };
+  }
+
+  return defaultRes;
+}
+
+/**
+ * 學生於星期一到星期五沒有答對(包含沒有作答/缺考)的單字一律自動變成六日的指派單字測驗
+ */
+function getWeekendRemediationTask(ss, cleanClass, username, completedTasksToday, todayStrDash) {
+  const d = new Date();
+  const dayOfWeek = d.getDay(); // 0=Sun, 6=Sat
+  if (dayOfWeek !== 0 && dayOfWeek !== 6) return null;
+
+  // 計算本週週一至週五標準日期區間
+  const diffToMon = (dayOfWeek === 0 ? -6 : 1 - dayOfWeek);
+  const monDate = new Date(d.getFullYear(), d.getMonth(), d.getDate() + diffToMon);
+  const friDate = new Date(d.getFullYear(), d.getMonth(), d.getDate() + diffToMon + 4);
+  const monStr = Utilities.formatDate(monDate, "Asia/Taipei", "yyyy-MM-dd");
+  const friStr = Utilities.formatDate(friDate, "Asia/Taipei", "yyyy-MM-dd");
+
+  const taskSheet = ss.getSheetByName("指定單字任務");
+  if (!taskSheet || taskSheet.getLastRow() < 2) return null;
+  const taskData = taskSheet.getDataRange().getValues();
+
+  // 取得學生在週一至週五的實際作答紀錄
+  const studentDoneMap = {};
+  if (username) {
+    const uSheet = ss.getSheetByName(username);
+    if (uSheet && uSheet.getLastRow() >= 2) {
+      const lastCol = uSheet.getLastColumn();
+      const maxRows = Math.min(uSheet.getLastRow() - 1, 60);
+      const uVals = uSheet.getRange(2, 1, maxRows, lastCol).getValues();
+      for (let r = 0; r < uVals.length; r++) {
+        const rowD = formatStandardDateYMD(uVals[r][0]);
+        if (rowD >= monStr && rowD <= friStr) {
+          const tName = String(uVals[r][18] || "").trim().toLowerCase();
+          const score = String(uVals[r][19] || "").trim();
+          const status = String(uVals[r][21] || "").trim();
+          const wrongStr = String(uVals[r][22] || "").trim();
+          const wrongList = wrongStr ? wrongStr.split(/[\s,;\n\r]+/).map(w => w.trim().toLowerCase()).filter(Boolean) : [];
+          if (tName && (status.includes("已完成") || (score !== "—" && score !== ""))) {
+            studentDoneMap[tName] = { completed: true, wrongWords: wrongList };
+            studentDoneMap[rowD + "_" + tName] = { completed: true, wrongWords: wrongList };
+          }
+        }
+      }
+    }
+  }
+
+  const unpassedWordsSet = new Set();
+  for (let i = 1; i < taskData.length; i++) {
+    const tClass = String(taskData[i][0] || "").replace(/班$/, "").trim().toLowerCase();
+    const tName  = String(taskData[i][1] || "").trim();
+    const rawWords = String(taskData[i][2] || "").trim();
+    const enabled = taskData[i][5] === true || String(taskData[i][5]).trim().toUpperCase() === "TRUE";
+    const tDate  = taskData[i][6] ? formatStandardDateYMD(taskData[i][6]) : "";
+
+    if (!enabled || !tName || !rawWords) continue;
+
+    // 檢查是否為本週週一至週五任務
+    const isMonToFri = tDate ? (tDate >= monStr && tDate <= friStr) : true;
+    if (!isMonToFri) continue;
+
+    const isClassMatch = (tClass === cleanClass || tClass === "all" || tClass === "全校");
+    if (!isClassMatch) continue;
+
+    const words = [...new Set(
+      rawWords.split(/[\s,;\n\r]+/)
+        .map(w => w.trim().toLowerCase())
+        .filter(w => w.length > 0 && /^[a-z\-']+$/.test(w))
+    )];
+    if (words.length === 0) continue;
+
+    const key1 = (tDate ? tDate + "_" : "") + tName.toLowerCase();
+    const key2 = tName.toLowerCase();
+    const doneRec = studentDoneMap[key1] || studentDoneMap[key2];
+
+    if (!doneRec) {
+      // 學生於週一到週五完全沒有作答（包含未作答/缺考）：全數單字自動納入六日測驗
+      words.forEach(w => unpassedWordsSet.add(w));
+    } else {
+      // 學生有作答，但沒有答對（答錯的單字）：納入六日測驗
+      doneRec.wrongWords.forEach(w => unpassedWordsSet.add(w));
+    }
+  }
+
+  if (unpassedWordsSet.size === 0) return null;
+
+  const weekendTaskName = "週末指定單字消滅戰";
+  if (completedTasksToday && completedTasksToday.has(weekendTaskName.toLowerCase())) {
+    return {
+      hasTask: false,
+      alreadyCompleted: true,
+      message: "本週指定單字未達標消滅戰今日已完成！已開放自由升級闖關。"
+    };
+  }
+
+  const unpassedList = Array.from(unpassedWordsSet);
+  return {
+    hasTask   : true,
+    taskName  : weekendTaskName,
+    words     : unpassedList,
+    total     : unpassedList.length,
+    mode      : "ALL",
+    count     : unpassedList.length,
+    isWeekend : true,
+    date      : todayStrDash
+  };
+}
+
+/** 供教師後台網頁讀取當前班級任務設定（支援指定日期與班級雙向載入） */
+function getTeacherTask(credentials, targetClass, targetDate) {
+  try {
+    const ss   = SpreadsheetApp.getActiveSpreadsheet();
+    const auth = authenticateUser(ss, credentials.username, credentials.password);
+    if (!auth.success || auth.role !== "teacher") return { status: "error", message: "無權限" };
+
+    const cleanAuth  = String(auth.className || "").replace(/班$/, "").trim().toLowerCase();
+    let effectiveClass = String(targetClass || auth.className || "all").trim();
+    const cleanTarget  = effectiveClass.replace(/班$/, "").trim().toLowerCase();
+
+    // 非管理員教師嚴格限制只能查看自身班級任務
+    if (!auth.isAdmin && cleanAuth && cleanAuth !== "all" && cleanTarget !== cleanAuth) {
+      effectiveClass = auth.className;
+    }
+
+    const cleanClass = effectiveClass.replace(/班$/, "").trim().toLowerCase();
+    const cleanDate  = targetDate ? formatStandardDateYMD(targetDate) : "";
+    let sheet = ss.getSheetByName("指定單字任務");
+    if (!sheet || sheet.getLastRow() < 2) return { status: "success", task: null };
+
+    const data = sheet.getDataRange().getValues();
+    let matchedRow = null;
+    // 由新至舊遍歷
+    for (let i = data.length - 1; i >= 1; i--) {
+      const c = String(data[i][0] || "").replace(/班$/, "").trim().toLowerCase();
+      const d = data[i][6] ? formatStandardDateYMD(data[i][6]) : "";
+      if (c === cleanClass) {
+        if (cleanDate && d === cleanDate) {
+          matchedRow = data[i];
+          break;
+        } else if (!cleanDate && !matchedRow) {
+          matchedRow = data[i];
+        }
+      }
+    }
+
+    if (matchedRow) {
+      return {
+        status: "success",
+        task: {
+          className : String(matchedRow[0] || ""),
+          taskName  : String(matchedRow[1] || ""),
+          words     : String(matchedRow[2] || ""),
+          mode      : String(matchedRow[3] || "抽測"),
+          count     : String(matchedRow[4] || "ALL"),
+          enabled   : matchedRow[5] === true || String(matchedRow[5]).toUpperCase() === "TRUE",
+          targetDate: matchedRow[6] ? formatStandardDateYMD(matchedRow[6]) : ""
+        }
+      };
+    }
+    return { status: "success", task: null };
+  } catch(e) {
+    logError("getTeacherTask", e, credentials ? credentials.username : "", "");
+    return { status: "error", message: e.toString() };
+  }
+}
+
+/** 供教師後台網頁儲存並發布單字任務 */
+function saveTeacherTask(credentials, taskData) {
+  try {
+    const ss   = SpreadsheetApp.getActiveSpreadsheet();
+    const auth = authenticateUser(ss, credentials.username, credentials.password);
+    if (!auth.success || auth.role !== "teacher") return { status: "error", message: "無權限" };
+
+    const targetClass = String(taskData.targetClass || taskData.className || auth.className || "all").trim();
+    const cleanAuth   = String(auth.className || "").replace(/班$/, "").trim().toLowerCase();
+    const cleanTarget = String(targetClass || "").replace(/班$/, "").trim().toLowerCase();
+
+    // 非管理員教師嚴格限制只能為自身班級出題 (不可指定全校或跨班)
+    if (!auth.isAdmin && cleanAuth && cleanAuth !== "all" && cleanTarget !== cleanAuth) {
+      return { status: "error", message: "權限不足：非管理員教師僅限為自身班級出題" };
+    }
+
+    let sheet = ss.getSheetByName("指定單字任務");
+    if (!sheet) {
+      sheet = ss.insertSheet("指定單字任務");
+      sheet.appendRow(["班級","任務名稱","指定單字清單 (逗號或空格分隔)","測驗模式","抽測題數","啟用狀態","指定日期"]);
+      sheet.getRange("1:1").setFontWeight("bold").setBackground("#1e40af").setFontColor("#ffffff").setHorizontalAlignment("center");
+      [100, 160, 350, 100, 100, 100, 120].forEach((w,i)=>sheet.setColumnWidth(i+1,w));
+      sheet.setFrozenRows(1);
+    } else if (sheet.getLastColumn() < 7) {
+      sheet.getRange(1, 7).setValue("指定日期").setFontWeight("bold").setBackground("#1e40af").setFontColor("#ffffff").setHorizontalAlignment("center");
+      sheet.setColumnWidth(7, 120);
+    }
+
+    const data = sheet.getDataRange().getValues();
+    let rowIdx = -1;
+    const targetDateStr = taskData.targetDate ? formatStandardDateYMD(taskData.targetDate) : (taskData.date ? formatStandardDateYMD(taskData.date) : "");
+
+    for (let i = 1; i < data.length; i++) {
+      const c = String(data[i][0] || "").replace(/班$/, "").toLowerCase();
+      const d = data[i][6] ? formatStandardDateYMD(data[i][6]) : "";
+      // 若該班級在同一天已經有任務，則更新該列；若不同天，則新增一列
+      if (c === cleanTarget && (!targetDateStr || d === targetDateStr)) {
+        rowIdx = i + 1;
+        break;
+      }
+    }
+
+    const rowVal = [
+      targetClass,
+      String(taskData.taskName || "每日單字任務").trim(),
+      String(taskData.words || "").trim(),
+      taskData.mode === "全考" ? "全考" : "抽測",
+      taskData.mode === "全考" ? "ALL" : String(taskData.count || "10"),
+      taskData.enabled === true,
+      targetDateStr
+    ];
+
+    if (rowIdx > 0) {
+      sheet.getRange(rowIdx, 1, 1, 7).setValues([rowVal]);
+    } else {
+      sheet.appendRow(rowVal);
+    }
+
+    clearOverviewCache();
+    const dateNotice = targetDateStr ? `（指定日期：${targetDateStr}）` : "（每日通用）";
+    return { status: "success", message: `✅ 班級【${targetClass}】${dateNotice}指定任務已成功發布！` };
+  } catch(e) {
+    logError("saveTeacherTask", e, credentials ? credentials.username : "", "");
+    return { status: "error", message: e.toString() };
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════
+// 2.5 學生使用時間管制 (每日 07:30 ~ 22:00) 與教師解除限制設定
+// ════════════════════════════════════════════════════════════════════
+
+/**
+ * 確保「時間限制設定」工作表存在並維持專業格式 (支援全域預設、個別學生與特別日期)
+ */
+function ensureTimeSettingsSheet(ss) {
+  let sheet = ss.getSheetByName("時間限制設定");
+  const headers = [
+    "設定類型", "設定名稱", "適用學號", "姓名班級", "作答開始時間", "作答結束時間",
+    "起始日期", "結束日期", "狀態", "設定教師", "更新時間", "備註"
+  ];
+  const widths = [130, 160, 100, 120, 100, 100, 110, 110, 75, 100, 140, 180];
+
+  if (!sheet) {
+    sheet = ss.insertSheet("時間限制設定");
+    sheet.appendRow(headers);
+    sheet.getRange("1:1").setFontWeight("bold").setBackground("#0f766e").setFontColor("#ffffff").setHorizontalAlignment("center");
+    widths.forEach((w, i) => sheet.setColumnWidth(i + 1, w));
+    sheet.setFrozenRows(1);
+    sheet.setRowHeight(1, 36);
+
+    // 建立預設全域作答時間 (預設 07:30 ~ 22:00)
+    const nowStr = Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy-MM-dd HH:mm:ss");
+    sheet.appendRow([
+      "全域預設", "全校預設作答時間", "ALL", "全體學生", "07:30", "22:00",
+      "", "", true, "系統預設", nowStr, "預設每日開放時間（教師修改後將自動儲存為下次預設）"
+    ]);
+  } else if (sheet.getLastColumn() < headers.length) {
+    const currentLastCol = sheet.getLastColumn();
+    sheet.insertColumnsAfter(currentLastCol, headers.length - currentLastCol);
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    sheet.getRange("1:1").setFontWeight("bold").setBackground("#0f766e").setFontColor("#ffffff").setHorizontalAlignment("center");
+    widths.forEach((w, i) => sheet.setColumnWidth(i + 1, w));
+    sheet.setFrozenRows(1);
+  }
+
+  // 確保有一列全域預設設定
+  if (sheet.getLastRow() < 2) {
+    const nowStr = Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy-MM-dd HH:mm:ss");
+    sheet.appendRow([
+      "全域預設", "全校預設作答時間", "ALL", "全體學生", "07:30", "22:00",
+      "", "", true, "系統預設", nowStr, "預設每日開放時間（教師修改後將自動儲存為下次預設）"
+    ]);
+  }
+
+  return sheet;
+}
+
+/**
+ * 檢查當前時間是否允許該學生使用系統
+ * 規範：
+ * 1. 優先檢查是否處於「特別日期解除全天限制」（若是則 24 小時全天開放）。
+ * 2. 檢查該學生是否有「個別學生特別時間」設定。
+ * 3. 若無個別設定，則套用「全域預設作答時間」（預設為上次教師修改的設定，初始為 07:30 ~ 22:00）。
+ */
+function checkTimeRestrictionAllowance(ss, username) {
+  const now = new Date();
+  const todayYMD = Utilities.formatDate(now, "Asia/Taipei", "yyyy-MM-dd");
+  const timeStr = Utilities.formatDate(now, "Asia/Taipei", "HH:mm");
+  const parts = timeStr.split(":");
+  const currentMinutes = Number(parts[0]) * 60 + Number(parts[1]);
+
+  const cleanUser = String(username || "").trim().toLowerCase();
+
+  let globalStart = "07:30";
+  let globalEnd = "22:00";
+  let globalStartMin = 450;
+  let globalEndMin = 1320;
+  let globalUpdatedAt = "";
+  let globalTeacher = "";
+
+  let studentRule = null;
+  let isDateOverridden = false;
+  let activeDateOverride = null;
+
+  try {
+    const sheet = ensureTimeSettingsSheet(ss);
+    if (sheet && sheet.getLastRow() >= 2) {
+      const data = sheet.getDataRange().getValues();
+      for (let i = 1; i < data.length; i++) {
+        const type = String(data[i][0] || "").trim();
+        const name = String(data[i][1] || "").trim();
+        const targetUser = String(data[i][2] || "").trim().toLowerCase();
+        const studentInfo = String(data[i][3] || "").trim();
+        const sTime = String(data[i][4] || "").trim();
+        const eTime = String(data[i][5] || "").trim();
+        const startD = formatStandardDateYMD(data[i][6]);
+        const endD = formatStandardDateYMD(data[i][7]);
+        const statusVal = String(data[i][8] || "").trim().toUpperCase();
+        const isEnabled = (data[i][8] === true || statusVal === "TRUE" || statusVal === "啟用" || statusVal === "YES");
+        const teacher = String(data[i][9] || "");
+        const updatedAt = data[i][10] ? Utilities.formatDate(new Date(data[i][10]), "Asia/Taipei", "yyyy-MM-dd HH:mm") : "";
+        const remark = String(data[i][11] || "");
+
+        // 1. 全域預設作答時間
+        if (type === "全域預設" || (targetUser === "all" && type !== "特別日期解除" && sTime && eTime)) {
+          if (sTime && eTime) {
+            globalStart = sTime;
+            globalEnd = eTime;
+            const sp = sTime.split(":");
+            const ep = eTime.split(":");
+            globalStartMin = Number(sp[0]) * 60 + Number(sp[1]);
+            globalEndMin = Number(ep[0]) * 60 + Number(ep[1]);
+            globalUpdatedAt = updatedAt;
+            globalTeacher = teacher;
+          }
+        }
+
+        // 2. 個別學生作答時間
+        if (isEnabled && (type === "個別學生" || (targetUser && targetUser !== "all" && sTime && eTime))) {
+          if (cleanUser && targetUser === cleanUser) {
+            const sp = sTime.split(":");
+            const ep = eTime.split(":");
+            studentRule = {
+              username: targetUser,
+              studentInfo: studentInfo,
+              startTime: sTime,
+              endTime: eTime,
+              startMin: Number(sp[0]) * 60 + Number(sp[1]),
+              endMin: Number(ep[0]) * 60 + Number(ep[1]),
+              remark: remark,
+              teacher: teacher
+            };
+          }
+        }
+
+        // 3. 特別日期全天解除
+        if (isEnabled && (type === "特別日期解除" || (startD && endD))) {
+          if (todayYMD >= startD && todayYMD <= endD) {
+            isDateOverridden = true;
+            activeDateOverride = {
+              name: name || "特別開放",
+              startDate: startD,
+              endDate: endD,
+              remark: remark
+            };
+          }
+        }
+      }
+    }
+  } catch(e) {
+    logError("checkTimeRestrictionAllowance", e, username, "");
+  }
+
+  // 決定此學生的有效作答時間範圍
+  const effectiveStart = studentRule ? studentRule.startTime : globalStart;
+  const effectiveEnd = studentRule ? studentRule.endTime : globalEnd;
+  const effectiveStartMin = studentRule ? studentRule.startMin : globalStartMin;
+  const effectiveEndMin = studentRule ? studentRule.endMin : globalEndMin;
+
+  const isWithinHours = (currentMinutes >= effectiveStartMin && currentMinutes <= effectiveEndMin);
+  const allowed = isDateOverridden || isWithinHours;
+
+  return {
+    allowed: allowed,
+    isOverridden: isDateOverridden,
+    hasStudentCustomTime: !!studentRule,
+    studentRule: studentRule,
+    startTime: effectiveStart,
+    endTime: effectiveEnd,
+    globalStartTime: globalStart,
+    globalEndTime: globalEnd,
+    globalUpdatedAt: globalUpdatedAt,
+    globalTeacher: globalTeacher,
+    currentMinutes: currentMinutes,
+    timeStr: timeStr,
+    todayDate: todayYMD,
+    activeDateOverride: activeDateOverride
+  };
+}
+
+/**
+ * 讀取目前所有的時間設定 (供教師管理介面)
+ */
+function getTimeRestrictions(ss) {
+  const sheet = ensureTimeSettingsSheet(ss);
+  const statusInfo = checkTimeRestrictionAllowance(ss, "");
+
+  let globalTime = {
+    startTime: statusInfo.globalStartTime || "07:30",
+    endTime: statusInfo.globalEndTime || "22:00",
+    updatedAt: statusInfo.globalUpdatedAt || "",
+    teacher: statusInfo.globalTeacher || "系統預設"
+  };
+
+  const studentRules = [];
+  const dateRules = [];
+
+  if (sheet.getLastRow() >= 2) {
+    const data = sheet.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      const type = String(data[i][0] || "").trim();
+      const name = String(data[i][1] || "").trim();
+      const username = String(data[i][2] || "").trim();
+      const studentInfo = String(data[i][3] || "").trim();
+      const sTime = String(data[i][4] || "").trim();
+      const eTime = String(data[i][5] || "").trim();
+      const startD = formatStandardDateYMD(data[i][6]);
+      const endD = formatStandardDateYMD(data[i][7]);
+      const statusVal = String(data[i][8] || "").trim().toUpperCase();
+      const isEnabled = (data[i][8] === true || statusVal === "TRUE" || statusVal === "啟用" || statusVal === "YES");
+      const teacher = String(data[i][9] || "");
+      const updatedAt = data[i][10] ? Utilities.formatDate(new Date(data[i][10]), "Asia/Taipei", "yyyy-MM-dd HH:mm") : "";
+      const remark = String(data[i][11] || "");
+
+      if (type === "全域預設") {
+        if (sTime && eTime) {
+          globalTime = {
+            startTime: sTime,
+            endTime: eTime,
+            updatedAt: updatedAt,
+            teacher: teacher
+          };
+        }
+      } else if (type === "個別學生" || (username && username.toLowerCase() !== "all" && sTime && eTime)) {
+        studentRules.push({
+          rowIdx: i + 1,
+          username: username,
+          studentInfo: studentInfo,
+          startTime: sTime,
+          endTime: eTime,
+          enabled: isEnabled,
+          teacher: teacher,
+          updatedAt: updatedAt,
+          remark: remark
+        });
+      } else if (type === "特別日期解除" || (startD && endD)) {
+        dateRules.push({
+          rowIdx: i + 1,
+          name: name || "特別開放",
+          startDate: startD,
+          endDate: endD,
+          enabled: isEnabled,
+          teacher: teacher,
+          createdAt: updatedAt,
+          remark: remark
+        });
+      }
+    }
+  }
+
+  // 讀取學生名冊
+  const studentList = [];
+  try {
+    const userSheet = ss.getSheetByName("使用者清單") || ss.getSheetByName("學生帳密");
+    if (userSheet && userSheet.getLastRow() >= 2) {
+      const uData = userSheet.getDataRange().getValues();
+      for (let i = 1; i < uData.length; i++) {
+        const u = String(uData[i][0] || "").trim();
+        const role = String(uData[i][2] || "student").trim().toLowerCase();
+        const c = String(uData[i][3] || "").replace(/班$/, "").trim();
+        const name = String(uData[i][4] || "").trim();
+        if (u && role === "student") {
+          studentList.push({ username: u, className: c, realName: name || u });
+        }
+      }
+      studentList.sort((a, b) => (a.className.localeCompare(b.className) || a.username.localeCompare(b.username)));
+    }
+  } catch(_) {}
+
+  return {
+    status: "success",
+    currentStatus: statusInfo,
+    globalTime: globalTime,
+    studentRules: studentRules,
+    dateRules: dateRules,
+    studentList: studentList
+  };
+}
+
+/**
+ * 儲存全校預設作答時間（儲存後自動成為下次預設）
+ */
+function saveGlobalTimeSetting(ss, teacherUser, timeData) {
+  const sheet = ensureTimeSettingsSheet(ss);
+  const sTime = String(timeData.startTime || "07:30").trim();
+  const eTime = String(timeData.endTime || "22:00").trim();
+
+  if (!/^\d{2}:\d{2}$/.test(sTime) || !/^\d{2}:\d{2}$/.test(eTime)) {
+    return { status: "error", message: "請輸入正確的時間格式 (HH:mm)" };
+  }
+
+  const nowStr = Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy-MM-dd HH:mm:ss");
+
+  let foundRow = -1;
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    const type = String(data[i][0] || "").trim();
+    if (type === "全域預設") {
+      foundRow = i + 1;
+      break;
+    }
+  }
+
+  const rowVals = [
+    "全域預設",
+    "全校預設作答時間",
+    "ALL",
+    "全體學生",
+    sTime,
+    eTime,
+    "",
+    "",
+    true,
+    teacherUser || "教師",
+    nowStr,
+    "預設每日開放時間（教師修改後自動儲存為下次預設）"
+  ];
+
+  if (foundRow > 0) {
+    sheet.getRange(foundRow, 1, 1, 12).setValues([rowVals]);
+  } else {
+    sheet.appendRow(rowVals);
+  }
+
+  clearOverviewCache();
+  return {
+    status: "success",
+    message: `✅ 全校預設可作答時間已更新為【${sTime} ～ ${eTime}】！`,
+    currentStatus: checkTimeRestrictionAllowance(ss, "")
+  };
+}
+
+/**
+ * 儲存個別學生自訂作答時間
+ */
+function saveStudentTimeSetting(ss, teacherUser, studentData) {
+  const sheet = ensureTimeSettingsSheet(ss);
+  const username = String(studentData.username || "").trim();
+  const studentInfo = String(studentData.studentInfo || "").trim();
+  const sTime = String(studentData.startTime || "").trim();
+  const eTime = String(studentData.endTime || "").trim();
+  const remark = String(studentData.remark || "個別學生特別時間").trim();
+
+  if (!username) {
+    return { status: "error", message: "未指定目標學生學號" };
+  }
+  if (!/^\d{2}:\d{2}$/.test(sTime) || !/^\d{2}:\d{2}$/.test(eTime)) {
+    return { status: "error", message: "請輸入正確的時間格式 (HH:mm)" };
+  }
+
+  const nowStr = Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy-MM-dd HH:mm:ss");
+
+  let targetRow = -1;
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    const type = String(data[i][0] || "").trim();
+    const u = String(data[i][2] || "").trim();
+    if (type === "個別學生" && u.toLowerCase() === username.toLowerCase()) {
+      targetRow = i + 1;
+      break;
+    }
+  }
+
+  const rowVals = [
+    "個別學生",
+    `個別學生時間 (${username})`,
+    username,
+    studentInfo,
+    sTime,
+    eTime,
+    "",
+    "",
+    true,
+    teacherUser || "教師",
+    nowStr,
+    remark
+  ];
+
+  if (targetRow > 0) {
+    sheet.getRange(targetRow, 1, 1, 12).setValues([rowVals]);
+  } else {
+    sheet.appendRow(rowVals);
+  }
+
+  clearOverviewCache();
+  return {
+    status: "success",
+    message: `✅ 學生【${studentInfo || username}】的可作答時間已設定為【${sTime} ～ ${eTime}】！`,
+    currentStatus: checkTimeRestrictionAllowance(ss, username)
+  };
+}
+
+/**
+ * 刪除個別學生自訂作答時間
+ */
+function deleteStudentTimeSetting(ss, username) {
+  const sheet = ss.getSheetByName("時間限制設定");
+  if (!sheet || sheet.getLastRow() < 2) return { status: "error", message: "找不到時間限制設定" };
+
+  const cleanUser = String(username || "").trim().toLowerCase();
+  const data = sheet.getDataRange().getValues();
+  for (let i = data.length - 1; i >= 1; i--) {
+    const type = String(data[i][0] || "").trim();
+    const u = String(data[i][2] || "").trim().toLowerCase();
+    if (type === "個別學生" && u === cleanUser) {
+      sheet.deleteRow(i + 1);
+      clearOverviewCache();
+      return { status: "success", message: `已移除學生【${username}】的個別時間設定，將恢復全校預設時間。` };
+    }
+  }
+
+  return { status: "error", message: "未找到該學生的特別設定記錄" };
+}
+
+/**
+ * 儲存特別日期全天解除限制設定
+ */
+function saveTimeRestriction(ss, teacherUser, ruleData) {
+  const sheet = ensureTimeSettingsSheet(ss);
+  const name = String(ruleData.name || "特別解除限制").trim();
+  const startD = formatStandardDateYMD(ruleData.startDate);
+  const endD = formatStandardDateYMD(ruleData.endDate || ruleData.startDate);
+  const remark = String(ruleData.remark || "").trim();
+  const isEnabled = ruleData.enabled !== false;
+
+  if (!startD || !endD) {
+    return { status: "error", message: "請指定正確的起始與結束日期" };
+  }
+  if (startD > endD) {
+    return { status: "error", message: "起始日期不可大於結束日期" };
+  }
+
+  const nowStr = Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy-MM-dd HH:mm:ss");
+
+  let targetRow = -1;
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    const type = String(data[i][0] || "").trim();
+    const s = formatStandardDateYMD(data[i][6]);
+    const e = formatStandardDateYMD(data[i][7]);
+    if (type === "特別日期解除" && s === startD && e === endD) {
+      targetRow = i + 1;
+      break;
+    }
+  }
+
+  const rowVals = [
+    "特別日期解除",
+    name,
+    "ALL",
+    "全體學生",
+    "00:00",
+    "23:59",
+    startD,
+    endD,
+    isEnabled,
+    teacherUser || "教師",
+    nowStr,
+    remark
+  ];
+
+  if (targetRow > 0) {
+    sheet.getRange(targetRow, 1, 1, 12).setValues([rowVals]);
+  } else {
+    sheet.appendRow(rowVals);
+  }
+
+  clearOverviewCache();
+  return {
+    status: "success",
+    message: `✅ 已成功解除【${startD} ～ ${endD}】的時間限制！`,
+    currentStatus: checkTimeRestrictionAllowance(ss, "")
+  };
+}
+
+/**
+ * 刪除特別日期全天解除限制設定
+ */
+function deleteTimeRestriction(ss, ruleData) {
+  const sheet = ss.getSheetByName("時間限制設定");
+  if (!sheet || sheet.getLastRow() < 2) return { status: "error", message: "找不到時間限制設定" };
+
+  const startD = formatStandardDateYMD(ruleData.startDate);
+  const endD = formatStandardDateYMD(ruleData.endDate);
+
+  const data = sheet.getDataRange().getValues();
+  for (let i = data.length - 1; i >= 1; i--) {
+    const type = String(data[i][0] || "").trim();
+    const s = formatStandardDateYMD(data[i][6]);
+    const e = formatStandardDateYMD(data[i][7]);
+    if (type === "特別日期解除" && s === startD && e === endD) {
+      sheet.deleteRow(i + 1);
+      clearOverviewCache();
+      return { status: "success", message: "已刪除該解除限制設定", currentStatus: checkTimeRestrictionAllowance(ss, "") };
+    }
+  }
+
+  return { status: "error", message: "未找到符合的設定記錄" };
+}
+
+/**
+ * 教師快捷操作：一鍵切換今日解除限制狀態
+ */
+function quickToggleTodayUnlock(ss, teacherUser) {
+  const sheet = ensureTimeSettingsSheet(ss);
+  const todayYMD = Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy-MM-dd");
+  const nowStr = Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy-MM-dd HH:mm:ss");
+
+  const data = sheet.getDataRange().getValues();
+  let foundRow = -1;
+  let currentlyActive = false;
+
+  for (let i = 1; i < data.length; i++) {
+    const type = String(data[i][0] || "").trim();
+    const s = formatStandardDateYMD(data[i][6]);
+    const e = formatStandardDateYMD(data[i][7]);
+    const statusVal = String(data[i][8] || "").trim().toUpperCase();
+    const isEn = (data[i][8] === true || statusVal === "TRUE" || statusVal === "啟用" || statusVal === "YES");
+
+    if (type === "特別日期解除" && todayYMD >= s && todayYMD <= e) {
+      if (isEn) {
+        foundRow = i + 1;
+        currentlyActive = true;
+        break;
+      }
+    }
+  }
+
+  if (currentlyActive && foundRow > 0) {
+    sheet.getRange(foundRow, 9).setValue(false);
+    clearOverviewCache();
+    return {
+      status: "success",
+      isUnlocked: false,
+      message: "已恢復今日時間限制",
+      currentStatus: checkTimeRestrictionAllowance(ss, "")
+    };
+  } else {
+    sheet.appendRow([
+      "特別日期解除",
+      "今日全天特別開放",
+      "ALL",
+      "全體學生",
+      "00:00",
+      "23:59",
+      todayYMD,
+      todayYMD,
+      true,
+      teacherUser || "教師",
+      nowStr,
+      "教師一鍵解除今日限制"
+    ]);
+    clearOverviewCache();
+    return {
+      status: "success",
+      isUnlocked: true,
+      message: `🎉 已成功解除今日（${todayYMD}）時間限制，學生全天皆可使用！`,
+      currentStatus: checkTimeRestrictionAllowance(ss, "")
+    };
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════
+// 3. Web API 端點 (doPost / doGet)
+// ════════════════════════════════════════════════════════════════════
+
+function doPost(e) {
+  let params = {};
+  try {
+    params = JSON.parse((e && e.postData && e.postData.contents) || "{}");
+    const ss     = SpreadsheetApp.getActiveSpreadsheet();
+    const action = params.action || "login";
+
+    // ── 1. 學生 / 教師登入 ──
+    if (action === "login") {
+      const auth = authenticateUser(ss, params.username, params.password);
+      if (!auth.success) {
+        logError("doPost/login", auth.message, params.username, "登入驗證失敗");
+        return jsonResponse({status:"error", message:auth.message});
+      }
+      if (auth.role === "teacher") {
+        let classList = [];
+        try {
+          const userSheet = ss.getSheetByName("使用者清單");
+          if (userSheet && userSheet.getLastRow() >= 2) {
+            const uData = userSheet.getRange(2, 4, userSheet.getLastRow() - 1, 1).getValues();
+            const cSet = new Set();
+            uData.forEach(r => {
+              const c = String(r[0] || "").replace(/班$/, "").trim();
+              if (c && c.toLowerCase() !== "all") cSet.add(c);
+            });
+            classList = Array.from(cSet).sort();
+          }
+        } catch(_) {}
+
+        return jsonResponse({
+          status:"success", message:"教師驗證成功",
+          role:"teacher", className:auth.className,
+          realName:auth.realName, isAdmin:auth.isAdmin,
+          classList: classList,
+          timeRestriction: checkTimeRestrictionAllowance(ss, "")
+        });
+      }
+
+      // ── 學生時間限制管制：可個別學生設定，預設套用全校設定，除非老師設定解除指定日期或範圍 ──
+      const timeAllowance = checkTimeRestrictionAllowance(ss, auth.username);
+      if (!timeAllowance.allowed) {
+        logError("doPost/login/curfew", "非開放作答時間登入阻擋", auth.username, "目前時間: " + timeAllowance.timeStr + " / 允許時段: " + timeAllowance.startTime + "~" + timeAllowance.endTime);
+        return jsonResponse({
+          status: "error",
+          curfew: true,
+          startTime: timeAllowance.startTime,
+          endTime: timeAllowance.endTime,
+          message: `⏰ 目前非您的開放作答時間！\n\n您的可作答時間為 早上 ${timeAllowance.startTime} ～ 晚上 ${timeAllowance.endTime}。\n其餘時間一律暫停使用，若有特殊需求請洽任課老師調整設定。`
+        });
+      }
+
+      let records = {};
+      const uSheet = ss.getSheetByName(auth.username);
+      if (uSheet && uSheet.getLastRow() >= 2) {
+        const raw = decompressData(String(uSheet.getRange("B2").getValue() || "").trim());
+        if (raw) {
+          try {
+            const parsed = JSON.parse(raw);
+            if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+              records = parsed;
+            }
+          } catch(pe) {
+            logError("doPost/login/json", pe, auth.username, "");
+          }
+        }
+      }
+
+      const assignedTask = getActiveTaskForClass(ss, auth.className, auth.username);
+      let dailyTaskHistory = [];
+      try { dailyTaskHistory = getStudentDailyTaskHistory(ss, auth.username); } catch(_) {}
+
+      return jsonResponse({
+        status:"success", message:"驗證成功", role:"student",
+        className:auth.className, realName:auth.realName, records,
+        assignedTask: assignedTask,
+        dailyTaskHistory: dailyTaskHistory,
+        timeRestriction: timeAllowance
+      });
+    }
+
+    // ── 2. 儲存學習紀錄 + 寫入個人歷程分頁 ──
+    if (action === "saveRecord") {
+      const auth = authenticateUser(ss, params.username, params.password);
+      if (!auth.success) return jsonResponse({status:"error", message:auth.message});
+      
+      // 學生在非開放時間禁止同步紀錄
+      if (auth.role === "student") {
+        const timeAllowance = checkTimeRestrictionAllowance(ss, auth.username);
+        if (!timeAllowance.allowed) {
+          return jsonResponse({
+            status: "error",
+            curfew: true,
+            message: `⏰ 目前非您的開放作答時間（${timeAllowance.startTime}～${timeAllowance.endTime}），紀錄暫停同步。`
+          });
+        }
+      }
+
+      const lock = LockService.getScriptLock();
+      if (!lock.tryLock(10000)) return jsonResponse({status:"error", message:"伺服器忙碌，請稍後再試"});
+      try { 
+        return handleSaveRecord(ss, params, auth); 
+      } finally { 
+        lock.releaseLock(); 
+      }
+    }
+
+    // ── 3. 讀取教師指定任務 ──
+    if (action === "getTeacherTask") {
+      const getRes = getTeacherTask({ username: params.username, password: params.password }, params.targetClass, params.targetDate);
+      return jsonResponse(getRes);
+    }
+
+    // ── 4. 發布教師指定任務 ──
+    if (action === "saveTeacherTask") {
+      const saveRes = saveTeacherTask({ username: params.username, password: params.password }, params.taskData);
+      return jsonResponse(saveRes);
+    }
+
+    // ── 5. 讀取每日指定測驗大數據與錯題分析 ──
+    if (action === "getDailyTaskAnalytics") {
+      const analyticsRes = getDailyTaskAnalytics(params);
+      return jsonResponse(analyticsRes);
+    }
+
+    // ── 6. 讀取指定日期區間所有學生答題狀況比較表 ──
+    if (action === "getDateRangePerformanceAnalytics") {
+      const rangeRes = getDateRangePerformanceAnalytics(params);
+      return jsonResponse(rangeRes);
+    }
+
+    // ── 7. 學生使用時間管理 API ──
+    if (action === "getTimeRestrictions") {
+      const auth = authenticateUser(ss, params.username, params.password);
+      if (!auth.success || auth.role !== "teacher") return jsonResponse({ status: "error", message: "無教師權限" });
+      return jsonResponse(getTimeRestrictions(ss));
+    }
+
+    if (action === "saveGlobalTimeSetting") {
+      const auth = authenticateUser(ss, params.username, params.password);
+      if (!auth.success || auth.role !== "teacher") return jsonResponse({ status: "error", message: "無教師權限" });
+      return jsonResponse(saveGlobalTimeSetting(ss, auth.realName || auth.username, params.timeData || {}));
+    }
+
+    if (action === "saveStudentTimeSetting") {
+      const auth = authenticateUser(ss, params.username, params.password);
+      if (!auth.success || auth.role !== "teacher") return jsonResponse({ status: "error", message: "無教師權限" });
+      return jsonResponse(saveStudentTimeSetting(ss, auth.realName || auth.username, params.studentData || {}));
+    }
+
+    if (action === "deleteStudentTimeSetting") {
+      const auth = authenticateUser(ss, params.username, params.password);
+      if (!auth.success || auth.role !== "teacher") return jsonResponse({ status: "error", message: "無教師權限" });
+      return jsonResponse(deleteStudentTimeSetting(ss, params.targetUsername));
+    }
+
+    if (action === "saveTimeRestriction") {
+      const auth = authenticateUser(ss, params.username, params.password);
+      if (!auth.success || auth.role !== "teacher") return jsonResponse({ status: "error", message: "無教師權限" });
+      return jsonResponse(saveTimeRestriction(ss, auth.realName || auth.username, params.ruleData || {}));
+    }
+
+    if (action === "deleteTimeRestriction") {
+      const auth = authenticateUser(ss, params.username, params.password);
+      if (!auth.success || auth.role !== "teacher") return jsonResponse({ status: "error", message: "無教師權限" });
+      return jsonResponse(deleteTimeRestriction(ss, params.ruleData || {}));
+    }
+
+    if (action === "quickToggleTodayUnlock") {
+      const auth = authenticateUser(ss, params.username, params.password);
+      if (!auth.success || auth.role !== "teacher") return jsonResponse({ status: "error", message: "無教師權限" });
+      return jsonResponse(quickToggleTodayUnlock(ss, auth.realName || auth.username));
+    }
+
+    // ── 8. 清理試算表無用分頁 ──
+    if (action === "cleanupUnusedSheets") {
+      const auth = authenticateUser(ss, params.username, params.password);
+      if (!auth.success || auth.role !== "teacher") {
+        return jsonResponse({status:"error", message:"僅教師或管理員可執行工作表清理"});
+      }
+      return jsonResponse(cleanupUnusedSheets());
+    }
+
+    // ── 9. 未知 action ──
+
+    logError("doPost","未知 action: "+action, params.username, "");
+    return jsonResponse({status:"error", message:"未知的 action"});
+  } catch(err) {
+    logError("doPost", err, params ? params.username : "", e && e.postData ? e.postData.contents.substring(0,500) : "");
+    return jsonResponse({status:"error", message:err.toString()});
+  }
+}
+
+function doGet(e) {
+  if (e && e.parameter && (e.parameter.action === "cleanupSheets" || e.parameter.clean === "1")) {
+    return jsonResponse(cleanupUnusedSheets());
+  }
+  return HtmlService.createHtmlOutputFromFile("Index")
+    .setTitle("學生學習歷程查詢系統")
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
+    .addMetaTag("viewport","width=device-width, initial-scale=1");
+}
+
+function jsonResponse(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+// ════════════════════════════════════════════════════════════════════
+// 7. 自動清理試算表無用分頁 (Cleanup Unused Sheets)
+// ════════════════════════════════════════════════════════════════════
+
+function cleanupUnusedSheets() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheets = ss.getSheets();
+
+  // 1. 取得名冊中合法的學生帳號
+  const validStudents = new Set();
+  const userSheet = ss.getSheetByName("使用者清單") || ss.getSheetByName("學生帳密");
+  if (userSheet && userSheet.getLastRow() >= 2) {
+    const data = userSheet.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      const u = String(data[i][0] || "").trim();
+      const role = String(data[i][2] || "student").trim().toLowerCase();
+      if (u && role === "student") validStudents.add(u.toLowerCase());
+    }
+  }
+
+  // 2. 系統核心必要工作表（絕不刪除）
+  const essentialSheets = new Set([
+    "全班學習總覽", "使用者清單", "指定單字任務", "錯誤日誌", "時間限制設定"
+  ]);
+
+  // 3. 明確棄用、過渡或預設空白分頁清單
+  const explicitlyUnused = new Set([
+    "每日任務紀錄", "工作表1", "工作表 1", "工作表2", "工作表 2", "Sheet1", "Sheet 1", "Sheet2", "Sheet 2",
+    "Template", "Dashboard", "班級戰力排行", "學生帳密", "系統錯誤日誌"
+  ]);
+
+  const deleted = [];
+  const kept = [];
+
+  sheets.forEach(sh => {
+    const name = sh.getName().trim();
+    const nameLower = name.toLowerCase();
+    let shouldDelete = false;
+
+    if (explicitlyUnused.has(name)) {
+      shouldDelete = true;
+    } else if (!essentialSheets.has(name) && !validStudents.has(nameLower)) {
+      // 非系統核心表，且非名冊內的學生分頁
+      // 若該分頁為空白或未註冊，列入清理對象
+      if (sh.getLastRow() <= 1) {
+        shouldDelete = true;
+      }
+    }
+
+    if (shouldDelete) {
+      if (ss.getSheets().length > 1) {
+        try {
+          ss.deleteSheet(sh);
+          deleted.push(name);
+        } catch(err) {
+          Logger.log("刪除工作表失敗 (" + name + "): " + err);
+        }
+      }
+    } else {
+      kept.push(name);
+      if (validStudents.has(nameLower)) {
+        ensureStudentSheetColumns(sh);
+      }
+    }
+  });
+
+  return {
+    status: "success",
+    message: `清理完成：共刪除 ${deleted.length} 個無用分頁，保留 ${kept.length} 個必要分頁`,
+    deletedSheets: deleted,
+    keptSheets: kept
+  };
+}
+
+// ════════════════════════════════════════════════════════════════════
+// 4. 儲存歷程與寫入【每日任務紀錄】
+// ════════════════════════════════════════════════════════════════════
+
+function handleSaveRecord(ss, params, auth) {
+  try {
+    const username = (auth && auth.username) ? auth.username : String(params.username || "").trim();
+    const records  = params.records || {};
+    if (!username) return jsonResponse({status:"error", message:"未提供帳號"});
+
+  let uSheet = ss.getSheetByName(username);
+  if (!uSheet) {
+    uSheet = ss.insertSheet(username);
+    const hdr = ["備份時間","完整JSON","等級","分數","連勝","最佳連勝",
+      "作答題數","答對題數","正確率",
+      "LEVEL1入門\n答對題數/作答題數","LEVEL2基礎\n答對題數/作答題數",
+      "LEVEL3進階\n答對題數/作答題數","LEVEL4挑戰\n答對題數/作答題數","LEVEL5精熟\n答對題數/作答題數",
+      "答對單字數","學習中","練習中","精通",
+      "任務名稱","指定測驗成績","指定測驗正確率","練習狀態","測驗錯題單字"];
+    uSheet.appendRow(hdr);
+    uSheet.getRange("1:1").setWrap(true).setHorizontalAlignment("center").setVerticalAlignment("middle");
+    uSheet.setRowHeight(1,45);
+    uSheet.hideColumn(uSheet.getRange("B:B"));
+    [160,80,70,70,70,80,80,80,80,120,120,120,120,120,80,80,80,80,150,110,110,110,220]
+      .forEach((w,i) => uSheet.setColumnWidth(i+1,w));
+  } else {
+    // 確保學生分頁具備 23 欄每日任務欄位
+    ensureStudentSheetColumns(uSheet);
+  }
+
+  const now       = new Date();
+  const todayStr  = Utilities.formatDate(now, "Asia/Taipei", "yyyy-MM-dd");
+  const ts        = Utilities.formatDate(now, "Asia/Taipei", "yyyy-MM-dd HH:mm:ss");
+  const jsonData  = JSON.stringify(records);
+  if (jsonData.length > SYS.MAX_JSON_BYTES) {
+    logError("saveRecord/size","資料過大",username,`字元數:${jsonData.length}`);
+    return jsonResponse({status:"error",message:"資料量過大，無法儲存"});
+  }
+
+  const stored   = compressData(jsonData);
+  let agentData  = {};
+  try {
+    const raw = records["spellAgent.v2"];
+    agentData = (typeof raw==="string") ? JSON.parse(raw) : (raw || {});
+  } catch(_) {}
+
+  const lstat = agentData.lstat || {}, stat = agentData.stat || {};
+  let distinctC=0, learning=0, practicing=0, mastered=0;
+  for (const w in stat) {
+    const c = stat[w].c || 0;
+    if (c>0) distinctC++;
+    if (c===1) learning++;
+    if (c===2) practicing++;
+    if (c>=3)  mastered++;
+  }
+
+  const attempts = agentData.attempts||0, correct = agentData.correct||0;
+  const accStr   = attempts>0 ? Math.round(correct/attempts*100)+"%" : "0%";
+  const L = (k,f) => (lstat[k]?.[f]||0);
+
+  // 解析今日指定任務資訊（優先從 params.todayTaskSummary 提取，亦支援從 records 中自動解析備援）
+  let sum = params.todayTaskSummary || null;
+  if (!sum && records["today_task_summary"]) {
+    try {
+      const parsedSum = JSON.parse(records["today_task_summary"]);
+      const sumDate = parsedSum ? formatStandardDateYMD(parsedSum.date) : "";
+      if (!sumDate || sumDate === todayStr) sum = parsedSum;
+    } catch(_) {}
+  }
+  if (!sum && records["today_task_in_progress"]) {
+    try {
+      const prog = JSON.parse(records["today_task_in_progress"]);
+      if (prog && prog.pool && prog.pool.length > 0) {
+        sum = {
+          taskName   : prog.task ? prog.task.taskName : "今日指定練習",
+          score      : prog.correct || 0,
+          total      : prog.pool.length,
+          rate       : "—",
+          completed  : false,
+          inProgress : true,
+          date       : prog.date || "",
+          wrongWords : prog.wrongWords || []
+        };
+      }
+    } catch(_) {}
+  }
+
+  const isCompleted = !!(sum && (sum.completed === true || (sum.score !== undefined && sum.total !== undefined && sum.score > 0 && !sum.inProgress)));
+  let taskName      = (sum && sum.taskName) ? sum.taskName : "自主練習";
+  let taskScore     = (isCompleted && sum.score !== undefined && sum.total !== undefined) ? `'${sum.score}/${sum.total}` : "—";
+  let taskRate      = "—";
+  if (isCompleted) {
+    if (sum.rate) {
+      taskRate = String(sum.rate).includes("%") ? String(sum.rate) : Math.round(parseFloat(sum.rate) <= 1 ? parseFloat(sum.rate)*100 : parseFloat(sum.rate)) + "%";
+    } else if (sum.score !== undefined && sum.total && sum.total > 0) {
+      taskRate = Math.round((sum.score / sum.total) * 100) + "%";
+    }
+  }
+
+  let status = "⚪ 自由練習中";
+  if (isCompleted) {
+    status = "🟢 已完成";
+  } else if (sum && sum.inProgress) {
+    const cur = (sum.score !== undefined && sum.total !== undefined) ? `(${sum.score}/${sum.total})` : "";
+    status = `🟡 測驗作答中${cur}`;
+  }
+
+  let wrongWordsStr = (sum && sum.wrongWords && Array.isArray(sum.wrongWords))
+    ? sum.wrongWords.join(", ")
+    : (sum && typeof sum.wrongWords === "string" ? sum.wrongWords : "");
+
+  // 檢查試算表目前第 2 列是否已經是已完成的測驗紀錄
+  let shouldInsertNewRow = false;
+  let existingRow = null;
+  let sameDay = false;
+  if (uSheet.getLastRow() >= 2) {
+    const curCols = uSheet.getLastColumn();
+    if (curCols >= 1) {
+      existingRow = uSheet.getRange(2, 1, 1, curCols).getValues()[0];
+      const lastStr = formatStandardDateYMD(existingRow[0]);
+      sameDay = (lastStr === todayStr);
+    }
+  }
+
+  // 關鍵保護與多任務支援：所有作答紀錄完整儲存在每個學生自己的分頁中
+  const existingStatus = (existingRow && existingRow[21]) ? String(existingRow[21]) : "";
+  const existingScore  = (existingRow && existingRow[19]) ? String(existingRow[19]) : "";
+  const existingTask   = (existingRow && existingRow[18]) ? String(existingRow[18]).trim() : "";
+  const existingHasCompleted = existingStatus.includes("已完成") && existingScore !== "—" && existingScore !== "";
+
+  if (uSheet.getLastRow() < 2) {
+    // 剛建立的新分頁，直接寫入第 2 列
+    shouldInsertNewRow = false;
+  } else if (isCompleted) {
+    // 【已完成的測驗】：
+    // 若第 2 列目前已經是一筆已完成的測驗（無論同日或不同日），本次新完成的測驗獨立開闢新列，完整保留歷次所有成果！
+    if (existingHasCompleted) {
+      shouldInsertNewRow = true;
+    } else {
+      // 若第 2 列是本次測驗的進行中暫存（或純自由練習），就地更新為已完成
+      shouldInsertNewRow = false;
+    }
+  } else if (sum && sum.inProgress) {
+    // 【測驗進行中】：
+    // 若第 2 列是已完成測驗，開闢新列暫存；若第 2 列本就是作答中暫存，更新進度
+    if (existingHasCompleted) {
+      shouldInsertNewRow = true;
+    } else {
+      shouldInsertNewRow = false;
+    }
+  } else {
+    // 【自主練習 / 總進度儲存】：
+    if (existingHasCompleted) {
+      // 保留已完成測驗成果不被抹除
+      taskName      = String(existingRow[18] || taskName);
+      taskScore     = String(existingRow[19] || taskScore);
+      taskRate      = String(existingRow[20] || taskRate);
+      status        = String(existingRow[21] || status);
+      wrongWordsStr = String(existingRow[22] || wrongWordsStr);
+      if (!sameDay) shouldInsertNewRow = true;
+    } else {
+      if (!sameDay) shouldInsertNewRow = true;
+    }
+  }
+
+  const rowData = [ts, stored,
+    (agentData.level||{}).current||"", agentData.points||0,
+    agentData.streak||0, agentData.best||0, attempts, correct, accStr,
+    `${L("1","c")}/${L("1","a")}`, `${L("2","c")}/${L("2","a")}`,
+    `${L("3","c")}/${L("3","a")}`, `${L("4","c")}/${L("4","a")}`,
+    `${L("5","c")}/${L("5","a")}`,
+    distinctC, learning, practicing, mastered,
+    taskName, taskScore, taskRate, status, wrongWordsStr
+  ];
+
+  if (shouldInsertNewRow && uSheet.getLastRow() >= 2) {
+    uSheet.insertRowBefore(2);
+  }
+  while (uSheet.getMaxRows() < 2) {
+    uSheet.insertRowAfter(uSheet.getMaxRows());
+  }
+  if (uSheet.getMaxColumns() < rowData.length) {
+    uSheet.insertColumnsAfter(uSheet.getMaxColumns(), rowData.length - uSheet.getMaxColumns());
+  }
+  uSheet.getRange(2, 1, 1, rowData.length)
+    .setValues([rowData]).setHorizontalAlignment("center").setVerticalAlignment("middle");
+
+  clearOverviewCache();
+  try {
+    CacheService.getScriptCache().remove("stu_data_" + username.toLowerCase());
+  } catch(_) {}
+  return jsonResponse({status:"success", message:"紀錄已成功儲存於個人分頁"});
+  } catch(err) {
+    logError("handleSaveRecord", err, auth ? auth.username : (params ? params.username : ""), "");
+    return jsonResponse({status:"error", message: "儲存失敗：" + (err.message || err.toString())});
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════
+// 4.1 每日指定測驗成果與錯題大數據分析 (Big Data Analytics)
+// ════════════════════════════════════════════════════════════════════
+
+function getDailyTaskAnalytics(formData) {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const auth = authenticateUser(ss, formData.username, formData.password);
+    if (!auth.success || auth.role !== "teacher") {
+      return { status: "error", message: "無權限查看教師大數據分析" };
+    }
+
+    const targetClass = (!auth.isAdmin && auth.className) ? auth.className : (formData.targetClass || "all");
+    const cleanTargetClass = targetClass.replace(/班$/, "").trim().toLowerCase();
+    const targetDateParam = formData.targetDate ? formatStandardDateYMD(formData.targetDate) : "";
+    const cacheKey = "dta_" + (auth.isAdmin ? "admin" : (auth.className || "all")) + "_" + cleanTargetClass + "_" + targetDateParam;
+    const cache = CacheService.getScriptCache();
+    if (!formData.forceRefresh) {
+      try {
+        const hit = cache.get(cacheKey);
+        if (hit) {
+          const jsonStr = hit.startsWith("GZ:") ? decompressData(hit) : hit;
+          return JSON.parse(jsonStr);
+        }
+      } catch(_) {}
+    }
+
+    // 1. 抓取使用者清單，以對比出「未測驗」學生
+    const userSheet = ss.getSheetByName("使用者清單");
+    const allStudents = [];
+    const allClassesSet = new Set();
+    if (userSheet && userSheet.getLastRow() >= 2) {
+      const uData = userSheet.getDataRange().getValues();
+      for (let i = 1; i < uData.length; i++) {
+        const u = String(uData[i][0] || "").trim();
+        const role = String(uData[i][2] || "student").trim().toLowerCase();
+        const c = String(uData[i][3] || "").trim();
+        const real = String(uData[i][4] || "").trim();
+        if (c) allClassesSet.add(c);
+        if (u && role === "student") {
+          const cClean = c.replace(/班$/, "").trim().toLowerCase();
+          if (cleanTargetClass === "all" || cClean === cleanTargetClass) {
+            allStudents.push({ username: u, realName: real, className: c });
+          }
+        }
+      }
+    }
+
+    // 2. 獲取任務紀錄：直接自各學生個別分頁彙整（完全不依賴獨立任務表，每筆測驗皆獨立紀錄）
+    const recData = [["日期","班級","學號","姓名","任務名稱","指定測驗成績","指定測驗正確率","今日總作答","今日總答對","總正確率","練習狀態","最後更新時間","測驗錯題單字"]];
+    allStudents.forEach(st => {
+      const uSheet = ss.getSheetByName(st.username);
+      if (uSheet && uSheet.getLastRow() >= 2) {
+        const maxRows = Math.min(uSheet.getLastRow() - 1, 60);
+        const maxCols = uSheet.getLastColumn();
+        if (maxCols >= 1) {
+          const sVals = uSheet.getRange(2, 1, maxRows, maxCols).getValues();
+          sVals.forEach(row => {
+            const dateStr = formatStandardDateYMD(row[0]);
+            if (dateStr && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+              recData.push([
+                dateStr, st.className, st.username, st.realName || st.username,
+                row[18] || "自主練習", row[19] || "—", row[20] || "—",
+                row[6] || 0, row[7] || 0, row[8] || "0%",
+                row[21] || "—", formatStandardDateTime(row[0]), row[22] || ""
+              ]);
+            }
+          });
+        }
+      }
+    });
+
+    if (recData.length < 2) {
+      return {
+        status: "success",
+        dates: [],
+        selectedDate: "",
+        selectedClass: formData.targetClass || "all",
+        summary: { totalStudents: allStudents.length, completedCount: 0, inProgressCount: 0, notStartedCount: allStudents.length, completionRate: "0%", avgScore: "0", avgRate: "0%", passCount: 0, passRate: "0%", perfectCount: 0 },
+        errorRanking: [],
+        studentRecords: allStudents.map(st => ({
+          username   : st.username,
+          realName   : st.realName || st.username,
+          className  : st.className,
+          taskName   : "—",
+          status     : "⚪ 未測驗",
+          score      : "—",
+          rate       : "—",
+          points     : null,
+          wrongWords : [],
+          updatedAt  : "—"
+        }))
+      };
+    }
+
+    // 3. 抓取所有有記錄的日期清單 (由新到舊排序)
+    const dateSet = new Set();
+    for (let r = 1; r < recData.length; r++) {
+      const dStr = formatStandardDateYMD(recData[r][0]);
+      if (dStr && /^\d{4}-\d{2}-\d{2}$/.test(dStr)) {
+        dateSet.add(dStr);
+      }
+    }
+    const dates = Array.from(dateSet).sort().reverse();
+
+    // 預設日期：今天或最近有紀錄的日期
+    const todayStr = Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy-MM-dd");
+    let selectedDate = formData.targetDate ? formatStandardDateYMD(formData.targetDate) : (dates.includes(todayStr) ? todayStr : (dates[0] || todayStr));
+
+    // 3. 篩選當日測驗紀錄
+    const dayRecordsMap = {};
+    for (let r = 1; r < recData.length; r++) {
+      const dStr = formatStandardDateYMD(recData[r][0]);
+      const u = String(recData[r][2] || "").trim();
+      const c = String(recData[r][1] || "").trim();
+      const cClean = c.replace(/班$/, "").trim().toLowerCase();
+
+      if (dStr === selectedDate && u) {
+        if (cleanTargetClass === "all" || cClean === cleanTargetClass) {
+          const parsed = parseScoreAndRate(recData[r][5], recData[r][6]);
+          const status = String(recData[r][10] || "");
+          const wrongWordsStr = String(recData[r][12] || "");
+          const wrongWords = wrongWordsStr
+            ? wrongWordsStr.split(/[,;\s]+/).map(w => w.trim().toLowerCase()).filter(w => w.length > 0)
+            : [];
+
+          dayRecordsMap[u] = {
+            date        : dStr,
+            className   : c,
+            username    : u,
+            realName    : String(recData[r][3] || u),
+            taskName    : String(recData[r][4] || "今日指定測驗"),
+            score       : parsed.score,
+            rate        : parsed.rate,
+            status      : status,
+            updatedAt   : String(recData[r][11] || ""),
+            wrongWords  : wrongWords
+          };
+        }
+      }
+    }
+
+    // 4. 統計各單字答錯大數據 (Word Error Frequency)
+    const wordErrorMap = {}; // word -> { errorCount, students: [] }
+    let completedCount = 0;
+    let inProgressCount = 0;
+    let totalScoreSum = 0;
+    let passCount = 0;
+    let perfectCount = 0;
+
+    const studentRecords = [];
+
+    // 合併清單：遍歷班級應測學生
+    allStudents.forEach(st => {
+      const rec = dayRecordsMap[st.username];
+      if (rec) {
+        const isCompleted = rec.status.includes("已完成") && rec.score !== "—";
+        const isInProgress = rec.status.includes("作答中") || rec.status.includes("進行中");
+
+        let pctNum = null;
+        if (rec.rate.endsWith("%")) {
+          pctNum = parseFloat(rec.rate);
+        } else {
+          const num = parseFloat(rec.rate);
+          if (!isNaN(num)) pctNum = num <= 1 ? num * 100 : num;
+        }
+
+        if (isCompleted) {
+          completedCount++;
+          if (pctNum !== null) {
+            totalScoreSum += pctNum;
+            if (pctNum >= 60) passCount++;
+            if (pctNum >= 100) perfectCount++;
+          }
+          // 累加錯題大數據
+          rec.wrongWords.forEach(w => {
+            if (!wordErrorMap[w]) {
+              wordErrorMap[w] = { word: w, errorCount: 0, students: [] };
+            }
+            wordErrorMap[w].errorCount++;
+            wordErrorMap[w].students.push({
+              username  : st.username,
+              realName  : st.realName || st.username,
+              className : st.className
+            });
+          });
+        } else if (isInProgress) {
+          inProgressCount++;
+        }
+
+        studentRecords.push({
+          username   : st.username,
+          realName   : st.realName || st.username,
+          className  : st.className,
+          taskName   : rec.taskName,
+          status     : isCompleted ? "🟢 已完成" : (isInProgress ? "🟡 作答中" : rec.status),
+          score      : rec.score,
+          rate       : rec.rate,
+          points     : pctNum !== null ? pctNum : null,
+          wrongWords : rec.wrongWords,
+          updatedAt  : rec.updatedAt
+        });
+      } else {
+        // 未測驗
+        studentRecords.push({
+          username   : st.username,
+          realName   : st.realName || st.username,
+          className  : st.className,
+          taskName   : "—",
+          status     : "⚪ 未測驗",
+          score      : "—",
+          rate       : "—",
+          points     : null,
+          wrongWords : [],
+          updatedAt  : "—"
+        });
+      }
+    });
+
+    const totalStudents = allStudents.length;
+    const notStartedCount = Math.max(0, totalStudents - completedCount - inProgressCount);
+    const completionRate = totalStudents > 0 ? (Math.round((completedCount / totalStudents) * 1000) / 10) + "%" : "0%";
+    const avgScore = completedCount > 0 ? (Math.round((totalScoreSum / completedCount) * 10) / 10).toFixed(1) : "0";
+    const avgRate = avgScore + "%";
+    const passRate = completedCount > 0 ? (Math.round((passCount / completedCount) * 1000) / 10) + "%" : "0%";
+
+    // 5. 排序錯題排行榜 (最多、次多、次次多、次次次多...)
+    const sortedErrorWords = Object.values(wordErrorMap).sort((a, b) => b.errorCount - a.errorCount);
+    const rankLabels = ["🥇 最多學生答錯", "🥈 次多學生答錯", "🥉 次次多學生答錯", "🏅 第 4 多學生答錯", "🏅 第 5 多學生答錯"];
+
+    const errorRanking = sortedErrorWords.map((item, idx) => {
+      const errRate = completedCount > 0 ? (Math.round((item.errorCount / completedCount) * 1000) / 10) + "%" : "0%";
+      return {
+        rank       : idx + 1,
+        label      : rankLabels[idx] || `第 ${idx + 1} 多學生答錯`,
+        word       : item.word,
+        errorCount : item.errorCount,
+        errorRate  : errRate,
+        students   : item.students
+      };
+    });
+
+    const analyticsResult = {
+      status         : "success",
+      dates          : dates,
+      selectedDate   : selectedDate,
+      selectedClass  : targetClass,
+      classes        : (!auth.isAdmin && auth.className) ? [auth.className] : Array.from(allClassesSet).sort(),
+      summary: {
+        totalStudents   : totalStudents,
+        completedCount  : completedCount,
+        inProgressCount : inProgressCount,
+        notStartedCount : notStartedCount,
+        failedCount     : Math.max(0, completedCount - passCount),
+        completionRate  : completionRate,
+        avgScore        : avgScore,
+        avgRate         : avgRate,
+        passCount       : passCount,
+        passRate        : passRate,
+        perfectCount    : perfectCount
+      },
+      errorRanking   : errorRanking,
+      studentRecords : studentRecords
+    };
+
+    try {
+      const gz = compressData(JSON.stringify(analyticsResult));
+      if (gz.length < 95000) cache.put(cacheKey, gz, 120);
+    } catch(_) {}
+
+    return analyticsResult;
+  } catch(err) {
+    logError("getDailyTaskAnalytics", err, formData ? formData.username : "", "");
+    return { status: "error", message: err.toString() };
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════
+// 4-2. 讀取指定日期區間所有學生答題狀況比較表（全班與個別學生）
+// ════════════════════════════════════════════════════════════════════
+
+function getDateRangePerformanceAnalytics(formData) {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const auth = authenticateUser(ss, formData.username, formData.password);
+    if (!auth.success || auth.role !== "teacher") {
+      return { status: "error", message: "無權限查看教師日期區間大數據分析" };
+    }
+
+    const userSheet = ss.getSheetByName("使用者清單");
+    const targetClass = (!auth.isAdmin && auth.className) ? auth.className : (formData.targetClass || "all");
+    const cleanTargetClass = targetClass.replace(/班$/, "").trim().toLowerCase();
+    const startD = formData.startDate ? formatStandardDateYMD(formData.startDate) : "";
+    const endD = formData.endDate ? formatStandardDateYMD(formData.endDate) : "";
+    const rangeCacheKey = "drp_" + (auth.isAdmin ? "admin" : (auth.className || "all")) + "_" + cleanTargetClass + "_" + startD + "_" + endD;
+    const cache = CacheService.getScriptCache();
+    if (!formData.forceRefresh) {
+      try {
+        const hit = cache.get(rangeCacheKey);
+        if (hit) {
+          const jsonStr = hit.startsWith("GZ:") ? decompressData(hit) : hit;
+          return JSON.parse(jsonStr);
+        }
+      } catch(_) {}
+    }
+
+    // 1. 取得全校班級清單與學生名冊
+    const allStudents = [];
+    const allClassesSet = new Set();
+    if (userSheet && userSheet.getLastRow() >= 2) {
+      const uData = userSheet.getDataRange().getValues();
+      for (let i = 1; i < uData.length; i++) {
+        const u = String(uData[i][0] || "").trim();
+        const role = String(uData[i][2] || "student").trim().toLowerCase();
+        const c = String(uData[i][3] || "").trim();
+        const real = String(uData[i][4] || "").trim();
+        if (c) allClassesSet.add(c);
+        if (u && role === "student") {
+          const cClean = c.replace(/班$/, "").trim().toLowerCase();
+          if (cleanTargetClass === "all" || cClean === cleanTargetClass) {
+            allStudents.push({ username: u, realName: real || u, className: c });
+          }
+        }
+      }
+    }
+
+    // 2. 獲取任務紀錄：直接自各學生個別分頁彙整（完全不依賴獨立任務表）
+    const recData = [["日期","班級","學號","姓名","任務名稱","指定測驗成績","指定測驗正確率","今日總作答","今日總答對","總正確率","練習狀態","最後更新時間","測驗錯題單字"]];
+    allStudents.forEach(st => {
+      const uSheet = ss.getSheetByName(st.username);
+      if (uSheet && uSheet.getLastRow() >= 2) {
+        const maxRows = Math.min(uSheet.getLastRow() - 1, 60);
+        const maxCols = uSheet.getLastColumn();
+        if (maxCols >= 1) {
+          const sVals = uSheet.getRange(2, 1, maxRows, maxCols).getValues();
+          sVals.forEach(row => {
+            const dateStr = formatStandardDateYMD(row[0]);
+            if (dateStr && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+              recData.push([
+                dateStr, st.className, st.username, st.realName || st.username,
+                row[18] || "自主練習", row[19] || "—", row[20] || "—",
+                row[6] || 0, row[7] || 0, row[8] || "0%",
+                row[21] || "—", formatStandardDateTime(row[0]), row[22] || ""
+              ]);
+            }
+          });
+        }
+      }
+    });
+
+    if (recData.length < 2) {
+      return {
+        status: "success",
+        targetClass: targetClass,
+        classes: (!auth.isAdmin && auth.className) ? [auth.className] : Array.from(allClassesSet).sort(),
+        startDate: formData.startDate || "",
+        endDate: formData.endDate || "",
+        dateList: [],
+        classSummary: {
+          totalStudents: allStudents.length,
+          activeStudents: 0,
+          participationRate: "0%",
+          totalAttempts: 0,
+          totalCorrect: 0,
+          classAvgAccuracy: "0%",
+          masteredCount: 0,
+          attentionCount: 0,
+          dailyOverview: [],
+          topErrorWords: []
+        },
+        students: allStudents.map(st => ({
+          username: st.username,
+          realName: st.realName,
+          className: st.className,
+          activeDays: 0,
+          totalDays: 0,
+          participationRate: "0%",
+          totalAttempts: 0,
+          totalCorrect: 0,
+          accuracy: "—",
+          accuracyNum: 0,
+          statusTag: "⚪ 尚未作答",
+          wrongWords: [],
+          dailyMap: {}
+        }))
+      };
+    }
+
+    // 2. 彙整每日任務紀錄中所有出現過的日期 (yyyy-MM-dd)
+    const allRecordedDatesSet = new Set();
+    for (let r = 1; r < recData.length; r++) {
+      const dStr = formatStandardDateYMD(recData[r][0]);
+      if (dStr && /^\d{4}-\d{2}-\d{2}$/.test(dStr)) {
+        allRecordedDatesSet.add(dStr);
+      }
+    }
+    const allSortedDates = Array.from(allRecordedDatesSet).sort(); // 舊 -> 新
+    const todayStr = Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy-MM-dd");
+
+    // 決定查詢起訖日期：預設為最近 7 天 (包含今天)
+    let endDate = formData.endDate ? formatStandardDateYMD(formData.endDate) : (allSortedDates.length > 0 ? allSortedDates[allSortedDates.length - 1] : todayStr);
+    let startDate = formData.startDate ? formatStandardDateYMD(formData.startDate) : "";
+    if (!startDate) {
+      const endD = new Date(endDate.replace(/-/g, "/"));
+      const startD = new Date(endD.getTime() - 6 * 24 * 60 * 60 * 1000);
+      startDate = Utilities.formatDate(startD, "Asia/Taipei", "yyyy-MM-dd");
+    }
+    if (startDate > endDate) {
+      const tmp = startDate; startDate = endDate; endDate = tmp;
+    }
+
+    // 3. 生成 dateList：在 [startDate, endDate] 範圍內的日期清單
+    const dateList = [];
+    const curD = new Date(startDate.replace(/-/g, "/"));
+    const maxD = new Date(endDate.replace(/-/g, "/"));
+    const daySpan = Math.round((maxD.getTime() - curD.getTime()) / (24 * 60 * 60 * 1000)) + 1;
+
+    if (daySpan <= 14) {
+      // 14 天內：生成每天日曆欄位 (含六日)
+      while (curD <= maxD) {
+        dateList.push(Utilities.formatDate(curD, "Asia/Taipei", "yyyy-MM-dd"));
+        curD.setDate(curD.getDate() + 1);
+      }
+    } else {
+      // 超過 14 天：只顯示該區間內實際「有紀錄」的日期，避免表格過於龐大
+      allSortedDates.forEach(d => {
+        if (d >= startDate && d <= endDate) {
+          dateList.push(d);
+        }
+      });
+      if (dateList.length === 0 && startDate === endDate) {
+        dateList.push(startDate);
+      }
+    }
+
+    // 4. 解析與配對學生各日紀錄
+    const userRecordsMap = {};
+    const wordErrorCountMap = {}; // word -> Set of usernames
+
+    for (let r = 1; r < recData.length; r++) {
+      const dStr = formatStandardDateYMD(recData[r][0]);
+      const u = String(recData[r][2] || "").trim();
+      const c = String(recData[r][1] || "").trim();
+      const cClean = c.replace(/班$/, "").trim().toLowerCase();
+
+      if (dStr >= startDate && dStr <= endDate && u) {
+        if (cleanTargetClass === "all" || cClean === cleanTargetClass) {
+          if (!userRecordsMap[u]) userRecordsMap[u] = {};
+
+          const parsed = parseScoreAndRate(recData[r][5], recData[r][6]);
+          const status = String(recData[r][10] || "");
+          const attempts = parseInt(recData[r][7], 10) || 0;
+          const correct = parseInt(recData[r][8], 10) || 0;
+          const wrongWordsStr = String(recData[r][12] || "");
+          const wrongWords = wrongWordsStr
+            ? wrongWordsStr.split(/[,;\s]+/).map(w => w.trim().toLowerCase()).filter(w => w.length > 0)
+            : [];
+
+          let points = null;
+          if (parsed.rate && parsed.rate !== "—") {
+            const num = parseFloat(parsed.rate);
+            if (!isNaN(num)) points = num <= 1 ? num * 100 : num;
+          }
+
+          userRecordsMap[u][dStr] = {
+            date: dStr,
+            taskName: String(recData[r][4] || "每日任務"),
+            score: parsed.score,
+            rate: parsed.rate,
+            points: points,
+            attempts: attempts,
+            correct: correct,
+            status: status,
+            wrongWords: wrongWords,
+            updatedAt: String(recData[r][11] || "")
+          };
+
+          wrongWords.forEach(w => {
+            if (!wordErrorCountMap[w]) wordErrorCountMap[w] = new Set();
+            wordErrorCountMap[w].add(u);
+          });
+        }
+      }
+    }
+
+    // 5. 彙整個別學生區間統計
+    let totalAttemptsSum = 0;
+    let totalCorrectSum = 0;
+    let activeStudentsCount = 0;
+    let masteredCount = 0;
+    let attentionCount = 0;
+
+    const studentRecords = allStudents.map(st => {
+      const uMap = userRecordsMap[st.username] || {};
+      let studentAttempts = 0;
+      let studentCorrect = 0;
+      let activeDays = 0;
+      let scoreSum = 0;
+      let scoreDays = 0;
+      const studentWrongWordsSet = new Set();
+      const dailyMap = {};
+
+      dateList.forEach(d => {
+        const rec = uMap[d];
+        if (rec) {
+          dailyMap[d] = rec;
+          studentAttempts += rec.attempts;
+          studentCorrect += rec.correct;
+          if (rec.status.includes("已完成") || (rec.score && rec.score !== "—")) {
+            activeDays++;
+          }
+          if (rec.points !== null) {
+            scoreSum += rec.points;
+            scoreDays++;
+          }
+          (rec.wrongWords || []).forEach(w => studentWrongWordsSet.add(w));
+        } else {
+          dailyMap[d] = {
+            date: d,
+            score: "—",
+            rate: "—",
+            points: null,
+            attempts: 0,
+            correct: 0,
+            status: "⚪ 未測驗",
+            wrongWords: []
+          };
+        }
+      });
+
+      if (activeDays > 0) activeStudentsCount++;
+      totalAttemptsSum += studentAttempts;
+      totalCorrectSum += studentCorrect;
+
+      let accuracyNum = 0;
+      let accuracyStr = "—";
+      if (studentAttempts > 0) {
+        accuracyNum = Math.round((studentCorrect / studentAttempts) * 1000) / 10;
+        accuracyStr = accuracyNum.toFixed(1) + "%";
+      } else if (scoreDays > 0) {
+        accuracyNum = Math.round((scoreSum / scoreDays) * 10) / 10;
+        accuracyStr = accuracyNum.toFixed(1) + "%";
+      }
+
+      const totalDaysCount = dateList.length;
+      const participationRateNum = totalDaysCount > 0 ? Math.round((activeDays / totalDaysCount) * 1000) / 10 : 0;
+      const participationRateStr = participationRateNum.toFixed(1) + "%";
+
+      let statusTag = "⚪ 尚未作答";
+      let tagColor = "var(--text-muted)";
+      if (activeDays > 0) {
+        if (accuracyNum >= 85 && participationRateNum >= 70) {
+          statusTag = "🌟 精熟頂尖";
+          tagColor = "#10b981";
+          masteredCount++;
+        } else if (accuracyNum >= 75 && participationRateNum >= 60) {
+          statusTag = "🟢 良好穩定";
+          tagColor = "#10b981";
+        } else if (accuracyNum >= 60) {
+          statusTag = "🟡 尚可平穩";
+          tagColor = "#f59e0b";
+        } else {
+          statusTag = "⚠️ 需加強輔導";
+          tagColor = "#ef4444";
+          attentionCount++;
+        }
+        if (participationRateNum < 40 && totalDaysCount >= 3) {
+          statusTag = "💤 缺測偏多";
+          tagColor = "#ef4444";
+          attentionCount++;
+        }
+      } else {
+        if (totalDaysCount >= 2) attentionCount++;
+      }
+
+      return {
+        username: st.username,
+        realName: st.realName,
+        className: st.className,
+        activeDays: activeDays,
+        totalDays: totalDaysCount,
+        participationRate: participationRateStr,
+        participationRateNum: participationRateNum,
+        totalAttempts: studentAttempts,
+        totalCorrect: studentCorrect,
+        accuracy: accuracyStr,
+        accuracyNum: accuracyNum,
+        statusTag: statusTag,
+        tagColor: tagColor,
+        wrongWords: Array.from(studentWrongWordsSet),
+        dailyMap: dailyMap
+      };
+    });
+
+    // 6. 計算每日全班整體表現
+    const dailyOverview = dateList.map(d => {
+      let dayCompleted = 0;
+      let dayScoreSum = 0;
+      let dayPass = 0;
+
+      studentRecords.forEach(st => {
+        const item = st.dailyMap[d];
+        if (item && (item.status.includes("已完成") || item.score !== "—")) {
+          dayCompleted++;
+          if (item.points !== null) {
+            dayScoreSum += item.points;
+            if (item.points >= 60) dayPass++;
+          }
+        }
+      });
+
+      const dayAvgRate = dayCompleted > 0 ? (Math.round((dayScoreSum / dayCompleted) * 10) / 10).toFixed(1) + "%" : "—";
+      const dayPassRate = dayCompleted > 0 ? (Math.round((dayPass / dayCompleted) * 1000) / 10).toFixed(1) + "%" : "—";
+
+      return {
+        date: d,
+        completedCount: dayCompleted,
+        totalStudents: allStudents.length,
+        avgRate: dayAvgRate,
+        passRate: dayPassRate
+      };
+    });
+
+    // 7. 期間班級高頻錯題排行 Top 10
+    const topErrorWords = Object.keys(wordErrorCountMap).map(w => {
+      const cnt = wordErrorCountMap[w].size;
+      const rate = allStudents.length > 0 ? (Math.round((cnt / allStudents.length) * 1000) / 10).toFixed(1) + "%" : "0%";
+      return { word: w, errorCount: cnt, errorRate: rate };
+    }).sort((a, b) => b.errorCount - a.errorCount).slice(0, 10);
+
+    const totalStudents = allStudents.length;
+    const overallParticipationRate = totalStudents > 0 ? ((activeStudentsCount / totalStudents) * 100).toFixed(1) + "%" : "0%";
+    const classAvgAccuracy = totalAttemptsSum > 0
+      ? ((totalCorrectSum / totalAttemptsSum) * 100).toFixed(1) + "%"
+      : "0%";
+
+    const rangeRes = {
+      status: "success",
+      targetClass: targetClass,
+      classes: (!auth.isAdmin && auth.className) ? [auth.className] : Array.from(allClassesSet).sort(),
+      startDate: startDate,
+      endDate: endDate,
+      availableDates: allSortedDates,
+      dateList: dateList,
+      classSummary: {
+        totalStudents: totalStudents,
+        activeStudents: activeStudentsCount,
+        participationRate: overallParticipationRate,
+        totalAttempts: totalAttemptsSum,
+        totalCorrect: totalCorrectSum,
+        classAvgAccuracy: classAvgAccuracy,
+        masteredCount: masteredCount,
+        attentionCount: attentionCount,
+        dailyOverview: dailyOverview,
+        topErrorWords: topErrorWords
+      },
+      students: studentRecords
+    };
+
+    try {
+      const gz = compressData(JSON.stringify(rangeRes));
+      if (gz.length < 95000) cache.put(rangeCacheKey, gz, 180);
+    } catch(_) {}
+
+    return rangeRes;
+  } catch(err) {
+    logError("getDateRangePerformanceAnalytics", err, formData ? formData.username : "", "");
+    return { status: "error", message: err.toString() };
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════
+// 5. 查詢邏輯（checkAndGetData）含親師今日成果
+// ════════════════════════════════════════════════════════════════════
+
+function checkAndGetData(formData) {
+  try {
+    const ss   = SpreadsheetApp.getActiveSpreadsheet();
+    const auth = authenticateUser(ss, formData.username, formData.password);
+    if (!auth.success) { logError("checkAndGetData",auth.message,formData.username,""); return {status:"error",message:auth.message}; }
+    if (formData.forceRefresh) clearOverviewCache();
+
+    const todayStr = Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy-MM-dd");
+
+    if (auth.role === "teacher") {
+      if (formData.targetStudent) {
+        const target = String(formData.targetStudent).trim();
+        if (!auth.isAdmin) {
+          const all = getClassOverviewRaw(ss);
+          const found = all.find(s => s.username === target);
+          if (!found || found.className !== auth.className)
+            return {status:"error",message:"無權限查看其他班級的學生資料"};
+        }
+        const result = _getStudentData(ss, target);
+        if (result.status === "success") {
+          result.role = "teacher"; result.isAdmin = auth.isAdmin;
+          const meta = getClassOverviewRaw(ss).find(s => s.username === target);
+          result.className = meta ? meta.className : getStudentClass(target,"");
+          result.realName  = meta ? meta.realName  : "";
+          result.todayTaskResult = getStudentTodayTaskResult(ss, target, todayStr);
+          result.dailyTaskHistory = getStudentDailyTaskHistory(ss, target);
+          result.assignedTask = getActiveTaskForClass(ss, result.className, target);
+          try { result.leaderboard = _getLeaderboard(ss, target, formData.rankingMode||"class"); } catch(_) {}
+          try {
+            const g = _getGoalsInternal(ss, target);
+            result.goals = g.goals; result.goalsUpdatedAt = g.updatedAt;
+          } catch(_) {}
+        }
+        return result;
+      }
+      
+      let tc = formData.targetClass || "all";
+      if (!auth.isAdmin) tc = auth.className;
+      const result = _getClassOverview(ss, tc, formData.forceRefresh);
+      result.isAdmin = auth.isAdmin; result.teacherClass = auth.className;
+      result.todayTaskMap = getTodayTaskMap(ss, todayStr);
+      return result;
+    }
+
+    // 學生自己查詢
+    const result = _getStudentData(ss, auth.username);
+    if (result.status === "success") {
+      result.role = "student"; result.className = auth.className; result.realName = auth.realName;
+      result.todayTaskResult = getStudentTodayTaskResult(ss, auth.username, todayStr);
+      result.dailyTaskHistory = getStudentDailyTaskHistory(ss, auth.username);
+      result.assignedTask = getActiveTaskForClass(ss, auth.className, auth.username);
+      try { result.leaderboard = _getLeaderboard(ss, auth.username, formData.rankingMode||"class"); } catch(_) {}
+      try {
+        const g = _getGoalsInternal(ss, auth.username);
+        result.goals = g.goals; result.goalsUpdatedAt = g.updatedAt;
+      } catch(_) {}
+    }
+    return result;
+  } catch(err) {
+    logError("checkAndGetData",err,formData?formData.username:"","");
+    return {status:"error",message:"伺服器錯誤: "+err.toString()};
+  }
+}
+
+function parseScoreAndRate(rawScore, rawRate) {
+  let scoreStr = String(rawScore || "—").trim().replace(/^'+/, "");
+  let rateStr  = String(rawRate  || "—").trim().replace(/^'+/, "");
+  
+  // 1. 防禦：修復 Google Sheets 自動將 "4/5" 轉為 Date 物件 (如 Sun Apr 05 2026 00:00:00 GMT+0800)
+  if (rawScore instanceof Date || (scoreStr.includes("GMT") && (scoreStr.includes("00:00:00") || scoreStr.includes("GMT+")))) {
+    try {
+      const d = (rawScore instanceof Date) ? rawScore : new Date(scoreStr);
+      if (!isNaN(d.getTime())) {
+        const c = d.getMonth() + 1; // 月份當分子
+        const t = d.getDate();      // 日期當分母
+        scoreStr = `${c}/${t}`;
+      }
+    } catch(_) {}
+  }
+  
+  // 2. 防禦：修復正確率為小數點 (0.8 -> 80%, 1 -> 100%)
+  if (typeof rawRate === "number") {
+    rateStr = Math.round(rawRate <= 1 ? rawRate * 100 : rawRate) + "%";
+  } else if (rateStr !== "—" && !rateStr.endsWith("%")) {
+    const num = parseFloat(rateStr);
+    if (!isNaN(num)) {
+      rateStr = Math.round(num <= 1 ? num * 100 : num) + "%";
+    }
+  }
+
+  // 3. 智慧反推：若 rateStr 為 "—" 但 scoreStr 符合 "A/B"，自動推算百分比 (防除以零)
+  if ((rateStr === "—" || rateStr === "") && scoreStr.includes("/")) {
+    const m = scoreStr.match(/^(\d+)\s*\/\s*(\d+)$/);
+    if (m) {
+      const numScore = parseInt(m[1], 10);
+      const numTotal = parseInt(m[2], 10);
+      if (numTotal > 0) {
+        rateStr = Math.round((numScore / numTotal) * 100) + "%";
+      }
+    }
+  }
+  
+  return { score: scoreStr, rate: rateStr };
+}
+
+function getStudentTodayTaskResult(ss, username, todayStr) {
+  if (!username) return { hasDone: false, inProgress: false, allTodayTasks: [] };
+  const sheet = ss.getSheetByName(username);
+  if (!sheet || sheet.getLastRow() < 2) return { hasDone: false, inProgress: false, allTodayTasks: [] };
+  const targetDateStr = formatStandardDateYMD(todayStr);
+  const maxRows = Math.min(sheet.getLastRow() - 1, 15);
+  const maxCols = sheet.getLastColumn();
+  if (maxCols < 1) return { hasDone: false, inProgress: false, allTodayTasks: [] };
+
+  const vals = sheet.getRange(2, 1, maxRows, maxCols).getValues();
+  const allTodayTasks = [];
+  let primaryTask = null;
+
+  for (let i = 0; i < vals.length; i++) {
+    const dStr = formatStandardDateYMD(vals[i][0]);
+    if (dStr === targetDateStr) {
+      const taskName = String(vals[i][18] || "今日指定測驗");
+      const scoreVal = String(vals[i][19] || "—");
+      const rateVal  = String(vals[i][20] || "—");
+      const statusVal = String(vals[i][21] || "");
+      const wrongStr = String(vals[i][22] || "");
+      const wrongWords = wrongStr ? wrongStr.split(/[\s,;\n\r]+/).filter(w => w.trim().length > 0) : [];
+      const hasDone = (statusVal.includes("已完成") || (scoreVal !== "—" && scoreVal !== "" && scoreVal.includes("/"))) && !statusVal.includes("作答中");
+      const inProgress = statusVal.includes("作答中") && !hasDone;
+
+      if (hasDone || inProgress) {
+        const item = {
+          hasDone   : hasDone,
+          inProgress: inProgress,
+          taskName  : taskName,
+          score     : scoreVal,
+          rate      : rateVal,
+          status    : statusVal,
+          updatedAt : formatStandardDateTime(vals[i][0]),
+          wrongWords: wrongWords
+        };
+        allTodayTasks.push(item);
+        if (!primaryTask) primaryTask = item;
+      }
+    }
+  }
+
+  if (primaryTask) {
+    primaryTask.allTodayTasks = allTodayTasks;
+    primaryTask.todayCount = allTodayTasks.length;
+    return primaryTask;
+  }
+  return { hasDone: false, inProgress: false, allTodayTasks: [] };
+}
+
+function getTaskWordsDict(ss) {
+  const dict = {};
+  try {
+    const tSheet = ss.getSheetByName("指定單字任務");
+    if (tSheet && tSheet.getLastRow() >= 2) {
+      const data = tSheet.getDataRange().getValues();
+      for (let i = 1; i < data.length; i++) {
+        const tName = String(data[i][1] || "").trim().toLowerCase();
+        const rawW = String(data[i][2] || "").trim();
+        const tDate = data[i][6] ? formatStandardDateYMD(data[i][6]) : "";
+        const words = rawW ? rawW.split(/[\s,;\n\r]+/).filter(w => w.trim().length > 0) : [];
+        if (tName) dict[tName] = words;
+        if (tDate) dict[tDate] = words;
+        if (tDate && tName) dict[tDate + "_" + tName] = words;
+      }
+    }
+  } catch(_) {}
+  return dict;
+}
+
+function getStudentDailyTaskHistory(ss, username) {
+  if (!username) return [];
+  const sheet = ss.getSheetByName(username);
+  if (!sheet || sheet.getLastRow() < 2) return [];
+  const maxRows = Math.min(sheet.getLastRow() - 1, 60);
+  const maxCols = sheet.getLastColumn();
+  if (maxCols < 1) return [];
+
+  const taskWordsDict = getTaskWordsDict(ss);
+  const vals = sheet.getRange(2, 1, maxRows, maxCols).getValues();
+  const list = [];
+  for (let i = 0; i < vals.length; i++) {
+    const dStr = formatStandardDateYMD(vals[i][0]);
+    const taskName = String(vals[i][18] || "");
+    const scoreVal = String(vals[i][19] || "—");
+    const rateVal  = String(vals[i][20] || "—");
+    const statusVal = String(vals[i][21] || "");
+    const wrongStr = String(vals[i][22] || "");
+    const wrongWords = wrongStr ? wrongStr.split(/[\s,;\n\r]+/).filter(w => w.trim().length > 0) : [];
+    if (dStr && (taskName || statusVal || scoreVal !== "—")) {
+      const matchedWords = taskWordsDict[dStr + "_" + taskName.toLowerCase()] ||
+                           taskWordsDict[taskName.toLowerCase()] ||
+                           taskWordsDict[dStr] || [];
+      list.push({
+        date      : dStr,
+        taskName  : taskName || "每日指定測驗",
+        score     : scoreVal,
+        rate      : rateVal,
+        status    : statusVal || "🟢 已完成",
+        attempts  : vals[i][6] || 0,
+        correct   : vals[i][7] || 0,
+        accuracy  : vals[i][8] || "",
+        updatedAt : formatStandardDateTime(vals[i][0]),
+        wrongWords: wrongWords,
+        words     : matchedWords
+      });
+    }
+  }
+  list.sort((a, b) => (b.updatedAt || "").localeCompare(a.updatedAt || "") || b.date.localeCompare(a.date));
+  return list;
+}
+
+function getTodayTaskMap(ss, todayStr) {
+  const map = {};
+  const targetDateStr = formatStandardDateYMD(todayStr);
+  const uSheet = ss.getSheetByName("使用者清單");
+  if (!uSheet || uSheet.getLastRow() < 2) return map;
+  const uData = uSheet.getDataRange().getValues();
+  for (let i = 1; i < uData.length; i++) {
+    const u = String(uData[i][0] || "").trim();
+    if (!u) continue;
+    const sSheet = ss.getSheetByName(u);
+    if (sSheet && sSheet.getLastRow() >= 2) {
+      const maxRows = Math.min(sSheet.getLastRow() - 1, 10);
+      const lastCol = sSheet.getLastColumn();
+      if (lastCol >= 1) {
+        const rows = sSheet.getRange(2, 1, maxRows, lastCol).getValues();
+        for (let r = 0; r < rows.length; r++) {
+          const row = rows[r];
+          if (formatStandardDateYMD(row[0]) === targetDateStr) {
+            const status = String(row[21] || "");
+            const score  = String(row[19] || "—");
+            if (!map[u] || (status.includes("已完成") && score !== "—")) {
+              map[u] = {
+                taskName : String(row[18] || ""),
+                score    : score,
+                rate     : String(row[20] || "—"),
+                status   : status
+              };
+              if (status.includes("已完成")) break;
+            }
+          }
+        }
+      }
+    }
+  }
+  return map;
+}
+
+// ════════════════════════════════════════════════════════════════════
+// 6. 班級總覽與個人歷程 (Sheets API batchGet 極速版)
+// ════════════════════════════════════════════════════════════════════
+
+function getClassOverviewRaw(ss, forceRefresh) {
+  const cache = CacheService.getScriptCache();
+  if (!forceRefresh) {
+    try {
+      const hit = cache.get(SYS.CACHE_OVERVIEW_KEY);
+      if (hit) {
+        const jsonStr = hit.startsWith("GZ:") ? decompressData(hit) : hit;
+        return JSON.parse(jsonStr);
+      }
+    } catch(_) {}
+  }
+
+  const userSheet = ss.getSheetByName("使用者清單");
+  if (!userSheet) return [];
+  const userData = userSheet.getDataRange().getValues();
+
+  const studentMeta = [];
+  for (let i = 1; i < userData.length; i++) {
+    const u = String(userData[i][0]||"").trim();
+    const r = String(userData[i][2]||"student").trim().toLowerCase();
+    if (!u || r === "teacher") continue;
+    studentMeta.push({
+      username  : u,
+      className : getStudentClass(u, userData[i][3]),
+      realName  : String(userData[i][4]||"").trim()
+    });
+  }
+  if (studentMeta.length === 0) return [];
+
+  let rowsMap = {};
+  try {
+    const ssId  = ss.getId();
+    const ranges = studentMeta.map(m => `'${m.username}'!A1:R2`);
+    const resp  = Sheets.Spreadsheets.Values.batchGet(ssId, {
+      ranges               : ranges,
+      valueRenderOption    : "FORMATTED_VALUE",
+      majorDimension       : "ROWS"
+    });
+    (resp.valueRanges || []).forEach((vr, idx) => {
+      const vals = vr.values || [];
+      rowsMap[studentMeta[idx].username] = vals.length >= 2 ? vals : [];
+    });
+  } catch(batchErr) {
+    Logger.log("[batchGet 降級] " + batchErr.message);
+    const sheetMap = {};
+    ss.getSheets().forEach(s => { sheetMap[s.getName()] = s; });
+    studentMeta.forEach(meta => {
+      const s = sheetMap[meta.username];
+      rowsMap[meta.username] = (s && s.getLastRow() >= 2) ? s.getRange(1,1,2,18).getDisplayValues() : [];
+    });
+  }
+
+  const result = studentMeta.map(meta => {
+    const rows = rowsMap[meta.username] || [];
+    if (rows.length < 2) {
+      return {
+        username:meta.username, className:meta.className, realName:meta.realName, hasData:false,
+        lastBackup:"尚無紀錄", level:"", score:"0", streak:"0", best:"0",
+        attempts:"0", correct:"0", accuracy:"0%",
+        mastered:"0", learning:"0", practicing:"0", distWords:"0",
+        l1:"0/0",l2:"0/0",l3:"0/0",l4:"0/0",l5:"0/0"
+      };
+    }
+    const headers = rows[0], row = rows[1];
+    const g = h => { const i=headers.indexOf(h); return i>=0?String(row[i]||""):""; };
+    const lv= n => { const i=headers.findIndex(h=>String(h).includes("LEVEL"+n)); return i>=0?String(row[i]||"0/0"):"0/0"; };
+    return {
+      username:meta.username, className:meta.className, realName:meta.realName, hasData:true,
+      lastBackup:g("備份時間"), level:g("等級"), score:g("分數")||"0",
+      streak:g("連勝")||"0", best:g("最佳連勝")||"0",
+      attempts:g("作答題數")||"0", correct:g("答對題數")||"0", accuracy:g("正確率")||"0%",
+      mastered:g("精通")||"0", learning:g("學習中")||"0",
+      practicing:g("練習中")||"0", distWords:g("答對單字數")||"0",
+      l1:lv("1"),l2:lv("2"),l3:lv("3"),l4:lv("4"),l5:lv("5")
+    };
+  });
+
+  try {
+    const rawJson = JSON.stringify(result);
+    const gz = compressData(rawJson);
+    if (gz.length < 95000) {
+      cache.put(SYS.CACHE_OVERVIEW_KEY, gz, SYS.CACHE_OVERVIEW_TTL);
+    } else if (rawJson.length < 95000) {
+      cache.put(SYS.CACHE_OVERVIEW_KEY, rawJson, SYS.CACHE_OVERVIEW_TTL);
+    }
+  } catch(_) {}
+
+  return result;
+}
+
+function _getClassOverview(ss, targetClass, forceRefresh) {
+  if (forceRefresh) clearOverviewCache();
+  const all     = getClassOverviewRaw(ss, forceRefresh);
+  const classes = [...new Set(all.map(s=>s.className).filter(Boolean))].sort();
+  const list    = (targetClass && targetClass!=="all") ? all.filter(s=>s.className===targetClass) : all;
+  return {
+    status:"success", role:"teacher",
+    overview:list, allOverview:all, classes,
+    currentClass:targetClass||"all",
+    students:list.map(o=>o.username)
+  };
+}
+
+function _getStudentData(ss, username) {
+  const cleanU = String(username || "").trim();
+  const cacheKey = "stu_data_" + cleanU.toLowerCase();
+  const cache = CacheService.getScriptCache();
+  try {
+    const cached = cache.get(cacheKey);
+    if (cached) {
+      const decomp = cached.startsWith("GZ:") ? decompressData(cached) : cached;
+      return JSON.parse(decomp);
+    }
+  } catch(_) {}
+
+  const sheet = ss.getSheetByName(cleanU);
+  if (!sheet || sheet.getLastRow() < 2) {
+    return {
+      status: "success",
+      username: cleanU,
+      headers: ["備份時間","完整JSON","等級","分數","連勝","最佳連勝","作答題數","答對題數","正確率","LEVEL1入門\n答對題數/作答題數","LEVEL2基礎\n答對題數/作答題數","LEVEL3進階\n答對題數/作答題數","LEVEL4挑戰\n答對題數/作答題數","LEVEL5精熟\n答對題數/作答題數","答對單字數","學習中","練習中","精通","任務名稱","指定測驗成績","指定測驗正確率","練習狀態","測驗錯題單字"],
+      data: [],
+      wordList: [],
+      agentData: null,
+      isNewStudent: true
+    };
+  }
+
+  // 🚀 極速讀取：載入最新 60 筆作答歷程即可完整滿足所有圖表、日曆熱點與差分表格需求
+  const lastRow = sheet.getLastRow();
+  const lastCol = sheet.getLastColumn();
+  const maxRowsToRead = Math.min(lastRow - 1, 60);
+
+  const headers = sheet.getRange(1, 1, 1, lastCol).getDisplayValues()[0];
+  const rawData = sheet.getRange(2, 1, maxRowsToRead, lastCol).getDisplayValues();
+
+  let wordList  = [];
+  let agentData = null;
+  try {
+    if (rawData.length > 0 && rawData[0][1]) {
+      const parsed = JSON.parse(decompressData(rawData[0][1]));
+      const raw = parsed["spellAgent.v2"];
+      agentData = (typeof raw === "string") ? JSON.parse(raw) : (raw || {});
+      const stat = agentData.stat || {};
+      for (const w in stat) {
+        const {c=0, a=0} = stat[w];
+        wordList.push({
+          word: w, correct: c, attempts: a, wrong: Math.max(0, a - c),
+          status: c >= 3 ? "mastered" : c === 2 ? "practicing" : c === 1 ? "learning" : "new"
+        });
+      }
+    }
+  } catch(_) {}
+
+  // 🚀 關鍵極速瘦身：清空傳輸給前端之所有 rows[1] (完整JSON base64 字串)
+  // 前端只需第 0 列解析出的 agentData 與 wordList，清空歷史 base64 讓傳輸體積縮小 95%！
+  for (let i = 0; i < rawData.length; i++) {
+    rawData[i][1] = "";
+  }
+
+  const result = { status: "success", username: cleanU, headers, data: rawData, wordList, agentData };
+
+  // 寫入快取 60 秒，大幅加速使用者頻繁點擊與歷程查詢反應時間
+  try {
+    const jsonStr = JSON.stringify(result);
+    if (jsonStr.length < 90000) {
+      cache.put(cacheKey, jsonStr, 60);
+    } else {
+      cache.put(cacheKey, compressData(jsonStr), 60);
+    }
+  } catch(_) {}
+
+  return result;
+}
+
+function _getLeaderboard(ss, targetUsername, mode, isTeacher) {
+  const target    = String(targetUsername||"").trim().toLowerCase();
+  const classData = getClassOverviewRaw(ss);
+  const myMeta    = classData.find(s=>s.username.toLowerCase()===target);
+  const myClass   = myMeta ? myMeta.className : "預設班級";
+  const pool      = (mode==="all" ? classData : classData.filter(s=>s.className===myClass)).filter(s=>s.hasData);
+  const total     = pool.length;
+  if (!total) return {myClass,mode:mode==="all"?"all":"class",totalStudents:0,myRanks:{},rankings:{}};
+
+  const maskName = (u,n) => {
+    const s = (n||"").trim()||u||"";
+    if (s.length<=2) return s[0]+"*";
+    return s[0]+"*".repeat(s.length-2)+s[s.length-1];
+  };
+  const maskUser = (u) => {
+    if (!u) return "";
+    if (u.length <= 3) return u[0] + "*";
+    return u.slice(0, 2) + "*".repeat(Math.max(1, u.length - 4)) + u.slice(-2);
+  };
+  const toN = v => { const n=parseFloat(String(v||"").replace(/[^0-9.-]/g,"")); return isNaN(n)?0:n; };
+
+  const list = pool.map(s => {
+    const isMe = s.username.toLowerCase()===target;
+    const att  = toN(s.attempts), cor = toN(s.correct);
+    const maskedU = (isMe || isTeacher) ? s.username : maskUser(s.username);
+    const displayRealName = (isMe || isTeacher) ? s.realName : maskName(s.username, s.realName);
+    return {
+      username: maskedU,
+      maskedName: maskName(s.username, s.realName),
+      className: s.className,
+      realName: displayRealName,
+      isMe,
+      level: s.level||"",
+      mastered: toN(s.mastered),
+      score: toN(s.score),
+      attempts: att,
+      correct: cor,
+      streak: toN(s.streak),
+      accuracy: att>0 ? parseFloat((cor/att*100).toFixed(1)) : 0
+    };
+  });
+
+  const rank = (key) => {
+    const sorted = [...list].sort((a,b)=>b[key]!==a[key]?b[key]-a[key]:b.mastered-a.mastered);
+    let r=1;
+    return sorted.map((item,i)=>{
+      if (i>0&&item[key]!==sorted[i-1][key]) r=i+1;
+      const pr=Math.max(1,Math.min(99,Math.round((total-r+1)/total*100)));
+      return {username:item.username,maskedName:item.maskedName,
+        className:item.className,realName:item.realName,isMe:item.isMe,
+        rank:r,pr,val:item[key],level:item.level};
+    });
+  };
+
+  const dims    = ["mastered","score","attempts","streak","accuracy"];
+  const ranked  = {};
+  dims.forEach(d => { ranked[d] = rank(d); });
+
+  const myInfo  = d => {
+    const f = ranked[d].find(r=>r.isMe);
+    return f ? {rank:f.rank,pr:f.pr,val:f.val} : {rank:"-",pr:50,val:0};
+  };
+  const myRanks = {};
+  dims.forEach(d => { myRanks[d] = myInfo(d); });
+
+  return { myClass, mode:mode==="all"?"all":"class", totalStudents:total, myRanks, rankings:ranked };
+}
+
+function getStudentLeaderboard(creds) {
+  try {
+    const ss   = SpreadsheetApp.getActiveSpreadsheet();
+    const auth = authenticateUser(ss, creds.username, creds.password);
+    if (!auth.success) return {status:"error",message:auth.message};
+    if (creds.forceRefresh) clearOverviewCache();
+    const isTeacher = auth.role === "teacher";
+    const target = (isTeacher && creds.targetStudent) ? String(creds.targetStudent).trim() : auth.username;
+    return {status:"success", leaderboard:_getLeaderboard(ss, target, creds.mode||"class", isTeacher)};
+  } catch(e) {
+    logError("getStudentLeaderboard",e,creds?creds.username:"","");
+    return {status:"error",message:e.toString()};
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════
+// 7. 密碼管理與目標
+// ════════════════════════════════════════════════════════════════════
+
+function getStudentPasswords(creds) {
+  try {
+    const ss   = SpreadsheetApp.getActiveSpreadsheet();
+    const auth = authenticateUser(ss, creds.username, creds.password);
+    if (!auth.success||auth.role!=="teacher") return {status:"error",message:"無權限"};
+    const sheet = ss.getSheetByName("使用者清單")||ss.getSheetByName("學生帳密");
+    if (!sheet) return {status:"error",message:"找不到【使用者清單】"};
+    const data = sheet.getDataRange().getValues();
+    const students = [];
+    for (let i=1;i<data.length;i++) {
+      const u=String(data[i][0]||"").trim(), p=String(data[i][1]||"").trim();
+      const r=String(data[i][2]||"student").trim().toLowerCase();
+      const c=getStudentClass(u,data[i][3]), n=String(data[i][4]||"").trim();
+      if (!u||r==="teacher") continue;
+      if (!auth.isAdmin&&c!==auth.className) continue;
+      if (p && !isHashedPassword(p)) {
+        sheet.getRange(i+1, 2).setValue(hashPassword(p));
+      }
+      students.push({
+        username:u,
+        password:"（已加密保護，可隨時重設）",
+        isHashed:true,
+        className:c, realName:n
+      });
+    }
+    return {status:"success",students};
+  } catch(e) {
+    logError("getStudentPasswords",e,creds?creds.username:"","");
+    return {status:"error",message:e.toString()};
+  }
+}
+
+function changeStudentPassword(creds) {
+  try {
+    const ss   = SpreadsheetApp.getActiveSpreadsheet();
+    const auth = authenticateUser(ss, creds.username, creds.password);
+    if (!auth.success||auth.role!=="teacher") return {status:"error",message:"無權限"};
+    const target  = String(creds.targetStudent||"").trim();
+    const newPass = String(creds.newPassword||"").trim();
+    if (!target||!newPass) return {status:"error",message:"缺少目標帳號或新密碼"};
+    if (newPass.length<4) return {status:"error",message:"新密碼至少需要 4 個字元"};
+
+    const sheet = ss.getSheetByName("使用者清單")||ss.getSheetByName("學生帳密");
+    if (!sheet) return {status:"error",message:"找不到【使用者清單】"};
+    const data = sheet.getDataRange().getValues();
+
+    for (let i=1;i<data.length;i++) {
+      if (String(data[i][0]||"").trim()!==target) continue;
+      const tRole  = String(data[i][2]||"student").trim().toLowerCase();
+      const tClass = getStudentClass(target, data[i][3]);
+      if (tRole==="teacher") return {status:"error",message:"無法修改教師帳號密碼"};
+      if (!auth.isAdmin&&tClass!==auth.className) return {status:"error",message:"無權限修改其他班級的學生密碼"};
+      sheet.getRange(i+1,2).setValue(hashPassword(newPass));
+      clearLoginFailures(target);
+      return {status:"success",message:`✅ ${target} 的密碼已成功更新並加密儲存`};
+    }
+    return {status:"error",message:"找不到該學生帳號"};
+  } catch(e) {
+    logError("changeStudentPassword",e,creds?creds.username:"","");
+    return {status:"error",message:e.toString()};
+  }
+}
+
+function changeOwnPassword(creds) {
+  try {
+    const ss   = SpreadsheetApp.getActiveSpreadsheet();
+    const auth = authenticateUser(ss, creds.username, creds.oldPassword);
+    if (!auth.success) return {status:"error",message:"舊密碼驗證失敗："+auth.message};
+    if (auth.role==="teacher") return {status:"error",message:"教師請聯絡管理員修改密碼"};
+    const newP = String(creds.newPassword||"").trim();
+    const conP = String(creds.confirmPassword||"").trim();
+    if (!newP)            return {status:"error",message:"新密碼不能為空"};
+    if (newP.length<4)    return {status:"error",message:"新密碼至少需要 4 個字元"};
+    if (newP!==conP)      return {status:"error",message:"新密碼與確認密碼不一致"};
+    if (newP===creds.oldPassword) return {status:"error",message:"新密碼不能與舊密碼相同"};
+    const sheet = ss.getSheetByName("使用者清單")||ss.getSheetByName("學生帳密");
+    if (!sheet) return {status:"error",message:"找不到【使用者清單】"};
+    const data  = sheet.getDataRange().getValues();
+    for (let i=1;i<data.length;i++) {
+      if (String(data[i][0]||"").trim()!==auth.username) continue;
+      sheet.getRange(i+1,2).setValue(hashPassword(newP));
+      clearLoginFailures(auth.username);
+      return {status:"success",message:"✅ 密碼已成功更新！下次登入請使用新密碼。"};
+    }
+    return {status:"error",message:"找不到帳號資料"};
+  } catch(e) {
+    logError("changeOwnPassword",e,creds?creds.username:"","");
+    return {status:"error",message:e.toString()};
+  }
+}
+
+function getErrorLogs(creds) {
+  try {
+    const ss   = SpreadsheetApp.getActiveSpreadsheet();
+    const auth = authenticateUser(ss, creds.username, creds.password);
+    if (!auth.success||auth.role!=="teacher") return {status:"error",message:"無權限"};
+    const s = ss.getSheetByName("錯誤日誌");
+    if (!s||s.getLastRow()<2) return {status:"success",logs:[],total:0};
+    const total = s.getLastRow()-1;
+    const num   = Math.min(total,100);
+    const logs  = s.getRange(2,1,num,5).getDisplayValues()
+      .map((r,i)=>({id:i+1,time:r[0],action:r[1],user:r[2],message:r[3],details:r[4]}));
+    return {status:"success",logs,total};
+  } catch(e) {
+    logError("getErrorLogs",e,creds?creds.username:"","");
+    return {status:"error",message:e.toString()};
+  }
+}
+
+function clearErrorLogs(creds) {
+  try {
+    const ss   = SpreadsheetApp.getActiveSpreadsheet();
+    const auth = authenticateUser(ss, creds.username, creds.password);
+    if (!auth.success||auth.role!=="teacher") return {status:"error",message:"無權限"};
+    const s = ss.getSheetByName("錯誤日誌");
+    if (s&&s.getLastRow()>=2) s.deleteRows(2,s.getLastRow()-1);
+    return {status:"success",message:"錯誤日誌已清空"};
+  } catch(e) { return {status:"error",message:e.toString()}; }
+}
+
+function reportClientError(rep) {
+  try {
+    logError("前端:"+String(rep.source||"UI"),String(rep.message||"未知前端錯誤"),
+      String(rep.username||"訪客"),String(rep.stack||rep.details||""));
+    return {status:"success"};
+  } catch(_) { return {status:"error"}; }
+}
+
+const DEFAULT_GOALS = {masteredTarget:50,attemptsTarget:300,accuracyTarget:80,streakTarget:7,deadline:""};
+
+function _getGoalsInternal(ss, username) {
+  const sheet = ss.getSheetByName("系統目標設定")||ss.getSheetByName("學習目標");
+  if (!sheet||sheet.getLastRow()<2) return {goals:DEFAULT_GOALS,updatedAt:""};
+  const data = sheet.getDataRange().getValues();
+  for (let i=1;i<data.length;i++) {
+    if (String(data[i][0]||"").trim()!==username) continue;
+    try { return {goals:JSON.parse(String(data[i][1]||"{}")),updatedAt:String(data[i][2]||"")}; } catch(_) {}
+  }
+  return {goals:DEFAULT_GOALS,updatedAt:""};
+}
+
+function getStudentGoals(creds) {
+  try {
+    const ss   = SpreadsheetApp.getActiveSpreadsheet();
+    const auth = authenticateUser(ss, creds.username, creds.password);
+    if (!auth.success) return {status:"error",message:"認證失敗"};
+    const target = (auth.role==="teacher"&&creds.targetStudent)?String(creds.targetStudent).trim():auth.username;
+    if (auth.role === "teacher" && creds.targetStudent && !auth.isAdmin) {
+      const classOverview = getClassOverviewRaw(ss);
+      const studentMeta = classOverview.find(s => s.username.toLowerCase() === target.toLowerCase());
+      if (studentMeta && studentMeta.className !== auth.className) {
+        return {status:"error", message:"無權限存取其他班級的學生目標"};
+      }
+    }
+    const r = _getGoalsInternal(ss, target);
+    return {status:"success",goals:r.goals,updatedAt:r.updatedAt};
+  } catch(e) {
+    logError("getStudentGoals",e,creds?creds.username:"","");
+    return {status:"error",message:e.toString()};
+  }
+}
+
+function saveStudentGoals(creds, goals) {
+  try {
+    const ss   = SpreadsheetApp.getActiveSpreadsheet();
+    const auth = authenticateUser(ss, creds.username, creds.password);
+    if (!auth.success) return {status:"error",message:"認證失敗"};
+    const target = (auth.role==="teacher"&&creds.targetStudent)?String(creds.targetStudent).trim():auth.username;
+    if (!target) return {status:"error",message:"缺少目標學生帳號"};
+    if (auth.role === "teacher" && creds.targetStudent && !auth.isAdmin) {
+      const classOverview = getClassOverviewRaw(ss);
+      const studentMeta = classOverview.find(s => s.username.toLowerCase() === target.toLowerCase());
+      if (studentMeta && studentMeta.className !== auth.className) {
+        return {status:"error", message:"無權限修改其他班級的學生目標"};
+      }
+    }
+
+    let sheet = ss.getSheetByName("系統目標設定")||ss.getSheetByName("學習目標");
+    if (!sheet) {
+      sheet = ss.insertSheet("系統目標設定");
+      sheet.appendRow(["學生帳號","目標JSON","更新時間","設定者"]);
+      sheet.getRange("1:1").setFontWeight("bold").setBackground("#e0f2fe").setFontColor("#0369a1").setHorizontalAlignment("center");
+      [140,320,180,120].forEach((w,i)=>sheet.setColumnWidth(i+1,w));
+      sheet.setFrozenRows(1);
+    }
+    const goalJson = JSON.stringify(goals||{});
+    const nowStr   = Utilities.formatDate(new Date(),"Asia/Taipei","yyyy-MM-dd HH:mm:ss");
+    const setter   = auth.username+(auth.role==="teacher"?" (教師)":"");
+    const data     = sheet.getDataRange().getValues();
+    let row        = -1;
+    for (let i=1;i<data.length;i++) {
+      if (String(data[i][0]||"").trim()===target){row=i+1;break;}
+    }
+    if (row>0) sheet.getRange(row,2,1,3).setValues([[goalJson,nowStr,setter]]);
+    else       sheet.appendRow([target,goalJson,nowStr,setter]);
+    return {status:"success",message:"學習目標已成功儲存！",goals};
+  } catch(e) {
+    logError("saveStudentGoals",e,creds?creds.username:"","");
+    return {status:"error",message:e.toString()};
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════
+// 8. 試算表選單與自動化工具
+// ════════════════════════════════════════════════════════════════════
+
+function onOpen(e) {
+  try {
+    SpreadsheetApp.getUi()
+      .createMenu("🎯 系統維護")
+      .addItem("🧹 一鍵清理無用分頁","cleanupUnusedSheetsUi")
+      .addItem("🔐 密碼全面轉 SHA-256 加密","migrateAllPasswordsToHash")
+      .addItem("💾 備份試算表至 Google Drive","backupSpreadsheetToDrive")
+      .addToUi();
+  } catch(_) {}
+}
+
+function cleanupUnusedSheetsUi() {
+  const res = cleanupUnusedSheets();
+  const ui = SpreadsheetApp.getUi();
+  const delStr = (res.deletedSheets && res.deletedSheets.length > 0) ? res.deletedSheets.join("、") : "無";
+  ui.alert("🧹 清理完成", `✅ ${res.message}\n\n已刪除無用分頁：${delStr}\n保留必要分頁數：${res.keptSheets ? res.keptSheets.length : 0} 個`, ui.ButtonSet.OK);
+}
+
+function migrateAllPasswordsToHash() {
+  const ss    = SpreadsheetApp.getActiveSpreadsheet();
+  const ui    = SpreadsheetApp.getUi();
+  const sheet = ss.getSheetByName("使用者清單");
+  if (!sheet) { ui.alert("❌ 找不到【使用者清單】工作表"); return; }
+
+  const data = sheet.getDataRange().getValues();
+  if (data.length < 2) { ui.alert("ℹ️ 帳號清單是空的"); return; }
+
+  const passCol = [];
+  let count=0, skipped=0;
+
+  for (let i=1;i<data.length;i++) {
+    const pass = String(data[i][1]||"").trim();
+    if (!pass)                  { passCol.push([data[i][1]]); continue; }
+    if (isHashedPassword(pass)) { passCol.push([pass]); skipped++; continue; }
+    passCol.push([hashPassword(pass)]);
+    count++;
+  }
+
+  if (passCol.length > 0) {
+    sheet.getRange(2,2,passCol.length,1).setValues(passCol);
+  }
+
+  ui.alert("🔐 密碼加密遷移完成",
+    `✅ 成功加密：${count} 筆\n⏭️ 已加密跳過：${skipped} 筆\n\n所有密碼現已使用 SHA-256 雜湊儲存！`,
+    ui.ButtonSet.OK);
+}
+
+function generateClassDashboardSheet() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let dash = ss.getSheetByName("全班學習總覽");
+  if (!dash) { dash = ss.insertSheet("全班學習總覽",0); }
+  else { dash.clear(); ss.setActiveSheet(dash); ss.moveActiveSheet(1); }
+
+  const uSheet = ss.getSheetByName("使用者清單");
+  const metaMap = {};
+  if (uSheet && uSheet.getLastRow()>=2) {
+    uSheet.getDataRange().getValues().slice(1).forEach(r=>{
+      const u=String(r[0]||"").trim();
+      if (u) metaMap[u]={className:getStudentClass(u,String(r[3]||"").trim()),realName:String(r[4]||"").trim()};
+    });
+  }
+
+  const todayStr = Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy-MM-dd");
+  const todayMap = getTodayTaskMap(ss, todayStr);
+
+  const headers = ["班級","學生帳號","姓名","今日指定任務成績","最後練習日期","學習活躍度",
+    "累積精通單字","練習中","學習中","總接觸單字","單字熟練度分佈",
+    "累積作答題數","累積答對題數","綜合正確率","目前連勝","歷史最佳連勝",
+    "LEVEL 1","LEVEL 2","LEVEL 3","LEVEL 4","LEVEL 5"];
+  dash.appendRow(headers);
+  dash.getRange("1:1").setBackground("#1e3a8a").setFontColor("#ffffff").setFontWeight("bold")
+    .setHorizontalAlignment("center").setVerticalAlignment("middle").setWrap(true);
+  dash.setRowHeight(1,44); dash.setFrozenRows(1);
+
+  const sheets     = ss.getSheets().filter(s=>!isSystemSheet(s.getName()));
+  const sheetNames = sheets.map(s=>s.getName());
+  let rowsMap      = {};
+
+  try {
+    const resp = Sheets.Spreadsheets.Values.batchGet(ss.getId(), {
+      ranges            : sheetNames.map(n=>`'${n}'!A2:R2`),
+      valueRenderOption : "FORMATTED_VALUE",
+      majorDimension    : "ROWS"
+    });
+    (resp.valueRanges||[]).forEach((vr,i)=>{
+      rowsMap[sheetNames[i]] = (vr.values||[])[0]||[];
+    });
+  } catch(_) {
+    sheets.forEach(s=>{
+      rowsMap[s.getName()] = s.getLastRow()>=2 ? s.getRange(2,1,1,18).getDisplayValues()[0] : [];
+    });
+  }
+
+  const now = new Date();
+  const rows=[], dataValues=[];
+
+  sheetNames.forEach(name=>{
+    const meta    = metaMap[name]||{className:getStudentClass(name,""),realName:""};
+    const row     = rowsMap[name]||[];
+    const hasData = row.length>0;
+
+    let dateStr="尚未練習", active="⚪ 未開始", daysDiff=999;
+    if (hasData && row[0]) {
+      dateStr = formatStandardDateYMD(row[0]);
+      const d = new Date(dateStr.replace(/-/g,"/"));
+      if (!isNaN(d.getTime())) {
+        daysDiff = Math.floor((now-d)/(1000*60*60*24));
+        active   = daysDiff<=3 ? "🟢 活躍 (≤3日)" : daysDiff<=7 ? "🟡 稍緩 (4-7日)" : "🔴 停滯 (>7日)";
+      }
+    }
+
+    const tItem = todayMap[name];
+    const todayTaskText = tItem ? `${tItem.score} (${tItem.rate})` : "⚪ 今日未測驗";
+
+    const n = k=>parseInt(String(row[k]||"0").replace(/,/g,""))||0;
+    dataValues.push([
+      meta.className, name, meta.realName||"—", todayTaskText, dateStr, active,
+      hasData?n(17):0, hasData?n(16):0, hasData?n(15):0, hasData?n(14):0, "",
+      hasData?n(6):0,  hasData?n(7):0,  hasData?String(row[8]||"0%"):"0%",
+      hasData?n(4):0,  hasData?n(5):0,
+      hasData?String(row[9]||"0/0"):"0/0", hasData?String(row[10]||"0/0"):"0/0",
+      hasData?String(row[11]||"0/0"):"0/0", hasData?String(row[12]||"0/0"):"0/0",
+      hasData?String(row[13]||"0/0"):"0/0"
+    ]);
+    rows.push({name,className:meta.className,mastered:hasData?n(17):0});
+  });
+
+  const sorted = dataValues
+    .map((v,i)=>({v,m:rows[i].mastered,c:rows[i].className}))
+    .sort((a,b)=>a.c.localeCompare(b.c)||b.m-a.m)
+    .map(x=>x.v);
+
+  if (sorted.length>0) {
+    dash.getRange(2,1,sorted.length,headers.length).setValues(sorted)
+      .setHorizontalAlignment("center").setVerticalAlignment("middle");
+
+    const formulas = sorted.map((_,idx)=>{
+      const r=idx+2;
+      return [`=IF(J${r}>0,SPARKLINE({G${r},H${r},I${r}},{"charttype","bar";"color1","#16a34a";"color2","#2563eb";"color3","#f59e0b";"max",MAX(J${r},1)}),"")`];
+    });
+    dash.getRange(2,11,formulas.length,1).setFormulas(formulas);
+
+    const bgs = sorted.map((_,i)=>Array(headers.length).fill(i%2?'#f8fafc':'#ffffff'));
+    dash.getRange(2,1,sorted.length,headers.length).setBackgrounds(bgs);
+    dash.setRowHeights(2,sorted.length,32);
+
+    [100,120,100,140,110,125,100,85,85,100,180,100,100,95,85,105,110,110,110,110,110]
+      .forEach((w,i)=>dash.setColumnWidth(i+1,w));
+  }
+  ss.toast(`✅ 已彙整 ${sorted.length} 位學生數據至「全班學習總覽」！`,"學習歷程管理中心",5);
+}
+
+function initStudentPasswordSheet() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName("使用者清單")||ss.getSheetByName("學生帳密");
+  if (!sheet) {
+    sheet = ss.insertSheet("使用者清單");
+    sheet.appendRow(["帳號","密碼(加密)","角色","班級","姓名"]);
+    sheet.getRange("A1:E1").setBackground("#0f766e").setFontColor("#fff")
+      .setFontWeight("bold").setHorizontalAlignment("center");
+    [130,200,100,120,120].forEach((w,i)=>sheet.setColumnWidth(i+1,w));
+    sheet.setFrozenRows(1);
+  }
+
+  const existing = new Set();
+  if (sheet.getLastRow()>=2) {
+    sheet.getRange(2,1,sheet.getLastRow()-1,1).getValues()
+      .forEach(r=>{ if (r[0]) existing.add(String(r[0]).trim()); });
+  }
+
+  const toAdd = [];
+  ss.getSheets().forEach(s=>{
+    const name=s.getName().trim();
+    if (isSystemSheet(name)||existing.has(name)) return;
+    toAdd.push([name, hashPassword(name), "student", getStudentClass(name,""), ""]);
+    existing.add(name);
+  });
+
+  if (toAdd.length>0) {
+    sheet.getRange(sheet.getLastRow()+1,1,toAdd.length,5).setValues(toAdd);
+    ss.toast(`✅ 已為 ${toAdd.length} 位新學生建立加密帳號！`,"學習歷程管理中心",5);
+  } else {
+    ss.toast("所有學生帳密均已同步！","學習歷程管理中心",4);
+  }
+}
+
+function checkInactiveStudentsAlert() {
+  const ss=SpreadsheetApp.getActiveSpreadsheet(), ui=SpreadsheetApp.getUi();
+  const now=new Date(), inactive=[], never=[];
+  ss.getSheets().forEach(s=>{
+    const name=s.getName().trim();
+    if (isSystemSheet(name)) return;
+    if (s.getLastRow()>=2) {
+      const raw = s.getRange(2,1).getValue();
+      const dateStr = formatStandardDateYMD(raw);
+      if (dateStr) {
+        const d = new Date(dateStr.replace(/-/g, "/"));
+        if (!isNaN(d.getTime())) {
+          const days = Math.floor((now - d) / (1000 * 60 * 60 * 24));
+          if (days >= 7) inactive.push({ name, days, date: dateStr });
+        }
+      }
+    } else { never.push(name); }
+  });
+  inactive.sort((a,b)=>b.days-a.days);
+  let msg=`📅 ${Utilities.formatDate(now,"Asia/Taipei","yyyy-MM-dd HH:mm")}\n\n`;
+  if (inactive.length) {
+    msg+=`⚠️ 超過 7 日未練習（${inactive.length} 人）：\n`;
+    inactive.forEach(x=>{ msg+=` • ${x.name}：停滯 ${x.days} 天（最後：${x.date}）\n`; });
+    msg+="\n";
+  }
+  if (never.length) msg+=`⚪ 從未上線（${never.length} 人）：\n • ${never.join("、")}\n\n`;
+  if (!inactive.length&&!never.length) msg+="🎉 全班同學在過去 7 天內皆有上線練習！";
+  ui.alert("⚠️ 學習活躍度預警",msg,ui.ButtonSet.OK);
+}
+
+function formatAllStudentSheets() {
+  const ss=SpreadsheetApp.getActiveSpreadsheet(); let count=0;
+  ss.getSheets().forEach(s=>{
+    const name=s.getName().trim();
+    if (isSystemSheet(name)) return;
+    if (s.getLastRow()>=1) {
+      s.getRange("1:1").setWrap(true).setHorizontalAlignment("center").setVerticalAlignment("middle").setFontWeight("bold");
+      s.setRowHeight(1,45); s.hideColumn(s.getRange("B:B"));
+      [160,80,70,70,70,80,80,80,80,120,120,120,120,120,80,80,80,80]
+        .forEach((w,i)=>s.setColumnWidth(i+1,w));
+      s.setFrozenRows(1); count++;
+    }
+  });
+  ss.toast(`✅ 美化修復 ${count} 張學生工作表！`,"學習歷程管理中心",5);
+}
+
+function setupDailyTriggers() {
+  const ui = SpreadsheetApp.getUi();
+  ScriptApp.getProjectTriggers()
+    .filter(t=>["backupSpreadsheetToDrive","warmUpCache"].includes(t.getHandlerFunction()))
+    .forEach(t=>ScriptApp.deleteTrigger(t));
+  ScriptApp.newTrigger("backupSpreadsheetToDrive").timeBased().atHour(3).everyDays(1).create();
+  ScriptApp.newTrigger("warmUpCache").timeBased().atHour(7).everyDays(1).create();
+  ui.alert("✅ 排程設定完成",
+    "每日 03:00：自動備份至 Drive\n每日 07:30：快取預熱（師生上線前完成）",
+    ui.ButtonSet.OK);
+}
+
+function removeAllTriggers() {
+  const ui=SpreadsheetApp.getUi();
+  let n=0;
+  ScriptApp.getProjectTriggers().forEach(t=>{ ScriptApp.deleteTrigger(t); n++; });
+  ui.alert(n>0?`🚫 已移除 ${n} 個排程觸發器`:"ℹ️ 目前沒有排程","",ui.ButtonSet.OK);
+}
+
+function _getBackupFolder() {
+  const ss=SpreadsheetApp.getActiveSpreadsheet();
+  const par=DriveApp.getFileById(ss.getId()).getParents();
+  const target=par.hasNext()?par.next():DriveApp;
+  const f=target.getFoldersByName(SYS.BACKUP_FOLDER);
+  return f.hasNext()?f.next():target.createFolder(SYS.BACKUP_FOLDER);
+}
+
+function backupSpreadsheetToDrive() {
+  const ss    = SpreadsheetApp.getActiveSpreadsheet();
+  const file  = DriveApp.getFileById(ss.getId());
+  const folder= _getBackupFolder();
+  const now   = new Date();
+  const name  = `${ss.getName()}_備份_${Utilities.formatDate(now,"Asia/Taipei","yyyy-MM-dd_HHmm")}`;
+  const bFile = file.makeCopy(name, folder);
+  const files=[]; const it=folder.getFiles();
+  while(it.hasNext()){const f=it.next();files.push({f,t:f.getDateCreated().getTime()});}
+  files.sort((a,b)=>b.t-a.t);
+  files.slice(SYS.MAX_BACKUP_FILES).forEach(x=>x.f.setTrashed(true));
+  try {
+    SpreadsheetApp.getUi().showModalDialog(
+      HtmlService.createHtmlOutput(`
+        <div style="font-family:Arial,sans-serif;padding:14px;line-height:1.7">
+          <h3 style="color:#15803d;margin-top:0">🎉 備份成功！</h3>
+          <p><b>檔案：</b>${name}</p>
+          <p><b>時間：</b>${Utilities.formatDate(now,"Asia/Taipei","yyyy-MM-dd HH:mm:ss")}</p>
+          <div style="margin-top:14px;display:flex;gap:10px">
+            <a href="${bFile.getUrl()}" target="_blank" style="background:#2563eb;color:white;padding:8px 16px;border-radius:6px;text-decoration:none;font-weight:bold">📄 開啟備份</a>
+            <a href="${folder.getUrl()}" target="_blank" style="background:#475569;color:white;padding:8px 16px;border-radius:6px;text-decoration:none;font-weight:bold">📁 備份資料夾</a>
+          </div>
+        </div>`).setWidth(440).setHeight(200),"💾 備份完成");
+  } catch(_) { Logger.log("[排程備份成功] "+name); }
+  return bFile.getId();
+}
+
+function exportFullSystemJsonArchive() {
+  const ss     = SpreadsheetApp.getActiveSpreadsheet();
+  const folder = _getBackupFolder();
+  const now    = new Date();
+  const timeStr= Utilities.formatDate(now,"Asia/Taipei","yyyy-MM-dd_HHmm");
+
+  const archive = {
+    exportTime     : Utilities.formatDate(now,"Asia/Taipei","yyyy-MM-dd HH:mm:ss"),
+    spreadsheetId  : ss.getId(),
+    spreadsheetName: ss.getName(),
+    systemVersion  : "v4.1",
+    note           : "密碼欄位已移除（資安保護）",
+    users:[], goals:[], students:{}
+  };
+
+  const uSheet=ss.getSheetByName("使用者清單");
+  if (uSheet&&uSheet.getLastRow()>=2) {
+    uSheet.getDataRange().getValues().slice(1).forEach(r=>{
+      archive.users.push({
+        username:String(r[0]||"").trim(),
+        role:String(r[2]||"student").trim(),
+        className:String(r[3]||"").trim(),
+        realName:String(r[4]||"").trim()
+      });
+    });
+  }
+
+  const studentSheets = ss.getSheets().filter(s=>!isSystemSheet(s.getName()));
+  let rowsMap={};
+  try {
+    const names=studentSheets.map(s=>s.getName());
+    const resp=Sheets.Spreadsheets.Values.batchGet(ss.getId(),{
+      ranges:names.map(n=>`'${n}'!A:B`),valueRenderOption:"UNFORMATTED_VALUE",majorDimension:"ROWS"
+    });
+    (resp.valueRanges||[]).forEach((vr,i)=>{ rowsMap[names[i]]=vr.values||[]; });
+  } catch(_) {
+    studentSheets.forEach(s=>{
+      rowsMap[s.getName()]=s.getLastRow()>=2?s.getDataRange().getValues():[];
+    });
+  }
+
+  let count=0;
+  studentSheets.forEach(s=>{
+    const name=s.getName();
+    const rows=rowsMap[name]||[];
+    if (rows.length>=2) {
+      archive.students[name]={
+        totalBackups:rows.length-1,
+        history:rows.slice(1).map(r=>({
+          backupTime:String(r[0]||""),
+          payload:(()=>{try{return JSON.parse(decompressData(String(r[1]||"")));}catch(_){return null;}})()
+        }))
+      };
+      count++;
+    }
+  });
+
+  const json = JSON.stringify(archive,null,2);
+  const file = folder.createFile(`學習歷程系統完整歸檔_${timeStr}.json`,json,"application/json");
+
+  try {
+    SpreadsheetApp.getUi().showModalDialog(
+      HtmlService.createHtmlOutput(`
+        <div style="font-family:Arial,sans-serif;padding:14px;line-height:1.7">
+          <h3 style="color:#15803d;margin-top:0">📦 JSON 封裝完成！</h3>
+          <p><b>${count} 位學生</b>完整歷程已封裝（密碼欄位已移除）</p>
+          <div style="margin-top:14px;display:flex;gap:10px">
+            <a href="${file.getUrl()}" target="_blank" style="background:#2563eb;color:white;padding:8px 16px;border-radius:6px;text-decoration:none;font-weight:bold">📥 下載 JSON</a>
+            <a href="${folder.getUrl()}" target="_blank" style="background:#475569;color:white;padding:8px 16px;border-radius:6px;text-decoration:none;font-weight:bold">📁 備份資料夾</a>
+          </div>
+        </div>`).setWidth(440).setHeight(200),"📦 JSON 導出");
+  } catch(_) {}
+  return file.getId();
+}
+
+function openBackupFolderUi() {
+  const folder=_getBackupFolder();
+  SpreadsheetApp.getUi().showModalDialog(
+    HtmlService.createHtmlOutput(`
+      <div style="font-family:Arial,sans-serif;padding:20px;text-align:center">
+        <h3>📁 雲端硬碟備份庫</h3>
+        <a href="${folder.getUrl()}" target="_blank"
+           style="background:#2563eb;color:white;padding:10px 24px;border-radius:8px;text-decoration:none;font-size:15px;font-weight:bold">
+          🚀 開啟備份資料夾
+        </a>
+        <p style="font-size:12px;color:#94a3b8;margin-top:16px">${folder.getName()}</p>
+      </div>`).setWidth(360).setHeight(160),"📂 雲端備份庫");
+}

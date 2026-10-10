@@ -29,7 +29,7 @@
       <p id="login-msg" style="color:#f87171; font-size:13px; margin-top:12px; min-height:18px;"></p>
 
       <div style="margin-top:14px; padding:9px 12px; background:rgba(255,255,255,0.04); border-radius:8px; border:1px dashed #334155; font-size:12px; color:#94a3b8; line-height:1.5; text-align:center;">
-        ⏰ 學生每日開放時間：<b>07:30 ～ 22:00</b><br>
+        ⏰ 每日可作答時間依教師最新設定（支援個別學生指定）<br>
         <span style="font-size:11.5px; color:#64748b;">其餘時段暫停開放（經老師特別解除除外）</span>
       </div>
     </div>
@@ -41,12 +41,12 @@
       <div style="font-size:48px; margin-bottom:12px;">🌙</div>
       <h2 style="color:#f8fafc; margin:0 0 10px 0; font-size:22px;">休息時間到囉！</h2>
       <p style="color:#cbd5e1; font-size:14.5px; line-height:1.6; margin-bottom:16px;">
-        每日開放練習時間為 <b>早上 07:30 至 晚上 22:00</b>。<br>
-        目前非系統開放時間，已自動為你儲存學習進度。<br>
-        請好好休息放鬆眼睛，明天再繼續挑戰！
+        目前非系統開放作答時間。<br>
+        您的開放練習時間為 <b id="curfew-time-range" style="color:#38bdf8;">07:30 至 22:00</b>。<br>
+        系統已自動為你儲存學習進度，請好好休息放鬆眼睛！
       </p>
       <div style="padding:10px 14px; background:#0f172a; border-radius:8px; color:#94a3b8; font-size:12.5px; margin-bottom:20px; line-height:1.4;">
-        💡 若有特殊學習需求，請請任課老師登入後台設定解除指定日期或範圍限制。
+        💡 若有特殊學習需求，請請任課老師於後台調整個別作答時間或解除限制。
       </div>
       <button onclick="location.reload()" style="padding:10px 24px; background:#6366f1; color:#fff; border:none; border-radius:8px; font-weight:bold; font-size:14px; cursor:pointer;">
         🔄 重新整理
@@ -283,6 +283,8 @@
             timeBtn.style.display = (result.role === "teacher" || result.isAdmin) ? "flex" : "none";
           }
           if (result.timeRestriction) {
+            sessionStorage.setItem("user_start_time", result.timeRestriction.startTime || "07:30");
+            sessionStorage.setItem("user_end_time", result.timeRestriction.endTime || "22:00");
             sessionStorage.setItem("time_restriction_unlocked", (result.timeRestriction.isOverridden === true) ? "true" : "false");
           }
           if (result.role === "teacher") {
@@ -897,9 +899,15 @@
     // ════════════════════════════════════════════════════════════════════
 
     function isTimeWithinDailyAllowed() {
+      const sTime = sessionStorage.getItem("user_start_time") || "07:30";
+      const eTime = sessionStorage.getItem("user_end_time") || "22:00";
+      const sp = sTime.split(":");
+      const ep = eTime.split(":");
+      const startMin = (Number(sp[0]) || 7) * 60 + (Number(sp[1]) || 30);
+      const endMin = (Number(ep[0]) || 22) * 60 + (Number(ep[1]) || 0);
       const d = new Date();
       const mins = d.getHours() * 60 + d.getMinutes();
-      return mins >= 450 && mins <= 1320; // 07:30 ~ 22:00
+      return mins >= startMin && mins <= endMin;
     }
 
     function checkCurfewStatus() {
@@ -911,6 +919,11 @@
       const isUnlocked = sessionStorage.getItem("time_restriction_unlocked") === "true";
       const isAllowed = isTimeWithinDailyAllowed();
 
+      const sTime = sessionStorage.getItem("user_start_time") || "07:30";
+      const eTime = sessionStorage.getItem("user_end_time") || "22:00";
+      const rangeEl = document.getElementById("curfew-time-range");
+      if (rangeEl) rangeEl.textContent = `${sTime} 至 ${eTime}`;
+
       if (!isAllowed && !isUnlocked) {
         overlay.style.display = "flex";
         if (window.uploadLocalStorageData) {
@@ -921,7 +934,7 @@
       }
     }
 
-    // 每 30 秒即時輪詢檢查一次時間，若時間超過 22:00 即刻溫和鎖定並存檔
+    // 每 30 秒即時輪詢檢查一次時間，若時間超過即刻溫和鎖定並存檔
     setInterval(checkCurfewStatus, 30000);
 
     window.openTimeModal = function() {
@@ -945,17 +958,22 @@
     };
 
     let currentTimeStatus = null;
-    let timeRulesList = [];
+    let timeGlobalData = null;
+    let timeStudentRules = [];
+    let timeDateRules = [];
+    let allStudentsList = [];
 
     async function loadTimeRestrictions() {
       const currentUser = localStorage.getItem("current_user");
       const currentPass = sessionStorage.getItem("current_pass");
       const statusEl = document.getElementById("tm-today-status-badge");
-      const listEl = document.getElementById("tm-rules-list");
+      const dateListEl = document.getElementById("tm-rules-list");
+      const studentListEl = document.getElementById("tm-student-rules-list");
       const toggleBtn = document.getElementById("tm-btn-quick-toggle");
 
       if (statusEl) statusEl.textContent = "讀取最新狀態中...";
-      if (listEl) listEl.innerHTML = `<div style="text-align:center; padding:15px; color:#64748b; font-size:13px;">讀取設定清單中...</div>`;
+      if (dateListEl) dateListEl.innerHTML = `<div style="text-align:center; padding:15px; color:#64748b; font-size:13px;">讀取中...</div>`;
+      if (studentListEl) studentListEl.innerHTML = `<div style="text-align:center; padding:15px; color:#64748b; font-size:13px;">讀取中...</div>`;
 
       try {
         const res = await fetch(scriptUrl, {
@@ -970,24 +988,43 @@
         const data = await res.json();
         if (data.status === "success") {
           currentTimeStatus = data.currentStatus || {};
-          timeRulesList = data.rules || [];
+          timeGlobalData = data.globalTime || { startTime: "07:30", endTime: "22:00" };
+          timeStudentRules = data.studentRules || [];
+          timeDateRules = data.dateRules || [];
+          allStudentsList = data.studentList || [];
 
-          // 1. 渲染今日狀態
+          // 1. 全域預設時間帶入（預設為上次修改之設定）
+          const gStartInp = document.getElementById("tm-global-start");
+          const gEndInp = document.getElementById("tm-global-end");
+          const gUpdateEl = document.getElementById("tm-global-last-updated");
+          if (gStartInp && timeGlobalData.startTime) gStartInp.value = timeGlobalData.startTime;
+          if (gEndInp && timeGlobalData.endTime) gEndInp.value = timeGlobalData.endTime;
+          if (gUpdateEl) {
+            const upd = timeGlobalData.updatedAt ? `上次更新：${timeGlobalData.updatedAt} (${timeGlobalData.teacher || "教師"})` : "目前套用預設值";
+            gUpdateEl.textContent = upd;
+          }
+
+          // 2. 學生名冊選單帶入
+          populateStudentSelectOptions();
+
+          // 3. 渲染個別學生清單
+          renderStudentRulesList();
+
+          // 4. 今日特別狀態與快捷切換按鈕
           if (statusEl) {
             if (currentTimeStatus.isOverridden) {
-              const oName = currentTimeStatus.activeOverride ? currentTimeStatus.activeOverride.name : "特別開放";
-              statusEl.innerHTML = `<span style="color:#10b981; font-weight:bold;">🎉 今日已由老師解除時間限制（${oName}，全天開放）</span>`;
+              const oName = currentTimeStatus.activeDateOverride ? currentTimeStatus.activeDateOverride.name : "特別開放";
+              statusEl.innerHTML = `<span style="color:#10b981; font-weight:bold;">🎉 今日已解除時間限制（${oName}，全天開放）</span>`;
             } else if (isTimeWithinDailyAllowed()) {
-              statusEl.innerHTML = `<span style="color:#38bdf8; font-weight:bold;">🟢 今日依標準時段 (07:30 ～ 22:00) 正常開放中</span>`;
+              statusEl.innerHTML = `<span style="color:#38bdf8; font-weight:bold;">🟢 依預設時段 (${timeGlobalData.startTime} ～ ${timeGlobalData.endTime}) 開放中</span>`;
             } else {
-              statusEl.innerHTML = `<span style="color:#f87171; font-weight:bold;">🌙 目前非開放時段 (每日開放：07:30 ～ 22:00，其餘時間管制中)</span>`;
+              statusEl.innerHTML = `<span style="color:#f87171; font-weight:bold;">🌙 目前非開放時段 (預設開放：${timeGlobalData.startTime} ～ ${timeGlobalData.endTime})</span>`;
             }
           }
 
-          // 2. 切換一鍵快捷按鈕
           if (toggleBtn) {
             if (currentTimeStatus.isOverridden) {
-              toggleBtn.textContent = "🔴 恢復今日標準限制 (07:30~22:00)";
+              toggleBtn.textContent = "🔴 恢復今日標準限制";
               toggleBtn.style.background = "#ef4444";
             } else {
               toggleBtn.textContent = "⚡ 一鍵解除今日限制 (今日全天開放)";
@@ -995,10 +1032,8 @@
             }
           }
 
-          // 3. 渲染規則清單
-          renderTimeRulesList();
-        } else {
-          if (statusEl) statusEl.textContent = "載入失敗：" + (data.message || "未知原因");
+          // 5. 渲染特別日期清單
+          renderDateRulesList();
         }
       } catch(err) {
         console.error(err);
@@ -1006,15 +1041,133 @@
       }
     }
 
-    function renderTimeRulesList() {
+    function populateStudentSelectOptions() {
+      const classFilter = document.getElementById("tm-student-class-filter");
+      const studentSelect = document.getElementById("tm-student-select");
+      if (!studentSelect) return;
+
+      const classSet = new Set();
+      allStudentsList.forEach(s => {
+        if (s.className) classSet.add(s.className);
+      });
+      const sortedClasses = Array.from(classSet).sort();
+
+      if (classFilter) {
+        const curClass = classFilter.value || "all";
+        let cHtml = `<option value="all">所有班級 (${allStudentsList.length} 人)</option>`;
+        sortedClasses.forEach(c => {
+          cHtml += `<option value="${c}" ${c === curClass ? "selected" : ""}>${c} 班</option>`;
+        });
+        classFilter.innerHTML = cHtml;
+      }
+
+      filterStudentDropdown();
+    }
+
+    function filterStudentDropdown() {
+      const classFilter = document.getElementById("tm-student-class-filter");
+      const studentSelect = document.getElementById("tm-student-select");
+      if (!studentSelect) return;
+
+      const selectedClass = classFilter ? classFilter.value : "all";
+      const filtered = (selectedClass === "all")
+        ? allStudentsList
+        : allStudentsList.filter(s => s.className === selectedClass);
+
+      let html = `<option value="">-- 請選擇學生 (${filtered.length} 人) --</option>`;
+      filtered.forEach(s => {
+        const existingRule = timeStudentRules.find(r => r.username.toLowerCase() === s.username.toLowerCase());
+        const star = existingRule ? ` ★ (${existingRule.startTime}~${existingRule.endTime})` : "";
+        html += `<option value="${s.username}" data-name="${s.realName}" data-class="${s.className}">${s.username} ${s.realName} (${s.className}班)${star}</option>`;
+      });
+      studentSelect.innerHTML = html;
+    }
+
+    function renderStudentRulesList() {
+      const listEl = document.getElementById("tm-student-rules-list");
+      const countEl = document.getElementById("tm-student-rules-count");
+      if (!listEl) return;
+
+      if (!timeStudentRules || timeStudentRules.length === 0) {
+        listEl.innerHTML = `<div style="text-align:center; padding:15px; color:#64748b; font-size:13px;">目前無任何個別學生特別時間，皆套用全校預設作答時間。</div>`;
+        if (countEl) countEl.textContent = "共 0 位學生";
+        return;
+      }
+
+      if (countEl) countEl.textContent = `共 ${timeStudentRules.length} 位學生`;
+
+      let html = `<div style="display:flex; flex-direction:column; gap:6px;">`;
+      timeStudentRules.forEach(r => {
+        html += `
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; border-radius:8px; border:1px solid #334155; background:#1e293b; gap:10px;">
+            <div style="flex:1;">
+              <div style="font-size:13px; font-weight:700; color:#f1f5f9; display:flex; align-items:center; gap:6px;">
+                <span>👤 ${r.studentInfo || r.username}</span>
+                <span style="font-size:11px; background:#065f46; color:#a7f3d0; padding:1px 6px; border-radius:4px;">專屬時段</span>
+              </div>
+              <div style="font-size:12px; color:#94a3b8; margin-top:2px;">
+                ⏰ 可作答時間：<b style="color:#38bdf8;">${r.startTime} ～ ${r.endTime}</b>
+                ${r.remark ? `<span style="margin-left:8px; color:#64748b;">(${r.remark})</span>` : ""}
+              </div>
+            </div>
+            <button class="tm-btn-delete-student" data-user="${r.username}" style="padding:4px 9px; background:#ef4444; color:#fff; border:none; border-radius:6px; font-size:12px; font-weight:bold; cursor:pointer;">
+              🗑️ 移除
+            </button>
+          </div>
+        `;
+      });
+      html += `</div>`;
+      listEl.innerHTML = html;
+
+      listEl.querySelectorAll(".tm-btn-delete-student").forEach(btn => {
+        btn.onclick = async () => {
+          const u = btn.dataset.user;
+          if (!confirm(`確定要移除學生【${u}】的專屬時間設定，恢復為全校預設時間嗎？`)) return;
+
+          const currentUser = localStorage.getItem("current_user");
+          const currentPass = sessionStorage.getItem("current_pass");
+          btn.textContent = "...";
+          btn.disabled = true;
+
+          try {
+            const res = await fetch(scriptUrl, {
+              method: "POST",
+              headers: { "Content-Type": "text/plain;charset=utf-8" },
+              body: JSON.stringify({
+                action: "deleteStudentTimeSetting",
+                username: currentUser,
+                password: currentPass,
+                targetUsername: u
+              })
+            });
+            const d = await res.json();
+            if (d.status === "success") {
+              alert(d.message || "已成功移除！");
+              loadTimeRestrictions();
+            } else {
+              alert("移除失敗：" + (d.message || ""));
+              btn.textContent = "🗑️ 移除";
+              btn.disabled = false;
+            }
+          } catch(err) {
+            console.error(err);
+            alert("連線失敗，請稍後再試");
+            btn.textContent = "🗑️ 移除";
+            btn.disabled = false;
+          }
+        };
+      });
+    }
+
+    function renderDateRulesList() {
       const listEl = document.getElementById("tm-rules-list");
       if (!listEl) return;
 
-      if (!timeRulesList || timeRulesList.length === 0) {
+      if (!timeDateRules || timeDateRules.length === 0) {
         listEl.innerHTML = `
           <div style="text-align:center; padding:15px; color:#64748b; font-size:13px;">
             目前尚無特別解除限制之日期設定。<br>
-            系統每日將維持 <b>07:30 ～ 22:00</b> 開放使用。
+            每日將依設定之作答時段開放。
           </div>`;
         return;
       }
@@ -1023,7 +1176,7 @@
       const todayDash = today.getFullYear() + "-" + String(today.getMonth() + 1).padStart(2, "0") + "-" + String(today.getDate()).padStart(2, "0");
 
       let html = `<div style="display:flex; flex-direction:column; gap:6px;">`;
-      timeRulesList.forEach(r => {
+      timeDateRules.forEach(r => {
         const isCurrent = (todayDash >= r.startDate && todayDash <= r.endDate);
         const borderStyle = isCurrent ? "border:1.5px solid #10b981; background:rgba(16,185,129,0.1);" : "border:1px solid #334155; background:#1e293b;";
         const activeBadge = isCurrent
@@ -1031,9 +1184,9 @@
           : (r.endDate < todayDash ? `<span style="background:#334155; color:#94a3b8; font-size:11px; padding:2px 6px; border-radius:4px;">已過期</span>` : `<span style="background:#1e3a8a; color:#bfdbfe; font-size:11px; padding:2px 6px; border-radius:4px;">即將到來</span>`);
 
         html += `
-          <div style="display:flex; justify-content:space-between; align-items:center; padding:9px 12px; border-radius:8px; ${borderStyle} gap:10px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; border-radius:8px; ${borderStyle} gap:10px;">
             <div style="flex:1;">
-              <div style="font-size:13.5px; font-weight:700; color:#f1f5f9; display:flex; align-items:center; gap:8px;">
+              <div style="font-size:13px; font-weight:700; color:#f1f5f9; display:flex; align-items:center; gap:8px;">
                 <span>${r.name}</span>
                 ${activeBadge}
               </div>
@@ -1042,7 +1195,7 @@
                 ${r.remark ? `<span style="margin-left:8px; color:#64748b;">(${r.remark})</span>` : ""}
               </div>
             </div>
-            <button class="tm-btn-delete-rule" data-start="${r.startDate}" data-end="${r.endDate}" data-name="${r.name}" style="padding:5px 10px; background:#ef4444; color:#fff; border:none; border-radius:6px; font-size:12px; font-weight:bold; cursor:pointer;">
+            <button class="tm-btn-delete-rule" data-start="${r.startDate}" data-end="${r.endDate}" data-name="${r.name}" style="padding:4px 9px; background:#ef4444; color:#fff; border:none; border-radius:6px; font-size:12px; font-weight:bold; cursor:pointer;">
               🗑️ 刪除
             </button>
           </div>
@@ -1051,7 +1204,6 @@
       html += `</div>`;
       listEl.innerHTML = html;
 
-      // 綁定各列刪除按鈕
       listEl.querySelectorAll(".tm-btn-delete-rule").forEach(btn => {
         btn.onclick = async () => {
           const s = btn.dataset.start;
@@ -1061,7 +1213,7 @@
 
           const currentUser = localStorage.getItem("current_user");
           const currentPass = sessionStorage.getItem("current_pass");
-          btn.textContent = "刪除中...";
+          btn.textContent = "...";
           btn.disabled = true;
 
           try {
@@ -1104,6 +1256,166 @@
       const refreshBtn = document.getElementById("tm-btn-refresh");
       if (refreshBtn) refreshBtn.onclick = loadTimeRestrictions;
 
+      // 分頁切換
+      const tabBtns = [
+        { btn: "tm-tab-btn-global", panel: "tm-tab-panel-global" },
+        { btn: "tm-tab-btn-student", panel: "tm-tab-panel-student" },
+        { btn: "tm-tab-btn-date", panel: "tm-tab-panel-date" }
+      ];
+      tabBtns.forEach(t => {
+        const b = document.getElementById(t.btn);
+        if (b) {
+          b.onclick = () => {
+            tabBtns.forEach(other => {
+              const ob = document.getElementById(other.btn);
+              const op = document.getElementById(other.panel);
+              if (ob) {
+                ob.style.background = (other.btn === t.btn) ? "#6366f1" : "#1e293b";
+                ob.style.borderColor = (other.btn === t.btn) ? "#6366f1" : "#475569";
+                ob.style.color = (other.btn === t.btn) ? "#fff" : "#cbd5e1";
+              }
+              if (op) op.style.display = (other.panel === t.panel) ? "block" : "none";
+            });
+          };
+        }
+      });
+
+      // 班級篩選切換
+      const classFilter = document.getElementById("tm-student-class-filter");
+      if (classFilter) {
+        classFilter.onchange = filterStudentDropdown;
+      }
+
+      // 選擇學生時，若已有個別時間，自動填入輸入框；若無，帶入全校預設時間
+      const studentSelect = document.getElementById("tm-student-select");
+      if (studentSelect) {
+        studentSelect.onchange = () => {
+          const u = studentSelect.value;
+          const sStartInp = document.getElementById("tm-student-start");
+          const sEndInp = document.getElementById("tm-student-end");
+          const sRemarkInp = document.getElementById("tm-student-remark");
+
+          if (!u) return;
+          const existing = timeStudentRules.find(r => r.username.toLowerCase() === u.toLowerCase());
+          if (existing) {
+            if (sStartInp) sStartInp.value = existing.startTime;
+            if (sEndInp) sEndInp.value = existing.endTime;
+            if (sRemarkInp) sRemarkInp.value = existing.remark || "";
+          } else {
+            if (sStartInp && timeGlobalData) sStartInp.value = timeGlobalData.startTime || "07:30";
+            if (sEndInp && timeGlobalData) sEndInp.value = timeGlobalData.endTime || "22:00";
+            if (sRemarkInp) sRemarkInp.value = "";
+          }
+        };
+      }
+
+      // 儲存全校預設作答時間
+      const saveGlobalBtn = document.getElementById("tm-btn-save-global");
+      if (saveGlobalBtn) {
+        saveGlobalBtn.onclick = async () => {
+          const sTime = document.getElementById("tm-global-start").value.trim();
+          const eTime = document.getElementById("tm-global-end").value.trim();
+          const msgEl = document.getElementById("tm-modal-msg");
+
+          if (!sTime || !eTime) {
+            alert("請選擇開始時間與結束時間！");
+            return;
+          }
+
+          const currentUser = localStorage.getItem("current_user");
+          const currentPass = sessionStorage.getItem("current_pass");
+          saveGlobalBtn.textContent = "儲存中...";
+          saveGlobalBtn.disabled = true;
+
+          try {
+            const res = await fetch(scriptUrl, {
+              method: "POST",
+              headers: { "Content-Type": "text/plain;charset=utf-8" },
+              body: JSON.stringify({
+                action: "saveGlobalTimeSetting",
+                username: currentUser,
+                password: currentPass,
+                timeData: { startTime: sTime, endTime: eTime }
+              })
+            });
+            const d = await res.json();
+            if (d.status === "success") {
+              alert(d.message || "全校預設作答時間已儲存！");
+              loadTimeRestrictions();
+            } else {
+              alert("儲存失敗：" + (d.message || ""));
+            }
+          } catch(err) {
+            console.error(err);
+            alert("連線失敗，請稍後再試");
+          } finally {
+            saveGlobalBtn.textContent = "💾 儲存並套用全校預設作答時間";
+            saveGlobalBtn.disabled = false;
+          }
+        };
+      }
+
+      // 儲存個別學生專屬時間
+      const saveStudentBtn = document.getElementById("tm-btn-save-student");
+      if (saveStudentBtn) {
+        saveStudentBtn.onclick = async () => {
+          const studentSel = document.getElementById("tm-student-select");
+          const username = studentSel ? studentSel.value.trim() : "";
+          const sTime = document.getElementById("tm-student-start").value.trim();
+          const eTime = document.getElementById("tm-student-end").value.trim();
+          const remark = document.getElementById("tm-student-remark").value.trim();
+
+          if (!username) {
+            alert("請先選擇要設定的學生！");
+            return;
+          }
+          if (!sTime || !eTime) {
+            alert("請選擇可作答開始時間與結束時間！");
+            return;
+          }
+
+          const selOpt = studentSel.options[studentSel.selectedIndex];
+          const studentInfo = selOpt ? selOpt.textContent.replace(/★.*$/, "").trim() : username;
+
+          const currentUser = localStorage.getItem("current_user");
+          const currentPass = sessionStorage.getItem("current_pass");
+          saveStudentBtn.textContent = "儲存中...";
+          saveStudentBtn.disabled = true;
+
+          try {
+            const res = await fetch(scriptUrl, {
+              method: "POST",
+              headers: { "Content-Type": "text/plain;charset=utf-8" },
+              body: JSON.stringify({
+                action: "saveStudentTimeSetting",
+                username: currentUser,
+                password: currentPass,
+                studentData: {
+                  username: username,
+                  studentInfo: studentInfo,
+                  startTime: sTime,
+                  endTime: eTime,
+                  remark: remark
+                }
+              })
+            });
+            const d = await res.json();
+            if (d.status === "success") {
+              alert(d.message || "學生專屬作答時間已成功設定！");
+              loadTimeRestrictions();
+            } else {
+              alert("儲存失敗：" + (d.message || ""));
+            }
+          } catch(err) {
+            console.error(err);
+            alert("連線失敗，請稍後再試");
+          } finally {
+            saveStudentBtn.textContent = "💾 儲存該學生專屬作答時間";
+            saveStudentBtn.disabled = false;
+          }
+        };
+      }
+
       // 一鍵解除/恢復今日限制
       const toggleBtn = document.getElementById("tm-btn-quick-toggle");
       if (toggleBtn) {
@@ -1139,10 +1451,10 @@
         };
       }
 
-      // 新增解除日期/範圍設定
-      const saveBtn = document.getElementById("tm-btn-save-override");
-      if (saveBtn) {
-        saveBtn.onclick = async () => {
+      // 新增特別日期全天開放設定
+      const saveDateBtn = document.getElementById("tm-btn-save-override");
+      if (saveDateBtn) {
+        saveDateBtn.onclick = async () => {
           const sInp = document.getElementById("tm-input-start");
           const eInp = document.getElementById("tm-input-end");
           const nInp = document.getElementById("tm-input-name");
@@ -1163,8 +1475,8 @@
 
           const currentUser = localStorage.getItem("current_user");
           const currentPass = sessionStorage.getItem("current_pass");
-          saveBtn.textContent = "儲存中...";
-          saveBtn.disabled = true;
+          saveDateBtn.textContent = "儲存中...";
+          saveDateBtn.disabled = true;
           if (msgEl) msgEl.textContent = "正在寫入試算表...";
 
           try {
@@ -1180,7 +1492,7 @@
                   startDate: startDate,
                   endDate: endDate,
                   enabled: true,
-                  remark: "教師自訂設定"
+                  remark: "教師自訂特別日期"
                 }
               })
             });
@@ -1199,8 +1511,8 @@
             alert("連線失敗，請稍後再試");
             if (msgEl) msgEl.textContent = "連線失敗";
           } finally {
-            saveBtn.textContent = "💾 儲存並生效";
-            saveBtn.disabled = false;
+            saveDateBtn.textContent = "💾 儲存並生效";
+            saveDateBtn.disabled = false;
           }
         };
       }
@@ -1355,70 +1667,179 @@
        教師使用時間與解除限制管理 Modal
   ══════════════════════════════════════════ -->
   <div id="timeManagementModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
-    <div style="background:#1e293b; border-radius:16px; padding:22px 24px; max-width:620px; width:94%; box-shadow:0 25px 60px rgba(0,0,0,0.5); max-height:90vh; overflow-y:auto; border:1.5px solid #475569; color:#f8fafc; font-family:system-ui, sans-serif;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+    <div style="background:#1e293b; border-radius:16px; padding:22px 24px; max-width:680px; width:94%; box-shadow:0 25px 60px rgba(0,0,0,0.5); max-height:92vh; overflow-y:auto; border:1.5px solid #475569; color:#f8fafc; font-family:system-ui, sans-serif;">
+      
+      <!-- 標題與關閉按鈕 -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
         <h3 style="margin:0; font-size:18px; display:flex; align-items:center; gap:8px; color:#fff;">
-          ⏰ 學生開放時間管制與解除限制管理
+          ⏰ 學生開放時間管制與自訂設定
         </h3>
         <button id="btnCloseTimeModal" style="background:none; border:none; font-size:24px; cursor:pointer; color:#94a3b8;">&times;</button>
       </div>
 
-      <!-- 規則說明卡片 -->
-      <div style="background:#0f172a; border-radius:10px; padding:12px 16px; border:1px solid #334155; margin-bottom:14px;">
-        <div style="font-size:13.5px; font-weight:700; color:#38bdf8; margin-bottom:4px;">📌 系統開放時間管制規則</div>
-        <div style="font-size:13px; color:#94a3b8; line-height:1.6;">
-          • <b>每日開放時間</b>：早上 <b>07:30 ～ 晚上 22:00</b>。<br>
-          • <b>管制時間</b>：其餘時間一律禁止學生登入與同步進度。<br>
-          • <b>例外解除</b>：老師可在此設定<b>解除指定單日</b>或<b>日期區間</b>限制，解除期間學生全天皆可使用。
+      <!-- 分頁頁籤切換按鈕 -->
+      <div style="display:flex; gap:8px; margin-bottom:16px; border-bottom:1px solid #334155; padding-bottom:10px;">
+        <button id="tm-tab-btn-global" style="flex:1; padding:9px 12px; border-radius:8px; border:1px solid #6366f1; background:#6366f1; color:#fff; font-size:13px; font-weight:700; cursor:pointer; transition:all 0.2s;">
+          ⚙️ 全校預設作答時間
+        </button>
+        <button id="tm-tab-btn-student" style="flex:1; padding:9px 12px; border-radius:8px; border:1px solid #475569; background:#1e293b; color:#cbd5e1; font-size:13px; font-weight:700; cursor:pointer; transition:all 0.2s;">
+          👤 個別學生自訂時間
+        </button>
+        <button id="tm-tab-btn-date" style="flex:1; padding:9px 12px; border-radius:8px; border:1px solid #475569; background:#1e293b; color:#cbd5e1; font-size:13px; font-weight:700; cursor:pointer; transition:all 0.2s;">
+          📅 特別日期全天解除
+        </button>
+      </div>
+
+      <!-- 分頁 1: 全校預設作答時間 -->
+      <div id="tm-tab-panel-global" style="display:block;">
+        <div style="background:#0f172a; border-radius:10px; padding:12px 16px; border:1px solid #334155; margin-bottom:14px;">
+          <div style="font-size:13.5px; font-weight:700; color:#38bdf8; margin-bottom:4px;">📌 全校預設作答時間說明</div>
+          <div style="font-size:13px; color:#94a3b8; line-height:1.6;">
+            • <b>預設時段</b>：每次設定將自動保存，日後一律以<b>上次教師修改之設定</b>為基準（預設為 07:30 ～ 22:00）。<br>
+            • <b>適用對象</b>：全校所有學生作答與登入皆受此時段管制。<br>
+            • <b>個別彈性</b>：若有特定學生需要不同時段，可切換至「個別學生自訂時間」單獨微調。
+          </div>
+        </div>
+
+        <div style="border:1px solid #334155; border-radius:12px; padding:16px; background:#0f172a; margin-bottom:14px;">
+          <div style="font-size:14px; font-weight:700; color:#e2e8f0; margin-bottom:12px;">
+            🕒 設定全校每日作答時間範圍
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+            <div>
+              <label style="font-size:12.5px; color:#cbd5e1; display:block; margin-bottom:4px;">每日開始作答時間：</label>
+              <input type="time" id="tm-global-start" value="07:30" style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #475569; background:#1e293b; color:#fff; font-size:14px; box-sizing:border-box;">
+            </div>
+            <div>
+              <label style="font-size:12.5px; color:#cbd5e1; display:block; margin-bottom:4px;">每日結束作答時間：</label>
+              <input type="time" id="tm-global-end" value="22:00" style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #475569; background:#1e293b; color:#fff; font-size:14px; box-sizing:border-box;">
+            </div>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+            <div id="tm-global-last-updated" style="font-size:12px; color:#64748b;">
+              目前套用上次儲存設定
+            </div>
+            <button id="tm-btn-save-global" style="padding:9px 20px; border-radius:8px; background:#4f46e5; color:#fff; border:none; font-weight:700; font-size:13.5px; cursor:pointer;">
+              💾 儲存並套用全校預設作答時間
+            </button>
+          </div>
         </div>
       </div>
 
-      <!-- 今日即時狀態與一鍵快捷操作 -->
-      <div style="background:#1e293b; border:1px solid #3b82f6; border-radius:10px; padding:12px 16px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+      <!-- 分頁 2: 個別學生自訂時間 -->
+      <div id="tm-tab-panel-student" style="display:none;">
+        <div style="background:#0f172a; border-radius:10px; padding:12px 16px; border:1px solid #334155; margin-bottom:14px;">
+          <div style="font-size:13.5px; font-weight:700; color:#38bdf8; margin-bottom:4px;">👤 個別學生自訂時段說明</div>
+          <div style="font-size:13px; color:#94a3b8; line-height:1.6;">
+            • 若學生有特例需求（如放學輔導、特定作答許可），可在此為其指定專屬開始與結束時間。<br>
+            • <b>優先權判定</b>：具專屬設定之學生將優先採用該時段，不受全校預設時段限制。
+          </div>
+        </div>
+
+        <div style="border:1px solid #334155; border-radius:12px; padding:16px; background:#0f172a; margin-bottom:14px;">
+          <div style="font-size:14px; font-weight:700; color:#e2e8f0; margin-bottom:10px;">
+            ➕ 新增或修改學生專屬作答時間
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 2fr; gap:10px; margin-bottom:10px;">
+            <div>
+              <label style="font-size:12.5px; color:#cbd5e1; display:block; margin-bottom:4px;">篩選班級：</label>
+              <select id="tm-student-class-filter" style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #475569; background:#1e293b; color:#fff; font-size:13px; box-sizing:border-box;">
+                <option value="all">所有班級</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:12.5px; color:#cbd5e1; display:block; margin-bottom:4px;">選擇學生：</label>
+              <select id="tm-student-select" style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #475569; background:#1e293b; color:#fff; font-size:13px; box-sizing:border-box;">
+                <option value="">-- 請選擇學生 --</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+            <div>
+              <label style="font-size:12.5px; color:#cbd5e1; display:block; margin-bottom:4px;">該學生可作答開始時間：</label>
+              <input type="time" id="tm-student-start" value="07:30" style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #475569; background:#1e293b; color:#fff; font-size:13.5px; box-sizing:border-box;">
+            </div>
+            <div>
+              <label style="font-size:12.5px; color:#cbd5e1; display:block; margin-bottom:4px;">該學生可作答結束時間：</label>
+              <input type="time" id="tm-student-end" value="22:00" style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #475569; background:#1e293b; color:#fff; font-size:13.5px; box-sizing:border-box;">
+            </div>
+          </div>
+          <div style="display:flex; gap:10px; align-items:center;">
+            <input type="text" id="tm-student-remark" placeholder="備註說明（例：留校輔導、自學延長）" style="flex:1; padding:8px 10px; border-radius:6px; border:1px solid #475569; background:#1e293b; color:#fff; font-size:13px; box-sizing:border-box;">
+            <button id="tm-btn-save-student" style="padding:8px 18px; border-radius:6px; background:#059669; color:#fff; border:none; font-weight:700; font-size:13px; cursor:pointer; white-space:nowrap;">
+              💾 儲存該學生專屬作答時間
+            </button>
+          </div>
+        </div>
+
         <div>
-          <div style="font-size:12.5px; color:#94a3b8;">📅 今日系統狀態：</div>
-          <div id="tm-today-status-badge" style="font-size:14px; font-weight:700; color:#10b981; margin-top:2px;">
-            載入狀態中...
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <span style="font-size:13.5px; font-weight:700; color:#e2e8f0;">📋 已設定專屬時段學生清單</span>
+            <span id="tm-student-rules-count" style="font-size:12px; color:#94a3b8;">共 0 位學生</span>
+          </div>
+          <div id="tm-student-rules-list" style="background:#0f172a; border:1px solid #334155; border-radius:8px; max-height:180px; overflow-y:auto; padding:8px;">
+            <div style="text-align:center; padding:15px; color:#64748b; font-size:13px;">載入中...</div>
           </div>
         </div>
+      </div>
+
+      <!-- 分頁 3: 特別日期全天解除 -->
+      <div id="tm-tab-panel-date" style="display:none;">
+        <div style="background:#0f172a; border-radius:10px; padding:12px 16px; border:1px solid #334155; margin-bottom:14px;">
+          <div style="font-size:13.5px; font-weight:700; color:#38bdf8; margin-bottom:4px;">📅 特別日期全天開放說明</div>
+          <div style="font-size:13px; color:#94a3b8; line-height:1.6;">
+            • 當設定特別解除日期時，該指定日<b>全天 24 小時暢行開放</b>。<br>
+            • 可用於週末集訓、段考衝刺週、或是臨時全天開放練習。
+          </div>
+        </div>
+
+        <!-- 今日即時狀態與一鍵快捷操作 -->
+        <div style="background:#1e293b; border:1px solid #3b82f6; border-radius:10px; padding:12px 16px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+          <div>
+            <div style="font-size:12.5px; color:#94a3b8;">📅 今日系統狀態：</div>
+            <div id="tm-today-status-badge" style="font-size:14px; font-weight:700; color:#10b981; margin-top:2px;">
+              載入狀態中...
+            </div>
+          </div>
+          <div>
+            <button id="tm-btn-quick-toggle" style="padding:9px 16px; border-radius:8px; background:#10b981; color:#fff; border:none; font-size:13px; font-weight:700; cursor:pointer; transition:all 0.2s;">
+              ⚡ 一鍵解除今日限制 (今日全天開放)
+            </button>
+          </div>
+        </div>
+
+        <!-- 新增解除限制設定區 -->
+        <div style="border:1px solid #334155; border-radius:12px; padding:14px 16px; background:#0f172a; margin-bottom:14px;">
+          <div style="font-size:13.5px; font-weight:700; color:#e2e8f0; margin-bottom:10px; display:flex; align-items:center; gap:6px;">
+            ➕ 新增解除限制 (指定單日或日期範圍)
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+            <div>
+              <label style="font-size:12.5px; color:#cbd5e1; display:block; margin-bottom:4px;">起始日期：</label>
+              <input type="date" id="tm-input-start" style="width:100%; padding:7px 10px; border-radius:6px; border:1px solid #475569; background:#1e293b; color:#fff; font-size:13px; box-sizing:border-box;">
+            </div>
+            <div>
+              <label style="font-size:12.5px; color:#cbd5e1; display:block; margin-bottom:4px;">結束日期 (單日請填相同日期)：</label>
+              <input type="date" id="tm-input-end" style="width:100%; padding:7px 10px; border-radius:6px; border:1px solid #475569; background:#1e293b; color:#fff; font-size:13px; box-sizing:border-box;">
+            </div>
+          </div>
+          <div style="display:flex; gap:10px; align-items:center;">
+            <input type="text" id="tm-input-name" placeholder="設定名稱或備註（例：段考衝刺溫書週、週末集訓開放）" style="flex:1; padding:8px 10px; border-radius:6px; border:1px solid #475569; background:#1e293b; color:#fff; font-size:13px; box-sizing:border-box;">
+            <button id="tm-btn-save-override" style="padding:8px 18px; border-radius:6px; background:#2563eb; color:#fff; border:none; font-weight:700; font-size:13px; cursor:pointer; white-space:nowrap;">
+              💾 儲存並生效
+            </button>
+          </div>
+        </div>
+
+        <!-- 已生效解除規則清單 -->
         <div>
-          <button id="tm-btn-quick-toggle" style="padding:9px 16px; border-radius:8px; background:#10b981; color:#fff; border:none; font-size:13px; font-weight:700; cursor:pointer; transition:all 0.2s;">
-            ⚡ 一鍵解除今日限制 (今日全天開放)
-          </button>
-        </div>
-      </div>
-
-      <!-- 新增解除限制設定區 -->
-      <div style="border:1px solid #334155; border-radius:12px; padding:14px 16px; background:#0f172a; margin-bottom:16px;">
-        <div style="font-size:13.5px; font-weight:700; color:#e2e8f0; margin-bottom:10px; display:flex; align-items:center; gap:6px;">
-          ➕ 新增解除限制 (指定單日或日期範圍)
-        </div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
-          <div>
-            <label style="font-size:12.5px; color:#cbd5e1; display:block; margin-bottom:4px;">起始日期：</label>
-            <input type="date" id="tm-input-start" style="width:100%; padding:7px 10px; border-radius:6px; border:1px solid #475569; background:#1e293b; color:#fff; font-size:13px; box-sizing:border-box;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <span style="font-size:13.5px; font-weight:700; color:#e2e8f0;">📋 目前生效的解除限制清單</span>
+            <button id="tm-btn-refresh" style="background:none; border:1px solid #475569; padding:3px 8px; border-radius:6px; color:#94a3b8; font-size:12px; cursor:pointer;">🔄 重新整理</button>
           </div>
-          <div>
-            <label style="font-size:12.5px; color:#cbd5e1; display:block; margin-bottom:4px;">結束日期 (單日請填相同日期)：</label>
-            <input type="date" id="tm-input-end" style="width:100%; padding:7px 10px; border-radius:6px; border:1px solid #475569; background:#1e293b; color:#fff; font-size:13px; box-sizing:border-box;">
+          <div id="tm-rules-list" style="background:#0f172a; border:1px solid #334155; border-radius:8px; max-height:180px; overflow-y:auto; padding:8px;">
+            <div style="text-align:center; padding:15px; color:#64748b; font-size:13px;">載入中...</div>
           </div>
-        </div>
-        <div style="display:flex; gap:10px; align-items:center;">
-          <input type="text" id="tm-input-name" placeholder="設定名稱或備註（例：段考衝刺溫書週、週末集訓開放）" style="flex:1; padding:8px 10px; border-radius:6px; border:1px solid #475569; background:#1e293b; color:#fff; font-size:13px; box-sizing:border-box;">
-          <button id="tm-btn-save-override" style="padding:8px 18px; border-radius:6px; background:#2563eb; color:#fff; border:none; font-weight:700; font-size:13px; cursor:pointer; white-space:nowrap;">
-            💾 儲存並生效
-          </button>
-        </div>
-      </div>
-
-      <!-- 已生效解除規則清單 -->
-      <div>
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-          <span style="font-size:13.5px; font-weight:700; color:#e2e8f0;">📋 目前生效的解除限制清單</span>
-          <button id="tm-btn-refresh" style="background:none; border:1px solid #475569; padding:3px 8px; border-radius:6px; color:#94a3b8; font-size:12px; cursor:pointer;">🔄 重新整理</button>
-        </div>
-        <div id="tm-rules-list" style="background:#0f172a; border:1px solid #334155; border-radius:8px; max-height:180px; overflow-y:auto; padding:8px;">
-          <div style="text-align:center; padding:15px; color:#64748b; font-size:13px;">載入中...</div>
         </div>
       </div>
 

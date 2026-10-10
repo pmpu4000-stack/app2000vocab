@@ -246,15 +246,21 @@ function renderCurrent() {
   }
 }
 
-// ── 學生使用時間管制 (每日 07:30 ~ 22:00) ──
+// ── 學生使用時間管制 (支援全校預設與個別學生設定) ──
 function isCurfewActive() {
   const role = localStorage.getItem("user_role") || "student";
   if (role === "teacher" || role === "admin") return false;
   const isUnlocked = sessionStorage.getItem("time_restriction_unlocked") === "true";
   if (isUnlocked) return false;
+  const sTime = sessionStorage.getItem("user_start_time") || "07:30";
+  const eTime = sessionStorage.getItem("user_end_time") || "22:00";
+  const sp = sTime.split(":");
+  const ep = eTime.split(":");
+  const startMin = (Number(sp[0]) || 7) * 60 + (Number(sp[1]) || 30);
+  const endMin = (Number(ep[0]) || 22) * 60 + (Number(ep[1]) || 0);
   const d = new Date();
   const mins = d.getHours() * 60 + d.getMinutes();
-  return (mins < 450 || mins > 1320); // 07:30 ~ 22:00
+  return (mins < startMin || mins > endMin);
 }
 
 function newRound() {
