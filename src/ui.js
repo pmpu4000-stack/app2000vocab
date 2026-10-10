@@ -117,7 +117,7 @@ function renderListen(word, onCheck) {
   const row = document.createElement("div");
   row.className = "mini-row";
   row.append(miniBtn("🐢 一個字母一個字母", () => spellOut(word.word)));
-  if (word.featured && word.sent) row.append(miniBtn("💬 唸例句", () => say(word.sent, 0.85)));
+  if (word.featured && word.sent) row.append(miniBtn("💬 唸例句", () => say(word.sent, 0.88)));
   const inp = textInput("在這裡拼字…", onCheck);
   el.stage.append(btn, row, inp);
   say(word.word);
