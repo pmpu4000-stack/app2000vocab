@@ -6,6 +6,11 @@ import { CATS } from "./data.js";
 import { say, spellOut } from "./audio.js";
 import { LEVELS, levelColor, levelName, misspellings, shuffle } from "./levels.js";
 
+if (typeof window !== "undefined") {
+  window.__say = say;
+  window.__sayWord = (w) => say(w);
+}
+
 const $ = (s) => document.querySelector(s);
 const el = {
   playScreen: $("#screen-play"), quizScreen: $("#screen-quiz"),
@@ -98,9 +103,15 @@ export function renderRound(word, mode, { onAnswer, onCheck, disablePeek }) {
   }
 
   if (word.sent && mode !== "pick") {
-    el.sent.innerHTML = word.sent.replace(new RegExp("\\b" + word.word + "\\b", "i"), "<u>?????</u>");
+    el.sent.innerHTML = word.sent.replace(new RegExp("\\b" + word.word + "\\b", "i"), "<u>_____</u>") + ' <span style="font-size:12px; margin-left:6px; opacity:0.85; cursor:pointer;" title="點擊聆聽完整例句">🔊</span>';
+    el.sent.style.cursor = "pointer";
+    el.sent.title = "點擊聆聽完整例句朗讀";
+    el.sent.onclick = () => say(word.sent, 0.88);
   } else {
     el.sent.innerHTML = "";
+    el.sent.style.cursor = "";
+    el.sent.title = "";
+    el.sent.onclick = null;
   }
 
   if (mode === "pick") return renderPick(word, onAnswer);
@@ -117,7 +128,7 @@ function renderListen(word, onCheck) {
   const row = document.createElement("div");
   row.className = "mini-row";
   row.append(miniBtn("🐢 一個字母一個字母", () => spellOut(word.word)));
-  if (word.featured && word.sent) row.append(miniBtn("💬 唸例句", () => say(word.sent, 0.88)));
+  if (word.sent) row.append(miniBtn("💬 唸例句", () => say(word.sent, 0.88)));
   const inp = textInput("在這裡拼字…", onCheck);
   el.stage.append(btn, row, inp);
   say(word.word);
@@ -182,7 +193,11 @@ function renderTrap(word, onCheck) {
     }
     wrap.append(t);
   });
-  el.stage.append(wrap, miniBtn("🔊 聽發音", () => say(word.word)));
+  const trapRow = document.createElement("div");
+  trapRow.className = "mini-row";
+  trapRow.append(miniBtn("🔊 聽發音", () => say(word.word)));
+  if (word.sent) trapRow.append(miniBtn("💬 唸例句", () => say(word.sent, 0.88)));
+  el.stage.append(wrap, trapRow);
   say(word.word);
   setTimeout(() => { const f = wrap.querySelector("input"); if (f) f.focus(); }, 50);
   return {
@@ -215,7 +230,11 @@ function renderScramble(word, onCheck) {
     scr.append(t);
   });
   const inp = textInput("排出正確的字…", onCheck);
-  el.stage.append(scr, inp, miniBtn("🔊 聽發音", () => say(word.word)));
+  const scrRow = document.createElement("div");
+  scrRow.className = "mini-row";
+  scrRow.append(miniBtn("🔊 聽發音", () => say(word.word)));
+  if (word.sent) scrRow.append(miniBtn("💬 唸例句", () => say(word.sent, 0.88)));
+  el.stage.append(scr, inp, scrRow);
   setTimeout(() => inp.focus(), 50);
   return {
     getGuess: () => inp.value.trim().toLowerCase(),
@@ -406,7 +425,7 @@ function buildTaskDetailsHtml(record, selectedDate) {
 
   let correctContentHtml = "";
   if (correctList.length > 0) {
-    correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" title="當日指定測驗作答正確">✓ ${w}</span>`).join("");
+    correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" onclick="window.__sayWord && window.__sayWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">✓ ${w} 🔊</span>`).join("");
   } else if (isFinished) {
     if (rawWords.length > 0) {
       correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（本次測驗全數答錯，尚無答對單字）</span>`;
@@ -421,7 +440,7 @@ function buildTaskDetailsHtml(record, selectedDate) {
 
   let wrongContentHtml = "";
   if (wrongList.length > 0) {
-    wrongContentHtml = wrongList.map(w => `<span class="word-pill-tag wrong" title="當日指定測驗作答錯誤">✗ ${w}</span>`).join("");
+    wrongContentHtml = wrongList.map(w => `<span class="word-pill-tag wrong" onclick="window.__sayWord && window.__sayWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">✗ ${w} 🔊</span>`).join("");
   } else if (isFinished) {
     wrongContentHtml = `<span style="font-size:12px; color:#4ade80; font-weight:700;">🎉 太棒了！本次測驗全數答對，無任何答錯單字！</span>`;
   } else {
@@ -557,7 +576,7 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
 
   let correctContentHtml = "";
   if (correctList.length > 0) {
-    correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" title="當日自由練習答對">✓ ${w.word}</span>`).join("");
+    correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" onclick="window.__sayWord && window.__sayWord('${w.word.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">✓ ${w.word} 🔊</span>`).join("");
   } else {
     correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（當日尚無全對單字）</span>`;
   }
@@ -566,9 +585,9 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
   if (wrongList.length > 0) {
     wrongContentHtml = wrongList.map(w => {
       if (w.correct > 0) {
-        return `<span class="word-pill-tag correct" style="border:1px dashed #4ade80;" title="當日曾答錯 ${w.wrong} 次，當日已訂正答對">✓ ${w.word} <small style="font-size:10px; opacity:0.85;">(當日已訂正)</small></span>`;
+        return `<span class="word-pill-tag correct" onclick="window.__sayWord && window.__sayWord('${w.word.replace(/'/g, "\\'")}')" style="border:1px dashed #4ade80; cursor:pointer;" title="當日曾答錯 ${w.wrong} 次，當日已訂正答對 (點擊聆聽發音)">✓ ${w.word} <small style="font-size:10px; opacity:0.85;">(已訂正) 🔊</small></span>`;
       } else {
-        return `<span class="word-pill-tag wrong" title="當日自由練習答錯">✗ ${w.word}</span>`;
+        return `<span class="word-pill-tag wrong" onclick="window.__sayWord && window.__sayWord('${w.word.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">✗ ${w.word} 🔊</span>`;
       }
     }).join("");
   } else {
