@@ -61,10 +61,18 @@ function todayDateStr() {
 
 function getWeekMondayDate() {
   const d = new Date();
-  const day = d.getDay();
+  const day = d.getDay(); // 0=Sun, 6=Sat
   const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-  const monday = new Date(d.setDate(diff));
+  const monday = new Date(d.getFullYear(), d.getMonth(), diff);
   return monday.getFullYear() + "-" + String(monday.getMonth() + 1).padStart(2, "0") + "-" + String(monday.getDate()).padStart(2, "0");
+}
+
+function getWeekFridayDate() {
+  const d = new Date();
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1) + 4;
+  const friday = new Date(d.getFullYear(), d.getMonth(), diff);
+  return friday.getFullYear() + "-" + String(friday.getMonth() + 1).padStart(2, "0") + "-" + String(friday.getDate()).padStart(2, "0");
 }
 
 // ── 錯題記錄：只記錄「今日指定練習」中答錯的單字 ──
@@ -82,28 +90,71 @@ function recordTaskMistake(word) {
   } catch(_) {}
 }
 
-// ── 取得本週週一至週五指定任務答錯的所有單字 ──
-function getMonToFriMistakes() {
-  try {
-    const raw = localStorage.getItem("weekTaskMistakes");
-    if (!raw) return [];
-    const map = JSON.parse(raw);
-    const mondayStr = getWeekMondayDate();
-    const mistakes = [];
+// ── 取得學生於星期一到星期五沒有答對（包含沒有作答/缺考）的所有單字 ──
+function getMonToFriUnfinishedWords() {
+  const unfinishedWords = new Set();
+  const mondayStr = getWeekMondayDate();
+  const fridayStr = getWeekFridayDate();
 
-    for (const dateKey in map) {
-      if (dateKey >= mondayStr && dateKey <= todayDateStr()) {
-        const d = new Date(dateKey.replace(/-/g, "/"));
-        const dayOfWeek = d.getDay();
-        // 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri
-        if (dayOfWeek >= 1 && dayOfWeek <= 5) {
-          mistakes.push(...map[dateKey]);
+  // 1. 從 student_task_history（由雲端試算表歷程同步）讀取本週一至週五任務
+  try {
+    const rawHist = localStorage.getItem("student_task_history");
+    if (rawHist) {
+      const historyList = JSON.parse(rawHist);
+      if (Array.isArray(historyList)) {
+        historyList.forEach(item => {
+          if (!item || !item.date) return;
+          const iDate = String(item.date).trim().replace(/\//g, "-");
+          if (iDate >= mondayStr && iDate <= fridayStr) {
+            // (a) 該測驗中答錯的單字
+            if (Array.isArray(item.wrongWords)) {
+              item.wrongWords.forEach(w => {
+                const cw = String(w).trim().toLowerCase();
+                if (cw) unfinishedWords.add(cw);
+              });
+            }
+            // (b) 若該任務狀態未完成、缺考或沒有作答（例如尚未開始或 score 為 "—"）
+            const status = String(item.status || "");
+            const score = String(item.score || "");
+            const isUnattempted = !status.includes("已完成") || score === "—" || score === "尚未開始";
+            if (isUnattempted && Array.isArray(item.words)) {
+              item.words.forEach(w => {
+                const cw = String(w).trim().toLowerCase();
+                if (cw) unfinishedWords.add(cw);
+              });
+            }
+          }
+        });
+      }
+    }
+  } catch(_) {}
+
+  // 2. 從 weekTaskMistakes（本機即時記錄）讀取本週一至週五的錯題
+  try {
+    const rawMistakes = localStorage.getItem("weekTaskMistakes");
+    if (rawMistakes) {
+      const map = JSON.parse(rawMistakes);
+      for (const dateKey in map) {
+        if (dateKey >= mondayStr && dateKey <= fridayStr) {
+          const d = new Date(dateKey.replace(/-/g, "/"));
+          const dayOfWeek = d.getDay();
+          if (dayOfWeek >= 1 && dayOfWeek <= 5) {
+            if (Array.isArray(map[dateKey])) {
+              map[dateKey].forEach(w => {
+                const cw = String(w).trim().toLowerCase();
+                if (cw) unfinishedWords.add(cw);
+              });
+            }
+          }
         }
       }
     }
-    return [...new Set(mistakes)];
-  } catch(_) { return []; }
+  } catch(_) {}
+
+  return Array.from(unfinishedWords);
 }
+
+const getMonToFriMistakes = getMonToFriUnfinishedWords;
 
 function levelInfo() {
   const prog = store.progress();
@@ -457,20 +508,24 @@ function checkAndStartDailyTask() {
 
   let taskToRun = null;
 
-  // 週末優先檢查是否有「本週指定進度錯題」
+  // 週末自動檢核：學生於星期一到星期五沒有答對（包含沒有作答/缺考）的單字一律自動變成六日的指派單字測驗
   if (isWeekend) {
-    const mistakes = getMonToFriMistakes();
-    if (mistakes.length > 0) {
-      taskToRun = {
-        taskName  : "本週指定錯題消滅戰",
-        words     : mistakes,
-        count     : "ALL",
-        isWeekend : true
-      };
+    if (assignedTaskObj && assignedTaskObj.hasTask && assignedTaskObj.isWeekend && Array.isArray(assignedTaskObj.words) && assignedTaskObj.words.length > 0) {
+      taskToRun = assignedTaskObj;
+    } else {
+      const unfinished = getMonToFriUnfinishedWords();
+      if (unfinished.length > 0) {
+        taskToRun = {
+          taskName  : "週末指定單字消滅戰",
+          words     : unfinished,
+          count     : "ALL",
+          isWeekend : true
+        };
+      }
     }
   }
 
-  // 若平日（或週末無錯題），檢查是否有老師指定的單字任務
+  // 若平日（或週末有老師當日特別指派之非補強任務），檢查是否有老師指定的單字任務
   if (!taskToRun && assignedTaskObj && assignedTaskObj.hasTask && assignedTaskObj.words && assignedTaskObj.words.length > 0) {
     taskToRun = assignedTaskObj;
   }
