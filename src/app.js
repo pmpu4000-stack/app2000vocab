@@ -246,7 +246,24 @@ function renderCurrent() {
   }
 }
 
+// ── 學生使用時間管制 (每日 07:30 ~ 22:00) ──
+function isCurfewActive() {
+  const role = localStorage.getItem("user_role") || "student";
+  if (role === "teacher" || role === "admin") return false;
+  const isUnlocked = sessionStorage.getItem("time_restriction_unlocked") === "true";
+  if (isUnlocked) return false;
+  const d = new Date();
+  const mins = d.getHours() * 60 + d.getMinutes();
+  return (mins < 450 || mins > 1320); // 07:30 ~ 22:00
+}
+
 function newRound() {
+  if (isCurfewActive()) {
+    const curfewEl = document.getElementById("curfew-overlay");
+    if (curfewEl) curfewEl.style.display = "flex";
+    return;
+  }
+
   // ── 如果今日任務進行中 ──
   if (taskState.active) {
     if (taskState.pool && taskState.pool.length > 0 && taskState.index < taskState.pool.length) {
@@ -445,6 +462,12 @@ async function startChallenge() {
 // ════════════════════════════════════════════════════════════════════
 
 function checkAndStartDailyTask() {
+  if (isCurfewActive()) {
+    const curfewEl = document.getElementById("curfew-overlay");
+    if (curfewEl) curfewEl.style.display = "flex";
+    return;
+  }
+
   const todayDash = todayDateStr(); // yyyy-mm-dd
   const todaySlash = todayDash.replace(/-/g, "/");
 
