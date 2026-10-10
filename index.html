@@ -144,14 +144,25 @@
       }
     }
 
-    // 頁面載入時若已有儲存之帳號，預先填入並更新顯示
-    const savedUser = localStorage.getItem("current_user");
-    const savedRole = localStorage.getItem("user_role");
-    if (savedUser) {
-      const loginUser = document.getElementById("login-user");
-      if (loginUser && !loginUser.value) loginUser.value = savedUser;
-      updateAccountDisplay(savedUser, savedRole);
+    // ── 開啟網頁時立即清除先前所有學習紀錄，確保乾淨狀態 ──
+    const rememberedUser = localStorage.getItem("current_user");
+
+    // 清除先前所有本機遊戲、測驗進度快取，保證無舊帳號殘留
+    const initialKeysToPurge = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && (k.startsWith("spellAgent") || k.startsWith("today_task") || k.startsWith("task_done") || k === "weekTaskMistakes" || k === "assigned_task_active")) {
+        initialKeysToPurge.push(k);
+      }
     }
+    initialKeysToPurge.forEach(k => localStorage.removeItem(k));
+    sessionStorage.clear();
+
+    // 狀態列維持純淨初始狀態，未登入前不顯示任何前人紀錄
+    updateAccountDisplay("-", "");
+    const sc = document.getElementById("s-correct"); if (sc) sc.textContent = "0";
+    const ss = document.getElementById("s-streak");  if (ss) ss.textContent = "0";
+    const sr = document.getElementById("s-rate");    if (sr) sr.textContent = "0%";
 
     // 點擊「登入帳號」欄位可確認資訊或切換登出
     const statUser = document.getElementById("stat-user");
@@ -181,7 +192,6 @@
     });
 
     // 自動填入前次登入帳號並聚焦密碼輸入框
-    const rememberedUser = localStorage.getItem("current_user");
     if (rememberedUser) {
       const uEl = document.getElementById("login-user");
       if (uEl && !uEl.value) {
