@@ -162,16 +162,8 @@
         if (confirm(`【帳號資訊】\n目前登入帳號：${cur} (${role})\n\n是否要登出並切換其他帳號？`)) {
           sessionStorage.removeItem("current_pass");
           sessionStorage.removeItem("assigned_task");
-          const overlay = document.getElementById("login-overlay");
-          if (overlay) {
-            overlay.style.display = "flex";
-            const msgEl = document.getElementById("login-msg");
-            if (msgEl) msgEl.textContent = "已登出，請重新輸入帳號與密碼。";
-            const passInput = document.getElementById("login-pass");
-            if (passInput) { passInput.value = ""; passInput.focus(); }
-          } else {
-            location.reload();
-          }
+          // 登出時重新載入頁面，徹底銷毀記憶體中的舊帳號作答狀態與定時器
+          location.reload();
         }
       };
     }
@@ -198,6 +190,7 @@
         if (pEl) pEl.focus();
       }
     }
+
     document.getElementById('login-btn').addEventListener('click', async () => {
       const user = document.getElementById('login-user').value.trim();
       const pass = document.getElementById('login-pass').value.trim();
@@ -219,6 +212,27 @@
         let result = await response.json();
 
         if (result.status === "success") {
+          // ── 帳號資料完全隔離與清理 ──
+          const lastUser = localStorage.getItem("current_user");
+          const isDifferentUser = lastUser && lastUser !== user;
+          
+          // 判定雲端是否有實質紀錄（必須是含有有效 spellAgent.v2 的物件）
+          const hasCloudRecords = result.records && 
+                                  typeof result.records === "object" && 
+                                  !Array.isArray(result.records) && 
+                                  Object.keys(result.records).length > 0 &&
+                                  !!result.records["spellAgent.v2"];
+
+          // 無論是切換帳號或登入全新帳號，一律先徹底清除本機舊帳號暫存，防止歷程互相污染
+          const keysToRemove = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (k && (k.startsWith("spellAgent") || k.startsWith("today_task") || k.startsWith("task_done") || k === "weekTaskMistakes")) {
+              keysToRemove.push(k);
+            }
+          }
+          keysToRemove.forEach(k => localStorage.removeItem(k));
+
           localStorage.setItem("current_user", user);
           localStorage.setItem("user_role", result.role || "student");
           updateAccountDisplay(user, result.role || "student");
@@ -257,14 +271,32 @@
             localStorage.removeItem("assigned_task_active");
           }
 
-          // 若有雲端歷史紀錄則寫入 LocalStorage
-          if (result.records) {
+          if (hasCloudRecords) {
+            // 雲端有存檔：將雲端最新進度寫入 LocalStorage
             for (let key in result.records) {
               localStorage.setItem(key, result.records[key]);
             }
+            alert("登入成功！已載入雲端學習進度。");
+          } else {
+            // 全新帳號（雲端尚無進度）：嚴格初始化為 0 題、0% 正確率、全新等級 1
+            const freshStore = {
+              box: {}, stat: {}, lstat: {},
+              mstat: { listen: { a: 0, c: 0 }, pick: { a: 0, c: 0 }, scramble: { a: 0, c: 0 }, trap: { a: 0, c: 0 } },
+              level: { current: 1, unlocked: 1, placed: true },
+              session: { active: false, date: null, answered: 0, correct: 0, incorrect: 0, ids: {}, mastered: 0 },
+              history: {},
+              points: 0, streak: 0, best: 0, attempts: 0, correct: 0
+            };
+            localStorage.setItem("spellAgent.v2", JSON.stringify(freshStore));
+            alert("登入成功！此為全新帳號，已重置為全新學習進度。");
           }
 
-          alert(result.records ? "登入成功！已載入雲端學習進度。" : "登入成功！開啟全新學習進度。");
+          // 若先前已載入過遊戲核心模組（例如切換帳號情境），強制重新整理以徹底銷毀記憶體殘留
+          if (window.__gameModuleLoaded) {
+            location.reload();
+            return;
+          }
+          window.__gameModuleLoaded = true;
 
           // 1. 動態載入遊戲核心模組（加上時間戳記防瀏覽器快取，此時 app.js 才會讀取剛剛存好的 LocalStorage）
           msgEl.textContent = "登入成功，正在啟動遊戲...";
