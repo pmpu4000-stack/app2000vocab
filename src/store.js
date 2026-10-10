@@ -47,6 +47,15 @@ function load() {
       session: { ...base.session, ...(d.session || {}) },
       history: d.history || {},
     };
+    // 歷史版本數據自動對齊：若早期未記錄 mstat，自動對齊至預設 listen 模式
+    const mSumA = (merged.mstat.listen?.a || 0) + (merged.mstat.pick?.a || 0) + (merged.mstat.scramble?.a || 0) + (merged.mstat.trap?.a || 0);
+    if ((merged.attempts || 0) > mSumA) {
+      const diffA = (merged.attempts || 0) - mSumA;
+      const mSumC = (merged.mstat.listen?.c || 0) + (merged.mstat.pick?.c || 0) + (merged.mstat.scramble?.c || 0) + (merged.mstat.trap?.c || 0);
+      const diffC = Math.max(0, (merged.correct || 0) - mSumC);
+      merged.mstat.listen.a = (merged.mstat.listen.a || 0) + diffA;
+      merged.mstat.listen.c = (merged.mstat.listen.c || 0) + diffC;
+    }
     // a session left open from a previous day is over
     if (merged.session.active && merged.session.date !== todayStr()) merged.session.active = false;
     return merged;
@@ -85,11 +94,10 @@ export function grade(id, correct, level, mode) {
     const ls = DB.lstat[level] || (DB.lstat[level] = { a: 0, c: 0 });
     ls.a++; if (correct) ls.c++;
   }
-  if (mode) {
-    if (!DB.mstat) DB.mstat = { listen: { a: 0, c: 0 }, pick: { a: 0, c: 0 }, scramble: { a: 0, c: 0 }, trap: { a: 0, c: 0 } };
-    const ms = DB.mstat[mode] || (DB.mstat[mode] = { a: 0, c: 0 });
-    ms.a++; if (correct) ms.c++;
-  }
+  const targetMode = mode || "listen";
+  if (!DB.mstat) DB.mstat = { listen: { a: 0, c: 0 }, pick: { a: 0, c: 0 }, scramble: { a: 0, c: 0 }, trap: { a: 0, c: 0 } };
+  const ms = DB.mstat[targetMode] || (DB.mstat[targetMode] = { a: 0, c: 0 });
+  ms.a++; if (correct) ms.c++;
   if (DB.session.active) {
     const s = DB.session;
     s.answered++;
