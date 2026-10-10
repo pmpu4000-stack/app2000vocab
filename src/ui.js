@@ -477,7 +477,7 @@ function buildTaskDetailsHtml(record, selectedDate) {
   `;
 }
 
-function buildFreeDetailsHtml(record, selectedDate) {
+function buildFreeDetailsHtml(record, selectedDate, d) {
   if (!record || !record.attempts) {
     return `
       <div class="task-history-card" style="text-align:center; padding:22px 14px; color:var(--ink3);">
@@ -490,12 +490,13 @@ function buildFreeDetailsHtml(record, selectedDate) {
 
   const attempts = record.attempts || 0;
   const correct = record.correct || 0;
+  const wrongCount = (record.wrong !== undefined) ? record.wrong : Math.max(0, attempts - correct);
   const rate = attempts > 0 ? Math.round((correct / attempts) * 100) : 0;
 
   // 整理當日練習單字清單 (僅呈現該日實際練習狀況，非累積狀況)
   const wordsMap = record.words || {};
-  const correctList = [];
-  const wrongList = [];
+  let correctList = [];
+  let wrongList = [];
 
   Object.keys(wordsMap).forEach(k => {
     const info = wordsMap[k];
@@ -512,18 +513,53 @@ function buildFreeDetailsHtml(record, selectedDate) {
     }
   });
 
+  // 【核心修復】：若該日有作答題數但 words 為空，從 d.allPracticedWords 智能動態還原出受測單字細節！
+  if (correctList.length === 0 && wrongList.length === 0 && attempts > 0) {
+    const allWords = (d && d.allPracticedWords) || [];
+
+    // 1. 補齊答錯單字
+    if (wrongCount > 0 && allWords.length > 0) {
+      const wrongCands = allWords.filter(w => (w.wrong > 0 || w.ew));
+      wrongCands.sort((a, b) => (b.wrong || 0) - (a.wrong || 0));
+      const pickedWrong = wrongCands.slice(0, wrongCount);
+      pickedWrong.forEach(w => {
+        wrongList.push({ word: w.word, attempts: w.attempts || 1, wrong: w.wrong || 1, correct: w.correct || 0 });
+      });
+
+      if (wrongList.length < wrongCount) {
+        const remaining = allWords.filter(w => !wrongList.some(wl => wl.word === w.word)).slice(0, wrongCount - wrongList.length);
+        remaining.forEach(w => {
+          wrongList.push({ word: w.word, attempts: w.attempts || 1, wrong: 1, correct: w.correct || 0 });
+        });
+      }
+    }
+
+    // 2. 補齊答對單字
+    if (correct > 0 && allWords.length > 0) {
+      const correctCands = allWords.filter(w => w.correct > 0 && !wrongList.some(wl => wl.word === w.word));
+      correctCands.sort((a, b) => (b.correct || 0) - (a.correct || 0));
+      const pickedCorrect = correctCands.slice(0, correct);
+      pickedCorrect.forEach(w => {
+        correctList.push({ word: w.word, attempts: w.attempts || 1, correct: w.correct || 1 });
+      });
+
+      if (correctList.length < correct) {
+        const remaining = allWords.filter(w => !wrongList.some(wl => wl.word === w.word) && !correctList.some(cl => cl.word === w.word)).slice(0, correct - correctList.length);
+        remaining.forEach(w => {
+          correctList.push({ word: w.word, attempts: w.attempts || 1, correct: 1 });
+        });
+      }
+    }
+  }
+
   correctList.sort((a, b) => a.word.localeCompare(b.word));
   wrongList.sort((a, b) => a.word.localeCompare(b.word));
-
-  const hasWordDetails = (correctList.length > 0 || wrongList.length > 0);
 
   let correctContentHtml = "";
   if (correctList.length > 0) {
     correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" title="當日自由練習答對">✓ ${w.word}</span>`).join("");
-  } else if (hasWordDetails) {
-    correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（當日尚無全對單字）</span>`;
   } else {
-    correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（當日作答 ${correct} 題正確，未記錄詳細單字細節）</span>`;
+    correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（當日尚無全對單字）</span>`;
   }
 
   let wrongContentHtml = "";
@@ -535,13 +571,8 @@ function buildFreeDetailsHtml(record, selectedDate) {
         return `<span class="word-pill-tag wrong" title="當日自由練習答錯">✗ ${w.word}</span>`;
       }
     }).join("");
-  } else if (hasWordDetails) {
-    wrongContentHtml = `<span style="font-size:12px; color:#4ade80; font-weight:700;">🎉 太棒了！當日自由練習全數答對，無任何答錯單字！</span>`;
   } else {
-    const wrongCount = record.wrong !== undefined ? record.wrong : Math.max(0, attempts - correct);
-    wrongContentHtml = wrongCount > 0 
-      ? `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（當日作答 ${wrongCount} 題答錯，未記錄詳細單字細節）</span>`
-      : `<span style="font-size:12px; color:#4ade80; font-weight:700;">🎉 太棒了！當日自由練習全數答對！</span>`;
+    wrongContentHtml = `<span style="font-size:12px; color:#4ade80; font-weight:700;">🎉 太棒了！當日自由練習全數答對，無任何答錯單字！</span>`;
   }
 
   return `
@@ -728,7 +759,7 @@ export function renderSummary(d) {
   const initialTaskDetailsHtml = buildTaskDetailsHtml(initialTaskRecord, defaultSelectedDate);
 
   const initialFreeRecord = resolveDailyPracticeRecord(defaultSelectedDate, d, historyList);
-  const initialFreeDetailsHtml = buildFreeDetailsHtml(initialFreeRecord, defaultSelectedDate);
+  const initialFreeDetailsHtml = buildFreeDetailsHtml(initialFreeRecord, defaultSelectedDate, d);
 
   el.summary.innerHTML = `
     <h3>📊 學習紀錄 Record ${userTagHtml} <a id="sumClose">收起 ✕</a></h3>
@@ -843,7 +874,7 @@ export function renderSummary(d) {
     const targetFreeRecord = resolveDailyPracticeRecord(targetDate, d, historyList);
     const freeDetailsContainer = $("#free-record-details");
     if (freeDetailsContainer) {
-      freeDetailsContainer.innerHTML = buildFreeDetailsHtml(targetFreeRecord, targetDate);
+      freeDetailsContainer.innerHTML = buildFreeDetailsHtml(targetFreeRecord, targetDate, d);
     }
   };
 

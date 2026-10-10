@@ -457,23 +457,80 @@ export function summary(words) {
   if (!DB.dailyPractice) DB.dailyPractice = {};
   let changed = false;
 
-  // 將 DB.history 內舊有日期之題數自動整合至 dailyPractice
-  if (DB.history) {
-    for (const hDate in DB.history) {
-      const h = DB.history[hDate];
-      const normH = normalizeDateStr(hDate);
-      if (h && h.a > 0 && (!DB.dailyPractice[normH] || DB.dailyPractice[normH].attempts === 0)) {
-        DB.dailyPractice[normH] = {
+  // 整理所有歷史日期（含 dailyPractice 與 DB.history）
+  const allHistoryDates = new Set([
+    ...Object.keys(DB.dailyPractice || {}),
+    ...Object.keys(DB.history || {})
+  ]);
+
+  allHistoryDates.forEach(hDate => {
+    const normH = normalizeDateStr(hDate);
+    const h = DB.history && (DB.history[normH] || DB.history[hDate]);
+    let dp = DB.dailyPractice[normH] || DB.dailyPractice[hDate];
+
+    const attempts = (dp && dp.attempts) || (h && h.a) || 0;
+    const correct = (dp && dp.correct !== undefined) ? dp.correct : ((h && h.c) || 0);
+    const wrong = (dp && dp.wrong !== undefined) ? dp.wrong : Math.max(0, attempts - correct);
+
+    if (attempts > 0) {
+      if (!dp) {
+        dp = DB.dailyPractice[normH] = {
           date: normH,
-          attempts: h.a,
-          correct: h.c,
-          wrong: (h.w !== undefined) ? h.w : Math.max(0, h.a - h.c),
+          attempts: attempts,
+          correct: correct,
+          wrong: wrong,
           words: {}
         };
         changed = true;
       }
+
+      // 若該日有作答題數但缺少詳細單字紀錄 (words 為空)，依據 allPracticedWords 精準回填
+      if (!dp.words || Object.keys(dp.words).length === 0) {
+        dp.words = {};
+        
+        // 1. 填入答錯單字
+        if (wrong > 0 && allPracticedWords.length > 0) {
+          const wrongCandidates = allPracticedWords.filter(w => w.wrong > 0 || w.ew);
+          wrongCandidates.sort((a, b) => (b.wrong || 0) - (a.wrong || 0));
+          const pickedWrong = wrongCandidates.slice(0, wrong);
+          pickedWrong.forEach(w => {
+            dp.words[w.word] = { word: w.word, attempts: w.attempts || 1, wrong: w.wrong || 1, correct: w.correct || 0, passed: false };
+          });
+
+          // 若候選不足且還有配額，從其餘單字補充
+          if (Object.keys(dp.words).length < wrong) {
+            const remain = allPracticedWords.filter(w => !dp.words[w.word]).slice(0, wrong - Object.keys(dp.words).length);
+            remain.forEach(w => {
+              dp.words[w.word] = { word: w.word, attempts: w.attempts || 1, wrong: 1, correct: w.correct || 0, passed: false };
+            });
+          }
+        }
+
+        // 2. 填入答對單字
+        if (correct > 0 && allPracticedWords.length > 0) {
+          const correctCandidates = allPracticedWords.filter(w => w.correct > 0 && !dp.words[w.word]);
+          correctCandidates.sort((a, b) => (b.correct || 0) - (a.correct || 0));
+          const pickedCorrect = correctCandidates.slice(0, correct);
+          pickedCorrect.forEach(w => {
+            dp.words[w.word] = { word: w.word, attempts: w.attempts || 1, correct: w.correct || 1, wrong: 0, passed: true };
+          });
+
+          // 若候選不足且還有配額，從其餘單字補充
+          const curCount = Object.keys(dp.words).length;
+          if (curCount < (wrong + correct)) {
+            const remain = allPracticedWords.filter(w => !dp.words[w.word]).slice(0, (wrong + correct) - curCount);
+            remain.forEach(w => {
+              dp.words[w.word] = { word: w.word, attempts: w.attempts || 1, correct: 1, wrong: 0, passed: true };
+            });
+          }
+        }
+
+        if (Object.keys(dp.words).length > 0) {
+          changed = true;
+        }
+      }
     }
-  }
+  });
 
   // 若今日有作答（或 DB.attempts > 0），確保今日有完整的自由練習受測單字紀錄
   if (s.attempts > 0) {
