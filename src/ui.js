@@ -455,6 +455,90 @@ function buildTaskDetailsHtml(record, selectedDate) {
   `;
 }
 
+function buildFreeDetailsHtml(record, selectedDate) {
+  if (!record || !record.attempts) {
+    return `
+      <div class="task-history-card" style="text-align:center; padding:22px 14px; color:var(--ink3);">
+        <div style="font-size:26px; margin-bottom:6px;">🎮</div>
+        <div style="font-size:13.5px; font-weight:700; color:var(--ink2);">該指定日期（${selectedDate}）尚無自由練習受測紀錄</div>
+        <div style="font-size:12px; margin-top:4px; color:var(--ink3);">可從上方下拉選單切換至其他日期查看作答狀況</div>
+      </div>
+    `;
+  }
+
+  const attempts = record.attempts || 0;
+  const correct = record.correct || 0;
+  const rate = attempts > 0 ? Math.round((correct / attempts) * 100) : 0;
+
+  const wordsMap = record.words || {};
+  const wordKeys = Object.keys(wordsMap);
+
+  let wordsBlock = "";
+  if (wordKeys.length > 0) {
+    wordKeys.sort();
+    const pills = wordKeys.map(w => {
+      const info = wordsMap[w];
+      const hasWrong = (info.wrong > 0);
+      const hasCorrect = (info.correct > 0);
+      if (hasWrong && hasCorrect) {
+        return `<span class="word-pill-tag correct" style="border:1px dashed #4ade80;" title="作答 ${info.attempts} 次 · 錯 ${info.wrong} 次 / 對 ${info.correct} 次 (已訂正)">✓ ${w} <small style="opacity:0.85;font-size:10.5px;">(已訂正)</small></span>`;
+      } else if (hasWrong) {
+        return `<span class="word-pill-tag wrong" title="作答 ${info.attempts} 次 · 答錯 ${info.wrong} 次">✗ ${w}</span>`;
+      } else {
+        return `<span class="word-pill-tag correct" title="作答 ${info.attempts} 次 · 全部答對">✓ ${w}</span>`;
+      }
+    }).join("");
+
+    wordsBlock = `
+      <div class="task-words-container">
+        <div style="font-size:12px; color:var(--ink2); font-weight:700; margin-bottom:6px;">
+          📖 當日受測單字（共 ${wordKeys.length} 字）：
+        </div>
+        <div style="display:flex; flex-wrap:wrap; gap:4px;">
+          ${pills}
+        </div>
+      </div>
+    `;
+  } else {
+    wordsBlock = `
+      <div style="font-size:12px; color:var(--ink3); font-style:italic; margin-top:8px;">
+        （此筆歷史紀錄僅保存題數成果，未記錄詳細單字清單）
+      </div>
+    `;
+  }
+
+  return `
+    <div class="task-history-card">
+      <div class="task-history-header">
+        <div>
+          <span style="font-size:15px; font-weight:800; color:#f8fafc;">🎮 自由練習成果</span>
+          <span style="margin-left:8px; font-size:11.5px; font-weight:700; color:#38bdf8; background:rgba(56,189,248,0.12); padding:2px 8px; border-radius:999px;">自主訓練</span>
+        </div>
+        <div style="font-size:12px; color:var(--ink3); font-weight:600;">
+          📅 練習日期：<span style="color:#cbd5e1; font-weight:700;">${selectedDate}</span>
+        </div>
+      </div>
+
+      <div class="task-score-grid">
+        <div class="task-score-item">
+          <div style="font-size:11.5px; color:var(--ink3); font-weight:700; margin-bottom:2px;">🎯 作答題數</div>
+          <div class="task-score-val" style="color:#38bdf8;">${attempts} 題</div>
+        </div>
+        <div class="task-score-item">
+          <div style="font-size:11.5px; color:var(--ink3); font-weight:700; margin-bottom:2px;">✅ 答對題數</div>
+          <div class="task-score-val" style="color:#4ade80;">${correct} 題</div>
+        </div>
+        <div class="task-score-item">
+          <div style="font-size:11.5px; color:var(--ink3); font-weight:700; margin-bottom:2px;">📊 正確率</div>
+          <div class="task-score-val" style="color:${rate >= 80 ? '#4ade80' : '#fb923c'};">${rate}%</div>
+        </div>
+      </div>
+
+      ${wordsBlock}
+    </div>
+  `;
+}
+
 // ---------- summary ----------
 export function summaryHidden() { return el.summary.hidden; }
 export function renderSummary(d) {
@@ -465,24 +549,43 @@ export function renderSummary(d) {
     .join("");
 
   const historyList = getCombinedTaskHistory();
+  const dailyPracticeMap = d.dailyPractice || {};
+  const practiceDates = Array.isArray(d.practiceDates) ? d.practiceDates : [];
+
   const todayDash = new Date().getFullYear() + "-" + String(new Date().getMonth() + 1).padStart(2, "0") + "-" + String(new Date().getDate()).padStart(2, "0");
   
-  // 建立日期下拉選項
+  // 建立日期下拉選項（整合教師指定測驗、自由練習與今日）
   const dateSet = new Set();
   historyList.forEach(item => { if (item.date) dateSet.add(item.date); });
+  practiceDates.forEach(dateStr => { if (dateStr) dateSet.add(dateStr); });
+  Object.keys(dailyPracticeMap).forEach(dateStr => { if (dateStr) dateSet.add(dateStr); });
   dateSet.add(todayDash);
+
   const sortedDates = Array.from(dateSet).sort((a, b) => b.localeCompare(a));
-  
-  const defaultSelectedDate = historyList.length > 0 ? historyList[0].date : todayDash;
-  const dateOptionsHtml = sortedDates.map(dateStr => {
+  const defaultSelectedDate = sortedDates[0] || todayDash;
+
+  // 教師指定單字測驗下拉選單
+  const taskDateOptionsHtml = sortedDates.map(dateStr => {
     const isToday = (dateStr === todayDash);
     const matched = historyList.find(item => item.date === dateStr);
-    const label = `${dateStr}${isToday ? " (今日)" : ""}${matched ? ` - ${matched.taskName}` : " (無測驗)"}`;
+    const label = `${dateStr}${isToday ? " (今日)" : ""}${matched ? ` - ${matched.taskName}` : " (無指派測驗)"}`;
     return `<option value="${dateStr}" ${dateStr === defaultSelectedDate ? "selected" : ""}>${label}</option>`;
   }).join("");
 
-  const initialRecord = historyList.find(item => item.date === defaultSelectedDate) || null;
-  const initialDetailsHtml = buildTaskDetailsHtml(initialRecord, defaultSelectedDate);
+  // 自由練習作答下拉選單
+  const freeDateOptionsHtml = sortedDates.map(dateStr => {
+    const isToday = (dateStr === todayDash);
+    const matched = dailyPracticeMap[dateStr];
+    const attempts = matched ? (matched.attempts || 0) : 0;
+    const label = `${dateStr}${isToday ? " (今日)" : ""}${attempts > 0 ? ` - ${attempts} 題` : " (無自主練習)"}`;
+    return `<option value="${dateStr}" ${dateStr === defaultSelectedDate ? "selected" : ""}>${label}</option>`;
+  }).join("");
+
+  const initialTaskRecord = historyList.find(item => item.date === defaultSelectedDate) || null;
+  const initialTaskDetailsHtml = buildTaskDetailsHtml(initialTaskRecord, defaultSelectedDate);
+
+  const initialFreeRecord = dailyPracticeMap[defaultSelectedDate] || null;
+  const initialFreeDetailsHtml = buildFreeDetailsHtml(initialFreeRecord, defaultSelectedDate);
 
   el.summary.innerHTML = `
     <h3>📊 學習總結 Summary ${userTagHtml} <a id="sumClose">收起 ✕</a></h3>
@@ -525,12 +628,26 @@ export function renderSummary(d) {
       <div style="display:flex; align-items:center; gap:6px;">
         <label for="task-date-select" style="font-size:11.5px; color:var(--ink3); font-weight:700;">指定日期：</label>
         <select id="task-date-select" class="task-date-selector">
-          ${dateOptionsHtml}
+          ${taskDateOptionsHtml}
         </select>
       </div>
     </div>
     <div id="task-record-details">
-      ${initialDetailsHtml}
+      ${initialTaskDetailsHtml}
+    </div>
+
+    <!-- 自由練習作答紀錄 -->
+    <div class="subh" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-top:20px;">
+      <span>🎮 自由練習作答紀錄</span>
+      <div style="display:flex; align-items:center; gap:6px;">
+        <label for="free-date-select" style="font-size:11.5px; color:var(--ink3); font-weight:700;">指定日期：</label>
+        <select id="free-date-select" class="task-date-selector">
+          ${freeDateOptionsHtml}
+        </select>
+      </div>
+    </div>
+    <div id="free-record-details">
+      ${initialFreeDetailsHtml}
     </div>
 
     <div class="subh">📅 練習紀錄（最近 4 週）</div>
@@ -538,15 +655,38 @@ export function renderSummary(d) {
     <div class="heatmap">${d.history.days.map((x) =>
       `<i class="hc h${x.level}" title="${x.key}：${x.a ? "作答 " + x.a + " · 正確率 " + x.rate + "%" : "沒有練習"}"></i>`).join("")}</div>`;
 
-  const dateSelect = $("#task-date-select");
-  if (dateSelect) {
-    dateSelect.onchange = (e) => {
-      const selectedDate = e.target.value;
-      const targetRecord = historyList.find(item => item.date === selectedDate) || null;
-      const detailsContainer = $("#task-record-details");
-      if (detailsContainer) {
-        detailsContainer.innerHTML = buildTaskDetailsHtml(targetRecord, selectedDate);
-      }
+  const taskDateSelect = $("#task-date-select");
+  const freeDateSelect = $("#free-date-select");
+
+  const syncDateChange = (selectedDate, source) => {
+    const targetTaskRecord = historyList.find(item => item.date === selectedDate) || null;
+    const taskDetailsContainer = $("#task-record-details");
+    if (taskDetailsContainer) {
+      taskDetailsContainer.innerHTML = buildTaskDetailsHtml(targetTaskRecord, selectedDate);
+    }
+
+    const targetFreeRecord = dailyPracticeMap[selectedDate] || null;
+    const freeDetailsContainer = $("#free-record-details");
+    if (freeDetailsContainer) {
+      freeDetailsContainer.innerHTML = buildFreeDetailsHtml(targetFreeRecord, selectedDate);
+    }
+
+    if (source !== "task" && taskDateSelect && taskDateSelect.value !== selectedDate) {
+      taskDateSelect.value = selectedDate;
+    }
+    if (source !== "free" && freeDateSelect && freeDateSelect.value !== selectedDate) {
+      freeDateSelect.value = selectedDate;
+    }
+  };
+
+  if (taskDateSelect) {
+    taskDateSelect.onchange = (e) => {
+      syncDateChange(e.target.value, "task");
+    };
+  }
+  if (freeDateSelect) {
+    freeDateSelect.onchange = (e) => {
+      syncDateChange(e.target.value, "free");
     };
   }
 

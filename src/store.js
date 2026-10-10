@@ -6,16 +6,35 @@ import { CATS } from "./data.js";
 
 const LS_KEY = "spellAgent.v2"; // bumped: added level progression
 
-// Local calendar date "YYYY-M-D" (used to scope a training session to one day).
+// Standard calendar date "YYYY-MM-DD"
+export function normalizeDateStr(ds) {
+  if (!ds) return "";
+  const parts = String(ds).trim().replace(/\//g, "-").split("-");
+  if (parts.length === 3) {
+    const y = parts[0];
+    const m = parts[1].padStart(2, "0");
+    const d = parts[2].padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  }
+  return String(ds).trim();
+}
+
+// Local calendar date "YYYY-MM-DD" (used to scope a training session or daily practice).
 function todayStr() {
   const d = new Date();
-  return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 // The calendar date `offset` days before today, as { key, dnum }.
 function dayAgo(offset) {
   const d = new Date();
   d.setDate(d.getDate() - offset);
-  return { key: d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate(), dnum: d.getDate() };
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return { key: `${y}-${m}-${day}`, dnum: d.getDate() };
 }
 
 // box (Leitner): 0 new · 1 learning · 2 practicing · 3 mastered
@@ -31,6 +50,8 @@ function fresh() {
     session: { active: false, date: null, answered: 0, correct: 0, incorrect: 0, ids: {}, mastered: 0 },
     // per-day practice log, keyed by date -> { a: answered, c: correct, w: wrong, m: newly mastered }
     history: {},
+    // per-day free practice detailed log, keyed by date -> { date, attempts, correct, wrong, words: { [word]: { word, attempts, correct, wrong, passed } } }
+    dailyPractice: {},
     points: 0, streak: 0, best: 0, attempts: 0, correct: 0,
   };
 }
@@ -46,6 +67,7 @@ function load() {
       level: { ...base.level, ...(d.level || {}), placed: true },
       session: { ...base.session, ...(d.session || {}) },
       history: d.history || {},
+      dailyPractice: d.dailyPractice || {},
     };
     // 歷史版本數據自動對齊：若早期未記錄 mstat，自動對齊至預設 listen 模式
     const mSumA = (merged.mstat.listen?.a || 0) + (merged.mstat.pick?.a || 0) + (merged.mstat.scramble?.a || 0) + (merged.mstat.trap?.a || 0);
@@ -72,7 +94,8 @@ export function everWrong(id) { return !!(DB.stat[id] && DB.stat[id].ew); }
 export function correctCount(id) { return DB.stat[id] ? DB.stat[id].c : 0; }
 
 // Grade one practice attempt. `level` (optional) also updates that level's tally. `mode` (optional) tracks 4 practice modes.
-export function grade(id, correct, level, mode) {
+// `wordStr` (optional) tracks the specific word tested. `isFree` (default true) catalogs it into daily free practice log.
+export function grade(id, correct, level, mode, wordStr = null, isFree = true) {
   const before = box(id);
   const st = DB.stat[id] || (DB.stat[id] = { a: 0, c: 0, ew: false });
   st.a++; DB.attempts++;
@@ -98,6 +121,38 @@ export function grade(id, correct, level, mode) {
   if (!DB.mstat) DB.mstat = { listen: { a: 0, c: 0 }, pick: { a: 0, c: 0 }, scramble: { a: 0, c: 0 }, trap: { a: 0, c: 0 } };
   const ms = DB.mstat[targetMode] || (DB.mstat[targetMode] = { a: 0, c: 0 });
   ms.a++; if (correct) ms.c++;
+
+  // 自由練習每日紀錄 (包含當日受測單字與作答成果)
+  if (isFree) {
+    const tKey = todayStr();
+    if (!DB.dailyPractice) DB.dailyPractice = {};
+    const dp = DB.dailyPractice[tKey] || (DB.dailyPractice[tKey] = {
+      date: tKey,
+      attempts: 0,
+      correct: 0,
+      wrong: 0,
+      words: {}
+    });
+    dp.attempts++;
+    if (correct) dp.correct++; else dp.wrong++;
+
+    if (wordStr) {
+      const wKey = String(wordStr).trim().toLowerCase();
+      const we = dp.words[wKey] || (dp.words[wKey] = { word: wKey, attempts: 0, correct: 0, wrong: 0, passed: false });
+      we.attempts++;
+      if (correct) {
+        we.correct++;
+        we.passed = true;
+      } else {
+        we.wrong++;
+      }
+    }
+
+    // 自由練習亦同步記入 history 以支援學習天數熱力圖
+    const h = DB.history[tKey] || (DB.history[tKey] = { a: 0, c: 0, w: 0, m: 0 });
+    h.a++; if (correct) h.c++; else h.w++; if (newlyMastered) h.m++;
+  }
+
   if (DB.session.active) {
     const s = DB.session;
     s.answered++;
@@ -206,6 +261,38 @@ export function stats(words) {
   };
 }
 
+// ---- daily free practice helpers ----
+export function getDailyPractice(dateStr) {
+  const norm = normalizeDateStr(dateStr);
+  let dp = (DB.dailyPractice && (DB.dailyPractice[norm] || DB.dailyPractice[dateStr])) || null;
+  if (!dp) {
+    const h = (DB.history && (DB.history[norm] || DB.history[dateStr])) || null;
+    if (h && h.a > 0) {
+      dp = {
+        date: norm,
+        attempts: h.a,
+        correct: h.c,
+        wrong: (h.w !== undefined) ? h.w : Math.max(0, h.a - h.c),
+        words: {}
+      };
+    }
+  }
+  return dp;
+}
+
+export function getPracticeDates() {
+  const set = new Set();
+  if (DB.dailyPractice) {
+    Object.keys(DB.dailyPractice).forEach(k => { if (k) set.add(normalizeDateStr(k)); });
+  }
+  if (DB.history) {
+    Object.keys(DB.history).forEach(k => {
+      if (k && DB.history[k] && DB.history[k].a > 0) set.add(normalizeDateStr(k));
+    });
+  }
+  return Array.from(set);
+}
+
 // Everything the summary panel needs, as plain data.
 export function summary(words) {
   const s = stats(words);
@@ -231,5 +318,7 @@ export function summary(words) {
     attempts: s.attempts, correct: s.correct, total: s.total,
     mastered, fixed, levels, catCounts, history: historyData(),
     modeStats,
+    dailyPractice: DB.dailyPractice || {},
+    practiceDates: getPracticeDates(),
   };
 }
