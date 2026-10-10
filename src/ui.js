@@ -382,8 +382,21 @@ function buildTaskDetailsHtml(record, selectedDate) {
     `;
   }
 
-  const wrongSet = new Set((record.wrongWords || []).map(w => String(w).toLowerCase()));
-  const allWords = (Array.isArray(record.words) && record.words.length > 0) ? record.words : Array.from(wrongSet);
+  const wrongSet = new Set((record.wrongWords || []).map(w => String(w).trim().toLowerCase()).filter(Boolean));
+  const rawWords = (Array.isArray(record.words) && record.words.length > 0) ? record.words : [];
+
+  // 當日測驗答錯單字（去重、排序）
+  const wrongList = Array.from(new Set(
+    (record.wrongWords || []).map(w => String(w).trim()).filter(Boolean)
+  )).sort((a, b) => a.localeCompare(b));
+
+  // 當日測驗答對單字（從考題中排除答錯單字，去重、排序）
+  const correctList = Array.from(new Set(
+    rawWords
+      .map(w => String(w).trim())
+      .filter(w => Boolean(w) && !wrongSet.has(w.toLowerCase()))
+  )).sort((a, b) => a.localeCompare(b));
+
   const scoreVal = record.score || "—";
   const rateVal = record.rate || "—";
   const statusStr = record.status || "🟢 已完成";
@@ -391,51 +404,28 @@ function buildTaskDetailsHtml(record, selectedDate) {
   const statusBg = statusStr.includes("已完成") ? "rgba(34,197,94,0.15)" : statusStr.includes("作答中") ? "rgba(234,179,8,0.15)" : "rgba(148,163,184,0.15)";
   const isFinished = statusStr.includes("已完成") || (scoreVal !== "—" && scoreVal !== "尚未開始");
 
-  let wrongWordsBlock = "";
-  if (record.wrongWords && record.wrongWords.length > 0) {
-    wrongWordsBlock = `
-      <div style="background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.25); border-radius:10px; padding:10px 12px; margin-bottom:12px;">
-        <div style="font-size:12px; font-weight:800; color:#f87171; margin-bottom:6px; display:flex; align-items:center; gap:5px;">
-          <span>❌ 答錯單字（共 ${record.wrongWords.length} 字）：</span>
-        </div>
-        <div style="display:flex; flex-wrap:wrap; gap:4px;">
-          ${record.wrongWords.map(w => `<span class="word-pill-tag wrong">${w}</span>`).join("")}
-        </div>
-      </div>
-    `;
+  let correctContentHtml = "";
+  if (correctList.length > 0) {
+    correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" title="當日指定測驗作答正確">✓ ${w}</span>`).join("");
   } else if (isFinished) {
-    wrongWordsBlock = `
-      <div style="background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.22); border-radius:10px; padding:9px 12px; margin-bottom:12px; color:#4ade80; font-size:12.5px; font-weight:700; display:flex; align-items:center; gap:6px;">
-        🎉 太棒了！本次測驗全數答對，無任何錯題！
-      </div>
-    `;
+    if (rawWords.length > 0) {
+      correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（本次測驗全數答錯，尚無答對單字）</span>`;
+    } else {
+      correctContentHtml = (wrongList.length === 0)
+        ? `<span style="font-size:12px; color:#4ade80; font-weight:700;">🎉 太棒了！本次測驗全數答對！</span>`
+        : `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（此歷史紀錄未載入題目單字清單，作答 ${scoreVal}）</span>`;
+    }
+  } else {
+    correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（測驗待完成，尚未作答）</span>`;
   }
 
-  let taskWordsBlock = "";
-  if (allWords.length > 0) {
-    const pills = allWords.map(w => {
-      const isWrong = wrongSet.has(String(w).toLowerCase());
-      if (isWrong) {
-        return `<span class="word-pill-tag wrong" title="此題答錯">✗ ${w}</span>`;
-      } else if (isFinished) {
-        return `<span class="word-pill-tag correct" title="此題答對">✓ ${w}</span>`;
-      } else {
-        return `<span class="word-pill-tag neutral">${w}</span>`;
-      }
-    }).join("");
-
-    taskWordsBlock = `
-      <div class="task-words-container">
-        <div style="font-size:12px; color:var(--ink2); font-weight:700; margin-bottom:6px;">📋 該任務測驗題目（共 ${allWords.length} 題）：</div>
-        <div style="display:flex; flex-wrap:wrap; gap:4px;">
-          ${pills}
-        </div>
-      </div>
-    `;
+  let wrongContentHtml = "";
+  if (wrongList.length > 0) {
+    wrongContentHtml = wrongList.map(w => `<span class="word-pill-tag wrong" title="當日指定測驗作答錯誤">✗ ${w}</span>`).join("");
+  } else if (isFinished) {
+    wrongContentHtml = `<span style="font-size:12px; color:#4ade80; font-weight:700;">🎉 太棒了！本次測驗全數答對，無任何答錯單字！</span>`;
   } else {
-    taskWordsBlock = `
-      <div style="font-size:12px; color:var(--ink3); font-style:italic; margin-top:6px;">（此筆歷程未載入詳細單字清單）</div>
-    `;
+    wrongContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（目前無答錯單字）</span>`;
   }
 
   return `
@@ -461,13 +451,33 @@ function buildTaskDetailsHtml(record, selectedDate) {
         </div>
       </div>
 
-      ${wrongWordsBlock}
-      ${taskWordsBlock}
+      <!-- 將答對的字與答錯的字分成兩個區域（如同自由練習成果，且純顯示當日測驗作答狀況） -->
+      <div class="word-split-grid">
+        <!-- 答對的單字區 -->
+        <div class="word-split-box correct-box">
+          <div class="word-split-title correct-title">
+            <span>✅ 答對的單字（共 ${correctList.length} 字）：</span>
+          </div>
+          <div style="display:flex; flex-wrap:wrap; gap:5px;">
+            ${correctContentHtml}
+          </div>
+        </div>
+
+        <!-- 答錯的單字區 -->
+        <div class="word-split-box wrong-box">
+          <div class="word-split-title wrong-title">
+            <span>❌ 答錯的單字（共 ${wrongList.length} 字）：</span>
+          </div>
+          <div style="display:flex; flex-wrap:wrap; gap:5px;">
+            ${wrongContentHtml}
+          </div>
+        </div>
+      </div>
     </div>
   `;
 }
 
-function buildFreeDetailsHtml(record, selectedDate, allPracticedWords = []) {
+function buildFreeDetailsHtml(record, selectedDate) {
   if (!record || !record.attempts) {
     return `
       <div class="task-history-card" style="text-align:center; padding:22px 14px; color:var(--ink3);">
@@ -482,21 +492,8 @@ function buildFreeDetailsHtml(record, selectedDate, allPracticedWords = []) {
   const correct = record.correct || 0;
   const rate = attempts > 0 ? Math.round((correct / attempts) * 100) : 0;
 
-  // 整理單字清單 (若 words 為空，自動由 allPracticedWords 填補，保證詳細清單完整呈現)
-  let wordsMap = record.words || {};
-  if (Object.keys(wordsMap).length === 0 && Array.isArray(allPracticedWords) && allPracticedWords.length > 0) {
-    wordsMap = {};
-    allPracticedWords.forEach(pw => {
-      wordsMap[pw.word.toLowerCase()] = {
-        word: pw.word,
-        attempts: pw.attempts,
-        correct: pw.correct,
-        wrong: pw.wrong,
-        passed: pw.correct > 0
-      };
-    });
-  }
-
+  // 整理當日練習單字清單 (僅呈現該日實際練習狀況，非累積狀況)
+  const wordsMap = record.words || {};
   const correctList = [];
   const wrongList = [];
 
@@ -517,6 +514,35 @@ function buildFreeDetailsHtml(record, selectedDate, allPracticedWords = []) {
 
   correctList.sort((a, b) => a.word.localeCompare(b.word));
   wrongList.sort((a, b) => a.word.localeCompare(b.word));
+
+  const hasWordDetails = (correctList.length > 0 || wrongList.length > 0);
+
+  let correctContentHtml = "";
+  if (correctList.length > 0) {
+    correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" title="當日自由練習答對">✓ ${w.word}</span>`).join("");
+  } else if (hasWordDetails) {
+    correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（當日尚無全對單字）</span>`;
+  } else {
+    correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（當日作答 ${correct} 題正確，未記錄詳細單字細節）</span>`;
+  }
+
+  let wrongContentHtml = "";
+  if (wrongList.length > 0) {
+    wrongContentHtml = wrongList.map(w => {
+      if (w.correct > 0) {
+        return `<span class="word-pill-tag correct" style="border:1px dashed #4ade80;" title="當日曾答錯 ${w.wrong} 次，當日已訂正答對">✓ ${w.word} <small style="font-size:10px; opacity:0.85;">(當日已訂正)</small></span>`;
+      } else {
+        return `<span class="word-pill-tag wrong" title="當日自由練習答錯">✗ ${w.word}</span>`;
+      }
+    }).join("");
+  } else if (hasWordDetails) {
+    wrongContentHtml = `<span style="font-size:12px; color:#4ade80; font-weight:700;">🎉 太棒了！當日自由練習全數答對，無任何答錯單字！</span>`;
+  } else {
+    const wrongCount = record.wrong !== undefined ? record.wrong : Math.max(0, attempts - correct);
+    wrongContentHtml = wrongCount > 0 
+      ? `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（當日作答 ${wrongCount} 題答錯，未記錄詳細單字細節）</span>`
+      : `<span style="font-size:12px; color:#4ade80; font-weight:700;">🎉 太棒了！當日自由練習全數答對！</span>`;
+  }
 
   return `
     <div class="task-history-card">
@@ -545,7 +571,7 @@ function buildFreeDetailsHtml(record, selectedDate, allPracticedWords = []) {
         </div>
       </div>
 
-      <!-- 將答對的字與答錯的字分成兩個區域 -->
+      <!-- 將答對的字與答錯的字分成兩個區域（純顯示當日練習狀況，非累積狀況） -->
       <div class="word-split-grid">
         <!-- 答對的單字區 -->
         <div class="word-split-box correct-box">
@@ -553,10 +579,7 @@ function buildFreeDetailsHtml(record, selectedDate, allPracticedWords = []) {
             <span>✅ 答對的單字（共 ${correctList.length} 字）：</span>
           </div>
           <div style="display:flex; flex-wrap:wrap; gap:5px;">
-            ${correctList.length > 0 
-              ? correctList.map(w => `<span class="word-pill-tag correct" title="作答 ${w.attempts} 次 · 全部答對">✓ ${w.word}</span>`).join("")
-              : `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（本次練習尚無全對單字）</span>`
-            }
+            ${correctContentHtml}
           </div>
         </div>
 
@@ -566,16 +589,7 @@ function buildFreeDetailsHtml(record, selectedDate, allPracticedWords = []) {
             <span>❌ 答錯的單字（共 ${wrongList.length} 字）：</span>
           </div>
           <div style="display:flex; flex-wrap:wrap; gap:5px;">
-            ${wrongList.length > 0 
-              ? wrongList.map(w => {
-                  if (w.correct > 0) {
-                    return `<span class="word-pill-tag correct" style="border:1px dashed #4ade80;" title="錯 ${w.wrong} 次 / 對 ${w.correct} 次 (已訂正)">✓ ${w.word} <small style="font-size:10px; opacity:0.85;">(已訂正)</small></span>`;
-                  } else {
-                    return `<span class="word-pill-tag wrong" title="作答 ${w.attempts} 次 · 答錯 ${w.wrong || 1} 次">✗ ${w.word}</span>`;
-                  }
-                }).join("")
-              : `<span style="font-size:12px; color:#4ade80; font-weight:700;">🎉 太棒了！本次測驗全數答對，無任何答錯單字！</span>`
-            }
+            ${wrongContentHtml}
           </div>
         </div>
       </div>
@@ -595,24 +609,6 @@ function resolveDailyPracticeRecord(dateStr, d, historyList) {
   const todayDash = today.getFullYear() + "-" + String(today.getMonth() + 1).padStart(2, "0") + "-" + String(today.getDate()).padStart(2, "0");
   const isToday = (normYMD === todayDash || dateStr === todayDash);
 
-  // 輔助函式：若 words 為空，自動從 d.allPracticedWords 補全
-  const ensureWords = (wordsObj) => {
-    if (wordsObj && Object.keys(wordsObj).length > 0) return wordsObj;
-    const res = {};
-    if (Array.isArray(d && d.allPracticedWords) && d.allPracticedWords.length > 0) {
-      d.allPracticedWords.forEach(pw => {
-        res[pw.word.toLowerCase()] = {
-          word: pw.word,
-          attempts: pw.attempts,
-          correct: pw.correct,
-          wrong: pw.wrong,
-          passed: pw.correct > 0
-        };
-      });
-    }
-    return res;
-  };
-
   // 1. 從 d.dailyPractice 尋找
   const dpMap = (d && d.dailyPractice) || {};
   let rec = dpMap[normYMD] || dpMap[unpadYMD] || dpMap[slashYMD] || dpMap[dateStr] || null;
@@ -622,7 +618,7 @@ function resolveDailyPracticeRecord(dateStr, d, historyList) {
       attempts: rec.attempts,
       correct: rec.correct,
       wrong: (rec.wrong !== undefined) ? rec.wrong : Math.max(0, rec.attempts - rec.correct),
-      words: ensureWords(rec.words)
+      words: rec.words || {}
     };
   }
 
@@ -635,7 +631,7 @@ function resolveDailyPracticeRecord(dateStr, d, historyList) {
       attempts: h.a,
       correct: h.c,
       wrong: (h.w !== undefined) ? h.w : Math.max(0, h.a - h.c),
-      words: ensureWords(rec && rec.words)
+      words: (rec && rec.words) || {}
     };
   }
 
@@ -663,20 +659,20 @@ function resolveDailyPracticeRecord(dateStr, d, historyList) {
           attempts: att,
           correct: corr,
           wrong: Math.max(0, att - corr),
-          words: ensureWords(rec && rec.words)
+          words: (rec && rec.words) || {}
         };
       }
     }
   }
 
-  // 4. 若為今天且總作答題數大於 0 (DB.attempts > 0)，但今日紀錄尚未持久化
+  // 4. 若為今天且總作答題數大於 0 (DB.attempts > 0)，且今日有即時作答
   if (isToday && d && d.attempts > 0) {
     return {
       date: normYMD,
       attempts: d.attempts,
       correct: d.correct,
       wrong: Math.max(0, d.attempts - d.correct),
-      words: ensureWords()
+      words: (rec && rec.words) || {}
     };
   }
 
@@ -732,7 +728,7 @@ export function renderSummary(d) {
   const initialTaskDetailsHtml = buildTaskDetailsHtml(initialTaskRecord, defaultSelectedDate);
 
   const initialFreeRecord = resolveDailyPracticeRecord(defaultSelectedDate, d, historyList);
-  const initialFreeDetailsHtml = buildFreeDetailsHtml(initialFreeRecord, defaultSelectedDate, d.allPracticedWords);
+  const initialFreeDetailsHtml = buildFreeDetailsHtml(initialFreeRecord, defaultSelectedDate);
 
   el.summary.innerHTML = `
     <h3>📊 學習紀錄 Record ${userTagHtml} <a id="sumClose">收起 ✕</a></h3>
@@ -847,7 +843,7 @@ export function renderSummary(d) {
     const targetFreeRecord = resolveDailyPracticeRecord(targetDate, d, historyList);
     const freeDetailsContainer = $("#free-record-details");
     if (freeDetailsContainer) {
-      freeDetailsContainer.innerHTML = buildFreeDetailsHtml(targetFreeRecord, targetDate, d.allPracticedWords);
+      freeDetailsContainer.innerHTML = buildFreeDetailsHtml(targetFreeRecord, targetDate);
     }
   };
 

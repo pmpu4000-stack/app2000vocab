@@ -493,24 +493,6 @@ export function summary(words) {
     }
   }
 
-  // 核心修復：凡有練習題數但尚未記錄詳細單字者，一律自 DB.stat 完整回填所有受測單字成果，絕不顯示「未記錄詳細清單」
-  for (const k in DB.dailyPractice) {
-    const entry = DB.dailyPractice[k];
-    if (entry && entry.attempts > 0 && Object.keys(entry.words || {}).length === 0 && allPracticedWords.length > 0) {
-      entry.words = {};
-      allPracticedWords.forEach(pw => {
-        entry.words[pw.word.toLowerCase()] = {
-          word: pw.word,
-          attempts: pw.attempts,
-          correct: pw.correct,
-          wrong: pw.wrong,
-          passed: pw.correct > 0
-        };
-      });
-      changed = true;
-    }
-  }
-
   if (changed) save();
 
   return {
