@@ -1071,7 +1071,7 @@
       dailyTimerInterval = setInterval(updateDailyUsageTick, 1000);
 
       if (dailyPollingInterval) clearInterval(dailyPollingInterval);
-      dailyPollingInterval = setInterval(pollDailyUsageStatus, 15000);
+      dailyPollingInterval = setInterval(maybePollDailyUsage, 5000);
     }
 
     function updateDailyUsageTick() {
@@ -1176,6 +1176,10 @@
       if (window.uploadLocalStorageData) {
         window.uploadLocalStorageData(true);
       }
+
+      // 時間到的當下立即確認一次老師是否已加時／解除
+      lastDailyPollAt = 0;
+      maybePollDailyUsage();
     }
 
     function liftDailyUsageLockdown() {
@@ -1205,6 +1209,30 @@
         progressSec.style.background = "";
       }
     }
+
+    // ── 智慧輪詢：只有在「需要」時才呼叫伺服器，避免觸發 Apps Script 配額 ──
+    //   • 尚有剩餘時間：完全不呼叫（前端本機倒數即可）
+    //   • 時間已到（鎖定中）：每 60 秒查一次老師是否加時／解除
+    //   • 已解除限制：每 10 分鐘確認一次（老師可能恢復限制）
+    //   • 分頁在背景（看不到）時：一律暫停
+    let lastDailyPollAt = 0;
+    let dailyPollInFlight = false;
+    function maybePollDailyUsage(force) {
+      if (document.hidden && !force) return;
+      if (dailyPollInFlight) return;
+      let interval;
+      if (dailyUsageState.unlocked) interval = 10 * 60 * 1000;
+      else if (dailyUsageState.isLockedDown) interval = 60 * 1000;
+      else return;
+      if (!force && Date.now() - lastDailyPollAt < interval) return;
+      if (force && Date.now() - lastDailyPollAt < 20 * 1000) return;
+      lastDailyPollAt = Date.now();
+      dailyPollInFlight = true;
+      pollDailyUsageStatus().finally(() => { dailyPollInFlight = false; });
+    }
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) maybePollDailyUsage(true);
+    });
 
     async function pollDailyUsageStatus() {
       const role = localStorage.getItem("user_role") || "student";

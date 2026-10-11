@@ -969,70 +969,44 @@ function getDailyUsageSettings(param1, username, isLogin) {
   const now = new Date();
   const todayStr = Utilities.formatDate(now, "Asia/Taipei", "yyyy-MM-dd");
 
-  let defaultMinutes = 10; // 預設每日 10 分鐘
-  let studentMinutes = null;
+  // 1. 規則（全校時長 / 個別時長 / 今日延長與解除）— 使用共用快取，避免每次輪詢都讀取試算表
+  const rules = getDailyUsageRulesCached_(ss, todayStr);
+  const defaultMinutes = rules.defaultMinutes || 10;
+  const studentMinutes = (cleanUser && rules.studentMinutes[cleanUser]) ? rules.studentMinutes[cleanUser] : null;
   let addedMinutes = 0;
   let isUnlocked = false;
+  const extAll = rules.extensions["all"];
+  const extUser = cleanUser ? rules.extensions[cleanUser] : null;
+  if (extAll) { addedMinutes += extAll.added; if (extAll.unlocked) isUnlocked = true; }
+  if (extUser && cleanUser !== "all") { addedMinutes += extUser.added; if (extUser.unlocked) isUnlocked = true; }
 
-  try {
-    const sheet = ensureTimeSettingsSheet(ss);
-    if (sheet && sheet.getLastRow() >= 2) {
-      const data = sheet.getDataRange().getValues();
-      for (let i = 1; i < data.length; i++) {
-        const type = String(data[i][0] || "").trim();
-        const targetUser = String(data[i][2] || "").trim().toLowerCase();
-        const startD = formatStandardDateYMD(data[i][6]);
-        const endD = formatStandardDateYMD(data[i][7]);
-        const statusVal = String(data[i][8] || "").trim().toUpperCase();
-        const isEnabled = (data[i][8] === true || statusVal === "TRUE" || statusVal === "啟用" || statusVal === "YES");
-        const remark = String(data[i][11] || "").trim();
-
-        // 1. 全校每日時長設定
-        if (type === "每日時長上限" && targetUser === "all") {
-          const m = parseInt(remark, 10);
-          if (!isNaN(m) && m > 0) defaultMinutes = m;
-        }
-
-        // 2. 個別學生時長設定
-        if (type === "個別學生時長" && targetUser === cleanUser) {
-          const m = parseInt(remark, 10);
-          if (!isNaN(m) && m > 0) studentMinutes = m;
-        }
-
-        // 3. 今日時長延長或解除 (限當天生效)
-        if (isEnabled && type === "時長延長與解除" && (!startD || (todayStr >= startD && todayStr <= (endD || startD)))) {
-          if (targetUser === cleanUser || targetUser === "all") {
-            try {
-              const parsed = JSON.parse(remark);
-              if (parsed) {
-                if (parsed.addedMinutes) addedMinutes += Number(parsed.addedMinutes);
-                if (parsed.unlocked === true) isUnlocked = true;
-              }
-            } catch(_) {
-              const m = parseInt(remark, 10);
-              if (!isNaN(m) && m > 0) addedMinutes += m;
-            }
-          }
-        }
-      }
-    }
-  } catch(e) {
-    logError("getDailyUsageSettings", e, username, "");
-  }
-
-  // 取得學生今日首次登入時間
-  const propKey = "FIRST_LOGIN_" + (cleanUser || "ANON") + "_" + todayStr;
-  const scriptProps = PropertiesService.getScriptProperties();
+  // 2. 今日首次登入時間 — 先讀快取，快取沒有才讀 PropertiesService
   let firstLoginTime = null;
-  try {
-    const val = scriptProps.getProperty(propKey);
-    if (val) {
-      firstLoginTime = Number(val);
-    } else if (isLogin && cleanUser) {
-      firstLoginTime = Date.now();
-      scriptProps.setProperty(propKey, String(firstLoginTime));
+  if (cleanUser && cleanUser !== "all") {
+    const propKey = "FIRST_LOGIN_" + cleanUser + "_" + todayStr;
+    const cache = CacheService.getScriptCache();
+    try {
+      const cached = cache.get(propKey);
+      if (cached) firstLoginTime = Number(cached);
+    } catch(_) {}
+
+    if (!firstLoginTime) {
+      try {
+        const scriptProps = PropertiesService.getScriptProperties();
+        const val = scriptProps.getProperty(propKey);
+        if (val) {
+          firstLoginTime = Number(val);
+        } else if (isLogin) {
+          firstLoginTime = Date.now();
+          scriptProps.setProperty(propKey, String(firstLoginTime));
+        }
+        if (firstLoginTime) cache.put(propKey, String(firstLoginTime), 21600);
+      } catch(_) {}
     }
-  } catch(_) {}
+
+    // 每日清理一次過期的 FIRST_LOGIN_* 屬性，避免超過 500KB 屬性儲存上限
+    if (isLogin) purgeOldFirstLoginProps_(todayStr);
+  }
 
   if (!firstLoginTime) {
     firstLoginTime = Date.now();
@@ -1047,6 +1021,96 @@ function getDailyUsageSettings(param1, username, isLogin) {
     unlocked: isUnlocked,
     firstLoginTime: firstLoginTime
   };
+}
+
+/**
+ * 解析「時間設定」分頁中的每日時長規則，結果快取 120 秒（教師修改時會立即清除快取）
+ */
+function getDailyUsageRulesCached_(ss, todayStr) {
+  const cacheKey = "DAILY_USAGE_RULES_" + todayStr;
+  const cache = CacheService.getScriptCache();
+  try {
+    const hit = cache.get(cacheKey);
+    if (hit) return JSON.parse(hit);
+  } catch(_) {}
+
+  const rules = { defaultMinutes: 10, studentMinutes: {}, extensions: {} };
+  try {
+    const sheet = ensureTimeSettingsSheet(ss);
+    if (sheet && sheet.getLastRow() >= 2) {
+      const data = sheet.getDataRange().getValues();
+      for (let i = 1; i < data.length; i++) {
+        const type = String(data[i][0] || "").trim();
+        const targetUser = String(data[i][2] || "").trim().toLowerCase();
+        const remark = String(data[i][11] || "").trim();
+
+        if (type === "每日時長上限" && targetUser === "all") {
+          const m = parseInt(remark, 10);
+          if (!isNaN(m) && m > 0) rules.defaultMinutes = m;
+        } else if (type === "個別學生時長" && targetUser) {
+          const m = parseInt(remark, 10);
+          if (!isNaN(m) && m > 0) rules.studentMinutes[targetUser] = m;
+        } else if (type === "時長延長與解除" && targetUser) {
+          const startD = formatStandardDateYMD(data[i][6]);
+          const endD = formatStandardDateYMD(data[i][7]);
+          const statusVal = String(data[i][8] || "").trim().toUpperCase();
+          const isEnabled = (data[i][8] === true || statusVal === "TRUE" || statusVal === "啟用" || statusVal === "YES");
+          if (!isEnabled) continue;
+          if (startD && !(todayStr >= startD && todayStr <= (endD || startD))) continue;
+
+          const ext = rules.extensions[targetUser] || { added: 0, unlocked: false };
+          try {
+            const parsed = JSON.parse(remark);
+            if (parsed) {
+              if (parsed.addedMinutes) ext.added += Number(parsed.addedMinutes) || 0;
+              if (parsed.unlocked === true) ext.unlocked = true;
+            }
+          } catch(_) {
+            const m = parseInt(remark, 10);
+            if (!isNaN(m) && m > 0) ext.added += m;
+          }
+          rules.extensions[targetUser] = ext;
+        }
+      }
+    }
+  } catch(e) {
+    logError("getDailyUsageRulesCached_", e, "", "");
+  }
+
+  try { cache.put(cacheKey, JSON.stringify(rules), 120); } catch(_) {}
+  return rules;
+}
+
+/** 教師修改每日時長設定後，清除規則快取讓學生端立即取得新設定 */
+function invalidateDailyUsageRulesCache_() {
+  try {
+    const todayStr = Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy-MM-dd");
+    CacheService.getScriptCache().remove("DAILY_USAGE_RULES_" + todayStr);
+  } catch(_) {}
+}
+
+/** 每天最多執行一次：刪除非今日的 FIRST_LOGIN_* 屬性 */
+function purgeOldFirstLoginProps_(todayStr) {
+  try {
+    const props = PropertiesService.getScriptProperties();
+    if (props.getProperty("FIRST_LOGIN_PURGED_DATE") === todayStr) return;
+    const lock = LockService.getScriptLock();
+    if (!lock.tryLock(3000)) return;
+    try {
+      if (props.getProperty("FIRST_LOGIN_PURGED_DATE") === todayStr) return;
+      const suffix = "_" + todayStr;
+      props.getKeys().forEach(function(k) {
+        if (k.indexOf("FIRST_LOGIN_") === 0 && k !== "FIRST_LOGIN_PURGED_DATE" && k.slice(-suffix.length) !== suffix) {
+          props.deleteProperty(k);
+        }
+      });
+      props.setProperty("FIRST_LOGIN_PURGED_DATE", todayStr);
+    } finally {
+      lock.releaseLock();
+    }
+  } catch(e) {
+    logError("purgeOldFirstLoginProps_", e, "", "");
+  }
 }
 
 /**
@@ -1827,19 +1891,25 @@ function doPost(e) {
     if (action === "saveDailyMinutesSetting") {
       const auth = authenticateUser(ss, params.username, params.password);
       if (!auth.success || auth.role !== "teacher") return jsonResponse({ status: "error", message: "無教師權限" });
-      return jsonResponse(saveDailyMinutesSetting(ss, auth.realName || auth.username, params.settingData || {}));
+      const r1 = saveDailyMinutesSetting(ss, auth.realName || auth.username, params.settingData || {});
+      invalidateDailyUsageRulesCache_();
+      return jsonResponse(r1);
     }
 
     if (action === "extendStudentUsageTime") {
       const auth = authenticateUser(ss, params.username, params.password);
       if (!auth.success || auth.role !== "teacher") return jsonResponse({ status: "error", message: "無教師權限" });
-      return jsonResponse(extendStudentUsageTime(ss, auth.realName || auth.username, params.extendData || {}));
+      const r2 = extendStudentUsageTime(ss, auth.realName || auth.username, params.extendData || {});
+      invalidateDailyUsageRulesCache_();
+      return jsonResponse(r2);
     }
 
     if (action === "toggleStudentDailyUnlock") {
       const auth = authenticateUser(ss, params.username, params.password);
       if (!auth.success || auth.role !== "teacher") return jsonResponse({ status: "error", message: "無教師權限" });
-      return jsonResponse(toggleStudentDailyUnlock(ss, auth.realName || auth.username, params.unlockData || {}));
+      const r3 = toggleStudentDailyUnlock(ss, auth.realName || auth.username, params.unlockData || {});
+      invalidateDailyUsageRulesCache_();
+      return jsonResponse(r3);
     }
 
     // ── 8. 清理試算表無用分頁 ──
