@@ -1028,6 +1028,9 @@ export function renderSummary(d) {
     </div>
     <div class="subh">各關卡進度</div>
     <table class="sumtable">${lvRows}</table>
+    <div style="font-size:11.5px; color:var(--ink3); margin:6px 0 14px; line-height:1.6; background:rgba(255,255,255,0.03); padding:8px 12px; border-radius:8px; border:1px solid rgba(255,255,255,0.06);">
+      💡 <b>正確率計算公式</b>：<span style="color:#38bdf8;">（該關卡考出來且答對單字數 ÷ 該關卡考出來的總單字數）× 100%</span>
+    </div>
     <div class="subh">🎮 4 大練習模式答題數</div>
     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(110px, 1fr)); gap:8px; margin:8px 0 14px;">
       <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:8px 10px; text-align:center;">

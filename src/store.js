@@ -424,11 +424,17 @@ export function summary(words) {
   const levels = [1, 2, 3, 4, 5].map((lv) => {
     const ws = words.filter((w) => w.level === lv);
     const ls = levelStats(lv);
+    const testedWords = ws.filter((w) => (DB.stat[w.id] && DB.stat[w.id].a > 0));
+    const testedCorrectWords = ws.filter((w) => (DB.stat[w.id] && DB.stat[w.id].c > 0));
+    const testedCount = testedWords.length;
+    const correctWordCount = testedCorrectWords.length;
+    const wordRate = testedCount > 0 ? Math.round((correctWordCount / testedCount) * 100) : 0;
     return {
       level: lv, total: ws.length,
       mast: ws.filter((w) => box(w.id) >= 3).length,
-      correct: ws.filter((w) => correctCount(w.id) > 0).length,
-      rate: Math.round(ls.rate * 100), attempts: ls.attempts,
+      correct: correctWordCount,
+      testedCount: testedCount,
+      rate: wordRate, attempts: ls.attempts,
     };
   });
   const catCounts = Object.keys(CATS).map((k) => {
