@@ -597,6 +597,14 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
   border: 1px dashed rgba(255, 255, 255, 0.16) !important;
   color: #9AA0BD !important;
 }
+[data-theme="dark"] .audit-compliance-note {
+  background: rgba(30, 58, 138, 0.25) !important;
+  border-color: rgba(96, 165, 250, 0.3) !important;
+  color: #93c5fd !important;
+}
+[data-theme="dark"] .audit-compliance-note span {
+  color: #bfdbfe !important;
+}
 [data-theme="dark"] #login-overlay p,
 [data-theme="dark"] #curfew-overlay p {
   color: #9AA0BD !important;
@@ -925,6 +933,11 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
       <div class="curfew-note-box" style="margin-top:14px; padding:10px 14px; border-radius:12px; font-size:12px; line-height:1.5; text-align:center;">
         ⏰ 每日可作答時間為早上七點半到晚上十點
       </div>
+
+      <div class="audit-compliance-note" style="margin-top:12px; padding:10px 12px; background:rgba(30,58,138,0.06); border:1px solid rgba(30,58,138,0.18); border-radius:12px; font-size:11px; line-height:1.45; text-align:left; color:#1e3a8a;">
+        <span style="font-weight:700; display:block; margin-bottom:2px; color:#1e3a8a;">🛡️ 測驗誠信與資安審計須知</span>
+        依《個人資料保護法》第19條教育評量正當目的，本系統於作答期間自動記錄操作軌跡（切頁、除錯快捷鍵、貼上行為及異常作答時間差）以維護成績公正。登入即代表同意測驗誠信規章。
+      </div>
     </div>
   </div>
 
@@ -1070,6 +1083,8 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
     try { import("./src/wordbank.js").then(m => m.loadWordBank()).catch(() => {}); } catch(_) {}
 
     const scriptUrl = "https://script.google.com/macros/s/AKfycbx1hyCNJxqFMoaJgIxfZqLYIYH00NegI1Yd8NJP6gRjqwOndWGkmr-H9tGvVwK_axM9/exec";
+    window.__SCRIPT_URL = scriptUrl;
+    try { import("./src/anticheat.js").then(m => m.initAntiCheat({ scriptUrl })).catch(() => {}); } catch(_) {}
 
     function updateAccountDisplay(username, role) {
       const sUser = document.getElementById("s-user");
@@ -1280,6 +1295,10 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 
           localStorage.setItem("current_user", user);
           localStorage.setItem("user_role", result.role || "student");
+          if (result.realName) localStorage.setItem("user_real_name", result.realName);
+          if (result.className) localStorage.setItem("user_class_name", result.className);
+          window.__CURRENT_USER = user;
+          window.__USER_ROLE = result.role || "student";
           updateAccountDisplay(user, result.role || "student");
           const teacherBtn = document.getElementById("btn-teacher-picker");
           if (teacherBtn) {

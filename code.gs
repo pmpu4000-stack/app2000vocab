@@ -19,7 +19,7 @@ const SYS = {
   MAX_BACKUP_FILES   : 30,
   BACKUP_FOLDER      : "【備份庫】學生學習歷程資料",
   SYSTEM_SHEETS      : new Set([
-    "全班學習總覽","使用者清單","指定單字任務","錯誤日誌"
+    "全班學習總覽","使用者清單","指定單字任務","錯誤日誌","作弊稽核日誌"
   ])
 };
 
@@ -365,6 +365,106 @@ function logError(action, err, username, details) {
     const last = logSheet.getLastRow();
     if (last > 501) logSheet.deleteRows(502, last - 501);
   } catch(e) { Logger.log("logError 寫入失敗: " + e); }
+}
+
+// ════════════════════════════════════════════════════════════════════
+// 0.1 資安防禦與作弊稽核日誌 (符應個資法第19條教育評量公正性維護)
+// ════════════════════════════════════════════════════════════════════
+
+function recordCheatAudit(ss, params) {
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+  } catch(_) {}
+
+  try {
+    if (!ss) ss = SpreadsheetApp.getActiveSpreadsheet();
+    let sheet = ss.getSheetByName("作弊稽核日誌");
+    const headers = [
+      "紀錄時間", "學生帳號", "學生姓名", "班級",
+      "違規手法/行為", "具體行為與證據細節", "使用設備與作業系統", "瀏覽器與解析度", "處置狀況"
+    ];
+
+    if (!sheet) {
+      sheet = ss.insertSheet("作弊稽核日誌");
+      sheet.appendRow(headers);
+      sheet.getRange("1:1")
+        .setFontWeight("bold")
+        .setBackground("#7f1d1d")
+        .setFontColor("#ffffff")
+        .setHorizontalAlignment("center")
+        .setVerticalAlignment("middle");
+      sheet.setRowHeight(1, 38);
+      [160, 110, 100, 90, 190, 380, 200, 230, 120].forEach((w, i) => sheet.setColumnWidth(i + 1, w));
+      sheet.setFrozenRows(1);
+    } else if (sheet.getLastRow() >= 1 && sheet.getRange(1, 1).getValue() !== "紀錄時間") {
+      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+      [160, 110, 100, 90, 190, 380, 200, 230, 120].forEach((w, i) => sheet.setColumnWidth(i + 1, w));
+    }
+
+    const ts = Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy-MM-dd HH:mm:ss");
+    const username = String(params.username || "").trim();
+    let realName = String(params.realName || "").trim();
+    let className = String(params.className || "").trim();
+
+    // 自動補齊姓名與班級
+    if (username && (!realName || !className)) {
+      try {
+        const uSheet = ss.getSheetByName("使用者清單") || ss.getSheetByName("學生帳密");
+        if (uSheet && uSheet.getLastRow() >= 2) {
+          const uData = uSheet.getRange(2, 1, uSheet.getLastRow() - 1, 5).getValues();
+          for (let i = 0; i < uData.length; i++) {
+            if (String(uData[i][0] || "").trim().toLowerCase() === username.toLowerCase()) {
+              if (!className) className = getStudentClass(username, String(uData[i][3] || "").trim());
+              if (!realName) realName = String(uData[i][4] || "").trim();
+              break;
+            }
+          }
+        }
+      } catch(_) {}
+    }
+
+    const method = String(params.method || "未指定違規手法").trim();
+    const details = String(params.details || "").trim();
+    const device = String(params.device || "未知設備").trim();
+    const browserInfo = String(params.browserInfo || "").trim();
+    const status = String(params.status || "已記錄存查").trim();
+
+    // 插入至第 2 列（最新紀錄顯示在最上方）
+    sheet.insertRowBefore(2);
+    sheet.getRange(2, 1, 1, headers.length).setValues([[
+      ts,
+      username || "（未登入）",
+      realName || "—",
+      className || "—",
+      method,
+      details,
+      device,
+      browserInfo,
+      status
+    ]]);
+
+    // 設定最新列格式
+    sheet.getRange(2, 1, 1, headers.length).setVerticalAlignment("middle");
+    sheet.getRange(2, 1, 1, 4).setHorizontalAlignment("center");
+    sheet.getRange(2, 5).setHorizontalAlignment("center").setFontWeight("bold").setFontColor("#991b1b");
+    sheet.getRange(2, 6).setWrap(true);
+    sheet.getRange(2, 7, 1, 2).setHorizontalAlignment("left").setWrap(true);
+    sheet.getRange(2, 9).setHorizontalAlignment("center").setFontColor("#1e3a8a");
+
+    // 日誌最多保留 3000 筆，避免影響試算表效能
+    const last = sheet.getLastRow();
+    if (last > 3001) {
+      sheet.deleteRows(3002, last - 3001);
+    }
+
+    return { status: "success", message: "✅ 作弊稽核日誌已成功記錄" };
+  } catch(err) {
+    logError("recordCheatAudit", err, params ? params.username : "", "");
+    return { status: "error", message: err.toString() };
+  } finally {
+    try { lock.releaseLock(); } catch(_) {}
+  }
 }
 
 // ════════════════════════════════════════════════════════════════════
@@ -2185,7 +2285,12 @@ function doPost(e) {
       return jsonResponse(cleanupUnusedSheets());
     }
 
-    // ── 9. 未知 action ──
+    // ── 9. 資安防禦：作弊違規稽核日誌回報 ──
+    if (action === "reportCheatAudit") {
+      return jsonResponse(recordCheatAudit(ss, params));
+    }
+
+    // ── 10. 未知 action ──
 
     logError("doPost","未知 action: "+action, params.username, "");
     return jsonResponse({status:"error", message:"未知的 action"});
@@ -2232,7 +2337,7 @@ function cleanupUnusedSheets() {
 
   // 2. 系統核心必要工作表（絕不刪除）
   const essentialSheets = new Set([
-    "全班學習總覽", "使用者清單", "指定單字任務", "錯誤日誌", "時間限制設定"
+    "全班學習總覽", "使用者清單", "指定單字任務", "錯誤日誌", "作弊稽核日誌", "時間限制設定"
   ]);
 
   // 3. 明確棄用、過渡或預設空白分頁清單
@@ -3963,12 +4068,39 @@ function onOpen(e) {
   try {
     SpreadsheetApp.getUi()
       .createMenu("🎯 系統維護")
+      .addItem("🛡️ 查看/建立【作弊稽核日誌】","initCheatAuditSheetUi")
       .addItem("🧹 一鍵清理無用分頁","cleanupUnusedSheetsUi")
       .addItem("🔄 一鍵清理學生重複歷史列","cleanDuplicateStudentRecordsUi")
       .addItem("🔐 密碼全面轉 SHA-256 加密","migrateAllPasswordsToHash")
       .addItem("💾 備份試算表至 Google Drive","backupSpreadsheetToDrive")
       .addToUi();
   } catch(_) {}
+}
+
+function initCheatAuditSheetUi() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName("作弊稽核日誌");
+  const headers = [
+    "紀錄時間", "學生帳號", "學生姓名", "班級",
+    "違規手法/行為", "具體行為與證據細節", "使用設備與作業系統", "瀏覽器與解析度", "處置狀況"
+  ];
+  if (!sheet) {
+    sheet = ss.insertSheet("作弊稽核日誌");
+    sheet.appendRow(headers);
+    sheet.getRange("1:1")
+      .setFontWeight("bold")
+      .setBackground("#7f1d1d")
+      .setFontColor("#ffffff")
+      .setHorizontalAlignment("center")
+      .setVerticalAlignment("middle");
+    sheet.setRowHeight(1, 38);
+    [160, 110, 100, 90, 190, 380, 200, 230, 120].forEach((w, i) => sheet.setColumnWidth(i + 1, w));
+    sheet.setFrozenRows(1);
+    ss.toast("🛡️ 已成功建立【作弊稽核日誌】分頁！", "資安防禦中心", 5);
+  } else {
+    ss.setActiveSheet(sheet);
+    ss.toast("🛡️ 已切換至【作弊稽核日誌】分頁！", "資安防禦中心", 5);
+  }
 }
 
 function cleanDuplicateStudentRecordsUi() {

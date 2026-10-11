@@ -209,7 +209,7 @@ function renderPick(word, onAnswer) {
       const ok = choice === word.word;
       b.classList.add(ok ? "ok" : "bad");
       if (!ok) opts.querySelectorAll(".opt").forEach((o) => { if (o.textContent === word.word) o.classList.add("ok"); });
-      onAnswer(ok);
+      onAnswer(ok, choice);
     };
     opts.append(b);
   });
