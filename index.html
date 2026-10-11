@@ -792,15 +792,15 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
         return;
       }
 
-      // 若密碼憑證遺失（如重新開啟分頁），直接彈出提示輸入密碼，不需重新整理整個頁面
+            // 若密碼憑證遺失（如重新開啟分頁或未登入），背景自動同步直接靜默退出，不彈窗騷擾
       if (!currentPass) {
-        const inputPass = prompt(`【帳號：${currentUser}】憑證已逾期，請輸入密碼以同步進度：`);
-        if (!inputPass || !inputPass.trim()) {
-          isUploading = false;
-          return;
+        isUploading = false;
+        if (!isSilent) {
+          const overlay = document.getElementById("login-overlay");
+          if (overlay) overlay.style.display = "flex";
+          alert("登入憑證已失效或尚未登入，請先完成登入！");
         }
-        currentPass = inputPass.trim();
-        sessionStorage.setItem("current_pass", currentPass);
+        return;
       }
 
       // 1. 開始上傳：將圖示切換為等待圖案 ⏳
