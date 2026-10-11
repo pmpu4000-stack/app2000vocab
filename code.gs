@@ -466,6 +466,21 @@ function recordCheatAudit(ss, params) {
       sheet.deleteRows(3002, last - 3001);
     }
 
+    // 全方位存證：同步歸檔至【資安入侵防禦日誌】總表，保證入侵與作弊證據零漏失
+    try {
+      logSecurityIncident(ss, {
+        username: username,
+        realName: realName,
+        className: className,
+        role: "student",
+        method: "【作弊違規】" + method,
+        details: details,
+        device: device,
+        envInfo: browserInfo,
+        result: status || "已存證列管"
+      });
+    } catch(_) {}
+
     return { status: "success", message: "✅ 作弊稽核日誌已成功記錄" };
   } catch(err) {
     logError("recordCheatAudit", err, params ? params.username : "", "");

@@ -199,7 +199,6 @@ export function auditAnswerSpeed(guess, isCorrect) {
   if (isSuperhuman) {
     const details = `題目: '${_currentWord}' (${_currentMode}) | 作答耗時: ${costMs}ms (${(costMs / 1000).toFixed(2)}秒，低於人類正常反應閾值 ${threshold}ms) | 提交答案: '${guess || ""}'`;
     reportCheatAudit("非人類超速作答 (外掛腳本特徵)", details, "已記錄作答時間異常");
-    showAntiCheatToast("⚠️ 資安警示：作答時間異常極速（具腳本特徵），數據已存證！");
   }
 }
 
@@ -258,7 +257,7 @@ export function initAntiCheat(options = {}) {
       e.stopPropagation();
       const actionName = isF12 ? "F12 開發者工具" : isCtrlU ? "Ctrl+U 檢視原始碼" : "Ctrl+Shift+I/J/C 除錯主控台";
       reportCheatAudit("嘗試開啟開發者工具 / 檢視原始碼", `按下快捷鍵：${e.code || e.key} (${actionName})`, "已攔截快捷鍵並存證");
-      showAntiCheatToast(`⚠️ 資安警示：測驗期間禁止使用 ${actionName}，違規已記錄！`);
+      showAntiCheatToast("🔒 測驗期間已鎖定除錯快捷鍵");
       return false;
     }
   }, true);
@@ -271,11 +270,14 @@ export function initAntiCheat(options = {}) {
       const awaySec = Math.round((Date.now() - _hiddenStartTime) / 1000);
       _hiddenStartTime = 0;
 
-      // 離開視窗超過 1 秒即記錄
+      // 離開視窗超過 1 秒即百分之百記錄存證
       if (awaySec >= 1) {
         const wordInfo = _currentWord ? `當前題目: '${_currentWord}' (${_currentMode})` : "非作答狀態中切頁";
         reportCheatAudit("測驗中切換分頁 / 跳出視窗", `離開測驗畫面達 ${awaySec} 秒後切回；${wordInfo}`, "已記錄切頁歷程");
-        showAntiCheatToast(`⚠️ 資安警示：偵測到離開測驗視窗 (${awaySec}秒)，行為已通報老師！`);
+        // 僅在離開 3 秒以上才顯示必要提醒，不打擾正常流暢度
+        if (awaySec >= 3) {
+          showAntiCheatToast("💡 測驗中請保持於本畫面作答");
+        }
       }
     }
   });
@@ -287,7 +289,7 @@ export function initAntiCheat(options = {}) {
       const pastedText = (e.clipboardData || window.clipboardData)?.getData("text") || "";
       e.preventDefault();
       reportCheatAudit("拼字輸入框嘗試貼上外部文字", `嘗試貼上剪貼簿內容：'${pastedText.slice(0, 60)}' (目標長度: ${pastedText.length} 字元)`, "已攔截貼上動作");
-      showAntiCheatToast("⚠️ 測驗規範：禁止直接貼上外部答案！請使用鍵盤手動拼字。");
+      showAntiCheatToast("✏️ 測驗請使用鍵盤手動拼字");
     }
   }, true);
 
@@ -337,7 +339,6 @@ export function initAntiCheat(options = {}) {
           `於元素 <${(e.target.tagName || "").toLowerCase()}> 輸入危險字串: '${val.slice(0, 60)}'`,
           "🚫 已觸發 WAF 規則並依法存證"
         );
-        showAntiCheatToast("🚨 資安防禦警示：偵測到危險代碼注入特徵！系統已依法保全證據。");
       }
     }
   }, true);
