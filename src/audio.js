@@ -23,8 +23,8 @@ export function stopAudio() {
   } catch(_) {}
 }
 
-// Speak a word or sentence at the given rate (預設 0.88，與 GAS Web App 一致).
-export function say(text, rate = 0.88, onEnd = null) {
+// Speak a word or sentence at the given rate (單字預設 0.8，例句預設 0.75).
+export function say(text, rate = 0.8, onEnd = null) {
   if (typeof window !== "undefined" && window.__dailyUsageTimeIsUp) return;
   if (!supported || !text) {
     if (onEnd) onEnd();
@@ -56,15 +56,15 @@ export function say(text, rate = 0.88, onEnd = null) {
   }
 }
 
-// 朗讀整個單字發音 (原一個字母一個字母發音，改為完整單字朗讀)
+// 朗讀整個單字發音 (單字速度 0.8)
 export function spellOut(word) {
   if (!supported || !word) return;
-  say(word, 0.88);
+  say(word, 0.8);
 }
 
 /**
  * 嘉義縣單字王比賽標準播放模式：
- * 順序：【單字】 ➔ 停頓 0.6 秒 ➔ 【例句】 ➔ 停頓 0.6 秒 ➔ 【單字】
+ * 順序：【單字 (0.8)】 ➔ 停頓 0.6 秒 ➔ 【例句 (0.75)】 ➔ 停頓 0.6 秒 ➔ 【單字 (0.8)】
  */
 export function playContestSentence(word, sentence, onEnd = null) {
   if (typeof window !== "undefined" && window.__dailyUsageTimeIsUp) {
@@ -85,13 +85,13 @@ export function playContestSentence(word, sentence, onEnd = null) {
     }
   };
 
-  const speakPart = (text, callback) => {
+  const speakPart = (text, rate, callback) => {
     if (token !== currentSeqToken) return;
     try {
       if (speechSynthesis.paused) speechSynthesis.resume();
       const u = new SpeechSynthesisUtterance(text);
       u.lang = "en-US";
-      u.rate = 0.88;
+      u.rate = rate;
       activeUtterances.add(u);
       u.onend = () => {
         activeUtterances.delete(u);
@@ -116,26 +116,26 @@ export function playContestSentence(word, sentence, onEnd = null) {
     cleanSent = cleanSent.replace(/_+/g, cleanWord);
   }
 
-  // 缺單字或缺例句時退回單純朗讀
+  // 缺單字或缺例句時退回單純朗讀 (例句 0.75 / 單字 0.8)
   if (!cleanWord || !cleanSent) {
-    say(cleanSent || cleanWord, 0.88, cleanup);
+    say(cleanSent || cleanWord, cleanSent ? 0.75 : 0.8, cleanup);
     return;
   }
 
-  // 1. 播放單字
-  speakPart(cleanWord, () => {
+  // 1. 播放單字 (速度 0.8)
+  speakPart(cleanWord, 0.8, () => {
     if (token !== currentSeqToken) return;
     // 2. 停頓 0.6 秒
     currentSeqTimer = setTimeout(() => {
       if (token !== currentSeqToken) return;
-      // 3. 播放例句
-      speakPart(cleanSent, () => {
+      // 3. 播放例句 (速度 0.75)
+      speakPart(cleanSent, 0.75, () => {
         if (token !== currentSeqToken) return;
         // 4. 停頓 0.6 秒
         currentSeqTimer = setTimeout(() => {
           if (token !== currentSeqToken) return;
-          // 5. 再次播放單字
-          speakPart(cleanWord, () => {
+          // 5. 再次播放單字 (速度 0.8)
+          speakPart(cleanWord, 0.8, () => {
             cleanup();
           });
         }, 600);

@@ -301,7 +301,7 @@ export function showResult(correct, word, info) {
   } else {
     el.fb.className = "feedback bad";
     el.fb.innerHTML = `❌ 再看一次！ 正確拼法：<span class="reveal" style="display:inline">${revealHtml(word)}</span>`;
-    pulse("shake"); say(word.word, 0.88);
+    pulse("shake"); say(word.word, 0.8);
   }
 }
 export function setActionNext() {
@@ -1000,7 +1000,7 @@ export function renderSummary(d) {
   const currentUser = localStorage.getItem("current_user") || "";
   const userTagHtml = currentUser ? `<span style="font-size:13px;font-weight:700;color:var(--sky);background:rgba(56,189,248,0.12);padding:2px 8px;border-radius:999px;margin-left:8px;border:1px solid rgba(56,189,248,0.25);">👤 ${currentUser}</span>` : "";
   const lvRows = d.levels
-    .map((L) => `<tr><td><span style="color:${levelColor(L.level)}">●</span> Level ${L.level}「${levelName(L.level)}」</td><td>${L.correct}/${L.testedCount} (${L.rate}%)／學習中 ${L.learn || 0}／練習中 ${L.prac || 0}／精通 ${L.mast}／共 ${L.total}</td></tr>`)
+    .map((L) => `<tr><td><span style="color:${levelColor(L.level)}">●</span> Level ${L.level}「${levelName(L.level)}」</td><td>${L.correct}/${L.testedCount} (${L.rate}%)<span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span>學習中 ${L.learn || 0}<span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span>練習中 ${L.prac || 0}<span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span>精通 ${L.mast}<span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span>共 ${L.total}</td></tr>`)
     .join("");
 
   const historyList = getCombinedTaskHistory();
@@ -1057,7 +1057,7 @@ export function renderSummary(d) {
     <div class="subh">各關卡進度</div>
     <table class="sumtable">${lvRows}</table>
     <div class="formula-note-box">
-      💡 <b>各關卡進度數值說明</b>：<span class="formula-val">分數（分子為答對單字數 ÷ 分母為考出來的總單字數，附正確率 %），後方顯示各單字掌握度（學習中／練習中／精通／該關總單字數）</span>
+      💡 <b>各關卡進度數值說明</b>：<span class="formula-val">分數（分子為答對單字數 ÷ 分母為考出來的總單字數，附正確率 %），後方顯示各單字掌握度（學習中<span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span>練習中<span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span>精通<span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span>該關總單字數）</span>
     </div>
     <div class="subh">🎮 4 大練習模式答題數</div>
     <div class="mode-stat-grid">
