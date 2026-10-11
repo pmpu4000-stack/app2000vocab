@@ -10,6 +10,7 @@ const activeUtterances = new Set();
 
 // Speak a word or sentence at the given rate (預設 0.88，與 GAS Web App 一致).
 export function say(text, rate = 0.88) {
+  if (typeof window !== "undefined" && window.__dailyUsageTimeIsUp) return;
   if (!supported || !text) return;
   try {
     speechSynthesis.cancel();

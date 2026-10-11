@@ -275,6 +275,9 @@ function isCurfewActive() {
 }
 
 function newRound() {
+  if (typeof window !== "undefined" && window.__dailyUsageTimeIsUp === true) {
+    return;
+  }
   if (isCurfewActive()) {
     const curfewEl = document.getElementById("curfew-overlay");
     if (curfewEl) curfewEl.style.display = "flex";
@@ -913,6 +916,31 @@ ui.onSummary(() => ui.toggleSummary(store.summary(WORDS)));
 
 // ---- boot ----
 (async function boot() {
+  // ── 若今日練習時間已用盡，直接鎖定並呈現進度，不啟動出題與發音 ──
+  const isTimeLocked = () => {
+    if (typeof window !== "undefined" && window.__dailyUsageTimeIsUp === true) return true;
+    const u = localStorage.getItem("current_user");
+    if (!u) return false;
+    const unlocked = localStorage.getItem(`daily_usage_${u}_unlocked`) === "true";
+    if (unlocked) return false;
+    const firstLogin = Number(localStorage.getItem(`daily_usage_${u}_first_login_time`));
+    if (!firstLogin) return false;
+    const lim = Number(localStorage.getItem(`daily_usage_${u}_limit_minutes`)) || 10;
+    const ext = Number(localStorage.getItem(`daily_usage_${u}_extended_minutes`)) || 0;
+    return ((lim + ext) * 60 * 1000 - (Date.now() - firstLogin)) <= 0;
+  };
+
+  if (isTimeLocked()) {
+    if (typeof window !== "undefined") window.__dailyUsageTimeIsUp = true;
+    ui.setScreen("play");
+    refreshChrome();
+    if (typeof window !== "undefined" && typeof window.ensureLockdownVisuals === "function") {
+      window.ensureLockdownVisuals();
+    }
+    console.log("⏰ 帳號今日練習時間已達上限，已略過出題與錄音播放，僅顯示進度與紀錄");
+    return;
+  }
+
   try {
     WORDS = await loadWordBank();
   } catch (e) {

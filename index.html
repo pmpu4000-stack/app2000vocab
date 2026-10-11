@@ -710,7 +710,7 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
             for (let key in result.records) {
               localStorage.setItem(key, result.records[key]);
             }
-            alert("登入成功！已載入雲端學習進度。");
+            msgEl.textContent = "✅ 登入成功，正在啟動學習進度...";
           } else {
             // 全新帳號（雲端尚無進度）：嚴格初始化為 0 題、0% 正確率、全新等級 1
             const freshStore = {
@@ -723,7 +723,7 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
               points: 0, streak: 0, best: 0, attempts: 0, correct: 0
             };
             localStorage.setItem("spellAgent.v2", JSON.stringify(freshStore));
-            alert("登入成功！此為全新帳號，已重置為全新學習進度。");
+            msgEl.textContent = "✅ 全新帳號建立成功，正在啟動...";
           }
 
           // 若先前已載入過遊戲核心模組（例如切換帳號情境），強制重新整理以徹底銷毀記憶體殘留
@@ -1523,6 +1523,11 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
       lastDailyPollAt = 0;
       maybePollDailyUsage();
     }
+
+        window.ensureLockdownVisuals = ensureLockdownVisuals;
+    window.applyDailyUsageLockdown = applyDailyUsageLockdown;
+    window.liftDailyUsageLockdown = liftDailyUsageLockdown;
+    window.dailyUsageState = dailyUsageState;
 
     function liftDailyUsageLockdown() {
       dailyUsageState.isLockedDown = false;
