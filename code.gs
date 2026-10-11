@@ -2511,7 +2511,9 @@ function doPost(e) {
     }
 
     // ── 11. 個資法與資料隱私合規性自動檢驗 ──
-    if (action === "auditComplianceCheck" && params.secretToken === "AUDIT_CHECK_2026_LEGAL") {
+    if (action === "auditComplianceCheck") {
+      const auth = authenticateUser(ss, params.username, params.password);
+      if (!auth.success || auth.role !== "teacher") return jsonResponse({ status: "error", message: "僅限教師或管理員查詢" });
       return jsonResponse(auditComplianceData(ss));
     }
 
