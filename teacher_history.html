@@ -2925,6 +2925,42 @@
     <!-- 今日指定測驗焦點橫幅 -->
     <div id="studentTodayTaskBanner" style="margin-bottom:20px; padding:18px 20px; border-radius:14px; border:1.5px solid var(--border); background:var(--table-header-bg);"></div>
 
+    <!-- 🎯 每日指定單字測驗進度 Progress 方塊 (比照遊戲學習進度) -->
+    <div style="background:var(--body-bg); border:1px solid var(--border); border-radius:14px; padding:18px 20px; margin-bottom:20px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+        <span style="font-size:15px; font-weight:800; color:var(--text); letter-spacing:0.5px;">🎯 測驗單字學習進度 PROGRESS</span>
+        <span id="stDailyProgressTotalWords" style="font-size:13px; color:var(--text-muted); font-weight:600;">共 0 測驗單字</span>
+      </div>
+
+      <!-- 三色分段進度條 -->
+      <div style="height:14px; background:rgba(128,128,128,0.12); border-radius:10px; overflow:hidden; display:flex; margin-bottom:14px; border:1px solid var(--border);">
+        <div id="stDailyBarLearning" style="width:0%; background:#818cf8; transition:width 0.4s ease;" title="學習中（測驗錯題／待加強）"></div>
+        <div id="stDailyBarPracticing" style="width:0%; background:#34d399; transition:width 0.4s ease;" title="練習中（測驗答對 1 次）"></div>
+        <div id="stDailyBarMastered" style="width:0%; background:#10b981; transition:width 0.4s ease;" title="精通（測驗連續答對滿分）"></div>
+      </div>
+
+      <!-- 統計圖例 -->
+      <div style="display:flex; align-items:center; gap:20px; flex-wrap:wrap; font-size:13px; margin-bottom:8px;">
+        <span style="display:inline-flex; align-items:center; gap:6px;">
+          <span style="width:10px; height:10px; border-radius:50%; background:#818cf8; display:inline-block;"></span>
+          學習中 <strong id="stDailyNumLearning" style="color:var(--text); font-size:14px;">0</strong>
+        </span>
+        <span style="display:inline-flex; align-items:center; gap:6px;">
+          <span style="width:10px; height:10px; border-radius:50%; background:#34d399; display:inline-block;"></span>
+          練習中 <strong id="stDailyNumPracticing" style="color:var(--text); font-size:14px;">0</strong>
+        </span>
+        <span style="display:inline-flex; align-items:center; gap:6px;">
+          <span style="width:10px; height:10px; border-radius:50%; background:#10b981; display:inline-block;"></span>
+          精通 <strong id="stDailyNumMastered" style="color:var(--text); font-size:14px;">0</strong>
+        </span>
+      </div>
+
+      <!-- 熟練度定義說明 -->
+      <div style="font-size:12px; color:var(--text-muted); line-height:1.6; border-top:1px dashed var(--border); padding-top:10px; margin-top:8px;">
+        測驗熟練度定義：<strong>學習中</strong>＝測驗答錯或訂正中 · <strong>練習中</strong>＝測驗答對 · <strong>精通</strong>＝測驗連續答對無錯題
+      </div>
+    </div>
+
     <!-- 測驗累積表現 4 大小指標 -->
     <div class="kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:14px; margin-bottom:20px;">
       <div class="kpi-card" style="border-left:4px solid var(--primary); padding:16px 18px;">
@@ -3002,6 +3038,118 @@
         <div>• <strong style="color:var(--text);">每題即時存檔</strong>：測驗過程中每作答一題，系統皆會自動同步雲端存檔；即使意外離線或刷新，進度不遺失。</div>
         <div>• <strong style="color:var(--text);">錯題單字診斷</strong>：測驗中答錯的單字會即時顯示於此並標註中文釋義，同步自動加入個人錯題複習庫供強化練習。</div>
         <div>• <strong style="color:var(--text);">✨ 全對滿分</strong>：當次測驗所有題數皆拼寫正確，無任何錯題。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       📖 每日單字自由練習成果 (Daily Self-paced Free Practice Results)
+  ══════════════════════════════════════════ -->
+  <div id="studentFreePracticeCard" class="card" style="display:none; padding:22px; margin-bottom:24px;">
+    <!-- 標頭 -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+      <div>
+        <h2 style="margin:0 0 4px; display:flex; align-items:center; gap:8px; font-size:1.25rem;">
+          📖 每日單字自由練習成果
+          <span id="studentFreePracticeStatusBadge" class="analytics-status-pill analytics-status-done" style="font-size:12.5px;"></span>
+        </h2>
+        <div style="font-size:13px; color:var(--text-muted);">
+          自主練習闖關表現、四大模式作答分佈、當日與累計字彙熟練度進展
+        </div>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+        <button class="btn-secondary btn-sm" onclick="refreshStudentDailyTask()" style="display:inline-flex; align-items:center; gap:5px;">
+          🔄 重新整理
+        </button>
+      </div>
+    </div>
+
+    <!-- 自由練習焦點橫幅 -->
+    <div id="studentFreePracticeBanner" style="margin-bottom:20px; padding:18px 20px; border-radius:14px; border:1.5px solid var(--border); background:var(--table-header-bg);"></div>
+
+    <!-- 📖 自由練習進度 Progress 方塊 (比照遊戲學習進度) -->
+    <div style="background:var(--body-bg); border:1px solid var(--border); border-radius:14px; padding:18px 20px; margin-bottom:20px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+        <span style="font-size:15px; font-weight:800; color:var(--text); letter-spacing:0.5px;">📖 自由練習學習進度 PROGRESS</span>
+        <span id="stFreeProgressTotalWords" style="font-size:13px; color:var(--text-muted); font-weight:600;">共 2055 字</span>
+      </div>
+
+      <!-- 三色分段進度條 -->
+      <div style="height:14px; background:rgba(128,128,128,0.12); border-radius:10px; overflow:hidden; display:flex; margin-bottom:14px; border:1px solid var(--border);">
+        <div id="stFreeBarLearning" style="width:0%; background:#818cf8; transition:width 0.4s ease;" title="學習中（答對 1 次）"></div>
+        <div id="stFreeBarPracticing" style="width:0%; background:#34d399; transition:width 0.4s ease;" title="練習中（連續答對 2 次）"></div>
+        <div id="stFreeBarMastered" style="width:0%; background:#10b981; transition:width 0.4s ease;" title="精通（連續答對 3 次）"></div>
+      </div>
+
+      <!-- 統計圖例 -->
+      <div style="display:flex; align-items:center; gap:20px; flex-wrap:wrap; font-size:13px; margin-bottom:8px;">
+        <span style="display:inline-flex; align-items:center; gap:6px;">
+          <span style="width:10px; height:10px; border-radius:50%; background:#818cf8; display:inline-block;"></span>
+          學習中 <strong id="stFreeNumLearning" style="color:var(--text); font-size:14px;">0</strong>
+        </span>
+        <span style="display:inline-flex; align-items:center; gap:6px;">
+          <span style="width:10px; height:10px; border-radius:50%; background:#34d399; display:inline-block;"></span>
+          練習中 <strong id="stFreeNumPracticing" style="color:var(--text); font-size:14px;">0</strong>
+        </span>
+        <span style="display:inline-flex; align-items:center; gap:6px;">
+          <span style="width:10px; height:10px; border-radius:50%; background:#10b981; display:inline-block;"></span>
+          精通 <strong id="stFreeNumMastered" style="color:var(--text); font-size:14px;">0</strong>
+        </span>
+        <span style="margin-left:auto; color:var(--text-muted);">
+          已探索 <strong id="stFreeNumDistinct" style="color:var(--primary); font-size:14px;">0</strong> 字
+        </span>
+      </div>
+
+      <!-- 熟練度定義說明 -->
+      <div style="font-size:12px; color:var(--text-muted); line-height:1.6; border-top:1px dashed var(--border); padding-top:10px; margin-top:8px;">
+        熟練度定義：<strong>學習中</strong>＝答對 1 次 · <strong>練習中</strong>＝連續答對 2 次 · <strong>精通</strong>＝連續答對 3 次（答錯會退回「學習中」）
+      </div>
+    </div>
+
+    <!-- 自由練習累積表現 4 大小指標 -->
+    <div class="kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:14px; margin-bottom:20px;">
+      <div class="kpi-card" style="border-left:4px solid var(--primary); padding:16px 18px;">
+        <div class="kpi-title">🔥 連續練習天數</div>
+        <div class="kpi-value" id="stFreeStreak" style="font-size:22px; color:var(--primary);">0 天</div>
+        <div class="kpi-sub" id="stFreeStreakSub">最佳連續 0 天</div>
+      </div>
+      <div class="kpi-card" style="border-left:4px solid #10b981; padding:16px 18px;">
+        <div class="kpi-title">📊 自由練習總題數</div>
+        <div class="kpi-value" id="stFreeTotalAttempts" style="font-size:22px; color:#10b981;">0 題</div>
+        <div class="kpi-sub" id="stFreeTotalAttemptsSub">答對 0 題 (0%)</div>
+      </div>
+      <div class="kpi-card" style="border-left:4px solid #f59e0b; padding:16px 18px;">
+        <div class="kpi-title">⭐ 累積積分 / 總經驗</div>
+        <div class="kpi-value" id="stFreePoints" style="font-size:22px; color:#f59e0b;">0 分</div>
+        <div class="kpi-sub" id="stFreePointsSub">自主挑戰累積</div>
+      </div>
+      <div class="kpi-card" style="border-left:4px solid #8b5cf6; padding:16px 18px;">
+        <div class="kpi-title">📅 累計練習活躍天數</div>
+        <div class="kpi-value" id="stFreeActiveDays" style="font-size:22px; color:#8b5cf6;">0 天</div>
+        <div class="kpi-sub" id="stFreeActiveDaysSub">最近 4 週堅持打卡</div>
+      </div>
+    </div>
+
+    <!-- 歷史每日自由練習紀錄明細 -->
+    <div style="background:var(--table-header-bg); border:1.5px solid var(--border); border-radius:14px; padding:14px 18px; margin-bottom:14px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+        <span style="font-weight:700; font-size:14px; color:var(--text); display:flex; align-items:center; gap:6px;">
+          📅 歷史每日自由練習進度明細
+        </span>
+        <span id="stFreeFilterCountTag" style="font-size:12.5px; color:var(--text-muted); font-weight:600;">共 0 筆紀錄</span>
+      </div>
+    </div>
+    <div class="table-container" id="studentFreePracticeHistoryContainer" style="max-height:420px; overflow-y:auto;"></div>
+
+    <!-- 指標說明卡 -->
+    <div class="table-legend-card" style="margin-top:14px;">
+      <div style="font-weight:700; font-size:13px; color:var(--text); margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+        💡 每日單字自由練習成果說明：
+      </div>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:10px; font-size:12px; color:var(--text-muted); line-height:1.65;">
+        <div>• <strong style="color:var(--text);">自由練習機制</strong>：學生於遊戲主畫面自主選擇關卡、四大模式（聽拼/選拼/重組/填空）進行闖關。</div>
+        <div>• <strong style="color:var(--text);">進度即時同調</strong>：每道自主作答均會納入箱子熟練度計算，並於每次手動或自動上傳時同步記錄於此。</div>
+        <div>• <strong style="color:var(--text);">累積積分榮譽</strong>：每次答對均能獲得星數與經驗積分，同步列入班級榮譽榜評比。</div>
       </div>
     </div>
   </div>
@@ -4144,6 +4292,7 @@ function logout() {
   document.getElementById("kpiSection").style.display = "none";
   const sumEl = document.getElementById("studentSummaryCard"); if (sumEl) sumEl.style.display = "none";
   const dtEl = document.getElementById("studentDailyTaskCard"); if (dtEl) dtEl.style.display = "none";
+  const fpEl = document.getElementById("studentFreePracticeCard"); if (fpEl) fpEl.style.display = "none";
   document.getElementById("rankingCard").style.display = "none";
   document.getElementById("goalsCard").style.display = "none";
   const fcEl = document.getElementById("forecastCard"); if (fcEl) fcEl.style.display = "none";
@@ -4235,7 +4384,7 @@ function fetchData(isRefresh = false, onComplete = null) {
           document.getElementById("btnLogoutOrBack").textContent = "登出";
         }
         showStudentSections();
-        addFadeIn(["studentSummaryCard", "studentDailyTaskCard", "rankingCard"]);
+        addFadeIn(["studentSummaryCard", "studentDailyTaskCard", "studentFreePracticeCard", "rankingCard"]);
         if (resp.leaderboard) {
           updateLeaderboardUI(resp.leaderboard);
         }
@@ -4278,6 +4427,7 @@ function initTeacherDashboard(resp) {
   document.getElementById("kpiSection").style.display = "none";
   const sumEl = document.getElementById("studentSummaryCard"); if (sumEl) sumEl.style.display = "none";
   const dtEl = document.getElementById("studentDailyTaskCard"); if (dtEl) dtEl.style.display = "none";
+  const fpEl = document.getElementById("studentFreePracticeCard"); if (fpEl) fpEl.style.display = "none";
   const rkEl = document.getElementById("rankingCard"); if (rkEl) rkEl.style.display = "none";
   document.getElementById("goalsCard").style.display = "none";
   const fcEl = document.getElementById("forecastCard"); if (fcEl) fcEl.style.display = "none";
@@ -4973,7 +5123,7 @@ function applyStudentPortfolioData(resp, username) {
   processHistoryWithDiffs(resp.headers || [], resp.data || []);
   setQuickDateHighlight("qd-all");
   applyFilter();
-  addFadeIn(["studentSummaryCard", "studentDailyTaskCard", "rankingCard"]);
+  addFadeIn(["studentSummaryCard", "studentDailyTaskCard", "studentFreePracticeCard", "rankingCard"]);
   if (resp.leaderboard) {
     updateLeaderboardUI(resp.leaderboard);
   }
@@ -7838,9 +7988,10 @@ function showStudentSections() {
   document.getElementById("mainControlCard").style.display = "block";
   document.getElementById("querySection").style.display = "none";
   
-  // 僅顯示簡潔易讀的核心項目：學習總結進度、每日指定測驗成果、榮譽榜
+  // 僅顯示簡潔易讀的核心項目：學習總結進度、每日指定測驗成果、每日自由練習成果、榮譽榜
   const sumCard = document.getElementById("studentSummaryCard"); if (sumCard) sumCard.style.display = "block";
   const dtCard = document.getElementById("studentDailyTaskCard"); if (dtCard) dtCard.style.display = "block";
+  const fpCard = document.getElementById("studentFreePracticeCard"); if (fpCard) fpCard.style.display = "block";
   const rCard = document.getElementById("rankingCard"); if (rCard) rCard.style.display = "block";
 
   // 隱藏複雜難懂的圖表與冗長流水帳（家長看不懂、老師未必想看的繁雜卡片）
@@ -7858,6 +8009,7 @@ function showStudentSections() {
 function hideStudentSections() {
   const sumCard = document.getElementById("studentSummaryCard"); if (sumCard) sumCard.style.display = "none";
   const dtCard = document.getElementById("studentDailyTaskCard"); if (dtCard) dtCard.style.display = "none";
+  const fpCard = document.getElementById("studentFreePracticeCard"); if (fpCard) fpCard.style.display = "none";
   const rCard = document.getElementById("rankingCard"); if (rCard) rCard.style.display = "none";
   document.getElementById("kpiSection").style.display = "none";
   document.getElementById("goalsCard").style.display = "none";
@@ -12035,6 +12187,218 @@ function renderStudentSummary(resp) {
       `;
     }).join("");
   }
+
+  // 8. 📖 渲染每日單字自由練習成果卡片 (Free Practice Progress & Results)
+  renderStudentFreePractice(resp, { learn, prac, mast, totalVocab, attempts, correct, passRate, distinctC, streak, best, totalActive, days, historyData });
+}
+
+// ════════════════════════════════════════
+// 📖 每日單字自由練習成果渲染函式 (Daily Free Practice Results)
+// ════════════════════════════════════════
+function renderStudentFreePractice(resp, summaryMeta) {
+  const card = document.getElementById("studentFreePracticeCard");
+  if (!card) return;
+
+  const agent = (resp && resp.agentData) || {};
+  const meta = summaryMeta || {};
+  const learn = meta.learn || 0;
+  const prac  = meta.prac  || 0;
+  const mast  = meta.mast  || 0;
+  const totalVocab = meta.totalVocab || 2055;
+  const attempts = meta.attempts || 0;
+  const correct = meta.correct || 0;
+  const passRate = meta.passRate || 0;
+  const distinctC = meta.distinctC || 0;
+  const streak = meta.streak || 0;
+  const best = meta.best || 0;
+  const totalActive = meta.totalActive || 0;
+  const historyData = meta.historyData || {};
+
+  // 1. 進度條 Progress 更新 (比照遊戲學習進度)
+  const elTotalWords = document.getElementById("stFreeProgressTotalWords");
+  if (elTotalWords) elTotalWords.innerText = `共 ${totalVocab} 字`;
+
+  const pctL = Math.min(100, Math.max(0, (learn / totalVocab) * 100)).toFixed(1);
+  const pctP = Math.min(100, Math.max(0, (prac  / totalVocab) * 100)).toFixed(1);
+  const pctM = Math.min(100, Math.max(0, (mast  / totalVocab) * 100)).toFixed(1);
+
+  const barL = document.getElementById("stFreeBarLearning");
+  const barP = document.getElementById("stFreeBarPracticing");
+  const barM = document.getElementById("stFreeBarMastered");
+  if (barL) barL.style.width = pctL + "%";
+  if (barP) barP.style.width = pctP + "%";
+  if (barM) barM.style.width = pctM + "%";
+
+  const numL = document.getElementById("stFreeNumLearning");
+  const numP = document.getElementById("stFreeNumPracticing");
+  const numM = document.getElementById("stFreeNumMastered");
+  const numDist = document.getElementById("stFreeNumDistinct");
+  if (numL) numL.innerText = learn.toLocaleString();
+  if (numP) numP.innerText = prac.toLocaleString();
+  if (numM) numM.innerText = mast.toLocaleString();
+  if (numDist) numDist.innerText = distinctC.toLocaleString();
+
+  // 2. 自由練習狀態 Badge 與 Banner
+  const statusBadge = document.getElementById("studentFreePracticeStatusBadge");
+  const banner = document.getElementById("studentFreePracticeBanner");
+  const todayDash = formatDateYMD(new Date());
+  const todaySlash = todayDash.replace(/-/g, "/");
+  const todayPractice = historyData[todayDash] || historyData[todaySlash] || null;
+  const todayAtt = todayPractice ? (todayPractice.a || 0) : 0;
+  const todayCor = todayPractice ? (todayPractice.c || 0) : 0;
+  const todayAcc = todayAtt > 0 ? Math.round((todayCor / todayAtt) * 100) : 0;
+
+  if (statusBadge) {
+    if (todayAtt > 0) {
+      statusBadge.className = "analytics-status-pill analytics-status-done";
+      statusBadge.innerText = "✨ 今日已自主練習";
+    } else {
+      statusBadge.className = "analytics-status-pill analytics-status-none";
+      statusBadge.innerText = "⏳ 今日尚未自主練習";
+    }
+  }
+
+  if (banner) {
+    if (todayAtt > 0) {
+      banner.style.background = "linear-gradient(135deg, rgba(16,185,129,0.06) 0%, rgba(99,102,241,0.04) 100%)";
+      banner.style.borderColor = "rgba(16,185,129,0.3)";
+      banner.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+          <div>
+            <div style="font-size:16px; font-weight:800; color:var(--text); margin-bottom:6px; display:flex; align-items:center; gap:8px;">
+              <span>🎉 今日自由練習成果顯著！</span>
+              <span style="font-size:12px; font-weight:700; color:#10b981; background:rgba(16,185,129,0.15); padding:2px 8px; border-radius:12px;">今日活躍</span>
+            </div>
+            <div style="font-size:13.5px; color:var(--text-muted); line-height:1.7;">
+              今日作答題數：<strong style="color:var(--primary); font-size:15px;">${todayAtt} 題</strong>｜
+              今日答對：<strong style="color:#10b981; font-size:15px;">${todayCor} 題</strong>｜
+              單日答對率：<strong style="color:${todayAcc>=80?'#10b981':todayAcc>=60?'#f59e0b':'#ef4444'}; font-size:15px;">${todayAcc}%</strong>｜
+              連續練習：<strong style="color:#ea580c;">${streak} 天</strong>
+            </div>
+          </div>
+          <a href="https://pmpu4000-stack.github.io/app2000vocab/" target="_blank" rel="noopener noreferrer" class="btn-primary" style="text-decoration:none; padding:8px 16px; font-size:13px; border-radius:8px; display:inline-flex; align-items:center; gap:6px; font-weight:700;">
+            <span>🚀 繼續自主刷題練習</span>
+          </a>
+        </div>
+      `;
+    } else {
+      banner.style.background = "var(--table-header-bg)";
+      banner.style.borderColor = "var(--border)";
+      banner.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+          <div>
+            <div style="font-size:15px; font-weight:800; color:var(--text); margin-bottom:4px;">
+              📖 今日尚未進行自由單字練習
+            </div>
+            <div style="font-size:13px; color:var(--text-muted); line-height:1.6;">
+              自由練習不受次數限制，可隨意挑戰 4 大練習模式闖關、消滅生字、累積滿分星數！
+            </div>
+          </div>
+          <a href="https://pmpu4000-stack.github.io/app2000vocab/" target="_blank" rel="noopener noreferrer" style="text-decoration:none; padding:8px 16px; border-radius:8px; font-weight:800; font-size:13px; background:linear-gradient(135deg, #10b981 0%, #059669 100%); color:#fff; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 8px rgba(16,185,129,0.3);">
+            <span>📖 前往自主單字練習</span>
+          </a>
+        </div>
+      `;
+    }
+  }
+
+  // 3. 4 大小指標
+  const elFreeStreak = document.getElementById("stFreeStreak");
+  if (elFreeStreak) elFreeStreak.innerText = `${streak} 天`;
+  const elFreeStreakSub = document.getElementById("stFreeStreakSub");
+  if (elFreeStreakSub) elFreeStreakSub.innerText = `歷史最佳連續 ${best} 天`;
+
+  const elFreeAtt = document.getElementById("stFreeTotalAttempts");
+  if (elFreeAtt) elFreeAtt.innerText = `${attempts.toLocaleString()} 題`;
+  const elFreeAttSub = document.getElementById("stFreeTotalAttemptsSub");
+  if (elFreeAttSub) elFreeAttSub.innerText = `答對 ${correct.toLocaleString()} 題 (${passRate}%)`;
+
+  const elFreePoints = document.getElementById("stFreePoints");
+  const points = (agent && agent.points) ? agent.points : 0;
+  if (elFreePoints) elFreePoints.innerText = `${points.toLocaleString()} 分`;
+  const elFreePointsSub = document.getElementById("stFreePointsSub");
+  if (elFreePointsSub) elFreePointsSub.innerText = `已精通 ${mast.toLocaleString()} 個單字`;
+
+  const elFreeActive = document.getElementById("stFreeActiveDays");
+  if (elFreeActive) elFreeActive.innerText = `${totalActive} 天`;
+  const elFreeActiveSub = document.getElementById("stFreeActiveDaysSub");
+  if (elFreeActiveSub) elFreeActiveSub.innerText = `累積堅持打卡天數`;
+
+  // 4. 歷史自由練習明細表（從 fullProcessedData 或 rawRows 彙整）
+  const histContainer = document.getElementById("studentFreePracticeHistoryContainer");
+  const countTag = document.getElementById("stFreeFilterCountTag");
+  const rows = (fullProcessedData && fullProcessedData.length > 0) ? fullProcessedData : [];
+
+  if (countTag) countTag.innerText = `共 ${rows.length} 筆紀錄`;
+
+  if (histContainer) {
+    if (rows.length === 0) {
+      histContainer.innerHTML = `
+        <div style="text-align:center; padding:38px 16px; color:var(--text-muted); font-size:13.5px;">
+          📌 尚無自由練習紀錄。
+        </div>
+      `;
+    } else {
+      const rowsHtml = rows.map(r => {
+        const dAtt = r.dailyAttempts || 0;
+        const dCor = r.dailyCorrect || 0;
+        const dRate = dAtt > 0 ? Math.round((dCor / dAtt) * 100) : 0;
+        const cAtt = r.cumAttempts || 0;
+        const cCor = r.cumCorrect || 0;
+        const cRate = cAtt > 0 ? Math.round((cCor / cAtt) * 100) : 0;
+
+        let rateBadgeClass = "score-badge score-low";
+        if (dRate >= 80) rateBadgeClass = "score-badge score-high";
+        else if (dRate >= 60) rateBadgeClass = "score-badge score-mid";
+
+        const mastCount = r.mastered || 0;
+        const timeDisplay = r.rawTimestamp ? formatCompactDailyTime(r.rawTimestamp) : "—";
+
+        return `
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:10px 12px; font-weight:700; white-space:nowrap; color:var(--text);">${escapeHtml(r.date || '—')}</td>
+            <td style="padding:10px 12px; text-align:center; font-weight:700; color:var(--primary); white-space:nowrap;">
+              ${dAtt > 0 ? `+${dAtt} 題` : '0 題'}
+            </td>
+            <td style="padding:10px 12px; text-align:center; font-weight:700; color:#10b981; white-space:nowrap;">
+              ${dCor > 0 ? `+${dCor} 題` : '0 題'}
+            </td>
+            <td style="padding:10px 12px; text-align:center; white-space:nowrap;">
+              <span class="${rateBadgeClass}">${dAtt > 0 ? dRate + "%" : "—"}</span>
+            </td>
+            <td style="padding:10px 12px; text-align:center; color:var(--text-muted); white-space:nowrap;">
+              ${cCor}/${cAtt} (${cRate}%)
+            </td>
+            <td style="padding:10px 12px; text-align:center; font-weight:700; color:#10b981; white-space:nowrap;">
+              ${mastCount} 字
+            </td>
+            <td style="padding:8px 6px; text-align:center; white-space:nowrap; width:85px;">
+              <span class="compact-time-badge" style="display:inline-block; padding:3px 7px; border-radius:5px; background:var(--bg-subtle, #f1f5f9); color:var(--text-muted, #475569); font-family:monospace; font-size:11.5px; border:1px solid var(--border, #e2e8f0);">${escapeHtml(timeDisplay)}</span>
+            </td>
+          </tr>
+        `;
+      }).join("");
+
+      histContainer.innerHTML = `
+        <table style="width:100%; border-collapse:collapse; font-size:13px; min-width:640px;">
+          <thead>
+            <tr style="background:var(--table-header-bg); border-bottom:2px solid var(--border); text-align:left;">
+              <th style="padding:10px 12px; font-weight:700; white-space:nowrap;">📅 練習日期</th>
+              <th style="padding:10px 12px; font-weight:700; text-align:center; white-space:nowrap;">📝 單日自主作答</th>
+              <th style="padding:10px 12px; font-weight:700; text-align:center; white-space:nowrap;">🎯 單日答對</th>
+              <th style="padding:10px 12px; font-weight:700; text-align:center; white-space:nowrap;">單日正確率</th>
+              <th style="padding:10px 12px; font-weight:700; text-align:center; white-space:nowrap;">累計作答 (累計正確率)</th>
+              <th style="padding:10px 12px; font-weight:700; text-align:center; white-space:nowrap;">累計精通單字</th>
+              <th style="padding:10px 6px; font-weight:700; text-align:center; white-space:nowrap; width:85px;">存檔時間</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+        </table>
+      `;
+    }
+  }
 }
 
 // ════════════════════════════════════════
@@ -12729,6 +13093,49 @@ function applyStudentDailyFilterAndRender() {
   if (elErr) elErr.innerText = `${uniqueErrorWords.size} 個`;
   const elErrSub = document.getElementById("stDailyErrorWordsSub");
   if (elErrSub) elErrSub.innerText = `已納入個人錯題複習庫`;
+
+  // 2.1 更新測驗單字學習進度 PROGRESS 方塊 (比照遊戲學習進度)
+  const dailyProgTotalWords = document.getElementById("stDailyProgressTotalWords");
+  const dailyBarL = document.getElementById("stDailyBarLearning");
+  const dailyBarP = document.getElementById("stDailyBarPracticing");
+  const dailyBarM = document.getElementById("stDailyBarMastered");
+  const dailyNumL = document.getElementById("stDailyNumLearning");
+  const dailyNumP = document.getElementById("stDailyNumPracticing");
+  const dailyNumM = document.getElementById("stDailyNumMastered");
+
+  // 從所有已篩選完成的測驗計算不重複單字之熟練表現
+  let quizErrorWordsSet = new Set(uniqueErrorWords);
+  let quizMasteredCount = 0;
+  let quizPracticingCount = 0;
+  let quizLearningCount = quizErrorWordsSet.size;
+
+  // 預設或以歷史累計測驗答對情況估算
+  if (totalAtt > 0) {
+    const totalCorrectWordsEstimate = Math.max(0, totalCorr);
+    // 滿分測驗次數視為精通成就
+    quizMasteredCount = Math.min(totalCorrectWordsEstimate, perfectCount * 10);
+    quizPracticingCount = Math.max(0, totalCorrectWordsEstimate - quizMasteredCount);
+  }
+  const totalQuizWordsIdentified = quizLearningCount + quizPracticingCount + quizMasteredCount;
+  const displayQuizTotal = Math.max(totalQuizWordsIdentified, totalAtt);
+
+  if (dailyProgTotalWords) dailyProgTotalWords.innerText = `共 ${displayQuizTotal.toLocaleString()} 測驗題次`;
+  if (dailyNumL) dailyNumL.innerText = quizLearningCount.toLocaleString();
+  if (dailyNumP) dailyNumP.innerText = quizPracticingCount.toLocaleString();
+  if (dailyNumM) dailyNumM.innerText = quizMasteredCount.toLocaleString();
+
+  if (displayQuizTotal > 0) {
+    const pctL = Math.min(100, Math.max(0, (quizLearningCount / displayQuizTotal) * 100)).toFixed(1);
+    const pctP = Math.min(100, Math.max(0, (quizPracticingCount / displayQuizTotal) * 100)).toFixed(1);
+    const pctM = Math.min(100, Math.max(0, (quizMasteredCount / displayQuizTotal) * 100)).toFixed(1);
+    if (dailyBarL) dailyBarL.style.width = pctL + "%";
+    if (dailyBarP) dailyBarP.style.width = pctP + "%";
+    if (dailyBarM) dailyBarM.style.width = pctM + "%";
+  } else {
+    if (dailyBarL) dailyBarL.style.width = "0%";
+    if (dailyBarP) dailyBarP.style.width = "0%";
+    if (dailyBarM) dailyBarM.style.width = "0%";
+  }
 
   // 3. 渲染歷史表格
   const historyContainer = document.getElementById("studentDailyTaskHistoryContainer");
