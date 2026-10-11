@@ -170,10 +170,14 @@ function ensureStudentSheetColumns(sheet) {
   if (!sheet) return;
   try {
     const maxCols = sheet.getMaxColumns();
+    const lastCol = sheet.getLastColumn();
+    // 🚀 關鍵極速跳過：若已具備 23 欄且表頭齊全，跳過 30+ 次 UI 格式 API 呼叫，省下 2~3 秒！
+    if (maxCols >= 23 && lastCol >= 23) {
+      return;
+    }
     if (maxCols < 23) {
       sheet.insertColumnsAfter(maxCols, 23 - maxCols);
     }
-    const lastCol = sheet.getLastColumn();
     if (lastCol < 23) {
       const addHdr = ["任務名稱","指定測驗成績","指定測驗正確率","練習狀態","測驗錯題單字"];
       sheet.getRange(1, 19, 1, addHdr.length).setValues([addHdr]);
@@ -420,6 +424,77 @@ function clearOverviewCache() {
   try { CacheService.getScriptCache().remove(SYS.CACHE_OVERVIEW_KEY); } catch(_) {}
 }
 
+/**
+ * 快取「指定單字任務」工作表解析資料 300 秒 (全校學生與教師共用，大幅消除登入時的重複讀取)
+ */
+function getTeacherTasksCached_(ss) {
+  const cacheKey = "TEACHER_TASKS_CACHE_ALL";
+  const cache = CacheService.getScriptCache();
+  try {
+    const hit = cache.get(cacheKey);
+    if (hit) return JSON.parse(hit);
+  } catch(_) {}
+
+  let tasks = [];
+  try {
+    const sheet = ss.getSheetByName("指定單字任務");
+    if (sheet && sheet.getLastRow() >= 2) {
+      const data = sheet.getDataRange().getValues();
+      for (let i = 1; i < data.length; i++) {
+        tasks.push({
+          taskClass: String(data[i][0] || "").replace(/班$/, "").trim().toLowerCase(),
+          rawClass : String(data[i][0] || "").trim(),
+          taskName : String(data[i][1] || "").trim(),
+          rawWords : String(data[i][2] || "").trim(),
+          mode     : String(data[i][3] || "抽測").trim(),
+          countVal : String(data[i][4] || "ALL").trim().toUpperCase(),
+          enabled  : data[i][5] === true || String(data[i][5]).trim().toUpperCase() === "TRUE",
+          taskDate : data[i][6] ? formatStandardDateYMD(data[i][6]) : ""
+        });
+      }
+    }
+  } catch(e) {
+    logError("getTeacherTasksCached_", e, "", "");
+  }
+
+  try { cache.put(cacheKey, JSON.stringify(tasks), 300); } catch(_) {}
+  return tasks;
+}
+
+/** 清除指定單字任務快取 */
+function invalidateTeacherTaskCache_() {
+  try {
+    const cache = CacheService.getScriptCache();
+    cache.remove("TEACHER_TASKS_CACHE_ALL");
+    cache.remove("TASK_WORDS_DICT_CACHE");
+  } catch(_) {}
+}
+
+/** 快取任務單字字典 300 秒 */
+function getTaskWordsDictCached_(ss) {
+  const cacheKey = "TASK_WORDS_DICT_CACHE";
+  const cache = CacheService.getScriptCache();
+  try {
+    const hit = cache.get(cacheKey);
+    if (hit) return JSON.parse(hit);
+  } catch(_) {}
+
+  const dict = {};
+  const tasks = getTeacherTasksCached_(ss);
+  for (let i = 0; i < tasks.length; i++) {
+    const tName = tasks[i].taskName.toLowerCase();
+    const rawW = tasks[i].rawWords;
+    const tDate = tasks[i].taskDate;
+    const words = rawW ? rawW.split(/[\s,;\n\r]+/).filter(w => w.trim().length > 0) : [];
+    if (tName) dict[tName] = words;
+    if (tDate) dict[tDate] = words;
+    if (tDate && tName) dict[tDate + "_" + tName] = words;
+  }
+
+  try { cache.put(cacheKey, JSON.stringify(dict), 300); } catch(_) {}
+  return dict;
+}
+
 // ════════════════════════════════════════════════════════════════════
 // 2. 老師指定單字任務核心函式
 // ════════════════════════════════════════════════════════════════════
@@ -453,16 +528,14 @@ function getActiveTaskForClass(ss, studentClass, username) {
     }
   }
 
-  let sheet = ss.getSheetByName("指定單字任務");
-  if (!sheet || sheet.getLastRow() < 2) {
+  const cleanClass = String(studentClass || "").replace(/班$/, "").trim().toLowerCase();
+  const tasks = getTeacherTasksCached_(ss);
+  if (tasks.length === 0) {
     if (hasAnyCompletedToday) {
       return { hasTask: false, alreadyCompleted: true, message: "今日指定練習已全數完成！" };
     }
     return defaultRes;
   }
-
-  const cleanClass = String(studentClass || "").replace(/班$/, "").trim().toLowerCase();
-  const data = sheet.getDataRange().getValues();
 
   let foundTodayClassTask = null;
   let foundAnyClassTask   = null;
@@ -470,14 +543,15 @@ function getActiveTaskForClass(ss, studentClass, username) {
   let foundAnyAllTask     = null;
   let totalMatchingTasksCount = 0;
 
-  for (let i = 1; i < data.length; i++) {
-    const taskClass = String(data[i][0] || "").replace(/班$/, "").trim().toLowerCase();
-    const taskName  = String(data[i][1] || "").trim();
-    const rawWords  = String(data[i][2] || "").trim();
-    const mode      = String(data[i][3] || "抽測").trim();
-    const countVal  = String(data[i][4] || "ALL").trim().toUpperCase();
-    const enabled   = data[i][5] === true || String(data[i][5]).trim().toUpperCase() === "TRUE";
-    const taskDate  = data[i][6] ? formatStandardDateYMD(data[i][6]) : "";
+  for (let i = 0; i < tasks.length; i++) {
+    const t = tasks[i];
+    const taskClass = t.taskClass;
+    const taskName  = t.taskName;
+    const rawWords  = t.rawWords;
+    const mode      = t.mode;
+    const countVal  = t.countVal;
+    const enabled   = t.enabled;
+    const taskDate  = t.taskDate;
 
     if (!enabled || !taskName || !rawWords) continue;
 
@@ -572,9 +646,8 @@ function getWeekendRemediationTask(ss, cleanClass, username, completedTasksToday
   const monStr = Utilities.formatDate(monDate, "Asia/Taipei", "yyyy-MM-dd");
   const friStr = Utilities.formatDate(friDate, "Asia/Taipei", "yyyy-MM-dd");
 
-  const taskSheet = ss.getSheetByName("指定單字任務");
-  if (!taskSheet || taskSheet.getLastRow() < 2) return null;
-  const taskData = taskSheet.getDataRange().getValues();
+  const tasks = getTeacherTasksCached_(ss);
+  if (tasks.length === 0) return null;
 
   // 取得學生在週一至週五的實際作答紀錄
   const studentDoneMap = {};
@@ -602,12 +675,13 @@ function getWeekendRemediationTask(ss, cleanClass, username, completedTasksToday
   }
 
   const unpassedWordsSet = new Set();
-  for (let i = 1; i < taskData.length; i++) {
-    const tClass = String(taskData[i][0] || "").replace(/班$/, "").trim().toLowerCase();
-    const tName  = String(taskData[i][1] || "").trim();
-    const rawWords = String(taskData[i][2] || "").trim();
-    const enabled = taskData[i][5] === true || String(taskData[i][5]).trim().toUpperCase() === "TRUE";
-    const tDate  = taskData[i][6] ? formatStandardDateYMD(taskData[i][6]) : "";
+  for (let i = 0; i < tasks.length; i++) {
+    const t = tasks[i];
+    const tClass = t.taskClass;
+    const tName  = t.taskName;
+    const rawWords = t.rawWords;
+    const enabled = t.enabled;
+    const tDate  = t.taskDate;
 
     if (!enabled || !tName || !rawWords) continue;
 
@@ -680,21 +754,20 @@ function getTeacherTask(credentials, targetClass, targetDate) {
 
     const cleanClass = effectiveClass.replace(/班$/, "").trim().toLowerCase();
     const cleanDate  = targetDate ? formatStandardDateYMD(targetDate) : "";
-    let sheet = ss.getSheetByName("指定單字任務");
-    if (!sheet || sheet.getLastRow() < 2) return { status: "success", task: null };
+    const tasks = getTeacherTasksCached_(ss);
+    if (tasks.length === 0) return { status: "success", task: null };
 
-    const data = sheet.getDataRange().getValues();
     let matchedRow = null;
     // 由新至舊遍歷
-    for (let i = data.length - 1; i >= 1; i--) {
-      const c = String(data[i][0] || "").replace(/班$/, "").trim().toLowerCase();
-      const d = data[i][6] ? formatStandardDateYMD(data[i][6]) : "";
+    for (let i = tasks.length - 1; i >= 0; i--) {
+      const c = tasks[i].taskClass;
+      const d = tasks[i].taskDate;
       if (c === cleanClass) {
         if (cleanDate && d === cleanDate) {
-          matchedRow = data[i];
+          matchedRow = tasks[i];
           break;
         } else if (!cleanDate && !matchedRow) {
-          matchedRow = data[i];
+          matchedRow = tasks[i];
         }
       }
     }
@@ -703,13 +776,13 @@ function getTeacherTask(credentials, targetClass, targetDate) {
       return {
         status: "success",
         task: {
-          className : String(matchedRow[0] || ""),
-          taskName  : String(matchedRow[1] || ""),
-          words     : String(matchedRow[2] || ""),
-          mode      : String(matchedRow[3] || "抽測"),
-          count     : String(matchedRow[4] || "ALL"),
-          enabled   : matchedRow[5] === true || String(matchedRow[5]).toUpperCase() === "TRUE",
-          targetDate: matchedRow[6] ? formatStandardDateYMD(matchedRow[6]) : ""
+          className : matchedRow.rawClass,
+          taskName  : matchedRow.taskName,
+          words     : matchedRow.rawWords,
+          mode      : matchedRow.mode,
+          count     : matchedRow.countVal,
+          enabled   : matchedRow.enabled,
+          targetDate: matchedRow.taskDate
         }
       };
     }
@@ -779,6 +852,7 @@ function saveTeacherTask(credentials, taskData) {
     }
 
     clearOverviewCache();
+    invalidateTeacherTaskCache_();
     const dateNotice = targetDateStr ? `（指定日期：${targetDateStr}）` : "（每日通用）";
     return { status: "success", message: `✅ 班級【${targetClass}】${dateNotice}指定任務已成功發布！` };
   } catch(e) {
@@ -844,96 +918,29 @@ function ensureTimeSettingsSheet(ss) {
  * 2. 檢查該學生是否有「個別學生特別時間」設定。
  * 3. 若無個別設定，則套用「全域預設作答時間」（預設為上次教師修改的設定，初始為 07:30 ~ 22:00）。
  */
+/**
+ * 檢查當前時間是否允許該學生使用系統 (含 CacheService 120 秒高階快取加速)
+ */
 function checkTimeRestrictionAllowance(ss, username) {
   const now = new Date();
   const todayYMD = Utilities.formatDate(now, "Asia/Taipei", "yyyy-MM-dd");
   const timeStr = Utilities.formatDate(now, "Asia/Taipei", "HH:mm");
   const parts = timeStr.split(":");
   const currentMinutes = Number(parts[0]) * 60 + Number(parts[1]);
-
   const cleanUser = String(username || "").trim().toLowerCase();
 
-  let globalStart = "07:30";
-  let globalEnd = "22:00";
-  let globalStartMin = 450;
-  let globalEndMin = 1320;
-  let globalUpdatedAt = "";
-  let globalTeacher = "";
+  const rules = getTimeRestrictionRulesCached_(ss, todayYMD);
+  const globalStart = rules.globalStart || "07:30";
+  const globalEnd = rules.globalEnd || "22:00";
+  const globalStartMin = rules.globalStartMin !== undefined ? rules.globalStartMin : 450;
+  const globalEndMin = rules.globalEndMin !== undefined ? rules.globalEndMin : 1320;
+  const globalUpdatedAt = rules.globalUpdatedAt || "";
+  const globalTeacher = rules.globalTeacher || "";
 
-  let studentRule = null;
-  let isDateOverridden = false;
-  let activeDateOverride = null;
+  const studentRule = (cleanUser && rules.studentRules[cleanUser]) ? rules.studentRules[cleanUser] : null;
+  const isDateOverridden = !!rules.activeDateOverride;
+  const activeDateOverride = rules.activeDateOverride || null;
 
-  try {
-    const sheet = ensureTimeSettingsSheet(ss);
-    if (sheet && sheet.getLastRow() >= 2) {
-      const data = sheet.getDataRange().getValues();
-      for (let i = 1; i < data.length; i++) {
-        const type = String(data[i][0] || "").trim();
-        const name = String(data[i][1] || "").trim();
-        const targetUser = String(data[i][2] || "").trim().toLowerCase();
-        const studentInfo = String(data[i][3] || "").trim();
-        const sTime = formatStandardTimeHHmm(data[i][4]);
-        const eTime = formatStandardTimeHHmm(data[i][5]);
-        const startD = formatStandardDateYMD(data[i][6]);
-        const endD = formatStandardDateYMD(data[i][7]);
-        const statusVal = String(data[i][8] || "").trim().toUpperCase();
-        const isEnabled = (data[i][8] === true || statusVal === "TRUE" || statusVal === "啟用" || statusVal === "YES");
-        const teacher = String(data[i][9] || "");
-        const updatedAt = data[i][10] ? Utilities.formatDate(new Date(data[i][10]), "Asia/Taipei", "yyyy-MM-dd HH:mm") : "";
-        const remark = String(data[i][11] || "");
-
-        // 1. 全域預設作答時間
-        if (type === "全域預設" || (targetUser === "all" && type !== "特別日期解除" && sTime && eTime)) {
-          if (sTime && eTime) {
-            globalStart = sTime;
-            globalEnd = eTime;
-            const sp = sTime.split(":");
-            const ep = eTime.split(":");
-            globalStartMin = Number(sp[0]) * 60 + Number(sp[1]);
-            globalEndMin = Number(ep[0]) * 60 + Number(ep[1]);
-            globalUpdatedAt = updatedAt;
-            globalTeacher = teacher;
-          }
-        }
-
-        // 2. 個別學生作答時間
-        if (isEnabled && (type === "個別學生" || (targetUser && targetUser !== "all" && sTime && eTime))) {
-          if (cleanUser && targetUser === cleanUser) {
-            const sp = sTime.split(":");
-            const ep = eTime.split(":");
-            studentRule = {
-              username: targetUser,
-              studentInfo: studentInfo,
-              startTime: sTime,
-              endTime: eTime,
-              startMin: Number(sp[0]) * 60 + Number(sp[1]),
-              endMin: Number(ep[0]) * 60 + Number(ep[1]),
-              remark: remark,
-              teacher: teacher
-            };
-          }
-        }
-
-        // 3. 特別日期全天解除
-        if (isEnabled && (type === "特別日期解除" || (startD && endD))) {
-          if (todayYMD >= startD && todayYMD <= endD) {
-            isDateOverridden = true;
-            activeDateOverride = {
-              name: name || "特別開放",
-              startDate: startD,
-              endDate: endD,
-              remark: remark
-            };
-          }
-        }
-      }
-    }
-  } catch(e) {
-    logError("checkTimeRestrictionAllowance", e, username, "");
-  }
-
-  // 決定此學生的有效作答時間範圍
   const effectiveStart = studentRule ? studentRule.startTime : globalStart;
   const effectiveEnd = studentRule ? studentRule.endTime : globalEnd;
   const effectiveStartMin = studentRule ? studentRule.startMin : globalStartMin;
@@ -958,6 +965,108 @@ function checkTimeRestrictionAllowance(ss, username) {
     todayDate: todayYMD,
     activeDateOverride: activeDateOverride
   };
+}
+
+/**
+ * 解析時間限制設定並快取 120 秒 (全校學生共用，大幅消除重複試算表讀取)
+ */
+function getTimeRestrictionRulesCached_(ss, todayYMD) {
+  const cacheKey = "TIME_RESTRICTION_RULES_" + todayYMD;
+  const cache = CacheService.getScriptCache();
+  try {
+    const hit = cache.get(cacheKey);
+    if (hit) return JSON.parse(hit);
+  } catch(_) {}
+
+  const rules = {
+    globalStart: "07:30",
+    globalEnd: "22:00",
+    globalStartMin: 450,
+    globalEndMin: 1320,
+    globalUpdatedAt: "",
+    globalTeacher: "",
+    studentRules: {},
+    activeDateOverride: null
+  };
+
+  try {
+    const sheet = ensureTimeSettingsSheet(ss);
+    if (sheet && sheet.getLastRow() >= 2) {
+      const data = sheet.getDataRange().getValues();
+      for (let i = 1; i < data.length; i++) {
+        const type = String(data[i][0] || "").trim();
+        const name = String(data[i][1] || "").trim();
+        const targetUser = String(data[i][2] || "").trim().toLowerCase();
+        const studentInfo = String(data[i][3] || "").trim();
+        const sTime = formatStandardTimeHHmm(data[i][4]);
+        const eTime = formatStandardTimeHHmm(data[i][5]);
+        const startD = formatStandardDateYMD(data[i][6]);
+        const endD = formatStandardDateYMD(data[i][7]);
+        const statusVal = String(data[i][8] || "").trim().toUpperCase();
+        const isEnabled = (data[i][8] === true || statusVal === "TRUE" || statusVal === "啟用" || statusVal === "YES");
+        const teacher = String(data[i][9] || "");
+        const updatedAt = data[i][10] ? Utilities.formatDate(new Date(data[i][10]), "Asia/Taipei", "yyyy-MM-dd HH:mm") : "";
+        const remark = String(data[i][11] || "");
+
+        // 1. 全域預設作答時間
+        if (type === "全域預設" || (targetUser === "all" && type !== "特別日期解除" && sTime && eTime)) {
+          if (sTime && eTime) {
+            rules.globalStart = sTime;
+            rules.globalEnd = eTime;
+            const sp = sTime.split(":");
+            const ep = eTime.split(":");
+            rules.globalStartMin = Number(sp[0]) * 60 + Number(sp[1]);
+            rules.globalEndMin = Number(ep[0]) * 60 + Number(ep[1]);
+            rules.globalUpdatedAt = updatedAt;
+            rules.globalTeacher = teacher;
+          }
+        }
+
+        // 2. 個別學生作答時間
+        if (isEnabled && (type === "個別學生" || (targetUser && targetUser !== "all" && sTime && eTime))) {
+          if (targetUser) {
+            const sp = sTime.split(":");
+            const ep = eTime.split(":");
+            rules.studentRules[targetUser] = {
+              username: targetUser,
+              studentInfo: studentInfo,
+              startTime: sTime,
+              endTime: eTime,
+              startMin: Number(sp[0]) * 60 + Number(sp[1]),
+              endMin: Number(ep[0]) * 60 + Number(ep[1]),
+              remark: remark,
+              teacher: teacher
+            };
+          }
+        }
+
+        // 3. 特別日期全天解除
+        if (isEnabled && (type === "特別日期解除" || (startD && endD))) {
+          if (todayYMD >= startD && todayYMD <= endD) {
+            rules.activeDateOverride = {
+              name: name || "特別開放",
+              startDate: startD,
+              endDate: endD,
+              remark: remark
+            };
+          }
+        }
+      }
+    }
+  } catch(e) {
+    logError("getTimeRestrictionRulesCached_", e, "", "");
+  }
+
+  try { cache.put(cacheKey, JSON.stringify(rules), 120); } catch(_) {}
+  return rules;
+}
+
+/** 清除作答時段規則快取 */
+function invalidateTimeRestrictionRulesCache_() {
+  try {
+    const todayYMD = Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy-MM-dd");
+    CacheService.getScriptCache().remove("TIME_RESTRICTION_RULES_" + todayYMD);
+  } catch(_) {}
 }
 
 /**
@@ -1421,6 +1530,7 @@ function saveGlobalTimeSetting(param1, param2, param3) {
   }
 
   clearOverviewCache();
+  invalidateTimeRestrictionRulesCache_();
   return {
     status: "success",
     message: `✅ 全校預設可作答時間已更新為【${sTime} ～ ${eTime}】！`,
@@ -1491,6 +1601,7 @@ function saveStudentTimeSetting(param1, param2, param3) {
   }
 
   clearOverviewCache();
+  invalidateTimeRestrictionRulesCache_();
   return {
     status: "success",
     message: `✅ 學生【${studentInfo || username}】的可作答時間已設定為【${sTime} ～ ${eTime}】！`,
@@ -1521,6 +1632,7 @@ function deleteStudentTimeSetting(param1, param2) {
     if (type === "個別學生" && u === cleanUser) {
       sheet.deleteRow(i + 1);
       clearOverviewCache();
+      invalidateTimeRestrictionRulesCache_();
       return { status: "success", message: `已移除學生【${username}】的個別時間設定，將恢復全校預設時間。` };
     }
   }
@@ -1592,6 +1704,7 @@ function saveTimeRestriction(param1, param2, param3) {
   }
 
   clearOverviewCache();
+  invalidateTimeRestrictionRulesCache_();
   return {
     status: "success",
     message: `✅ 已成功解除【${startD} ～ ${endD}】的時間限制！`,
@@ -1625,6 +1738,7 @@ function deleteTimeRestriction(param1, param2) {
     if (type === "特別日期解除" && s === startD && e === endD) {
       sheet.deleteRow(i + 1);
       clearOverviewCache();
+      invalidateTimeRestrictionRulesCache_();
       return { status: "success", message: "已刪除該解除限制設定", currentStatus: checkTimeRestrictionAllowance(ss, "") };
     }
   }
@@ -1671,6 +1785,7 @@ function quickToggleTodayUnlock(param1, param2) {
   if (currentlyActive && foundRow > 0) {
     sheet.getRange(foundRow, 9).setValue(false);
     clearOverviewCache();
+    invalidateTimeRestrictionRulesCache_();
     return {
       status: "success",
       isUnlocked: false,
@@ -1693,6 +1808,7 @@ function quickToggleTodayUnlock(param1, param2) {
       "教師一鍵解除今日限制"
     ]);
     clearOverviewCache();
+    invalidateTimeRestrictionRulesCache_();
     return {
       status: "success",
       isUnlocked: true,
@@ -1758,12 +1874,26 @@ function doPost(e) {
       }
 
       let records = {};
-      const uSheet = ss.getSheetByName(auth.username);
-      if (uSheet && uSheet.getLastRow() >= 2) {
-        const raw = decompressData(String(uSheet.getRange("B2").getValue() || "").trim());
-        if (raw) {
+      const cache = CacheService.getScriptCache();
+      const recCacheKey = "stu_rec_" + auth.username.toLowerCase();
+      let raw = "";
+      try { raw = cache.get(recCacheKey) || ""; } catch(_) {}
+
+      if (!raw) {
+        const uSheet = ss.getSheetByName(auth.username);
+        if (uSheet && uSheet.getLastRow() >= 2) {
+          raw = String(uSheet.getRange("B2").getValue() || "").trim();
+          if (raw) {
+            try { cache.put(recCacheKey, raw, 1200); } catch(_) {}
+          }
+        }
+      }
+
+      if (raw) {
+        const decomp = decompressData(raw);
+        if (decomp) {
           try {
-            const parsed = JSON.parse(raw);
+            const parsed = JSON.parse(decomp);
             if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
               records = parsed;
             }
@@ -2209,7 +2339,9 @@ function handleSaveRecord(ss, params, auth) {
 
   clearOverviewCache();
   try {
-    CacheService.getScriptCache().remove("stu_data_" + username.toLowerCase());
+    const cache = CacheService.getScriptCache();
+    cache.remove("stu_data_" + username.toLowerCase());
+    cache.put("stu_rec_" + username.toLowerCase(), stored, 1200);
   } catch(_) {}
   return jsonResponse({status:"success", message:"紀錄已成功儲存於個人分頁"});
   } catch(err) {
@@ -3049,23 +3181,7 @@ function getStudentTodayTaskResult(ss, username, todayStr) {
 }
 
 function getTaskWordsDict(ss) {
-  const dict = {};
-  try {
-    const tSheet = ss.getSheetByName("指定單字任務");
-    if (tSheet && tSheet.getLastRow() >= 2) {
-      const data = tSheet.getDataRange().getValues();
-      for (let i = 1; i < data.length; i++) {
-        const tName = String(data[i][1] || "").trim().toLowerCase();
-        const rawW = String(data[i][2] || "").trim();
-        const tDate = data[i][6] ? formatStandardDateYMD(data[i][6]) : "";
-        const words = rawW ? rawW.split(/[\s,;\n\r]+/).filter(w => w.trim().length > 0) : [];
-        if (tName) dict[tName] = words;
-        if (tDate) dict[tDate] = words;
-        if (tDate && tName) dict[tDate + "_" + tName] = words;
-      }
-    }
-  } catch(_) {}
-  return dict;
+  return getTaskWordsDictCached_(ss);
 }
 
 function getStudentDailyTaskHistory(ss, username) {
@@ -3076,7 +3192,7 @@ function getStudentDailyTaskHistory(ss, username) {
   const maxCols = sheet.getLastColumn();
   if (maxCols < 1) return [];
 
-  const taskWordsDict = getTaskWordsDict(ss);
+  const taskWordsDict = getTaskWordsDictCached_(ss);
   const vals = sheet.getRange(2, 1, maxRows, maxCols).getValues();
   const list = [];
   for (let i = 0; i < vals.length; i++) {

@@ -320,6 +320,8 @@
             if (result.className) {
               localStorage.setItem("teacher_my_class", result.className);
             }
+            // 🚀 效能優化：教師登入成功後，於背景非同步預載單字庫，開啟出題彈窗時零延遲即時呈現
+            try { loadPickerData(); } catch(_) {}
           }
           sessionStorage.setItem("current_pass", pass);
 
