@@ -297,7 +297,22 @@
           sessionStorage.setItem("current_pass", pass);
 
           if (Array.isArray(result.dailyTaskHistory)) {
-            localStorage.setItem("student_task_history", JSON.stringify(result.dailyTaskHistory));
+            let mergedHist = result.dailyTaskHistory;
+            try {
+              const localHist = JSON.parse(localStorage.getItem("student_task_history") || "[]");
+              mergedHist = result.dailyTaskHistory.map(cloudItem => {
+                const cloudWords = (Array.isArray(cloudItem.words) && cloudItem.words.length > 0) ? cloudItem.words : [];
+                if (cloudWords.length === 0) {
+                  const cDate = String(cloudItem.date || "").trim().replace(/\//g, "-");
+                  const loc = localHist.find(l => String(l.date || "").trim().replace(/\//g, "-") === cDate);
+                  if (loc && Array.isArray(loc.words) && loc.words.length > 0) {
+                    cloudItem.words = loc.words;
+                  }
+                }
+                return cloudItem;
+              });
+            } catch(_) {}
+            localStorage.setItem("student_task_history", JSON.stringify(mergedHist));
           }
           
           // 若有今日指定任務，存入 sessionStorage 與 localStorage 供 app.js 抓取
@@ -424,7 +439,7 @@
       if (iconEl) iconEl.textContent = "⏳";
 
       // 僅上傳遊戲與測驗相關之關鍵資料，防範無關快取污染與超出資料大小限制
-      const allowedPrefixes = ["spellAgent", "today_task", "task_done", "current_user", "user_role"];
+      const allowedPrefixes = ["spellAgent", "today_task", "task_done", "task_words", "student_task_history", "current_user", "user_role"];
       const localData = {};
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
@@ -444,6 +459,9 @@
           const prog = JSON.parse(rawProgress);
           if (prog && prog.pool && prog.pool.length > 0) {
             inProgressTask = prog;
+            const progWords = (Array.isArray(prog.words) && prog.words.length > 0)
+              ? prog.words
+              : (prog.pool || []).map(w => typeof w === "string" ? w : (w.word || w.display || w.w)).filter(Boolean);
             todayTaskSummary = {
               taskName   : prog.task ? prog.task.taskName : "今日指定練習",
               score      : prog.correct || 0,
@@ -452,7 +470,8 @@
               completed  : false, // ⚠️ 標記為未完成，防止鎖定
               inProgress : true,
               date       : prog.date || "",
-              wrongWords : prog.wrongWords || []
+              wrongWords : prog.wrongWords || [],
+              words      : progWords
             };
           }
         } catch(_) {}
@@ -468,6 +487,12 @@
             const todayDash = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0") + "-" + String(now.getDate()).padStart(2, "0");
             const todaySlash = todayDash.replace(/-/g, "/");
             if (parsedSum && (parsedSum.date === todayDash || parsedSum.date === todaySlash)) {
+              if (!Array.isArray(parsedSum.words) || parsedSum.words.length === 0) {
+                try {
+                  const cached = localStorage.getItem("task_words_" + todayDash) || localStorage.getItem("task_words_" + todaySlash);
+                  if (cached) parsedSum.words = JSON.parse(cached);
+                } catch(_) {}
+              }
               todayTaskSummary = parsedSum;
             }
           }

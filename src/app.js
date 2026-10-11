@@ -32,16 +32,27 @@ function persistTaskProgress() {
   if (!taskState.task || !taskState.pool || taskState.pool.length === 0) return;
   try {
     const todayDash = todayDateStr();
+    const todaySlash = todayDash.replace(/-/g, "/");
+    const poolWords = taskState.pool.map(w => {
+      const str = typeof w === "string" ? w : (w.word || w.display || w.w);
+      return String(str || "").trim().toLowerCase();
+    }).filter(Boolean);
+
     const saveObj = {
       date       : todayDash,
       username   : localStorage.getItem("current_user") || "",
       task       : taskState.task,
       pool       : taskState.pool,
+      words      : poolWords,
       index      : taskState.index,
       correct    : taskState.correct,
       wrongWords : taskState.wrongWords || []
     };
     localStorage.setItem("today_task_in_progress", JSON.stringify(saveObj));
+    if (poolWords.length > 0) {
+      localStorage.setItem("task_words_" + todayDash, JSON.stringify(poolWords));
+      localStorage.setItem("task_words_" + todaySlash, JSON.stringify(poolWords));
+    }
 
     // 每題作答完畢立即自動背景同步上傳雲端（斷線防護！）
     if (typeof window.uploadLocalStorageData === "function") {
@@ -785,11 +796,34 @@ function finishTaskMode() {
   const todaySlash = todayDash.replace(/-/g, "/");
   localStorage.setItem("task_done_" + todayDash, "true");
   localStorage.setItem("task_done_" + todaySlash, "true");
-  sessionStorage.setItem("assigned_task", JSON.stringify({ hasTask: false, alreadyCompleted: true }));
-  localStorage.setItem("assigned_task_active", JSON.stringify({ hasTask: false, alreadyCompleted: true }));
+
+  const allTaskWords = (taskState.pool || []).map(w => {
+    const str = typeof w === "string" ? w : (w.word || w.display || w.w);
+    return String(str || "").trim().toLowerCase();
+  }).filter(Boolean);
+  const cleanWrongWords = Array.from(new Set(
+    (taskState.wrongWords || []).map(w => String(w).trim().toLowerCase()).filter(Boolean)
+  ));
+
+  const finishedTaskPayload = {
+    hasTask: false,
+    alreadyCompleted: true,
+    taskName: task.taskName,
+    words: allTaskWords,
+    wrongWords: cleanWrongWords,
+    score: `${correct}/${total}`,
+    rate: rate + "%",
+    date: todayDash
+  };
+  sessionStorage.setItem("assigned_task", JSON.stringify(finishedTaskPayload));
+  localStorage.setItem("assigned_task_active", JSON.stringify(finishedTaskPayload));
+
+  if (allTaskWords.length > 0) {
+    localStorage.setItem("task_words_" + todayDash, JSON.stringify(allTaskWords));
+    localStorage.setItem("task_words_" + todaySlash, JSON.stringify(allTaskWords));
+  }
 
   // 3. 儲存今日任務成績摘要（標記 completed: true）
-  const allTaskWords = (taskState.pool || []).map(w => w.word || w.w || w);
   const nowTs = new Date().toLocaleString("zh-TW", { hour12: false });
   const summaryObj = {
     taskName   : task.taskName,
@@ -799,7 +833,7 @@ function finishTaskMode() {
     completed  : true,
     isWeekend  : !!task.isWeekend,
     date       : todayDash,
-    wrongWords : taskState.wrongWords || [],
+    wrongWords : cleanWrongWords,
     words      : allTaskWords,
     updatedAt  : nowTs
   };
@@ -808,7 +842,7 @@ function finishTaskMode() {
   try {
     const rawHist = localStorage.getItem("student_task_history");
     const histList = rawHist ? JSON.parse(rawHist) : [];
-    const filtered = histList.filter(item => !(item.date === todayDash && item.taskName === task.taskName));
+    const filtered = histList.filter(item => !(normalizeDateStr(item.date) === todayDash && item.taskName === task.taskName));
     filtered.unshift({
       date: todayDash,
       taskName: task.taskName,
@@ -816,7 +850,7 @@ function finishTaskMode() {
       rate: rate + "%",
       status: "🟢 已完成",
       updatedAt: nowTs,
-      wrongWords: taskState.wrongWords || [],
+      wrongWords: cleanWrongWords,
       words: allTaskWords
     });
     localStorage.setItem("student_task_history", JSON.stringify(filtered));
