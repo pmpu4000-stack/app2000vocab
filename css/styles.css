@@ -257,7 +257,8 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 /* Date Navigator Bar & Word Split Areas */
 .date-navigator-card{background:linear-gradient(135deg,#F1EDFF,#F8F9FD);border:1.5px solid #E4DFFa;border-radius:14px;padding:12px 16px;margin:12px 0 16px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
 .date-nav-left{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
-.date-nav-right{display:flex;align-items:center;gap:6px}
+.date-nav-right{display:flex;flex-direction:column;align-items:flex-start;gap:6px;min-width:260px}
+.date-nav-right .task-date-selector{width:100%;min-width:240px}
 .date-picker-input{background:#FFFFFF;border:1.5px solid var(--sky);color:var(--ink);padding:5px 10px;border-radius:8px;font-size:13px;font-weight:700;outline:none;cursor:pointer}
 .date-nav-btn{background:#FFFFFF;border:1px solid var(--line);color:var(--ink);padding:5px 11px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s}
 .date-nav-btn:hover{background:#F1F8FC;border-color:var(--sky);color:var(--sky)}
@@ -831,9 +832,11 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
   color: #38BDF8 !important;
 }
 .date-quick-label {
-  font-size: 12px;
+  font-size: 12.5px;
   color: var(--ink2);
   font-weight: 700;
+  white-space: nowrap;
+  display: block;
 }
 [data-theme="dark"] .date-quick-label {
   color: #A5B0CF !important;

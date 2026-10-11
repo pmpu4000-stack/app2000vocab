@@ -1221,7 +1221,7 @@ export function renderSummary(d) {
       </div>
       <div class="date-nav-right">
         <label for="record-quick-dates" class="date-quick-label">🎯 快速跳至有紀錄日期：</label>
-        <select id="record-quick-dates" class="task-date-selector">
+        <select id="record-quick-dates" class="task-date-selector" style="width:100%; margin-top:2px;">
           ${quickDateOptionsHtml}
         </select>
       </div>
