@@ -490,7 +490,12 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 
   <!-- 登入驗證遮罩 -->
   <div id="login-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(35,42,77,0.38); backdrop-filter:blur(10px); z-index:9999; display:flex; justify-content:center; align-items:center;">
-    <div style="background:#ffffff; padding:36px 32px; border-radius:24px; box-shadow:0 20px 45px -10px rgba(35,42,77,0.22); width:320px; text-align:center; border:1px solid #E7E9F5;">
+    <div style="background:#ffffff; padding:36px 32px; border-radius:24px; box-shadow:0 20px 45px -10px rgba(35,42,77,0.22); width:320px; text-align:center; border:1px solid #E7E9F5; position:relative;">
+      <!-- 登入視窗切換按鈕 -->
+      <button type="button" id="btn-login-theme-toggle" title="切換明亮/暗黑模式"
+        style="position:absolute; top:16px; right:16px; background:rgba(108,76,224,0.08); border:1px solid #E7E9F5; border-radius:20px; padding:5px 11px; font-size:12.5px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:4px; color:var(--ink2);">
+        <span class="theme-icon">🌙</span><span class="theme-text">暗黑</span>
+      </button>
       <div style="font-size:40px; margin-bottom:8px;">🎯</div>
       <h2 style="color:#232A4D; margin:0 0 8px 0; font-size:22px; font-weight:800;">拼字小特工</h2>
       <p style="color:#5A6183; font-size:13px; margin-bottom:20px; line-height:1.5;">請輸入學號與密碼</p>
@@ -563,9 +568,12 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
           <span>今日剩餘</span>
         </div>
         <div class="stat user" id="stat-user" title="目前登入帳號">
-          <!-- user -->
           <b id="s-user" class="tnum">-</b>
           <span>登入帳號</span>
+        </div>
+        <div class="stat theme" id="btn-theme-toggle" style="cursor:pointer; display:flex;" title="點擊切換明亮/暗黑模式">
+          <b id="s-theme-icon" class="tnum">🌙</b>
+          <span id="s-theme-text">暗黑</span>
         </div>
       </div>
     </header>
@@ -691,6 +699,7 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
     updateAccountDisplay("-", "");
 
     // ── 暗黑 / 明亮模式切換與記憶機制 ──
+        // ── 暗黑 / 明亮模式切換與記憶機制 ──
     function applyAppTheme(theme) {
       const isDark = (theme === "dark");
       if (isDark) {
@@ -699,22 +708,36 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
         document.documentElement.removeAttribute("data-theme");
       }
       localStorage.setItem("app_theme", isDark ? "dark" : "light");
+      
+      // 同步頂端按鈕文字與圖示
       const icon = document.getElementById("s-theme-icon");
       const txt = document.getElementById("s-theme-text");
       if (icon) icon.textContent = isDark ? "☀️" : "🌙";
       if (txt) txt.textContent = isDark ? "明亮" : "暗黑";
+
+      // 同步登入卡片上的按鈕
+      const loginBtn = document.getElementById("btn-login-theme-toggle");
+      if (loginBtn) {
+        const lIcon = loginBtn.querySelector(".theme-icon");
+        const lTxt = loginBtn.querySelector(".theme-text");
+        if (lIcon) lIcon.textContent = isDark ? "☀️" : "🌙";
+        if (lTxt) lTxt.textContent = isDark ? "明亮" : "暗黑";
+      }
+    }
+
+    function toggleTheme() {
+      const cur = localStorage.getItem("app_theme") || "light";
+      applyAppTheme(cur === "dark" ? "light" : "dark");
     }
 
     const savedTheme = localStorage.getItem("app_theme") || "light";
     applyAppTheme(savedTheme);
 
     const themeToggleBtn = document.getElementById("btn-theme-toggle");
-    if (themeToggleBtn) {
-      themeToggleBtn.onclick = () => {
-        const cur = localStorage.getItem("app_theme") || "light";
-        applyAppTheme(cur === "dark" ? "light" : "dark");
-      };
-    }
+    if (themeToggleBtn) themeToggleBtn.onclick = toggleTheme;
+
+    const loginThemeBtn = document.getElementById("btn-login-theme-toggle");
+    if (loginThemeBtn) loginThemeBtn.onclick = toggleTheme;
 
     const sc = document.getElementById("s-correct"); if (sc) sc.textContent = "0";
     const ss = document.getElementById("s-streak");  if (ss) ss.textContent = "0";
