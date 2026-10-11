@@ -204,6 +204,44 @@ export function auditAnswerSpeed(guess, isCorrect) {
 }
 
 /**
+ * 向後端 Google Sheet 發送資安駭客入侵事件日誌 (依刑法妨害電腦使用罪證據保全標準)
+ */
+export async function reportSecurityIncident(method, details, result = "🚫 已即時攔截並阻斷請求 (403)") {
+  const now = Date.now();
+  const cacheKey = `sec_${method}_${details.slice(0, 30)}`;
+  if (_debounceCache.has(cacheKey) && (now - _debounceCache.get(cacheKey) < 4000)) {
+    return;
+  }
+  _debounceCache.set(cacheKey, now);
+
+  const scriptUrl = _scriptUrl || window.__SCRIPT_URL || "https://script.google.com/macros/s/AKfycbx1hyCNJxqFMoaJgIxfZqLYIYH00NegI1Yd8NJP6gRjqwOndWGkmr-H9tGvVwK_axM9/exec";
+  const username = localStorage.getItem("current_user") || window.__CURRENT_USER || "";
+  const role = localStorage.getItem("user_role") || window.__USER_ROLE || "student";
+
+  const payload = {
+    action: "reportSecurityIncident",
+    username: username || "（未登入訪客 / 惡意連線）",
+    realName: localStorage.getItem("user_real_name") || "",
+    className: localStorage.getItem("user_class_name") || "",
+    role: role,
+    method: method,
+    details: details,
+    device: getDeviceAndOsInfo(),
+    browserInfo: getBrowserAndScreenInfo(),
+    result: result
+  };
+
+  try {
+    fetch(scriptUrl, {
+      method: "POST",
+      keepalive: true,
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload)
+    }).catch(() => {});
+  } catch(_) {}
+}
+
+/**
  * 全域資安監聽初始化
  */
 export function initAntiCheat(options = {}) {
@@ -259,4 +297,48 @@ export function initAntiCheat(options = {}) {
       reportCheatAudit("竄改本機儲存資料 (LocalStorage 攻擊)", `外部變更鍵值 '${e.key}'；舊值: ${(e.oldValue||"").slice(0,40)}，新值: ${(e.newValue||"").slice(0,40)}`, "已警告並通報異常");
     }
   });
+
+  // ── 5. 防駭客入侵防禦：無頭瀏覽器與自動化渗透工具偵測 ──
+  try {
+    if (navigator.webdriver === true) {
+      reportSecurityIncident(
+        "自動化滲透程式 / 無頭瀏覽器 (Webdriver/Bot)",
+        "偵測到 navigator.webdriver = true (Selenium/Puppeteer/自動化爬蟲入侵腳本特徵)",
+        "🛡️ 已標記自動化連線並保全證據"
+      );
+    }
+  } catch(_) {}
+
+  // ── 6. 防駭客入侵防禦：底層核心 API 遭 Hook 竄改檢測 ──
+  try {
+    if (window.fetch && typeof window.fetch.toString === "function") {
+      const fetchStr = window.fetch.toString();
+      if (!fetchStr.includes("[native code]") && !fetchStr.includes("fetch")) {
+        reportSecurityIncident(
+          "前端底層網路 API 遭惡意竄改 (Function Hooking)",
+          "偵測到原生 window.fetch 被未知外部腳本覆寫攔截",
+          "🚫 觸發底層安全警報並記錄"
+        );
+      }
+    }
+  } catch(_) {}
+
+  // ── 7. 防駭客入侵防禦：輸入欄位即時 SQL/XSS 攻擊特徵探測 ──
+  document.addEventListener("input", (e) => {
+    const val = (e.target && e.target.value) || "";
+    if (val.length >= 6) {
+      // 檢測高危 SQL 注入與 XSS 試探特徵
+      const isSqlProbe = /\b(union\s+select|select\s+.*\s+from|insert\s+into|drop\s+table|delete\s+from|--|#|or\s+['"]?1['"]?\s*=\s*['"]?1)\b/i.test(val);
+      const isXssProbe = /<script|javascript:|onerror\s*=|onload\s*=|document\.cookie/i.test(val);
+      if (isSqlProbe || isXssProbe) {
+        const attackType = isSqlProbe ? "SQL 資料庫注入探測 (SQL Injection)" : "跨站腳本注入探測 (XSS Probe)";
+        reportSecurityIncident(
+          `輸入欄位惡意探測 (${attackType})`,
+          `於元素 <${(e.target.tagName || "").toLowerCase()}> 輸入危險字串: '${val.slice(0, 60)}'`,
+          "🚫 已觸發 WAF 規則並依法存證"
+        );
+        showAntiCheatToast("🚨 資安防禦警示：偵測到危險代碼注入特徵！系統已依法保全證據。");
+      }
+    }
+  }, true);
 }

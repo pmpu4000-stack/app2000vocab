@@ -19,7 +19,7 @@ const SYS = {
   MAX_BACKUP_FILES   : 30,
   BACKUP_FOLDER      : "【備份庫】學生學習歷程資料",
   SYSTEM_SHEETS      : new Set([
-    "全班學習總覽","使用者清單","指定單字任務","錯誤日誌","作弊稽核日誌"
+    "全班學習總覽","使用者清單","指定單字任務","錯誤日誌","作弊稽核日誌","資安入侵防禦日誌"
   ])
 };
 
@@ -61,6 +61,14 @@ function recordLoginFailure(username) {
     if (n >= SYS.LOGIN_MAX_FAIL) {
       cache.put(_lockKey(username), "1", SYS.LOGIN_LOCK_SEC);
       logError("登入保護", `帳號 ${username} 連續失敗 ${n} 次，已鎖定`, username, "");
+      try {
+        logSecurityIncident(SpreadsheetApp.getActiveSpreadsheet(), {
+          username: username,
+          method: "密碼暴力破解/撞庫攻擊 (Brute-force)",
+          details: `連續輸入錯誤密碼達 ${n} 次，觸發安全機制強制鎖定 ${SYS.LOGIN_LOCK_SEC} 秒`,
+          result: "🔒 帳號已自動鎖定保護"
+        });
+      } catch(_) {}
     }
   } catch(_) {}
 }
@@ -465,6 +473,180 @@ function recordCheatAudit(ss, params) {
   } finally {
     try { lock.releaseLock(); } catch(_) {}
   }
+}
+
+// ════════════════════════════════════════════════════════════════════
+// 0.2 資安防禦：入侵偵測與 WAF 防火牆日誌系統 (符應刑法妨害電腦使用罪證據保全標準)
+// ════════════════════════════════════════════════════════════════════
+
+function logSecurityIncident(ss, incident) {
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(8000);
+  } catch(_) {}
+
+  try {
+    if (!ss) ss = SpreadsheetApp.getActiveSpreadsheet();
+    let sheet = ss.getSheetByName("資安入侵防禦日誌");
+    const headers = [
+      "紀錄時間", "來源帳號/識別", "姓名與角色", "所屬班級",
+      "入侵/攻擊手法", "具體載荷與證據細節", "來源設備與作業系統", "客戶端環境與指紋", "防禦處置結果"
+    ];
+
+    if (!sheet) {
+      sheet = ss.insertSheet("資安入侵防禦日誌");
+      sheet.appendRow(headers);
+      sheet.getRange("1:1")
+        .setFontWeight("bold")
+        .setBackground("#0f172a") // 曜石深黑專業資安底色
+        .setFontColor("#f43f5e") // 警示粉紅標題
+        .setHorizontalAlignment("center")
+        .setVerticalAlignment("middle");
+      sheet.setRowHeight(1, 38);
+      [160, 120, 110, 90, 200, 420, 200, 230, 130].forEach((w, i) => sheet.setColumnWidth(i + 1, w));
+      sheet.setFrozenRows(1);
+    } else if (sheet.getLastRow() >= 1 && sheet.getRange(1, 1).getValue() !== "紀錄時間") {
+      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+      [160, 120, 110, 90, 200, 420, 200, 230, 130].forEach((w, i) => sheet.setColumnWidth(i + 1, w));
+    }
+
+    const ts = Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy-MM-dd HH:mm:ss");
+    const username = String(incident.username || "").trim();
+    let realName = String(incident.realName || "").trim();
+    let className = String(incident.className || "").trim();
+
+    // 自動補齊姓名與班級
+    if (username && (!realName || !className)) {
+      try {
+        const uSheet = ss.getSheetByName("使用者清單") || ss.getSheetByName("學生帳密");
+        if (uSheet && uSheet.getLastRow() >= 2) {
+          const uData = uSheet.getRange(2, 1, uSheet.getLastRow() - 1, 5).getValues();
+          for (let i = 0; i < uData.length; i++) {
+            if (String(uData[i][0] || "").trim().toLowerCase() === username.toLowerCase()) {
+              if (!className) className = getStudentClass(username, String(uData[i][3] || "").trim());
+              if (!realName) realName = String(uData[i][4] || "").trim();
+              break;
+            }
+          }
+        }
+      } catch(_) {}
+    }
+
+    const method = String(incident.method || "未授權異常請求").trim();
+    const details = String(incident.details || "").trim();
+    const device = String(incident.device || "未知設備 (非標準連線)").trim();
+    const envInfo = String(incident.envInfo || incident.browserInfo || "Web API Client").trim();
+    const result = String(incident.result || "🚫 已即時攔截並阻斷請求 (403)").trim();
+
+    // 插入至第 2 列（最新攻擊紀錄在最上方）
+    sheet.insertRowBefore(2);
+    sheet.getRange(2, 1, 1, headers.length).setValues([[
+      ts,
+      username || "（未登入訪客 / 惡意連線）",
+      realName ? `${realName} (${incident.role || "student"})` : (incident.role ? `訪客 (${incident.role})` : "未知使用者"),
+      className || "—",
+      method,
+      details,
+      device,
+      envInfo,
+      result
+    ]]);
+
+    // 格式化最新列
+    sheet.getRange(2, 1, 1, headers.length).setVerticalAlignment("middle");
+    sheet.getRange(2, 1, 1, 4).setHorizontalAlignment("center");
+    sheet.getRange(2, 5).setHorizontalAlignment("center").setFontWeight("bold").setFontColor("#b91c1c");
+    sheet.getRange(2, 6).setWrap(true);
+    sheet.getRange(2, 7, 1, 2).setHorizontalAlignment("left").setWrap(true);
+    sheet.getRange(2, 9).setHorizontalAlignment("center").setFontWeight("bold").setFontColor("#047857");
+
+    // 日誌上限 5000 筆，避免影響試算表效能
+    const last = sheet.getLastRow();
+    if (last > 5001) {
+      sheet.deleteRows(5002, last - 5001);
+    }
+
+    return { status: "success", message: "資安事件已依法保全記錄" };
+  } catch(err) {
+    Logger.log("logSecurityIncident 失敗: " + err);
+    return { status: "error", message: err.toString() };
+  } finally {
+    try { lock.releaseLock(); } catch(_) {}
+  }
+}
+
+/**
+ * 應用程式防火牆 (WAF) 深度封包檢測
+ */
+function inspectRequestForAttacks(ss, params, e) {
+  if (!params || typeof params !== "object") return null;
+
+  // 1. 原型鏈污染 (Prototype Pollution)
+  const rawContents = (e && e.postData && e.postData.contents) || "";
+  if (rawContents.includes("__proto__") || (rawContents.includes("constructor") && rawContents.includes("prototype"))) {
+    const violation = {
+      username: params.username || "",
+      method: "原型鏈污染攻擊 (Prototype Pollution)",
+      details: "封包包含 __proto__ 或 constructor 原型鏈覆寫特徵",
+      device: params.device || "未知設備",
+      envInfo: params.browserInfo || "Web Client",
+      result: "🚫 攔截攻擊並終止請求 (403 Forbidden)"
+    };
+    logSecurityIncident(ss, violation);
+    return violation;
+  }
+
+  // 2. 遞迴檢測所有參數中的 XSS、公式注入與目錄穿透
+  function scanValue(val, keyPath) {
+    if (typeof val === "string") {
+      const trimmed = val.trim();
+      
+      // A. 公式注入 (Formula Injection)
+      if (/^[=+\-@|%]/.test(trimmed)) {
+        if (/^[=+\-@|%]\s*(IMPORTXML|IMPORTDATA|IMPORTHTML|IMPORTRANGE|HYPERLINK|IMAGE|WEBSERVICE|cmd|powershell|curl|wget)/i.test(trimmed) || (trimmed.startsWith("=") && trimmed.length > 2)) {
+          return {
+            method: "試算表公式注入攻擊 (Formula Injection)",
+            details: `欄位 '${keyPath}' 包含危險公式注入字串: '${trimmed.slice(0, 100)}'`,
+            result: "🚫 惡意公式已被攔截阻斷 (403 Forbidden)"
+          };
+        }
+      }
+
+      // B. 跨站腳本攻擊 (XSS)
+      if (/<script|javascript:|vbscript:|onerror\s*=|onload\s*=|onclick\s*=|eval\(|alert\(|document\.cookie/i.test(trimmed)) {
+        return {
+          method: "跨站腳本注入攻擊 (XSS Attack)",
+          details: `欄位 '${keyPath}' 包含惡意腳本程式碼: '${trimmed.slice(0, 100)}'`,
+          result: "🚫 惡意腳本已被攔截阻斷 (403 Forbidden)"
+        };
+      }
+
+      // C. 目錄走訪 / 路徑穿透 (Path Traversal)
+      if (/(\.\.[\/\\]){2,}|(\/etc\/passwd|c:\\windows\\system32)/i.test(trimmed)) {
+        return {
+          method: "目錄走訪/路徑穿透探測 (Path Traversal)",
+          details: `欄位 '${keyPath}' 嘗試探測敏感系統路徑: '${trimmed.slice(0, 100)}'`,
+          result: "🚫 存取拒絕並已存證 (403 Forbidden)"
+        };
+      }
+    } else if (typeof val === "object" && val !== null) {
+      for (const k in val) {
+        if (Object.prototype.hasOwnProperty.call(val, k)) {
+          const res = scanValue(val[k], keyPath ? `${keyPath}.${k}` : k);
+          if (res) return res;
+        }
+      }
+    }
+    return null;
+  }
+
+  const attack = scanValue(params, "");
+  if (attack) {
+    logSecurityIncident(ss, Object.assign({}, params, attack));
+    return attack;
+  }
+
+  return null;
 }
 
 // ════════════════════════════════════════════════════════════════════
@@ -2011,6 +2193,17 @@ function doPost(e) {
   try {
     params = JSON.parse((e && e.postData && e.postData.contents) || "{}");
     const ss     = SpreadsheetApp.getActiveSpreadsheet();
+
+    // ── 0. 應用程式防火牆 (WAF) 深度封包安全檢測 ──
+    const attackDetected = inspectRequestForAttacks(ss, params, e);
+    if (attackDetected) {
+      return jsonResponse({
+        status: "error",
+        code: 403,
+        message: "【資安防禦警示】系統偵測到未授權之異常攻擊載荷，連線已即時中斷並依法保全紀錄存查。"
+      });
+    }
+
     const action = params.action || "login";
 
     // ── 1. 學生 / 教師登入 ──
@@ -2280,6 +2473,13 @@ function doPost(e) {
     if (action === "cleanupUnusedSheets") {
       const auth = authenticateUser(ss, params.username, params.password);
       if (!auth.success || auth.role !== "teacher") {
+        logSecurityIncident(ss, {
+          username: params.username,
+          method: "未授權特權提升嘗試 (Privilege Escalation)",
+          details: `非教師權限嘗試執行系統工作表清理 (action=cleanupUnusedSheets)`,
+          device: params.device || "未知設備",
+          result: "🚫 權限不足，已阻斷並保全紀錄"
+        });
         return jsonResponse({status:"error", message:"僅教師或管理員可執行工作表清理"});
       }
       return jsonResponse(cleanupUnusedSheets());
@@ -2290,7 +2490,12 @@ function doPost(e) {
       return jsonResponse(recordCheatAudit(ss, params));
     }
 
-    // ── 10. 未知 action ──
+    // ── 10. 資安入侵防禦：駭客攻擊與入侵事件回報 ──
+    if (action === "reportSecurityIncident") {
+      return jsonResponse(logSecurityIncident(ss, params));
+    }
+
+    // ── 11. 未知 action ──
 
     logError("doPost","未知 action: "+action, params.username, "");
     return jsonResponse({status:"error", message:"未知的 action"});
@@ -2337,7 +2542,7 @@ function cleanupUnusedSheets() {
 
   // 2. 系統核心必要工作表（絕不刪除）
   const essentialSheets = new Set([
-    "全班學習總覽", "使用者清單", "指定單字任務", "錯誤日誌", "作弊稽核日誌", "時間限制設定"
+    "全班學習總覽", "使用者清單", "指定單字任務", "錯誤日誌", "作弊稽核日誌", "資安入侵防禦日誌", "時間限制設定"
   ]);
 
   // 3. 明確棄用、過渡或預設空白分頁清單
@@ -4068,6 +4273,7 @@ function onOpen(e) {
   try {
     SpreadsheetApp.getUi()
       .createMenu("🎯 系統維護")
+      .addItem("🚨 查看/建立【資安入侵防禦日誌】","initSecurityIncidentSheetUi")
       .addItem("🛡️ 查看/建立【作弊稽核日誌】","initCheatAuditSheetUi")
       .addItem("🧹 一鍵清理無用分頁","cleanupUnusedSheetsUi")
       .addItem("🔄 一鍵清理學生重複歷史列","cleanDuplicateStudentRecordsUi")
@@ -4075,6 +4281,32 @@ function onOpen(e) {
       .addItem("💾 備份試算表至 Google Drive","backupSpreadsheetToDrive")
       .addToUi();
   } catch(_) {}
+}
+
+function initSecurityIncidentSheetUi() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName("資安入侵防禦日誌");
+  const headers = [
+    "紀錄時間", "來源帳號/識別", "姓名與角色", "所屬班級",
+    "入侵/攻擊手法", "具體載荷與證據細節", "來源設備與作業系統", "客戶端環境與指紋", "防禦處置結果"
+  ];
+  if (!sheet) {
+    sheet = ss.insertSheet("資安入侵防禦日誌");
+    sheet.appendRow(headers);
+    sheet.getRange("1:1")
+      .setFontWeight("bold")
+      .setBackground("#0f172a")
+      .setFontColor("#f43f5e")
+      .setHorizontalAlignment("center")
+      .setVerticalAlignment("middle");
+    sheet.setRowHeight(1, 38);
+    [160, 120, 110, 90, 200, 420, 200, 230, 130].forEach((w, i) => sheet.setColumnWidth(i + 1, w));
+    sheet.setFrozenRows(1);
+    ss.toast("🚨 已成功建立【資安入侵防禦日誌】分頁！", "資安防禦中心", 5);
+  } else {
+    ss.setActiveSheet(sheet);
+    ss.toast("🚨 已切換至【資安入侵防禦日誌】分頁！", "資安防禦中心", 5);
+  }
 }
 
 function initCheatAuditSheetUi() {
