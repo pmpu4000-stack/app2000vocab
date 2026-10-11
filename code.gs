@@ -4349,7 +4349,11 @@ function auditComplianceData(ss) {
       if (!isHashedPassword(p) && p !== "") unhashedPassCount++;
       
       const nonPassText = [u, role, c, n].join(" ");
-      if (/\b[A-Z][12]\d{8}\b/i.test(nonPassText)) nationalIdCount++;
+      let isNatId = /\b[A-Z][12]\d{8}\b/i.test(nonPassText);
+      if (isNatId) {
+        nationalIdCount++;
+        report.complianceSummary.matchedNationalIdDetail = { username: u, class: c, name: n };
+      }
       if (/\b09\d{8}\b/.test(nonPassText)) phoneCount++;
       if (/(市|縣|區|路|街|巷|弄|號)/.test(nonPassText)) addressCount++;
 
@@ -4361,14 +4365,14 @@ function auditComplianceData(ss) {
         englishOrCodeCount++;
       }
 
-      if (sampleStudents.length < 5 && role === "student") {
-        sampleStudents.push({
-          username: u,
-          class: c,
-          nameType: /[\u4e00-\u9fa5]/.test(n) ? "中文字元" : (n ? "英文名/暱稱 (" + n + ")" : "純座號無姓名"),
-          passwordSecured: isHashedPassword(p)
-        });
-      }
+      sampleStudents.push({
+        username: u,
+        role: role,
+        class: c,
+        name: n,
+        nameType: /[\u4e00-\u9fa5]/.test(n) ? "中文字元" : (n ? "英文名/暱稱 (" + n + ")" : "純座號無姓名"),
+        passwordSecured: isHashedPassword(p)
+      });
     }
 
     report.userListAudit = {
