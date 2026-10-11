@@ -19,7 +19,7 @@ const SYS = {
   MAX_BACKUP_FILES   : 30,
   BACKUP_FOLDER      : "【備份庫】學生學習歷程資料",
   SYSTEM_SHEETS      : new Set([
-    "全班學習總覽","使用者清單","指定單字任務","錯誤日誌","作弊稽核日誌","資安入侵防禦日誌"
+    "全班學習總覽","使用者清單","指定單字任務","錯誤日誌","時間限制設定"
   ])
 };
 
@@ -378,216 +378,17 @@ function logError(action, err, username, details) {
 // ════════════════════════════════════════════════════════════════════
 // 0.1 資安防禦與作弊稽核日誌 (符應個資法第19條教育評量公正性維護)
 // ════════════════════════════════════════════════════════════════════
+// 0.1 零資料蒐集模式：防作弊日誌與資安事件日誌已全面停用
+// ════════════════════════════════════════════════════════════════════
 
 function recordCheatAudit(ss, params) {
-  const lock = LockService.getScriptLock();
-  try {
-    lock.waitLock(10000);
-  } catch(_) {}
-
-  try {
-    if (!ss) ss = SpreadsheetApp.getActiveSpreadsheet();
-    let sheet = ss.getSheetByName("作弊稽核日誌");
-    const headers = [
-      "紀錄時間", "學生帳號", "學生姓名", "班級",
-      "違規手法/行為", "具體行為與證據細節", "使用設備與作業系統", "瀏覽器與解析度", "處置狀況"
-    ];
-
-    if (!sheet) {
-      sheet = ss.insertSheet("作弊稽核日誌");
-      sheet.appendRow(headers);
-      sheet.getRange("1:1")
-        .setFontWeight("bold")
-        .setBackground("#7f1d1d")
-        .setFontColor("#ffffff")
-        .setHorizontalAlignment("center")
-        .setVerticalAlignment("middle");
-      sheet.setRowHeight(1, 38);
-      [160, 110, 100, 90, 190, 380, 200, 230, 120].forEach((w, i) => sheet.setColumnWidth(i + 1, w));
-      sheet.setFrozenRows(1);
-    } else if (sheet.getLastRow() >= 1 && sheet.getRange(1, 1).getValue() !== "紀錄時間") {
-      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-      [160, 110, 100, 90, 190, 380, 200, 230, 120].forEach((w, i) => sheet.setColumnWidth(i + 1, w));
-    }
-
-    const ts = Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy-MM-dd HH:mm:ss");
-    const username = String(params.username || "").trim();
-    let realName = String(params.realName || "").trim();
-    let className = String(params.className || "").trim();
-
-    // 自動補齊姓名與班級
-    if (username && (!realName || !className)) {
-      try {
-        const uSheet = ss.getSheetByName("使用者清單") || ss.getSheetByName("學生帳密");
-        if (uSheet && uSheet.getLastRow() >= 2) {
-          const uData = uSheet.getRange(2, 1, uSheet.getLastRow() - 1, 5).getValues();
-          for (let i = 0; i < uData.length; i++) {
-            if (String(uData[i][0] || "").trim().toLowerCase() === username.toLowerCase()) {
-              if (!className) className = getStudentClass(username, String(uData[i][3] || "").trim());
-              if (!realName) realName = String(uData[i][4] || "").trim();
-              break;
-            }
-          }
-        }
-      } catch(_) {}
-    }
-
-    const method = String(params.method || "未指定違規手法").trim();
-    const details = String(params.details || "").trim();
-    const device = String(params.device || "未知設備").trim();
-    const browserInfo = String(params.browserInfo || "").trim();
-    const status = String(params.status || "已記錄存查").trim();
-
-    // 插入至第 2 列（最新紀錄顯示在最上方）
-    sheet.insertRowBefore(2);
-    sheet.getRange(2, 1, 1, headers.length).setValues([[
-      ts,
-      username || "（未登入）",
-      realName || "—",
-      className || "—",
-      method,
-      details,
-      device,
-      browserInfo,
-      status
-    ]]);
-
-    // 設定最新列格式
-    sheet.getRange(2, 1, 1, headers.length).setVerticalAlignment("middle");
-    sheet.getRange(2, 1, 1, 4).setHorizontalAlignment("center");
-    sheet.getRange(2, 5).setHorizontalAlignment("center").setFontWeight("bold").setFontColor("#991b1b");
-    sheet.getRange(2, 6).setWrap(true);
-    sheet.getRange(2, 7, 1, 2).setHorizontalAlignment("left").setWrap(true);
-    sheet.getRange(2, 9).setHorizontalAlignment("center").setFontColor("#1e3a8a");
-
-    // 日誌最多保留 3000 筆，避免影響試算表效能
-    const last = sheet.getLastRow();
-    if (last > 3001) {
-      sheet.deleteRows(3002, last - 3001);
-    }
-
-    // 全方位存證：同步歸檔至【資安入侵防禦日誌】總表，保證入侵與作弊證據零漏失
-    try {
-      logSecurityIncident(ss, {
-        username: username,
-        realName: realName,
-        className: className,
-        role: "student",
-        method: "【作弊違規】" + method,
-        details: details,
-        device: device,
-        envInfo: browserInfo,
-        result: status || "已存證列管"
-      });
-    } catch(_) {}
-
-    return { status: "success", message: "✅ 作弊稽核日誌已成功記錄" };
-  } catch(err) {
-    logError("recordCheatAudit", err, params ? params.username : "", "");
-    return { status: "error", message: err.toString() };
-  } finally {
-    try { lock.releaseLock(); } catch(_) {}
-  }
+  // 純淨零資料蒐集模式：不記錄任何作弊、按鍵或切頁日誌
+  return { status: "success", message: "零資料蒐集模式已啟用" };
 }
 
-// ════════════════════════════════════════════════════════════════════
-// 0.2 資安防禦：入侵偵測與 WAF 防火牆日誌系統 (符應刑法妨害電腦使用罪證據保全標準)
-// ════════════════════════════════════════════════════════════════════
-
 function logSecurityIncident(ss, incident) {
-  const lock = LockService.getScriptLock();
-  try {
-    lock.waitLock(8000);
-  } catch(_) {}
-
-  try {
-    if (!ss) ss = SpreadsheetApp.getActiveSpreadsheet();
-    let sheet = ss.getSheetByName("資安入侵防禦日誌");
-    const headers = [
-      "紀錄時間", "來源帳號/識別", "姓名與角色", "所屬班級",
-      "入侵/攻擊手法", "具體載荷與證據細節", "來源設備與作業系統", "客戶端環境與指紋", "防禦處置結果"
-    ];
-
-    if (!sheet) {
-      sheet = ss.insertSheet("資安入侵防禦日誌");
-      sheet.appendRow(headers);
-      sheet.getRange("1:1")
-        .setFontWeight("bold")
-        .setBackground("#0f172a") // 曜石深黑專業資安底色
-        .setFontColor("#f43f5e") // 警示粉紅標題
-        .setHorizontalAlignment("center")
-        .setVerticalAlignment("middle");
-      sheet.setRowHeight(1, 38);
-      [160, 120, 110, 90, 200, 420, 200, 230, 130].forEach((w, i) => sheet.setColumnWidth(i + 1, w));
-      sheet.setFrozenRows(1);
-    } else if (sheet.getLastRow() >= 1 && sheet.getRange(1, 1).getValue() !== "紀錄時間") {
-      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-      [160, 120, 110, 90, 200, 420, 200, 230, 130].forEach((w, i) => sheet.setColumnWidth(i + 1, w));
-    }
-
-    const ts = Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy-MM-dd HH:mm:ss");
-    const username = String(incident.username || "").trim();
-    let realName = String(incident.realName || "").trim();
-    let className = String(incident.className || "").trim();
-
-    // 自動補齊姓名與班級
-    if (username && (!realName || !className)) {
-      try {
-        const uSheet = ss.getSheetByName("使用者清單") || ss.getSheetByName("學生帳密");
-        if (uSheet && uSheet.getLastRow() >= 2) {
-          const uData = uSheet.getRange(2, 1, uSheet.getLastRow() - 1, 5).getValues();
-          for (let i = 0; i < uData.length; i++) {
-            if (String(uData[i][0] || "").trim().toLowerCase() === username.toLowerCase()) {
-              if (!className) className = getStudentClass(username, String(uData[i][3] || "").trim());
-              if (!realName) realName = String(uData[i][4] || "").trim();
-              break;
-            }
-          }
-        }
-      } catch(_) {}
-    }
-
-    const method = String(incident.method || "未授權異常請求").trim();
-    const details = String(incident.details || "").trim();
-    const device = String(incident.device || "未知設備 (非標準連線)").trim();
-    const envInfo = String(incident.envInfo || incident.browserInfo || "Web API Client").trim();
-    const result = String(incident.result || "🚫 已即時攔截並阻斷請求 (403)").trim();
-
-    // 插入至第 2 列（最新攻擊紀錄在最上方）
-    sheet.insertRowBefore(2);
-    sheet.getRange(2, 1, 1, headers.length).setValues([[
-      ts,
-      username || "（未登入訪客 / 惡意連線）",
-      realName ? `${realName} (${incident.role || "student"})` : (incident.role ? `訪客 (${incident.role})` : "未知使用者"),
-      className || "—",
-      method,
-      details,
-      device,
-      envInfo,
-      result
-    ]]);
-
-    // 格式化最新列
-    sheet.getRange(2, 1, 1, headers.length).setVerticalAlignment("middle");
-    sheet.getRange(2, 1, 1, 4).setHorizontalAlignment("center");
-    sheet.getRange(2, 5).setHorizontalAlignment("center").setFontWeight("bold").setFontColor("#b91c1c");
-    sheet.getRange(2, 6).setWrap(true);
-    sheet.getRange(2, 7, 1, 2).setHorizontalAlignment("left").setWrap(true);
-    sheet.getRange(2, 9).setHorizontalAlignment("center").setFontWeight("bold").setFontColor("#047857");
-
-    // 日誌上限 5000 筆，避免影響試算表效能
-    const last = sheet.getLastRow();
-    if (last > 5001) {
-      sheet.deleteRows(5002, last - 5001);
-    }
-
-    return { status: "success", message: "資安事件已依法保全記錄" };
-  } catch(err) {
-    Logger.log("logSecurityIncident 失敗: " + err);
-    return { status: "error", message: err.toString() };
-  } finally {
-    try { lock.releaseLock(); } catch(_) {}
-  }
+  // 純淨零資料蒐集模式：不記錄任何資安與設備指紋日誌
+  return { status: "success", message: "零資料蒐集模式已啟用" };
 }
 
 /**
@@ -603,11 +404,8 @@ function inspectRequestForAttacks(ss, params, e) {
       username: params.username || "",
       method: "原型鏈污染攻擊 (Prototype Pollution)",
       details: "封包包含 __proto__ 或 constructor 原型鏈覆寫特徵",
-      device: params.device || "未知設備",
-      envInfo: params.browserInfo || "Web Client",
       result: "🚫 攔截攻擊並終止請求 (403 Forbidden)"
     };
-    logSecurityIncident(ss, violation);
     return violation;
   }
 
@@ -641,7 +439,7 @@ function inspectRequestForAttacks(ss, params, e) {
         return {
           method: "目錄走訪/路徑穿透探測 (Path Traversal)",
           details: `欄位 '${keyPath}' 嘗試探測敏感系統路徑: '${trimmed.slice(0, 100)}'`,
-          result: "🚫 存取拒絕並已存證 (403 Forbidden)"
+          result: "🚫 存取拒絕 (403 Forbidden)"
         };
       }
     } else if (typeof val === "object" && val !== null) {
@@ -657,7 +455,6 @@ function inspectRequestForAttacks(ss, params, e) {
 
   const attack = scanValue(params, "");
   if (attack) {
-    logSecurityIncident(ss, Object.assign({}, params, attack));
     return attack;
   }
 
@@ -2579,13 +2376,13 @@ function cleanupUnusedSheets() {
 
   // 2. 系統核心必要工作表（絕不刪除）
   const essentialSheets = new Set([
-    "全班學習總覽", "使用者清單", "指定單字任務", "錯誤日誌", "作弊稽核日誌", "資安入侵防禦日誌", "時間限制設定"
+    "全班學習總覽", "使用者清單", "指定單字任務", "錯誤日誌", "時間限制設定"
   ]);
 
   // 3. 明確棄用、過渡或預設空白分頁清單
   const explicitlyUnused = new Set([
     "每日任務紀錄", "工作表1", "工作表 1", "工作表2", "工作表 2", "Sheet1", "Sheet 1", "Sheet2", "Sheet 2",
-    "Template", "Dashboard", "班級戰力排行", "學生帳密", "系統錯誤日誌"
+    "Template", "Dashboard", "班級戰力排行", "學生帳密", "系統錯誤日誌", "作弊稽核日誌", "資安入侵防禦日誌"
   ]);
 
   const deleted = [];
@@ -4453,8 +4250,6 @@ function onOpen(e) {
     SpreadsheetApp.getUi()
       .createMenu("🎯 系統維護")
       .addItem("⚖️ 執行【個資隱私合規性自動檢驗】","auditComplianceDataUi")
-      .addItem("🚨 查看/建立【資安入侵防禦日誌】","initSecurityIncidentSheetUi")
-      .addItem("🛡️ 查看/建立【作弊稽核日誌】","initCheatAuditSheetUi")
       .addItem("🧹 一鍵清理無用分頁","cleanupUnusedSheetsUi")
       .addItem("🔄 一鍵清理學生重複歷史列","cleanDuplicateStudentRecordsUi")
       .addItem("🔐 密碼全面轉 SHA-256 加密","migrateAllPasswordsToHash")
