@@ -572,7 +572,28 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
   color: #F0F3FA !important;
 }
 
-  </style>
+  
+.curfew-note-box {
+  background: #F6F7FB;
+  border: 1px dashed #D2D6E8;
+  color: #5A6183;
+}
+[data-theme="dark"] .curfew-note-box {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px dashed rgba(255, 255, 255, 0.16) !important;
+  color: #9AA0BD !important;
+}
+[data-theme="dark"] #login-overlay p,
+[data-theme="dark"] #curfew-overlay p {
+  color: #9AA0BD !important;
+}
+[data-theme="dark"] #btn-login-theme-toggle {
+  background: #20263A !important;
+  border-color: #2D354E !important;
+  color: #E2E8F0 !important;
+}
+
+</style>
 </head>
 <body>
 
@@ -601,7 +622,7 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
       
       <p id="login-msg" style="color:#FF6B6B; font-size:13px; margin-top:12px; min-height:18px; line-height:1.5;"></p>
 
-      <div style="margin-top:14px; padding:10px 14px; background:#F6F7FB; border-radius:12px; border:1px dashed #D2D6E8; font-size:12px; color:#5A6183; line-height:1.5; text-align:center;">
+      <div class="curfew-note-box" style="margin-top:14px; padding:10px 14px; border-radius:12px; font-size:12px; line-height:1.5; text-align:center;">
         ⏰ 每日可作答時間為早上七點半到晚上十點
       </div>
     </div>
@@ -617,7 +638,7 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
         您的開放練習時間為 <b id="curfew-time-range" style="color:#6C4CE0;">07:30 至 22:00</b>。<br>
         系統已自動為你儲存學習進度，請好好休息放鬆眼睛！
       </p>
-      <div style="padding:10px 14px; background:#F6F7FB; border-radius:12px; color:#5A6183; font-size:12.5px; margin-bottom:20px; line-height:1.4; border:1px dashed #D2D6E8;">
+      <div class="curfew-note-box" style="padding:10px 14px; border-radius:12px; font-size:12.5px; margin-bottom:20px; line-height:1.4;">
         💡 若有特殊學習需求，請請任課老師於後台調整個別作答時間或解除限制。
       </div>
       <button onclick="location.reload()" style="padding:12px 28px; background:#6C4CE0; color:#fff; border:none; border-radius:12px; font-weight:700; font-size:14px; cursor:pointer; box-shadow:0 8px 20px -6px rgba(108,76,224,0.45);">

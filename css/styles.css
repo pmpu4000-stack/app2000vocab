@@ -562,3 +562,23 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
   color: #F0F3FA !important;
 }
 
+
+.curfew-note-box {
+  background: #F6F7FB;
+  border: 1px dashed #D2D6E8;
+  color: #5A6183;
+}
+[data-theme="dark"] .curfew-note-box {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px dashed rgba(255, 255, 255, 0.16) !important;
+  color: #9AA0BD !important;
+}
+[data-theme="dark"] #login-overlay p,
+[data-theme="dark"] #curfew-overlay p {
+  color: #9AA0BD !important;
+}
+[data-theme="dark"] #btn-login-theme-toggle {
+  background: #20263A !important;
+  border-color: #2D354E !important;
+  color: #E2E8F0 !important;
+}
