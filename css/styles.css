@@ -475,3 +475,53 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
   border-color: #282F45 !important;
   color: #F0F3FA !important;
 }
+
+/* 錯題與答對單字區塊暗模式調和 (柔和舒適深底) */
+[data-theme="dark"] .word-split-box.correct-box {
+  background: rgba(47, 180, 124, 0.12) !important;
+  border-color: rgba(47, 180, 124, 0.35) !important;
+}
+[data-theme="dark"] .word-split-box.wrong-box {
+  background: rgba(255, 107, 107, 0.12) !important;
+  border-color: rgba(255, 107, 107, 0.35) !important;
+}
+[data-theme="dark"] .word-split-title.correct-title {
+  color: #38C78B !important;
+}
+[data-theme="dark"] .word-split-title.wrong-title {
+  color: #FF8E8E !important;
+}
+[data-theme="dark"] .word-pill-tag.correct {
+  background: rgba(47, 180, 124, 0.22) !important;
+  color: #6EE7B7 !important;
+  border-color: rgba(47, 180, 124, 0.45) !important;
+}
+[data-theme="dark"] .word-pill-tag.wrong {
+  background: rgba(255, 107, 107, 0.22) !important;
+  color: #FCA5A5 !important;
+  border-color: rgba(255, 107, 107, 0.45) !important;
+}
+[data-theme="dark"] .word-split-box .t-empty-hint {
+  color: #94A3B8 !important;
+}
+[data-theme="dark"] .date-nav-btn {
+  background: #20263A !important;
+  border-color: #2D354E !important;
+  color: #E2E8F0 !important;
+}
+[data-theme="dark"] .date-nav-btn:hover {
+  background: #2B334D !important;
+  border-color: var(--sky) !important;
+  color: #38BDF8 !important;
+}
+[data-theme="dark"] .date-nav-btn.today-btn {
+  background: rgba(45, 156, 219, 0.18) !important;
+  border-color: rgba(45, 156, 219, 0.4) !important;
+  color: #38BDF8 !important;
+}
+[data-theme="dark"] .date-picker-input {
+  background: #131624 !important;
+  border-color: #2D354E !important;
+  color: #F0F3FA !important;
+}
+
