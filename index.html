@@ -682,7 +682,7 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
           <span>上傳紀錄</span>
         </div>
         <div class="stat ok"><b id="s-correct" class="tnum">0</b><span>答對字</span></div>
-        <div class="stat streak"><b id="s-streak" class="tnum">0</b><span>連勝</span></div>
+        <div class="stat streak" style="display:none"><b id="s-streak" class="tnum">0</b><span>連勝</span></div>
         <div class="stat rate"><b id="s-rate" class="tnum">0%</b><span>答對率</span></div>
         <div class="stat timer" id="stat-daily-timer" style="cursor:pointer; display:none;" title="今日剩餘練習時間（點擊查看說明）">
           <b id="s-timer-val" class="tnum" style="color:var(--violet);">10:00</b>
@@ -1049,6 +1049,20 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
           // 1. 動態載入遊戲核心模組（加上時間戳記防瀏覽器快取，此時 app.js 才會讀取剛剛存好的 LocalStorage）
           msgEl.textContent = "登入成功，正在啟動遊戲...";
           try {
+            // ★ 進入遊戲前先比對今日剩餘時間：已歸零就不啟動單字測驗系統
+            if (result.role !== "teacher" && !result.isAdmin && result.dailyUsage) {
+              const du = result.dailyUsage;
+              const uName = localStorage.getItem("current_user");
+              const lim = Number(du.limitMinutes) || 10;
+              const ext = Number(du.extendedMinutes) || 0;
+              const fl = Number(du.firstLoginTime) || 0;
+              const unl = du.unlocked === true;
+              localStorage.setItem(`daily_usage_${uName}_unlocked`, unl ? "true" : "false");
+              localStorage.setItem(`daily_usage_${uName}_limit_minutes`, String(lim));
+              localStorage.setItem(`daily_usage_${uName}_extended_minutes`, String(ext));
+              if (fl) localStorage.setItem(`daily_usage_${uName}_first_login_time`, String(fl));
+              window.__dailyUsageTimeIsUp = (!unl && fl > 0 && ((lim + ext) * 60000 - (Date.now() - fl)) <= 0);
+            }
             const cacheBuster = Date.now();
             await import(`./src/app.js?v=${cacheBuster}`);
             document.getElementById('login-overlay').style.display = 'none';
