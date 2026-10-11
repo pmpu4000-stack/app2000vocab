@@ -2513,6 +2513,40 @@
           </div>
         </div>
 
+        <!-- ⏱️ 每日練習時間（預設 10 分鐘）設定 -->
+        <div style="border:1.5px solid var(--border); border-radius:12px; padding:16px 18px; margin-bottom:18px; background:var(--card);">
+          <div style="font-size:15px; font-weight:800; color:var(--text); margin-bottom:4px;">⏱️ 每日練習時間（學生每天可練習幾分鐘）</div>
+          <div style="font-size:12.5px; color:var(--text-muted); margin-bottom:14px; line-height:1.6;">
+            從學生當天第一次登入開始倒數。時間到了，學生只能看進度與紀錄，不能再出題。你可以改全校上限、改單一學生上限、今天幫學生加時間，或今天直接解除限制。
+          </div>
+
+          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:14px;">
+            <span style="font-size:13px; font-weight:700; color:var(--text);">🏫 全校每日上限：</span>
+            <select id="duGlobalMinutes" style="height:38px; border-radius:8px; border:1.5px solid var(--border); background:var(--input-bg); color:var(--text); padding:0 10px; font-weight:700;">
+              <option value="5">5 分鐘</option><option value="10" selected>10 分鐘（預設）</option><option value="15">15 分鐘</option><option value="20">20 分鐘</option><option value="30">30 分鐘</option><option value="45">45 分鐘</option><option value="60">60 分鐘</option><option value="90">90 分鐘</option><option value="120">120 分鐘</option>
+            </select>
+            <button class="btn-secondary btn-sm" onclick="duSaveGlobalMinutes()" style="padding:8px 16px; font-weight:700;">💾 儲存全校上限</button>
+            <button class="btn-secondary btn-sm" onclick="duUnlock('ALL', true)" style="padding:8px 16px; font-weight:700;">🔓 今天全校解除限制</button>
+            <button class="btn-secondary btn-sm" onclick="duUnlock('ALL', false)" style="padding:8px 16px; font-weight:700;">🔒 恢復全校限制</button>
+          </div>
+
+          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding-top:12px; border-top:1px dashed var(--border);">
+            <span style="font-size:13px; font-weight:700; color:var(--text);">👤 指定學生：</span>
+            <select id="duStudentSelect" style="min-width:220px; height:38px; border-radius:8px; border:1.5px solid var(--border); background:var(--input-bg); color:var(--text); padding:0 10px;">
+              <option value="">-- 請選擇學生 --</option>
+            </select>
+            <select id="duStudentMinutes" style="height:38px; border-radius:8px; border:1.5px solid var(--border); background:var(--input-bg); color:var(--text); padding:0 10px; font-weight:700;">
+              <option value="10">10 分鐘</option><option value="15">15 分鐘</option><option value="20">20 分鐘</option><option value="30">30 分鐘</option><option value="45">45 分鐘</option><option value="60">60 分鐘</option><option value="90">90 分鐘</option><option value="120">120 分鐘</option>
+            </select>
+            <button class="btn-secondary btn-sm" onclick="duSaveStudentMinutes()" style="padding:8px 14px; font-weight:700;">💾 設為此學生每日上限</button>
+            <button class="btn-secondary btn-sm" onclick="duExtend(10)" style="padding:8px 14px; font-weight:700;">➕ 今天加 10 分</button>
+            <button class="btn-secondary btn-sm" onclick="duExtend(20)" style="padding:8px 14px; font-weight:700;">➕ 今天加 20 分</button>
+            <button class="btn-secondary btn-sm" onclick="duUnlock('STUDENT', true)" style="padding:8px 14px; font-weight:700;">🔓 今天解除此學生</button>
+            <button class="btn-secondary btn-sm" onclick="duUnlock('STUDENT', false)" style="padding:8px 14px; font-weight:700;">🔒 恢復此學生限制</button>
+          </div>
+          <div id="duMsg" style="font-size:13px; font-weight:700; color:var(--primary); margin-top:10px; min-height:18px;"></div>
+        </div>
+
         <!-- 3 個內部次分頁按鈕 -->
         <div style="display:flex; gap:10px; border-bottom:1px solid var(--border); padding-bottom:12px; flex-wrap:wrap;">
           <button class="btn-secondary active" id="ttsTabBtnGlobal" onclick="switchTtsSubTab('global')" style="flex:1; min-width:180px; padding:10px 14px; font-weight:700; border-radius:8px; cursor:pointer;">
@@ -5762,6 +5796,7 @@ function populateTeacherTimeStudentSelect() {
   classFilter.innerHTML = cHtml;
 
   filterTeacherTimeStudentDropdown();
+  populateDailyUsageStudents();
 }
 
 function filterTeacherTimeStudentDropdown() {
@@ -6144,6 +6179,68 @@ function deleteTeacherDateRestriction(sDate, eDate, name) {
       password: currentPass,
       ruleData: { startDate: sDate, endDate: eDate }
     });
+}
+
+function populateDailyUsageStudents() {
+  const sel = document.getElementById("duStudentSelect");
+  if (!sel || typeof tTimeStudentList === "undefined") return;
+  const cur = sel.value;
+  let html = `<option value="">-- 請選擇學生 (${tTimeStudentList.length} 人) --</option>`;
+  tTimeStudentList.forEach(s => {
+    html += `<option value="${s.username}" data-info="${s.username} ${s.realName}">${s.username} ${s.realName} (${s.className}班)</option>`;
+  });
+  sel.innerHTML = html;
+  if (cur) sel.value = cur;
+}
+
+function duCall(fnName, payload, okMsgPrefix) {
+  const msg = document.getElementById("duMsg");
+  if (msg) msg.textContent = "處理中...";
+  google.script.run
+    .withSuccessHandler(resp => {
+      if (resp && resp.status === "success") {
+        if (msg) msg.textContent = resp.message || "已完成";
+        alert(resp.message || "已完成");
+      } else {
+        if (msg) msg.textContent = "失敗：" + ((resp && resp.message) || "未知原因");
+      }
+    })
+    .withFailureHandler(err => {
+      console.error(err);
+      if (msg) msg.textContent = "連線失敗，請稍後再試";
+    })[fnName](Object.assign({ username: currentUser, password: currentPass }, payload));
+}
+
+function duSaveGlobalMinutes() {
+  const m = document.getElementById("duGlobalMinutes").value;
+  duCall("teacherSaveDailyMinutes", { settingData: { targetUser: "ALL", minutes: Number(m) } });
+}
+
+function duGetSelectedStudent() {
+  const sel = document.getElementById("duStudentSelect");
+  if (!sel || !sel.value) { alert("請先選擇學生"); return null; }
+  const opt = sel.options[sel.selectedIndex];
+  return { user: sel.value, info: (opt && opt.getAttribute("data-info")) || sel.value };
+}
+
+function duSaveStudentMinutes() {
+  const st = duGetSelectedStudent(); if (!st) return;
+  const m = document.getElementById("duStudentMinutes").value;
+  duCall("teacherSaveDailyMinutes", { settingData: { targetUser: st.user, studentInfo: st.info, minutes: Number(m) } });
+}
+
+function duExtend(addMin) {
+  const st = duGetSelectedStudent(); if (!st) return;
+  duCall("teacherExtendUsage", { extendData: { targetUser: st.user, studentInfo: st.info, addMinutes: addMin } });
+}
+
+function duUnlock(scope, unlocked) {
+  let target = "ALL", info = "全體學生";
+  if (scope === "STUDENT") {
+    const st = duGetSelectedStudent(); if (!st) return;
+    target = st.user; info = st.info;
+  }
+  duCall("teacherToggleDailyUnlock", { unlockData: { targetUser: target, studentInfo: info, unlocked: unlocked } });
 }
 
 function toggleTeacherTodayUnlock() {

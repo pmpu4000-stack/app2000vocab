@@ -1256,6 +1256,11 @@ function saveDailyMinutesSetting(ss, teacherUser, data) {
     sheet.appendRow(rowVals);
   }
 
+  try {
+    const todayStr = Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy-MM-dd");
+    CacheService.getScriptCache().remove("DAILY_USAGE_RULES_" + todayStr);
+  } catch(_) {}
+
   return {
     status: "success",
     message: `✅ 已成功設定【${isGlobal ? '全校' : targetUser}】每日使用時長為 ${minutes} 分鐘！`
@@ -1313,6 +1318,11 @@ function extendStudentUsageTime(ss, teacherUser, data) {
     sheet.appendRow(rowVals);
   }
 
+  try {
+    const todayStr2 = Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy-MM-dd");
+    CacheService.getScriptCache().remove("DAILY_USAGE_RULES_" + todayStr2);
+  } catch(_) {}
+
   return {
     status: "success",
     message: `⚡ 已成功為【${isGlobal ? '全體學生' : targetUser}】今日延長 ${addMinutes} 分鐘（累計延長 ${newAdded} 分鐘）！`
@@ -1365,12 +1375,68 @@ function toggleStudentDailyUnlock(ss, teacherUser, data) {
     sheet.appendRow(rowVals);
   }
 
+  try {
+    const todayStr = Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy-MM-dd");
+    CacheService.getScriptCache().remove("DAILY_USAGE_RULES_" + todayStr);
+  } catch(_) {}
+
   return {
     status: "success",
     message: unlock
       ? `🔓 已成功解除【${isGlobal ? '全體學生' : targetUser}】今日作答時間限制（今日不限時暢行）！`
       : `🔒 已恢復【${isGlobal ? '全體學生' : targetUser}】今日作答時間限制！`
   };
+}
+
+/**
+ * 教師端點：儲存每日時長設定 (可供 google.script.run 或直接呼叫)
+ */
+function teacherSaveDailyMinutes(param1, param2) {
+  let ss, teacherUser, settingData;
+  if (param1 && typeof param1.getSheetByName === "function") {
+    ss = param1;
+    teacherUser = param2;
+    settingData = arguments[2] || {};
+  } else {
+    ss = SpreadsheetApp.getActiveSpreadsheet();
+    teacherUser = (param1 && (param1.username || param1.teacherUser)) || "教師";
+    settingData = (param1 && param1.settingData) || param1 || {};
+  }
+  return saveDailyMinutesSetting(ss, teacherUser, settingData);
+}
+
+/**
+ * 教師端點：延長學生今日使用時間 (加時)
+ */
+function teacherExtendUsage(param1, param2) {
+  let ss, teacherUser, extendData;
+  if (param1 && typeof param1.getSheetByName === "function") {
+    ss = param1;
+    teacherUser = param2;
+    extendData = arguments[2] || {};
+  } else {
+    ss = SpreadsheetApp.getActiveSpreadsheet();
+    teacherUser = (param1 && (param1.username || param1.teacherUser)) || "教師";
+    extendData = (param1 && param1.extendData) || param1 || {};
+  }
+  return extendStudentUsageTime(ss, teacherUser, extendData);
+}
+
+/**
+ * 教師端點：解除或恢復特定/全體學生今日時長限制
+ */
+function teacherToggleDailyUnlock(param1, param2) {
+  let ss, teacherUser, unlockData;
+  if (param1 && typeof param1.getSheetByName === "function") {
+    ss = param1;
+    teacherUser = param2;
+    unlockData = arguments[2] || {};
+  } else {
+    ss = SpreadsheetApp.getActiveSpreadsheet();
+    teacherUser = (param1 && (param1.username || param1.teacherUser)) || "教師";
+    unlockData = (param1 && param1.unlockData) || param1 || {};
+  }
+  return toggleStudentDailyUnlock(ss, teacherUser, unlockData);
 }
 
 /**

@@ -688,22 +688,22 @@ function buildTaskDetailsHtml(record, selectedDate, d) {
     <div class="task-history-card">
       <div class="task-history-header">
         <div>
-          <span style="font-size:15px; font-weight:800; color:#f8fafc;">${record.taskName}</span>
+          <span class="task-card-title">${record.taskName}</span>
           <span style="margin-left:8px; font-size:11.5px; font-weight:700; color:${statusColor}; background:${statusBg}; padding:2px 8px; border-radius:999px;">${statusStr}</span>
         </div>
-        <div style="font-size:12px; color:var(--ink3); font-weight:600;">
-          🕒 作答時間：<span style="color:#cbd5e1; font-weight:700;">${record.updatedAt || record.date}</span>
+        <div class="task-card-time">
+          🕒 作答時間：<b>${record.updatedAt || record.date}</b>
         </div>
       </div>
 
       <div class="task-score-grid">
         <div class="task-score-item">
-          <div style="font-size:11.5px; color:var(--ink3); font-weight:700; margin-bottom:2px;">🎯 答對題數 / 總題數</div>
-          <div class="task-score-val" style="color:#38bdf8;">${scoreVal} 題</div>
+          <div class="task-score-label">🎯 答對題數 / 總題數</div>
+          <div class="task-score-val" style="color:#0284c7;">${scoreVal} 題</div>
         </div>
         <div class="task-score-item">
-          <div style="font-size:11.5px; color:var(--ink3); font-weight:700; margin-bottom:2px;">📊 正確率</div>
-          <div class="task-score-val" style="color:${parseInt(rateVal) >= 80 ? '#4ade80' : '#fb923c'};">${rateVal}</div>
+          <div class="task-score-label">📊 正確率</div>
+          <div class="task-score-val" style="color:${parseInt(rateVal) >= 80 ? '#16a34a' : '#ea580c'};">${rateVal}</div>
         </div>
       </div>
 
@@ -835,26 +835,26 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
     <div class="task-history-card">
       <div class="task-history-header">
         <div>
-          <span style="font-size:15px; font-weight:800; color:#f8fafc;">🎮 自由練習成果</span>
-          <span style="margin-left:8px; font-size:11.5px; font-weight:700; color:#38bdf8; background:rgba(56,189,248,0.12); padding:2px 8px; border-radius:999px;">自主訓練</span>
+          <span class="task-card-title">🎮 自由練習成果</span>
+          <span style="margin-left:8px; font-size:11.5px; font-weight:700; color:#0284c7; background:rgba(2,132,199,0.12); padding:2px 8px; border-radius:999px;">自主訓練</span>
         </div>
-        <div style="font-size:12px; color:var(--ink3); font-weight:600;">
-          📅 練習日期：<span style="color:#cbd5e1; font-weight:700;">${selectedDate}</span>
+        <div class="task-card-time">
+          📅 練習日期：<b>${selectedDate}</b>
         </div>
       </div>
 
       <div class="task-score-grid">
         <div class="task-score-item">
-          <div style="font-size:11.5px; color:var(--ink3); font-weight:700; margin-bottom:2px;">🎯 作答題數</div>
-          <div class="task-score-val" style="color:#38bdf8;">${attempts} 題</div>
+          <div class="task-score-label">🎯 作答題數</div>
+          <div class="task-score-val" style="color:#0284c7;">${attempts} 題</div>
         </div>
         <div class="task-score-item">
-          <div style="font-size:11.5px; color:var(--ink3); font-weight:700; margin-bottom:2px;">✅ 答對題數</div>
-          <div class="task-score-val" style="color:#4ade80;">${correct} 題</div>
+          <div class="task-score-label">✅ 答對題數</div>
+          <div class="task-score-val" style="color:#16a34a;">${correct} 題</div>
         </div>
         <div class="task-score-item">
-          <div style="font-size:11.5px; color:var(--ink3); font-weight:700; margin-bottom:2px;">📊 正確率</div>
-          <div class="task-score-val" style="color:${rate >= 80 ? '#4ade80' : '#fb923c'};">${rate}%</div>
+          <div class="task-score-label">📊 正確率</div>
+          <div class="task-score-val" style="color:${rate >= 80 ? '#16a34a' : '#ea580c'};">${rate}%</div>
         </div>
       </div>
 
@@ -1028,46 +1028,44 @@ export function renderSummary(d) {
     </div>
     <div class="subh">各關卡進度</div>
     <table class="sumtable">${lvRows}</table>
-    <div style="font-size:11.5px; color:var(--ink3); margin:6px 0 14px; line-height:1.6; background:rgba(255,255,255,0.03); padding:8px 12px; border-radius:8px; border:1px solid rgba(255,255,255,0.06);">
-      💡 <b>正確率計算公式</b>：<span style="color:#38bdf8;">（該關卡考出來且答對單字數 ÷ 該關卡考出來的總單字數）× 100%</span>
+    <div class="formula-note-box">
+      💡 <b>正確率計算公式</b>：<span class="formula-val">（該關卡考出來且答對單字數 ÷ 該關卡考出來的總單字數）× 100%</span>
     </div>
     <div class="subh">🎮 4 大練習模式答題數</div>
-    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(110px, 1fr)); gap:8px; margin:8px 0 14px;">
-      <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:8px 10px; text-align:center;">
-        <div style="font-size:12px; color:var(--ink3); font-weight:700;">🎧 聽與拼</div>
-        <div style="font-weight:700; font-size:15px; margin:2px 0;">${(d.modeStats?.listen?.a || 0)} 題</div>
-        <div style="font-size:11px; color:var(--green);">答對 ${d.modeStats?.listen?.c || 0} (${d.modeStats?.listen?.a ? Math.round((d.modeStats.listen.c / d.modeStats.listen.a)*100) : 0}%)</div>
+    <div class="mode-stat-grid">
+      <div class="mode-stat-card">
+        <div class="mode-stat-title">🎧 聽與拼</div>
+        <div class="mode-stat-num">${(d.modeStats?.listen?.a || 0)} 題</div>
+        <div class="mode-stat-sub">答對 ${d.modeStats?.listen?.c || 0} (${d.modeStats?.listen?.a ? Math.round((d.modeStats.listen.c / d.modeStats.listen.a)*100) : 0}%)</div>
       </div>
-      <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:8px 10px; text-align:center;">
-        <div style="font-size:12px; color:var(--ink3); font-weight:700;">✅ 選拼法</div>
-        <div style="font-weight:700; font-size:15px; margin:2px 0;">${(d.modeStats?.pick?.a || 0)} 題</div>
-        <div style="font-size:11px; color:var(--green);">答對 ${d.modeStats?.pick?.c || 0} (${d.modeStats?.pick?.a ? Math.round((d.modeStats.pick.c / d.modeStats.pick.a)*100) : 0}%)</div>
+      <div class="mode-stat-card">
+        <div class="mode-stat-title">✅ 選拼法</div>
+        <div class="mode-stat-num">${(d.modeStats?.pick?.a || 0)} 題</div>
+        <div class="mode-stat-sub">答對 ${d.modeStats?.pick?.c || 0} (${d.modeStats?.pick?.a ? Math.round((d.modeStats.pick.c / d.modeStats.pick.a)*100) : 0}%)</div>
       </div>
-      <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:8px 10px; text-align:center;">
-        <div style="font-size:12px; color:var(--ink3); font-weight:700;">🧩 重組</div>
-        <div style="font-weight:700; font-size:15px; margin:2px 0;">${(d.modeStats?.scramble?.a || 0)} 題</div>
-        <div style="font-size:11px; color:var(--green);">答對 ${d.modeStats?.scramble?.c || 0} (${d.modeStats?.scramble?.a ? Math.round((d.modeStats.scramble.c / d.modeStats.scramble.a)*100) : 0}%)</div>
+      <div class="mode-stat-card">
+        <div class="mode-stat-title">🧩 重組</div>
+        <div class="mode-stat-num">${(d.modeStats?.scramble?.a || 0)} 題</div>
+        <div class="mode-stat-sub">答對 ${d.modeStats?.scramble?.c || 0} (${d.modeStats?.scramble?.a ? Math.round((d.modeStats.scramble.c / d.modeStats.scramble.a)*100) : 0}%)</div>
       </div>
-      <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:8px 10px; text-align:center;">
-        <div style="font-size:12px; color:var(--ink3); font-weight:700;">🖍️ 填陷阱</div>
-        <div style="font-weight:700; font-size:15px; margin:2px 0;">${(d.modeStats?.trap?.a || 0)} 題</div>
-        <div style="font-size:11px; color:var(--green);">答對 ${d.modeStats?.trap?.c || 0} (${d.modeStats?.trap?.a ? Math.round((d.modeStats.trap.c / d.modeStats.trap.a)*100) : 0}%)</div>
+      <div class="mode-stat-card">
+        <div class="mode-stat-title">🖍️ 填陷阱</div>
+        <div class="mode-stat-num">${(d.modeStats?.trap?.a || 0)} 題</div>
+        <div class="mode-stat-sub">答對 ${d.modeStats?.trap?.c || 0} (${d.modeStats?.trap?.a ? Math.round((d.modeStats.trap.c / d.modeStats.trap.a)*100) : 0}%)</div>
       </div>
     </div>
 
     <!-- 📅 指定日期查詢工具列（直覺日曆與快速切換） -->
     <div class="date-navigator-card">
       <div class="date-nav-left">
-        <span style="font-weight:800; font-size:13.5px; color:#38bdf8; display:flex; align-items:center; gap:5px;">
-          <span>📅</span> 查詢指定日期：
-        </span>
+        <span class="date-nav-title"><span>📅</span> 查詢指定日期：</span>
         <input type="date" id="record-date-picker" class="date-picker-input" value="${defaultSelectedDate}" max="${todayDash}">
         <button type="button" id="btn-date-today" class="date-nav-btn today-btn" title="切換回今日">📍 今日</button>
         <button type="button" id="btn-date-prev" class="date-nav-btn" title="查看前一天">◀ 前一天</button>
         <button type="button" id="btn-date-next" class="date-nav-btn" title="查看後一天">後一天 ▶</button>
       </div>
       <div class="date-nav-right">
-        <label for="record-quick-dates" style="font-size:12px; color:var(--ink3); font-weight:700;">🎯 快速跳至有紀錄日期：</label>
+        <label for="record-quick-dates" class="date-quick-label">🎯 快速跳至有紀錄日期：</label>
         <select id="record-quick-dates" class="task-date-selector">
           ${quickDateOptionsHtml}
         </select>
