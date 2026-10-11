@@ -94,66 +94,83 @@ export function renderRound(word, mode, { onAnswer, onCheck, disablePeek }) {
   el.catlabel.textContent = `Level ${word.level}`;
   el.catlabel.style.background = levelColor(word.level);
   el.modehint.textContent = MHINT[mode];
-  if (word.zh) {
-    const phon = word.ph ? ` <span class="phon">[${word.ph}]</span>` : "";
-    const catTag = word.featured && word.cat ? ` <span style="color:var(--ink3)">（${CATS[word.cat].name}）</span>` : "";
-    el.zh.innerHTML = `意思：<b>${word.zh}</b>${phon}${catTag}`;
-  } else {
-    el.zh.innerHTML = `<span style="color:var(--ink3)">🔊 聽發音，拼出這個字</span>`;
+
+  const phon = word.ph ? ` <span class="phon">[${word.ph}]</span>` : "";
+  const catTag = word.featured && word.cat ? ` <span style="color:var(--ink3)">（${CATS[word.cat].name}）</span>` : "";
+  const zhText = word.zh
+    ? `意思：<b>${word.zh}</b>${phon}${catTag}`
+    : `<span style="color:var(--ink3)">聽發音，拼出這個字</span>`;
+
+  el.zh.innerHTML = `
+    <div class="zh-row">
+      <button type="button" class="word-speech-btn" id="word-speech-btn" aria-label="播放單字發音" title="播放單字發音">🔊</button>
+      <div class="zh-text">${zhText}</div>
+    </div>
+  `;
+  const wPlayBtn = el.zh.querySelector("#word-speech-btn");
+  if (wPlayBtn) {
+    wPlayBtn.onclick = () => {
+      say(word.word);
+      wPlayBtn.classList.add("playing");
+      setTimeout(() => wPlayBtn.classList.remove("playing"), 500);
+    };
   }
 
   if (word.sent && mode !== "pick") {
-    const sentsList = (Array.isArray(word.sents) && word.sents.length > 0)
-      ? word.sents
+    let sentsList = (Array.isArray(word.sents) && word.sents.length > 0)
+      ? [...word.sents]
       : [{ level: 'normal', levelName: '普通', sent: word.sent, sentZh: word.sentZh || '', src: word.sentSrc || '' }];
 
-    let curIdx = 0;
-    const normalIdx = sentsList.findIndex(s => s.level === 'normal');
-    if (normalIdx >= 0) curIdx = normalIdx;
+    const levelOrder = { simple: 1, normal: 2, advanced: 3 };
+    sentsList.sort((a, b) => (levelOrder[a.level] || 9) - (levelOrder[b.level] || 9));
 
-    function renderSentCard(idx) {
-      const item = sentsList[idx] || sentsList[0];
-      const maskedSent = item.sent.replace(new RegExp("\\b" + word.word + "\\b", "i"), "<u>_____</u>");
-      
-      let html = '';
-      if (sentsList.length > 1) {
-        html += '<div class="sent-level-tabs" style="display:inline-flex; gap:6px; margin-bottom:8px; justify-content:center; flex-wrap:wrap;">';
-        sentsList.forEach((s, i) => {
-          const badgeIcon = s.level === 'simple' ? '🌱' : s.level === 'advanced' ? '🌳' : '🌿';
-          const isAct = i === idx;
-          const bgStyle = isAct
-            ? 'background:#3b82f6; color:#fff; border-color:#3b82f6; box-shadow:0 2px 6px rgba(59,130,246,0.3);'
-            : 'background:#1e293b; color:#94a3b8; border-color:#334155;';
-          html += `<button type="button" class="sent-tab-pill" data-idx="${i}" style="padding:3px 10px; font-size:11.5px; font-weight:700; border-radius:12px; border:1px solid; cursor:pointer; transition:all 0.15s; ${bgStyle}">${badgeIcon} ${s.levelName || (i===0?'簡單':i===1?'普通':'進階')}</button>`;
-        });
-        html += '</div>';
-      }
+    let html = '<div class="sents-vertical-list">';
+    sentsList.forEach((s, i) => {
+      const badgeIcon = s.level === 'simple' ? '🌱' : s.level === 'advanced' ? '🌲' : '🌿';
+      const levelCls = s.level === 'simple' ? 'level-simple' : s.level === 'advanced' ? 'level-advanced' : 'level-normal';
+      const levelText = s.levelName || (i === 0 ? '簡單' : i === 1 ? '普通' : '進階');
+      const maskedSent = s.sent.replace(new RegExp("\\b" + word.word + "\\b", "i"), "<u>_____</u>");
 
-      html += `<div class="sent-content" style="cursor:pointer; padding:4px 8px; border-radius:8px; transition:background 0.2s;" title="點擊聆聽此例句朗讀">`;
-      html += `  <div style="font-size:14.5px; line-height:1.45;">${maskedSent} <span style="font-size:12px; margin-left:4px; opacity:0.85;">🔊</span></div>`;
-      if (item.sentZh) {
-        html += `  <div style="font-size:13px; color:var(--ink3); font-weight:normal; margin-top:4px; line-height:1.4; opacity:0.95;">${item.sentZh}</div>`;
-      }
-      html += `</div>`;
-      
-      el.sent.innerHTML = html;
-      el.sent.style.cursor = "default";
-      
-      const contentEl = el.sent.querySelector(".sent-content");
-      if (contentEl) {
-        contentEl.onclick = () => say(item.sent, 0.88);
-      }
-      el.sent.querySelectorAll(".sent-tab-pill").forEach(btn => {
-        btn.onclick = (e) => {
-          e.stopPropagation();
-          const targetI = parseInt(btn.dataset.idx);
-          renderSentCard(targetI);
-          say(sentsList[targetI].sent, 0.88);
-        };
-      });
-    }
+      html += `
+        <div class="sent-row" data-idx="${i}">
+          <button type="button" class="sent-level-btn ${levelCls}" data-idx="${i}" title="播放此例句">
+            ${badgeIcon} ${levelText}
+          </button>
+          <div class="sent-text-wrap" data-idx="${i}" title="播放此例句">
+            <div class="sent-en">${maskedSent}</div>
+            ${s.sentZh ? `<div class="sent-zh">${s.sentZh}</div>` : ''}
+          </div>
+          <button type="button" class="sent-audio-btn" data-idx="${i}" aria-label="播放此例句發音" title="播放此例句發音">
+            🔊
+          </button>
+        </div>
+      `;
+    });
+    html += '</div>';
 
-    renderSentCard(curIdx);
+    el.sent.innerHTML = html;
+    el.sent.style.cursor = "default";
+
+    el.sent.querySelectorAll(".sent-row").forEach(row => {
+      const idx = parseInt(row.dataset.idx, 10);
+      const targetSent = sentsList[idx];
+      if (!targetSent) return;
+
+      const playFn = () => {
+        say(targetSent.sent, 0.88);
+        row.classList.add("playing");
+        setTimeout(() => row.classList.remove("playing"), 600);
+      };
+
+      const lvlBtn = row.querySelector(".sent-level-btn");
+      if (lvlBtn) lvlBtn.onclick = playFn;
+
+      const textWrap = row.querySelector(".sent-text-wrap");
+      if (textWrap) textWrap.onclick = playFn;
+
+      const audioBtn = row.querySelector(".sent-audio-btn");
+      if (audioBtn) audioBtn.onclick = playFn;
+    });
   } else {
     el.sent.innerHTML = "";
     el.sent.style.cursor = "";
@@ -169,15 +186,17 @@ export function renderRound(word, mode, { onAnswer, onCheck, disablePeek }) {
 
 function renderListen(word, onCheck) {
   el.stage.innerHTML = "";
-  const btn = document.createElement("button");
-  btn.className = "listen-btn"; btn.setAttribute("aria-label", "播放發音");
-  btn.innerHTML = "🔊"; btn.onclick = () => say(word.word);
-  const row = document.createElement("div");
-  row.className = "mini-row";
-  row.append(miniBtn("🔊 朗讀整個單字", () => say(word.word, 0.88)));
-  if (word.sent) row.append(miniBtn("💬 唸例句", () => say(word.sent, 0.88)));
+  const promptRow = document.createElement("div");
+  promptRow.className = "stage-prompt-row";
+  const repeatBtn = document.createElement("button");
+  repeatBtn.type = "button";
+  repeatBtn.className = "stage-sound-btn";
+  repeatBtn.innerHTML = "<span>🔊</span> 再聽一次單字";
+  repeatBtn.onclick = () => say(word.word);
+  promptRow.append(repeatBtn);
+
   const inp = textInput("在這裡拼字…", onCheck);
-  el.stage.append(btn, row, inp);
+  el.stage.append(promptRow, inp);
   say(word.word);
   setTimeout(() => inp.focus(), 50);
   return {
