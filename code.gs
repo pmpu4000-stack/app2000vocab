@@ -2521,8 +2521,23 @@ function doPost(e) {
 }
 
 function doGet(e) {
+  // 資通安全與個資法防護：阻絕任何未授權之維護指令探測
   if (e && e.parameter && (e.parameter.action === "cleanupSheets" || e.parameter.clean === "1")) {
-    return jsonResponse(cleanupUnusedSheets());
+    try {
+      const ss = SpreadsheetApp.getActiveSpreadsheet();
+      logSecurityIncident(ss, {
+        username: (e.parameter.username || "未授權外網訪客"),
+        method: "未經授權之敏感管理指令探測 (GET cleanupSheets)",
+        details: "嘗試透過公開 GET 請求觸發系統工作表清理作業 (已即時阻斷)",
+        device: "GET HTTP Request",
+        result: "🚫 403 拒絕存取：敏感維護作業僅限登入之教師於控制台執行"
+      });
+    } catch(_) {}
+    return jsonResponse({
+      status: "error",
+      code: 403,
+      message: "【資安防衛】未經授權之操作：系統管理與維護作業僅限於內部管理介面執行。"
+    });
   }
   return HtmlService.createHtmlOutputFromFile("Index")
     .setTitle("學生學習歷程查詢系統")

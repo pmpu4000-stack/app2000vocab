@@ -622,6 +622,7 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
   color: #CBD5E1 !important;
 }
 [data-theme="dark"] #login-overlay p,
+[data-theme="dark"] #login-legal-consent-tip,
 [data-theme="dark"] #curfew-overlay p {
   color: #9AA0BD !important;
 }
@@ -943,6 +944,10 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
         style="width:100%; padding:13px; background:#6C4CE0; color:white; border:none; border-radius:12px; font-weight:700; font-size:15px; cursor:pointer; box-shadow:0 8px 20px -6px rgba(108,76,224,0.45); transition:all 0.2s;">
         確認登入
       </button>
+
+      <div id="login-legal-consent-tip" style="font-size:11px; color:#5A6183; margin-top:8px; line-height:1.4;">
+        登入即代表您已閱讀並同意遵守下方之《個資法定告知事項》與測驗誠信守則
+      </div>
       
       <p id="login-msg" style="color:#FF6B6B; font-size:13px; margin-top:12px; min-height:18px; line-height:1.5;"></p>
 
