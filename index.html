@@ -78,6 +78,10 @@
         <div class="stat ok"><b id="s-correct" class="tnum">0</b><span>答對字</span></div>
         <div class="stat streak"><b id="s-streak" class="tnum">0</b><span>連勝</span></div>
         <div class="stat rate"><b id="s-rate" class="tnum">0%</b><span>答對率</span></div>
+        <div class="stat timer" id="stat-daily-timer" style="cursor:pointer; display:none;" title="今日剩餘練習時間（點擊查看說明）">
+          <b id="s-timer-val" class="tnum" style="color:#38bdf8;">10:00</b>
+          <span>今日剩餘</span>
+        </div>
         <div class="stat user" id="stat-user" title="目前登入帳號">
           <b id="s-user" class="tnum">-</b>
           <span>登入帳號</span>
@@ -88,6 +92,23 @@
     <!-- ============ PLAY SCREEN ============ -->
     <div id="screen-play">
       <div class="session" id="session" style="display:none;" hidden></div>
+
+      <!-- 每日練習時間截止提示卡片 (時間到僅顯示 Progress 方塊) -->
+      <div id="daily-limit-reached-card" style="display:none; text-align:center; padding:32px 20px; border-radius:24px; background:var(--card); border:2px solid #3b82f6; box-shadow:var(--shadow); margin:10px 0 16px;">
+        <div style="font-size:46px; margin-bottom:10px;">⏰</div>
+        <h2 style="font-size:22px; font-weight:800; color:#f8fafc; margin:0 0 8px;">今日練習時間已結束</h2>
+        <p style="font-size:14.5px; color:#cbd5e1; line-height:1.6; max-width:440px; margin:0 auto 16px;">
+          太棒了！今天已經完成 <span id="limit-minutes-display-text" style="color:#38bdf8; font-weight:800;">10</span> 分鐘的專注練習。<br>
+          適度休息眼睛能讓大腦更好記憶單字，明天再繼續挑戰！
+        </p>
+        <div style="padding:10px 16px; background:rgba(59,130,246,0.1); border:1px dashed #3b82f6; border-radius:12px; font-size:13px; color:#93c5fd; max-width:420px; margin:0 auto 14px; line-height:1.5;">
+          📊 <b>下方已保留您的完整學習進度與作答紀錄</b>，歡迎回顧複習掌握的單字！
+        </div>
+        <div style="font-size:12px; color:#94a3b8;">
+          💡 若有補測或特別練習需求，請向任課老師申請延長時間或解除限制。
+        </div>
+      </div>
+
       <nav class="levelbar" id="levelbar" aria-label="選擇關卡"></nav>
       <div class="modes" id="modes" role="tablist" aria-label="練習模式"></div>
 
@@ -285,6 +306,12 @@
             sessionStorage.setItem("user_start_time", result.timeRestriction.startTime || "07:30");
             sessionStorage.setItem("user_end_time", result.timeRestriction.endTime || "22:00");
             sessionStorage.setItem("time_restriction_unlocked", (result.timeRestriction.isOverridden === true) ? "true" : "false");
+          }
+          if (result.role === "teacher" || result.isAdmin) {
+            const timerBadge = document.getElementById("stat-daily-timer");
+            if (timerBadge) timerBadge.style.display = "none";
+          } else {
+            initDailyUsageTimer(result.dailyUsage);
           }
           if (result.role === "teacher") {
             if (Array.isArray(result.classList) && result.classList.length > 0) {
@@ -965,6 +992,253 @@
     // 每 30 秒即時輪詢檢查一次時間，若時間超過即刻溫和鎖定並存檔
     setInterval(checkCurfewStatus, 30000);
 
+    // ══════════════════════════════════════════
+    // 每日使用時間上限（預設 10 分鐘）與保護機制
+    // ══════════════════════════════════════════
+    let dailyUsageState = {
+      todayDate: "",
+      limitMinutes: 10,
+      defaultMinutes: 10,
+      studentMinutes: null,
+      extendedMinutes: 0,
+      unlocked: false,
+      firstLoginTime: null,
+      isLockedDown: false
+    };
+    let dailyTimerInterval = null;
+    let dailyPollingInterval = null;
+
+    function initDailyUsageTimer(dailyUsage) {
+      const role = localStorage.getItem("user_role") || "student";
+      if (role === "teacher" || role === "admin") {
+        const timerBadge = document.getElementById("stat-daily-timer");
+        if (timerBadge) timerBadge.style.display = "none";
+        return;
+      }
+
+      const d = new Date();
+      const todayStr = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+
+      let firstLogin = null;
+      const savedDate = localStorage.getItem("daily_usage_date");
+      const savedFirstLogin = Number(localStorage.getItem("daily_usage_first_login_time"));
+
+      if (dailyUsage && dailyUsage.firstLoginTime) {
+        firstLogin = Number(dailyUsage.firstLoginTime);
+      }
+
+      if (savedDate === todayStr && savedFirstLogin) {
+        if (!firstLogin || savedFirstLogin < firstLogin) {
+          firstLogin = savedFirstLogin;
+        }
+      }
+
+      if (!firstLogin) {
+        firstLogin = Date.now();
+      }
+
+      dailyUsageState = {
+        todayDate: todayStr,
+        limitMinutes: (dailyUsage && Number(dailyUsage.limitMinutes)) || 10,
+        defaultMinutes: (dailyUsage && Number(dailyUsage.defaultMinutes)) || 10,
+        studentMinutes: (dailyUsage && dailyUsage.studentMinutes) ? Number(dailyUsage.studentMinutes) : null,
+        extendedMinutes: (dailyUsage && Number(dailyUsage.extendedMinutes)) || 0,
+        unlocked: (dailyUsage && dailyUsage.unlocked === true),
+        firstLoginTime: firstLogin,
+        isLockedDown: false
+      };
+
+      localStorage.setItem("daily_usage_date", todayStr);
+      localStorage.setItem("daily_usage_first_login_time", String(firstLogin));
+      localStorage.setItem("daily_usage_limit_minutes", String(dailyUsageState.limitMinutes));
+      localStorage.setItem("daily_usage_extended_minutes", String(dailyUsageState.extendedMinutes));
+      localStorage.setItem("daily_usage_unlocked", dailyUsageState.unlocked ? "true" : "false");
+
+      const timerBadge = document.getElementById("stat-daily-timer");
+      if (timerBadge) {
+        timerBadge.style.display = "inline-flex";
+        timerBadge.onclick = () => {
+          const totalMins = dailyUsageState.limitMinutes + dailyUsageState.extendedMinutes;
+          const extra = dailyUsageState.extendedMinutes > 0 ? `（含老師延長 ${dailyUsageState.extendedMinutes} 分鐘）` : "";
+          const statusText = dailyUsageState.unlocked ? "今日不限時（老師已解除限制）" : `今日上限：${totalMins} 分鐘 ${extra}`;
+          alert(`⏱️【每日使用時間說明】\n${statusText}\n\n從當天首次登入開始計算時間，時間到了之後僅顯示學習進度 Progress 方塊供您複習單字！`);
+        };
+      }
+
+      updateDailyUsageTick();
+
+      if (dailyTimerInterval) clearInterval(dailyTimerInterval);
+      dailyTimerInterval = setInterval(updateDailyUsageTick, 1000);
+
+      if (dailyPollingInterval) clearInterval(dailyPollingInterval);
+      dailyPollingInterval = setInterval(pollDailyUsageStatus, 15000);
+    }
+
+    function updateDailyUsageTick() {
+      const role = localStorage.getItem("user_role") || "student";
+      if (role === "teacher" || role === "admin") return;
+
+      const valEl = document.getElementById("s-timer-val");
+      if (!valEl) return;
+
+      if (dailyUsageState.unlocked) {
+        valEl.textContent = "不限時";
+        valEl.style.color = "#10b981";
+        if (dailyUsageState.isLockedDown) {
+          liftDailyUsageLockdown();
+        }
+        return;
+      }
+
+      const totalAllowedMs = (dailyUsageState.limitMinutes + dailyUsageState.extendedMinutes) * 60 * 1000;
+      const elapsedMs = Math.max(0, Date.now() - dailyUsageState.firstLoginTime);
+      const remainingMs = totalAllowedMs - elapsedMs;
+
+      if (remainingMs <= 0) {
+        valEl.textContent = "00:00";
+        valEl.style.color = "#ef4444";
+        if (!dailyUsageState.isLockedDown) {
+          applyDailyUsageLockdown();
+        } else {
+          ensureLockdownVisuals();
+        }
+      } else {
+        const totalSecs = Math.ceil(remainingMs / 1000);
+        const m = Math.floor(totalSecs / 60);
+        const s = totalSecs % 60;
+        valEl.textContent = `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+
+        if (totalSecs <= 120) {
+          valEl.style.color = "#f59e0b";
+        } else {
+          valEl.style.color = "#38bdf8";
+        }
+
+        if (dailyUsageState.isLockedDown) {
+          liftDailyUsageLockdown();
+        }
+      }
+    }
+
+    function ensureLockdownVisuals() {
+      const card = document.getElementById("card");
+      if (card && card.style.display !== "none") card.style.display = "none";
+      const modes = document.getElementById("modes");
+      if (modes && modes.style.display !== "none") modes.style.display = "none";
+      const levelbar = document.getElementById("levelbar");
+      if (levelbar && levelbar.style.display !== "none") levelbar.style.display = "none";
+      const banner = document.getElementById("banner");
+      if (banner && banner.style.display !== "none") banner.style.display = "none";
+      const session = document.getElementById("session");
+      if (session && session.style.display !== "none") session.style.display = "none";
+
+      const limitCard = document.getElementById("daily-limit-reached-card");
+      if (limitCard && limitCard.style.display !== "block") limitCard.style.display = "block";
+    }
+
+    function applyDailyUsageLockdown() {
+      dailyUsageState.isLockedDown = true;
+      console.log("⏰ 每日練習時間已達上限，進入進度保留與作答鎖定模式");
+
+      ensureLockdownVisuals();
+
+      const quizScreen = document.getElementById("screen-quiz");
+      const playScreen = document.getElementById("screen-play");
+      if (quizScreen && !quizScreen.hasAttribute("hidden")) {
+        quizScreen.setAttribute("hidden", "true");
+        if (playScreen) playScreen.removeAttribute("hidden");
+      }
+
+      const limitCard = document.getElementById("daily-limit-reached-card");
+      if (limitCard) {
+        limitCard.style.display = "block";
+        const minText = document.getElementById("limit-minutes-display-text");
+        if (minText) {
+          minText.textContent = String(dailyUsageState.limitMinutes + dailyUsageState.extendedMinutes);
+        }
+      }
+
+      const progressSec = document.querySelector("section.progress");
+      if (progressSec) {
+        progressSec.style.display = "block";
+        progressSec.style.border = "2px solid #3b82f6";
+        progressSec.style.borderRadius = "16px";
+        progressSec.style.padding = "16px";
+        progressSec.style.background = "rgba(59, 130, 246, 0.05)";
+      }
+
+      const summarySec = document.getElementById("summary");
+      if (summarySec && summarySec.hasAttribute("hidden")) {
+        const sumBtn = document.getElementById("sumBtn");
+        if (sumBtn) sumBtn.click();
+      }
+
+      if (window.uploadLocalStorageData) {
+        window.uploadLocalStorageData(true);
+      }
+    }
+
+    function liftDailyUsageLockdown() {
+      dailyUsageState.isLockedDown = false;
+      console.log("🔓 每日練習限制已解除或延長，恢復作答卡片");
+
+      const limitCard = document.getElementById("daily-limit-reached-card");
+      if (limitCard) limitCard.style.display = "none";
+
+      const card = document.getElementById("card");
+      const modes = document.getElementById("modes");
+      const levelbar = document.getElementById("levelbar");
+      const banner = document.getElementById("banner");
+      const session = document.getElementById("session");
+
+      if (card) card.style.display = "";
+      if (modes) modes.style.display = "";
+      if (levelbar) levelbar.style.display = "";
+      if (banner) banner.style.display = "";
+      if (session) session.style.display = "";
+
+      const progressSec = document.querySelector("section.progress");
+      if (progressSec) {
+        progressSec.style.border = "";
+        progressSec.style.borderRadius = "";
+        progressSec.style.padding = "";
+        progressSec.style.background = "";
+      }
+    }
+
+    async function pollDailyUsageStatus() {
+      const role = localStorage.getItem("user_role") || "student";
+      if (role === "teacher" || role === "admin") return;
+      const currentUser = localStorage.getItem("current_user");
+      if (!currentUser) return;
+
+      try {
+        const res = await fetch(scriptUrl, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({
+            action: "getDailyUsageSettings",
+            username: currentUser
+          })
+        });
+        const d = await res.json();
+        if (d.status === "success" && d.dailyUsage) {
+          dailyUsageState.limitMinutes = Number(d.dailyUsage.limitMinutes) || dailyUsageState.limitMinutes;
+          dailyUsageState.extendedMinutes = Number(d.dailyUsage.extendedMinutes) || 0;
+          dailyUsageState.unlocked = (d.dailyUsage.unlocked === true);
+          if (d.dailyUsage.firstLoginTime) {
+            dailyUsageState.firstLoginTime = Math.min(dailyUsageState.firstLoginTime, Number(d.dailyUsage.firstLoginTime));
+          }
+          localStorage.setItem("daily_usage_extended_minutes", String(dailyUsageState.extendedMinutes));
+          localStorage.setItem("daily_usage_unlocked", dailyUsageState.unlocked ? "true" : "false");
+
+          updateDailyUsageTick();
+        }
+      } catch(e) {
+        // 忽略網路波動
+      }
+    }
+
     window.openTimeModal = function() {
       const modal = document.getElementById("timeManagementModal");
       if (!modal) return;
@@ -976,6 +1250,9 @@
       const eInp = document.getElementById("tm-input-end");
       if (sInp && !sInp.value) sInp.value = todayDash;
       if (eInp && !eInp.value) eInp.value = todayDash;
+
+      const limitTabBtn = document.getElementById("tm-tab-btn-limit");
+      if (limitTabBtn) limitTabBtn.click();
 
       loadTimeRestrictions();
     };
@@ -1032,6 +1309,15 @@
             gUpdateEl.textContent = upd;
           }
 
+          // 1.5 每日時長上限設定帶入
+          if (data.dailyUsage) {
+            const defM = data.dailyUsage.defaultMinutes || 10;
+            const defSel = document.getElementById("tm-limit-default-minutes");
+            if (defSel) defSel.value = String(defM);
+            const curDisplay = document.getElementById("tm-limit-current-display");
+            if (curDisplay) curDisplay.textContent = `目前全校預設：${defM} 分鐘`;
+          }
+
           // 2. 學生名冊選單帶入
           populateStudentSelectOptions();
 
@@ -1071,6 +1357,7 @@
 
     function populateStudentSelectOptions() {
       const classFilter = document.getElementById("tm-student-class-filter");
+      const limitClassFilter = document.getElementById("tm-limit-class-filter");
       const studentSelect = document.getElementById("tm-student-select");
       if (!studentSelect) return;
 
@@ -1089,26 +1376,90 @@
         classFilter.innerHTML = cHtml;
       }
 
+      if (limitClassFilter) {
+        const curLClass = limitClassFilter.value || "all";
+        let lcHtml = `<option value="all">所有班級 (${allStudentsList.length} 人)</option>`;
+        sortedClasses.forEach(c => {
+          lcHtml += `<option value="${c}" ${c === curLClass ? "selected" : ""}>${c} 班</option>`;
+        });
+        limitClassFilter.innerHTML = lcHtml;
+      }
+
       filterStudentDropdown();
     }
 
     function filterStudentDropdown() {
       const classFilter = document.getElementById("tm-student-class-filter");
       const studentSelect = document.getElementById("tm-student-select");
-      if (!studentSelect) return;
+      if (studentSelect) {
+        const selectedClass = classFilter ? classFilter.value : "all";
+        const filtered = (selectedClass === "all")
+          ? allStudentsList
+          : allStudentsList.filter(s => s.className === selectedClass);
 
-      const selectedClass = classFilter ? classFilter.value : "all";
-      const filtered = (selectedClass === "all")
-        ? allStudentsList
-        : allStudentsList.filter(s => s.className === selectedClass);
+        let html = `<option value="">-- 請選擇學生 (${filtered.length} 人) --</option>`;
+        filtered.forEach(s => {
+          const existingRule = timeStudentRules.find(r => r.username.toLowerCase() === s.username.toLowerCase());
+          const star = existingRule ? ` ★ (${existingRule.startTime}~${existingRule.endTime})` : "";
+          html += `<option value="${s.username}" data-name="${s.realName}" data-class="${s.className}">${s.username} ${s.realName} (${s.className}班)${star}</option>`;
+        });
+        studentSelect.innerHTML = html;
+      }
 
-      let html = `<option value="">-- 請選擇學生 (${filtered.length} 人) --</option>`;
-      filtered.forEach(s => {
-        const existingRule = timeStudentRules.find(r => r.username.toLowerCase() === s.username.toLowerCase());
-        const star = existingRule ? ` ★ (${existingRule.startTime}~${existingRule.endTime})` : "";
-        html += `<option value="${s.username}" data-name="${s.realName}" data-class="${s.className}">${s.username} ${s.realName} (${s.className}班)${star}</option>`;
-      });
-      studentSelect.innerHTML = html;
+      const limitClassFilter = document.getElementById("tm-limit-class-filter");
+      const limitStudentSelect = document.getElementById("tm-limit-student-select");
+      if (limitStudentSelect) {
+        const selectedLClass = limitClassFilter ? limitClassFilter.value : "all";
+        const filteredL = (selectedLClass === "all")
+          ? allStudentsList
+          : allStudentsList.filter(s => s.className === selectedLClass);
+
+        let lHtml = `<option value="">-- 請選擇學生 (${filteredL.length} 人) --</option>`;
+        filteredL.forEach(s => {
+          lHtml += `<option value="${s.username}" data-name="${s.realName}" data-class="${s.className}">${s.username} ${s.realName} (${s.className}班)</option>`;
+        });
+        limitStudentSelect.innerHTML = lHtml;
+      }
+    }
+
+    async function updateLimitStudentStatusCard() {
+      const studentSel = document.getElementById("tm-limit-student-select");
+      const box = document.getElementById("tm-limit-student-status-box");
+      if (!studentSel || !box) return;
+      const u = studentSel.value.trim();
+      if (!u) {
+        box.innerHTML = `<span style="color:#94a3b8;">請選擇學生以查看其今日練習時間與即時狀態</span>`;
+        return;
+      }
+      box.innerHTML = `<span style="color:#38bdf8;">⏳ 正在查詢學生【${u}】今日練習時間與狀態...</span>`;
+      try {
+        const res = await fetch(scriptUrl, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ action: "getDailyUsageSettings", username: u })
+        });
+        const d = await res.json();
+        if (d.status === "success" && d.dailyUsage) {
+          const du = d.dailyUsage;
+          const totalM = du.limitMinutes + du.extendedMinutes;
+          const statusTag = du.unlocked 
+            ? `<span style="color:#10b981; font-weight:bold;">🔓 今日已解除時間限制 (不限時)</span>`
+            : `<span style="color:#38bdf8; font-weight:bold;">⏱️ 今日總上限：${totalM} 分鐘</span>（基礎 ${du.limitMinutes} 分鐘 + 累計延長 ${du.extendedMinutes} 分鐘）`;
+          
+          const firstLoginStr = du.firstLoginTime ? new Date(du.firstLoginTime).toLocaleTimeString("zh-TW", { hour: "2-digit", minute: "2-digit", second: "2-digit" }) : "今日尚未登入";
+
+          box.innerHTML = `
+            <div style="line-height:1.7;">
+              <div style="color:#f1f5f9;">👤 <b>學生：</b>${u} | 🕒 <b>今日首次登入：</b><b style="color:#fbbf24;">${firstLoginStr}</b></div>
+              <div>📌 <b>狀態：</b>${statusTag}</div>
+            </div>
+          `;
+        } else {
+          box.innerHTML = `<span style="color:#f87171;">無法取得學生狀態</span>`;
+        }
+      } catch(e) {
+        box.innerHTML = `<span style="color:#f87171;">查詢連線失敗，請檢查網路</span>`;
+      }
     }
 
     function renderStudentRulesList() {
@@ -1286,6 +1637,7 @@
 
       // 分頁切換
       const tabBtns = [
+        { btn: "tm-tab-btn-limit", panel: "tm-tab-panel-limit" },
         { btn: "tm-tab-btn-global", panel: "tm-tab-panel-global" },
         { btn: "tm-tab-btn-student", panel: "tm-tab-panel-student" },
         { btn: "tm-tab-btn-date", panel: "tm-tab-panel-date" }
@@ -1298,8 +1650,8 @@
               const ob = document.getElementById(other.btn);
               const op = document.getElementById(other.panel);
               if (ob) {
-                ob.style.background = (other.btn === t.btn) ? "#6366f1" : "#1e293b";
-                ob.style.borderColor = (other.btn === t.btn) ? "#6366f1" : "#475569";
+                ob.style.background = (other.btn === t.btn) ? "#3b82f6" : "#1e293b";
+                ob.style.borderColor = (other.btn === t.btn) ? "#3b82f6" : "#475569";
                 ob.style.color = (other.btn === t.btn) ? "#fff" : "#cbd5e1";
               }
               if (op) op.style.display = (other.panel === t.panel) ? "block" : "none";
@@ -1544,6 +1896,210 @@
           }
         };
       }
+
+      // ══════════════════════════════════════════
+      // 分頁 4：每日使用時長與延長限制事件綁定
+      // ══════════════════════════════════════════
+      const limitClassFilter = document.getElementById("tm-limit-class-filter");
+      if (limitClassFilter) {
+        limitClassFilter.onchange = filterStudentDropdown;
+      }
+
+      const limitStudentSelect = document.getElementById("tm-limit-student-select");
+      if (limitStudentSelect) {
+        limitStudentSelect.onchange = updateLimitStudentStatusCard;
+      }
+
+      // 儲存全校預設時長
+      const saveLimitBtn = document.getElementById("tm-btn-save-limit-minutes");
+      if (saveLimitBtn) {
+        saveLimitBtn.onclick = async () => {
+          const selectEl = document.getElementById("tm-limit-default-minutes");
+          const mins = parseInt(selectEl ? selectEl.value : 10, 10);
+          const currentUser = localStorage.getItem("current_user");
+          const currentPass = sessionStorage.getItem("current_pass");
+
+          saveLimitBtn.disabled = true;
+          saveLimitBtn.textContent = "儲存中...";
+          try {
+            const res = await fetch(scriptUrl, {
+              method: "POST",
+              headers: { "Content-Type": "text/plain;charset=utf-8" },
+              body: JSON.stringify({
+                action: "saveDailyMinutesSetting",
+                username: currentUser,
+                password: currentPass,
+                settingData: { targetUser: "ALL", minutes: mins }
+              })
+            });
+            const d = await res.json();
+            if (d.status === "success") {
+              alert(d.message || `已成功設定全校每日練習時間為 ${mins} 分鐘！`);
+              const curDisp = document.getElementById("tm-limit-current-display");
+              if (curDisp) curDisp.textContent = `目前全校預設：${mins} 分鐘`;
+            } else {
+              alert("儲存失敗：" + (d.message || ""));
+            }
+          } catch(err) {
+            console.error(err);
+            alert("連線失敗，請稍後再試");
+          } finally {
+            saveLimitBtn.disabled = false;
+            saveLimitBtn.textContent = "💾 儲存全校預設時長";
+          }
+        };
+      }
+
+      // 輔助函式：執行加時
+      async function triggerExtendUsageTime(targetUser, studentInfo, addMins, btnEl) {
+        const currentUser = localStorage.getItem("current_user");
+        const currentPass = sessionStorage.getItem("current_pass");
+        const origText = btnEl ? btnEl.textContent : "";
+        if (btnEl) {
+          btnEl.disabled = true;
+          btnEl.textContent = "處理中...";
+        }
+
+        try {
+          const res = await fetch(scriptUrl, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({
+              action: "extendStudentUsageTime",
+              username: currentUser,
+              password: currentPass,
+              extendData: { targetUser: targetUser, studentInfo: studentInfo, addMinutes: addMins }
+            })
+          });
+          const d = await res.json();
+          if (d.status === "success") {
+            alert(d.message || `✅ 已成功為【${targetUser === "ALL" ? "全體學生" : targetUser}】延長 ${addMins} 分鐘！`);
+            if (targetUser !== "ALL") {
+              updateLimitStudentStatusCard();
+            }
+          } else {
+            alert("加時失敗：" + (d.message || ""));
+          }
+        } catch(err) {
+          console.error(err);
+          alert("連線失敗，請稍後再試");
+        } finally {
+          if (btnEl) {
+            btnEl.disabled = false;
+            btnEl.textContent = origText;
+          }
+        }
+      }
+
+      // 輔助函式：切換解除限制
+      async function triggerToggleUnlock(targetUser, studentInfo, unlock, btnEl) {
+        const currentUser = localStorage.getItem("current_user");
+        const currentPass = sessionStorage.getItem("current_pass");
+        const origText = btnEl ? btnEl.textContent : "";
+        if (btnEl) {
+          btnEl.disabled = true;
+          btnEl.textContent = "處理中...";
+        }
+
+        try {
+          const res = await fetch(scriptUrl, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({
+              action: "toggleStudentDailyUnlock",
+              username: currentUser,
+              password: currentPass,
+              unlockData: { targetUser: targetUser, studentInfo: studentInfo, unlocked: unlock }
+            })
+          });
+          const d = await res.json();
+          if (d.status === "success") {
+            alert(d.message || `✅ 已成功${unlock ? "解除" : "恢復"}【${targetUser === "ALL" ? "全體學生" : targetUser}】時長限制！`);
+            if (targetUser !== "ALL") {
+              updateLimitStudentStatusCard();
+            }
+          } else {
+            alert("操作失敗：" + (d.message || ""));
+          }
+        } catch(err) {
+          console.error(err);
+          alert("連線失敗，請稍後再試");
+        } finally {
+          if (btnEl) {
+            btnEl.disabled = false;
+            btnEl.textContent = origText;
+          }
+        }
+      }
+
+      function getSelectedStudent() {
+        const sel = document.getElementById("tm-limit-student-select");
+        if (!sel || !sel.value) {
+          alert("請先選擇要操作的學生！");
+          return null;
+        }
+        const opt = sel.options[sel.selectedIndex];
+        return {
+          username: sel.value,
+          info: opt ? opt.textContent.trim() : sel.value
+        };
+      }
+
+      const btnExt5 = document.getElementById("tm-btn-extend-5");
+      if (btnExt5) {
+        btnExt5.onclick = () => {
+          const s = getSelectedStudent();
+          if (s) triggerExtendUsageTime(s.username, s.info, 5, btnExt5);
+        };
+      }
+
+      const btnExt10 = document.getElementById("tm-btn-extend-10");
+      if (btnExt10) {
+        btnExt10.onclick = () => {
+          const s = getSelectedStudent();
+          if (s) triggerExtendUsageTime(s.username, s.info, 10, btnExt10);
+        };
+      }
+
+      const btnExt15 = document.getElementById("tm-btn-extend-15");
+      if (btnExt15) {
+        btnExt15.onclick = () => {
+          const s = getSelectedStudent();
+          if (s) triggerExtendUsageTime(s.username, s.info, 15, btnExt15);
+        };
+      }
+
+      const btnUnlockStud = document.getElementById("tm-btn-unlock-student");
+      if (btnUnlockStud) {
+        btnUnlockStud.onclick = () => {
+          const s = getSelectedStudent();
+          if (s) triggerToggleUnlock(s.username, s.info, true, btnUnlockStud);
+        };
+      }
+
+      const btnLockStud = document.getElementById("tm-btn-lock-student");
+      if (btnLockStud) {
+        btnLockStud.onclick = () => {
+          const s = getSelectedStudent();
+          if (s) triggerToggleUnlock(s.username, s.info, false, btnLockStud);
+        };
+      }
+
+      const btnExtAll10 = document.getElementById("tm-btn-extend-all-10");
+      if (btnExtAll10) {
+        btnExtAll10.onclick = () => {
+          if (!confirm("確定要為【全體學生】今日延長 10 分鐘練習時間嗎？")) return;
+          triggerExtendUsageTime("ALL", "全體學生", 10, btnExtAll10);
+        };
+      }
+
+      const btnUnlockAll = document.getElementById("tm-btn-unlock-all");
+      if (btnUnlockAll) {
+        btnUnlockAll.onclick = () => {
+          if (!confirm("確定要為【全體學生】今日完全解除時間限制嗎？")) return;
+          triggerToggleUnlock("ALL", "全體學生", true, btnUnlockAll);
+        };
+      }
     }
 
     if (document.readyState === "loading") {
@@ -1706,20 +2262,23 @@
       </div>
 
       <!-- 分頁頁籤切換按鈕 -->
-      <div style="display:flex; gap:8px; margin-bottom:16px; border-bottom:1px solid #334155; padding-bottom:10px;">
-        <button id="tm-tab-btn-global" style="flex:1; padding:9px 12px; border-radius:8px; border:1px solid #6366f1; background:#6366f1; color:#fff; font-size:13px; font-weight:700; cursor:pointer; transition:all 0.2s;">
-          ⚙️ 全校預設作答時間
+      <div style="display:flex; gap:6px; margin-bottom:16px; border-bottom:1px solid #334155; padding-bottom:10px; flex-wrap:wrap;">
+        <button id="tm-tab-btn-limit" style="flex:1; min-width:140px; padding:9px 10px; border-radius:8px; border:1px solid #3b82f6; background:#3b82f6; color:#fff; font-size:12.5px; font-weight:700; cursor:pointer; transition:all 0.2s;">
+          ⏱️ 每日10分鐘限制與延長
         </button>
-        <button id="tm-tab-btn-student" style="flex:1; padding:9px 12px; border-radius:8px; border:1px solid #475569; background:#1e293b; color:#cbd5e1; font-size:13px; font-weight:700; cursor:pointer; transition:all 0.2s;">
-          👤 個別學生自訂時間
+        <button id="tm-tab-btn-global" style="flex:1; min-width:130px; padding:9px 10px; border-radius:8px; border:1px solid #475569; background:#1e293b; color:#cbd5e1; font-size:12.5px; font-weight:700; cursor:pointer; transition:all 0.2s;">
+          ⚙️ 全校預設時段
         </button>
-        <button id="tm-tab-btn-date" style="flex:1; padding:9px 12px; border-radius:8px; border:1px solid #475569; background:#1e293b; color:#cbd5e1; font-size:13px; font-weight:700; cursor:pointer; transition:all 0.2s;">
+        <button id="tm-tab-btn-student" style="flex:1; min-width:130px; padding:9px 10px; border-radius:8px; border:1px solid #475569; background:#1e293b; color:#cbd5e1; font-size:12.5px; font-weight:700; cursor:pointer; transition:all 0.2s;">
+          👤 個別學生時段
+        </button>
+        <button id="tm-tab-btn-date" style="flex:1; min-width:130px; padding:9px 10px; border-radius:8px; border:1px solid #475569; background:#1e293b; color:#cbd5e1; font-size:12.5px; font-weight:700; cursor:pointer; transition:all 0.2s;">
           📅 特別日期全天解除
         </button>
       </div>
 
       <!-- 分頁 1: 全校預設作答時間 -->
-      <div id="tm-tab-panel-global" style="display:block;">
+      <div id="tm-tab-panel-global" style="display:none;">
         <div style="background:#0f172a; border-radius:10px; padding:12px 16px; border:1px solid #334155; margin-bottom:14px;">
           <div style="font-size:13.5px; font-weight:700; color:#38bdf8; margin-bottom:4px;">📌 全校預設作答時間說明</div>
           <div style="font-size:13px; color:#94a3b8; line-height:1.6;">
@@ -1867,6 +2426,103 @@
           </div>
           <div id="tm-rules-list" style="background:#0f172a; border:1px solid #334155; border-radius:8px; max-height:180px; overflow-y:auto; padding:8px;">
             <div style="text-align:center; padding:15px; color:#64748b; font-size:13px;">載入中...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 分頁 4: 每日 10 分鐘限制與延長 -->
+      <div id="tm-tab-panel-limit" style="display:block;">
+        <div style="background:#0f172a; border-radius:10px; padding:12px 16px; border:1px solid #334155; margin-bottom:14px;">
+          <div style="font-size:13.5px; font-weight:700; color:#38bdf8; margin-bottom:4px;">⏱️ 每日使用時長與延長限制說明</div>
+          <div style="font-size:13px; color:#94a3b8; line-height:1.6;">
+            • <b>計時規則</b>：學生當天第一次登入後開始起算時間（預設每日 10 分鐘）。<br>
+            • <b>到期保護</b>：時間到了之後，系統自動鎖定作答卡片，<b>僅顯示學習進度 Progress 方塊</b>與作答紀錄供學生複習。<br>
+            • <b>教師彈性控制</b>：教師可隨時於下方為全校或個別學生<b>設定每日時間、即時延長時間、或一鍵完全解除限制</b>。
+          </div>
+        </div>
+
+        <!-- 區塊 A: 全校每日預設時長設定 -->
+        <div style="border:1px solid #334155; border-radius:12px; padding:14px 16px; background:#0f172a; margin-bottom:14px;">
+          <div style="font-size:13.5px; font-weight:700; color:#e2e8f0; margin-bottom:10px;">
+            ⚙️ 設定全校每日預設練習時間上限
+          </div>
+          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            <select id="tm-limit-default-minutes" style="padding:8px 12px; border-radius:6px; border:1px solid #475569; background:#1e293b; color:#fff; font-size:13.5px;">
+              <option value="5">5 分鐘</option>
+              <option value="10" selected>10 分鐘 (預設)</option>
+              <option value="15">15 分鐘</option>
+              <option value="20">20 分鐘</option>
+              <option value="30">30 分鐘</option>
+              <option value="45">45 分鐘</option>
+              <option value="60">60 分鐘</option>
+            </select>
+            <button id="tm-btn-save-limit-minutes" style="padding:8px 16px; border-radius:6px; background:#4f46e5; color:#fff; border:none; font-weight:700; font-size:13px; cursor:pointer;">
+              💾 儲存全校預設時長
+            </button>
+            <span id="tm-limit-current-display" style="font-size:12.5px; color:#38bdf8; margin-left:auto;">
+              目前全校預設：10 分鐘
+            </span>
+          </div>
+        </div>
+
+        <!-- 區塊 B: 個別學生延長時間或解除限制 -->
+        <div style="border:1px solid #334155; border-radius:12px; padding:14px 16px; background:#0f172a; margin-bottom:14px;">
+          <div style="font-size:13.5px; font-weight:700; color:#e2e8f0; margin-bottom:10px;">
+            👤 個別學生即時延長時間或解除限制
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 2fr; gap:10px; margin-bottom:10px;">
+            <div>
+              <label style="font-size:12px; color:#cbd5e1; display:block; margin-bottom:4px;">篩選班級：</label>
+              <select id="tm-limit-class-filter" style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #475569; background:#1e293b; color:#fff; font-size:13px; box-sizing:border-box;">
+                <option value="all">所有班級</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:12px; color:#cbd5e1; display:block; margin-bottom:4px;">選擇學生：</label>
+              <select id="tm-limit-student-select" style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #475569; background:#1e293b; color:#fff; font-size:13px; box-sizing:border-box;">
+                <option value="">-- 請選擇學生 --</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- 學生當日狀態資訊卡 -->
+          <div id="tm-limit-student-status-box" style="padding:10px 14px; background:rgba(255,255,255,0.03); border-radius:8px; border:1px solid #334155; margin-bottom:12px; font-size:13px; color:#cbd5e1;">
+            請選擇學生以查看其今日練習時間與即時狀態
+          </div>
+
+          <!-- 快捷操作按鈕群 -->
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button id="tm-btn-extend-5" style="padding:8px 14px; border-radius:6px; background:#059669; color:#fff; border:none; font-weight:700; font-size:12.5px; cursor:pointer;">
+              ⚡ 延長 5 分鐘
+            </button>
+            <button id="tm-btn-extend-10" style="padding:8px 14px; border-radius:6px; background:#059669; color:#fff; border:none; font-weight:700; font-size:12.5px; cursor:pointer;">
+              ⚡ 延長 10 分鐘
+            </button>
+            <button id="tm-btn-extend-15" style="padding:8px 14px; border-radius:6px; background:#059669; color:#fff; border:none; font-weight:700; font-size:12.5px; cursor:pointer;">
+              ⚡ 延長 15 分鐘
+            </button>
+            <button id="tm-btn-unlock-student" style="padding:8px 14px; border-radius:6px; background:#2563eb; color:#fff; border:none; font-weight:700; font-size:12.5px; cursor:pointer;">
+              🔓 今日完全解除限制 (不限時)
+            </button>
+            <button id="tm-btn-lock-student" style="padding:8px 14px; border-radius:6px; background:#dc2626; color:#fff; border:none; font-weight:700; font-size:12.5px; cursor:pointer;">
+              🔒 恢復時間限制
+            </button>
+          </div>
+        </div>
+
+        <!-- 區塊 C: 全校快速操作 -->
+        <div style="border:1px solid #334155; border-radius:12px; padding:12px 16px; background:#0f172a; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+          <div>
+            <div style="font-size:13px; font-weight:700; color:#e2e8f0;">⚡ 全校快速時長控制</div>
+            <div style="font-size:12px; color:#94a3b8;">可一鍵為全體學生今日延長時間或解除限制</div>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button id="tm-btn-extend-all-10" style="padding:8px 14px; border-radius:6px; background:#059669; color:#fff; border:none; font-weight:700; font-size:12.5px; cursor:pointer;">
+              ⚡ 全校今日延長 10 分鐘
+            </button>
+            <button id="tm-btn-unlock-all" style="padding:8px 14px; border-radius:6px; background:#2563eb; color:#fff; border:none; font-weight:700; font-size:12.5px; cursor:pointer;">
+              🔓 全校今日解除限制
+            </button>
           </div>
         </div>
       </div>

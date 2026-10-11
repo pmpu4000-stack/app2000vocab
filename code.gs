@@ -961,6 +961,246 @@ function checkTimeRestrictionAllowance(ss, username) {
 }
 
 /**
+ * 讀取學生今日使用時長限制、首次登入時間、延長時間與解除狀態
+ */
+function getDailyUsageSettings(param1, username, isLogin) {
+  const ss = (param1 && typeof param1.getSheetByName === "function") ? param1 : SpreadsheetApp.getActiveSpreadsheet();
+  const cleanUser = String(username || "").trim().toLowerCase();
+  const now = new Date();
+  const todayStr = Utilities.formatDate(now, "Asia/Taipei", "yyyy-MM-dd");
+
+  let defaultMinutes = 10; // 預設每日 10 分鐘
+  let studentMinutes = null;
+  let addedMinutes = 0;
+  let isUnlocked = false;
+
+  try {
+    const sheet = ensureTimeSettingsSheet(ss);
+    if (sheet && sheet.getLastRow() >= 2) {
+      const data = sheet.getDataRange().getValues();
+      for (let i = 1; i < data.length; i++) {
+        const type = String(data[i][0] || "").trim();
+        const targetUser = String(data[i][2] || "").trim().toLowerCase();
+        const startD = formatStandardDateYMD(data[i][6]);
+        const endD = formatStandardDateYMD(data[i][7]);
+        const statusVal = String(data[i][8] || "").trim().toUpperCase();
+        const isEnabled = (data[i][8] === true || statusVal === "TRUE" || statusVal === "啟用" || statusVal === "YES");
+        const remark = String(data[i][11] || "").trim();
+
+        // 1. 全校每日時長設定
+        if (type === "每日時長上限" && targetUser === "all") {
+          const m = parseInt(remark, 10);
+          if (!isNaN(m) && m > 0) defaultMinutes = m;
+        }
+
+        // 2. 個別學生時長設定
+        if (type === "個別學生時長" && targetUser === cleanUser) {
+          const m = parseInt(remark, 10);
+          if (!isNaN(m) && m > 0) studentMinutes = m;
+        }
+
+        // 3. 今日時長延長或解除 (限當天生效)
+        if (isEnabled && type === "時長延長與解除" && (!startD || (todayStr >= startD && todayStr <= (endD || startD)))) {
+          if (targetUser === cleanUser || targetUser === "all") {
+            try {
+              const parsed = JSON.parse(remark);
+              if (parsed) {
+                if (parsed.addedMinutes) addedMinutes += Number(parsed.addedMinutes);
+                if (parsed.unlocked === true) isUnlocked = true;
+              }
+            } catch(_) {
+              const m = parseInt(remark, 10);
+              if (!isNaN(m) && m > 0) addedMinutes += m;
+            }
+          }
+        }
+      }
+    }
+  } catch(e) {
+    logError("getDailyUsageSettings", e, username, "");
+  }
+
+  // 取得學生今日首次登入時間
+  const propKey = "FIRST_LOGIN_" + (cleanUser || "ANON") + "_" + todayStr;
+  const scriptProps = PropertiesService.getScriptProperties();
+  let firstLoginTime = null;
+  try {
+    const val = scriptProps.getProperty(propKey);
+    if (val) {
+      firstLoginTime = Number(val);
+    } else if (isLogin && cleanUser) {
+      firstLoginTime = Date.now();
+      scriptProps.setProperty(propKey, String(firstLoginTime));
+    }
+  } catch(_) {}
+
+  if (!firstLoginTime) {
+    firstLoginTime = Date.now();
+  }
+
+  return {
+    todayDate: todayStr,
+    limitMinutes: studentMinutes || defaultMinutes,
+    defaultMinutes: defaultMinutes,
+    studentMinutes: studentMinutes,
+    extendedMinutes: addedMinutes,
+    unlocked: isUnlocked,
+    firstLoginTime: firstLoginTime
+  };
+}
+
+/**
+ * 教師儲存每日時長設定 (全校或個別學生)
+ */
+function saveDailyMinutesSetting(ss, teacherUser, data) {
+  const sheet = ensureTimeSettingsSheet(ss);
+  const nowStr = Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy-MM-dd HH:mm:ss");
+  const targetUser = String((data && data.targetUser) || "ALL").trim().toLowerCase();
+  const minutes = parseInt((data && data.minutes), 10) || 10;
+  const isGlobal = (targetUser === "all");
+
+  const rowType = isGlobal ? "每日時長上限" : "個別學生時長";
+  const rowName = isGlobal ? `全校每日使用上限${minutes}分鐘` : `學生${targetUser}每日上限${minutes}分鐘`;
+  const studentInfo = isGlobal ? "全體學生" : (String((data && data.studentInfo) || targetUser));
+
+  let foundRow = -1;
+  const vals = sheet.getDataRange().getValues();
+  for (let i = 1; i < vals.length; i++) {
+    if (String(vals[i][0]).trim() === rowType && String(vals[i][2]).trim().toLowerCase() === targetUser) {
+      foundRow = i + 1;
+      break;
+    }
+  }
+
+  const rowVals = [
+    rowType, rowName, isGlobal ? "ALL" : targetUser, studentInfo,
+    "", "", "", "", true, teacherUser || "教師", nowStr, String(minutes)
+  ];
+
+  if (foundRow > 0) {
+    sheet.getRange(foundRow, 1, 1, 12).setValues([rowVals]);
+  } else {
+    sheet.appendRow(rowVals);
+  }
+
+  return {
+    status: "success",
+    message: `✅ 已成功設定【${isGlobal ? '全校' : targetUser}】每日使用時長為 ${minutes} 分鐘！`
+  };
+}
+
+/**
+ * 教師延長學生今日使用時間 (加時)
+ */
+function extendStudentUsageTime(ss, teacherUser, data) {
+  const sheet = ensureTimeSettingsSheet(ss);
+  const now = new Date();
+  const todayStr = Utilities.formatDate(now, "Asia/Taipei", "yyyy-MM-dd");
+  const nowStr = Utilities.formatDate(now, "Asia/Taipei", "yyyy-MM-dd HH:mm:ss");
+  const targetUser = String((data && data.targetUser) || "ALL").trim().toLowerCase();
+  const addMinutes = parseInt((data && data.addMinutes), 10) || 10;
+  const isGlobal = (targetUser === "all");
+  const studentInfo = isGlobal ? "全體學生" : (String((data && data.studentInfo) || targetUser));
+
+  let foundRow = -1;
+  let existingAdded = 0;
+  let existingUnlocked = false;
+  const vals = sheet.getDataRange().getValues();
+  for (let i = 1; i < vals.length; i++) {
+    if (String(vals[i][0]).trim() === "時長延長與解除" &&
+        String(vals[i][2]).trim().toLowerCase() === targetUser &&
+        formatStandardDateYMD(vals[i][6]) === todayStr) {
+      foundRow = i + 1;
+      try {
+        const p = JSON.parse(String(vals[i][11]));
+        if (p) {
+          existingAdded = Number(p.addedMinutes) || 0;
+          existingUnlocked = !!p.unlocked;
+        }
+      } catch(_) {}
+      break;
+    }
+  }
+
+  const newAdded = existingAdded + addMinutes;
+  const remarkPayload = JSON.stringify({ addedMinutes: newAdded, unlocked: existingUnlocked });
+
+  const rowVals = [
+    "時長延長與解除",
+    `今日延長${newAdded}分鐘`,
+    isGlobal ? "ALL" : targetUser,
+    studentInfo,
+    "", "", todayStr, todayStr, true,
+    teacherUser || "教師", nowStr, remarkPayload
+  ];
+
+  if (foundRow > 0) {
+    sheet.getRange(foundRow, 1, 1, 12).setValues([rowVals]);
+  } else {
+    sheet.appendRow(rowVals);
+  }
+
+  return {
+    status: "success",
+    message: `⚡ 已成功為【${isGlobal ? '全體學生' : targetUser}】今日延長 ${addMinutes} 分鐘（累計延長 ${newAdded} 分鐘）！`
+  };
+}
+
+/**
+ * 教師解除或恢復特定學生今日時長限制
+ */
+function toggleStudentDailyUnlock(ss, teacherUser, data) {
+  const sheet = ensureTimeSettingsSheet(ss);
+  const now = new Date();
+  const todayStr = Utilities.formatDate(now, "Asia/Taipei", "yyyy-MM-dd");
+  const nowStr = Utilities.formatDate(now, "Asia/Taipei", "yyyy-MM-dd HH:mm:ss");
+  const targetUser = String((data && data.targetUser) || "ALL").trim().toLowerCase();
+  const unlock = data ? (data.unlocked !== false) : true;
+  const isGlobal = (targetUser === "all");
+  const studentInfo = isGlobal ? "全體學生" : (String((data && data.studentInfo) || targetUser));
+
+  let foundRow = -1;
+  let existingAdded = 0;
+  const vals = sheet.getDataRange().getValues();
+  for (let i = 1; i < vals.length; i++) {
+    if (String(vals[i][0]).trim() === "時長延長與解除" &&
+        String(vals[i][2]).trim().toLowerCase() === targetUser &&
+        formatStandardDateYMD(vals[i][6]) === todayStr) {
+      foundRow = i + 1;
+      try {
+        const p = JSON.parse(String(vals[i][11]));
+        if (p) existingAdded = Number(p.addedMinutes) || 0;
+      } catch(_) {}
+      break;
+    }
+  }
+
+  const remarkPayload = JSON.stringify({ addedMinutes: existingAdded, unlocked: unlock });
+
+  const rowVals = [
+    "時長延長與解除",
+    unlock ? "今日解除時長限制" : "今日恢復時長限制",
+    isGlobal ? "ALL" : targetUser,
+    studentInfo,
+    "", "", todayStr, todayStr, true,
+    teacherUser || "教師", nowStr, remarkPayload
+  ];
+
+  if (foundRow > 0) {
+    sheet.getRange(foundRow, 1, 1, 12).setValues([rowVals]);
+  } else {
+    sheet.appendRow(rowVals);
+  }
+
+  return {
+    status: "success",
+    message: unlock
+      ? `🔓 已成功解除【${isGlobal ? '全體學生' : targetUser}】今日作答時間限制（今日不限時暢行）！`
+      : `🔒 已恢復【${isGlobal ? '全體學生' : targetUser}】今日作答時間限制！`
+  };
+}
+
+/**
  * 讀取目前所有的時間設定 (供教師管理介面)
  */
 function getTimeRestrictions(param1) {
@@ -1056,7 +1296,8 @@ function getTimeRestrictions(param1) {
     globalTime: globalTime,
     studentRules: studentRules,
     dateRules: dateRules,
-    studentList: studentList
+    studentList: studentList,
+    dailyUsage: getDailyUsageSettings(ss, "ALL", false)
   };
 }
 
@@ -1477,7 +1718,8 @@ function doPost(e) {
         className:auth.className, realName:auth.realName, records,
         assignedTask: assignedTask,
         dailyTaskHistory: dailyTaskHistory,
-        timeRestriction: timeAllowance
+        timeRestriction: timeAllowance,
+        dailyUsage: getDailyUsageSettings(ss, auth.username, true)
       });
     }
 
@@ -1572,6 +1814,32 @@ function doPost(e) {
       const auth = authenticateUser(ss, params.username, params.password);
       if (!auth.success || auth.role !== "teacher") return jsonResponse({ status: "error", message: "無教師權限" });
       return jsonResponse(quickToggleTodayUnlock(ss, auth.realName || auth.username));
+    }
+
+    if (action === "getDailyUsageSettings") {
+      const u = String(params.targetUsername || params.username || "").trim();
+      return jsonResponse({
+        status: "success",
+        dailyUsage: getDailyUsageSettings(ss, u, false)
+      });
+    }
+
+    if (action === "saveDailyMinutesSetting") {
+      const auth = authenticateUser(ss, params.username, params.password);
+      if (!auth.success || auth.role !== "teacher") return jsonResponse({ status: "error", message: "無教師權限" });
+      return jsonResponse(saveDailyMinutesSetting(ss, auth.realName || auth.username, params.settingData || {}));
+    }
+
+    if (action === "extendStudentUsageTime") {
+      const auth = authenticateUser(ss, params.username, params.password);
+      if (!auth.success || auth.role !== "teacher") return jsonResponse({ status: "error", message: "無教師權限" });
+      return jsonResponse(extendStudentUsageTime(ss, auth.realName || auth.username, params.extendData || {}));
+    }
+
+    if (action === "toggleStudentDailyUnlock") {
+      const auth = authenticateUser(ss, params.username, params.password);
+      if (!auth.success || auth.role !== "teacher") return jsonResponse({ status: "error", message: "無教師權限" });
+      return jsonResponse(toggleStudentDailyUnlock(ss, auth.realName || auth.username, params.unlockData || {}));
     }
 
     // ── 8. 清理試算表無用分頁 ──
