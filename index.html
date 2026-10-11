@@ -605,6 +605,9 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 [data-theme="dark"] .audit-compliance-note span {
   color: #bfdbfe !important;
 }
+[data-theme="dark"] .audit-compliance-note a#btn-show-legal-modal {
+  color: #60a5fa !important;
+}
 [data-theme="dark"] #legal-notice-modal > div {
   background: #161927 !important;
   border-color: #282F45 !important;
@@ -976,53 +979,59 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
     </div>
   </div>
 
-  <!-- 個人資料保護法第8條法定告知與資安合規彈窗 -->
-  <div id="legal-notice-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.65); backdrop-filter:blur(8px); z-index:100000; justify-content:center; align-items:center; padding:16px; box-sizing:border-box;">
+  <!-- 個人資料保護法第8條法定告知事項與資安合規宣告彈窗 -->
+  <div id="legal-notice-modal" role="dialog" aria-modal="true" aria-labelledby="legal-notice-title" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.65); backdrop-filter:blur(8px); z-index:100000; justify-content:center; align-items:center; padding:16px; box-sizing:border-box;">
     <div style="background:var(--card,#ffffff); color:var(--ink,#1e293b); max-width:640px; width:100%; max-height:85vh; border-radius:20px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.3); border:1px solid var(--border,#e2e8f0); display:flex; flex-direction:column; overflow:hidden;">
       <div style="padding:16px 20px; border-bottom:1px solid var(--border,#e2e8f0); display:flex; justify-content:space-between; align-items:center;">
-        <h3 style="margin:0; font-size:15px; font-weight:800; color:var(--ink,#1e293b); display:flex; align-items:center; gap:8px;">
+        <h3 id="legal-notice-title" style="margin:0; font-size:15px; font-weight:800; color:var(--ink,#1e293b); display:flex; align-items:center; gap:8px;">
           <span>⚖️</span> 個人資料保護法法定告知事項與系統使用規範
         </h3>
-        <button type="button" id="btn-close-legal-modal-x" style="background:none; border:none; font-size:20px; cursor:pointer; color:var(--ink3,#64748b); line-height:1;">✕</button>
+        <button type="button" id="btn-close-legal-modal-x" aria-label="關閉" style="background:none; border:none; font-size:20px; cursor:pointer; color:var(--ink3,#64748b); line-height:1;">✕</button>
       </div>
       <div style="padding:18px 22px; overflow-y:auto; font-size:12.5px; line-height:1.65; color:var(--ink2,#334155); text-align:left;">
-        <p style="margin-top:0;">為落實中華民國《個人資料保護法》（下稱個資法）第8條規定，並兼顧測驗公正性與資通安全，特此向您明確告知下列法定事項：</p>
+        <p style="margin-top:0;">為落實中華民國《個人資料保護法》（下稱個資法）第8條第1項各款規定，並兼顧英語文評量公正性與資通安全，特此向您明確告知下列法定事項：</p>
         
-        <h4 style="margin:12px 0 4px; font-size:13.5px; color:#1e3a8a;">一、蒐集機關與平台</h4>
+        <h4 style="margin:12px 0 4px; font-size:13.5px; color:#1e3a8a;">一、公務／教育機構名稱（第8條第1項第1款）</h4>
         <p style="margin:0;">本校英語文教學團隊及本教學輔導系統（拼字小特工）。</p>
 
-        <h4 style="margin:12px 0 4px; font-size:13.5px; color:#1e3a8a;">二、蒐集之特定目的 (法定特定目的項目)</h4>
+        <h4 style="margin:12px 0 4px; font-size:13.5px; color:#1e3a8a;">二、蒐集之特定目的（第8條第1項第2款）</h4>
         <ul style="margin:4px 0; padding-left:20px;">
-          <li><b>109 教育或訓練行政</b>：學生自主學習、單字評量、進度追蹤與學習輔導。</li>
-          <li><b>157 調查、統計與研究分析</b>：分析易錯單字與班級學習成效。</li>
-          <li><b>136 資(通)訊與資料庫管理</b>：系統安全防衛、防範未授權入侵與維護測驗公正性。</li>
+          <li><b>109 教育或訓練行政</b>：學生自主學習、單字評量、學習歷程進度追蹤與教學輔導。</li>
+          <li><b>157 調查、統計與研究分析</b>：分析易錯單字分佈、題目難易度與班級學習成效。</li>
+          <li><b>136 資(通)訊與資料庫管理</b>：系統防禦、阻斷惡意程式入侵與維護測驗公正性。</li>
         </ul>
 
-        <h4 style="margin:12px 0 4px; font-size:13.5px; color:#1e3a8a;">三、個人資料類別</h4>
+        <h4 style="margin:12px 0 4px; font-size:13.5px; color:#1e3a8a;">三、個人資料之類別（第8條第1項第3款）</h4>
         <ul style="margin:4px 0; padding-left:20px;">
           <li><b>C001 辨識個人者</b>：學生學號、姓名、班級。</li>
-          <li><b>C051 學校紀錄與學習歷程</b>：單字掌握度、作答題數、正確率、歷史測驗成績。</li>
+          <li><b>C051 學校紀錄與學習歷程</b>：單字精通程度、作答題數、正確率、歷史測驗成績與星星點數。</li>
           <li><b>C036 安全技術與軌跡</b>：作答反應耗時、網頁切頁/失焦歷程、快捷鍵事件、標準瀏覽器與設備規格（W3C User-Agent、螢幕解析度）。</li>
         </ul>
 
-        <h4 style="margin:12px 0 4px; font-size:13.5px; color:#1e3a8a;">四、利用期間、地區、對象及方式</h4>
+        <h4 style="margin:12px 0 4px; font-size:13.5px; color:#1e3a8a;">四、個人資料利用之期間、地區、對象及方式（第8條第1項第4款）</h4>
         <ul style="margin:4px 0; padding-left:20px;">
           <li><b>期間</b>：自學生就讀修習本課程起至畢業離校，或依法規保存年限為止。</li>
           <li><b>地區</b>：中華民國境內。</li>
-          <li><b>對象</b>：任課教師、教學指導小組及系統管理員。</li>
+          <li><b>對象</b>：任課教師、教學指導小組及系統管理人員。</li>
           <li><b>方式</b>：以自動化或非自動化之電腦系統予以儲存、統計、分析與安全稽核。</li>
         </ul>
 
-        <h4 style="margin:12px 0 4px; font-size:13.5px; color:#1e3a8a;">五、當事人權利行使方式 (個資法第3條)</h4>
+        <h4 style="margin:12px 0 4px; font-size:13.5px; color:#1e3a8a;">五、當事人依個資法第3條得行使之權利及方式（第8條第1項第5款）</h4>
         <p style="margin:0;">當事人得向任課教師請求：查詢、閱覽、製給複製本、補充、更正、停止蒐集處理利用或刪除。依法令因教育行政或評量考核所必需者，依法保留存查。</p>
 
-        <h4 style="margin:12px 0 4px; font-size:13.5px; color:#1e3a8a;">六、隱私無害與非侵入性保證 (符合刑法第315條之1規範)</h4>
+        <h4 style="margin:12px 0 4px; font-size:13.5px; color:#1e3a8a;">六、得自由選擇提供個人資料及不提供對其權益之影響（第8條第1項第6款）</h4>
+        <p style="margin:0;">當事人得自由選擇是否登入提供個人帳號資料；若選擇不登入，系統僅能以訪客身分進行單次即時練習，無法記錄個人學習歷程、累積精通單字量、同步班級測驗成績，亦無法列入平時學習成績採計。</p>
+
+        <h4 style="margin:12px 0 4px; font-size:13.5px; color:#1e3a8a;">七、特種個人資料絕無蒐集保證（個資法第6條）</h4>
+        <p style="margin:0;">本系統恪遵個資法第6條規範，<b>絕不蒐集</b>病歷、醫療、基因、性生活、健康檢查及犯罪前科等任何特種個人敏感資料。</p>
+
+        <h4 style="margin:12px 0 4px; font-size:13.5px; color:#1e3a8a;">八、隱私無害與非侵入性保證（符合刑法第315條之1規範）</h4>
         <p style="margin:0;">本系統僅監聽使用者在<b>本瀏覽器分頁內部之標準前端操作事件</b>，絕不側錄本機電腦其他軟體畫面、絕不讀取本機硬碟個人檔案、絕不啟動麥克風與攝影機，嚴格守護使用者隱私權。</p>
 
-        <h4 style="margin:12px 0 4px; font-size:13.5px; color:#1e3a8a;">七、妨害電腦使用罪防護規範 (刑法第358條至第360條)</h4>
+        <h4 style="margin:12px 0 4px; font-size:13.5px; color:#1e3a8a;">九、妨害電腦使用罪防護規範與證據保全（刑法第358條至第360條）</h4>
         <p style="margin:0;">嚴禁任何使用者使用外掛程式、自動化腳本（Bot）、跨站腳本（XSS）、SQL/公式注入等手段干擾系統運作或竄改成績。違反者系統將自動保全電磁紀錄證據，依法移請學校校規或司法機關處理。</p>
 
-        <h4 style="margin:12px 0 4px; font-size:13.5px; color:#1e3a8a;">八、未成年人保護條款</h4>
+        <h4 style="margin:12px 0 4px; font-size:13.5px; color:#1e3a8a;">十、未成年人保護與家長知悉條款（民法規範）</h4>
         <p style="margin:0;">若使用者未滿 18 歲，使用本系統並登入即視為已取得法定代理人（家長或監護人）之知悉、指導與同意。</p>
       </div>
       <div style="padding:12px 20px; border-top:1px solid var(--border,#e2e8f0); text-align:right; background:rgba(0,0,0,0.02);">
@@ -1255,6 +1264,11 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
       legalModal.onclick = (e) => {
         if (e.target === legalModal) closeLegalModal();
       };
+      window.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && legalModal.style.display === "flex") {
+          closeLegalModal();
+        }
+      });
     }
 
     // 啟動前優先從本機存檔還原頂端答對字、答對率與連勝數值，防止顯示為 0
