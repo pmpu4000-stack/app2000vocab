@@ -996,7 +996,7 @@ export function renderSummary(d) {
   const currentUser = localStorage.getItem("current_user") || "";
   const userTagHtml = currentUser ? `<span style="font-size:13px;font-weight:700;color:var(--sky);background:rgba(56,189,248,0.12);padding:2px 8px;border-radius:999px;margin-left:8px;border:1px solid rgba(56,189,248,0.25);">👤 ${currentUser}</span>` : "";
   const lvRows = d.levels
-    .map((L) => `<tr><td><span style="color:${levelColor(L.level)}">●</span> Level ${L.level}「${levelName(L.level)}」</td><td>正確率 ${L.rate}%／精通 ${L.mast}／共 ${L.total}</td></tr>`)
+    .map((L) => `<tr><td><span style="color:${levelColor(L.level)}">●</span> Level ${L.level}「${levelName(L.level)}」</td><td>${L.correct}/${L.testedCount} (${L.rate}%)／學習中 ${L.learn || 0}／練習中 ${L.prac || 0}／精通 ${L.mast}／共 ${L.total}</td></tr>`)
     .join("");
 
   const historyList = getCombinedTaskHistory();
@@ -1053,7 +1053,7 @@ export function renderSummary(d) {
     <div class="subh">各關卡進度</div>
     <table class="sumtable">${lvRows}</table>
     <div class="formula-note-box">
-      💡 <b>正確率計算公式</b>：<span class="formula-val">（該關卡考出來且答對單字數 ÷ 該關卡考出來的總單字數）× 100%</span>
+      💡 <b>各關卡進度數值說明</b>：<span class="formula-val">分數（分子為答對單字數 ÷ 分母為考出來的總單字數，附正確率 %），後方顯示各單字掌握度（學習中／練習中／精通／該關總單字數）</span>
     </div>
     <div class="subh">🎮 4 大練習模式答題數</div>
     <div class="mode-stat-grid">

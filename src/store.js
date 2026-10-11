@@ -447,9 +447,16 @@ export function summary(words) {
     const testedCount = testedWords.length;
     const correctWordCount = testedCorrectWords.length;
     const wordRate = testedCount > 0 ? Math.round((correctWordCount / testedCount) * 100) : 0;
+    let learn = 0, prac = 0, mast = 0;
+    for (const w of ws) {
+      const b = box(w.id);
+      if (b >= 3) mast++;
+      else if (b === 2) prac++;
+      else if (b === 1) learn++;
+    }
     return {
       level: lv, total: ws.length,
-      mast: ws.filter((w) => box(w.id) >= 3).length,
+      mast, prac, learn,
       correct: correctWordCount,
       testedCount: testedCount,
       rate: wordRate, attempts: ls.attempts,
