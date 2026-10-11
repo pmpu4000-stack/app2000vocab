@@ -14,16 +14,8 @@ resize();
 addEventListener("resize", resize);
 
 export function burst() {
-  if (matchMedia("(prefers-reduced-motion:reduce)").matches) return;
-  for (let i = 0; i < 80; i++) {
-    parts.push({
-      x: canvas.width / 2, y: canvas.height * 0.35,
-      vx: (Math.random() - 0.5) * 11, vy: Math.random() * -11 - 3,
-      g: 0.32, s: 6 + Math.random() * 7, c: COLORS[i % COLORS.length],
-      rot: Math.random() * 6, vr: (Math.random() - 0.5) * 0.4, life: 0,
-    });
-  }
-  if (!raf) raf = requestAnimationFrame(tick);
+  // 依需求取消答對單字時灑花片的特效
+  return;
 }
 
 function tick() {

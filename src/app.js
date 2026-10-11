@@ -275,7 +275,46 @@ function isCurfewActive() {
   return (mins < startMin || mins > endMin);
 }
 
+
+// ── 自動 3 秒進入下一題計時器 ──
+let autoNextTimer = null;
+let autoNextInterval = null;
+
+function clearAutoNextTimer() {
+  if (autoNextTimer) {
+    clearTimeout(autoNextTimer);
+    autoNextTimer = null;
+  }
+  if (autoNextInterval) {
+    clearInterval(autoNextInterval);
+    autoNextInterval = null;
+  }
+}
+
+function scheduleAutoNext() {
+  clearAutoNextTimer();
+  let remainingSeconds = 3;
+  ui.setNextBtnCountdown(remainingSeconds);
+
+  autoNextInterval = setInterval(() => {
+    remainingSeconds--;
+    if (remainingSeconds > 0) {
+      ui.setNextBtnCountdown(remainingSeconds);
+    } else {
+      clearAutoNextTimer();
+    }
+  }, 1000);
+
+  autoNextTimer = setTimeout(() => {
+    clearAutoNextTimer();
+    if (state.answered) {
+      newRound();
+    }
+  }, 3000);
+}
+
 function newRound() {
+  clearAutoNextTimer();
   if (typeof window !== "undefined" && window.__dailyUsageTimeIsUp === true) {
     return;
   }
@@ -306,7 +345,7 @@ function newRound() {
 }
 
 function check() {
-  if (state.answered) { newRound(); return; }
+  if (state.answered) { clearAutoNextTimer(); newRound(); return; }
   const getGuess = state.round.getGuess;
   if (!getGuess) return;
   const guess = getGuess();
@@ -324,7 +363,7 @@ function answer(correct) {
   if (taskState.active) {
     if (correct) {
       taskState.correct++;
-      burst();
+      // 依需求取消答對單字灑花特效
     } else {
       const w = String(state.word.word).trim().toLowerCase();
       taskState.wrongWords = taskState.wrongWords || [];
@@ -344,18 +383,21 @@ function answer(correct) {
     refreshChrome();
 
     ui.setActionNext();
+    scheduleAutoNext();
     return;
   }
 
   // ── 自由闖關中答錯：正常升降級，同步收錄至每日自由練習作答歷程 ──
   const info = store.grade(state.word.id, correct, store.progress().current, state.mode, state.word.word, true);
   ui.showResult(correct, state.word, info);
-  if (correct) burst();
+  // 依需求取消答對單字灑花特效
   refreshChrome();
   ui.setActionNext();
+  scheduleAutoNext();
 }
 
-function pickLevel(n) { 
+function pickLevel(n) {
+  clearAutoNextTimer(); 
   if (taskState.active || taskState.pending) {
     alert("請先完成今日指定測驗，完成後即可自由選擇關卡！");
     return;

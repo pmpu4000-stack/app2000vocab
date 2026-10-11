@@ -12432,7 +12432,7 @@ function speakMasteredWord(text) {
     window.speechSynthesis.cancel();
     const utter = new SpeechSynthesisUtterance(text);
     utter.lang = 'en-US';
-    utter.rate = 0.8;
+    utter.rate = 0.7;
     window.speechSynthesis.speak(utter);
   } catch(e) {
     console.warn("TTS error:", e);

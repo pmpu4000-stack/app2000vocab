@@ -273,20 +273,100 @@ function renderScramble(word, onCheck) {
   let shuffled;
   do { shuffled = shuffle(word.word.split("")); }
   while (shuffled.join("") === word.word && word.word.replace(" ", "").length > 1);
+
   const scr = document.createElement("div");
   scr.className = "tiles";
-  shuffled.forEach((ch) => {
+
+  let selectedIndices = [];
+  const tilesList = [];
+
+  const updateDisplay = () => {
+    inp.value = selectedIndices.map(idx => shuffled[idx]).join("");
+    tilesList.forEach((item, idx) => {
+      const isUsed = selectedIndices.includes(idx);
+      item.el.classList.toggle("used", isUsed);
+    });
+  };
+
+  shuffled.forEach((ch, idx) => {
     const t = document.createElement("div");
-    t.className = "tile"; t.style.background = "#EEF6FF"; t.style.borderColor = "#CBE4FA"; t.style.color = "#0f172a";
+    t.className = "tile scramble-btn";
     t.textContent = ch === " " ? "␣" : ch;
+    t.title = "點擊依序選取字母";
+    t.onclick = () => {
+      if (inp.disabled) return;
+      const foundPos = selectedIndices.indexOf(idx);
+      if (foundPos >= 0) {
+        selectedIndices.splice(foundPos, 1);
+      } else {
+        selectedIndices.push(idx);
+      }
+      updateDisplay();
+      if (selectedIndices.length === shuffled.length) {
+        try { el.checkBtn.focus(); } catch(_) {}
+      }
+    };
     scr.append(t);
+    tilesList.push({ ch, el: t });
   });
-  const inp = textInput("排出正確的字…", onCheck);
-  el.stage.append(scr, inp);
+
+  const inp = textInput("點擊上方字母或在此輸入…", onCheck);
+  inp.oninput = () => {
+    const rawVal = inp.value;
+    const newSelected = [];
+    const usedSet = new Set();
+    for (const c of rawVal) {
+      const charLower = c.toLowerCase();
+      const matchIdx = shuffled.findIndex((sc, sIdx) => !usedSet.has(sIdx) && sc.toLowerCase() === charLower);
+      if (matchIdx >= 0) {
+        usedSet.add(matchIdx);
+        newSelected.push(matchIdx);
+      }
+    }
+    selectedIndices = newSelected;
+    tilesList.forEach((item, sIdx) => {
+      item.el.classList.toggle("used", usedSet.has(sIdx));
+    });
+  };
+
+  const actWrap = document.createElement("div");
+  actWrap.style.cssText = "display:flex;gap:8px;justify-content:center;margin-top:8px;";
+
+  const backBtn = document.createElement("button");
+  backBtn.className = "mini";
+  backBtn.type = "button";
+  backBtn.textContent = "⌫ 倒退";
+  backBtn.onclick = () => {
+    if (inp.disabled) return;
+    if (selectedIndices.length > 0) {
+      selectedIndices.pop();
+      updateDisplay();
+    }
+  };
+
+  const resetBtn = document.createElement("button");
+  resetBtn.className = "mini";
+  resetBtn.type = "button";
+  resetBtn.textContent = "↺ 清除重選";
+  resetBtn.onclick = () => {
+    if (inp.disabled) return;
+    selectedIndices = [];
+    updateDisplay();
+  };
+
+  actWrap.append(backBtn, resetBtn);
+  el.stage.append(scr, inp, actWrap);
   setTimeout(() => inp.focus(), 50);
+
   return {
     getGuess: () => inp.value.trim().toLowerCase(),
-    applyTypedResult: (ok) => { inp.classList.add(ok ? "ok" : "bad"); inp.disabled = true; },
+    applyTypedResult: (ok) => {
+      inp.classList.add(ok ? "ok" : "bad");
+      inp.disabled = true;
+      backBtn.disabled = true;
+      resetBtn.disabled = true;
+      tilesList.forEach(item => { item.el.style.pointerEvents = "none"; });
+    },
   };
 }
 
@@ -301,13 +381,18 @@ export function showResult(correct, word, info) {
   } else {
     el.fb.className = "feedback bad";
     el.fb.innerHTML = `❌ 再看一次！ 正確拼法：<span class="reveal" style="display:inline">${revealHtml(word)}</span>`;
-    pulse("shake"); say(word.word, 0.8);
+    pulse("shake"); say(word.word, 0.7);
   }
 }
 export function setActionNext() {
   el.checkBtn.style.display = ""; el.checkBtn.disabled = false;
-  el.checkBtn.textContent = "下一個 Next →"; el.checkBtn.className = "btn go";
+  el.checkBtn.textContent = "下一個 Next → (3s)"; el.checkBtn.className = "btn go";
   setTimeout(() => { try { el.checkBtn.focus(); } catch(_) {} }, 50);
+}
+export function setNextBtnCountdown(secs) {
+  if (el.checkBtn && el.checkBtn.style.display !== "none") {
+    el.checkBtn.textContent = `下一個 Next → (${secs}s)`;
+  }
 }
 export function peek(word) {
   // 偷看功能已全面移除

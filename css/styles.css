@@ -825,3 +825,46 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 [data-theme="dark"] .date-quick-label {
   color: #A5B0CF !important;
 }
+
+
+/* 重組模式磁磚互動按鈕樣式 */
+.tile.scramble-btn {
+  cursor: pointer;
+  transition: transform .12s ease, box-shadow .12s ease, opacity .15s ease, background-color .12s ease, border-color .12s ease;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.tile.scramble-btn:hover:not(.used) {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 6px 14px rgba(45,156,219,0.22);
+  border-color: var(--sky, #2D9CDB);
+  background: #E0F2FE;
+}
+.tile.scramble-btn:active:not(.used) {
+  transform: translateY(1px) scale(0.96);
+}
+.tile.scramble-btn.used {
+  opacity: 0.28;
+  transform: scale(0.92);
+  cursor: pointer;
+  background: #E2E8F0 !important;
+  border-color: #CBD5E1 !important;
+  color: #94A3B8 !important;
+  box-shadow: none;
+}
+[data-theme="dark"] .tile.scramble-btn {
+  background: #1e293b;
+  border-color: #334155;
+  color: #f1f5f9;
+}
+[data-theme="dark"] .tile.scramble-btn:hover:not(.used) {
+  background: #0f172a;
+  border-color: #38bdf8;
+  box-shadow: 0 6px 14px rgba(56,189,248,0.2);
+}
+[data-theme="dark"] .tile.scramble-btn.used {
+  background: #0f172a !important;
+  border-color: #1e293b !important;
+  color: #475569 !important;
+  opacity: 0.25;
+}

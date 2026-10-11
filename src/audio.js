@@ -23,8 +23,8 @@ export function stopAudio() {
   } catch(_) {}
 }
 
-// Speak a word or sentence at the given rate (單字預設 0.8，例句預設 0.75).
-export function say(text, rate = 0.8, onEnd = null) {
+// Speak a word or sentence at the given rate (預設 0.7).
+export function say(text, rate = 0.7, onEnd = null) {
   if (typeof window !== "undefined" && window.__dailyUsageTimeIsUp) return;
   if (!supported || !text) {
     if (onEnd) onEnd();
@@ -56,15 +56,15 @@ export function say(text, rate = 0.8, onEnd = null) {
   }
 }
 
-// 朗讀整個單字發音 (單字速度 0.8)
+// 朗讀整個單字發音 (單字速度 0.7)
 export function spellOut(word) {
   if (!supported || !word) return;
-  say(word, 0.8);
+  say(word, 0.7);
 }
 
 /**
  * 嘉義縣單字王比賽標準播放模式：
- * 順序：【單字 (0.8)】 ➔ 停頓 0.6 秒 ➔ 【例句 (0.75)】 ➔ 停頓 0.6 秒 ➔ 【單字 (0.8)】
+ * 順序：【單字 (0.7)】 ➔ 停頓 1.0 秒 ➔ 【例句 (0.7)】 ➔ 停頓 1.0 秒 ➔ 【單字 (0.7)】
  */
 export function playContestSentence(word, sentence, onEnd = null) {
   if (typeof window !== "undefined" && window.__dailyUsageTimeIsUp) {
@@ -116,30 +116,30 @@ export function playContestSentence(word, sentence, onEnd = null) {
     cleanSent = cleanSent.replace(/_+/g, cleanWord);
   }
 
-  // 缺單字或缺例句時退回單純朗讀 (例句 0.75 / 單字 0.8)
+  // 缺單字或缺例句時退回單純朗讀 (速度 0.7)
   if (!cleanWord || !cleanSent) {
-    say(cleanSent || cleanWord, cleanSent ? 0.75 : 0.8, cleanup);
+    say(cleanSent || cleanWord, 0.7, cleanup);
     return;
   }
 
-  // 1. 播放單字 (速度 0.8)
-  speakPart(cleanWord, 0.8, () => {
+  // 1. 播放單字 (速度 0.7)
+  speakPart(cleanWord, 0.7, () => {
     if (token !== currentSeqToken) return;
-    // 2. 停頓 0.6 秒
+    // 2. 停頓 1.0 秒
     currentSeqTimer = setTimeout(() => {
       if (token !== currentSeqToken) return;
-      // 3. 播放例句 (速度 0.75)
-      speakPart(cleanSent, 0.75, () => {
+      // 3. 播放例句 (速度 0.7)
+      speakPart(cleanSent, 0.7, () => {
         if (token !== currentSeqToken) return;
-        // 4. 停頓 0.6 秒
+        // 4. 停頓 1.0 秒
         currentSeqTimer = setTimeout(() => {
           if (token !== currentSeqToken) return;
-          // 5. 再次播放單字 (速度 0.8)
-          speakPart(cleanWord, 0.8, () => {
+          // 5. 再次播放單字 (速度 0.7)
+          speakPart(cleanWord, 0.7, () => {
             cleanup();
           });
-        }, 600);
+        }, 1000);
       });
-    }, 600);
+    }, 1000);
   });
 }
