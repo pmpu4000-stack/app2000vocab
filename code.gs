@@ -2341,6 +2341,7 @@ function handleSaveRecord(ss, params, auth) {
   try {
     const cache = CacheService.getScriptCache();
     cache.remove("stu_data_" + username.toLowerCase());
+    cache.remove("stu_hist_" + username.toLowerCase());
     cache.put("stu_rec_" + username.toLowerCase(), stored, 1200);
   } catch(_) {}
   return jsonResponse({status:"success", message:"紀錄已成功儲存於個人分頁"});
@@ -3186,6 +3187,13 @@ function getTaskWordsDict(ss) {
 
 function getStudentDailyTaskHistory(ss, username) {
   if (!username) return [];
+  const cache = CacheService.getScriptCache();
+  const histCacheKey = "stu_hist_" + String(username).trim().toLowerCase();
+  try {
+    const cached = cache.get(histCacheKey);
+    if (cached) return JSON.parse(cached);
+  } catch(_) {}
+
   const sheet = ss.getSheetByName(username);
   if (!sheet || sheet.getLastRow() < 2) return [];
   const maxRows = Math.min(sheet.getLastRow() - 1, 60);
@@ -3223,6 +3231,9 @@ function getStudentDailyTaskHistory(ss, username) {
     }
   }
   list.sort((a, b) => (b.updatedAt || "").localeCompare(a.updatedAt || "") || b.date.localeCompare(a.date));
+  try {
+    cache.put(histCacheKey, JSON.stringify(list), 600);
+  } catch(_) {}
   return list;
 }
 

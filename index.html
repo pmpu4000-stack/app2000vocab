@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>拼字小特工 · Spelling Agent</title>
   <link rel="stylesheet" href="css/styles.css">
+  <link rel="preload" href="data/words2000.json" as="fetch" crossorigin>
+  <link rel="preload" href="data/meanings.json" as="fetch" crossorigin>
   <style id="embedded-vocab-tutor-theme">
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -108,7 +110,8 @@ header{display:flex; align-items:center; gap:14px; margin-bottom:16px}
 
 .sent-text-wrap{flex:1;min-width:0;text-align:left;cursor:pointer;padding-left:2px}
 .sent-en{font-size:14px;line-height:1.42;color:var(--ink);font-weight:600;word-break:break-word}
-.sent-en u{text-decoration:none;background:var(--marker-soft);padding:1px 5px;border-radius:5px;color:var(--ink);font-weight:800;letter-spacing:.5px}
+.sent-en u{display:inline-block;text-decoration:none;min-width:48px;height:20px;line-height:20px;margin:0 4px;padding:0 6px;vertical-align:-3px;background:rgba(108,76,224,.10);border:1px solid rgba(108,76,224,.28);border-radius:6px;position:relative;font-size:0;color:transparent;box-sizing:border-box}
+.sent-en u::after{content:"";position:absolute;left:6px;right:6px;bottom:3.5px;height:2px;background:var(--violet);border-radius:2px}
 .sent-zh{font-size:12.5px;line-height:1.35;color:var(--ink3);margin-top:2px;font-weight:normal}
 
 .stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:6px 0}
@@ -412,6 +415,13 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 [data-theme="dark"] .sent-en {
   color: #E2E8F0 !important;
 }
+[data-theme="dark"] .sent-en u {
+  background: rgba(56, 189, 248, 0.14) !important;
+  border-color: rgba(56, 189, 248, 0.38) !important;
+}
+[data-theme="dark"] .sent-en u::after {
+  background: #38BDF8 !important;
+}
 [data-theme="dark"] .sent-zh {
   color: #94A3B8 !important;
 }
@@ -530,6 +540,35 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 [data-theme="dark"] .date-picker-input {
   background: #131624 !important;
   border-color: #2D354E !important;
+  color: #F0F3FA !important;
+}
+
+/* 全面阻絕深色模式下的白色塊 (避免一片白色) */
+[data-theme="dark"] select,
+[data-theme="dark"] .task-date-selector {
+  background-color: #181C2A !important;
+  border-color: #2D354E !important;
+  color: #F0F3FA !important;
+}
+[data-theme="dark"] select option,
+[data-theme="dark"] select optgroup {
+  background-color: #181C2A !important;
+  color: #F0F3FA !important;
+}
+[data-theme="dark"] input[type="text"],
+[data-theme="dark"] input[type="password"],
+[data-theme="dark"] input[type="date"],
+[data-theme="dark"] input[type="time"],
+[data-theme="dark"] textarea {
+  background-color: #131624 !important;
+  border-color: #2D354E !important;
+  color: #F0F3FA !important;
+}
+[data-theme="dark"] .task-history-card,
+[data-theme="dark"] .task-score-item,
+[data-theme="dark"] .date-navigator-card {
+  background: #181C2A !important;
+  border-color: #262C42 !important;
   color: #F0F3FA !important;
 }
 
@@ -706,6 +745,9 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 
   <script type="module">
     // ⚠️ 請替換為你實際部署成功的 Apps Script Web App 網址
+    // 🚀 背景非同步預載單字庫，大幅提升登入後進入遊戲與出題速度
+    try { import("./src/wordbank.js").then(m => m.loadWordBank()).catch(() => {}); } catch(_) {}
+
     const scriptUrl = "https://script.google.com/macros/s/AKfycbx1hyCNJxqFMoaJgIxfZqLYIYH00NegI1Yd8NJP6gRjqwOndWGkmr-H9tGvVwK_axM9/exec";
 
     function updateAccountDisplay(username, role) {
@@ -890,8 +932,6 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
           if (result.role === "teacher" || result.isAdmin) {
             const timerBadge = document.getElementById("stat-daily-timer");
             if (timerBadge) timerBadge.style.display = "none";
-          } else {
-            initDailyUsageTimer(result.dailyUsage);
           }
           if (result.role === "teacher") {
             if (Array.isArray(result.classList) && result.classList.length > 0) {
@@ -980,6 +1020,18 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
             await import(`./src/app.js?v=${cacheBuster}`);
             document.getElementById('login-overlay').style.display = 'none';
             checkCurfewStatus();
+
+            // ★ 學生完整載入進度、單字庫與畫面後，才正式啟動每日練習倒數計時！
+            if (result.role !== "teacher" && !result.isAdmin) {
+              const pendingUsage = result.dailyUsage;
+              if (pendingUsage) {
+                const nowMs = Date.now();
+                if (!pendingUsage.firstLoginTime || Math.abs(nowMs - Number(pendingUsage.firstLoginTime)) < 120000) {
+                  pendingUsage.firstLoginTime = nowMs;
+                }
+              }
+              initDailyUsageTimer(pendingUsage);
+            }
           } catch(importErr) {
             console.error("載入遊戲失敗：", importErr);
             alert("載入遊戲模組失敗：" + importErr.message + "\n請按 Ctrl + F5 強制重新整理或稍候再試！");

@@ -16,39 +16,46 @@ function maskFromTrap(len, trap) {
   return m;
 }
 
+let _wordBankPromise = null;
+
 // A word object:
 //   { id, word (lowercase), display (proper case), level, mask[], featured,
 //     zh, sent, ph (phonetic), cat? }
-export async function loadWordBank() {
-  const [bank, meanings] = await Promise.all([
-    fetch("data/words2000.json").then((r) => {
-      if (!r.ok) throw new Error("words2000.json " + r.status);
-      return r.json();
-    }),
-    fetch("data/meanings.json").then((r) => (r.ok ? r.json() : {})).catch(() => ({})),
-  ]);
+export function loadWordBank() {
+  if (!_wordBankPromise) {
+    _wordBankPromise = (async () => {
+      const [bank, meanings] = await Promise.all([
+        fetch("data/words2000.json").then((r) => {
+          if (!r.ok) throw new Error("words2000.json " + r.status);
+          return r.json();
+        }),
+        fetch("data/meanings.json").then((r) => (r.ok ? r.json() : {})).catch(() => ({})),
+      ]);
 
-  return bank.map((entry, i) => {
-    const display = entry.w;
-    const word = display.toLowerCase();
-    const feat = FEATURED.get(word);          // hand-verified (mask + zh + sent + cat)
-    const m = meanings[display] || meanings[word] || {}; // dictionary meaning + phonetic + sentence
-    return {
-      id: "w" + i,
-      word,
-      display,
-      level: entry.lv,
-      mask: feat ? feat.mask : maskFromTrap(word.length, entry.t),
-      featured: !!feat,
-      zh: feat ? feat.zh : (m.zh || null),
-      sent: feat ? feat.sent : (m.sent || null),
-      sentZh: feat ? (feat.sentZh || null) : (m.sentZh || null),
-      sentSrc: feat ? "Curated" : (m.sentSrc || null),
-      sents: (Array.isArray(m.sents) && m.sents.length > 0) ? m.sents : (m.sent ? [{ level: 'normal', levelName: '普通', sent: m.sent, sentZh: m.sentZh || '', src: m.sentSrc || '' }] : []),
-      ph: m.ph || null,
-      cat: feat ? feat.cat : null,
-    };
-  });
+      return bank.map((entry, i) => {
+        const display = entry.w;
+        const word = display.toLowerCase();
+        const feat = FEATURED.get(word);          // hand-verified (mask + zh + sent + cat)
+        const m = meanings[display] || meanings[word] || {}; // dictionary meaning + phonetic + sentence
+        return {
+          id: "w" + i,
+          word,
+          display,
+          level: entry.lv,
+          mask: feat ? feat.mask : maskFromTrap(word.length, entry.t),
+          featured: !!feat,
+          zh: feat ? feat.zh : (m.zh || null),
+          sent: feat ? feat.sent : (m.sent || null),
+          sentZh: feat ? (feat.sentZh || null) : (m.sentZh || null),
+          sentSrc: feat ? "Curated" : (m.sentSrc || null),
+          sents: (Array.isArray(m.sents) && m.sents.length > 0) ? m.sents : (m.sent ? [{ level: 'normal', levelName: '普通', sent: m.sent, sentZh: m.sentZh || '', src: m.sentSrc || '' }] : []),
+          ph: m.ph || null,
+          cat: feat ? feat.cat : null,
+        };
+      });
+    })();
+  }
+  return _wordBankPromise;
 }
 
 export const wordsAtLevel = (words, level) => words.filter((w) => w.level === level);

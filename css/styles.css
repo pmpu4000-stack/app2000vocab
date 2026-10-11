@@ -100,7 +100,8 @@ header{display:flex; align-items:center; gap:14px; margin-bottom:16px}
 
 .sent-text-wrap{flex:1;min-width:0;text-align:left;cursor:pointer;padding-left:2px}
 .sent-en{font-size:14px;line-height:1.42;color:var(--ink);font-weight:600;word-break:break-word}
-.sent-en u{text-decoration:none;background:var(--marker-soft);padding:1px 5px;border-radius:5px;color:var(--ink);font-weight:800;letter-spacing:.5px}
+.sent-en u{display:inline-block;text-decoration:none;min-width:48px;height:20px;line-height:20px;margin:0 4px;padding:0 6px;vertical-align:-3px;background:rgba(108,76,224,.10);border:1px solid rgba(108,76,224,.28);border-radius:6px;position:relative;font-size:0;color:transparent;box-sizing:border-box}
+.sent-en u::after{content:"";position:absolute;left:6px;right:6px;bottom:3.5px;height:2px;background:var(--violet);border-radius:2px}
 .sent-zh{font-size:12.5px;line-height:1.35;color:var(--ink3);margin-top:2px;font-weight:normal}
 
 .stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:6px 0}
@@ -404,6 +405,13 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 [data-theme="dark"] .sent-en {
   color: #E2E8F0 !important;
 }
+[data-theme="dark"] .sent-en u {
+  background: rgba(56, 189, 248, 0.14) !important;
+  border-color: rgba(56, 189, 248, 0.38) !important;
+}
+[data-theme="dark"] .sent-en u::after {
+  background: #38BDF8 !important;
+}
 [data-theme="dark"] .sent-zh {
   color: #94A3B8 !important;
 }
@@ -522,6 +530,35 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 [data-theme="dark"] .date-picker-input {
   background: #131624 !important;
   border-color: #2D354E !important;
+  color: #F0F3FA !important;
+}
+
+/* 全面阻絕深色模式下的白色塊 (避免一片白色) */
+[data-theme="dark"] select,
+[data-theme="dark"] .task-date-selector {
+  background-color: #181C2A !important;
+  border-color: #2D354E !important;
+  color: #F0F3FA !important;
+}
+[data-theme="dark"] select option,
+[data-theme="dark"] select optgroup {
+  background-color: #181C2A !important;
+  color: #F0F3FA !important;
+}
+[data-theme="dark"] input[type="text"],
+[data-theme="dark"] input[type="password"],
+[data-theme="dark"] input[type="date"],
+[data-theme="dark"] input[type="time"],
+[data-theme="dark"] textarea {
+  background-color: #131624 !important;
+  border-color: #2D354E !important;
+  color: #F0F3FA !important;
+}
+[data-theme="dark"] .task-history-card,
+[data-theme="dark"] .task-score-item,
+[data-theme="dark"] .date-navigator-card {
+  background: #181C2A !important;
+  border-color: #262C42 !important;
   color: #F0F3FA !important;
 }
 
