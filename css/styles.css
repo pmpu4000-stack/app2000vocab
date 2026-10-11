@@ -594,3 +594,6 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 .heat-legend b{color:var(--ink)}
 [data-theme="dark"] .heat-legend{background:rgba(255,255,255,.04) !important;border-color:rgba(255,255,255,.14) !important;color:#9AA0BD !important}
 [data-theme="dark"] .heat-legend b{color:#E2E8F0 !important}
+
+/* Progress 標題與 Record 同大小 */
+.progress h3{font-size:15px !important;font-weight:800 !important;text-transform:none !important;letter-spacing:0 !important;color:var(--ink) !important}

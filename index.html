@@ -605,6 +605,9 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 .heat-legend b{color:var(--ink)}
 [data-theme="dark"] .heat-legend{background:rgba(255,255,255,.04) !important;border-color:rgba(255,255,255,.14) !important;color:#9AA0BD !important}
 [data-theme="dark"] .heat-legend b{color:#E2E8F0 !important}
+
+/* Progress 標題與 Record 同大小 */
+.progress h3{font-size:15px !important;font-weight:800 !important;text-transform:none !important;letter-spacing:0 !important;color:var(--ink) !important}
 </style>
 </head>
 <body>
@@ -752,7 +755,6 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
           <span title="答對 1 次（或最近答錯，需要再練）"><i style="background:#D9D5F2"></i>學習中 <b id="n-learn" class="tnum">0</b></span>
           <span title="連續答對 2 次"><i style="background:#B9E8D3"></i>練習中 <b id="n-prac" class="tnum">0</b></span>
           <span title="連續答對 3 次，獲得 ⭐"><i style="background:var(--green)"></i>精通 <b id="n-mast" class="tnum">0</b></span>
-          <span title="答對過的單字數（不重複）"><i style="background:#39ff14;box-shadow:0 0 6px rgba(57,255,20,0.6)"></i>答對過 <b id="n-correct" class="tnum" style="color:#39ff14">0</b></span>
           <span style="margin-left:auto;color:var(--ink3)">共 <b id="n-total" class="tnum">0</b> 字</span>
         </div>
         <p class="defs">熟練度定義：<b>學習中</b>＝答對 1 次 · <b>練習中</b>＝連續答對 2 次 · <b>精通</b>＝連續答對 3 次（答錯會退回「學習中」）</p>
@@ -1062,6 +1064,7 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
               localStorage.setItem(`daily_usage_${uName}_extended_minutes`, String(ext));
               if (fl) localStorage.setItem(`daily_usage_${uName}_first_login_time`, String(fl));
               window.__dailyUsageTimeIsUp = (!unl && fl > 0 && ((lim + ext) * 60000 - (Date.now() - fl)) <= 0);
+              window.__bootedLocked = window.__dailyUsageTimeIsUp;
             }
             const cacheBuster = Date.now();
             await import(`./src/app.js?v=${cacheBuster}`);
@@ -1661,6 +1664,15 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
       if (rangeEl) rangeEl.textContent = `${sTime} 至 ${eTime}`;
 
       if (!isAllowed && !isUnlocked) {
+        // 先向伺服器確認老師是否已取消限制，避免用舊資料誤擋
+        if (!window.__curfewRechecking) {
+          window.__curfewRechecking = true;
+          pollDailyUsageStatus().finally(() => {
+            window.__curfewRechecking = false;
+            const ok2 = isTimeWithinDailyAllowed() || sessionStorage.getItem("time_restriction_unlocked") === "true";
+            if (ok2) overlay.style.display = "none";
+          });
+        }
         overlay.style.display = "flex";
         if (window.uploadLocalStorageData) {
           window.uploadLocalStorageData(true);
@@ -1901,6 +1913,12 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
     //   • 時間已到（鎖定中）：每 60 秒查一次老師是否加時／解除
     //   • 已解除限制：每 10 分鐘確認一次（老師可能恢復限制）
     //   • 分頁在背景（看不到）時：一律暫停
+    function applyTimeRestrictionFromServer(tr) {
+      if (!tr) return;
+      sessionStorage.setItem("user_start_time", tr.startTime || "07:30");
+      sessionStorage.setItem("user_end_time", tr.endTime || "22:00");
+      sessionStorage.setItem("time_restriction_unlocked", (tr.isOverridden === true) ? "true" : "false");
+    }
     let lastDailyPollAt = 0;
     let dailyPollInFlight = false;
     function maybePollDailyUsage(force) {
@@ -1943,8 +1961,18 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
           if (d.dailyUsage.firstLoginTime) {
             dailyUsageState.firstLoginTime = Math.min(dailyUsageState.firstLoginTime, Number(d.dailyUsage.firstLoginTime));
           }
-          localStorage.setItem("daily_usage_extended_minutes", String(dailyUsageState.extendedMinutes));
-          localStorage.setItem("daily_usage_unlocked", dailyUsageState.unlocked ? "true" : "false");
+          localStorage.setItem(`daily_usage_${currentUser}_extended_minutes`, String(dailyUsageState.extendedMinutes));
+          localStorage.setItem(`daily_usage_${currentUser}_limit_minutes`, String(dailyUsageState.limitMinutes));
+          localStorage.setItem(`daily_usage_${currentUser}_unlocked`, dailyUsageState.unlocked ? "true" : "false");
+          if (d.timeRestriction) applyTimeRestrictionFromServer(d.timeRestriction);
+
+          // 開機時因時間歸零而未啟動測驗，若老師之後解除或延長 → 重新載入以啟動測驗
+          const remainMs = (dailyUsageState.limitMinutes + dailyUsageState.extendedMinutes) * 60000 - (Date.now() - dailyUsageState.firstLoginTime);
+          if (window.__bootedLocked && (dailyUsageState.unlocked || remainMs > 0)) {
+            alert("老師已解除或延長今日練習時間，將重新載入以開始練習，請重新登入。");
+            location.reload();
+            return;
+          }
 
           updateDailyUsageTick();
         }
