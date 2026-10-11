@@ -2014,7 +2014,8 @@ function doPost(e) {
       const u = String(params.targetUsername || params.username || "").trim();
       return jsonResponse({
         status: "success",
-        dailyUsage: getDailyUsageSettings(ss, u, false)
+        dailyUsage: getDailyUsageSettings(ss, u, false),
+        timeRestriction: checkTimeRestrictionAllowance(ss, u)
       });
     }
 
