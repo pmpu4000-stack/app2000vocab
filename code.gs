@@ -4348,10 +4348,10 @@ function auditComplianceData(ss) {
 
       if (!isHashedPassword(p) && p !== "") unhashedPassCount++;
       
-      const allRowText = data[i].map(String).join(" ");
-      if (/[A-Z][12]\d{8}/i.test(allRowText)) nationalIdCount++;
-      if (/09\d{8}/.test(allRowText)) phoneCount++;
-      if (/(市|縣|區|路|街|巷|弄|號)/.test(allRowText)) addressCount++;
+      const nonPassText = [u, role, c, n].join(" ");
+      if (/\b[A-Z][12]\d{8}\b/i.test(nonPassText)) nationalIdCount++;
+      if (/\b09\d{8}\b/.test(nonPassText)) phoneCount++;
+      if (/(市|縣|區|路|街|巷|弄|號)/.test(nonPassText)) addressCount++;
 
       if (/[\u4e00-\u9fa5]/.test(n)) {
         chineseNameCount++;
