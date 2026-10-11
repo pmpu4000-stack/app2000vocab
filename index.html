@@ -1169,10 +1169,22 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
         let result = await response.json();
 
         if (result.status === "success") {
-          // ── 帳號資料完全隔離與清理 ──
+          // ── 帳號資料完全隔離與安全復原 ──
           const lastUser = localStorage.getItem("current_user");
           const isDifferentUser = lastUser && lastUser !== user;
           
+          // 檢查本機目前是否已存在該帳號之有效進度（防止雲端遇暫時異常或空紀錄時誤抹除本機紀錄）
+          let localAgentData = null;
+          try {
+            const rawLocal = localStorage.getItem("spellAgent.v2");
+            if (rawLocal) {
+              const parsed = JSON.parse(rawLocal);
+              if (parsed && (parsed.attempts > 0 || parsed.points > 0 || (parsed.stat && Object.keys(parsed.stat).length > 0))) {
+                localAgentData = parsed;
+              }
+            }
+          } catch(_) {}
+
           // 判定雲端是否有實質紀錄（必須是含有有效 spellAgent.v2 的物件）
           const hasCloudRecords = result.records && 
                                   typeof result.records === "object" && 
@@ -1180,15 +1192,17 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
                                   Object.keys(result.records).length > 0 &&
                                   !!result.records["spellAgent.v2"];
 
-          // 無論是切換帳號或登入全新帳號，一律先徹底清除本機舊帳號暫存，防止歷程互相污染
-          const keysToRemove = [];
-          for (let i = 0; i < localStorage.length; i++) {
-            const k = localStorage.key(i);
-            if (k && (k.startsWith("spellAgent") || k.startsWith("today_task") || k.startsWith("task_done") || k === "weekTaskMistakes")) {
-              keysToRemove.push(k);
+          // 僅在「切換不同使用者帳號」或「雲端有明確更新紀錄」時清理暫存；同一帳號且雲端無紀錄時，保留本機作答進度不被覆蓋
+          if (isDifferentUser || hasCloudRecords) {
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+              const k = localStorage.key(i);
+              if (k && (k.startsWith("spellAgent") || k.startsWith("today_task") || k.startsWith("task_done") || k === "weekTaskMistakes")) {
+                keysToRemove.push(k);
+              }
             }
+            keysToRemove.forEach(k => localStorage.removeItem(k));
           }
-          keysToRemove.forEach(k => localStorage.removeItem(k));
 
           localStorage.setItem("current_user", user);
           localStorage.setItem("user_role", result.role || "student");
@@ -1263,13 +1277,21 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
           }
 
           if (hasCloudRecords) {
-            // 雲端有存檔：將雲端最新進度寫入 LocalStorage
+            // 雲端有存檔：將雲端最新進度寫入 LocalStorage（安全型別保護：物件轉為 JSON 字串，防止出現 [object Object]）
             for (let key in result.records) {
-              localStorage.setItem(key, result.records[key]);
+              const val = result.records[key];
+              const valToStore = (typeof val === "object" && val !== null) ? JSON.stringify(val) : String(val);
+              localStorage.setItem(key, valToStore);
             }
             msgEl.textContent = "✅ 登入成功，正在啟動學習進度...";
+          } else if (!isDifferentUser && localAgentData) {
+            // 雲端無紀錄，但本機同帳號已有有效學習進度：完美保留並自動同步回傳雲端
+            msgEl.textContent = "✅ 登入成功，已復原本機學習進度...";
+            setTimeout(() => {
+              try { uploadLocalStorageData(true); } catch(_) {}
+            }, 1000);
           } else {
-            // 全新帳號（雲端尚無進度）：嚴格初始化為 0 題、0% 正確率、全新等級 1
+            // 全新帳號（雲端尚無進度，且本機無有效進度）：嚴格初始化為 0 題、0% 正確率、全新等級 1
             const freshStore = {
               box: {}, stat: {}, lstat: {},
               mstat: { listen: { a: 0, c: 0 }, pick: { a: 0, c: 0 }, scramble: { a: 0, c: 0 }, trap: { a: 0, c: 0 } },

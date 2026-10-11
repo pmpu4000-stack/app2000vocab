@@ -71,8 +71,14 @@ function fresh() {
 
 function load() {
   try {
-    const d = JSON.parse(localStorage.getItem(LS_KEY));
-    if (!d) return fresh();
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return fresh();
+    let d = null;
+    try {
+      d = (typeof raw === "string") ? JSON.parse(raw) : raw;
+      if (typeof d === "string") { try { d = JSON.parse(d); } catch(_) {} }
+    } catch(_) {}
+    if (!d || typeof d !== "object") return fresh();
     const base = fresh();
     const merged = {
       ...base, ...d,

@@ -164,6 +164,24 @@ function isSystemSheet(name) {
 }
 
 /**
+ * 取得學生個人工作表（支援大小寫與前後空白容錯）
+ */
+function getStudentSheet(ss, username) {
+  if (!ss || !username) return null;
+  const cleanU = String(username).trim();
+  let sheet = ss.getSheetByName(cleanU);
+  if (sheet) return sheet;
+  const targetLower = cleanU.toLowerCase();
+  const sheets = ss.getSheets();
+  for (let i = 0; i < sheets.length; i++) {
+    if (sheets[i].getName().trim().toLowerCase() === targetLower) {
+      return sheets[i];
+    }
+  }
+  return null;
+}
+
+/**
  * 確保學生分頁具備 23 欄每日任務欄位，並將表頭與欄寬美化為高可讀性、清楚簡潔之分組色彩
  */
 function ensureStudentSheetColumns(sheet) {
@@ -508,7 +526,7 @@ function getActiveTaskForClass(ss, studentClass, username) {
   let hasAnyCompletedToday = false;
 
   if (username) {
-    const uSheet = ss.getSheetByName(username);
+    const uSheet = getStudentSheet(ss, username);
     if (uSheet && uSheet.getLastRow() >= 2) {
       const lastCol = uSheet.getLastColumn();
       if (lastCol >= 1) {
@@ -652,7 +670,7 @@ function getWeekendRemediationTask(ss, cleanClass, username, completedTasksToday
   // 取得學生在週一至週五的實際作答紀錄
   const studentDoneMap = {};
   if (username) {
-    const uSheet = ss.getSheetByName(username);
+    const uSheet = getStudentSheet(ss, username);
     if (uSheet && uSheet.getLastRow() >= 2) {
       const lastCol = uSheet.getLastColumn();
       const maxRows = Math.min(uSheet.getLastRow() - 1, 60);
@@ -1945,13 +1963,20 @@ function doPost(e) {
       let raw = "";
       try { raw = cache.get(recCacheKey) || ""; } catch(_) {}
 
-      if (!raw) {
-        const uSheet = ss.getSheetByName(auth.username);
-        if (uSheet && uSheet.getLastRow() >= 2) {
-          raw = String(uSheet.getRange("B2").getValue() || "").trim();
-          if (raw) {
-            try { cache.put(recCacheKey, raw, 1200); } catch(_) {}
+      const uSheet = getStudentSheet(ss, auth.username);
+      if (!raw && uSheet && uSheet.getLastRow() >= 2) {
+        // 優先搜尋前 20 列中最近一筆包含有效 JSON/GZ 備份的 Column B
+        const checkCount = Math.min(uSheet.getLastRow() - 1, 20);
+        const bVals = uSheet.getRange(2, 2, checkCount, 1).getValues();
+        for (let r = 0; r < bVals.length; r++) {
+          const cellVal = String(bVals[r][0] || "").trim();
+          if (cellVal && (cellVal.startsWith("GZ:") || cellVal.startsWith("{"))) {
+            raw = cellVal;
+            break;
           }
+        }
+        if (raw) {
+          try { cache.put(recCacheKey, raw, 1200); } catch(_) {}
         }
       }
 
@@ -1962,11 +1987,42 @@ function doPost(e) {
             const parsed = JSON.parse(decomp);
             if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
               records = parsed;
+              // 確保 records 內所有屬性值皆為字串型態，防止前端寫入 localStorage 時變為 [object Object]
+              for (let k in records) {
+                if (typeof records[k] === "object" && records[k] !== null) {
+                  records[k] = JSON.stringify(records[k]);
+                }
+              }
             }
           } catch(pe) {
             logError("doPost/login/json", pe, auth.username, "");
           }
         }
+      }
+
+      // 備援還原：若試算表中 Column B 缺失或被清空，但第 2 列已有歷程欄位，自動從各欄位反組合成基本 records 備援
+      if ((!records || !records["spellAgent.v2"]) && uSheet && uSheet.getLastRow() >= 2) {
+        try {
+          const rVals = uSheet.getRange(2, 1, 1, Math.min(uSheet.getLastColumn(), 23)).getValues()[0];
+          const lvl = parseInt(rVals[2]) || 1;
+          const pts = parseInt(rVals[3]) || 0;
+          const stk = parseInt(rVals[4]) || 0;
+          const bst = parseInt(rVals[5]) || 0;
+          const att = parseInt(rVals[6]) || 0;
+          const cor = parseInt(rVals[7]) || 0;
+          if (att > 0 || pts > 0) {
+            const reconstructed = {
+              box: {}, stat: {}, lstat: {},
+              mstat: { listen: { a: att, c: cor }, pick: { a: 0, c: 0 }, scramble: { a: 0, c: 0 }, trap: { a: 0, c: 0 } },
+              level: { current: lvl, unlocked: lvl, placed: true },
+              session: { active: false, date: null, answered: 0, correct: 0, incorrect: 0, ids: {}, mastered: 0 },
+              history: {},
+              dailyPractice: {},
+              points: pts, streak: stk, best: bst, attempts: att, correct: cor
+            };
+            records["spellAgent.v2"] = JSON.stringify(reconstructed);
+          }
+        } catch(_) {}
       }
 
       const assignedTask = getActiveTaskForClass(ss, auth.className, auth.username);
@@ -2227,7 +2283,7 @@ function handleSaveRecord(ss, params, auth) {
     const records  = params.records || {};
     if (!username) return jsonResponse({status:"error", message:"未提供帳號"});
 
-  let uSheet = ss.getSheetByName(username);
+  let uSheet = getStudentSheet(ss, username);
   if (!uSheet) {
     uSheet = ss.insertSheet(username);
     const hdr = ["備份時間","完整JSON","等級","分數","連勝","最佳連勝",
@@ -3228,7 +3284,7 @@ function parseScoreAndRate(rawScore, rawRate) {
 
 function getStudentTodayTaskResult(ss, username, todayStr) {
   if (!username) return { hasDone: false, inProgress: false, allTodayTasks: [] };
-  const sheet = ss.getSheetByName(username);
+  const sheet = getStudentSheet(ss, username);
   if (!sheet || sheet.getLastRow() < 2) return { hasDone: false, inProgress: false, allTodayTasks: [] };
   const targetDateStr = formatStandardDateYMD(todayStr);
   const maxRows = Math.min(sheet.getLastRow() - 1, 15);
@@ -3289,7 +3345,7 @@ function getStudentDailyTaskHistory(ss, username) {
     if (cached) return JSON.parse(cached);
   } catch(_) {}
 
-  const sheet = ss.getSheetByName(username);
+  const sheet = getStudentSheet(ss, username);
   if (!sheet || sheet.getLastRow() < 2) return [];
   const maxRows = Math.min(sheet.getLastRow() - 1, 60);
   const maxCols = sheet.getLastColumn();
@@ -3418,9 +3474,12 @@ function getClassOverviewRaw(ss, forceRefresh) {
   } catch(batchErr) {
     Logger.log("[batchGet 降級] " + batchErr.message);
     const sheetMap = {};
-    ss.getSheets().forEach(s => { sheetMap[s.getName()] = s; });
+    ss.getSheets().forEach(s => {
+      sheetMap[s.getName()] = s;
+      sheetMap[s.getName().trim().toLowerCase()] = s;
+    });
     studentMeta.forEach(meta => {
-      const s = sheetMap[meta.username];
+      const s = sheetMap[meta.username] || sheetMap[meta.username.trim().toLowerCase()];
       rowsMap[meta.username] = (s && s.getLastRow() >= 2) ? s.getRange(1,1,2,18).getDisplayValues() : [];
     });
   }
@@ -3488,7 +3547,7 @@ function _getStudentData(ss, username) {
     }
   } catch(_) {}
 
-  const sheet = ss.getSheetByName(cleanU);
+  const sheet = getStudentSheet(ss, cleanU);
   if (!sheet || sheet.getLastRow() < 2) {
     return {
       status: "success",
@@ -3509,11 +3568,39 @@ function _getStudentData(ss, username) {
   const headers = sheet.getRange(1, 1, 1, lastCol).getDisplayValues()[0];
   const rawData = sheet.getRange(2, 1, maxRowsToRead, lastCol).getDisplayValues();
 
+  // 取得 Column B 的原始資料 (使用 getValues() 防止 getDisplayValues() 字元長度截斷或隱藏欄空白)
+  let rawBVals = [];
+  try {
+    rawBVals = sheet.getRange(2, 2, maxRowsToRead, 1).getValues();
+  } catch(_) {}
+
   let wordList  = [];
   let agentData = null;
-  try {
-    if (rawData.length > 0 && rawData[0][1]) {
-      const parsed = JSON.parse(decompressData(rawData[0][1]));
+  let rawJsonStr = "";
+
+  // 優先從 getValues() 尋找最新一筆有效備份
+  for (let i = 0; i < rawBVals.length; i++) {
+    const val = String(rawBVals[i][0] || "").trim();
+    if (val && (val.startsWith("GZ:") || val.startsWith("{"))) {
+      rawJsonStr = val;
+      break;
+    }
+  }
+
+  // 備援：若未找到，從 rawData 尋找
+  if (!rawJsonStr) {
+    for (let i = 0; i < rawData.length; i++) {
+      const val = String(rawData[i][1] || "").trim();
+      if (val && (val.startsWith("GZ:") || val.startsWith("{"))) {
+        rawJsonStr = val;
+        break;
+      }
+    }
+  }
+
+  if (rawJsonStr) {
+    try {
+      const parsed = JSON.parse(decompressData(rawJsonStr));
       const raw = parsed["spellAgent.v2"];
       agentData = (typeof raw === "string") ? JSON.parse(raw) : (raw || {});
       const stat = agentData.stat || {};
@@ -3524,8 +3611,28 @@ function _getStudentData(ss, username) {
           status: c >= 3 ? "mastered" : c === 2 ? "practicing" : c === 1 ? "learning" : "new"
         });
       }
+    } catch(err) {
+      logError("_getStudentData/parse", err, cleanU, "");
     }
-  } catch(_) {}
+  }
+
+  // 備援：若 Column B 完全無備份，但第 2 列有作答紀錄，自動從各欄位反組合成 agentData
+  if (!agentData && rawData.length > 0) {
+    const r0 = rawData[0];
+    const lvl = parseInt(r0[2]) || 1;
+    const pts = parseInt(r0[3]) || 0;
+    const stk = parseInt(r0[4]) || 0;
+    const bst = parseInt(r0[5]) || 0;
+    const att = parseInt(r0[6]) || 0;
+    const cor = parseInt(r0[7]) || 0;
+    if (att > 0 || pts > 0) {
+      agentData = {
+        box: {}, stat: {}, lstat: {},
+        level: { current: lvl, unlocked: lvl, placed: true },
+        points: pts, streak: stk, best: bst, attempts: att, correct: cor
+      };
+    }
+  }
 
   // 🚀 關鍵極速瘦身：清空傳輸給前端之所有 rows[1] (完整JSON base64 字串)
   // 前端只需第 0 列解析出的 agentData 與 wordList，清空歷史 base64 讓傳輸體積縮小 95%！
