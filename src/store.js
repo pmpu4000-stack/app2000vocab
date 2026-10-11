@@ -397,6 +397,7 @@ export function stats(words) {
     learn, prac, mast, total,
     currentLevel: (DB.level && DB.level.current) || 1, streak: DB.streak || 0,
     distinctCorrect, passRate, attempts: DB.attempts || 0, correct: DB.correct || 0,
+    points: DB.points || 0,
   };
 }
 

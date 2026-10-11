@@ -44,6 +44,7 @@ header{display:flex; align-items:center; gap:14px; margin-bottom:16px}
 .stat.ok{width:auto;min-width:58px;padding:6px 12px;flex:0 0 auto}
 .stat.ok b{white-space:nowrap;color:var(--green)}
 .stat.streak b{color:var(--coral)}
+.stat.score b{color:var(--catD,#E8892B)}
 .stat.rate b{color:var(--sky)}
 .stat.user{cursor:pointer;transition:transform .12s,background .12s,border-color .12s;width:auto;min-width:58px;padding:6px 12px;flex:0 0 auto}
 .stat.user:hover{border-color:var(--sky);background:rgba(45,156,219,.08)}
@@ -900,6 +901,7 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
           <b id="s-upload" class="tnum">🌱</b>
           <span>上傳紀錄</span>
         </div>
+        <div class="stat score" title="目前累積總得分"><b id="s-score" class="tnum">0</b><span>得分</span></div>
         <div class="stat ok"><b id="s-correct" class="tnum">0</b><span>答對字</span></div>
         <div class="stat streak" style="display:none"><b id="s-streak" class="tnum">0</b><span>連勝</span></div>
         <div class="stat rate"><b id="s-rate" class="tnum">0%</b><span>答對率</span></div>
@@ -1087,7 +1089,9 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
       const sc = document.getElementById("s-correct");
       const ss = document.getElementById("s-streak");
       const sr = document.getElementById("s-rate");
+      const sp = document.getElementById("s-score");
       if (sa) {
+        if (sp) sp.textContent = String(sa.points !== undefined ? sa.points : 0);
         if (sc && sa.stat) {
           const distinctCorrect = Math.max(
             Object.values(sa.stat).filter(s => s.c > 0).length,
@@ -1101,11 +1105,13 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
           sr.textContent = (sa.attempts ? Math.round((sa.correct / sa.attempts) * 100) : 0) + "%";
         } else if (sr) sr.textContent = "0%";
       } else {
+        if (sp) sp.textContent = "0";
         if (sc) sc.textContent = "0";
         if (ss) ss.textContent = "0";
         if (sr) sr.textContent = "0%";
       }
     } catch(_) {
+      const sp = document.getElementById("s-score");   if (sp) sp.textContent = "0";
       const sc = document.getElementById("s-correct"); if (sc) sc.textContent = "0";
       const ss = document.getElementById("s-streak");  if (ss) ss.textContent = "0";
       const sr = document.getElementById("s-rate");    if (sr) sr.textContent = "0%";

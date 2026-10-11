@@ -335,6 +335,9 @@ export function renderProgress(s) {
   const lvlEl = $("#s-level");
   if (lvlEl) lvlEl.textContent = s.currentLevel;
 
+  const sScore = $("#s-score");
+  if (sScore) sScore.textContent = s.points !== undefined ? s.points : 0;
+
   const sCorr = $("#s-correct");
   if (sCorr) sCorr.textContent = s.distinctCorrect !== undefined ? s.distinctCorrect : 0;
 

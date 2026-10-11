@@ -34,6 +34,7 @@ header{display:flex; align-items:center; gap:14px; margin-bottom:16px}
 .stat.ok{width:auto;min-width:58px;padding:6px 12px;flex:0 0 auto}
 .stat.ok b{white-space:nowrap;color:var(--green)}
 .stat.streak b{color:var(--coral)}
+.stat.score b{color:var(--catD,#E8892B)}
 .stat.rate b{color:var(--sky)}
 .stat.user{cursor:pointer;transition:transform .12s,background .12s,border-color .12s;width:auto;min-width:58px;padding:6px 12px;flex:0 0 auto}
 .stat.user:hover{border-color:var(--sky);background:rgba(45,156,219,.08)}
