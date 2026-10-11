@@ -100,6 +100,7 @@ function load() {
 }
 
 let DB = load();
+export function reload() { DB = load(); return DB; }
 function save() { try { localStorage.setItem(LS_KEY, JSON.stringify(DB)); } catch { /* storage off */ } }
 
 export function box(id) { return DB.box[id] || 0; }
@@ -368,17 +369,28 @@ export function promote() {
 
 // ---- header + progress-bar numbers ----
 export function stats(words) {
+  const wList = (Array.isArray(words) && words.length > 0) ? words : [];
   let learn = 0, prac = 0, mast = 0;
-  for (const w of words) {
+  for (const w of wList) {
     const b = box(w.id);
     if (b >= 3) mast++; else if (b === 2) prac++; else if (b === 1) learn++;
   }
-  const distinctCorrect = Object.values(DB.stat).filter((s) => s.c > 0).length;
+  // 若單字庫尚未完全載入完成，直接由 DB.box 智能統計
+  if (wList.length === 0 && DB && DB.box) {
+    for (const b of Object.values(DB.box)) {
+      if (b >= 3) mast++; else if (b === 2) prac++; else if (b === 1) learn++;
+    }
+  }
+  const distinctCorrect = Math.max(
+    Object.values(DB.stat || {}).filter((s) => s.c > 0).length,
+    Object.values(DB.box || {}).filter((b) => b >= 2).length
+  );
   const passRate = DB.attempts ? Math.round((DB.correct / DB.attempts) * 100) : 0;
+  const total = wList.length || 2000;
   return {
-    learn, prac, mast, total: words.length,
-    currentLevel: DB.level.current, streak: DB.streak,
-    distinctCorrect, passRate, attempts: DB.attempts, correct: DB.correct,
+    learn, prac, mast, total,
+    currentLevel: (DB.level && DB.level.current) || 1, streak: DB.streak || 0,
+    distinctCorrect, passRate, attempts: DB.attempts || 0, correct: DB.correct || 0,
   };
 }
 

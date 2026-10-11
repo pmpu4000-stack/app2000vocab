@@ -314,6 +314,7 @@ export function peek(word) {
 
 // ---------- header, progress bar, gate banner ----------
 export function renderProgress(s) {
+  if (!s) return;
   const u = localStorage.getItem("current_user");
   const userEl = $("#s-user");
   if (userEl && u) {
@@ -323,7 +324,6 @@ export function renderProgress(s) {
     if (statEl) {
       statEl.title = `目前登入帳號：${u}\n（點擊可查看帳號詳情或切換）`;
     }
-    // 寬度隨帳號名稱長度自適應展開，字體維持清晰易讀
     if (u.length > 16) {
       userEl.style.fontSize = "13px";
     } else if (u.length > 12) {
@@ -334,16 +334,40 @@ export function renderProgress(s) {
   }
   const lvlEl = $("#s-level");
   if (lvlEl) lvlEl.textContent = s.currentLevel;
-  $("#s-correct").textContent = s.distinctCorrect;
-  $("#s-streak").textContent = s.streak;
-  $("#s-rate").textContent = s.passRate + "%";
-  $("#b-learn").style.width = (s.learn / s.total * 100) + "%";
-  $("#b-prac").style.width = (s.prac / s.total * 100) + "%";
-  $("#n-learn").textContent = s.learn; $("#n-prac").textContent = s.prac;
-  $("#n-mast").textContent = s.mast;
+
+  const sCorr = $("#s-correct");
+  if (sCorr) sCorr.textContent = s.distinctCorrect !== undefined ? s.distinctCorrect : 0;
+
+  const sStreak = $("#s-streak");
+  if (sStreak) sStreak.textContent = s.streak !== undefined ? s.streak : 0;
+
+  const sRate = $("#s-rate");
+  if (sRate) sRate.textContent = (s.passRate !== undefined ? s.passRate : 0) + "%";
+
+  const total = s.total || 2000;
+  const bLearn = $("#b-learn");
+  if (bLearn) bLearn.style.width = Math.min(100, Math.max(0, ((s.learn || 0) / total * 100))) + "%";
+
+  const bPrac = $("#b-prac");
+  if (bPrac) bPrac.style.width = Math.min(100, Math.max(0, ((s.prac || 0) / total * 100))) + "%";
+
+  const bMast = $("#b-mast");
+  if (bMast) bMast.style.width = Math.min(100, Math.max(0, ((s.mast || 0) / total * 100))) + "%";
+
+  const nLearn = $("#n-learn");
+  if (nLearn) nLearn.textContent = s.learn || 0;
+
+  const nPrac = $("#n-prac");
+  if (nPrac) nPrac.textContent = s.prac || 0;
+
+  const nMast = $("#n-mast");
+  if (nMast) nMast.textContent = s.mast || 0;
+
   const nCorr = $("#n-correct");
-  if (nCorr) nCorr.textContent = s.distinctCorrect;
-  $("#n-total").textContent = s.total;
+  if (nCorr) nCorr.textContent = s.distinctCorrect !== undefined ? s.distinctCorrect : 0;
+
+  const nTotal = $("#n-total");
+  if (nTotal) nTotal.textContent = total;
 }
 
 export function renderSession(s, goal, onStart, onEnd, customTitle) {

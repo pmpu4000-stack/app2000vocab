@@ -178,6 +178,7 @@ function levelInfo() {
 }
 
 function refreshChrome() {
+  if (typeof window !== "undefined") window.refreshChrome = refreshChrome;
   const taskGoal = (taskState.pool && taskState.pool.length > 0) 
     ? taskState.pool.length 
     : (taskState.task && taskState.task.words ? taskState.task.words.length : DAILY_GOAL);
@@ -916,7 +917,19 @@ ui.onSummary(() => ui.toggleSummary(store.summary(WORDS)));
 
 // ---- boot ----
 (async function boot() {
-  // ── 若今日練習時間已用盡，直接鎖定並呈現進度，不啟動出題與發音 ──
+  // 1. 優先完整載入單字庫，確保各關卡、答對率與學習進度正確計算
+  try {
+    WORDS = await loadWordBank();
+  } catch (e) {
+    document.querySelector("#stage").innerHTML =
+      `<p style="color:var(--coral);font-weight:700">載入單字失敗：${e.message}<br>請用伺服器開啟（見 README）。</p>`;
+    return;
+  }
+
+  // 2. 確保存檔模組與 LocalStorage 最新同步
+  if (typeof store.reload === "function") store.reload();
+
+  // 3. ── 若今日練習時間已用盡，直接鎖定作答並正常呈現學習進度與紀錄 ──
   const isTimeLocked = () => {
     if (typeof window !== "undefined" && window.__dailyUsageTimeIsUp === true) return true;
     const u = localStorage.getItem("current_user");
@@ -937,15 +950,7 @@ ui.onSummary(() => ui.toggleSummary(store.summary(WORDS)));
     if (typeof window !== "undefined" && typeof window.ensureLockdownVisuals === "function") {
       window.ensureLockdownVisuals();
     }
-    console.log("⏰ 帳號今日練習時間已達上限，已略過出題與錄音播放，僅顯示進度與紀錄");
-    return;
-  }
-
-  try {
-    WORDS = await loadWordBank();
-  } catch (e) {
-    document.querySelector("#stage").innerHTML =
-      `<p style="color:var(--coral);font-weight:700">載入單字失敗：${e.message}<br>請用伺服器開啟（見 README）。</p>`;
+    console.log("⏰ 帳號今日練習時間已達上限，已略過出題與錄音播放，正常顯示學習進度與紀錄");
     return;
   }
   // 優先檢查是否有今日指定任務或進行中進度

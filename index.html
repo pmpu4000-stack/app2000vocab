@@ -1081,9 +1081,35 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
     const loginThemeBtn = document.getElementById("btn-login-theme-toggle");
     if (loginThemeBtn) loginThemeBtn.onclick = toggleTheme;
 
-    const sc = document.getElementById("s-correct"); if (sc) sc.textContent = "0";
-    const ss = document.getElementById("s-streak");  if (ss) ss.textContent = "0";
-    const sr = document.getElementById("s-rate");    if (sr) sr.textContent = "0%";
+    // 啟動前優先從本機存檔還原頂端答對字、答對率與連勝數值，防止顯示為 0
+    try {
+      const sa = JSON.parse(localStorage.getItem("spellAgent.v2"));
+      const sc = document.getElementById("s-correct");
+      const ss = document.getElementById("s-streak");
+      const sr = document.getElementById("s-rate");
+      if (sa) {
+        if (sc && sa.stat) {
+          const distinctCorrect = Math.max(
+            Object.values(sa.stat).filter(s => s.c > 0).length,
+            sa.box ? Object.values(sa.box).filter(b => b >= 2).length : 0
+          );
+          sc.textContent = String(distinctCorrect);
+        } else if (sc) sc.textContent = "0";
+
+        if (ss) ss.textContent = String(sa.streak !== undefined ? sa.streak : 0);
+        if (sr) {
+          sr.textContent = (sa.attempts ? Math.round((sa.correct / sa.attempts) * 100) : 0) + "%";
+        } else if (sr) sr.textContent = "0%";
+      } else {
+        if (sc) sc.textContent = "0";
+        if (ss) ss.textContent = "0";
+        if (sr) sr.textContent = "0%";
+      }
+    } catch(_) {
+      const sc = document.getElementById("s-correct"); if (sc) sc.textContent = "0";
+      const ss = document.getElementById("s-streak");  if (ss) ss.textContent = "0";
+      const sr = document.getElementById("s-rate");    if (sr) sr.textContent = "0%";
+    }
 
     // 點擊「登入帳號」欄位可確認資訊或切換登出
     const statUser = document.getElementById("stat-user");
@@ -2034,8 +2060,6 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
       if (card && card.style.display !== "none") card.style.display = "none";
       const modes = document.getElementById("modes");
       if (modes && modes.style.display !== "none") modes.style.display = "none";
-      const levelbar = document.getElementById("levelbar");
-      if (levelbar && levelbar.style.display !== "none") levelbar.style.display = "none";
       const banner = document.getElementById("banner");
       if (banner && banner.style.display !== "none") banner.style.display = "none";
       const session = document.getElementById("session");
@@ -2043,10 +2067,27 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 
       const limitCard = document.getElementById("daily-limit-reached-card");
       if (limitCard && limitCard.style.display !== "block") limitCard.style.display = "block";
+
+      // 各關卡進度與整體學習進度維持正常顯示，關卡點擊作答則自動鎖定
+      const levelbar = document.getElementById("levelbar");
+      if (levelbar) {
+        levelbar.style.display = "flex";
+        levelbar.style.pointerEvents = "none";
+        levelbar.style.opacity = "0.9";
+      }
+
+      const progressSec = document.querySelector("section.progress");
+      if (progressSec && progressSec.style.display !== "block") progressSec.style.display = "block";
+
+      // 確保頂部數值（答對字、答對率）與進度條即時更新
+      if (typeof window.refreshChrome === "function") {
+        window.refreshChrome();
+      }
     }
 
     function applyDailyUsageLockdown() {
       dailyUsageState.isLockedDown = true;
+      window.__dailyUsageTimeIsUp = true;
       console.log("⏰ 每日練習時間已達上限，進入進度保留與作答鎖定模式");
 
       ensureLockdownVisuals();
@@ -2070,16 +2111,11 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
       const progressSec = document.querySelector("section.progress");
       if (progressSec) {
         progressSec.style.display = "block";
-        progressSec.style.border = "2px solid #3b82f6";
-        progressSec.style.borderRadius = "16px";
-        progressSec.style.padding = "16px";
-        progressSec.style.background = "rgba(59, 130, 246, 0.05)";
       }
 
-      const summarySec = document.getElementById("summary");
-      if (summarySec && summarySec.hasAttribute("hidden")) {
-        const sumBtn = document.getElementById("sumBtn");
-        if (sumBtn) sumBtn.click();
+      // ★ 核心修復：時間截止時，立即呼叫 refreshChrome 刷新學習進度與頂部數值（答對字、答對率）！
+      if (typeof window.refreshChrome === "function") {
+        window.refreshChrome();
       }
 
       if (window.uploadLocalStorageData) {
@@ -2111,7 +2147,7 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 
       if (card) card.style.display = "";
       if (modes) modes.style.display = "";
-      if (levelbar) levelbar.style.display = "";
+      if (levelbar) { levelbar.style.display = ""; levelbar.style.pointerEvents = ""; levelbar.style.opacity = ""; }
       if (banner) banner.style.display = "";
       if (session) session.style.display = "";
 
