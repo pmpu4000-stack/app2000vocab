@@ -1443,9 +1443,39 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 
     // 上傳 LocalStorage 紀錄至 Google 試算表（含防連點、憑證重登入與容量防護）
     let isUploading = false;
-    async function uploadLocalStorageData(isSilent = false) {
+    let hasPendingUpload = false;
+    let uploadDebounceTimer = null;
+
+    /**
+     * 🚀 智慧分層上傳機制 (Tiered & Debounced Upload Architecture)：
+     * 1. 本地 LocalStorage 永遠零延遲即時寫入，絕對保障中途作答進度。
+     * 2. 背景靜默自動同步 (isSilent=true, immediate=false)：
+     *    採用 2.5 秒智慧防抖 (Debounce)，作答中不頻繁發起多餘網路請求，大幅降低等待時間與頻寬壓力！
+     * 3. 測驗交卷與手動上傳 (immediate=true)：
+     *    立即解除防抖，最高優先級立即送出，並給予即時回饋。
+     * 4. 併發防護與自動補單 (hasPendingUpload)：
+     *    若前次請求傳輸中又有新進度，自動排程於完成後補送，進度 100% 完整無遺漏。
+     * 5. 頁面卸載背景存檔 (keepalive: true)：
+     *    切頁或直接關閉時，瀏覽器底層確保資料送達，學生無須在頁面乾等。
+     */
+    async function uploadLocalStorageData(isSilent = false, immediate = false) {
+      if (isSilent && !immediate) {
+        if (uploadDebounceTimer) clearTimeout(uploadDebounceTimer);
+        uploadDebounceTimer = setTimeout(() => {
+          uploadDebounceTimer = null;
+          uploadLocalStorageData(true, true);
+        }, 2500);
+        return;
+      }
+
+      if (uploadDebounceTimer) {
+        clearTimeout(uploadDebounceTimer);
+        uploadDebounceTimer = null;
+      }
+
       if (isUploading) {
-        if (!isSilent) console.log("資料同步中，請稍候...");
+        hasPendingUpload = true;
+        if (!isSilent) console.log("資料同步中，最新進度將自動接續排程送出...");
         return;
       }
       isUploading = true;
@@ -1463,7 +1493,6 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
         return;
       }
 
-            // 若密碼憑證遺失（如重新開啟分頁或未登入），背景自動同步直接靜默退出，不彈窗騷擾
       if (!currentPass) {
         isUploading = false;
         if (!isSilent) {
@@ -1474,11 +1503,9 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
         return;
       }
 
-      // 1. 開始上傳：將圖示切換為等待圖案 ⏳
       const iconEl = document.getElementById("s-upload");
-      if (iconEl) iconEl.textContent = "⏳";
+      if (iconEl && !isSilent) iconEl.textContent = "⏳";
 
-      // 僅上傳遊戲與測驗相關之關鍵資料，防範無關快取污染與超出資料大小限制
       const allowedPrefixes = ["spellAgent", "today_task", "task_done", "task_words", "student_task_history", "current_user", "user_role"];
       const localData = {};
       for (let i = 0; i < localStorage.length; i++) {
@@ -1488,11 +1515,9 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
         }
       }
 
-      // 取出今日指定任務成績摘要 (若有)
       let todayTaskSummary = null;
       let inProgressTask = null;
 
-      // 1. 先檢查是否有進行中的中途進度（中途存檔不代表作答結束）
       const rawProgress = localStorage.getItem("today_task_in_progress");
       if (rawProgress) {
         try {
@@ -1507,7 +1532,7 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
               score      : prog.correct || 0,
               total      : prog.pool.length,
               rate       : "—",
-              completed  : false, // ⚠️ 標記為未完成，防止鎖定
+              completed  : false,
               inProgress : true,
               date       : prog.date || "",
               wrongWords : prog.wrongWords || [],
@@ -1517,7 +1542,6 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
         } catch(_) {}
       }
 
-      // 2. 若無中途進度，檢查是否有當日已完成的成績摘要 (防禦：舊日成績不誤傳)
       if (!todayTaskSummary) {
         try {
           const rawSum = localStorage.getItem("today_task_summary");
@@ -1543,6 +1567,7 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
         let response = await fetch(scriptUrl, {
           method: "POST",
           headers: { "Content-Type": "text/plain;charset=utf-8" },
+          keepalive: true,
           body: JSON.stringify({ 
             action           : "saveRecord", 
             username         : currentUser, 
@@ -1569,21 +1594,39 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
             }
           }
         } else {
-          if (iconEl) iconEl.textContent = "❌";
+          if (iconEl && !isSilent) iconEl.textContent = "❌";
           setTimeout(() => { if (iconEl) iconEl.textContent = "🌱"; }, 2500);
           if (!isSilent) alert("儲存失敗：" + (result.message || "未知原因"));
         }
       } catch (err) {
         console.error("上傳失敗：", err);
-        if (iconEl) iconEl.textContent = "❌";
+        if (iconEl && !isSilent) iconEl.textContent = "❌";
         setTimeout(() => { if (iconEl) iconEl.textContent = "🌱"; }, 2500);
         if (!isSilent) alert("連線失敗，請檢查網路。");
       } finally {
         isUploading = false;
+        if (hasPendingUpload) {
+          hasPendingUpload = false;
+          setTimeout(() => uploadLocalStorageData(true, true), 100);
+        }
       }
     }
 
-    // 暴露全域給 app.js 與按鈕點擊呼叫
+    // 頁面卸載時自動觸發安全背景同步
+    window.addEventListener("pagehide", () => {
+      if (uploadDebounceTimer) {
+        clearTimeout(uploadDebounceTimer);
+        uploadDebounceTimer = null;
+      }
+      try {
+        const u = localStorage.getItem("current_user");
+        const p = sessionStorage.getItem("current_pass");
+        if (u && p) {
+          uploadLocalStorageData(true, true);
+        }
+      } catch(_) {}
+    });
+
     window.uploadLocalStorageData = uploadLocalStorageData;
 
     // 立即綁定按鈕點擊事件（無論是否登入皆即刻綁定）
@@ -1605,6 +1648,24 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
     async function loadPickerData() {
       if (pickerWords.length > 0) return;
       try {
+        const cacheName = "spelling-vocab-cache-v1";
+        let wJson = null, mJson = null;
+        if (typeof window !== "undefined" && "caches" in window) {
+          try {
+            const cache = await caches.open(cacheName);
+            const [cw, cm] = await Promise.all([
+              cache.match("data/words2000.json"),
+              cache.match("data/meanings.json")
+            ]);
+            if (cw) wJson = await cw.json();
+            if (cm) mJson = await cm.json();
+          } catch(_) {}
+        }
+        if (wJson) {
+          pickerWords = wJson;
+          if (mJson) pickerMeanings = mJson;
+          return;
+        }
         const [wRes, mRes] = await Promise.all([
           fetch("data/words2000.json"),
           fetch("data/meanings.json").catch(() => null)

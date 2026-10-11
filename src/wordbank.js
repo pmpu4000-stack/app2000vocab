@@ -16,6 +16,41 @@ function maskFromTrap(len, trap) {
   return m;
 }
 
+// 瀏覽器原生 CacheStorage 快取層：首次下載後本機零延遲讀取，大幅降低等待時間
+async function fetchWithCache(url, isOptional = false) {
+  const cacheName = "spelling-vocab-cache-v1";
+  if (typeof window !== "undefined" && "caches" in window) {
+    try {
+      const cache = await caches.open(cacheName);
+      const cachedResp = await cache.match(url);
+      if (cachedResp) {
+        // 背景非同步檢查更新，不阻礙前景即刻使用
+        fetch(url).then(async (freshResp) => {
+          if (freshResp && freshResp.ok) {
+            await cache.put(url, freshResp.clone());
+          }
+        }).catch(() => {});
+        return await cachedResp.json();
+      }
+      const netResp = await fetch(url);
+      if (!netResp.ok) {
+        if (isOptional) return {};
+        throw new Error(url + " " + netResp.status);
+      }
+      await cache.put(url, netResp.clone());
+      return await netResp.json();
+    } catch(e) {
+      console.warn("CacheStorage fallback to network:", e);
+    }
+  }
+  const r = await fetch(url);
+  if (!r.ok) {
+    if (isOptional) return {};
+    throw new Error(url + " " + r.status);
+  }
+  return await r.json();
+}
+
 let _wordBankPromise = null;
 
 // A word object:
@@ -25,11 +60,8 @@ export function loadWordBank() {
   if (!_wordBankPromise) {
     _wordBankPromise = (async () => {
       const [bank, meanings] = await Promise.all([
-        fetch("data/words2000.json").then((r) => {
-          if (!r.ok) throw new Error("words2000.json " + r.status);
-          return r.json();
-        }),
-        fetch("data/meanings.json").then((r) => (r.ok ? r.json() : {})).catch(() => ({})),
+        fetchWithCache("data/words2000.json"),
+        fetchWithCache("data/meanings.json", true)
       ]);
 
       return bank.map((entry, i) => {

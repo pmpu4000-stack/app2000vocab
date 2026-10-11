@@ -56,7 +56,7 @@ function persistTaskProgress() {
 
     // 每題作答完畢立即自動背景同步上傳雲端（斷線防護！）
     if (typeof window.uploadLocalStorageData === "function") {
-      window.uploadLocalStorageData(true);
+      window.uploadLocalStorageData(true, false);
     }
   } catch(e) {
     console.error("persistTaskProgress error:", e);
@@ -937,9 +937,9 @@ function finishTaskMode() {
     newRound();
   });
 
-  // 自動觸發背景靜默同步上傳
+  // 自動觸發背景靜默同步上傳（交卷最高優先級立即送出）
   if (typeof window.uploadLocalStorageData === "function") {
-    window.uploadLocalStorageData(true);
+    window.uploadLocalStorageData(true, true);
   }
 }
 

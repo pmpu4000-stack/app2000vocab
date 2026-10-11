@@ -11,8 +11,8 @@
 
 const SYS = {
   CACHE_OVERVIEW_KEY : "class_overview_v41",
-  CACHE_OVERVIEW_TTL : 300,
-  CACHE_AUTH_TTL     : 300,
+  CACHE_OVERVIEW_TTL : 600,
+  CACHE_AUTH_TTL     : 1800,
   LOGIN_MAX_FAIL     : 5,
   LOGIN_LOCK_SEC     : 600,
   MAX_JSON_BYTES     : 500000,
