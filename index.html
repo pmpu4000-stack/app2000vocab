@@ -5,49 +5,389 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>拼字小特工 · Spelling Agent</title>
   <link rel="stylesheet" href="css/styles.css">
+  <style id="embedded-vocab-tutor-theme">
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --paper:#F6F7FB; --card:#FFFFFF; --ink:#232A4D; --ink2:#5A6183; --ink3:#9AA0BD;
+  --violet:#6C4CE0; --violet-d:#573BC4; --marker:#FFD84D; --marker-soft:#FFF0B3;
+  --green:#2FB47C; --green-d:#1E9A66; --coral:#FF6B6B; --sky:#2D9CDB;
+  --line:#E7E9F5; --shadow:0 10px 30px -12px rgba(35,42,77,.28);
+  --catA:#6C4CE0; --catB:#E0567B; --catC:#2FB47C; --catD:#E8892B; --catE:#2D9CDB; --catF:#8A5BD6;
+}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:ui-rounded,"SF Pro Rounded","Hiragino Maru Gothic ProN","Nunito","PingFang TC",system-ui,sans-serif;
+  background:
+    radial-gradient(1200px 600px at 15% -10%, #ECE7FF 0%, transparent 55%),
+    radial-gradient(1000px 500px at 100% 0%, #E4F6EF 0%, transparent 50%),
+    var(--paper);
+  color:var(--ink); min-height:100vh; line-height:1.5;
+  padding:18px 16px 40px; display:flex; justify-content:center;
+}
+.app{width:100%; max-width:740px}
+.tnum{font-variant-numeric:tabular-nums}
+
+/* ---------- header ---------- */
+header{display:flex; align-items:center; gap:14px; margin-bottom:16px}
+.logo{width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,var(--violet),#9a7bff);
+  display:grid;place-items:center;color:#fff;font-weight:800;font-size:26px;box-shadow:var(--shadow);flex:none;
+  transform:rotate(-4deg)}
+.title h1{font-size:22px;font-weight:800;letter-spacing:.2px;line-height:1.1}
+.title p{font-size:12.5px;color:var(--ink2);font-weight:600}
+.stats{margin-left:auto;display:flex;gap:8px;align-items:stretch}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:6px 12px;text-align:center;min-width:58px;width:auto;box-shadow:0 2px 0 var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;box-sizing:border-box;flex:0 0 auto;height:52px}
+.stat b{display:flex;align-items:center;justify-content:center;height:22px;font-size:18px;font-weight:800;line-height:22px;white-space:nowrap}
+.stat span{display:flex;align-items:center;justify-content:center;height:14px;margin-top:2px;font-size:10px;color:var(--ink3);font-weight:700;letter-spacing:.4px;text-transform:uppercase;white-space:nowrap;line-height:14px}
+.stat.upload b{font-size:18px}
+.stat.ok{width:auto;min-width:58px;padding:6px 12px;flex:0 0 auto}
+.stat.ok b{white-space:nowrap;color:var(--green)}
+.stat.streak b{color:var(--coral)}
+.stat.rate b{color:var(--sky)}
+.stat.user{cursor:pointer;transition:transform .12s,background .12s,border-color .12s;width:auto;min-width:58px;padding:6px 12px;flex:0 0 auto}
+.stat.user:hover{border-color:var(--sky);background:rgba(45,156,219,.08)}
+.stat.user b{color:var(--sky);white-space:nowrap}
+.stat.user span{white-space:nowrap}
+
+/* ---------- category chips ---------- */
+.cats{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 8px;margin-bottom:6px;scrollbar-width:none}
+.cats::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1.5px solid var(--line);background:var(--card);border-radius:999px;
+  padding:8px 14px;font-size:13px;font-weight:700;color:var(--ink2);cursor:pointer;white-space:nowrap;
+  display:flex;align-items:center;gap:7px;transition:transform .12s, box-shadow .12s, border-color .12s}
+.chip .dot{width:9px;height:9px;border-radius:50%}
+.chip:hover{transform:translateY(-1px)}
+.chip[aria-pressed="true"]{color:#fff;border-color:transparent;box-shadow:var(--shadow)}
+.chip[data-c="all"][aria-pressed="true"]{background:var(--ink)}
+.chip[data-c="A"][aria-pressed="true"]{background:var(--catA)} .chip[data-c="B"][aria-pressed="true"]{background:var(--catB)}
+.chip[data-c="C"][aria-pressed="true"]{background:var(--catC)} .chip[data-c="D"][aria-pressed="true"]{background:var(--catD)}
+.chip[data-c="E"][aria-pressed="true"]{background:var(--catE)} .chip[data-c="F"][aria-pressed="true"]{background:var(--catF)}
+
+/* ---------- mode tabs ---------- */
+.modes{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:8px 0 14px}
+.mode{border:1.5px solid var(--line);background:var(--card);border-radius:13px;padding:9px 4px;cursor:pointer;
+  text-align:center;font-weight:700;color:var(--ink2);font-size:12px;transition:transform .12s,border-color .12s,background .12s}
+.mode .ic{font-size:20px;display:block;line-height:1.3}
+.mode:hover{transform:translateY(-1px)}
+.mode[aria-pressed="true"]{border-color:var(--violet);background:#F1EDFF;color:var(--violet-d)}
+
+/* ---------- practice card ---------- */
+.card{background:var(--card);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);
+  padding:24px 22px 22px;position:relative;overflow:hidden;min-height:360px;display:flex;flex-direction:column}
+.card::before{content:"";position:absolute;inset:0 0 auto 0;height:6px;
+  background:linear-gradient(90deg,var(--catA),var(--catB),var(--catC),var(--catD),var(--catE))}
+.prompt-row{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.catlabel{font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;padding:4px 10px;border-radius:999px;color:#fff}
+.modehint{font-size:12.5px;color:var(--ink2);font-weight:600;margin-left:auto;text-align:right}
+.zh{margin:10px 0 4px}
+.zh-row{display:flex;align-items:center;gap:10px}
+.word-speech-btn{width:38px;height:38px;min-width:38px;border-radius:11px;border:1.5px solid rgba(45,156,219,.4);
+  background:radial-gradient(circle at 35% 30%, #4bb6ec, var(--sky));color:#fff;font-size:18px;display:inline-flex;align-items:center;
+  justify-content:center;cursor:pointer;box-shadow:0 3px 8px rgba(45,156,219,.3);transition:transform .12s,box-shadow .12s;
+  user-select:none;flex-shrink:0}
+.word-speech-btn:hover{transform:scale(1.05);box-shadow:0 4px 12px rgba(45,156,219,.4)}
+.word-speech-btn:active,.word-speech-btn.playing{transform:scale(.92)}
+.zh-text{font-size:15px;color:var(--ink2);font-weight:700;line-height:1.4}
+.zh-text b{color:var(--ink)}
+.zh .phon{color:var(--sky);font-weight:700;font-size:13px;font-family:ui-monospace,"SF Mono",monospace}
+
+.sent{font-size:14px;color:var(--ink3);font-weight:600;min-height:20px;margin-top:6px}
+.sents-vertical-list{display:flex;flex-direction:column;gap:8px;margin:4px 0 10px;width:100%}
+.sent-row{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:12px;
+  background:#F8F9FD;border:1px solid var(--line);transition:background .15s,border-color .15s}
+.sent-row:hover{background:#F1F3FB;border-color:rgba(108,76,224,.3)}
+.sent-row.playing{background:#EEF7FF;border-color:var(--sky)}
+
+.sent-speaker-btn{width:38px;height:38px;min-width:38px;border-radius:11px;border:1.5px solid;
+  font-size:17px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;
+  user-select:none;transition:transform .12s,box-shadow .12s;flex-shrink:0}
+.sent-speaker-btn:hover{transform:scale(1.06)}
+.sent-speaker-btn:active,.sent-speaker-btn.playing{transform:scale(.92)}
+.sent-speaker-btn.level-simple{background:rgba(47,180,124,.12);border-color:rgba(47,180,124,.5);color:var(--green-d)}
+.sent-speaker-btn.level-normal{background:rgba(45,156,219,.12);border-color:rgba(45,156,219,.5);color:var(--sky)}
+.sent-speaker-btn.level-advanced{background:rgba(108,76,224,.12);border-color:rgba(108,76,224,.5);color:var(--violet)}
+
+.sent-text-wrap{flex:1;min-width:0;text-align:left;cursor:pointer;padding-left:2px}
+.sent-en{font-size:14px;line-height:1.42;color:var(--ink);font-weight:600;word-break:break-word}
+.sent-en u{text-decoration:none;background:var(--marker-soft);padding:1px 5px;border-radius:5px;color:var(--ink);font-weight:800;letter-spacing:.5px}
+.sent-zh{font-size:12.5px;line-height:1.35;color:var(--ink3);margin-top:2px;font-weight:normal}
+
+.stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:6px 0}
+.stage-prompt-row{display:flex;align-items:center;justify-content:center;gap:8px}
+.stage-sound-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:999px;
+  border:1.5px solid var(--line);background:var(--card);color:var(--ink2);font-size:13px;font-weight:700;
+  cursor:pointer;transition:all .15s}
+.stage-sound-btn:hover{border-color:var(--sky);color:var(--sky);background:#F1F8FC}
+.stage-sound-btn:active{transform:scale(.96)}
+
+/* tiles */
+.tiles{display:flex;flex-wrap:wrap;gap:7px;justify-content:center}
+.tile{width:44px;height:52px;border-radius:11px;display:grid;place-items:center;font-size:25px;font-weight:800;
+  text-transform:lowercase;background:#F3F1FB;border:2px solid #E4DFFa;color:var(--ink)}
+.tile.blank{background:#FFFCF0;border:2.5px dashed #EEC53C}
+.tile.blank input{width:100%;height:100%;border:none;background:none;text-align:center;font:inherit;font-size:25px;
+  font-weight:800;color:var(--violet-d);outline:none;text-transform:lowercase}
+.tile.trap{background:var(--marker);border-color:#E9C02F;box-shadow:0 3px 0 #E4B93B}
+.tile.ok{background:#E4F7EE;border-color:var(--green);color:var(--green-d)}
+.tile.bad{background:#FFE9E9;border-color:var(--coral);color:#D64545}
+
+.spellbox{width:100%;max-width:420px;font-family:ui-rounded,"SF Mono",inherit;font-size:30px;font-weight:800;
+  text-align:center;letter-spacing:8px;padding:14px 12px;border-radius:16px;border:2.5px solid var(--line);
+  background:#FBFBFE;color:var(--ink);outline:none;text-transform:lowercase}
+.spellbox:focus{border-color:var(--violet);background:#fff;box-shadow:0 0 0 4px #EDE7FF}
+.spellbox.ok{border-color:var(--green);background:#F1FBF6} .spellbox.bad{border-color:var(--coral);background:#FFF4F4}
+
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:420px}
+.opt{padding:14px;border-radius:14px;border:2px solid var(--line);background:#FBFBFE;font-size:22px;font-weight:800;
+  cursor:pointer;color:var(--ink);font-family:inherit;transition:transform .1s,border-color .1s}
+.opt:hover{transform:translateY(-2px);border-color:var(--sky)}
+.opt.ok{border-color:var(--green);background:#EFFAF4;color:var(--green-d)}
+.opt.bad{border-color:var(--coral);background:#FFF1F1;color:#D64545}
+
+/* feedback + actions */
+.feedback{min-height:26px;text-align:center;font-weight:800;font-size:16px}
+.feedback.ok{color:var(--green-d)} .feedback.bad{color:var(--coral)}
+.reveal{text-align:center;font-size:30px;font-weight:800;letter-spacing:1px;min-height:20px}
+.reveal .hl{background:linear-gradient(transparent 55%, var(--marker) 55%);padding:0 2px;border-radius:3px}
+.actions{display:flex;gap:10px;margin-top:14px}
+.btn{flex:1;border:none;border-radius:15px;padding:15px;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit;
+  transition:transform .1s,box-shadow .1s}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:linear-gradient(135deg,var(--violet),#8a6bf0);color:#fff;box-shadow:0 8px 18px -8px var(--violet)}
+.btn.go{background:linear-gradient(135deg,var(--green),#41c98a);color:#fff;box-shadow:0 8px 18px -8px var(--green)}
+.btn.ghost{flex:none;background:#F1F1F8;color:var(--ink2);min-width:64px}
+.btn:disabled{opacity:.4;cursor:default}
+
+/* progress footer */
+.progress{margin-top:18px;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px 18px;box-shadow:var(--shadow)}
+.progress h3{font-size:13px;text-transform:uppercase;letter-spacing:.6px;color:var(--ink3);margin-bottom:10px;display:flex;justify-content:space-between}
+.progress h3 a{color:var(--violet);font-size:11px;cursor:pointer;text-decoration:underline;font-weight:700}
+.bar{height:14px;border-radius:8px;background:#EEEFF7;overflow:hidden;display:flex}
+.bar i{display:block;height:100%}
+.bar .learn{background:#D9D5F2} .bar .prac{background:#B9E8D3} .bar .mast{background:var(--green)}
+.legend{display:flex;gap:16px;margin-top:10px;font-size:12px;color:var(--ink2);font-weight:700;flex-wrap:wrap}
+.legend span{display:flex;align-items:center;gap:6px} .legend i{width:11px;height:11px;border-radius:3px;display:inline-block}
+
+.foot{text-align:center;font-size:12px;color:var(--ink3);margin-top:18px;font-weight:600;line-height:1.7}
+
+canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
+@keyframes pop{0%{transform:scale(.7)}60%{transform:scale(1.12)}100%{transform:scale(1)}}
+.pop{animation:pop .32s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+.shake{animation:shake .3s}
+
+/* summary panel */
+.summary{margin-top:14px;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:18px;box-shadow:var(--shadow)}
+.summary:empty{display:none !important}
+.summary-embedded{margin-top:14px;padding-top:14px;border-top:1px dashed var(--line)}
+.summary-embedded:empty{display:none !important}
+.summary-embedded h3, .summary h3{display:flex;justify-content:space-between;align-items:center;font-size:15px;font-weight:800;margin-bottom:12px}
+.summary-embedded h3 a, .summary h3 a{font-size:12px;color:var(--ink3);cursor:pointer;text-decoration:underline;font-weight:700}
+.bigrate{display:none !important}
+.subh{font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--ink3);font-weight:800;margin:16px 0 8px}
+.chips-wrap{display:flex;flex-wrap:wrap;gap:6px}
+.wchip{font-size:13px;font-weight:700;padding:5px 10px;border-radius:8px;background:#F1F0FA;color:var(--ink)}
+.wchip.fixed{background:var(--marker-soft)}
+.sumtable{width:100%;border-collapse:collapse;font-size:13px}
+.sumtable td{padding:5px 0;border-bottom:1px solid var(--line);color:var(--ink2);font-weight:700}
+.sumtable td:last-child{text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
+.streakline{font-size:14px;font-weight:800;color:var(--ink2);margin-bottom:8px}
+.streakline b{color:var(--catD);font-variant-numeric:tabular-nums}
+.heatmap{display:grid;grid-template-columns:repeat(14,1fr);gap:4px;max-width:380px}
+.hc{width:100%;aspect-ratio:1;border-radius:4px;background:#EEEFF7}
+.hc.h1{background:#C7EBD9} .hc.h2{background:#79D2A9} .hc.h3{background:var(--green)}
+.defs{font-size:11.5px;color:var(--ink3);margin-top:8px;font-weight:600;line-height:1.6}
+.defs b{color:var(--ink2)}
+
+.stat.rate b{color:var(--sky)}
+
+/* ---------- today's session ---------- */
+.session{display:none !important;}
+
+/* ---------- level bar ---------- */
+.levelbar{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 10px;scrollbar-width:none}
+.levelbar::-webkit-scrollbar{display:none}
+.lvchip{flex:1;min-width:112px;border:1.5px solid var(--line);background:var(--card);border-radius:15px;
+  padding:9px 12px;cursor:pointer;text-align:left;transition:transform .12s,box-shadow .12s;position:relative;box-shadow:0 2px 0 var(--line)}
+.lvchip:hover{transform:translateY(-1px)}
+.lvchip .lvn{font-size:11px;font-weight:800;letter-spacing:.4px;color:var(--ink3)}
+.lvchip .lvname{font-size:14px;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:5px}
+.lvchip .lvbar{height:5px;border-radius:3px;background:#EEEFF7;margin-top:6px;overflow:hidden}
+.lvchip .lvbar i{display:block;height:100%;background:var(--green)}
+.lvchip[data-state="current"]{border-color:transparent;box-shadow:0 6px 18px -8px rgba(35,42,77,.4);color:#fff}
+.lvchip[data-state="current"] .lvn,.lvchip[data-state="current"] .lvname{color:#fff}
+.lvchip[data-state="current"] .lvbar{background:rgba(255,255,255,.35)}
+.lvchip[data-state="current"] .lvbar i{background:#fff}
+.lvchip[data-state="locked"]{opacity:.5;cursor:not-allowed;background:#F4F4F8}
+.lvchip[data-state="locked"] .lvname{color:var(--ink3)}
+
+/* ---------- gate banner ---------- */
+.banner{margin-top:12px}
+.banner .gate{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);
+  border-radius:16px;padding:12px 16px;box-shadow:var(--shadow)}
+.banner .gate .info{font-size:13px;font-weight:700;color:var(--ink2);line-height:1.4}
+.banner .gate .info b{color:var(--ink)}
+.banner .gate .meter{height:8px;border-radius:5px;background:#EEEFF7;overflow:hidden;margin-top:6px;max-width:260px}
+.banner .gate .meter i{display:block;height:100%;background:var(--green);transition:width .3s}
+.banner .challenge{margin-left:auto;flex:none;border:none;border-radius:13px;padding:12px 18px;font-weight:800;
+  font-size:14px;font-family:inherit;cursor:pointer;color:#fff;white-space:nowrap;
+  background:linear-gradient(135deg,var(--marker),#f5a623);box-shadow:0 8px 18px -8px #E9A200;color:#5b4300}
+.banner .challenge:disabled{background:#ECECF3;color:var(--ink3);box-shadow:none;cursor:default}
+
+/* ---------- quiz screen ---------- */
+.quizcard{min-height:420px}
+.quizhead{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:800;margin-bottom:4px}
+.quizhead .pill{font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:#fff;padding:4px 10px;border-radius:999px}
+.quizhead .count{margin-left:auto;font-size:13px;color:var(--ink3);font-weight:700}
+.quizprog{height:8px;border-radius:5px;background:#EEEFF7;overflow:hidden;margin:10px 0}
+.quizprog i{display:block;height:100%;background:linear-gradient(90deg,var(--violet),#8a6bf0);transition:width .3s;width:0}
+.quizq{font-size:14px;color:var(--ink2);font-weight:700;text-align:center;margin-bottom:4px}
+.result{text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px;justify-content:center;flex:1}
+.result .big{font-size:52px}
+.result .headline{font-size:22px;font-weight:800}
+.result .sub{font-size:15px;color:var(--ink2);font-weight:700}
+.result .lvpill{font-size:20px;font-weight:800;color:#fff;padding:8px 20px;border-radius:999px}
+
+/* Teacher Daily Task Quiz Section */
+.task-history-card{background:#F8F9FD;border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:10px 0 16px}
+.task-history-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.task-date-selector{background:#FFFFFF;border:1.5px solid var(--line);color:var(--ink);padding:6px 10px;border-radius:8px;font-size:13px;font-weight:700;outline:none;cursor:pointer}
+.task-score-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:12px}
+.task-score-item{background:#FFFFFF;border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center}
+.task-score-val{font-size:20px;font-weight:800;line-height:1.2}
+.task-words-container{margin-top:10px}
+.word-pill-tag{display:inline-flex;align-items:center;gap:3px;padding:3px 7px;border-radius:5px;font-size:11.5px;font-weight:700;margin:2px}
+.word-pill-tag.correct{background:#E4F7EE;color:var(--green-d);border:1px solid rgba(47,180,124,.3)}
+.word-pill-tag.wrong{background:#FFE9E9;color:#D64545;border:1px solid rgba(255,107,107,.4);font-weight:700}
+.word-pill-tag.neutral{background:#F1F1F8;color:var(--ink2);border:1px solid var(--line)}
+
+/* Date Navigator Bar & Word Split Areas */
+.date-navigator-card{background:linear-gradient(135deg,#F1EDFF,#F8F9FD);border:1.5px solid #E4DFFa;border-radius:14px;padding:12px 16px;margin:12px 0 16px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
+.date-nav-left{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.date-nav-right{display:flex;align-items:center;gap:6px}
+.date-picker-input{background:#FFFFFF;border:1.5px solid var(--sky);color:var(--ink);padding:5px 10px;border-radius:8px;font-size:13px;font-weight:700;outline:none;cursor:pointer}
+.date-nav-btn{background:#FFFFFF;border:1px solid var(--line);color:var(--ink);padding:5px 11px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s}
+.date-nav-btn:hover{background:#F1F8FC;border-color:var(--sky);color:var(--sky)}
+.date-nav-btn.today-btn{background:#EDF8FD;border-color:rgba(45,156,219,.4);color:var(--sky)}
+.date-nav-btn.today-btn:hover{background:var(--sky);color:#FFFFFF}
+.word-split-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+@media (max-width:640px){.word-split-grid{grid-template-columns:1fr}}
+.word-split-box{border-radius:12px;padding:12px 14px}
+.word-split-box.correct-box{background:#F1FBF6;border:1px solid rgba(47,180,124,.3)}
+.word-split-box.wrong-box{background:#FFF5F5;border:1px solid rgba(255,107,107,.3)}
+.word-split-title{font-size:12.5px;font-weight:800;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.word-split-title.correct-title{color:var(--green-d)}
+.word-split-title.wrong-title{color:#D64545}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:520px){
+  .stats{width:100%;margin:8px 0 0;flex-wrap:wrap;justify-content:center;gap:6px} header{flex-wrap:wrap}
+  .title h1{font-size:20px} .tile{width:40px;height:48px;font-size:22px}
+  .lvchip{min-width:96px} .banner .gate{flex-wrap:wrap} .banner .challenge{margin-left:0;width:100%}
+  .sent-row{padding:6px 8px;gap:8px}
+  .sent-speaker-btn{width:34px;height:34px;min-width:34px;font-size:15px}
+  .sent-en{font-size:13px}
+  .sent-zh{font-size:11.5px}
+  .word-speech-btn{width:34px;height:34px;min-width:34px;font-size:16px}
+}
+
+/* ============================================================
+   Teacher & Management Modals (vocab_tutor Bright Theme)
+   ============================================================ */
+#teacherTaskModal, #timeManagementModal {
+  background: rgba(35, 42, 77, 0.45) !important;
+  backdrop-filter: blur(8px) !important;
+}
+#teacherTaskModal > div, #timeManagementModal > div {
+  background: #FFFFFF !important;
+  border: 1.5px solid #E7E9F5 !important;
+  border-radius: 24px !important;
+  box-shadow: 0 24px 60px -10px rgba(35, 42, 77, 0.22) !important;
+  color: var(--ink) !important;
+}
+#teacherTaskModal h3, #timeManagementModal h3 {
+  color: var(--ink) !important;
+  font-weight: 800 !important;
+}
+#teacherTaskModal p, #timeManagementModal p {
+  color: var(--ink2) !important;
+}
+#teacherTaskModal input, #teacherTaskModal select,
+#timeManagementModal input, #timeManagementModal select {
+  background: #F6F7FB !important;
+  border: 1.5px solid #E7E9F5 !important;
+  color: var(--ink) !important;
+  border-radius: 10px !important;
+}
+#teacherTaskModal input:focus, #teacherTaskModal select:focus,
+#timeManagementModal input:focus, #timeManagementModal select:focus {
+  border-color: var(--violet) !important;
+  background: #FFFFFF !important;
+}
+#teacherTaskModal label, #timeManagementModal label {
+  color: var(--ink2) !important;
+  font-weight: 700 !important;
+}
+#teacherTaskModal #t-word-grid,
+#teacherTaskModal #t-preview-tags,
+#timeManagementModal #tm-student-rules-list,
+#timeManagementModal #tm-rules-list {
+  background: #F6F7FB !important;
+  border: 1px solid #E7E9F5 !important;
+}
+#teacherTaskModal #btnCloseTeacherModal,
+#timeManagementModal #btnCloseTimeModal {
+  color: var(--ink3) !important;
+}
+#teacherTaskModal #btnCloseTeacherModal:hover,
+#timeManagementModal #btnCloseTimeModal:hover {
+  color: var(--coral) !important;
+}
+
+
+  </style>
 </head>
 <body>
 
   <!-- 登入驗證遮罩 -->
-  <div id="login-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#0f1117; z-index:9999; display:flex; justify-content:center; align-items:center;">
-    <div style="background:#1a1d2e; padding:32px; border-radius:16px; box-shadow:0 8px 30px rgba(0,0,0,0.5); width:320px; text-align:center; border:1px solid #2a2e42;">
-      <div style="font-size:36px; margin-bottom:8px;">🎯</div>
-      <h2 style="color:#e8eaf0; margin:0 0 8px 0; font-size:20px;">拼字小特工</h2>
-      <p style="color:#94a3b8; font-size:13px; margin-bottom:20px; line-height:1.5;">請輸入學號與密碼</p>
+  <div id="login-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(35,42,77,0.38); backdrop-filter:blur(10px); z-index:9999; display:flex; justify-content:center; align-items:center;">
+    <div style="background:#ffffff; padding:36px 32px; border-radius:24px; box-shadow:0 20px 45px -10px rgba(35,42,77,0.22); width:320px; text-align:center; border:1px solid #E7E9F5;">
+      <div style="font-size:40px; margin-bottom:8px;">🎯</div>
+      <h2 style="color:#232A4D; margin:0 0 8px 0; font-size:22px; font-weight:800;">拼字小特工</h2>
+      <p style="color:#5A6183; font-size:13px; margin-bottom:20px; line-height:1.5;">請輸入學號與密碼</p>
       
       <input type="text" id="login-user" placeholder="請輸入學號 (如: 70101)" 
-        style="width:100%; padding:12px; margin-bottom:12px; border:1px solid #334155; border-radius:8px; box-sizing:border-box; background:#0f172a; color:#f8fafc; font-size:15px; outline:none;">
+        style="width:100%; padding:13px 14px; margin-bottom:12px; border:1.5px solid #E7E9F5; border-radius:12px; box-sizing:border-box; background:#F6F7FB; color:#232A4D; font-size:15px; outline:none; transition:all .2s;">
       
       <input type="password" id="login-pass" placeholder="請輸入密碼" 
-        style="width:100%; padding:12px; margin-bottom:20px; border:1px solid #334155; border-radius:8px; box-sizing:border-box; background:#0f172a; color:#f8fafc; font-size:15px; outline:none;">
+        style="width:100%; padding:13px 14px; margin-bottom:20px; border:1.5px solid #E7E9F5; border-radius:12px; box-sizing:border-box; background:#F6F7FB; color:#232A4D; font-size:15px; outline:none; transition:all .2s;">
       
       <button id="login-btn" 
-        style="width:100%; padding:12px; background:#8b6cf0; color:white; border:none; border-radius:8px; font-weight:bold; font-size:15px; cursor:pointer; transition:all 0.2s;">
+        style="width:100%; padding:13px; background:#6C4CE0; color:white; border:none; border-radius:12px; font-weight:700; font-size:15px; cursor:pointer; box-shadow:0 8px 20px -6px rgba(108,76,224,0.45); transition:all 0.2s;">
         確認登入
       </button>
       
-      <p id="login-msg" style="color:#f87171; font-size:13px; margin-top:12px; min-height:18px; line-height:1.5;"></p>
+      <p id="login-msg" style="color:#FF6B6B; font-size:13px; margin-top:12px; min-height:18px; line-height:1.5;"></p>
 
-      <div style="margin-top:14px; padding:9px 12px; background:rgba(255,255,255,0.04); border-radius:8px; border:1px dashed #334155; font-size:12px; color:#94a3b8; line-height:1.5; text-align:center;">
+      <div style="margin-top:14px; padding:10px 14px; background:#F6F7FB; border-radius:12px; border:1px dashed #D2D6E8; font-size:12px; color:#5A6183; line-height:1.5; text-align:center;">
         ⏰ 每日可作答時間為早上七點半到晚上十點
       </div>
     </div>
   </div>
 
   <!-- 非開放時段阻擋遮罩 -->
-  <div id="curfew-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.95); z-index:99999; backdrop-filter:blur(6px); justify-content:center; align-items:center; text-align:center; padding:20px; box-sizing:border-box;">
-    <div style="background:#1e293b; border:1px solid #475569; border-radius:20px; padding:36px 28px; max-width:440px; width:100%; box-shadow:0 25px 60px rgba(0,0,0,0.6);">
+  <div id="curfew-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(35,42,77,0.45); z-index:99999; backdrop-filter:blur(8px); justify-content:center; align-items:center; text-align:center; padding:20px; box-sizing:border-box;">
+    <div style="background:#ffffff; border:1px solid #E7E9F5; border-radius:24px; padding:36px 28px; max-width:440px; width:100%; box-shadow:0 24px 50px -10px rgba(35,42,77,0.25);">
       <div style="font-size:48px; margin-bottom:12px;">🌙</div>
-      <h2 style="color:#f8fafc; margin:0 0 10px 0; font-size:22px;">休息時間到囉！</h2>
-      <p style="color:#cbd5e1; font-size:14.5px; line-height:1.6; margin-bottom:16px;">
+      <h2 style="color:#232A4D; margin:0 0 10px 0; font-size:22px; font-weight:800;">休息時間到囉！</h2>
+      <p style="color:#5A6183; font-size:14.5px; line-height:1.6; margin-bottom:16px;">
         目前非系統開放作答時間。<br>
-        您的開放練習時間為 <b id="curfew-time-range" style="color:#38bdf8;">07:30 至 22:00</b>。<br>
+        您的開放練習時間為 <b id="curfew-time-range" style="color:#6C4CE0;">07:30 至 22:00</b>。<br>
         系統已自動為你儲存學習進度，請好好休息放鬆眼睛！
       </p>
-      <div style="padding:10px 14px; background:#0f172a; border-radius:8px; color:#94a3b8; font-size:12.5px; margin-bottom:20px; line-height:1.4;">
+      <div style="padding:10px 14px; background:#F6F7FB; border-radius:12px; color:#5A6183; font-size:12.5px; margin-bottom:20px; line-height:1.4; border:1px dashed #D2D6E8;">
         💡 若有特殊學習需求，請請任課老師於後台調整個別作答時間或解除限制。
       </div>
-      <button onclick="location.reload()" style="padding:10px 24px; background:#6366f1; color:#fff; border:none; border-radius:8px; font-weight:bold; font-size:14px; cursor:pointer;">
+      <button onclick="location.reload()" style="padding:12px 28px; background:#6C4CE0; color:#fff; border:none; border-radius:12px; font-weight:700; font-size:14px; cursor:pointer; box-shadow:0 8px 20px -6px rgba(108,76,224,0.45);">
         🔄 重新整理
       </button>
     </div>
@@ -63,13 +403,13 @@
         <p>破解英文拼字關卡，每天 10 分鐘</p>
       </div>
       <div class="stats">
-        <div class="stat" id="btn-teacher-picker" style="cursor:pointer; display:none; background:rgba(99,102,241,0.25); border:1px solid #6366f1; border-radius:10px;" title="老師/管理員出題（可指定日期出題）">
-          <b class="tnum" style="color:#a5b4fc">📝</b>
-          <span style="color:#c7d2fe; font-weight:700;">每日測驗出題</span>
+        <div class="stat" id="btn-teacher-picker" style="cursor:pointer; display:none; background:rgba(108,76,224,0.08); border:1.5px solid rgba(108,76,224,0.3); border-radius:12px;" title="老師/管理員出題（可指定日期出題）">
+          <b class="tnum" style="color:var(--violet)">📝</b>
+          <span style="color:var(--violet); font-weight:700;">每日測驗出題</span>
         </div>
-        <div class="stat" id="btn-time-management" style="cursor:pointer; display:none; background:rgba(16,185,129,0.2); border:1px solid #10b981; border-radius:10px;" title="學生使用時間管理與解除限制">
-          <b class="tnum" style="color:#6ee7b7">⏰</b>
-          <span style="color:#a7f3d0; font-weight:700;">使用時間管理</span>
+        <div class="stat" id="btn-time-management" style="cursor:pointer; display:none; background:rgba(47,180,124,0.1); border:1.5px solid rgba(47,180,124,0.35); border-radius:12px;" title="學生使用時間管理與解除限制">
+          <b class="tnum" style="color:var(--green)">⏰</b>
+          <span style="color:var(--green); font-weight:700;">使用時間管理</span>
         </div>
         <div class="stat upload" id="btn-upload" onclick="if(window.uploadLocalStorageData)window.uploadLocalStorageData(false);" style="cursor:pointer;" title="點擊上傳目前學習進度">
           <b id="s-upload" class="tnum">🌱</b>
@@ -79,7 +419,7 @@
         <div class="stat streak"><b id="s-streak" class="tnum">0</b><span>連勝</span></div>
         <div class="stat rate"><b id="s-rate" class="tnum">0%</b><span>答對率</span></div>
         <div class="stat timer" id="stat-daily-timer" style="cursor:pointer; display:none;" title="今日剩餘練習時間（點擊查看說明）">
-          <b id="s-timer-val" class="tnum" style="color:#38bdf8;">10:00</b>
+          <b id="s-timer-val" class="tnum" style="color:var(--violet);">10:00</b>
           <span>今日剩餘</span>
         </div>
         <div class="stat user" id="stat-user" title="目前登入帳號">
@@ -94,17 +434,17 @@
       <div class="session" id="session" style="display:none;" hidden></div>
 
       <!-- 每日練習時間截止提示卡片 (時間到僅顯示 Progress 方塊) -->
-      <div id="daily-limit-reached-card" style="display:none; text-align:center; padding:32px 20px; border-radius:24px; background:var(--card); border:2px solid #3b82f6; box-shadow:var(--shadow); margin:10px 0 16px;">
+      <div id="daily-limit-reached-card" style="display:none; text-align:center; padding:36px 24px; border-radius:24px; background:var(--card); border:2px solid var(--violet); box-shadow:0 12px 36px -12px rgba(108,76,224,0.25); margin:12px 0 20px;">
         <div style="font-size:46px; margin-bottom:10px;">⏰</div>
-        <h2 style="font-size:22px; font-weight:800; color:#f8fafc; margin:0 0 8px;">今日練習時間已結束</h2>
-        <p style="font-size:14.5px; color:#cbd5e1; line-height:1.6; max-width:440px; margin:0 auto 16px;">
-          太棒了！今天已經完成 <span id="limit-minutes-display-text" style="color:#38bdf8; font-weight:800;">10</span> 分鐘的專注練習。<br>
+        <h2 style="font-size:22px; font-weight:800; color:var(--ink); margin:0 0 8px;">今日練習時間已結束</h2>
+        <p style="font-size:14.5px; color:var(--ink2); line-height:1.6; max-width:440px; margin:0 auto 16px;">
+          太棒了！今天已經完成 <span id="limit-minutes-display-text" style="color:var(--violet); font-weight:800;">10</span> 分鐘的專注練習。<br>
           適度休息眼睛能讓大腦更好記憶單字，明天再繼續挑戰！
         </p>
-        <div style="padding:10px 16px; background:rgba(59,130,246,0.1); border:1px dashed #3b82f6; border-radius:12px; font-size:13px; color:#93c5fd; max-width:420px; margin:0 auto 14px; line-height:1.5;">
+        <div style="padding:12px 18px; background:rgba(108,76,224,0.06); border:1.5px dashed rgba(108,76,224,0.35); border-radius:14px; font-size:13.5px; color:var(--violet); max-width:440px; margin:0 auto 14px; line-height:1.5;">
           📊 <b>下方已保留您的完整學習進度與作答紀錄</b>，歡迎回顧複習掌握的單字！
         </div>
-        <div style="font-size:12px; color:#94a3b8;">
+        <div style="font-size:12.5px; color:var(--ink3);">
           💡 若有補測或特別練習需求，請向任課老師申請延長時間或解除限制。
         </div>
       </div>
@@ -2147,7 +2487,7 @@
        老師線上出題 (挑選 2000 單字) Modal
   ══════════════════════════════════════════ -->
   <div id="teacherTaskModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
-    <div style="background:#1e293b; border-radius:16px; padding:22px 24px; max-width:680px; width:94%; box-shadow:0 25px 60px rgba(0,0,0,0.5); max-height:92vh; overflow-y:auto; border:1.5px solid #475569; color:#f8fafc; font-family:system-ui, sans-serif;">
+    <div style="background:#ffffff; border-radius:16px; padding:22px 24px; max-width:680px; width:94%; box-shadow:0 25px 60px rgba(0,0,0,0.5); max-height:92vh; overflow-y:auto; border:1.5px solid #D2D6E8; color:#232A4D; font-family:system-ui, sans-serif;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
         <h3 style="margin:0; font-size:18px; display:flex; align-items:center; gap:8px; color:#fff;">
           📝 每日測驗出題 (可指定測驗日期)
@@ -2161,15 +2501,15 @@
 
       <div style="display:grid; grid-template-columns: 1.15fr 1fr 1.6fr; gap:12px; margin-bottom:12px;">
         <div>
-          <label style="font-size:13px; font-weight:600; display:block; margin-bottom:4px; color:#cbd5e1;">📅 指定測驗日期：</label>
+          <label style="font-size:13px; font-weight:600; display:block; margin-bottom:4px; color:#5A6183;">📅 指定測驗日期：</label>
           <input type="date" id="t-modal-date"
-            style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #475569; background:#0f172a; color:#fff; font-size:13.5px; box-sizing:border-box;">
+            style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #D2D6E8; background:#F6F7FB; color:#fff; font-size:13.5px; box-sizing:border-box;">
         </div>
         <div>
-          <label style="font-size:13px; font-weight:600; display:block; margin-bottom:4px; color:#cbd5e1;">🏫 目標班級：</label>
+          <label style="font-size:13px; font-weight:600; display:block; margin-bottom:4px; color:#5A6183;">🏫 目標班級：</label>
           <div style="display:flex; gap:6px; align-items:center;">
             <select id="t-modal-class-select"
-              style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #475569; background:#0f172a; color:#fff; font-size:13.5px; box-sizing:border-box; cursor:pointer;">
+              style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #D2D6E8; background:#F6F7FB; color:#fff; font-size:13.5px; box-sizing:border-box; cursor:pointer;">
               <option value="all">🌐 全校 / 所有班級 (all)</option>
               <optgroup label="七年級 (國一)">
                 <option value="701">🏫 701 班</option>
@@ -2195,19 +2535,19 @@
               <option value="custom">✏️ 自訂輸入其他班級...</option>
             </select>
             <input type="text" id="t-modal-class-custom" placeholder="請輸入班級"
-              style="display:none; width:110px; padding:8px 10px; border-radius:8px; border:1px solid #6366f1; background:#0f172a; color:#fff; font-size:13.5px; box-sizing:border-box;">
+              style="display:none; width:110px; padding:8px 10px; border-radius:8px; border:1px solid #6366f1; background:#F6F7FB; color:#fff; font-size:13.5px; box-sizing:border-box;">
           </div>
         </div>
         <div>
-          <label style="font-size:13px; font-weight:600; display:block; margin-bottom:4px; color:#cbd5e1;">📝 任務名稱：</label>
+          <label style="font-size:13px; font-weight:600; display:block; margin-bottom:4px; color:#5A6183;">📝 任務名稱：</label>
           <input type="text" id="t-modal-name" placeholder="例：第1課重要單字隨堂考" value="每日指定單字隨堂測驗"
-            style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #475569; background:#0f172a; color:#fff; font-size:14px; box-sizing:border-box;">
+            style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #D2D6E8; background:#F6F7FB; color:#fff; font-size:14px; box-sizing:border-box;">
         </div>
       </div>
 
-      <div style="border:1px solid #334155; border-radius:12px; padding:12px 14px; background:#0f172a; margin-bottom:12px;">
+      <div style="border:1px solid #E7E9F5; border-radius:12px; padding:12px 14px; background:#F6F7FB; margin-bottom:12px;">
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
-          <span style="font-size:13.5px; font-weight:700; color:#e2e8f0; display:flex; align-items:center; gap:6px;">
+          <span style="font-size:13.5px; font-weight:700; color:#232A4D; display:flex; align-items:center; gap:6px;">
             📚 從 2000 單字庫勾選單字
           </span>
           <span id="t-modal-count-badge" style="font-size:13px; color:#818cf8; font-weight:700; background:rgba(99,102,241,0.2); padding:3px 10px; border-radius:6px; border:1px solid rgba(99,102,241,0.3);">
@@ -2217,23 +2557,23 @@
 
         <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px;" id="t-filter-chips">
           <button type="button" class="btn-picker-chip active" data-lv="all" style="padding:4px 10px; font-size:12px; border-radius:6px; border:1px solid #6366f1; background:#6366f1; color:#fff; cursor:pointer;">全部 (2055)</button>
-          <button type="button" class="btn-picker-chip" data-lv="1" style="padding:4px 10px; font-size:12px; border-radius:6px; border:1px solid #475569; background:#1e293b; color:#cbd5e1; cursor:pointer;">Lv1 入門</button>
-          <button type="button" class="btn-picker-chip" data-lv="2" style="padding:4px 10px; font-size:12px; border-radius:6px; border:1px solid #475569; background:#1e293b; color:#cbd5e1; cursor:pointer;">Lv2 基礎</button>
-          <button type="button" class="btn-picker-chip" data-lv="3" style="padding:4px 10px; font-size:12px; border-radius:6px; border:1px solid #475569; background:#1e293b; color:#cbd5e1; cursor:pointer;">Lv3 進階</button>
-          <button type="button" class="btn-picker-chip" data-lv="4" style="padding:4px 10px; font-size:12px; border-radius:6px; border:1px solid #475569; background:#1e293b; color:#cbd5e1; cursor:pointer;">Lv4 挑戰</button>
-          <button type="button" class="btn-picker-chip" data-lv="5" style="padding:4px 10px; font-size:12px; border-radius:6px; border:1px solid #475569; background:#1e293b; color:#cbd5e1; cursor:pointer;">Lv5 大師</button>
+          <button type="button" class="btn-picker-chip" data-lv="1" style="padding:4px 10px; font-size:12px; border-radius:6px; border:1px solid #D2D6E8; background:#ffffff; color:#5A6183; cursor:pointer;">Lv1 入門</button>
+          <button type="button" class="btn-picker-chip" data-lv="2" style="padding:4px 10px; font-size:12px; border-radius:6px; border:1px solid #D2D6E8; background:#ffffff; color:#5A6183; cursor:pointer;">Lv2 基礎</button>
+          <button type="button" class="btn-picker-chip" data-lv="3" style="padding:4px 10px; font-size:12px; border-radius:6px; border:1px solid #D2D6E8; background:#ffffff; color:#5A6183; cursor:pointer;">Lv3 進階</button>
+          <button type="button" class="btn-picker-chip" data-lv="4" style="padding:4px 10px; font-size:12px; border-radius:6px; border:1px solid #D2D6E8; background:#ffffff; color:#5A6183; cursor:pointer;">Lv4 挑戰</button>
+          <button type="button" class="btn-picker-chip" data-lv="5" style="padding:4px 10px; font-size:12px; border-radius:6px; border:1px solid #D2D6E8; background:#ffffff; color:#5A6183; cursor:pointer;">Lv5 大師</button>
         </div>
 
         <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:10px;">
           <input type="text" id="t-modal-search" placeholder="🔍 搜尋單字或中文..."
-            style="flex:1; min-width:140px; padding:6px 10px; border-radius:6px; border:1px solid #475569; font-size:13px; background:#1e293b; color:#fff; box-sizing:border-box;">
-          <button type="button" id="t-btn-random10" style="padding:6px 12px; font-size:12.5px; border-radius:6px; border:1px solid #475569; background:#334155; color:#fff; cursor:pointer;">🎲 隨機10字</button>
-          <button type="button" id="t-btn-random20" style="padding:6px 12px; font-size:12.5px; border-radius:6px; border:1px solid #475569; background:#334155; color:#fff; cursor:pointer;">🎲 隨機20字</button>
-          <button type="button" id="t-btn-selectall" style="padding:6px 12px; font-size:12.5px; border-radius:6px; border:1px solid #475569; background:#334155; color:#fff; cursor:pointer;">➕ 全選本組</button>
+            style="flex:1; min-width:140px; padding:6px 10px; border-radius:6px; border:1px solid #D2D6E8; font-size:13px; background:#ffffff; color:#fff; box-sizing:border-box;">
+          <button type="button" id="t-btn-random10" style="padding:6px 12px; font-size:12.5px; border-radius:6px; border:1px solid #D2D6E8; background:#E7E9F5; color:#fff; cursor:pointer;">🎲 隨機10字</button>
+          <button type="button" id="t-btn-random20" style="padding:6px 12px; font-size:12.5px; border-radius:6px; border:1px solid #D2D6E8; background:#E7E9F5; color:#fff; cursor:pointer;">🎲 隨機20字</button>
+          <button type="button" id="t-btn-selectall" style="padding:6px 12px; font-size:12.5px; border-radius:6px; border:1px solid #D2D6E8; background:#E7E9F5; color:#fff; cursor:pointer;">➕ 全選本組</button>
           <button type="button" id="t-btn-clear" style="padding:6px 12px; font-size:12.5px; border-radius:6px; border:1px solid #dc2626; background:#991b1b; color:#fff; cursor:pointer;">🧹 清空</button>
         </div>
 
-        <div id="t-word-grid" style="max-height:180px; overflow-y:auto; display:grid; grid-template-columns:repeat(auto-fill, minmax(130px, 1fr)); gap:6px; padding:6px; background:#1e293b; border:1px solid #334155; border-radius:8px;">
+        <div id="t-word-grid" style="max-height:180px; overflow-y:auto; display:grid; grid-template-columns:repeat(auto-fill, minmax(130px, 1fr)); gap:6px; padding:6px; background:#ffffff; border:1px solid #E7E9F5; border-radius:8px;">
           <div style="grid-column:1/-1; text-align:center; padding:15px; color:#94a3b8; font-size:13px;">載入單字庫中...</div>
         </div>
 
@@ -2242,7 +2582,7 @@
             <summary style="cursor:pointer; font-weight:600; color:#818cf8; user-select:none; margin-bottom:4px;">
               👁️ 已選單字預覽 (<span id="t-preview-count">0</span> 字，點擊 ✕ 可移除)
             </summary>
-            <div id="t-preview-tags" style="display:flex; flex-wrap:wrap; gap:4px; max-height:85px; overflow-y:auto; padding:6px; background:#1e293b; border:1px solid #334155; border-radius:6px;">
+            <div id="t-preview-tags" style="display:flex; flex-wrap:wrap; gap:4px; max-height:85px; overflow-y:auto; padding:6px; background:#ffffff; border:1px solid #E7E9F5; border-radius:6px;">
               <span style="color:#64748b; font-size:12px;">尚未選取任何單字</span>
             </div>
           </details>
@@ -2251,16 +2591,16 @@
 
       <div style="display:flex; gap:12px; align-items:center; margin-bottom:12px;">
         <div style="flex:1;">
-          <label style="font-size:13px; font-weight:600; display:block; margin-bottom:4px; color:#cbd5e1;">測驗模式：</label>
-          <select id="t-modal-mode" style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #475569; background:#0f172a; color:#fff; font-size:13.5px;">
+          <label style="font-size:13px; font-weight:600; display:block; margin-bottom:4px; color:#5A6183;">測驗模式：</label>
+          <select id="t-modal-mode" style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #D2D6E8; background:#F6F7FB; color:#fff; font-size:13.5px;">
             <option value="抽測">🎲 隨機抽測 N 題</option>
             <option value="全考">💯 全部都考 (考所選的所有單字)</option>
           </select>
         </div>
         <div id="t-modal-count-wrap" style="width:130px;">
-          <label style="font-size:13px; font-weight:600; display:block; margin-bottom:4px; color:#cbd5e1;">抽測題數：</label>
+          <label style="font-size:13px; font-weight:600; display:block; margin-bottom:4px; color:#5A6183;">抽測題數：</label>
           <input type="number" id="t-modal-count" value="5" min="1" max="100"
-            style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #475569; background:#0f172a; color:#fff; font-size:13.5px; box-sizing:border-box;">
+            style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #D2D6E8; background:#F6F7FB; color:#fff; font-size:13.5px; box-sizing:border-box;">
         </div>
       </div>
 
@@ -2281,7 +2621,7 @@
        教師使用時間與解除限制管理 Modal
   ══════════════════════════════════════════ -->
   <div id="timeManagementModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
-    <div style="background:#1e293b; border-radius:16px; padding:22px 24px; max-width:680px; width:94%; box-shadow:0 25px 60px rgba(0,0,0,0.5); max-height:92vh; overflow-y:auto; border:1.5px solid #475569; color:#f8fafc; font-family:system-ui, sans-serif;">
+    <div style="background:#ffffff; border-radius:16px; padding:22px 24px; max-width:680px; width:94%; box-shadow:0 25px 60px rgba(0,0,0,0.5); max-height:92vh; overflow-y:auto; border:1.5px solid #D2D6E8; color:#232A4D; font-family:system-ui, sans-serif;">
       
       <!-- 標題與關閉按鈕 -->
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
@@ -2292,24 +2632,24 @@
       </div>
 
       <!-- 分頁頁籤切換按鈕 -->
-      <div style="display:flex; gap:6px; margin-bottom:16px; border-bottom:1px solid #334155; padding-bottom:10px; flex-wrap:wrap;">
+      <div style="display:flex; gap:6px; margin-bottom:16px; border-bottom:1px solid #E7E9F5; padding-bottom:10px; flex-wrap:wrap;">
         <button id="tm-tab-btn-limit" style="flex:1; min-width:140px; padding:9px 10px; border-radius:8px; border:1px solid #3b82f6; background:#3b82f6; color:#fff; font-size:12.5px; font-weight:700; cursor:pointer; transition:all 0.2s;">
           ⏱️ 每日10分鐘限制與延長
         </button>
-        <button id="tm-tab-btn-global" style="flex:1; min-width:130px; padding:9px 10px; border-radius:8px; border:1px solid #475569; background:#1e293b; color:#cbd5e1; font-size:12.5px; font-weight:700; cursor:pointer; transition:all 0.2s;">
+        <button id="tm-tab-btn-global" style="flex:1; min-width:130px; padding:9px 10px; border-radius:8px; border:1px solid #D2D6E8; background:#ffffff; color:#5A6183; font-size:12.5px; font-weight:700; cursor:pointer; transition:all 0.2s;">
           ⚙️ 全校預設時段
         </button>
-        <button id="tm-tab-btn-student" style="flex:1; min-width:130px; padding:9px 10px; border-radius:8px; border:1px solid #475569; background:#1e293b; color:#cbd5e1; font-size:12.5px; font-weight:700; cursor:pointer; transition:all 0.2s;">
+        <button id="tm-tab-btn-student" style="flex:1; min-width:130px; padding:9px 10px; border-radius:8px; border:1px solid #D2D6E8; background:#ffffff; color:#5A6183; font-size:12.5px; font-weight:700; cursor:pointer; transition:all 0.2s;">
           👤 個別學生時段
         </button>
-        <button id="tm-tab-btn-date" style="flex:1; min-width:130px; padding:9px 10px; border-radius:8px; border:1px solid #475569; background:#1e293b; color:#cbd5e1; font-size:12.5px; font-weight:700; cursor:pointer; transition:all 0.2s;">
+        <button id="tm-tab-btn-date" style="flex:1; min-width:130px; padding:9px 10px; border-radius:8px; border:1px solid #D2D6E8; background:#ffffff; color:#5A6183; font-size:12.5px; font-weight:700; cursor:pointer; transition:all 0.2s;">
           📅 特別日期全天解除
         </button>
       </div>
 
       <!-- 分頁 1: 全校預設作答時間 -->
       <div id="tm-tab-panel-global" style="display:none;">
-        <div style="background:#0f172a; border-radius:10px; padding:12px 16px; border:1px solid #334155; margin-bottom:14px;">
+        <div style="background:#F6F7FB; border-radius:10px; padding:12px 16px; border:1px solid #E7E9F5; margin-bottom:14px;">
           <div style="font-size:13.5px; font-weight:700; color:#38bdf8; margin-bottom:4px;">📌 全校預設作答時間說明</div>
           <div style="font-size:13px; color:#94a3b8; line-height:1.6;">
             • <b>預設時段</b>：每次設定將自動保存，日後一律以<b>上次教師修改之設定</b>為基準（預設為 07:30 ～ 22:00）。<br>
@@ -2318,18 +2658,18 @@
           </div>
         </div>
 
-        <div style="border:1px solid #334155; border-radius:12px; padding:16px; background:#0f172a; margin-bottom:14px;">
-          <div style="font-size:14px; font-weight:700; color:#e2e8f0; margin-bottom:12px;">
+        <div style="border:1px solid #E7E9F5; border-radius:12px; padding:16px; background:#F6F7FB; margin-bottom:14px;">
+          <div style="font-size:14px; font-weight:700; color:#232A4D; margin-bottom:12px;">
             🕒 設定全校每日作答時間範圍
           </div>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
             <div>
-              <label style="font-size:12.5px; color:#cbd5e1; display:block; margin-bottom:4px;">每日開始作答時間：</label>
-              <input type="time" id="tm-global-start" value="07:30" style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #475569; background:#1e293b; color:#fff; font-size:14px; box-sizing:border-box;">
+              <label style="font-size:12.5px; color:#5A6183; display:block; margin-bottom:4px;">每日開始作答時間：</label>
+              <input type="time" id="tm-global-start" value="07:30" style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #D2D6E8; background:#ffffff; color:#fff; font-size:14px; box-sizing:border-box;">
             </div>
             <div>
-              <label style="font-size:12.5px; color:#cbd5e1; display:block; margin-bottom:4px;">每日結束作答時間：</label>
-              <input type="time" id="tm-global-end" value="22:00" style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #475569; background:#1e293b; color:#fff; font-size:14px; box-sizing:border-box;">
+              <label style="font-size:12.5px; color:#5A6183; display:block; margin-bottom:4px;">每日結束作答時間：</label>
+              <input type="time" id="tm-global-end" value="22:00" style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #D2D6E8; background:#ffffff; color:#fff; font-size:14px; box-sizing:border-box;">
             </div>
           </div>
           <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
@@ -2345,7 +2685,7 @@
 
       <!-- 分頁 2: 個別學生自訂時間 -->
       <div id="tm-tab-panel-student" style="display:none;">
-        <div style="background:#0f172a; border-radius:10px; padding:12px 16px; border:1px solid #334155; margin-bottom:14px;">
+        <div style="background:#F6F7FB; border-radius:10px; padding:12px 16px; border:1px solid #E7E9F5; margin-bottom:14px;">
           <div style="font-size:13.5px; font-weight:700; color:#38bdf8; margin-bottom:4px;">👤 個別學生自訂時段說明</div>
           <div style="font-size:13px; color:#94a3b8; line-height:1.6;">
             • 若學生有特例需求（如放學輔導、特定作答許可），可在此為其指定專屬開始與結束時間。<br>
@@ -2353,36 +2693,36 @@
           </div>
         </div>
 
-        <div style="border:1px solid #334155; border-radius:12px; padding:16px; background:#0f172a; margin-bottom:14px;">
-          <div style="font-size:14px; font-weight:700; color:#e2e8f0; margin-bottom:10px;">
+        <div style="border:1px solid #E7E9F5; border-radius:12px; padding:16px; background:#F6F7FB; margin-bottom:14px;">
+          <div style="font-size:14px; font-weight:700; color:#232A4D; margin-bottom:10px;">
             ➕ 新增或修改學生專屬作答時間
           </div>
           <div style="display:grid; grid-template-columns:1fr 2fr; gap:10px; margin-bottom:10px;">
             <div>
-              <label style="font-size:12.5px; color:#cbd5e1; display:block; margin-bottom:4px;">篩選班級：</label>
-              <select id="tm-student-class-filter" style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #475569; background:#1e293b; color:#fff; font-size:13px; box-sizing:border-box;">
+              <label style="font-size:12.5px; color:#5A6183; display:block; margin-bottom:4px;">篩選班級：</label>
+              <select id="tm-student-class-filter" style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #D2D6E8; background:#ffffff; color:#fff; font-size:13px; box-sizing:border-box;">
                 <option value="all">所有班級</option>
               </select>
             </div>
             <div>
-              <label style="font-size:12.5px; color:#cbd5e1; display:block; margin-bottom:4px;">選擇學生：</label>
-              <select id="tm-student-select" style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #475569; background:#1e293b; color:#fff; font-size:13px; box-sizing:border-box;">
+              <label style="font-size:12.5px; color:#5A6183; display:block; margin-bottom:4px;">選擇學生：</label>
+              <select id="tm-student-select" style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #D2D6E8; background:#ffffff; color:#fff; font-size:13px; box-sizing:border-box;">
                 <option value="">-- 請選擇學生 --</option>
               </select>
             </div>
           </div>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
             <div>
-              <label style="font-size:12.5px; color:#cbd5e1; display:block; margin-bottom:4px;">該學生可作答開始時間：</label>
-              <input type="time" id="tm-student-start" value="07:30" style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #475569; background:#1e293b; color:#fff; font-size:13.5px; box-sizing:border-box;">
+              <label style="font-size:12.5px; color:#5A6183; display:block; margin-bottom:4px;">該學生可作答開始時間：</label>
+              <input type="time" id="tm-student-start" value="07:30" style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #D2D6E8; background:#ffffff; color:#fff; font-size:13.5px; box-sizing:border-box;">
             </div>
             <div>
-              <label style="font-size:12.5px; color:#cbd5e1; display:block; margin-bottom:4px;">該學生可作答結束時間：</label>
-              <input type="time" id="tm-student-end" value="22:00" style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #475569; background:#1e293b; color:#fff; font-size:13.5px; box-sizing:border-box;">
+              <label style="font-size:12.5px; color:#5A6183; display:block; margin-bottom:4px;">該學生可作答結束時間：</label>
+              <input type="time" id="tm-student-end" value="22:00" style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #D2D6E8; background:#ffffff; color:#fff; font-size:13.5px; box-sizing:border-box;">
             </div>
           </div>
           <div style="display:flex; gap:10px; align-items:center;">
-            <input type="text" id="tm-student-remark" placeholder="備註說明（例：留校輔導、自學延長）" style="flex:1; padding:8px 10px; border-radius:6px; border:1px solid #475569; background:#1e293b; color:#fff; font-size:13px; box-sizing:border-box;">
+            <input type="text" id="tm-student-remark" placeholder="備註說明（例：留校輔導、自學延長）" style="flex:1; padding:8px 10px; border-radius:6px; border:1px solid #D2D6E8; background:#ffffff; color:#fff; font-size:13px; box-sizing:border-box;">
             <button id="tm-btn-save-student" style="padding:8px 18px; border-radius:6px; background:#059669; color:#fff; border:none; font-weight:700; font-size:13px; cursor:pointer; white-space:nowrap;">
               💾 儲存該學生專屬作答時間
             </button>
@@ -2391,10 +2731,10 @@
 
         <div>
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-            <span style="font-size:13.5px; font-weight:700; color:#e2e8f0;">📋 已設定專屬時段學生清單</span>
+            <span style="font-size:13.5px; font-weight:700; color:#232A4D;">📋 已設定專屬時段學生清單</span>
             <span id="tm-student-rules-count" style="font-size:12px; color:#94a3b8;">共 0 位學生</span>
           </div>
-          <div id="tm-student-rules-list" style="background:#0f172a; border:1px solid #334155; border-radius:8px; max-height:180px; overflow-y:auto; padding:8px;">
+          <div id="tm-student-rules-list" style="background:#F6F7FB; border:1px solid #E7E9F5; border-radius:8px; max-height:180px; overflow-y:auto; padding:8px;">
             <div style="text-align:center; padding:15px; color:#64748b; font-size:13px;">載入中...</div>
           </div>
         </div>
@@ -2402,7 +2742,7 @@
 
       <!-- 分頁 3: 特別日期全天解除 -->
       <div id="tm-tab-panel-date" style="display:none;">
-        <div style="background:#0f172a; border-radius:10px; padding:12px 16px; border:1px solid #334155; margin-bottom:14px;">
+        <div style="background:#F6F7FB; border-radius:10px; padding:12px 16px; border:1px solid #E7E9F5; margin-bottom:14px;">
           <div style="font-size:13.5px; font-weight:700; color:#38bdf8; margin-bottom:4px;">📅 特別日期全天開放說明</div>
           <div style="font-size:13px; color:#94a3b8; line-height:1.6;">
             • 當設定特別解除日期時，該指定日<b>全天 24 小時暢行開放</b>。<br>
@@ -2411,7 +2751,7 @@
         </div>
 
         <!-- 今日即時狀態與一鍵快捷操作 -->
-        <div style="background:#1e293b; border:1px solid #3b82f6; border-radius:10px; padding:12px 16px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+        <div style="background:#ffffff; border:1px solid #3b82f6; border-radius:10px; padding:12px 16px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
           <div>
             <div style="font-size:12.5px; color:#94a3b8;">📅 今日系統狀態：</div>
             <div id="tm-today-status-badge" style="font-size:14px; font-weight:700; color:#10b981; margin-top:2px;">
@@ -2426,22 +2766,22 @@
         </div>
 
         <!-- 新增解除限制設定區 -->
-        <div style="border:1px solid #334155; border-radius:12px; padding:14px 16px; background:#0f172a; margin-bottom:14px;">
-          <div style="font-size:13.5px; font-weight:700; color:#e2e8f0; margin-bottom:10px; display:flex; align-items:center; gap:6px;">
+        <div style="border:1px solid #E7E9F5; border-radius:12px; padding:14px 16px; background:#F6F7FB; margin-bottom:14px;">
+          <div style="font-size:13.5px; font-weight:700; color:#232A4D; margin-bottom:10px; display:flex; align-items:center; gap:6px;">
             ➕ 新增解除限制 (指定單日或日期範圍)
           </div>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
             <div>
-              <label style="font-size:12.5px; color:#cbd5e1; display:block; margin-bottom:4px;">起始日期：</label>
-              <input type="date" id="tm-input-start" style="width:100%; padding:7px 10px; border-radius:6px; border:1px solid #475569; background:#1e293b; color:#fff; font-size:13px; box-sizing:border-box;">
+              <label style="font-size:12.5px; color:#5A6183; display:block; margin-bottom:4px;">起始日期：</label>
+              <input type="date" id="tm-input-start" style="width:100%; padding:7px 10px; border-radius:6px; border:1px solid #D2D6E8; background:#ffffff; color:#fff; font-size:13px; box-sizing:border-box;">
             </div>
             <div>
-              <label style="font-size:12.5px; color:#cbd5e1; display:block; margin-bottom:4px;">結束日期 (單日請填相同日期)：</label>
-              <input type="date" id="tm-input-end" style="width:100%; padding:7px 10px; border-radius:6px; border:1px solid #475569; background:#1e293b; color:#fff; font-size:13px; box-sizing:border-box;">
+              <label style="font-size:12.5px; color:#5A6183; display:block; margin-bottom:4px;">結束日期 (單日請填相同日期)：</label>
+              <input type="date" id="tm-input-end" style="width:100%; padding:7px 10px; border-radius:6px; border:1px solid #D2D6E8; background:#ffffff; color:#fff; font-size:13px; box-sizing:border-box;">
             </div>
           </div>
           <div style="display:flex; gap:10px; align-items:center;">
-            <input type="text" id="tm-input-name" placeholder="設定名稱或備註（例：段考衝刺溫書週、週末集訓開放）" style="flex:1; padding:8px 10px; border-radius:6px; border:1px solid #475569; background:#1e293b; color:#fff; font-size:13px; box-sizing:border-box;">
+            <input type="text" id="tm-input-name" placeholder="設定名稱或備註（例：段考衝刺溫書週、週末集訓開放）" style="flex:1; padding:8px 10px; border-radius:6px; border:1px solid #D2D6E8; background:#ffffff; color:#fff; font-size:13px; box-sizing:border-box;">
             <button id="tm-btn-save-override" style="padding:8px 18px; border-radius:6px; background:#2563eb; color:#fff; border:none; font-weight:700; font-size:13px; cursor:pointer; white-space:nowrap;">
               💾 儲存並生效
             </button>
@@ -2451,10 +2791,10 @@
         <!-- 已生效解除規則清單 -->
         <div>
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-            <span style="font-size:13.5px; font-weight:700; color:#e2e8f0;">📋 目前生效的解除限制清單</span>
-            <button id="tm-btn-refresh" style="background:none; border:1px solid #475569; padding:3px 8px; border-radius:6px; color:#94a3b8; font-size:12px; cursor:pointer;">🔄 重新整理</button>
+            <span style="font-size:13.5px; font-weight:700; color:#232A4D;">📋 目前生效的解除限制清單</span>
+            <button id="tm-btn-refresh" style="background:none; border:1px solid #D2D6E8; padding:3px 8px; border-radius:6px; color:#94a3b8; font-size:12px; cursor:pointer;">🔄 重新整理</button>
           </div>
-          <div id="tm-rules-list" style="background:#0f172a; border:1px solid #334155; border-radius:8px; max-height:180px; overflow-y:auto; padding:8px;">
+          <div id="tm-rules-list" style="background:#F6F7FB; border:1px solid #E7E9F5; border-radius:8px; max-height:180px; overflow-y:auto; padding:8px;">
             <div style="text-align:center; padding:15px; color:#64748b; font-size:13px;">載入中...</div>
           </div>
         </div>
@@ -2462,7 +2802,7 @@
 
       <!-- 分頁 4: 每日 10 分鐘限制與延長 -->
       <div id="tm-tab-panel-limit" style="display:block;">
-        <div style="background:#0f172a; border-radius:10px; padding:12px 16px; border:1px solid #334155; margin-bottom:14px;">
+        <div style="background:#F6F7FB; border-radius:10px; padding:12px 16px; border:1px solid #E7E9F5; margin-bottom:14px;">
           <div style="font-size:13.5px; font-weight:700; color:#38bdf8; margin-bottom:4px;">⏱️ 每日使用時長與延長限制說明</div>
           <div style="font-size:13px; color:#94a3b8; line-height:1.6;">
             • <b>計時規則</b>：學生當天第一次登入後開始起算時間（預設每日 10 分鐘）。<br>
@@ -2472,12 +2812,12 @@
         </div>
 
         <!-- 區塊 A: 全校每日預設時長設定 -->
-        <div style="border:1px solid #334155; border-radius:12px; padding:14px 16px; background:#0f172a; margin-bottom:14px;">
-          <div style="font-size:13.5px; font-weight:700; color:#e2e8f0; margin-bottom:10px;">
+        <div style="border:1px solid #E7E9F5; border-radius:12px; padding:14px 16px; background:#F6F7FB; margin-bottom:14px;">
+          <div style="font-size:13.5px; font-weight:700; color:#232A4D; margin-bottom:10px;">
             ⚙️ 設定全校每日預設練習時間上限
           </div>
           <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-            <select id="tm-limit-default-minutes" style="padding:8px 12px; border-radius:6px; border:1px solid #475569; background:#1e293b; color:#fff; font-size:13.5px;">
+            <select id="tm-limit-default-minutes" style="padding:8px 12px; border-radius:6px; border:1px solid #D2D6E8; background:#ffffff; color:#fff; font-size:13.5px;">
               <option value="5">5 分鐘</option>
               <option value="10" selected>10 分鐘 (預設)</option>
               <option value="15">15 分鐘</option>
@@ -2496,27 +2836,27 @@
         </div>
 
         <!-- 區塊 B: 個別學生延長時間或解除限制 -->
-        <div style="border:1px solid #334155; border-radius:12px; padding:14px 16px; background:#0f172a; margin-bottom:14px;">
-          <div style="font-size:13.5px; font-weight:700; color:#e2e8f0; margin-bottom:10px;">
+        <div style="border:1px solid #E7E9F5; border-radius:12px; padding:14px 16px; background:#F6F7FB; margin-bottom:14px;">
+          <div style="font-size:13.5px; font-weight:700; color:#232A4D; margin-bottom:10px;">
             👤 個別學生即時延長時間或解除限制
           </div>
           <div style="display:grid; grid-template-columns:1fr 2fr; gap:10px; margin-bottom:10px;">
             <div>
-              <label style="font-size:12px; color:#cbd5e1; display:block; margin-bottom:4px;">篩選班級：</label>
-              <select id="tm-limit-class-filter" style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #475569; background:#1e293b; color:#fff; font-size:13px; box-sizing:border-box;">
+              <label style="font-size:12px; color:#5A6183; display:block; margin-bottom:4px;">篩選班級：</label>
+              <select id="tm-limit-class-filter" style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #D2D6E8; background:#ffffff; color:#fff; font-size:13px; box-sizing:border-box;">
                 <option value="all">所有班級</option>
               </select>
             </div>
             <div>
-              <label style="font-size:12px; color:#cbd5e1; display:block; margin-bottom:4px;">選擇學生：</label>
-              <select id="tm-limit-student-select" style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #475569; background:#1e293b; color:#fff; font-size:13px; box-sizing:border-box;">
+              <label style="font-size:12px; color:#5A6183; display:block; margin-bottom:4px;">選擇學生：</label>
+              <select id="tm-limit-student-select" style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #D2D6E8; background:#ffffff; color:#fff; font-size:13px; box-sizing:border-box;">
                 <option value="">-- 請選擇學生 --</option>
               </select>
             </div>
           </div>
 
           <!-- 學生當日狀態資訊卡 -->
-          <div id="tm-limit-student-status-box" style="padding:10px 14px; background:rgba(255,255,255,0.03); border-radius:8px; border:1px solid #334155; margin-bottom:12px; font-size:13px; color:#cbd5e1;">
+          <div id="tm-limit-student-status-box" style="padding:10px 14px; background:#F6F7FB; border-radius:8px; border:1px solid #E7E9F5; margin-bottom:12px; font-size:13px; color:#5A6183;">
             請選擇學生以查看其今日練習時間與即時狀態
           </div>
 
@@ -2541,9 +2881,9 @@
         </div>
 
         <!-- 區塊 C: 全校快速操作 -->
-        <div style="border:1px solid #334155; border-radius:12px; padding:12px 16px; background:#0f172a; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+        <div style="border:1px solid #E7E9F5; border-radius:12px; padding:12px 16px; background:#F6F7FB; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
           <div>
-            <div style="font-size:13px; font-weight:700; color:#e2e8f0;">⚡ 全校快速時長控制</div>
+            <div style="font-size:13px; font-weight:700; color:#232A4D;">⚡ 全校快速時長控制</div>
             <div style="font-size:12px; color:#94a3b8;">可一鍵為全體學生今日延長時間或解除限制</div>
           </div>
           <div style="display:flex; gap:8px;">
