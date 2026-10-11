@@ -335,3 +335,143 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
   color: var(--coral) !important;
 }
 
+
+
+/* ============================================================
+   Dark Mode Theme Support (暗黑模式支援)
+   ============================================================ */
+[data-theme="dark"] {
+  --paper: #0F121C;
+  --card: #181C2A;
+  --line: #262C42;
+  --line-sub: #1E2336;
+  --ink: #F0F3FA;
+  --ink2: #A5B0CF;
+  --ink3: #6B779E;
+  --violet: #8B6BF0;
+  --violet-d: #A58CF5;
+  --green: #2FB47C;
+  --green-d: #38C78B;
+  --sky: #38BDF8;
+  --marker: #F6C343;
+  --coral: #FF6B6B;
+  --shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 18px 45px -12px rgba(0, 0, 0, 0.7);
+}
+[data-theme="dark"] body {
+  background-color: #0F121C !important;
+  background-image: radial-gradient(at 15% 15%, rgba(108,76,224,0.18) 0px, transparent 50%),
+                    radial-gradient(at 85% 85%, rgba(47,180,124,0.15) 0px, transparent 50%) !important;
+  color: #F0F3FA !important;
+}
+[data-theme="dark"] .card,
+[data-theme="dark"] .stat,
+[data-theme="dark"] .banner .gate,
+[data-theme="dark"] .task-history-card,
+[data-theme="dark"] .task-score-item,
+[data-theme="dark"] .date-navigator-card,
+[data-theme="dark"] .date-picker-input,
+[data-theme="dark"] .date-nav-btn {
+  background: #181C2A !important;
+  border-color: #262C42 !important;
+  color: #F0F3FA !important;
+}
+[data-theme="dark"] .word-pill-tag.neutral {
+  background: #20263A !important;
+  color: #A5B0CF !important;
+  border-color: #2B334D !important;
+}
+[data-theme="dark"] .tile {
+  background: #1F2438 !important;
+  border-color: #2D354E !important;
+  color: #F0F3FA !important;
+  box-shadow: 0 3px 0 #131724 !important;
+}
+[data-theme="dark"] .spellbox {
+  background: #131624 !important;
+  border-color: #2A314A !important;
+  color: #F0F3FA !important;
+}
+[data-theme="dark"] .opt {
+  background: #181C2A !important;
+  border-color: #262C42 !important;
+  color: #F0F3FA !important;
+}
+[data-theme="dark"] .sent-row {
+  background: #131624 !important;
+  border-color: #242A3E !important;
+}
+[data-theme="dark"] .sent-en {
+  color: #E2E8F0 !important;
+}
+[data-theme="dark"] .sent-zh {
+  color: #94A3B8 !important;
+}
+[data-theme="dark"] .mode {
+  background: #181C2A !important;
+  border-color: #262C42 !important;
+  color: #A5B0CF !important;
+}
+[data-theme="dark"] .mode[aria-pressed="true"] {
+  background: rgba(108, 76, 224, 0.25) !important;
+  border-color: var(--violet) !important;
+  color: #C7B5FD !important;
+}
+[data-theme="dark"] .lvchip {
+  background: #181C2A !important;
+  border-color: #262C42 !important;
+  box-shadow: 0 2px 0 #202538 !important;
+}
+[data-theme="dark"] .lvchip .lvname {
+  color: #F0F3FA !important;
+}
+[data-theme="dark"] .lvchip .lvbar {
+  background: #23293D !important;
+}
+[data-theme="dark"] .banner .challenge:disabled {
+  background: #22273A !important;
+  color: #555E7C !important;
+}
+[data-theme="dark"] .quizprog {
+  background: #23293D !important;
+}
+[data-theme="dark"] #teacherTaskModal > div,
+[data-theme="dark"] #timeManagementModal > div {
+  background: #161927 !important;
+  border-color: #282F45 !important;
+  color: #F0F3FA !important;
+}
+[data-theme="dark"] #teacherTaskModal h3,
+[data-theme="dark"] #timeManagementModal h3 {
+  color: #F0F3FA !important;
+}
+[data-theme="dark"] #teacherTaskModal input,
+[data-theme="dark"] #teacherTaskModal select,
+[data-theme="dark"] #timeManagementModal input,
+[data-theme="dark"] #timeManagementModal select {
+  background: #10121D !important;
+  border-color: #282F45 !important;
+  color: #F0F3FA !important;
+}
+[data-theme="dark"] #teacherTaskModal #t-word-grid,
+[data-theme="dark"] #teacherTaskModal #t-preview-tags,
+[data-theme="dark"] #timeManagementModal #tm-student-rules-list,
+[data-theme="dark"] #timeManagementModal #tm-rules-list {
+  background: #10121D !important;
+  border-color: #282F45 !important;
+}
+[data-theme="dark"] #login-overlay > div,
+[data-theme="dark"] #curfew-overlay > div {
+  background: #161927 !important;
+  border-color: #282F45 !important;
+  color: #F0F3FA !important;
+}
+[data-theme="dark"] #login-overlay h2,
+[data-theme="dark"] #curfew-overlay h2 {
+  color: #F0F3FA !important;
+}
+[data-theme="dark"] #login-overlay input {
+  background: #10121D !important;
+  border-color: #282F45 !important;
+  color: #F0F3FA !important;
+}
