@@ -593,6 +593,18 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
   color: #E2E8F0 !important;
 }
 
+
+/* 熱力圖：淺色有底色方格、深色更深 */
+.hc{background:#DDE0F0;border:1px solid #CDD1E6}
+.hc.h1{background:#B5E3CB;border-color:#9AD6B8} .hc.h2{background:#6FCBA0;border-color:#55BE8E} .hc.h3{background:var(--green);border-color:#1E9A66}
+[data-theme="dark"] .hc{background:#0B0E18 !important;border:1px solid #1B2033 !important}
+[data-theme="dark"] .hc.h1{background:#14573F !important;border-color:#1B6B4D !important}
+[data-theme="dark"] .hc.h2{background:#1E8F66 !important;border-color:#27A878 !important}
+[data-theme="dark"] .hc.h3{background:#2FB47C !important;border-color:#4AD49A !important}
+.heat-legend{font-size:12.5px;line-height:1.7;color:var(--ink2);margin-top:10px;padding:8px 12px;border-radius:10px;background:rgba(108,76,224,.06);border:1px dashed rgba(108,76,224,.25)}
+.heat-legend b{color:var(--ink)}
+[data-theme="dark"] .heat-legend{background:rgba(255,255,255,.04) !important;border-color:rgba(255,255,255,.14) !important;color:#9AA0BD !important}
+[data-theme="dark"] .heat-legend b{color:#E2E8F0 !important}
 </style>
 </head>
 <body>
