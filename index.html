@@ -1290,8 +1290,8 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
             setTimeout(() => {
               try { uploadLocalStorageData(true); } catch(_) {}
             }, 1000);
-          } else {
-            // 全新帳號（雲端尚無進度，且本機無有效進度）：嚴格初始化為 0 題、0% 正確率、全新等級 1
+          } else if (result.isNewStudent === true) {
+            // 僅當雲端確認「無分頁」或「分頁完全無任何紀錄」時，才判定為全新帳號初始化
             const freshStore = {
               box: {}, stat: {}, lstat: {},
               mstat: { listen: { a: 0, c: 0 }, pick: { a: 0, c: 0 }, scramble: { a: 0, c: 0 }, trap: { a: 0, c: 0 } },
@@ -1303,6 +1303,9 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
             };
             localStorage.setItem("spellAgent.v2", JSON.stringify(freshStore));
             msgEl.textContent = "✅ 全新帳號建立成功，正在啟動...";
+          } else {
+            // 雲端確認已有分頁且有紀錄：絕不隨意抹除本機紀錄
+            msgEl.textContent = "✅ 登入成功，正在啟動學習進度...";
           }
 
           // 若先前已載入過遊戲核心模組（例如切換帳號情境），強制重新整理以徹底銷毀記憶體殘留

@@ -2000,28 +2000,38 @@ function doPost(e) {
         }
       }
 
-      // 備援還原：若試算表中 Column B 缺失或被清空，但第 2 列已有歷程欄位，自動從各欄位反組合成基本 records 備援
-      if ((!records || !records["spellAgent.v2"]) && uSheet && uSheet.getLastRow() >= 2) {
+      const isNewStudent = !uSheet || uSheet.getLastRow() < 2;
+
+      // 備援還原：只要該學生不是新帳號（已有分頁且有紀錄），若 Column B 未能解析出，自動從試算表欄位反向組合還原
+      if ((!records || !records["spellAgent.v2"]) && !isNewStudent) {
         try {
-          const rVals = uSheet.getRange(2, 1, 1, Math.min(uSheet.getLastColumn(), 23)).getValues()[0];
-          const lvl = parseInt(rVals[2]) || 1;
-          const pts = parseInt(rVals[3]) || 0;
-          const stk = parseInt(rVals[4]) || 0;
-          const bst = parseInt(rVals[5]) || 0;
-          const att = parseInt(rVals[6]) || 0;
-          const cor = parseInt(rVals[7]) || 0;
-          if (att > 0 || pts > 0) {
-            const reconstructed = {
-              box: {}, stat: {}, lstat: {},
-              mstat: { listen: { a: att, c: cor }, pick: { a: 0, c: 0 }, scramble: { a: 0, c: 0 }, trap: { a: 0, c: 0 } },
-              level: { current: lvl, unlocked: lvl, placed: true },
-              session: { active: false, date: null, answered: 0, correct: 0, incorrect: 0, ids: {}, mastered: 0 },
-              history: {},
-              dailyPractice: {},
-              points: pts, streak: stk, best: bst, attempts: att, correct: cor
-            };
-            records["spellAgent.v2"] = JSON.stringify(reconstructed);
+          const checkCount = Math.min(uSheet.getLastRow() - 1, 15);
+          const rVals = uSheet.getRange(2, 1, checkCount, Math.min(uSheet.getLastColumn(), 23)).getValues();
+          let bestRow = rVals[0];
+          for (let r = 0; r < rVals.length; r++) {
+            const att = parseInt(rVals[r][6]) || 0;
+            const pts = parseInt(rVals[r][3]) || 0;
+            if (att > 0 || pts > 0) {
+              bestRow = rVals[r];
+              break;
+            }
           }
+          const lvl = parseInt(bestRow[2]) || 1;
+          const pts = parseInt(bestRow[3]) || 0;
+          const stk = parseInt(bestRow[4]) || 0;
+          const bst = parseInt(bestRow[5]) || 0;
+          const att = parseInt(bestRow[6]) || 0;
+          const cor = parseInt(bestRow[7]) || 0;
+          const reconstructed = {
+            box: {}, stat: {}, lstat: {},
+            mstat: { listen: { a: att, c: cor }, pick: { a: 0, c: 0 }, scramble: { a: 0, c: 0 }, trap: { a: 0, c: 0 } },
+            level: { current: lvl, unlocked: lvl, placed: true },
+            session: { active: false, date: null, answered: 0, correct: 0, incorrect: 0, ids: {}, mastered: 0 },
+            history: {},
+            dailyPractice: {},
+            points: pts, streak: stk, best: bst, attempts: att, correct: cor
+          };
+          records["spellAgent.v2"] = JSON.stringify(reconstructed);
         } catch(_) {}
       }
 
@@ -2032,6 +2042,7 @@ function doPost(e) {
       return jsonResponse({
         status:"success", message:"驗證成功", role:"student",
         className:auth.className, realName:auth.realName, records,
+        isNewStudent: isNewStudent,
         assignedTask: assignedTask,
         dailyTaskHistory: dailyTaskHistory,
         timeRestriction: timeAllowance,
