@@ -13,9 +13,6 @@ import {
   PASS_RATE, GATE_MIN_ATTEMPTS, CHALLENGE_LEN, PLACEMENT_PER_LEVEL, DAILY_GOAL,
 } from "./levels.js?v=20261012_0215";
 
-import { startQuestionAudit, auditAnswerSpeed, initAntiCheat } from "./anticheat.js?v=20261012_0215";
-initAntiCheat();
-
 let WORDS = [];
 const state = { mode: "listen", word: null, answered: false, round: null };
 
@@ -240,7 +237,6 @@ function renderCurrent() {
     onCheck: check,
     disablePeek: true 
   });
-  startQuestionAudit(state.word, state.mode);
   
   // ── 若為今日任務模式：嚴格鎖定純聽拼、隱藏模式與關卡 ──
   if (isTask && taskState.task) {
@@ -362,9 +358,6 @@ function check() {
 function answer(correct, guessVal) {
   if (state.answered) return;
   state.answered = true;
-
-  // 審計作答反應速度與外掛特徵
-  auditAnswerSpeed(guessVal || (correct ? state.word?.word : ""), correct);
 
   // ── 若在指定任務中 ──
   if (taskState.active) {

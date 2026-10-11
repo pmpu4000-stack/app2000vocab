@@ -1080,7 +1080,6 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 
     const scriptUrl = "https://script.google.com/macros/s/AKfycbx1hyCNJxqFMoaJgIxfZqLYIYH00NegI1Yd8NJP6gRjqwOndWGkmr-H9tGvVwK_axM9/exec";
     window.__SCRIPT_URL = scriptUrl;
-    try { import(`./src/anticheat.js?v=${bootTime}`).then(m => m.initAntiCheat({ scriptUrl })).catch(() => {}); } catch(_) {}
 
     function updateAccountDisplay(username, role) {
       const sUser = document.getElementById("s-user");

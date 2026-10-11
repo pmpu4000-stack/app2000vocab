@@ -61,14 +61,6 @@ function recordLoginFailure(username) {
     if (n >= SYS.LOGIN_MAX_FAIL) {
       cache.put(_lockKey(username), "1", SYS.LOGIN_LOCK_SEC);
       logError("登入保護", `帳號 ${username} 連續失敗 ${n} 次，已鎖定`, username, "");
-      try {
-        logSecurityIncident(SpreadsheetApp.getActiveSpreadsheet(), {
-          username: username,
-          method: "密碼暴力破解/撞庫攻擊 (Brute-force)",
-          details: `連續輸入錯誤密碼達 ${n} 次，觸發安全機制強制鎖定 ${SYS.LOGIN_LOCK_SEC} 秒`,
-          result: "🔒 帳號已自動鎖定保護"
-        });
-      } catch(_) {}
     }
   } catch(_) {}
 }
@@ -376,20 +368,8 @@ function logError(action, err, username, details) {
 }
 
 // ════════════════════════════════════════════════════════════════════
-// 0.1 資安防禦與作弊稽核日誌 (符應個資法第19條教育評量公正性維護)
+// 0.1 應用程式防火牆 (WAF) 即時防護 (純攔截阻斷，不記錄使用者操作行為)
 // ════════════════════════════════════════════════════════════════════
-// 0.1 零資料蒐集模式：防作弊日誌與資安事件日誌已全面停用
-// ════════════════════════════════════════════════════════════════════
-
-function recordCheatAudit(ss, params) {
-  // 純淨零資料蒐集模式：不記錄任何作弊、按鍵或切頁日誌
-  return { status: "success", message: "零資料蒐集模式已啟用" };
-}
-
-function logSecurityIncident(ss, incident) {
-  // 純淨零資料蒐集模式：不記錄任何資安與設備指紋日誌
-  return { status: "success", message: "零資料蒐集模式已啟用" };
-}
 
 /**
  * 應用程式防火牆 (WAF) 深度封包檢測
@@ -2285,26 +2265,9 @@ function doPost(e) {
     if (action === "cleanupUnusedSheets") {
       const auth = authenticateUser(ss, params.username, params.password);
       if (!auth.success || auth.role !== "teacher") {
-        logSecurityIncident(ss, {
-          username: params.username,
-          method: "未授權特權提升嘗試 (Privilege Escalation)",
-          details: `非教師權限嘗試執行系統工作表清理 (action=cleanupUnusedSheets)`,
-          device: params.device || "未知設備",
-          result: "🚫 權限不足，已阻斷並保全紀錄"
-        });
         return jsonResponse({status:"error", message:"僅教師或管理員可執行工作表清理"});
       }
       return jsonResponse(cleanupUnusedSheets());
-    }
-
-    // ── 9. 資安防禦：作弊違規稽核日誌回報 ──
-    if (action === "reportCheatAudit") {
-      return jsonResponse(recordCheatAudit(ss, params));
-    }
-
-    // ── 10. 資安入侵防禦：駭客攻擊與入侵事件回報 ──
-    if (action === "reportSecurityIncident") {
-      return jsonResponse(logSecurityIncident(ss, params));
     }
 
     // ── 11. 個資法與資料隱私合規性自動檢驗 ──
@@ -2327,16 +2290,6 @@ function doPost(e) {
 function doGet(e) {
   // 資通安全與個資法防護：阻絕任何未授權之維護指令探測
   if (e && e.parameter && (e.parameter.action === "cleanupSheets" || e.parameter.clean === "1")) {
-    try {
-      const ss = SpreadsheetApp.getActiveSpreadsheet();
-      logSecurityIncident(ss, {
-        username: (e.parameter.username || "未授權外網訪客"),
-        method: "未經授權之敏感管理指令探測 (GET cleanupSheets)",
-        details: "嘗試透過公開 GET 請求觸發系統工作表清理作業 (已即時阻斷)",
-        device: "GET HTTP Request",
-        result: "🚫 403 拒絕存取：敏感維護作業僅限登入之教師於控制台執行"
-      });
-    } catch(_) {}
     return jsonResponse({
       status: "error",
       code: 403,
@@ -4258,57 +4211,7 @@ function onOpen(e) {
   } catch(_) {}
 }
 
-function initSecurityIncidentSheetUi() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let sheet = ss.getSheetByName("資安入侵防禦日誌");
-  const headers = [
-    "紀錄時間", "來源帳號/識別", "姓名與角色", "所屬班級",
-    "入侵/攻擊手法", "具體載荷與證據細節", "來源設備與作業系統", "客戶端環境與指紋", "防禦處置結果"
-  ];
-  if (!sheet) {
-    sheet = ss.insertSheet("資安入侵防禦日誌");
-    sheet.appendRow(headers);
-    sheet.getRange("1:1")
-      .setFontWeight("bold")
-      .setBackground("#0f172a")
-      .setFontColor("#f43f5e")
-      .setHorizontalAlignment("center")
-      .setVerticalAlignment("middle");
-    sheet.setRowHeight(1, 38);
-    [160, 120, 110, 90, 200, 420, 200, 230, 130].forEach((w, i) => sheet.setColumnWidth(i + 1, w));
-    sheet.setFrozenRows(1);
-    ss.toast("🚨 已成功建立【資安入侵防禦日誌】分頁！", "資安防禦中心", 5);
-  } else {
-    ss.setActiveSheet(sheet);
-    ss.toast("🚨 已切換至【資安入侵防禦日誌】分頁！", "資安防禦中心", 5);
-  }
-}
 
-function initCheatAuditSheetUi() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let sheet = ss.getSheetByName("作弊稽核日誌");
-  const headers = [
-    "紀錄時間", "學生帳號", "學生姓名", "班級",
-    "違規手法/行為", "具體行為與證據細節", "使用設備與作業系統", "瀏覽器與解析度", "處置狀況"
-  ];
-  if (!sheet) {
-    sheet = ss.insertSheet("作弊稽核日誌");
-    sheet.appendRow(headers);
-    sheet.getRange("1:1")
-      .setFontWeight("bold")
-      .setBackground("#7f1d1d")
-      .setFontColor("#ffffff")
-      .setHorizontalAlignment("center")
-      .setVerticalAlignment("middle");
-    sheet.setRowHeight(1, 38);
-    [160, 110, 100, 90, 190, 380, 200, 230, 120].forEach((w, i) => sheet.setColumnWidth(i + 1, w));
-    sheet.setFrozenRows(1);
-    ss.toast("🛡️ 已成功建立【作弊稽核日誌】分頁！", "資安防禦中心", 5);
-  } else {
-    ss.setActiveSheet(sheet);
-    ss.toast("🛡️ 已切換至【作弊稽核日誌】分頁！", "資安防禦中心", 5);
-  }
-}
 
 function cleanDuplicateStudentRecordsUi() {
   const ui = SpreadsheetApp.getUi();
