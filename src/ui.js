@@ -2,9 +2,9 @@
 // ui.js — the view. All DOM rendering lives here. It renders from plain
 // data and reports intent through callbacks; it never touches the store.
 // =====================================================================
-import { CATS } from "./data.js";
-import { say, spellOut, playContestSentence, stopAudio } from "./audio.js";
-import { LEVELS, levelColor, levelName, misspellings, shuffle } from "./levels.js";
+import { CATS } from "./data.js?v=20261012_0215";
+import { say, spellOut, playContestSentence, stopAudio } from "./audio.js?v=20261012_0215";
+import { LEVELS, levelColor, levelName, misspellings, shuffle } from "./levels.js?v=20261012_0215";
 
 if (typeof window !== "undefined") {
   window.__say = say;
@@ -274,17 +274,28 @@ function renderScramble(word, onCheck) {
   do { shuffled = shuffle(word.word.split("")); }
   while (shuffled.join("") === word.word && word.word.replace(" ", "").length > 1);
 
+  // 1. 建立作答輸入框（支援點擊上方字母填入與鍵盤直接打字）
+  const inp = textInput("排 出 正 確 的 字 …", onCheck);
+  inp.classList.add("scramble-inp");
+
+  // 2. 建立字母磁磚容器（點擊字母直接輸入到底下作答框）
   const scr = document.createElement("div");
-  scr.className = "tiles";
+  scr.className = "tiles scramble-tiles";
 
   let selectedIndices = [];
   const tilesList = [];
 
   const updateDisplay = () => {
+    // 依點選順序輸出至作答框
     inp.value = selectedIndices.map(idx => shuffled[idx]).join("");
     tilesList.forEach((item, idx) => {
       const isUsed = selectedIndices.includes(idx);
       item.el.classList.toggle("used", isUsed);
+      if (isUsed) {
+        item.el.title = `字母「${item.ch}」已輸入（點擊收回）`;
+      } else {
+        item.el.title = `點擊將字母「${item.ch}」輸入到底下作答框`;
+      }
     });
   };
 
@@ -292,8 +303,13 @@ function renderScramble(word, onCheck) {
     const t = document.createElement("div");
     t.className = "tile scramble-btn";
     t.textContent = ch === " " ? "␣" : ch;
-    t.title = "點擊依序選取字母";
-    t.onclick = () => {
+    t.title = `點擊將字母「${ch}」輸入到底下作答框`;
+    t.setAttribute("role", "button");
+    t.setAttribute("tabindex", "0");
+    
+    // 點擊事件：點擊未選字母 ➔ 填入輸入框；點擊已選字母 ➔ 退回收回
+    t.onclick = (e) => {
+      e.preventDefault();
       if (inp.disabled) return;
       const foundPos = selectedIndices.indexOf(idx);
       if (foundPos >= 0) {
@@ -302,15 +318,24 @@ function renderScramble(word, onCheck) {
         selectedIndices.push(idx);
       }
       updateDisplay();
+      inp.focus();
       if (selectedIndices.length === shuffled.length) {
         try { el.checkBtn.focus(); } catch(_) {}
       }
     };
+
+    t.onkeydown = (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        t.click();
+      }
+    };
+
     scr.append(t);
     tilesList.push({ ch, el: t });
   });
 
-  const inp = textInput("點擊上方字母或在此輸入…", onCheck);
+  // 3. 雙向同步：若使用者用鍵盤在輸入框直接打字，自動同步點亮/消耗對應字母磁磚
   inp.oninput = () => {
     const rawVal = inp.value;
     const newSelected = [];
@@ -329,34 +354,48 @@ function renderScramble(word, onCheck) {
     });
   };
 
+  // 4. 輔助操作按鈕：倒退刪除與清除重選
   const actWrap = document.createElement("div");
-  actWrap.style.cssText = "display:flex;gap:8px;justify-content:center;margin-top:8px;";
+  actWrap.className = "scramble-actions";
+  actWrap.style.cssText = "display:flex;gap:10px;justify-content:center;margin-top:12px;align-items:center;flex-wrap:wrap;";
 
   const backBtn = document.createElement("button");
-  backBtn.className = "mini";
+  backBtn.className = "mini scramble-action-btn";
   backBtn.type = "button";
-  backBtn.textContent = "⌫ 倒退";
-  backBtn.onclick = () => {
+  backBtn.innerHTML = "<span>⌫</span> 倒退";
+  backBtn.title = "刪除最後輸入的一個字母";
+  backBtn.onclick = (e) => {
+    e.preventDefault();
     if (inp.disabled) return;
     if (selectedIndices.length > 0) {
       selectedIndices.pop();
       updateDisplay();
+      inp.focus();
     }
   };
 
   const resetBtn = document.createElement("button");
-  resetBtn.className = "mini";
+  resetBtn.className = "mini scramble-action-btn";
   resetBtn.type = "button";
-  resetBtn.textContent = "↺ 清除重選";
-  resetBtn.onclick = () => {
+  resetBtn.innerHTML = "<span>↺</span> 清除重選";
+  resetBtn.title = "清空所有已選字母";
+  resetBtn.onclick = (e) => {
+    e.preventDefault();
     if (inp.disabled) return;
     selectedIndices = [];
     updateDisplay();
+    inp.focus();
   };
 
-  actWrap.append(backBtn, resetBtn);
+  const tipText = document.createElement("span");
+  tipText.className = "scramble-tip-text";
+  tipText.textContent = "💡 可點擊字母填入，或直接用鍵盤打字";
+  tipText.style.cssText = "font-size:12px;color:var(--ink3,#94a3b8);margin-left:4px;";
+
+  actWrap.append(backBtn, resetBtn, tipText);
+
   el.stage.append(scr, inp, actWrap);
-  setTimeout(() => inp.focus(), 50);
+  setTimeout(() => inp.focus(), 60);
 
   return {
     getGuess: () => inp.value.trim().toLowerCase(),
