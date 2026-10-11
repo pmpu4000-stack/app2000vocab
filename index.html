@@ -126,8 +126,6 @@
         </div>
       </main>
 
-      <div class="banner" id="banner"></div>
-
       <section class="progress">
         <h3>
           <span>學習進度 Progress</span>
@@ -144,12 +142,14 @@
           <span title="答對 1 次（或最近答錯，需要再練）"><i style="background:#D9D5F2"></i>學習中 <b id="n-learn" class="tnum">0</b></span>
           <span title="連續答對 2 次"><i style="background:#B9E8D3"></i>練習中 <b id="n-prac" class="tnum">0</b></span>
           <span title="連續答對 3 次，獲得 ⭐"><i style="background:var(--green)"></i>精通 <b id="n-mast" class="tnum">0</b></span>
+          <span title="答對過的單字數（不重複）"><i style="background:#39ff14;box-shadow:0 0 6px rgba(57,255,20,0.6)"></i>答對過 <b id="n-correct" class="tnum" style="color:#39ff14">0</b></span>
           <span style="margin-left:auto;color:var(--ink3)">共 <b id="n-total" class="tnum">0</b> 字</span>
         </div>
         <p class="defs">熟練度定義：<b>學習中</b>＝答對 1 次 · <b>練習中</b>＝連續答對 2 次 · <b>精通</b>＝連續答對 3 次（答錯會退回「學習中」）</p>
+        <div id="summary" class="summary-embedded" hidden></div>
       </section>
 
-      <section class="summary" id="summary" hidden></section>
+      <div class="banner" id="banner"></div>
 
       <p class="foot">
         🔊 需要開啟聲音才能聽發音。進度儲存要按上傳紀錄。<br>

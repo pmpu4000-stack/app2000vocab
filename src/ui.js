@@ -339,9 +339,11 @@ export function renderProgress(s) {
   $("#s-rate").textContent = s.passRate + "%";
   $("#b-learn").style.width = (s.learn / s.total * 100) + "%";
   $("#b-prac").style.width = (s.prac / s.total * 100) + "%";
-  $("#b-mast").style.width = (s.mast / s.total * 100) + "%";
   $("#n-learn").textContent = s.learn; $("#n-prac").textContent = s.prac;
-  $("#n-mast").textContent = s.mast; $("#n-total").textContent = s.total;
+  $("#n-mast").textContent = s.mast;
+  const nCorr = $("#n-correct");
+  if (nCorr) nCorr.textContent = s.distinctCorrect;
+  $("#n-total").textContent = s.total;
 }
 
 export function renderSession(s, goal, onStart, onEnd, customTitle) {
