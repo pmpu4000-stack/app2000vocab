@@ -3,7 +3,7 @@
 // data and reports intent through callbacks; it never touches the store.
 // =====================================================================
 import { CATS } from "./data.js";
-import { say, spellOut } from "./audio.js";
+import { say, spellOut, playContestSentence, stopAudio } from "./audio.js";
 import { LEVELS, levelColor, levelName, misspellings, shuffle } from "./levels.js";
 
 if (typeof window !== "undefined") {
@@ -132,10 +132,10 @@ export function renderRound(word, mode, { onAnswer, onCheck, disablePeek }) {
 
       html += `
         <div class="sent-row" data-idx="${i}">
-          <button type="button" class="sent-speaker-btn ${levelCls}" data-idx="${i}" title="${levelText}例句 (點擊朗讀)" aria-label="${levelText}例句朗讀">
+          <button type="button" class="sent-speaker-btn ${levelCls}" data-idx="${i}" title="${levelText}例句 (單字王模式：單字 ➔ 例句 ➔ 單字)" aria-label="${levelText}例句朗讀">
             🔊
           </button>
-          <div class="sent-text-wrap" data-idx="${i}" title="點擊朗讀此例句">
+          <div class="sent-text-wrap" data-idx="${i}" title="點擊朗讀 (單字 ➔ 例句 ➔ 單字)">
             <div class="sent-en">${maskedSent}</div>
             ${s.sentZh ? `<div class="sent-zh">${s.sentZh}</div>` : ''}
           </div>
@@ -153,14 +153,15 @@ export function renderRound(word, mode, { onAnswer, onCheck, disablePeek }) {
       if (!targetSent) return;
 
       const playFn = () => {
-        say(targetSent.sent, 0.88);
+        el.sent.querySelectorAll(".sent-row.playing, .sent-speaker-btn.playing").forEach(elem => elem.classList.remove("playing"));
         row.classList.add("playing");
         const speaker = row.querySelector(".sent-speaker-btn");
         if (speaker) speaker.classList.add("playing");
-        setTimeout(() => {
+
+        playContestSentence(word.word, targetSent.sent, () => {
           row.classList.remove("playing");
           if (speaker) speaker.classList.remove("playing");
-        }, 600);
+        });
       };
 
       const spkBtn = row.querySelector(".sent-speaker-btn");
