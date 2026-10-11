@@ -2279,6 +2279,13 @@ function handleSaveRecord(ss, params, auth) {
 
   // 解析今日指定任務資訊（優先從 params.todayTaskSummary 提取，亦支援從 records 中自動解析備援）
   let sum = params.todayTaskSummary || null;
+  // 嚴格校驗：若 sum 日期不是今天，清空以防舊日任務污染今日
+  if (sum && sum.date) {
+    const sumDateStr = formatStandardDateYMD(sum.date);
+    if (sumDateStr && sumDateStr !== todayStr) {
+      sum = null;
+    }
+  }
   if (!sum && records["today_task_summary"]) {
     try {
       const parsedSum = JSON.parse(records["today_task_summary"]);
@@ -2289,7 +2296,8 @@ function handleSaveRecord(ss, params, auth) {
   if (!sum && records["today_task_in_progress"]) {
     try {
       const prog = JSON.parse(records["today_task_in_progress"]);
-      if (prog && prog.pool && prog.pool.length > 0) {
+      const progDate = prog ? formatStandardDateYMD(prog.date) : "";
+      if (prog && prog.pool && prog.pool.length > 0 && (!progDate || progDate === todayStr)) {
         sum = {
           taskName   : prog.task ? prog.task.taskName : "今日指定練習",
           score      : prog.correct || 0,
@@ -2297,7 +2305,7 @@ function handleSaveRecord(ss, params, auth) {
           rate       : "—",
           completed  : false,
           inProgress : true,
-          date       : prog.date || "",
+          date       : prog.date || todayStr,
           wrongWords : prog.wrongWords || []
         };
       }
@@ -2328,7 +2336,7 @@ function handleSaveRecord(ss, params, auth) {
     ? sum.wrongWords.join(", ")
     : (sum && typeof sum.wrongWords === "string" ? sum.wrongWords : "");
 
-  // 檢查試算表目前第 2 列是否已經是已完成的測驗紀錄
+  // 檢查試算表目前第 2 列是否已經是今日或過往的紀錄
   let shouldInsertNewRow = false;
   let existingRow = null;
   let sameDay = false;
@@ -2350,36 +2358,36 @@ function handleSaveRecord(ss, params, auth) {
   if (uSheet.getLastRow() < 2) {
     // 剛建立的新分頁，直接寫入第 2 列
     shouldInsertNewRow = false;
-  } else if (isCompleted) {
-    // 【已完成的測驗】：
-    // 若第 2 列目前已經是一筆已完成的測驗（無論同日或不同日），本次新完成的測驗獨立開闢新列，完整保留歷次所有成果！
-    if (existingHasCompleted) {
-      shouldInsertNewRow = true;
-    } else {
-      // 若第 2 列是本次測驗的進行中暫存（或純自由練習），就地更新為已完成
+  } else if (sameDay) {
+    // 【同日多次存檔】：預設就地更新第 2 列，絕不重複多開新列！
+    if (isCompleted) {
+      // 本次是剛完成的指定任務：直接在第 2 列記錄已完成成果
       shouldInsertNewRow = false;
-    }
-  } else if (sum && sum.inProgress) {
-    // 【測驗進行中】：
-    // 若第 2 列是已完成測驗，開闢新列暫存；若第 2 列本就是作答中暫存，更新進度
-    if (existingHasCompleted) {
-      shouldInsertNewRow = true;
+    } else if (sum && sum.inProgress) {
+      // 本次是指定測驗進行中暫存
+      if (existingHasCompleted && existingTask !== taskName) {
+        // 如果今天已經完成過另一個不同的指定測驗，此時開啟全新測驗，才獨立開新列
+        shouldInsertNewRow = true;
+      } else {
+        // 否則就地更新作答中進度
+        shouldInsertNewRow = false;
+      }
     } else {
+      // 本次是自主練習或定期存檔
+      if (existingHasCompleted) {
+        // 今天已經有完成的指定測驗成果，保留成果不被自主練習沖刷掉
+        taskName      = existingTask || taskName;
+        taskScore     = existingScore || taskScore;
+        taskRate      = String(existingRow[20] || taskRate);
+        status        = existingStatus || status;
+        wrongWordsStr = String(existingRow[22] || wrongWordsStr);
+      }
       shouldInsertNewRow = false;
     }
   } else {
-    // 【自主練習 / 總進度儲存】：
-    if (existingHasCompleted) {
-      // 保留已完成測驗成果不被抹除
-      taskName      = String(existingRow[18] || taskName);
-      taskScore     = String(existingRow[19] || taskScore);
-      taskRate      = String(existingRow[20] || taskRate);
-      status        = String(existingRow[21] || status);
-      wrongWordsStr = String(existingRow[22] || wrongWordsStr);
-      if (!sameDay) shouldInsertNewRow = true;
-    } else {
-      if (!sameDay) shouldInsertNewRow = true;
-    }
+    // 【跨日（新的一天）】：必定開闢新列（插入至第 2 列）
+    shouldInsertNewRow = true;
+    // 跨日的新一天，若今天尚未完成測驗，絕不繼承昨天的測驗名稱與成績！
   }
 
   const rowData = [ts, stored,
@@ -2403,6 +2411,26 @@ function handleSaveRecord(ss, params, auth) {
   }
   uSheet.getRange(2, 1, 1, rowData.length)
     .setValues([rowData]).setHorizontalAlignment("center").setVerticalAlignment("middle");
+
+  // 【自動清理防護】：若同日因先前的 Bug 產生了重複的新列，自動將多餘的同日重複列合併或清理
+  try {
+    if (uSheet.getLastRow() > 2) {
+      const checkRows = Math.min(uSheet.getLastRow() - 1, 15);
+      const datesVals = uSheet.getRange(2, 1, checkRows, 19).getValues();
+      let deleteRowIndices = [];
+      for (let i = 1; i < datesVals.length; i++) {
+        const rowD = formatStandardDateYMD(datesVals[i][0]);
+        const rowTask = String(datesVals[i][18] || "").trim();
+        if (rowD === todayStr && (rowTask === taskName || rowTask === "自主練習" || taskName === "自主練習")) {
+          // 與第 2 列同日同任務的歷史多餘列，排入刪除清單 (從下往上刪)
+          deleteRowIndices.push(i + 2);
+        }
+      }
+      for (let k = deleteRowIndices.length - 1; k >= 0; k--) {
+        uSheet.deleteRow(deleteRowIndices[k]);
+      }
+    }
+  } catch(_) {}
 
   clearOverviewCache();
   try {
@@ -3818,10 +3846,68 @@ function onOpen(e) {
     SpreadsheetApp.getUi()
       .createMenu("🎯 系統維護")
       .addItem("🧹 一鍵清理無用分頁","cleanupUnusedSheetsUi")
+      .addItem("🔄 一鍵清理學生重複歷史列","cleanDuplicateStudentRecordsUi")
       .addItem("🔐 密碼全面轉 SHA-256 加密","migrateAllPasswordsToHash")
       .addItem("💾 備份試算表至 Google Drive","backupSpreadsheetToDrive")
       .addToUi();
   } catch(_) {}
+}
+
+function cleanDuplicateStudentRecordsUi() {
+  const ui = SpreadsheetApp.getUi();
+  const res = cleanDuplicateStudentRecords();
+  ui.alert("🔄 清理學生紀錄完成",
+    `✅ ${res.message}\n\n已檢查學生分頁：${res.checkedSheets} 個\n已清理多餘重複列：${res.deletedRows} 列`,
+    ui.ButtonSet.OK);
+}
+
+function cleanDuplicateStudentRecords() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheets = ss.getSheets();
+  let checkedSheets = 0;
+  let deletedRows = 0;
+
+  sheets.forEach(s => {
+    const name = s.getName().trim();
+    if (isSystemSheet(name)) return;
+    checkedSheets++;
+    const lastRow = s.getLastRow();
+    if (lastRow <= 2) return;
+
+    // 檢查最多前 60 列
+    const checkCount = Math.min(lastRow - 1, 60);
+    const data = s.getRange(2, 1, checkCount, 22).getValues();
+    const seen = new Set();
+    const toDelete = [];
+
+    for (let i = 0; i < data.length; i++) {
+      const dStr = formatStandardDateYMD(data[i][0]);
+      const task = String(data[i][18] || "自主練習").trim();
+      const score = String(data[i][19] || "—").trim();
+      const status = String(data[i][21] || "—").trim();
+      if (!dStr) continue;
+
+      // 複合 key：日期 + 任務名稱
+      const key = dStr + "___" + task;
+      if (seen.has(key)) {
+        // 重複列（由於從第 2 列開始由新到舊讀取，後面讀到的都是較舊的重複列）
+        toDelete.push(i + 2);
+      } else {
+        seen.add(key);
+      }
+    }
+
+    // 從下方開始刪除以保持行號正確
+    for (let k = toDelete.length - 1; k >= 0; k--) {
+      try {
+        s.deleteRow(toDelete[k]);
+        deletedRows++;
+      } catch(_) {}
+    }
+  });
+
+  clearOverviewCache();
+  return { status: "success", message: "學生重複紀錄已徹底掃描並清理完成！", checkedSheets, deletedRows };
 }
 
 function cleanupUnusedSheetsUi() {
