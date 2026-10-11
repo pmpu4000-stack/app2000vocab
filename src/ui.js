@@ -1142,7 +1142,10 @@ export function renderSummary(d) {
     <div class="subh">各關卡進度</div>
     <table class="sumtable">${lvRows}</table>
     <div class="formula-note-box">
-      💡 <b>各關卡進度數值說明</b>：<span class="formula-val">分數（分子為答對單字數 ÷ 分母為考出來的總單字數，附正確率 %），後方顯示各單字掌握度（學習中<span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span>練習中<span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span>精通<span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span>該關總單字數）</span>
+      💡 <b>各關卡進度格式詳細說明</b>：
+      <div style="margin-top:6px; line-height:1.75; font-size:12.5px;">
+        <span class="formula-val"><b>0/0 (0%)</b>（答對單字數 / 考出總單字數，附正確率）</span><span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span><span class="formula-val"><b>學習中 0</b>（答對 1 次或答錯待訂正字數）</span><span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span><span class="formula-val"><b>練習中 0</b>（連續答對 2 次字數）</span><span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span><span class="formula-val"><b>精通 0</b>（連續答對 3 次已精熟字數⭐）</span><span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span><span class="formula-val"><b>共 411</b>（該關總單字數）</span>
+      </div>
     </div>
     <div class="subh">🎮 4 大練習模式答題數</div>
     <div class="mode-stat-grid">
