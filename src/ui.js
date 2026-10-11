@@ -126,23 +126,19 @@ export function renderRound(word, mode, { onAnswer, onCheck, disablePeek }) {
 
     let html = '<div class="sents-vertical-list">';
     sentsList.forEach((s, i) => {
-      const badgeIcon = s.level === 'simple' ? '🌱' : s.level === 'advanced' ? '🌲' : '🌿';
       const levelCls = s.level === 'simple' ? 'level-simple' : s.level === 'advanced' ? 'level-advanced' : 'level-normal';
       const levelText = s.levelName || (i === 0 ? '簡單' : i === 1 ? '普通' : '進階');
       const maskedSent = s.sent.replace(new RegExp("\\b" + word.word + "\\b", "i"), "<u>_____</u>");
 
       html += `
         <div class="sent-row" data-idx="${i}">
-          <button type="button" class="sent-level-btn ${levelCls}" data-idx="${i}" title="播放此例句">
-            ${badgeIcon} ${levelText}
+          <button type="button" class="sent-speaker-btn ${levelCls}" data-idx="${i}" title="${levelText}例句 (點擊朗讀)" aria-label="${levelText}例句朗讀">
+            🔊
           </button>
-          <div class="sent-text-wrap" data-idx="${i}" title="播放此例句">
+          <div class="sent-text-wrap" data-idx="${i}" title="點擊朗讀此例句">
             <div class="sent-en">${maskedSent}</div>
             ${s.sentZh ? `<div class="sent-zh">${s.sentZh}</div>` : ''}
           </div>
-          <button type="button" class="sent-audio-btn" data-idx="${i}" aria-label="播放此例句發音" title="播放此例句發音">
-            🔊
-          </button>
         </div>
       `;
     });
@@ -159,17 +155,19 @@ export function renderRound(word, mode, { onAnswer, onCheck, disablePeek }) {
       const playFn = () => {
         say(targetSent.sent, 0.88);
         row.classList.add("playing");
-        setTimeout(() => row.classList.remove("playing"), 600);
+        const speaker = row.querySelector(".sent-speaker-btn");
+        if (speaker) speaker.classList.add("playing");
+        setTimeout(() => {
+          row.classList.remove("playing");
+          if (speaker) speaker.classList.remove("playing");
+        }, 600);
       };
 
-      const lvlBtn = row.querySelector(".sent-level-btn");
-      if (lvlBtn) lvlBtn.onclick = playFn;
+      const spkBtn = row.querySelector(".sent-speaker-btn");
+      if (spkBtn) spkBtn.onclick = playFn;
 
       const textWrap = row.querySelector(".sent-text-wrap");
       if (textWrap) textWrap.onclick = playFn;
-
-      const audioBtn = row.querySelector(".sent-audio-btn");
-      if (audioBtn) audioBtn.onclick = playFn;
     });
   } else {
     el.sent.innerHTML = "";
@@ -186,17 +184,8 @@ export function renderRound(word, mode, { onAnswer, onCheck, disablePeek }) {
 
 function renderListen(word, onCheck) {
   el.stage.innerHTML = "";
-  const promptRow = document.createElement("div");
-  promptRow.className = "stage-prompt-row";
-  const repeatBtn = document.createElement("button");
-  repeatBtn.type = "button";
-  repeatBtn.className = "stage-sound-btn";
-  repeatBtn.innerHTML = "<span>🔊</span> 再聽一次單字";
-  repeatBtn.onclick = () => say(word.word);
-  promptRow.append(repeatBtn);
-
   const inp = textInput("在這裡拼字…", onCheck);
-  el.stage.append(promptRow, inp);
+  el.stage.append(inp);
   say(word.word);
   setTimeout(() => inp.focus(), 50);
   return {
@@ -223,7 +212,7 @@ function renderPick(word, onAnswer) {
     };
     opts.append(b);
   });
-  el.stage.append(opts, miniBtn("🔊 再聽一次", () => say(word.word)));
+  el.stage.append(opts);
   el.checkBtn.style.display = "none";
   say(word.word);
   return { getGuess: null, applyTypedResult: null };
@@ -259,11 +248,7 @@ function renderTrap(word, onCheck) {
     }
     wrap.append(t);
   });
-  const trapRow = document.createElement("div");
-  trapRow.className = "mini-row";
-  trapRow.append(miniBtn("🔊 聽發音", () => say(word.word)));
-  if (word.sent) trapRow.append(miniBtn("💬 唸例句", () => say(word.sent, 0.88)));
-  el.stage.append(wrap, trapRow);
+  el.stage.append(wrap);
   say(word.word);
   setTimeout(() => { const f = wrap.querySelector("input"); if (f) f.focus(); }, 50);
   return {
@@ -296,11 +281,7 @@ function renderScramble(word, onCheck) {
     scr.append(t);
   });
   const inp = textInput("排出正確的字…", onCheck);
-  const scrRow = document.createElement("div");
-  scrRow.className = "mini-row";
-  scrRow.append(miniBtn("🔊 聽發音", () => say(word.word)));
-  if (word.sent) scrRow.append(miniBtn("💬 唸例句", () => say(word.sent, 0.88)));
-  el.stage.append(scr, inp, scrRow);
+  el.stage.append(scr, inp);
   setTimeout(() => inp.focus(), 50);
   return {
     getGuess: () => inp.value.trim().toLowerCase(),
