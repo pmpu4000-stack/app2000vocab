@@ -1949,9 +1949,238 @@
       padding: 4px 12px;
       border-radius: 14px;
     }
-    [data-theme="dark"] .analytics-ranking-badge {
-      background: #312e81;
-      color: #a5b4fc;
+    /* Teacher Daily Task Quiz & Free Practice Section */
+    .task-history-card {
+      background: var(--card-bg, #F8F9FD);
+      border: 1px solid var(--border, #E2E8F0);
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin: 10px 0 16px;
+    }
+    .task-history-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .task-card-title {
+      font-size: 14.5px;
+      font-weight: 800;
+      color: var(--text, #1E293B);
+    }
+    .task-date-selector {
+      background: var(--input-bg, #FFFFFF);
+      border: 1.5px solid var(--border, #E2E8F0);
+      color: var(--text, #1E293B);
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      outline: none;
+      cursor: pointer;
+    }
+    .task-score-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .task-score-item {
+      background: var(--card-bg, #FFFFFF);
+      border: 1px solid var(--border, #E2E8F0);
+      border-radius: 10px;
+      padding: 10px;
+      text-align: center;
+    }
+    .task-score-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted, #64748B);
+      margin-bottom: 4px;
+    }
+    .task-score-val {
+      font-size: 20px;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+    .word-pill-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 3px 7px;
+      border-radius: 5px;
+      font-size: 11.5px;
+      font-weight: 700;
+      margin: 2px;
+    }
+    .word-pill-tag.correct {
+      background: #E4F7EE;
+      color: #16A34A;
+      border: 1px solid rgba(47, 180, 124, 0.3);
+    }
+    .word-pill-tag.wrong {
+      background: #FFE9E9;
+      color: #D64545;
+      border: 1px solid rgba(255, 107, 107, 0.4);
+    }
+    [data-theme="dark"] .word-pill-tag.correct {
+      background: rgba(47, 180, 124, 0.22) !important;
+      color: #6EE7B7 !important;
+      border-color: rgba(47, 180, 124, 0.45) !important;
+    }
+    [data-theme="dark"] .word-pill-tag.wrong {
+      background: rgba(255, 107, 107, 0.22) !important;
+      color: #FCA5A5 !important;
+      border-color: rgba(255, 107, 107, 0.45) !important;
+    }
+
+    /* Date Navigator Bar */
+    .date-navigator-card {
+      background: var(--table-header-bg, #F8F9FD);
+      border: 1.5px solid var(--border, #E2E8F0);
+      border-radius: 14px;
+      padding: 12px 16px;
+      margin: 14px 0 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .date-nav-left {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .date-nav-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text, #1E293B);
+    }
+    .date-nav-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+      min-width: 240px;
+    }
+    .date-quick-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted, #64748B);
+    }
+    .date-picker-input {
+      background: var(--input-bg, #FFFFFF);
+      border: 1.5px solid #0284C7;
+      color: var(--text, #1E293B);
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      outline: none;
+      cursor: pointer;
+    }
+    .date-nav-btn {
+      background: var(--card-bg, #FFFFFF);
+      border: 1px solid var(--border, #CBD5E1);
+      color: var(--text, #1E293B);
+      padding: 5px 11px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .date-nav-btn:hover {
+      background: #F1F8FC;
+      border-color: #0284C7;
+      color: #0284C7;
+    }
+    .date-nav-btn.today-btn {
+      background: rgba(2, 132, 199, 0.08);
+      border-color: rgba(2, 132, 199, 0.4);
+      color: #0284C7;
+    }
+    .date-nav-btn.today-btn:hover {
+      background: #0284C7;
+      color: #FFFFFF;
+    }
+
+    /* Word Split Areas */
+    .word-split-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    @media (max-width: 640px) {
+      .word-split-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .word-split-box {
+      border-radius: 12px;
+      padding: 12px 14px;
+    }
+    .word-split-box.correct-box {
+      background: rgba(47, 180, 124, 0.08);
+      border: 1px solid rgba(47, 180, 124, 0.3);
+    }
+    .word-split-box.wrong-box {
+      background: rgba(220, 38, 38, 0.06);
+      border: 1px solid rgba(220, 38, 38, 0.25);
+    }
+    .word-split-title {
+      font-size: 12.5px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .word-split-title.correct-title {
+      color: #16A34A;
+    }
+    .word-split-title.wrong-title {
+      color: #DC2626;
+    }
+    [data-theme="dark"] .word-split-box.correct-box {
+      background: rgba(47, 180, 124, 0.12) !important;
+      border-color: rgba(47, 180, 124, 0.35) !important;
+    }
+    [data-theme="dark"] .word-split-box.wrong-box {
+      background: rgba(255, 107, 107, 0.12) !important;
+      border-color: rgba(255, 107, 107, 0.35) !important;
+    }
+    [data-theme="dark"] .word-split-title.correct-title {
+      color: #38C78B !important;
+    }
+    [data-theme="dark"] .word-split-title.wrong-title {
+      color: #FF8E8E !important;
+    }
+    [data-theme="dark"] .task-history-card,
+    [data-theme="dark"] .task-score-item,
+    [data-theme="dark"] .date-navigator-card {
+      background: #181C2A !important;
+      border-color: #262C42 !important;
+      color: #F0F3FA !important;
+    }
+    [data-theme="dark"] .date-picker-input {
+      background: #1E2438 !important;
+      color: #F0F3FA !important;
+      border-color: #38BDF8 !important;
+    }
+    [data-theme="dark"] .date-nav-btn {
+      background: #20263A !important;
+      border-color: #2D354E !important;
+      color: #E2E8F0 !important;
+    }
+    [data-theme="dark"] .date-nav-btn:hover {
+      background: #2B334D !important;
+      border-color: #38BDF8 !important;
     }
   </style>
 </head>
@@ -2808,6 +3037,36 @@
           <div id="stModeTrapSub" style="font-size:11.5px; color:#10b981;">尚無作答</div>
         </div>
       </div>
+
+      <!-- 📅 指定日期查詢工具列（直覺日曆與快速切換） -->
+      <div class="date-navigator-card">
+        <div class="date-nav-left">
+          <span class="date-nav-title"><span>📅</span> 查詢指定日期：</span>
+          <input type="date" id="student-rec-date-picker" class="date-picker-input">
+          <button type="button" id="btn-st-date-today" class="date-nav-btn today-btn" title="切換回今日">📍 今日</button>
+          <button type="button" id="btn-st-date-prev" class="date-nav-btn" title="查看前一天">◀ 前一天</button>
+          <button type="button" id="btn-st-date-next" class="date-nav-btn" title="查看後一天">後一天 ▶</button>
+        </div>
+        <div class="date-nav-right">
+          <label for="student-rec-quick-dates" class="date-quick-label">🎯 快速跳至有紀錄日期：</label>
+          <select id="student-rec-quick-dates" class="task-date-selector" style="width:100%; margin-top:2px;">
+          </select>
+        </div>
+      </div>
+
+      <!-- 📝 教師指定單字測驗作答紀錄 -->
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin:22px 0 10px; font-size:14.5px; font-weight:800; color:var(--text); border-left:4px solid #8b5cf6; padding-left:8px;">
+        <span>📝 教師指定單字測驗作答紀錄</span>
+        <span style="font-size:12px; color:#0284c7; font-weight:700;">📅 目前查看日期：<span id="st-task-view-date"></span></span>
+      </div>
+      <div id="st-task-record-details"></div>
+
+      <!-- 🎮 自由練習作答紀錄 -->
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin:24px 0 10px; font-size:14.5px; font-weight:800; color:var(--text); border-left:4px solid #8b5cf6; padding-left:8px;">
+        <span>🎮 自由練習作答紀錄</span>
+        <span style="font-size:12px; color:#0284c7; font-weight:700;">📅 目前查看日期：<span id="st-free-view-date"></span></span>
+      </div>
+      <div id="st-free-record-details"></div>
 
       <!-- ✅ 已精通單字清單 (連續答對 3 次，暫時隱藏以維持學生視圖簡潔) -->
       <div id="stMasteredSection" style="display:none; margin-bottom:16px; background:var(--body-bg); border:1px solid var(--border); border-radius:12px; padding:14px 16px;">
@@ -11903,6 +12162,488 @@ function renderPrintReportContent(targetStudent) {
 }
 
 // ════════════════════════════════════════
+// 📝 單字測驗與自由練習按日期查詢模組 (比照拼字遊戲網頁)
+// ════════════════════════════════════════
+function resolveTaskWords(record, selectedDate, agent) {
+  if (!record) return { rawWords: [], wrongList: [], correctList: [] };
+
+  const normDate = String(selectedDate || record.date || "").trim().split(" ")[0].replace(/\//g, "-");
+  let pool = [];
+
+  // 1. 若 record 本身已有 words 陣列
+  if (Array.isArray(record.words) && record.words.length > 0) {
+    pool = record.words.map(w => typeof w === "string" ? w : (w.word || w.display || w.w)).filter(Boolean);
+  }
+
+  // 2. 從 cachedStudentDailyHistory 尋找
+  if (pool.length === 0 && window.cachedStudentDailyHistory && Array.isArray(window.cachedStudentDailyHistory)) {
+    const matched = window.cachedStudentDailyHistory.find(h => {
+      const hDate = String(h.date || "").trim().split(" ")[0].replace(/\//g, "-");
+      return hDate === normDate || (h.taskName && record.taskName && h.taskName === record.taskName);
+    });
+    if (matched && Array.isArray(matched.words) && matched.words.length > 0) {
+      pool = matched.words.map(w => typeof w === "string" ? w : (w.word || w.display || w.w)).filter(Boolean);
+    }
+  }
+
+  // 3. 從 cachedStudentTodayTaskResult 或 cachedStudentAssignedTask 尋找
+  if (pool.length === 0 && window.cachedStudentTodayTaskResult && Array.isArray(window.cachedStudentTodayTaskResult.words) && window.cachedStudentTodayTaskResult.words.length > 0) {
+    const tDate = String(window.cachedStudentTodayTaskResult.date || "").trim().split(" ")[0].replace(/\//g, "-");
+    if (tDate === normDate) {
+      pool = window.cachedStudentTodayTaskResult.words.map(w => typeof w === "string" ? w : (w.word || w.display || w.w)).filter(Boolean);
+    }
+  }
+  if (pool.length === 0 && window.cachedStudentAssignedTask && Array.isArray(window.cachedStudentAssignedTask.words) && window.cachedStudentAssignedTask.words.length > 0) {
+    pool = window.cachedStudentAssignedTask.words.map(w => typeof w === "string" ? w : (w.word || w.display || w.w)).filter(Boolean);
+  }
+
+  // 4. 錯題單字
+  const wrongWords = (Array.isArray(record.wrongWords) ? record.wrongWords : [])
+    .map(w => String(w).trim().toLowerCase())
+    .filter(Boolean);
+
+  let wrongList = [];
+  let correctList = [];
+  const seen = new Set();
+
+  pool.forEach(w => {
+    const clean = String(w).trim();
+    if (!clean || seen.has(clean.toLowerCase())) return;
+    seen.add(clean.toLowerCase());
+
+    if (wrongWords.includes(clean.toLowerCase())) {
+      wrongList.push(clean);
+    } else {
+      correctList.push(clean);
+    }
+  });
+
+  wrongWords.forEach(w => {
+    if (!seen.has(w.toLowerCase())) {
+      seen.add(w.toLowerCase());
+      wrongList.push(w);
+    }
+  });
+
+  if (correctList.length === 0 && wrongList.length === 0 && record.score && record.score.includes("/")) {
+    const parts = record.score.split("/");
+    const corCnt = parseInt(parts[0]) || 0;
+    if (corCnt > 0 && agent && agent.stat) {
+      const candidates = Object.keys(agent.stat).filter(k => agent.stat[k] && agent.stat[k].c > 0 && !wrongWords.includes(k.toLowerCase()));
+      candidates.slice(0, corCnt).forEach(w => {
+        correctList.push(w);
+      });
+    }
+  }
+
+  correctList.sort((a, b) => a.localeCompare(b));
+  wrongList.sort((a, b) => a.localeCompare(b));
+
+  return { rawWords: pool, wrongList, correctList };
+}
+
+function buildTaskDetailsHtml(record, selectedDate, agent) {
+  if (!record) {
+    return `
+      <div class="task-history-card" style="text-align:center; padding:22px 14px; color:var(--text-muted, #94a3b8);">
+        <div style="font-size:26px; margin-bottom:6px;">📅</div>
+        <div style="font-size:13.5px; font-weight:700; color:var(--text, #1e293b);">該指定日期（${selectedDate}）尚無教師指派之測驗作答紀錄</div>
+        <div style="font-size:12px; margin-top:4px; color:var(--text-muted, #94a3b8);">可從上方快速選單或日曆切換至其他日期查看作答狀況</div>
+      </div>
+    `;
+  }
+
+  const { rawWords, wrongList, correctList } = resolveTaskWords(record, selectedDate, agent);
+
+  const scoreVal = record.score || "—";
+  const rateVal = record.rate || "—";
+  const statusStr = record.status || "🟢 已完成";
+  const statusColor = statusStr.includes("已完成") ? "#4ade80" : statusStr.includes("作答中") ? "#facc15" : "#94a3b8";
+  const statusBg = statusStr.includes("已完成") ? "rgba(34,197,94,0.15)" : statusStr.includes("作答中") ? "rgba(234,179,8,0.15)" : "rgba(148,163,184,0.15)";
+  const isFinished = statusStr.includes("已完成") || (scoreVal !== "—" && scoreVal !== "尚未開始");
+
+  let correctContentHtml = "";
+  if (correctList.length > 0) {
+    correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" onclick="speakMasteredWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
+  } else if (isFinished) {
+    if (rawWords.length > 0) {
+      correctContentHtml = `<span style="font-size:12px; color:var(--text-muted, #94a3b8); font-style:italic;">（本次測驗全數答錯，尚無答對單字）</span>`;
+    } else {
+      correctContentHtml = (wrongList.length === 0)
+        ? `<span style="font-size:12px; color:#4ade80; font-weight:700;">🎉 太棒了！本次測驗全數答對！</span>`
+        : `<span style="font-size:12px; color:var(--text-muted, #94a3b8); font-style:italic;">（本次測驗作答 ${scoreVal}）</span>`;
+    }
+  } else {
+    correctContentHtml = `<span style="font-size:12px; color:var(--text-muted, #94a3b8); font-style:italic;">（測驗待完成，尚未作答）</span>`;
+  }
+
+  let wrongContentHtml = "";
+  if (wrongList.length > 0) {
+    wrongContentHtml = wrongList.map(w => `<span class="word-pill-tag wrong" onclick="speakMasteredWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
+  } else if (isFinished) {
+    wrongContentHtml = `<span style="font-size:12px; color:#4ade80; font-weight:700;">🎉 太棒了！本次測驗全數答對，無任何答錯單字！</span>`;
+  } else {
+    wrongContentHtml = `<span style="font-size:12px; color:var(--text-muted, #94a3b8); font-style:italic;">（目前無答錯單字）</span>`;
+  }
+
+  return `
+    <div class="task-history-card">
+      <div class="task-history-header">
+        <div>
+          <span class="task-card-title">${record.taskName}</span>
+          <span style="margin-left:8px; font-size:11.5px; font-weight:700; color:${statusColor}; background:${statusBg}; padding:2px 8px; border-radius:999px;">${statusStr}</span>
+        </div>
+      </div>
+
+      <div class="task-score-grid">
+        <div class="task-score-item">
+          <div class="task-score-label">🎯 答對題數 / 總題數</div>
+          <div class="task-score-val" style="color:#0284c7;">${scoreVal} 題</div>
+        </div>
+        <div class="task-score-item">
+          <div class="task-score-label">📊 正確率</div>
+          <div class="task-score-val" style="color:${parseInt(rateVal) >= 80 ? '#16a34a' : '#ea580c'};">${rateVal}</div>
+        </div>
+      </div>
+
+      <div class="word-split-grid">
+        <div class="word-split-box correct-box">
+          <div class="word-split-title correct-title">
+            <span>✅ 答對的單字</span>
+          </div>
+          <div style="display:flex; flex-wrap:wrap; gap:5px;">
+            ${correctContentHtml}
+          </div>
+        </div>
+        <div class="word-split-box wrong-box">
+          <div class="word-split-title wrong-title">
+            <span>❌ 答錯的單字</span>
+          </div>
+          <div style="display:flex; flex-wrap:wrap; gap:5px;">
+            ${wrongContentHtml}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function buildFreeDetailsHtml(record, selectedDate, agent) {
+  if (!record || !record.attempts) {
+    return `
+      <div class="task-history-card" style="text-align:center; padding:22px 14px; color:var(--text-muted, #94a3b8);">
+        <div style="font-size:26px; margin-bottom:6px;">🎮</div>
+        <div style="font-size:13.5px; font-weight:700; color:var(--text, #1e293b);">該指定日期（${selectedDate}）尚無自由練習受測紀錄</div>
+        <div style="font-size:12px; margin-top:4px; color:var(--text-muted, #94a3b8);">可從上方快速選單或日曆切換至其他日期查看作答狀況</div>
+      </div>
+    `;
+  }
+
+  const attempts = record.attempts || 0;
+  const correct = record.correct || 0;
+  const wrongCount = (record.wrong !== undefined) ? record.wrong : Math.max(0, attempts - correct);
+
+  const wordsMap = record.words || {};
+  let correctList = [];
+  let wrongList = [];
+
+  Object.keys(wordsMap).forEach(k => {
+    const info = wordsMap[k];
+    const wName = (typeof info === "object" && info.word) ? info.word : k;
+    const hasWrong = (typeof info === "object" && info.wrong > 0);
+    const hasCorrect = (typeof info === "object" && info.correct > 0);
+
+    if (hasWrong) {
+      wrongList.push({ word: wName, attempts: info.attempts || 1, wrong: info.wrong, correct: info.correct || 0 });
+    } else if (hasCorrect) {
+      correctList.push({ word: wName, attempts: info.attempts || 1, correct: info.correct });
+    } else {
+      correctList.push({ word: wName, attempts: 1, correct: 1 });
+    }
+  });
+
+  if (correctList.length === 0 && wrongList.length === 0 && attempts > 0) {
+    if (agent && agent.stat) {
+      const allWords = Object.keys(agent.stat).map(w => ({ word: w, correct: agent.stat[w].c || 0, wrong: agent.stat[w].w || 0 }));
+      if (wrongCount > 0 && allWords.length > 0) {
+        const wrongCands = allWords.filter(w => w.wrong > 0);
+        wrongCands.sort((a, b) => b.wrong - a.wrong);
+        const pickedWrong = wrongCands.slice(0, wrongCount);
+        pickedWrong.forEach(w => {
+          wrongList.push({ word: w.word, attempts: 1, wrong: w.wrong, correct: w.correct || 0 });
+        });
+      }
+      if (correct > 0 && allWords.length > 0) {
+        const correctCands = allWords.filter(w => w.correct > 0 && !wrongList.some(wl => wl.word === w.word));
+        correctCands.sort((a, b) => b.correct - a.correct);
+        const pickedCorrect = correctCands.slice(0, correct);
+        pickedCorrect.forEach(w => {
+          correctList.push({ word: w.word, attempts: 1, correct: w.correct || 1 });
+        });
+      }
+    }
+  }
+
+  correctList.sort((a, b) => a.word.localeCompare(b.word));
+  wrongList.sort((a, b) => a.word.localeCompare(b.word));
+
+  const totalWords = (correctList.length + wrongList.length) > 0
+    ? (correctList.length + wrongList.length)
+    : attempts;
+  const correctWords = (correctList.length + wrongList.length) > 0
+    ? correctList.length
+    : correct;
+  const wordRate = totalWords > 0 ? Math.round((correctWords / totalWords) * 100) : 0;
+
+  let correctContentHtml = "";
+  if (correctList.length > 0) {
+    correctContentHtml = correctList.map(w => {
+      const cntBadge = (w.correct && w.correct > 1) ? `<span style="font-size:10px; opacity:0.8; margin-left:3px; background:rgba(22,163,74,0.18); padding:1px 4px; border-radius:4px;">×${w.correct}</span>` : "";
+      return `<span class="word-pill-tag correct" onclick="speakMasteredWord('${w.word.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="答對 ${w.correct || 1} 次 (點擊聆聽發音)">${w.word}${cntBadge}</span>`;
+    }).join("");
+  } else {
+    correctContentHtml = `<span style="font-size:12px; color:var(--text-muted, #94a3b8); font-style:italic;">（當日尚無全對單字）</span>`;
+  }
+
+  let wrongContentHtml = "";
+  if (wrongList.length > 0) {
+    wrongContentHtml = wrongList.map(w => {
+      const wrongBadge = (w.wrong && w.wrong > 1) ? `<span style="font-size:10px; opacity:0.8; margin-left:3px; background:rgba(220,38,38,0.18); padding:1px 4px; border-radius:4px;">×${w.wrong}</span>` : "";
+      if (w.correct > 0) {
+        return `<span class="word-pill-tag correct" onclick="speakMasteredWord('${w.word.replace(/'/g, "\\'")}')" style="border:1px dashed #4ade80; cursor:pointer;" title="當日曾答錯 ${w.wrong} 次，當日已訂正答對 (點擊聆聽發音)">${w.word} <small style="font-size:10px; opacity:0.85;">(已訂正)</small></span>`;
+      } else {
+        return `<span class="word-pill-tag wrong" onclick="speakMasteredWord('${w.word.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="答錯 ${w.wrong || 1} 次 (點擊聆聽發音)">${w.word}${wrongBadge}</span>`;
+      }
+    }).join("");
+  } else {
+    wrongContentHtml = `<span style="font-size:12px; color:#4ade80; font-weight:700;">🎉 太棒了！當日自由練習全數答對，無任何答錯單字！</span>`;
+  }
+
+  return `
+    <div class="task-history-card">
+      <div class="task-history-header">
+        <div>
+          <span class="task-card-title">🎮 自由練習成果</span>
+          <span style="margin-left:8px; font-size:11.5px; font-weight:700; color:#0284c7; background:rgba(2,132,199,0.12); padding:2px 8px; border-radius:999px;">自主訓練</span>
+        </div>
+      </div>
+
+      <div class="task-score-grid">
+        <div class="task-score-item">
+          <div class="task-score-label">🎯 答對題數 / 總題數</div>
+          <div class="task-score-val" style="color:#0284c7;">${correctWords}/${totalWords} 題</div>
+        </div>
+        <div class="task-score-item">
+          <div class="task-score-label">📊 正確率</div>
+          <div class="task-score-val" style="color:${wordRate >= 80 ? '#16a34a' : '#ea580c'};">${wordRate}%</div>
+        </div>
+      </div>
+
+      <div class="word-split-grid">
+        <div class="word-split-box correct-box">
+          <div class="word-split-title correct-title">
+            <span>✅ 答對的單字</span>
+          </div>
+          <div style="display:flex; flex-wrap:wrap; gap:5px;">
+            ${correctContentHtml}
+          </div>
+        </div>
+        <div class="word-split-box wrong-box">
+          <div class="word-split-title wrong-title">
+            <span>❌ 答錯的單字</span>
+          </div>
+          <div style="display:flex; flex-wrap:wrap; gap:5px;">
+            ${wrongContentHtml}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderStudentDailyTaskAndFreeSections(resp) {
+  const taskDetailsContainer = document.getElementById("st-task-record-details");
+  const freeDetailsContainer = document.getElementById("st-free-record-details");
+  const datePicker = document.getElementById("student-rec-date-picker");
+  const quickSelect = document.getElementById("student-rec-quick-dates");
+  const taskDateLabel = document.getElementById("st-task-view-date");
+  const freeDateLabel = document.getElementById("st-free-view-date");
+
+  if (!taskDetailsContainer || !freeDetailsContainer) return;
+
+  const agent = resp.agentData || {};
+  const historyData = agent.history || {};
+  const dailyTaskHistory = (resp.dailyTaskHistory && Array.isArray(resp.dailyTaskHistory)) 
+    ? resp.dailyTaskHistory 
+    : (window.cachedStudentDailyHistory || []);
+  const todayTask = resp.todayTaskResult || window.cachedStudentTodayTaskResult || null;
+
+  // 1. 整理所有有測驗或自由練習紀錄的日期
+  const dateSet = new Set();
+  const todayDash = formatDateYMD(new Date());
+  dateSet.add(todayDash);
+
+  dailyTaskHistory.forEach(h => {
+    if (h && h.date) {
+      const d = String(h.date).trim().split(" ")[0].replace(/\//g, "-");
+      if (d) dateSet.add(d);
+    }
+  });
+  if (todayTask && todayTask.date) {
+    const d = String(todayTask.date).trim().split(" ")[0].replace(/\//g, "-");
+    if (d) dateSet.add(d);
+  }
+
+  Object.keys(historyData).forEach(k => {
+    if (historyData[k] && historyData[k].a > 0) {
+      const d = String(k).trim().split(" ")[0].replace(/\//g, "-");
+      if (d) dateSet.add(d);
+    }
+  });
+
+  if (resp.data && Array.isArray(resp.data)) {
+    resp.data.forEach(r => {
+      if (r && r[0]) {
+        const d = String(r[0]).trim().split(" ")[0].replace(/\//g, "-");
+        if (d && d.match(/^\d{4}-\d{2}-\d{2}$/)) dateSet.add(d);
+      }
+    });
+  }
+
+  const allDates = Array.from(dateSet).filter(Boolean);
+  allDates.sort((a, b) => b.localeCompare(a)); // 新到舊
+
+  let defaultSelectedDate = todayDash;
+  const hasTodayTask = dailyTaskHistory.some(h => String(h.date).split(" ")[0].replace(/\//g, "-") === todayDash && ((h.status && h.status.includes("已完成")) || (h.score && h.score !== "—")));
+  const hasTodayFree = (historyData[todayDash] && historyData[todayDash].a > 0) || (historyData[todayDash.replace(/-/g, "/")] && historyData[todayDash.replace(/-/g, "/")].a > 0);
+  if (!hasTodayTask && !hasTodayFree && allDates.length > 0) {
+    const latestActive = allDates.find(d => {
+      const hTask = dailyTaskHistory.some(h => String(h.date).split(" ")[0].replace(/\//g, "-") === d && ((h.status && h.status.includes("已完成")) || (h.score && h.score !== "—")));
+      const hFree = (historyData[d] && historyData[d].a > 0) || (historyData[d.replace(/-/g, "/")] && historyData[d.replace(/-/g, "/")].a > 0);
+      return hTask || hFree;
+    });
+    if (latestActive) defaultSelectedDate = latestActive;
+    else if (allDates[0]) defaultSelectedDate = allDates[0];
+  }
+
+  if (quickSelect) {
+    quickSelect.innerHTML = allDates.map(dateStr => {
+      const hasTask = dailyTaskHistory.some(h => String(h.date).split(" ")[0].replace(/\//g, "-") === dateStr) || 
+                      (todayTask && String(todayTask.date).split(" ")[0].replace(/\//g, "-") === dateStr && todayTask.hasDone);
+      const hFree = historyData[dateStr] || historyData[dateStr.replace(/-/g, "/")] || null;
+      const freeAtt = hFree ? (hFree.a || 0) : 0;
+
+      let tag = "";
+      if (hasTask && freeAtt > 0) tag = ` [測驗 + 練習 ${freeAtt}題]`;
+      else if (hasTask) tag = ` [指定測驗]`;
+      else if (freeAtt > 0) tag = ` [自由練習: ${freeAtt}題]`;
+      else tag = ` (無練習紀錄)`;
+
+      return `<option value="${dateStr}">${dateStr}${tag}</option>`;
+    }).join("");
+  }
+
+  function switchRecordDate(targetDate) {
+    if (!targetDate) return;
+    targetDate = String(targetDate).trim().split(" ")[0].replace(/\//g, "-");
+
+    if (datePicker && datePicker.value !== targetDate) datePicker.value = targetDate;
+    if (quickSelect && quickSelect.value !== targetDate) quickSelect.value = targetDate;
+    if (taskDateLabel) taskDateLabel.textContent = targetDate;
+    if (freeDateLabel) freeDateLabel.textContent = targetDate;
+
+    // A. 尋找教師指定測驗紀錄
+    let matchedTask = dailyTaskHistory.find(h => String(h.date).split(" ")[0].replace(/\//g, "-") === targetDate) || null;
+    if (!matchedTask && todayTask && String(todayTask.date).split(" ")[0].replace(/\//g, "-") === targetDate && todayTask.hasDone) {
+      matchedTask = {
+        date: targetDate,
+        taskName: todayTask.taskName || "今日指定測驗",
+        score: todayTask.score || "—",
+        rate: todayTask.rate || "—",
+        status: "🟢 已完成",
+        words: todayTask.words || [],
+        wrongWords: todayTask.wrongWords || []
+      };
+    }
+    if (!matchedTask && resp.data && Array.isArray(resp.data)) {
+      const matchedRow = resp.data.find(r => r && String(r[0]).trim().split(" ")[0].replace(/\//g, "-") === targetDate && r[18]);
+      if (matchedRow) {
+        matchedTask = {
+          date: targetDate,
+          taskName: matchedRow[18] || "教師指定測驗",
+          score: matchedRow[19] || "—",
+          rate: matchedRow[20] || "—",
+          status: matchedRow[21] || "🟢 已完成",
+          words: [],
+          wrongWords: matchedRow[22] ? String(matchedRow[22]).split(/[,、\s]+/).filter(Boolean) : []
+        };
+      }
+    }
+    taskDetailsContainer.innerHTML = buildTaskDetailsHtml(matchedTask, targetDate, agent);
+
+    // B. 尋找自由練習紀錄
+    let hFree = historyData[targetDate] || historyData[targetDate.replace(/-/g, "/")] || null;
+    let matchedFree = null;
+    if (hFree && (hFree.a || hFree.c || hFree.words)) {
+      matchedFree = {
+        date: targetDate,
+        attempts: hFree.a || 0,
+        correct: hFree.c || 0,
+        wrong: (hFree.a && hFree.c) ? Math.max(0, hFree.a - hFree.c) : 0,
+        words: hFree.words || {}
+      };
+    } else if (resp.data && Array.isArray(resp.data)) {
+      const matchedRow = resp.data.find(r => r && String(r[0]).trim().split(" ")[0].replace(/\//g, "-") === targetDate);
+      if (matchedRow && Number(matchedRow[6]) > 0) {
+        matchedFree = {
+          date: targetDate,
+          attempts: Number(matchedRow[6] || 0),
+          correct: Number(matchedRow[7] || 0),
+          wrong: Math.max(0, Number(matchedRow[6] || 0) - Number(matchedRow[7] || 0)),
+          words: {}
+        };
+      }
+    }
+    freeDetailsContainer.innerHTML = buildFreeDetailsHtml(matchedFree, targetDate, agent);
+  }
+
+  if (datePicker) {
+    datePicker.value = defaultSelectedDate;
+    datePicker.max = todayDash;
+    datePicker.onchange = (e) => switchRecordDate(e.target.value);
+  }
+  if (quickSelect) {
+    quickSelect.value = defaultSelectedDate;
+    quickSelect.onchange = (e) => switchRecordDate(e.target.value);
+  }
+
+  const btnToday = document.getElementById("btn-st-date-today");
+  if (btnToday) {
+    btnToday.onclick = () => switchRecordDate(todayDash);
+  }
+  const btnPrev = document.getElementById("btn-st-date-prev");
+  if (btnPrev) {
+    btnPrev.onclick = () => {
+      const cur = (datePicker && datePicker.value) ? datePicker.value : defaultSelectedDate;
+      const d = new Date(cur);
+      d.setDate(d.getDate() - 1);
+      switchRecordDate(formatDateYMD(d));
+    };
+  }
+  const btnNext = document.getElementById("btn-st-date-next");
+  if (btnNext) {
+    btnNext.onclick = () => {
+      const cur = (datePicker && datePicker.value) ? datePicker.value : defaultSelectedDate;
+      const d = new Date(cur);
+      d.setDate(d.getDate() + 1);
+      switchRecordDate(formatDateYMD(d));
+    };
+  }
+
+  switchRecordDate(defaultSelectedDate);
+}
+
+// ════════════════════════════════════════
 // 📱 學生學習進度與總結簡潔儀表板渲染模組 (Learning Progress & Summary)
 // ════════════════════════════════════════
 function renderStudentSummary(resp) {
@@ -12209,6 +12950,9 @@ function renderStudentSummary(resp) {
 
   // 8. 📖 渲染每日單字自由練習成果卡片 (Free Practice Progress & Results)
   renderStudentFreePractice(resp, { learn, prac, mast, totalVocab, attempts, correct, passRate, distinctC, streak, best, totalActive, days, historyData });
+
+  // 9. 📅 渲染指定日期查詢、教師指定測驗作答紀錄與自由練習作答紀錄
+  renderStudentDailyTaskAndFreeSections(resp);
 }
 
 // ════════════════════════════════════════
