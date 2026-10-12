@@ -54,7 +54,10 @@ function persistTaskProgress() {
       localStorage.setItem("task_words_" + todaySlash, JSON.stringify(poolWords));
     }
 
-    // 進度已保存至 LocalStorage，待使用者點擊上傳按鈕時再同步至雲端
+    // 每題作答完畢立即自動背景同步上傳雲端（斷線防護！）
+    if (typeof window.uploadLocalStorageData === "function") {
+      window.uploadLocalStorageData(true, false);
+    }
   } catch(e) {
     console.error("persistTaskProgress error:", e);
   }
@@ -923,7 +926,7 @@ function finishTaskMode() {
         ${task.isWeekend ? "✨ 週末錯題消滅成功！弱點單字已補強。" : "✨ 今日指定進度已達標！"}<br>
         今日測驗已鎖定，現在為您解鎖<b>「自由闖關模式」</b>，快去賺取更多星號吧！
       </div>
-      <div style="font-size:12.5px; color:#0284c7; font-weight:700;">（請記得點選右上角「🌱 上傳紀錄」按鈕將成果同步至雲端！）</div>
+      <div style="font-size:12px; color:#64748b;">（成績已自動同步寫入雲端每日任務紀錄）</div>
     `,
     btnLabel: "開始自由闖關 →",
   }, () => {
@@ -933,6 +936,11 @@ function finishTaskMode() {
     if (catLabel) catLabel.textContent = "✅ 今日指定練習已完成，明天再繼續！已開放自由升級闖關";
     newRound();
   });
+
+  // 自動觸發背景靜默同步上傳（交卷最高優先級立即送出）
+  if (typeof window.uploadLocalStorageData === "function") {
+    window.uploadLocalStorageData(true, true);
+  }
 }
 
 // ---- wiring ----
