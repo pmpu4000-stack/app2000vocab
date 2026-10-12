@@ -22,6 +22,12 @@
       --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px -1px rgba(0, 0, 0, 0.06);
       --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
       --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.06);
+      /* 遊戲網頁 app2000vocab 原版色彩變數 */
+      --paper: #F6F7FB; --ink: #232A4D; --ink2: #5A6183; --ink3: #9AA0BD;
+      --violet: #6C4CE0; --violet-d: #573BC4; --marker: #FFD84D; --marker-soft: #FFF0B3;
+      --green: #2FB47C; --green-d: #1E9A66; --coral: #FF6B6B; --sky: #2D9CDB;
+      --line: #E7E9F5; --shadow: 0 10px 30px -12px rgba(35,42,77,.28);
+      --catA: #2FB47C; --catB: #2D9CDB; --catC: #6C4CE0; --catD: #E8892B; --catE: #E0567B;
     }
     [data-theme="dark"] {
       --bg: #0b1120; --body-bg: #0b1120; --card: #1e293b; --card-bg: #1e293b; --border: #334155;
@@ -39,6 +45,12 @@
       --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
       --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
       --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+      /* 遊戲網頁 app2000vocab 原版深色色彩變數 */
+      --paper: #0B1120; --ink: #F0F3FA; --ink2: #A5B0CF; --ink3: #6E7699;
+      --violet: #8B6BF0; --violet-d: #6C4CE0; --marker: #FFD84D; --marker-soft: #FFF0B3;
+      --green: #2FB47C; --green-d: #1E9A66; --coral: #FF6B6B; --sky: #38BDF8;
+      --line: #262C42; --shadow: 0 10px 30px -12px rgba(0,0,0,.5);
+      --catA: #2FB47C; --catB: #38BDF8; --catC: #8B6BF0; --catD: #F59E0B; --catE: #FB7185;
     }
     * { box-sizing: border-box; }
     body {
@@ -1949,10 +1961,213 @@
       padding: 4px 12px;
       border-radius: 14px;
     }
+    /* ══════════════════════════════════════════
+       📊 學習紀錄 Record 完整移植樣式 (比照遊戲網頁 UI 與 styles.css 原版規範)
+       ══════════════════════════════════════════ */
+    .bigrate { display: none !important; }
+
+    /* 區塊副標題 (Section Sub-headings / 大區塊標題) */
+    .subh {
+      font-size: 13.5px !important;
+      font-weight: 800 !important;
+      color: var(--violet) !important;
+      letter-spacing: 0.3px;
+      margin: 18px 0 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border-left: 3.5px solid var(--violet);
+      padding-left: 8px;
+      line-height: 1.4;
+      text-transform: none !important;
+    }
+    [data-theme="dark"] .subh {
+      color: #A58CF5 !important;
+      border-left-color: #8B6BF0 !important;
+    }
+
+    /* 各關卡表格與細節內容 */
+    .sumtable {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+    }
+    .sumtable td {
+      padding: 6px 4px;
+      border-bottom: 1px solid var(--line);
+      color: var(--ink2);
+      font-weight: 650;
+    }
+    .sumtable td:last-child {
+      text-align: right;
+      color: var(--ink);
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+    [data-theme="dark"] .sumtable td {
+      color: #A5B0CF;
+      border-bottom-color: #262C42;
+    }
+    [data-theme="dark"] .sumtable td:last-child {
+      color: #F0F3FA;
+    }
+
+    .stat-sep {
+      color: var(--sky, #0284c7);
+      font-weight: 700;
+      margin: 0 5px;
+      display: inline-block;
+      opacity: 0.85;
+    }
+    [data-theme="dark"] .stat-sep {
+      color: #38bdf8;
+      opacity: 0.95;
+    }
+
+    /* 描述說明文字 */
+    .formula-note-box {
+      font-size: 11.5px;
+      color: var(--ink2);
+      margin: 6px 0 14px;
+      line-height: 1.6;
+      background: rgba(108, 76, 224, 0.05);
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(108, 76, 224, 0.15);
+    }
+    .formula-note-box b {
+      color: var(--ink);
+    }
+    .formula-note-box .formula-val {
+      color: var(--sky);
+      font-weight: 700;
+    }
+    .formula-note-box .formula-desc {
+      color: #16a34a;
+      font-weight: 500;
+    }
+    [data-theme="dark"] .formula-note-box {
+      background: rgba(255, 255, 255, 0.04) !important;
+      border-color: rgba(255, 255, 255, 0.1) !important;
+      color: #A5B0CF !important;
+    }
+    [data-theme="dark"] .formula-note-box b {
+      color: #F0F3FA !important;
+    }
+    [data-theme="dark"] .formula-note-box .formula-val {
+      color: #38BDF8 !important;
+    }
+    [data-theme="dark"] .formula-note-box .formula-desc {
+      color: #86efac !important;
+    }
+
+    /* 4 大練習模式統計區塊 */
+    .mode-stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+      gap: 8px;
+      margin: 8px 0 14px;
+    }
+    .mode-stat-card {
+      background: #F8F9FD;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 8px 10px;
+      text-align: center;
+      transition: transform .12s, box-shadow .12s;
+    }
+    [data-theme="dark"] .mode-stat-card {
+      background: #181C2A !important;
+      border-color: #262C42 !important;
+    }
+    .mode-stat-title {
+      font-size: 12px;
+      color: var(--ink2);
+      font-weight: 750;
+    }
+    [data-theme="dark"] .mode-stat-title {
+      color: #A5B0CF !important;
+    }
+    .mode-stat-num {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--ink);
+      margin: 2px 0;
+      font-variant-numeric: tabular-nums;
+    }
+    [data-theme="dark"] .mode-stat-num {
+      color: #F0F3FA !important;
+    }
+    .mode-stat-sub {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--green);
+    }
+
+    /* 練習紀錄熱力圖與連續天數 */
+    .streakline {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--ink2);
+      margin-bottom: 8px;
+    }
+    .streakline b {
+      color: var(--catD, #E8892B);
+      font-variant-numeric: tabular-nums;
+    }
+    [data-theme="dark"] .streakline {
+      color: #A5B0CF;
+    }
+    [data-theme="dark"] .streakline b {
+      color: #F59E0B;
+    }
+    .heatmap {
+      display: grid;
+      grid-template-columns: repeat(14, 1fr);
+      gap: 4px;
+      max-width: 380px;
+    }
+    .hc {
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 4px;
+      background: #EEEFF7;
+      display: block;
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+    .hc:hover {
+      transform: scale(1.2);
+    }
+    .hc.h1 { background: #C7EBD9; }
+    .hc.h2 { background: #79D2A9; }
+    .hc.h3 { background: var(--green); }
+    [data-theme="dark"] .hc { background: #262C42; }
+    [data-theme="dark"] .hc.h1 { background: #164e63; }
+    [data-theme="dark"] .hc.h2 { background: #0d9488; }
+    [data-theme="dark"] .hc.h3 { background: #10b981; }
+
+    .heat-legend {
+      font-size: 11.5px;
+      color: var(--ink3);
+      margin-top: 8px;
+      font-weight: 600;
+      line-height: 1.6;
+    }
+    .heat-legend b {
+      color: var(--ink2);
+    }
+    [data-theme="dark"] .heat-legend {
+      color: #8C98BA;
+    }
+    [data-theme="dark"] .heat-legend b {
+      color: #CBD5E1;
+    }
+
     /* Teacher Daily Task Quiz & Free Practice Section */
     .task-history-card {
-      background: var(--card-bg, #F8F9FD);
-      border: 1px solid var(--border, #E2E8F0);
+      background: #F8F9FD;
+      border: 1px solid var(--line);
       border-radius: 14px;
       padding: 14px 16px;
       margin: 10px 0 16px;
@@ -1968,12 +2183,16 @@
     .task-card-title {
       font-size: 14.5px;
       font-weight: 800;
-      color: var(--text, #1E293B);
+      color: var(--ink);
+      letter-spacing: 0.2px;
+    }
+    [data-theme="dark"] .task-card-title {
+      color: #F0F3FA !important;
     }
     .task-date-selector {
-      background: var(--input-bg, #FFFFFF);
-      border: 1.5px solid var(--border, #E2E8F0);
-      color: var(--text, #1E293B);
+      background: var(--card, #FFFFFF);
+      border: 1.5px solid var(--line);
+      color: var(--ink);
       padding: 6px 10px;
       border-radius: 8px;
       font-size: 13px;
@@ -1988,17 +2207,20 @@
       margin-bottom: 12px;
     }
     .task-score-item {
-      background: var(--card-bg, #FFFFFF);
-      border: 1px solid var(--border, #E2E8F0);
+      background: var(--card, #FFFFFF);
+      border: 1px solid var(--line);
       border-radius: 10px;
       padding: 10px;
       text-align: center;
     }
     .task-score-label {
-      font-size: 12px;
+      font-size: 11.5px;
+      color: var(--ink3);
       font-weight: 700;
-      color: var(--text-muted, #64748B);
-      margin-bottom: 4px;
+      margin-bottom: 3px;
+    }
+    [data-theme="dark"] .task-score-label {
+      color: #8C98BA !important;
     }
     .task-score-val {
       font-size: 20px;
@@ -2017,13 +2239,14 @@
     }
     .word-pill-tag.correct {
       background: #E4F7EE;
-      color: #16A34A;
+      color: var(--green-d);
       border: 1px solid rgba(47, 180, 124, 0.3);
     }
     .word-pill-tag.wrong {
       background: #FFE9E9;
       color: #D64545;
       border: 1px solid rgba(255, 107, 107, 0.4);
+      font-weight: 700;
     }
     [data-theme="dark"] .word-pill-tag.correct {
       background: rgba(47, 180, 124, 0.22) !important;
@@ -2038,11 +2261,11 @@
 
     /* Date Navigator Bar */
     .date-navigator-card {
-      background: var(--table-header-bg, #F8F9FD);
-      border: 1.5px solid var(--border, #E2E8F0);
+      background: linear-gradient(135deg, #F1EDFF, #F8F9FD);
+      border: 1.5px solid #E4DFFA;
       border-radius: 14px;
       padding: 12px 16px;
-      margin: 14px 0 16px;
+      margin: 12px 0 16px;
       display: flex;
       flex-wrap: wrap;
       align-items: center;
@@ -2056,26 +2279,41 @@
       gap: 8px;
     }
     .date-nav-title {
-      font-size: 13px;
       font-weight: 800;
-      color: var(--text, #1E293B);
+      font-size: 13.5px;
+      color: var(--violet);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    [data-theme="dark"] .date-nav-title {
+      color: #38BDF8 !important;
     }
     .date-nav-right {
       display: flex;
       flex-direction: column;
       align-items: flex-start;
-      gap: 4px;
+      gap: 6px;
+      min-width: 260px;
+    }
+    .date-nav-right .task-date-selector {
+      width: 100%;
       min-width: 240px;
     }
     .date-quick-label {
-      font-size: 12px;
+      font-size: 12.5px;
+      color: var(--ink2);
       font-weight: 700;
-      color: var(--text-muted, #64748B);
+      white-space: nowrap;
+      display: block;
+    }
+    [data-theme="dark"] .date-quick-label {
+      color: #A5B0CF !important;
     }
     .date-picker-input {
-      background: var(--input-bg, #FFFFFF);
-      border: 1.5px solid #0284C7;
-      color: var(--text, #1E293B);
+      background: #FFFFFF;
+      border: 1.5px solid var(--sky);
+      color: var(--ink);
       padding: 5px 10px;
       border-radius: 8px;
       font-size: 13px;
@@ -2084,9 +2322,9 @@
       cursor: pointer;
     }
     .date-nav-btn {
-      background: var(--card-bg, #FFFFFF);
-      border: 1px solid var(--border, #CBD5E1);
-      color: var(--text, #1E293B);
+      background: #FFFFFF;
+      border: 1px solid var(--line);
+      color: var(--ink);
       padding: 5px 11px;
       border-radius: 8px;
       font-size: 12px;
@@ -2096,16 +2334,16 @@
     }
     .date-nav-btn:hover {
       background: #F1F8FC;
-      border-color: #0284C7;
-      color: #0284C7;
+      border-color: var(--sky);
+      color: var(--sky);
     }
     .date-nav-btn.today-btn {
-      background: rgba(2, 132, 199, 0.08);
-      border-color: rgba(2, 132, 199, 0.4);
-      color: #0284C7;
+      background: #EDF8FD;
+      border-color: rgba(45, 156, 219, 0.4);
+      color: var(--sky);
     }
     .date-nav-btn.today-btn:hover {
-      background: #0284C7;
+      background: var(--sky);
       color: #FFFFFF;
     }
 
@@ -2126,12 +2364,12 @@
       padding: 12px 14px;
     }
     .word-split-box.correct-box {
-      background: rgba(47, 180, 124, 0.08);
+      background: #F1FBF6;
       border: 1px solid rgba(47, 180, 124, 0.3);
     }
     .word-split-box.wrong-box {
-      background: rgba(220, 38, 38, 0.06);
-      border: 1px solid rgba(220, 38, 38, 0.25);
+      background: #FFF5F5;
+      border: 1px solid rgba(255, 107, 107, 0.3);
     }
     .word-split-title {
       font-size: 12.5px;
@@ -2142,10 +2380,10 @@
       gap: 6px;
     }
     .word-split-title.correct-title {
-      color: #16A34A;
+      color: var(--green-d);
     }
     .word-split-title.wrong-title {
-      color: #DC2626;
+      color: #D64545;
     }
     [data-theme="dark"] .word-split-box.correct-box {
       background: rgba(47, 180, 124, 0.12) !important;
@@ -2169,9 +2407,9 @@
       color: #F0F3FA !important;
     }
     [data-theme="dark"] .date-picker-input {
-      background: #1E2438 !important;
+      background: #131624 !important;
+      border-color: #2D354E !important;
       color: #F0F3FA !important;
-      border-color: #38BDF8 !important;
     }
     [data-theme="dark"] .date-nav-btn {
       background: #20263A !important;
@@ -2180,8 +2418,15 @@
     }
     [data-theme="dark"] .date-nav-btn:hover {
       background: #2B334D !important;
-      border-color: #38BDF8 !important;
+      border-color: var(--sky) !important;
+      color: #38BDF8 !important;
     }
+    [data-theme="dark"] .date-nav-btn.today-btn {
+      background: rgba(45, 156, 219, 0.18) !important;
+      border-color: rgba(45, 156, 219, 0.4) !important;
+      color: #38BDF8 !important;
+    }
+
     /* 學習進度條樣式 (比照遊戲網頁 app2000vocab 原版規範) */
     .st-progress-track {
       height: 14px !important;
@@ -2985,71 +3230,56 @@
       </div>
     </div>
 
-    <!-- 模組 2：學習紀錄 Record 卡片 (與遊戲網頁完全一致) -->
-    <div class="card" style="padding:24px 26px; margin-bottom:20px; border-radius:14px;">
-      <div style="font-size:16px; font-weight:800; color:var(--text); margin-bottom:16px; display:flex; align-items:center; gap:8px;">
+    <!-- 模組 2：學習紀錄 Record 卡片 (100% 完整比照遊戲網頁底下學習紀錄 Record) -->
+    <div class="card" style="padding:22px 24px; margin-bottom:20px; border-radius:14px;">
+      <h3 style="display:flex; justify-content:space-between; align-items:center; font-size:15px; font-weight:800; border-bottom:1.5px solid var(--line); padding-bottom:10px; margin-bottom:14px;">
         <span>📊 學習紀錄 Record</span>
+      </h3>
+
+      <!-- 大數字橫幅 (.bigrate 在遊戲網頁為 display:none !important) -->
+      <div class="bigrate" style="display:none !important;">
+        <b class="tnum" id="stSumAccuracyBig">0%</b>
+        <span>總答對率<br><small id="stSumAttemptsSub">0 題對 / 共作答 0 題</small></span>
+        <span style="margin-left:auto;text-align:right">
+          <b class="tnum" id="stSumDistinctBig" style="font-size:30px;color:var(--violet)">0</b><br>
+          <small>答對過的字（不重複）／ 共 2055 字</small>
+        </span>
       </div>
 
-      <!-- 大數字橫幅 (綠底聚焦框) -->
-      <div style="background:rgba(16,185,129,0.06); border:1.5px solid rgba(16,185,129,0.25); border-radius:14px; padding:18px 24px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
-        <div style="display:flex; align-items:center; gap:16px;">
-          <div id="stSumAccuracyBig" style="font-size:3rem; font-weight:900; color:#10b981; line-height:1;">0%</div>
-          <div>
-            <div style="font-size:14px; font-weight:800; color:var(--text);">總答對率</div>
-            <div id="stSumAttemptsSub" style="font-size:12.5px; color:var(--text-muted); margin-top:4px;">0 題對 / 共作答 0 題</div>
-          </div>
-        </div>
-        <div style="text-align:right;">
-          <div id="stSumDistinctBig" style="font-size:2.5rem; font-weight:900; color:#8b5cf6; line-height:1;">0</div>
-          <div style="font-size:12.5px; color:var(--text-muted); margin-top:4px;">答對過的字（不重複）／ 共 2055 字</div>
-        </div>
-      </div>
-
-      <!-- 各關卡進度 (Level 1 ~ 5) -->
-      <div style="font-size:14px; font-weight:800; color:var(--text); margin-bottom:10px;">各關卡進度</div>
-      <div style="border:1px solid var(--border); border-radius:10px; overflow:hidden; margin-bottom:20px;">
-        <table style="width:100%; border-collapse:collapse; font-size:13px;">
-          <tbody id="stLevelProgressTbody">
-            <!-- 動態生成 Level 1 ~ 5 橫列 -->
-          </tbody>
-        </table>
-      </div>
-      <div style="background:var(--card-bg, #f8fafc); border:1px solid var(--border, #e2e8f0); border-radius:8px; padding:10px 14px; margin-top:-10px; margin-bottom:20px; font-size:12px; color:var(--text-muted, #64748b);">
-        💡 <strong style="color:var(--text, #1e293b);">各關卡進度格式詳細說明</strong>：
-        <div style="margin-top:5px; line-height:1.7;">
-          <strong style="color:#0284c7;">0/0 (0%)</strong> <span style="color:#16a34a; font-weight:500;">（答對單字數 / 考出總單字數，附正確率）</span><span class="stat-sep" style="color:#0284c7;font-weight:700;margin:0 5px;">/</span><strong style="color:#0284c7;">學習中 0</strong> <span style="color:#16a34a; font-weight:500;">（答對 1 次或答錯待訂正字數）</span><span class="stat-sep" style="color:#0284c7;font-weight:700;margin:0 5px;">/</span><strong style="color:#0284c7;">練習中 0</strong> <span style="color:#16a34a; font-weight:500;">（連續答對 2 次字數）</span><span class="stat-sep" style="color:#0284c7;font-weight:700;margin:0 5px;">/</span><strong style="color:#0284c7;">精通 0</strong> <span style="color:#16a34a; font-weight:500;">（連續答對 3 次已精熟字數⭐）</span><span class="stat-sep" style="color:#0284c7;font-weight:700;margin:0 5px;">/</span><strong style="color:#0284c7;">共 411</strong> <span style="color:#16a34a; font-weight:500;">（該關總單字數）</span>
+      <div class="subh">各關卡進度</div>
+      <table class="sumtable">
+        <tbody id="stLevelProgressTbody">
+          <!-- Level 1 ~ 5 -->
+        </tbody>
+      </table>
+      <div class="formula-note-box">
+        💡 <b>各關卡進度格式詳細說明</b>：
+        <div style="margin-top:6px; line-height:1.75; font-size:12.5px;">
+          <span class="formula-val"><b>0/0 (0%)</b> <span class="formula-desc">（答對單字數 / 考出總單字數，附正確率）</span></span><span class="stat-sep">/</span><span class="formula-val"><b>學習中 0</b> <span class="formula-desc">（答對 1 次或答錯待訂正字數）</span></span><span class="stat-sep">/</span><span class="formula-val"><b>練習中 0</b> <span class="formula-desc">（連續答對 2 次字數）</span></span><span class="stat-sep">/</span><span class="formula-val"><b>精通 0</b> <span class="formula-desc">（連續答對 3 次已精熟字數⭐）</span></span><span class="stat-sep">/</span><span class="formula-val"><b>共 411</b> <span class="formula-desc">（該關總單字數）</span></span>
         </div>
       </div>
 
-      <!-- 🎮 4 大練習模式答題數 (額外記錄) -->
-      <div style="font-size:14px; font-weight:800; color:var(--text); margin-bottom:10px; display:flex; align-items:center; gap:6px;">
-        <span>🎮 4 大練習模式答題數</span>
-      </div>
-      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:12px; margin-bottom:22px;">
-        <!-- 聽與拼 -->
-        <div style="background:var(--body-bg); border:1px solid var(--border); border-radius:10px; padding:12px 14px; text-align:center;">
-          <div style="font-size:13px; font-weight:800; color:var(--text); margin-bottom:4px;">🎧 聽與拼</div>
-          <div id="stModeListenAttempts" style="font-size:18px; font-weight:800; color:var(--primary); margin:2px 0;">0 題</div>
-          <div id="stModeListenSub" style="font-size:11.5px; color:#10b981;">尚無作答</div>
+      <div class="subh">🎮 4 大練習模式答題數</div>
+      <div class="mode-stat-grid">
+        <div class="mode-stat-card">
+          <div class="mode-stat-title">🎧 聽與拼</div>
+          <div class="mode-stat-num" id="stModeListenAttempts">0 題</div>
+          <div class="mode-stat-sub" id="stModeListenSub">尚無作答</div>
         </div>
-        <!-- 選拼法 -->
-        <div style="background:var(--body-bg); border:1px solid var(--border); border-radius:10px; padding:12px 14px; text-align:center;">
-          <div style="font-size:13px; font-weight:800; color:var(--text); margin-bottom:4px;">✅ 選拼法</div>
-          <div id="stModePickAttempts" style="font-size:18px; font-weight:800; color:var(--primary); margin:2px 0;">0 題</div>
-          <div id="stModePickSub" style="font-size:11.5px; color:#10b981;">尚無作答</div>
+        <div class="mode-stat-card">
+          <div class="mode-stat-title">✅ 選拼法</div>
+          <div class="mode-stat-num" id="stModePickAttempts">0 題</div>
+          <div class="mode-stat-sub" id="stModePickSub">尚無作答</div>
         </div>
-        <!-- 重組 -->
-        <div style="background:var(--body-bg); border:1px solid var(--border); border-radius:10px; padding:12px 14px; text-align:center;">
-          <div style="font-size:13px; font-weight:800; color:var(--text); margin-bottom:4px;">🧩 重組</div>
-          <div id="stModeScrambleAttempts" style="font-size:18px; font-weight:800; color:var(--primary); margin:2px 0;">0 題</div>
-          <div id="stModeScrambleSub" style="font-size:11.5px; color:#10b981;">尚無作答</div>
+        <div class="mode-stat-card">
+          <div class="mode-stat-title">🧩 重組</div>
+          <div class="mode-stat-num" id="stModeScrambleAttempts">0 題</div>
+          <div class="mode-stat-sub" id="stModeScrambleSub">尚無作答</div>
         </div>
-        <!-- 填陷阱 -->
-        <div style="background:var(--body-bg); border:1px solid var(--border); border-radius:10px; padding:12px 14px; text-align:center;">
-          <div style="font-size:13px; font-weight:800; color:var(--text); margin-bottom:4px;">🖍️ 填陷阱</div>
-          <div id="stModeTrapAttempts" style="font-size:18px; font-weight:800; color:var(--primary); margin:2px 0;">0 題</div>
-          <div id="stModeTrapSub" style="font-size:11.5px; color:#10b981;">尚無作答</div>
+        <div class="mode-stat-card">
+          <div class="mode-stat-title">🖍️ 填陷阱</div>
+          <div class="mode-stat-num" id="stModeTrapAttempts">0 題</div>
+          <div class="mode-stat-sub" id="stModeTrapSub">尚無作答</div>
         </div>
       </div>
 
@@ -3070,16 +3300,16 @@
       </div>
 
       <!-- 📝 教師指定單字測驗作答紀錄 -->
-      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin:22px 0 10px; font-size:14.5px; font-weight:800; color:var(--text); border-left:4px solid #8b5cf6; padding-left:8px;">
+      <div class="subh" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
         <span>📝 教師指定單字測驗作答紀錄</span>
-        <span style="font-size:12px; color:#0284c7; font-weight:700;">📅 目前查看日期：<span id="st-task-view-date"></span></span>
+        <span style="font-size:12px; color:var(--sky, #0284c7); font-weight:700;">📅 目前查看日期：<span id="st-task-view-date"></span></span>
       </div>
       <div id="st-task-record-details"></div>
 
       <!-- 🎮 自由練習作答紀錄 -->
-      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin:24px 0 10px; font-size:14.5px; font-weight:800; color:var(--text); border-left:4px solid #8b5cf6; padding-left:8px;">
+      <div class="subh" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-top:20px;">
         <span>🎮 自由練習作答紀錄</span>
-        <span style="font-size:12px; color:#0284c7; font-weight:700;">📅 目前查看日期：<span id="st-free-view-date"></span></span>
+        <span style="font-size:12px; color:var(--sky, #0284c7); font-weight:700;">📅 目前查看日期：<span id="st-free-view-date"></span></span>
       </div>
       <div id="st-free-record-details"></div>
 
@@ -3091,31 +3321,22 @@
             <span style="font-size:12px; color:var(--text-muted); font-weight:normal;">（連續答對 3 次）</span>
           </div>
           <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-            <!-- 搜尋框 -->
             <div style="position:relative; display:inline-block;">
               <input id="stMasteredSearchInput" type="text" placeholder="🔍 搜尋單字或中文..." oninput="handleMasteredFilterChange()"
                 style="padding:4px 10px 4px 26px; font-size:12px; border:1px solid var(--border); border-radius:16px; background:var(--input-bg); color:var(--text); width:150px; outline:none; transition:width 0.2s ease;"
                 onfocus="this.style.width='190px'" onblur="if(!this.value) this.style.width='150px'" />
               <span style="position:absolute; left:8px; top:50%; transform:translateY(-50%); font-size:11px; opacity:0.6; pointer-events:none;">🔍</span>
             </div>
-            <!-- 一鍵複製清單 -->
             <button type="button" class="btn-secondary" onclick="copyMasteredWordsList()" style="font-size:11.5px; padding:3px 9px; border-radius:6px; height:28px; display:inline-flex; align-items:center; gap:4px;" title="複製目前篩選的單字清單到剪貼簿">
               📋 複製清單
             </button>
-            <!-- 展開/收合容器高度 -->
             <button type="button" id="btnToggleMasteredExpand" class="btn-secondary" onclick="toggleMasteredWrapHeight()" style="font-size:11.5px; padding:3px 9px; border-radius:6px; height:28px; display:inline-flex; align-items:center; gap:4px;" title="展開完整單字牆或收合高度">
               ↕️ <span id="txtToggleMasteredExpand">展開高度</span>
             </button>
           </div>
         </div>
-
-        <!-- 等級篩選 Pill 標籤列 -->
         <div id="stMasteredLevelTabs" style="display:flex; flex-wrap:wrap; gap:5px; margin-bottom:10px;"></div>
-
-        <!-- 單字晶片容器 -->
         <div id="stMasteredChipsWrap" style="display:flex; flex-wrap:wrap; gap:6px; max-height:140px; overflow-y:auto; padding:4px 0 6px; transition:max-height 0.25s ease;"></div>
-
-        <!-- 底部加載更多 / 狀態列 -->
         <div id="stMasteredBottomBar" style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; font-size:12px; color:var(--text-muted); border-top:1px dashed var(--border); padding-top:8px;">
           <span id="stMasteredStatsText">顯示 0 字</span>
           <div style="display:flex; gap:6px;">
@@ -3155,11 +3376,10 @@
       </div>
 
       <!-- 📅 練習紀錄（最近 4 週） -->
-      <div style="font-size:14px; font-weight:800; color:var(--text); margin-bottom:6px;">📅 練習紀錄（最近 4 週）</div>
-      <div id="stStreakLine" style="font-size:13px; color:var(--text-muted); margin-bottom:12px;">
-        🔥 連續 <strong id="stHeatStreak" style="color:var(--text);">0</strong> 天 · 最佳 <strong id="stHeatBest" style="color:var(--text);">0</strong> 天 · 累計練習 <strong id="stHeatTotal" style="color:var(--text);">0</strong> 天
-      </div>
-      <div id="stHeatmapGrid" style="display:grid; grid-template-columns:repeat(7, 1fr); gap:6px; max-width:280px; margin-bottom:10px;"></div>
+      <div class="subh">📅 練習紀錄（最近 4 週）</div>
+      <div class="streakline" id="stStreakLine">🔥 連續 <b id="stHeatStreak">0</b> 天　·　最佳 <b id="stHeatBest">0</b> 天　·　累計練習 <b id="stHeatTotal">0</b> 天</div>
+      <div class="heatmap" id="stHeatmapGrid"></div>
+      <div class="heat-legend">🔥 <b>連續</b>：從今天往回算，一天都沒中斷、天天有練習的天數。<br>🏆 <b>最佳</b>：你曾經創下「最長連續天天練習」的紀錄。<br>📅 <b>累計</b>：從開始到現在，總共有練習過的天數（中間有休息也算）。<br>🟩 <b>熱力圖</b>：方格顏色愈深，代表當天練習愈多。</div>
     </div>
   </div>
 
@@ -12757,8 +12977,8 @@ function renderStudentSummary(resp) {
   const lvTbody = document.getElementById("stLevelProgressTbody");
   if (lvTbody) {
     let lvRowsHtml = "";
-    const lvNames  = ["入門", "基礎", "進階", "挑戰", "熟練"];
-    const lvColors = ["#10b981", "#3b82f6", "#8b5cf6", "#f59e0b", "#ef4444"];
+    const lvNames  = ["入門", "基礎", "進階", "挑戰", "精熟"];
+    const lvColors = ["#2FB47C", "#2D9CDB", "#6C4CE0", "#E8892B", "#E0567B"];
     // 預先建立單字等級索引（避免每次循環 5 次 2055 單字，大幅提升渲染效能）
     if (!window._wordBankLevelMap && typeof WORD_BANK_2000 !== "undefined" && Array.isArray(WORD_BANK_2000)) {
       window._wordBankLevelMap = new Map();
@@ -12834,18 +13054,7 @@ function renderStudentSummary(resp) {
 
       const lRate = lAtt > 0 ? Math.round((lCorr / lAtt) * 100) : 0;
       const lMast = levelMastMap[lv] || 0;
-      const mastPct = Math.min(100, Math.round((lMast / 411) * 100));
-      lvRowsHtml += `
-        <tr style="border-bottom:1px solid var(--border);">
-          <td style="padding:10px 14px; font-weight:700;">
-            <span style="color:${lvColors[lv-1]}; font-size:15px; margin-right:6px;">●</span>
-            Level ${lv}「${lvNames[lv-1]}」
-          </td>
-          <td style="padding:10px 14px; text-align:right; color:var(--text-muted); font-size:13px;">
-            <strong style="color:var(--text); font-size:14px;">${lCorr}/${lAtt}</strong> <span style="font-size:11.5px;">(${lRate}%)</span><span class="stat-sep" style="color:#0284c7;font-weight:700;margin:0 5px;">/</span>學習中 <strong style="color:var(--text); font-size:13px;">${levelLearnMap[lv]}</strong><span class="stat-sep" style="color:#0284c7;font-weight:700;margin:0 5px;">/</span>練習中 <strong style="color:var(--text); font-size:13px;">${levelPracMap[lv]}</strong><span class="stat-sep" style="color:#0284c7;font-weight:700;margin:0 5px;">/</span>精通 <strong style="color:var(--text); font-size:13px;">${lMast}</strong><span class="stat-sep" style="color:#0284c7;font-weight:700;margin:0 5px;">/</span>411 字 <span style="font-size:11.5px; color:${lvColors[lv-1]}; font-weight:700;">(${mastPct}%)</span>
-          </td>
-        </tr>
-      `;
+      lvRowsHtml += `<tr><td><span style="color:${lvColors[lv-1]}">●</span> Level ${lv}「${lvNames[lv-1]}」</td><td>${lCorr}/${lAtt} (${lRate}%)<span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span>學習中 ${levelLearnMap[lv]}<span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span>練習中 ${levelPracMap[lv]}<span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span>精通 ${lMast}<span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span>共 411</td></tr>`;
     }
     lvTbody.innerHTML = lvRowsHtml;
   }
@@ -12961,34 +13170,19 @@ function renderStudentSummary(resp) {
 
   const elStreakLine = document.getElementById("stStreakLine");
   if (elStreakLine) {
-    if (streak >= 3) {
-      elStreakLine.innerHTML = `
-        <span style="display:inline-flex; align-items:center; gap:6px; background:linear-gradient(135deg, rgba(249,115,22,0.15) 0%, rgba(234,88,12,0.08) 100%); border:1px solid rgba(249,115,22,0.3); padding:4px 12px; border-radius:20px; font-weight:800; color:#ea580c; margin-bottom:6px;">
-          <span style="display:inline-block; animation: pulse 1.5s infinite;">🔥</span> 連續打卡第 <strong id="stHeatStreak" style="color:#c2410c; font-size:15px;">${streak}</strong> 天！手感火燙，學習霸榜！
-        </span>
-        <div style="font-size:12.5px; color:var(--text-muted); margin-top:2px;">
-          最佳紀錄 <strong id="stHeatBest" style="color:var(--text);">${best}</strong> 天 · 累計練習 <strong id="stHeatTotal" style="color:var(--text);">${totalActive}</strong> 天
-        </div>
-      `;
-    } else {
-      elStreakLine.innerHTML = `🔥 連續 <strong id="stHeatStreak" style="color:var(--text);">${streak}</strong> 天 · 最佳 <strong id="stHeatBest" style="color:var(--text);">${best}</strong> 天 · 累計練習 <strong id="stHeatTotal" style="color:var(--text);">${totalActive}</strong> 天`;
-    }
+    elStreakLine.innerHTML = `🔥 連續 <b>${streak}</b> 天　·　最佳 <b>${best}</b> 天　·　累計練習 <b>${totalActive}</b> 天`;
   }
 
   if (heatGrid) {
     heatGrid.innerHTML = days.map(day => {
-      let bg = "rgba(128,128,128,0.12)";
-      let border = "1px solid var(--border)";
+      let lvl = 0;
       if (day.a > 0) {
-        if (day.a < 10) bg = "#6ee7b7";
-        else if (day.a < 25) bg = "#10b981";
-        else bg = "#047857";
-        border = "1px solid transparent";
+        if (day.a >= 25) lvl = 3;
+        else if (day.a >= 10) lvl = 2;
+        else lvl = 1;
       }
-      const title = `${day.key}：${day.a ? `作答 ${day.a} 題 · 正確率 ${day.rate}%` : '無練習'}`;
-      return `
-        <div class="st-heat-cell" style="background:${bg}; border:${border};" title="${title}"></div>
-      `;
+      const title = `${day.key}：${day.a ? "作答 " + day.a + " · 正確率 " + day.rate + "%" : "沒有練習"}`;
+      return `<i class="hc h${lvl}" title="${title}"></i>`;
     }).join("");
   }
 
