@@ -392,6 +392,12 @@ function answer(correct, guessVal) {
   ui.showResult(correct, state.word, info);
   // 依需求取消答對單字灑花特效
   refreshChrome();
+
+  // 自由闖關作答即刻自動背景同步雲端（2.5秒防抖，兼顧高頻作答效能與雲端數據完全一致）
+  if (typeof window.uploadLocalStorageData === "function") {
+    window.uploadLocalStorageData(true, false);
+  }
+
   ui.setActionNext();
   scheduleAutoNext();
 }

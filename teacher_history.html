@@ -5216,6 +5216,9 @@ function fetchData(isRefresh = false, onComplete = null) {
         }
         showStudentSections();
         addFadeIn(["studentSummaryCard"]);
+        window.cachedTaskWordsMap = resp.taskWordsMap || {};
+        window.cachedBackupTodayTaskSummary = resp.backupTodayTaskSummary || null;
+        window.cachedBackupTaskHistory = resp.backupTaskHistory || [];
         if (resp.leaderboard) {
           updateLeaderboardUI(resp.leaderboard);
         }
@@ -12758,6 +12761,30 @@ function resolveTaskWords(record, selectedDate, agent) {
   }
   if (pool.length === 0 && window.cachedStudentAssignedTask && Array.isArray(window.cachedStudentAssignedTask.words) && window.cachedStudentAssignedTask.words.length > 0) {
     pool = window.cachedStudentAssignedTask.words.map(w => typeof w === "string" ? w : (w.word || w.display || w.w)).filter(Boolean);
+  }
+
+  // 3-1. 從備份字典 cachedTaskWordsMap 或 cachedBackupTodayTaskSummary 尋找
+  if (pool.length === 0 && window.cachedTaskWordsMap) {
+    const slashDate = normDate.replace(/-/g, "/");
+    const mWords = window.cachedTaskWordsMap[normDate] || window.cachedTaskWordsMap[slashDate];
+    if (Array.isArray(mWords) && mWords.length > 0) {
+      pool = mWords.map(w => typeof w === "string" ? w : (w.word || w.display || w.w)).filter(Boolean);
+    }
+  }
+  if (pool.length === 0 && window.cachedBackupTodayTaskSummary) {
+    const bDate = String(window.cachedBackupTodayTaskSummary.date || "").trim().split(" ")[0].replace(/\//g, "-");
+    if (bDate === normDate && Array.isArray(window.cachedBackupTodayTaskSummary.words) && window.cachedBackupTodayTaskSummary.words.length > 0) {
+      pool = window.cachedBackupTodayTaskSummary.words.map(w => typeof w === "string" ? w : (w.word || w.display || w.w)).filter(Boolean);
+    }
+  }
+  if (pool.length === 0 && Array.isArray(window.cachedBackupTaskHistory)) {
+    const matched = window.cachedBackupTaskHistory.find(h => {
+      const hDate = String(h.date || "").trim().split(" ")[0].replace(/\//g, "-");
+      return hDate === normDate || (h.taskName && record.taskName && h.taskName === record.taskName);
+    });
+    if (matched && Array.isArray(matched.words) && matched.words.length > 0) {
+      pool = matched.words.map(w => typeof w === "string" ? w : (w.word || w.display || w.w)).filter(Boolean);
+    }
   }
 
   // 4. 錯題單字
