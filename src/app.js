@@ -54,10 +54,8 @@ function persistTaskProgress() {
       localStorage.setItem("task_words_" + todaySlash, JSON.stringify(poolWords));
     }
 
-    // 每題作答完畢立即自動背景同步上傳雲端（斷線防護！）
-    if (typeof window.uploadLocalStorageData === "function") {
-      window.uploadLocalStorageData(true, false);
-    }
+    // 標記有新進度待同步（由 5 分鐘定時器、離開頁面、或完成指定測驗時統一同步）
+    window.hasUnsavedChanges = true;
   } catch(e) {
     console.error("persistTaskProgress error:", e);
   }
@@ -393,10 +391,8 @@ function answer(correct, guessVal) {
   // 依需求取消答對單字灑花特效
   refreshChrome();
 
-  // 自由闖關作答即刻自動背景同步雲端（2.5秒防抖，兼顧高頻作答效能與雲端數據完全一致）
-  if (typeof window.uploadLocalStorageData === "function") {
-    window.uploadLocalStorageData(true, false);
-  }
+  // 標記有自由練習進度待同步（由 5 分鐘定時器、離開頁面、或手動按鈕統一同步）
+  window.hasUnsavedChanges = true;
 
   ui.setActionNext();
   scheduleAutoNext();

@@ -1619,6 +1619,7 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
         let result = await response.json();
         
         if (result.status === "success") {
+          window.hasUnsavedChanges = false;
           if (iconEl) iconEl.textContent = "✅";
           setTimeout(() => { if (iconEl) iconEl.textContent = "🌱"; }, 2500);
 
@@ -1652,8 +1653,26 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
       }
     }
 
-    // 頁面卸載時自動觸發安全背景同步
-    window.addEventListener("pagehide", () => {
+    // ════════════════════════════════════════════════════════════════════
+    // ★ 最完美的保險存檔設計：
+    // 1. 平時每 5 分鐘自動背景存檔（若有未同步進度）
+    // 2. 離開頁面（關閉分頁、切換視窗、切換分頁）自動背景存檔
+    // 3. 完成指定測驗時立即自動存檔（由 finishTodayTask 觸發）
+    // ════════════════════════════════════════════════════════════════════
+    window.hasUnsavedChanges = false;
+
+    // 1. 平時每 5 分鐘自動背景存檔一次
+    setInterval(() => {
+      const currentUser = localStorage.getItem("current_user");
+      const currentPass = sessionStorage.getItem("current_pass");
+      if (currentUser && currentPass && window.hasUnsavedChanges) {
+        console.log("⏰ [定時自動存檔] 偵測到未同步進度，執行每 5 分鐘背景同步...");
+        uploadLocalStorageData(true, true);
+      }
+    }, 5 * 60 * 1000);
+
+    // 2. 離開頁面（關閉分頁、切換視窗、切換分頁）時自動背景存檔
+    const saveOnLeave = () => {
       if (uploadDebounceTimer) {
         clearTimeout(uploadDebounceTimer);
         uploadDebounceTimer = null;
@@ -1661,10 +1680,18 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
       try {
         const u = localStorage.getItem("current_user");
         const p = sessionStorage.getItem("current_pass");
-        if (u && p) {
+        if (u && p && window.hasUnsavedChanges) {
           uploadLocalStorageData(true, true);
         }
       } catch(_) {}
+    };
+
+    window.addEventListener("pagehide", saveOnLeave);
+    window.addEventListener("beforeunload", saveOnLeave);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") {
+        saveOnLeave();
+      }
     });
 
     window.uploadLocalStorageData = uploadLocalStorageData;
