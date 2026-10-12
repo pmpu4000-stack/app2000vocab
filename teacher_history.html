@@ -2182,6 +2182,22 @@
       background: #2B334D !important;
       border-color: #38BDF8 !important;
     }
+    /* 學習進度條高對比鮮明樣式 */
+    .st-progress-track {
+      height: 16px !important;
+      background: #E2E8F0 !important;
+      border-radius: 10px !important;
+      overflow: hidden !important;
+      display: flex !important;
+      margin-bottom: 14px !important;
+      border: 1px solid #CBD5E1 !important;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.06) !important;
+    }
+    [data-theme="dark"] .st-progress-track {
+      background: #1E293B !important;
+      border-color: #334155 !important;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.3) !important;
+    }
   </style>
 </head>
 <body>
@@ -2941,25 +2957,25 @@
         <span style="font-size:13px; color:var(--text-muted); font-weight:600;">共 2055 字</span>
       </div>
 
-      <!-- 三色分段進度條 (與遊戲網頁完全一致) -->
-      <div style="height:14px; background:#EEEFF7; border-radius:8px; overflow:hidden; display:flex; margin-bottom:14px; border:1px solid var(--border);">
-        <div id="stBarLearning" style="width:0%; background:#D9D5F2; transition:width 0.4s ease;" title="學習中"></div>
-        <div id="stBarPracticing" style="width:0%; background:#B9E8D3; transition:width 0.4s ease;" title="練習中"></div>
-        <div id="stBarMastered" style="width:0%; background:#10b981; transition:width 0.4s ease;" title="精通"></div>
+      <!-- 三色分段進度條 (與遊戲網頁完全一致: #8B5CF6 / #0EA5E9 / #10B981) -->
+      <div class="st-progress-track" style="height:16px; background:#E2E8F0; border-radius:10px; overflow:hidden; display:flex; margin-bottom:14px; border:1px solid #CBD5E1; box-shadow:inset 0 1px 2px rgba(0,0,0,0.06);">
+        <div id="stBarLearning" style="width:0%; background:#8B5CF6; transition:width 0.4s ease;" title="學習中"></div>
+        <div id="stBarPracticing" style="width:0%; background:#0EA5E9; transition:width 0.4s ease;" title="練習中"></div>
+        <div id="stBarMastered" style="width:0%; background:#10B981; transition:width 0.4s ease;" title="精通"></div>
       </div>
 
       <!-- 統計圖例 -->
       <div style="display:flex; align-items:center; gap:20px; flex-wrap:wrap; font-size:13px; margin-bottom:8px;">
         <span style="display:inline-flex; align-items:center; gap:6px;">
-          <span style="width:11px; height:11px; border-radius:3px; background:#D9D5F2; display:inline-block; border:1px solid rgba(0,0,0,0.08);"></span>
+          <span style="width:12px; height:12px; border-radius:3px; background:#8B5CF6; display:inline-block; border:1px solid rgba(0,0,0,0.1);"></span>
           學習中 <strong id="stNumLearning" style="color:var(--text); font-size:14px;">0</strong>
         </span>
         <span style="display:inline-flex; align-items:center; gap:6px;">
-          <span style="width:11px; height:11px; border-radius:3px; background:#B9E8D3; display:inline-block; border:1px solid rgba(0,0,0,0.08);"></span>
+          <span style="width:12px; height:12px; border-radius:3px; background:#0EA5E9; display:inline-block; border:1px solid rgba(0,0,0,0.1);"></span>
           練習中 <strong id="stNumPracticing" style="color:var(--text); font-size:14px;">0</strong>
         </span>
         <span style="display:inline-flex; align-items:center; gap:6px;">
-          <span style="width:11px; height:11px; border-radius:3px; background:#10b981; display:inline-block; border:1px solid rgba(0,0,0,0.08);"></span>
+          <span style="width:12px; height:12px; border-radius:3px; background:#10B981; display:inline-block; border:1px solid rgba(0,0,0,0.1);"></span>
           精通 <strong id="stNumMastered" style="color:var(--text); font-size:14px;">0</strong>
         </span>
       </div>
@@ -3198,25 +3214,25 @@
         <span id="stDailyProgressTotalWords" style="font-size:13px; color:var(--text-muted); font-weight:600;">共 0 測驗單字</span>
       </div>
 
-      <!-- 三色分段進度條 (與遊戲一致: #D9D5F2 / #B9E8D3 / #10b981) -->
-      <div style="height:14px; background:#EEEFF7; border-radius:8px; overflow:hidden; display:flex; margin-bottom:14px; border:1px solid var(--border);">
-        <div id="stDailyBarLearning" style="width:0%; background:#D9D5F2; transition:width 0.4s ease;" title="學習中（測驗錯題／待加強）"></div>
-        <div id="stDailyBarPracticing" style="width:0%; background:#B9E8D3; transition:width 0.4s ease;" title="練習中（測驗答對 1 次）"></div>
-        <div id="stDailyBarMastered" style="width:0%; background:#10b981; transition:width 0.4s ease;" title="精通（測驗連續答對滿分）"></div>
+      <!-- 三色分段進度條 (與遊戲一致: #8B5CF6 / #0EA5E9 / #10B981) -->
+      <div class="st-progress-track" style="height:16px; background:#E2E8F0; border-radius:10px; overflow:hidden; display:flex; margin-bottom:14px; border:1px solid #CBD5E1; box-shadow:inset 0 1px 2px rgba(0,0,0,0.06);">
+        <div id="stDailyBarLearning" style="width:0%; background:#8B5CF6; transition:width 0.4s ease;" title="學習中（測驗錯題／待加強）"></div>
+        <div id="stDailyBarPracticing" style="width:0%; background:#0EA5E9; transition:width 0.4s ease;" title="練習中（測驗答對 1 次）"></div>
+        <div id="stDailyBarMastered" style="width:0%; background:#10B981; transition:width 0.4s ease;" title="精通（測驗連續答對滿分）"></div>
       </div>
 
       <!-- 統計圖例 -->
       <div style="display:flex; align-items:center; gap:20px; flex-wrap:wrap; font-size:13px; margin-bottom:8px;">
         <span style="display:inline-flex; align-items:center; gap:6px;">
-          <span style="width:11px; height:11px; border-radius:3px; background:#D9D5F2; display:inline-block; border:1px solid rgba(0,0,0,0.08);"></span>
+          <span style="width:12px; height:12px; border-radius:3px; background:#8B5CF6; display:inline-block; border:1px solid rgba(0,0,0,0.1);"></span>
           學習中 <strong id="stDailyNumLearning" style="color:var(--text); font-size:14px;">0</strong>
         </span>
         <span style="display:inline-flex; align-items:center; gap:6px;">
-          <span style="width:11px; height:11px; border-radius:3px; background:#B9E8D3; display:inline-block; border:1px solid rgba(0,0,0,0.08);"></span>
+          <span style="width:12px; height:12px; border-radius:3px; background:#0EA5E9; display:inline-block; border:1px solid rgba(0,0,0,0.1);"></span>
           練習中 <strong id="stDailyNumPracticing" style="color:var(--text); font-size:14px;">0</strong>
         </span>
         <span style="display:inline-flex; align-items:center; gap:6px;">
-          <span style="width:11px; height:11px; border-radius:3px; background:#10b981; display:inline-block; border:1px solid rgba(0,0,0,0.08);"></span>
+          <span style="width:12px; height:12px; border-radius:3px; background:#10B981; display:inline-block; border:1px solid rgba(0,0,0,0.1);"></span>
           精通 <strong id="stDailyNumMastered" style="color:var(--text); font-size:14px;">0</strong>
         </span>
       </div>
@@ -3340,25 +3356,25 @@
         <span id="stFreeProgressTotalWords" style="font-size:13px; color:var(--text-muted); font-weight:600;">共 2055 字</span>
       </div>
 
-      <!-- 三色分段進度條 (與遊戲一致: #D9D5F2 / #B9E8D3 / #10b981) -->
-      <div style="height:14px; background:#EEEFF7; border-radius:8px; overflow:hidden; display:flex; margin-bottom:14px; border:1px solid var(--border);">
-        <div id="stFreeBarLearning" style="width:0%; background:#D9D5F2; transition:width 0.4s ease;" title="學習中（答對 1 次）"></div>
-        <div id="stFreeBarPracticing" style="width:0%; background:#B9E8D3; transition:width 0.4s ease;" title="練習中（連續答對 2 次）"></div>
-        <div id="stFreeBarMastered" style="width:0%; background:#10b981; transition:width 0.4s ease;" title="精通（連續答對 3 次）"></div>
+      <!-- 三色分段進度條 (與遊戲一致: #8B5CF6 / #0EA5E9 / #10B981) -->
+      <div class="st-progress-track" style="height:16px; background:#E2E8F0; border-radius:10px; overflow:hidden; display:flex; margin-bottom:14px; border:1px solid #CBD5E1; box-shadow:inset 0 1px 2px rgba(0,0,0,0.06);">
+        <div id="stFreeBarLearning" style="width:0%; background:#8B5CF6; transition:width 0.4s ease;" title="學習中（答對 1 次）"></div>
+        <div id="stFreeBarPracticing" style="width:0%; background:#0EA5E9; transition:width 0.4s ease;" title="練習中（連續答對 2 次）"></div>
+        <div id="stFreeBarMastered" style="width:0%; background:#10B981; transition:width 0.4s ease;" title="精通（連續答對 3 次）"></div>
       </div>
 
       <!-- 統計圖例 -->
       <div style="display:flex; align-items:center; gap:20px; flex-wrap:wrap; font-size:13px; margin-bottom:8px;">
         <span style="display:inline-flex; align-items:center; gap:6px;">
-          <span style="width:11px; height:11px; border-radius:3px; background:#D9D5F2; display:inline-block; border:1px solid rgba(0,0,0,0.08);"></span>
+          <span style="width:12px; height:12px; border-radius:3px; background:#8B5CF6; display:inline-block; border:1px solid rgba(0,0,0,0.1);"></span>
           學習中 <strong id="stFreeNumLearning" style="color:var(--text); font-size:14px;">0</strong>
         </span>
         <span style="display:inline-flex; align-items:center; gap:6px;">
-          <span style="width:11px; height:11px; border-radius:3px; background:#B9E8D3; display:inline-block; border:1px solid rgba(0,0,0,0.08);"></span>
+          <span style="width:12px; height:12px; border-radius:3px; background:#0EA5E9; display:inline-block; border:1px solid rgba(0,0,0,0.1);"></span>
           練習中 <strong id="stFreeNumPracticing" style="color:var(--text); font-size:14px;">0</strong>
         </span>
         <span style="display:inline-flex; align-items:center; gap:6px;">
-          <span style="width:11px; height:11px; border-radius:3px; background:#10b981; display:inline-block; border:1px solid rgba(0,0,0,0.08);"></span>
+          <span style="width:12px; height:12px; border-radius:3px; background:#10B981; display:inline-block; border:1px solid rgba(0,0,0,0.1);"></span>
           精通 <strong id="stFreeNumMastered" style="color:var(--text); font-size:14px;">0</strong>
         </span>
         <span style="margin-left:auto; color:var(--text-muted);">
