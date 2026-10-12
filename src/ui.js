@@ -963,6 +963,14 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
   correctList.sort((a, b) => a.word.localeCompare(b.word));
   wrongList.sort((a, b) => a.word.localeCompare(b.word));
 
+  const totalWords = (correctList.length + wrongList.length) > 0
+    ? (correctList.length + wrongList.length)
+    : attempts;
+  const correctWords = (correctList.length + wrongList.length) > 0
+    ? correctList.length
+    : correct;
+  const wordRate = totalWords > 0 ? Math.round((correctWords / totalWords) * 100) : 0;
+
   let correctContentHtml = "";
   if (correctList.length > 0) {
     correctContentHtml = correctList.map(w => {
@@ -1001,16 +1009,16 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
 
       <div class="task-score-grid">
         <div class="task-score-item">
-          <div class="task-score-label">🎯 累計作答次數</div>
-          <div class="task-score-val" style="color:#0284c7;">${attempts} 次</div>
+          <div class="task-score-label">🎯 累積作答單字數</div>
+          <div class="task-score-val" style="color:#0284c7;">${totalWords} 字</div>
         </div>
         <div class="task-score-item">
-          <div class="task-score-label">✅ 累計答對次數</div>
-          <div class="task-score-val" style="color:#16a34a;">${correct} 次</div>
+          <div class="task-score-label">✅ 累積答對單字數</div>
+          <div class="task-score-val" style="color:#16a34a;">${correctWords} 字</div>
         </div>
         <div class="task-score-item">
           <div class="task-score-label">📊 正確率</div>
-          <div class="task-score-val" style="color:${rate >= 80 ? '#16a34a' : '#ea580c'};">${rate}%</div>
+          <div class="task-score-val" style="color:${wordRate >= 80 ? '#16a34a' : '#ea580c'};">${wordRate}%</div>
         </div>
       </div>
 
@@ -1019,7 +1027,7 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
         <!-- 答對的單字區 -->
         <div class="word-split-box correct-box">
           <div class="word-split-title correct-title">
-            <span>✅ 答對的單字（共 ${correctList.length} 個單字，累計答對 ${correct} 次）：</span>
+            <span>✅ 答對的單字（共 ${correctList.length} 個單字）：</span>
           </div>
           <div style="display:flex; flex-wrap:wrap; gap:5px;">
             ${correctContentHtml}
@@ -1029,7 +1037,7 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
         <!-- 答錯的單字區 -->
         <div class="word-split-box wrong-box">
           <div class="word-split-title wrong-title">
-            <span>❌ 曾答錯單字（共 ${wrongList.length} 個單字，累計答錯 ${wrongCount} 次）：</span>
+            <span>❌ 曾答錯單字（共 ${wrongList.length} 個單字）：</span>
           </div>
           <div style="display:flex; flex-wrap:wrap; gap:5px;">
             ${wrongContentHtml}
