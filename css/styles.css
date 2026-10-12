@@ -758,6 +758,10 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
   color: var(--sky);
   font-weight: 700;
 }
+.formula-note-box .formula-desc {
+  color: #16a34a;
+  font-weight: 500;
+}
 [data-theme="dark"] .formula-note-box {
   background: rgba(255, 255, 255, 0.04) !important;
   border-color: rgba(255, 255, 255, 0.1) !important;
@@ -768,6 +772,9 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 }
 [data-theme="dark"] .formula-note-box .formula-val {
   color: #38BDF8 !important;
+}
+[data-theme="dark"] .formula-note-box .formula-desc {
+  color: #86efac !important;
 }
 
 /* 5. 各關卡表格與細節內容 (Details & Metrics) */
