@@ -2707,29 +2707,29 @@
     <!-- 模組 1：學習進度 PROGRESS 卡片 -->
     <div class="card" style="padding:22px 24px; margin-bottom:20px; border-radius:14px;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
-        <span style="font-size:15px; font-weight:800; color:var(--text); letter-spacing:0.5px;">學習進度 PROGRESS</span>
+        <span style="font-size:15px; font-weight:800; color:var(--text); letter-spacing:0.3px;">學習進度 Progress</span>
         <span style="font-size:13px; color:var(--text-muted); font-weight:600;">共 2055 字</span>
       </div>
 
-      <!-- 三色分段進度條 -->
-      <div style="height:14px; background:rgba(128,128,128,0.12); border-radius:10px; overflow:hidden; display:flex; margin-bottom:14px; border:1px solid var(--border);">
-        <div id="stBarLearning" style="width:0%; background:#818cf8; transition:width 0.4s ease;" title="學習中"></div>
-        <div id="stBarPracticing" style="width:0%; background:#34d399; transition:width 0.4s ease;" title="練習中"></div>
+      <!-- 三色分段進度條 (與遊戲網頁完全一致) -->
+      <div style="height:14px; background:#EEEFF7; border-radius:8px; overflow:hidden; display:flex; margin-bottom:14px; border:1px solid var(--border);">
+        <div id="stBarLearning" style="width:0%; background:#D9D5F2; transition:width 0.4s ease;" title="學習中"></div>
+        <div id="stBarPracticing" style="width:0%; background:#B9E8D3; transition:width 0.4s ease;" title="練習中"></div>
         <div id="stBarMastered" style="width:0%; background:#10b981; transition:width 0.4s ease;" title="精通"></div>
       </div>
 
       <!-- 統計圖例 -->
       <div style="display:flex; align-items:center; gap:20px; flex-wrap:wrap; font-size:13px; margin-bottom:8px;">
         <span style="display:inline-flex; align-items:center; gap:6px;">
-          <span style="width:10px; height:10px; border-radius:50%; background:#818cf8; display:inline-block;"></span>
+          <span style="width:11px; height:11px; border-radius:3px; background:#D9D5F2; display:inline-block; border:1px solid rgba(0,0,0,0.08);"></span>
           學習中 <strong id="stNumLearning" style="color:var(--text); font-size:14px;">0</strong>
         </span>
         <span style="display:inline-flex; align-items:center; gap:6px;">
-          <span style="width:10px; height:10px; border-radius:50%; background:#34d399; display:inline-block;"></span>
+          <span style="width:11px; height:11px; border-radius:3px; background:#B9E8D3; display:inline-block; border:1px solid rgba(0,0,0,0.08);"></span>
           練習中 <strong id="stNumPracticing" style="color:var(--text); font-size:14px;">0</strong>
         </span>
         <span style="display:inline-flex; align-items:center; gap:6px;">
-          <span style="width:10px; height:10px; border-radius:50%; background:#10b981; display:inline-block;"></span>
+          <span style="width:11px; height:11px; border-radius:3px; background:#10b981; display:inline-block; border:1px solid rgba(0,0,0,0.08);"></span>
           精通 <strong id="stNumMastered" style="color:var(--text); font-size:14px;">0</strong>
         </span>
       </div>
@@ -2773,7 +2773,7 @@
       <div style="background:var(--card-bg, #f8fafc); border:1px solid var(--border, #e2e8f0); border-radius:8px; padding:10px 14px; margin-top:-10px; margin-bottom:20px; font-size:12px; color:var(--text-muted, #64748b);">
         💡 <strong style="color:var(--text, #1e293b);">各關卡進度格式詳細說明</strong>：
         <div style="margin-top:5px; line-height:1.7;">
-          <strong style="color:var(--text, #1e293b);">0/0 (0%)</strong>（答對單字數 / 考出總單字數，附正確率）<span class="stat-sep" style="color:#0284c7;font-weight:700;margin:0 5px;">/</span><strong style="color:var(--text, #1e293b);">學習中 0</strong>（答對 1 次或答錯待訂正字數）<span class="stat-sep" style="color:#0284c7;font-weight:700;margin:0 5px;">/</span><strong style="color:var(--text, #1e293b);">練習中 0</strong>（連續答對 2 次字數）<span class="stat-sep" style="color:#0284c7;font-weight:700;margin:0 5px;">/</span><strong style="color:var(--text, #1e293b);">精通 0</strong>（連續答對 3 次已精熟字數⭐）<span class="stat-sep" style="color:#0284c7;font-weight:700;margin:0 5px;">/</span><strong style="color:var(--text, #1e293b);">共 411</strong>（該關總單字數）
+          <strong style="color:#0284c7;">0/0 (0%)</strong> <span style="color:#16a34a; font-weight:500;">（答對單字數 / 考出總單字數，附正確率）</span><span class="stat-sep" style="color:#0284c7;font-weight:700;margin:0 5px;">/</span><strong style="color:#0284c7;">學習中 0</strong> <span style="color:#16a34a; font-weight:500;">（答對 1 次或答錯待訂正字數）</span><span class="stat-sep" style="color:#0284c7;font-weight:700;margin:0 5px;">/</span><strong style="color:#0284c7;">練習中 0</strong> <span style="color:#16a34a; font-weight:500;">（連續答對 2 次字數）</span><span class="stat-sep" style="color:#0284c7;font-weight:700;margin:0 5px;">/</span><strong style="color:#0284c7;">精通 0</strong> <span style="color:#16a34a; font-weight:500;">（連續答對 3 次已精熟字數⭐）</span><span class="stat-sep" style="color:#0284c7;font-weight:700;margin:0 5px;">/</span><strong style="color:#0284c7;">共 411</strong> <span style="color:#16a34a; font-weight:500;">（該關總單字數）</span>
         </div>
       </div>
 
