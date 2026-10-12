@@ -11,46 +11,70 @@
       --success: #16a34a; --success-bg: #dcfce7;
       --danger: #dc2626;  --danger-bg: #fee2e2;
       --warning: #d97706; --warning-bg: #fef3c7;
-      --bg: #f8fafc; --body-bg: #f8fafc; --card: #ffffff; --card-bg: #ffffff; --border: #cbd5e1;
-      --text: #0f172a; --text-muted: #475569; --input-bg: #ffffff;
-      --table-header-bg: #f1f5f9; --table-hover-bg: #e2e8f0;
-      --chart-container-bg: #f8fafc; --chart-title-color: #1e293b;
-      --diff-zero-bg: #f1f5f9;
-      --kpi1: #2563eb; --kpi2: #16a34a; --kpi3: #d97706; --kpi4: #7c3aed; --kpi5: #ea580c; --kpi6: #e11d48;
+      --bg: #F6F7FB; --body-bg: #F6F7FB; --card: #FFFFFF; --card-bg: #FFFFFF; --border: #E7E9F5;
+      --text: #232A4D; --text-muted: #5A6183; --input-bg: #FFFFFF;
+      --table-header-bg: #F8F9FD; --table-hover-bg: #F1F3FB;
+      --chart-container-bg: #FFFFFF; --chart-title-color: #232A4D;
+      --diff-zero-bg: #F1F3FB;
+      --kpi1: #6C4CE0; --kpi2: #2FB47C; --kpi3: #E8892B; --kpi4: #2D9CDB; --kpi5: #E0567B; --kpi6: #8A5BD6;
       --heatmap-lvl-0: #ebedf0; --heatmap-lvl-1: #9be9a8; --heatmap-lvl-2: #40c463; --heatmap-lvl-3: #30a14e; --heatmap-lvl-4: #216e39;
       --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-      --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px -1px rgba(0, 0, 0, 0.06);
-      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
-      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.06);
+      --shadow-sm: 0 10px 30px -12px rgba(35, 42, 77, 0.28);
+      --shadow-md: 0 10px 30px -12px rgba(35, 42, 77, 0.28);
+      --shadow-lg: 0 18px 45px -12px rgba(35, 42, 77, 0.35);
       /* 遊戲網頁 app2000vocab 原版色彩變數 */
       --paper: #F6F7FB; --ink: #232A4D; --ink2: #5A6183; --ink3: #9AA0BD;
       --violet: #6C4CE0; --violet-d: #573BC4; --marker: #FFD84D; --marker-soft: #FFF0B3;
       --green: #2FB47C; --green-d: #1E9A66; --coral: #FF6B6B; --sky: #2D9CDB;
-      --line: #E7E9F5; --shadow: 0 10px 30px -12px rgba(35,42,77,.28);
+      --line: #E7E9F5; --shadow: 0 10px 30px -12px rgba(35, 42, 77, 0.28);
       --catA: #2FB47C; --catB: #2D9CDB; --catC: #6C4CE0; --catD: #E8892B; --catE: #E0567B;
+      /* Progress Bar 高對比鮮明色彩 (雙模式對齊) */
+      --bar-track: #E8EBF5;
+      --bar-border: rgba(35, 42, 77, 0.12);
+      --bar-learn-bg: linear-gradient(90deg, #6366F1, #818CF8);
+      --bar-learn-dot: #6366F1;
+      --bar-learn-text: #4F46E5;
+      --bar-prac-bg: linear-gradient(90deg, #0284C7, #38BDF8);
+      --bar-prac-dot: #0284C7;
+      --bar-prac-text: #0369A1;
+      --bar-mast-bg: linear-gradient(90deg, #10B981, #34D399);
+      --bar-mast-dot: #10B981;
+      --bar-mast-text: #047857;
     }
     [data-theme="dark"] {
-      --bg: #0b1120; --body-bg: #0b1120; --card: #1e293b; --card-bg: #1e293b; --border: #334155;
-      --text: #f8fafc; --text-muted: #94a3b8; --input-bg: #0f172a;
-      --primary: #3b82f6; --primary-hover: #60a5fa; --primary-light: #1e3a8a;
-      --table-header-bg: #1e293b; --table-hover-bg: #334155;
-      --chart-container-bg: #0f172a; --chart-title-color: #cbd5e1;
-      --success: #22c55e; --success-bg: rgba(34,197,94,0.2);
-      --danger: #ef4444;  --danger-bg: rgba(239,68,68,0.2);
-      --warning: #f59e0b; --warning-bg: rgba(245,158,11,0.2);
-      --diff-zero-bg: #334155;
-      --kpi1: #60a5fa; --kpi2: #4ade80; --kpi3: #fbbf24; --kpi4: #a78bfa; --kpi5: #fb923c; --kpi6: #fb7185;
+      --bg: #0F121C; --body-bg: #0F121C; --card: #181C2A; --card-bg: #181C2A; --border: #262C42;
+      --text: #F0F3FA; --text-muted: #A5B0CF; --input-bg: #181C2A;
+      --primary: #8B6BF0; --primary-hover: #A58CF5; --primary-light: rgba(108,76,224,0.18);
+      --table-header-bg: #181C2A; --table-hover-bg: #262C42;
+      --chart-container-bg: #181C2A; --chart-title-color: #F0F3FA;
+      --success: #2FB47C; --success-bg: rgba(47,180,124,0.2);
+      --danger: #FF6B6B;  --danger-bg: rgba(255,107,107,0.2);
+      --warning: #F59E0B; --warning-bg: rgba(245,158,11,0.2);
+      --diff-zero-bg: #262C42;
+      --kpi1: #8B6BF0; --kpi2: #2FB47C; --kpi3: #F59E0B; --kpi4: #38BDF8; --kpi5: #FB7185; --kpi6: #A78BFA;
       --heatmap-lvl-0: rgba(255, 255, 255, 0.08); --heatmap-lvl-1: #0e4429; --heatmap-lvl-2: #006d32; --heatmap-lvl-3: #26a641; --heatmap-lvl-4: #39d353;
       --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-      --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
-      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
-      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+      --shadow-sm: 0 10px 30px -10px rgba(0, 0, 0, 0.55);
+      --shadow-md: 0 10px 30px -10px rgba(0, 0, 0, 0.55);
+      --shadow-lg: 0 18px 45px -12px rgba(0, 0, 0, 0.7);
       /* 遊戲網頁 app2000vocab 原版深色色彩變數 */
-      --paper: #0B1120; --ink: #F0F3FA; --ink2: #A5B0CF; --ink3: #6E7699;
-      --violet: #8B6BF0; --violet-d: #6C4CE0; --marker: #FFD84D; --marker-soft: #FFF0B3;
-      --green: #2FB47C; --green-d: #1E9A66; --coral: #FF6B6B; --sky: #38BDF8;
-      --line: #262C42; --shadow: 0 10px 30px -12px rgba(0,0,0,.5);
+      --paper: #0F121C; --ink: #F0F3FA; --ink2: #A5B0CF; --ink3: #6B779E;
+      --violet: #8B6BF0; --violet-d: #A58CF5; --marker: #F6C343; --marker-soft: #FFF0B3;
+      --green: #2FB47C; --green-d: #38C78B; --coral: #FF6B6B; --sky: #38BDF8;
+      --line: #262C42; --shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.55);
       --catA: #2FB47C; --catB: #38BDF8; --catC: #8B6BF0; --catD: #F59E0B; --catE: #FB7185;
+      /* Progress Bar 暗黑高對比鮮明色彩 */
+      --bar-track: #0D111E;
+      --bar-border: #262C42;
+      --bar-learn-bg: linear-gradient(90deg, #4F46E5, #818CF8);
+      --bar-learn-dot: #818CF8;
+      --bar-learn-text: #A5B4FC;
+      --bar-prac-bg: linear-gradient(90deg, #0284C7, #38BDF8);
+      --bar-prac-dot: #38BDF8;
+      --bar-prac-text: #7DD3FC;
+      --bar-mast-bg: linear-gradient(90deg, #059669, #34D399);
+      --bar-mast-dot: #34D399;
+      --bar-mast-text: #6EE7B7;
     }
     * { box-sizing: border-box; }
     body {
@@ -85,10 +109,32 @@
       margin-left: auto !important;
       margin-right: auto !important;
     }
-    .card {
-      background: var(--card); border-radius: 16px; padding: 24px;
-      box-shadow: var(--shadow-sm); border: 1.5px solid var(--border);
-      margin-bottom: 22px; transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    .card,
+    #mainControlCard,
+    #studentDailyTaskCard,
+    #studentFreePracticeCard,
+    .progress {
+      background: var(--card) !important;
+      border: 1.5px solid var(--border) !important;
+      border-radius: 22px !important;
+      box-shadow: var(--shadow) !important;
+      margin-bottom: 22px;
+      transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+    [data-theme="dark"] .card,
+    [data-theme="dark"] #mainControlCard,
+    [data-theme="dark"] #studentDailyTaskCard,
+    [data-theme="dark"] #studentFreePracticeCard,
+    [data-theme="dark"] .progress,
+    [data-theme="dark"] .task-history-card,
+    [data-theme="dark"] .date-navigator-card,
+    [data-theme="dark"] .analytics-card,
+    [data-theme="dark"] .table-legend-card,
+    [data-theme="dark"] .chart-desc-card {
+      background: #181C2A !important;
+      border-color: #262C42 !important;
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.55) !important;
+      color: #F0F3FA !important;
     }
     .header-title {
       display: flex; flex-wrap: wrap; justify-content: space-between;
@@ -2320,49 +2366,71 @@
       color: #38BDF8 !important;
     }
     .bar {
-      height: 14px;
-      border-radius: 8px;
-      background: #EEEFF7;
-      overflow: hidden;
-      display: flex;
-      border: 1px solid rgba(0,0,0,0.06);
+      height: 16px !important;
+      border-radius: 10px !important;
+      background: var(--bar-track, #E8EBF5) !important;
+      overflow: hidden !important;
+      display: flex !important;
+      border: 1.5px solid var(--bar-border, rgba(35,42,77,0.12)) !important;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.08) !important;
+      position: relative !important;
     }
     [data-theme="dark"] .bar {
-      background: #232A4D;
-      border-color: rgba(255,255,255,0.08);
+      background: var(--bar-track, #0D111E) !important;
+      border-color: var(--bar-border, #262C42) !important;
+      box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5) !important;
     }
     .bar i {
-      display: block;
-      height: 100%;
-      transition: width 0.4s ease;
+      display: block !important;
+      height: 100% !important;
+      transition: width 0.45s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      position: relative !important;
     }
-    .bar .learn { background: #D9D5F2; }
-    .bar .prac { background: #B9E8D3; }
-    .bar .mast { background: var(--green, #2FB47C); }
+    .bar .learn {
+      background: var(--bar-learn-bg, linear-gradient(90deg, #6366F1, #818CF8)) !important;
+      box-shadow: 1px 0 0 rgba(255, 255, 255, 0.35);
+    }
+    .bar .prac {
+      background: var(--bar-prac-bg, linear-gradient(90deg, #0284C7, #38BDF8)) !important;
+      box-shadow: 1px 0 0 rgba(255, 255, 255, 0.35);
+    }
+    .bar .mast {
+      background: var(--bar-mast-bg, linear-gradient(90deg, #10B981, #34D399)) !important;
+    }
 
     .legend {
-      display: flex;
-      gap: 16px;
-      margin-top: 10px;
-      font-size: 12px;
-      color: var(--ink2);
-      font-weight: 700;
-      flex-wrap: wrap;
-    }
-    .legend span {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .legend i {
-      width: 11px;
-      height: 11px;
-      border-radius: 3px;
-      display: inline-block;
+      display: flex !important;
+      gap: 16px !important;
+      margin-top: 12px !important;
+      font-size: 13px !important;
+      font-weight: 700 !important;
+      color: var(--ink2) !important;
+      flex-wrap: wrap !important;
+      align-items: center !important;
     }
     [data-theme="dark"] .legend {
-      color: #A5B0CF;
+      color: #A5B0CF !important;
     }
+    .legend span {
+      display: flex !important;
+      align-items: center !important;
+      gap: 6px !important;
+    }
+    .legend i {
+      width: 12px !important;
+      height: 12px !important;
+      border-radius: 4px !important;
+      display: inline-block !important;
+      flex-shrink: 0 !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15) !important;
+    }
+    .legend span:nth-child(1) i { background: var(--bar-learn-dot, #6366F1) !important; }
+    .legend span:nth-child(2) i { background: var(--bar-prac-dot, #0284C7) !important; }
+    .legend span:nth-child(3) i { background: var(--bar-mast-dot, #10B981) !important; }
+
+    .legend span:nth-child(1) b { color: var(--bar-learn-text, #4F46E5) !important; font-weight: 800; font-size: 14px; }
+    .legend span:nth-child(2) b { color: var(--bar-prac-text, #0369A1) !important; font-weight: 800; font-size: 14px; }
+    .legend span:nth-child(3) b { color: var(--bar-mast-text, #047857) !important; font-weight: 800; font-size: 14px; }
 
     .defs {
       font-size: 11.5px;
