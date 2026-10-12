@@ -843,9 +843,6 @@ function buildTaskDetailsHtml(record, selectedDate, d) {
           <span class="task-card-title">${record.taskName}</span>
           <span style="margin-left:8px; font-size:11.5px; font-weight:700; color:${statusColor}; background:${statusBg}; padding:2px 8px; border-radius:999px;">${statusStr}</span>
         </div>
-        <div class="task-card-time">
-          🕒 作答時間：<b>${record.updatedAt || record.date}</b>
-        </div>
       </div>
 
       <div class="task-score-grid">
@@ -1001,9 +998,6 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
         <div>
           <span class="task-card-title">🎮 自由練習成果</span>
           <span style="margin-left:8px; font-size:11.5px; font-weight:700; color:#0284c7; background:rgba(2,132,199,0.12); padding:2px 8px; border-radius:999px;">自主訓練</span>
-        </div>
-        <div class="task-card-time">
-          📅 練習日期：<b>${selectedDate}</b>
         </div>
       </div>
 
