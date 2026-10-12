@@ -861,7 +861,7 @@ function buildTaskDetailsHtml(record, selectedDate, d) {
         <!-- 答對的單字區 -->
         <div class="word-split-box correct-box">
           <div class="word-split-title correct-title">
-            <span>✅ 答對的單字（共 ${correctList.length} 字）：</span>
+            <span>✅ 答對的單字</span>
           </div>
           <div style="display:flex; flex-wrap:wrap; gap:5px;">
             ${correctContentHtml}
@@ -871,7 +871,7 @@ function buildTaskDetailsHtml(record, selectedDate, d) {
         <!-- 答錯的單字區 -->
         <div class="word-split-box wrong-box">
           <div class="word-split-title wrong-title">
-            <span>❌ 答錯的單字（共 ${wrongList.length} 字）：</span>
+            <span>❌ 答錯的單字</span>
           </div>
           <div style="display:flex; flex-wrap:wrap; gap:5px;">
             ${wrongContentHtml}
@@ -1021,7 +1021,7 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
         <!-- 答對的單字區 -->
         <div class="word-split-box correct-box">
           <div class="word-split-title correct-title">
-            <span>✅ 答對的單字（共 ${correctList.length} 個單字）：</span>
+            <span>✅ 答對的單字</span>
           </div>
           <div style="display:flex; flex-wrap:wrap; gap:5px;">
             ${correctContentHtml}
@@ -1031,7 +1031,7 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
         <!-- 答錯的單字區 -->
         <div class="word-split-box wrong-box">
           <div class="word-split-title wrong-title">
-            <span>❌ 曾答錯單字（共 ${wrongList.length} 個單字）：</span>
+            <span>❌ 答錯的單字</span>
           </div>
           <div style="display:flex; flex-wrap:wrap; gap:5px;">
             ${wrongContentHtml}
