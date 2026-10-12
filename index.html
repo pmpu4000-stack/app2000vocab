@@ -1283,31 +1283,22 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
             }
           } catch(_) {}
 
-          // 判定雲端是否有實質紀錄（必須是含有有效 spellAgent.v2 的物件）
-          const hasCloudRecords = result.records && 
-                                  typeof result.records === "object" && 
-                                  !Array.isArray(result.records) && 
-                                  Object.keys(result.records).length > 0 &&
-                                  !!result.records["spellAgent.v2"];
-
-          // 比對本機進度與雲端進度：若同帳號且本機進度更新（作答數或分數更高），優先保護本機進度
-          let localHasMoreProgress = false;
-          if (!isDifferentUser && localAgentData && hasCloudRecords) {
-            try {
-              const cloudRaw = result.records["spellAgent.v2"];
-              const cloudAgent = (typeof cloudRaw === "string") ? JSON.parse(cloudRaw) : (cloudRaw || {});
-              const localAtt = Number(localAgentData.attempts) || 0;
-              const cloudAtt = Number(cloudAgent.attempts) || 0;
-              const localPts = Number(localAgentData.points) || 0;
-              const cloudPts = Number(cloudAgent.points) || 0;
-              if (localAtt > cloudAtt || (localAtt === cloudAtt && localPts > cloudPts)) {
-                localHasMoreProgress = true;
-              }
-            } catch(_) {}
+          // 判定雲端是否有實質紀錄（含有有效 spellAgent.v2 或其他紀錄鍵值）
+          let hasCloudRecords = false;
+          if (result.records && typeof result.records === "object" && !Array.isArray(result.records)) {
+            if (result.records["spellAgent.v2"]) {
+              hasCloudRecords = true;
+            } else if (result.records.box || result.records.stat || result.records.attempts !== undefined) {
+              // 容錯支援：若 records 直接就是 agentData 本身，包裝回 spellAgent.v2
+              result.records = { "spellAgent.v2": JSON.stringify(result.records) };
+              hasCloudRecords = true;
+            } else if (Object.keys(result.records).length > 0) {
+              hasCloudRecords = true;
+            }
           }
 
-          // 僅在「切換不同使用者帳號」或「雲端有明確更新紀錄且本機無更新進度」時清理暫存；同一帳號且本機進度較新時保留本機
-          if (isDifferentUser || (hasCloudRecords && !localHasMoreProgress)) {
+          // 核心原則：只要雲端有紀錄，一律以雲端紀錄為準，完整還原至本機 LocalStorage！
+          if (isDifferentUser || hasCloudRecords) {
             const keysToRemove = [];
             for (let i = 0; i < localStorage.length; i++) {
               const k = localStorage.key(i);
@@ -1399,20 +1390,14 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
             for (let key in result.records) {
               // 關鍵保護 1：不可用備份中舊的 student_task_history 覆蓋剛剛更新合成的最新 mergedHist
               if (key === "student_task_history" && Array.isArray(result.dailyTaskHistory)) continue;
-              // 關鍵保護 2：若本機已有更新的進度，不覆蓋本機 spellAgent.v2
-              if (key === "spellAgent.v2" && localHasMoreProgress) continue;
-              // 關鍵保護 3：今日任務若剛由指派設定決定已完成/未完成，不被備份中舊的 task_done 殘留污染
+              // 關鍵保護 2：今日任務若剛由指派設定決定已完成/未完成，不被備份中舊的 task_done 殘留污染
               if (result.assignedTask && !result.assignedTask.alreadyCompleted && (key.startsWith("task_done_") || key === "today_task_in_progress")) continue;
               const val = result.records[key];
               const valToStore = (typeof val === "object" && val !== null) ? JSON.stringify(val) : String(val);
               localStorage.setItem(key, valToStore);
             }
             window.__hasUnsavedChanges = false;
-            if (localHasMoreProgress) {
-              msgEl.textContent = "✅ 登入成功，已載入學習進度...";
-            } else {
-              msgEl.textContent = "✅ 登入成功，正在啟動學習進度...";
-            }
+            msgEl.textContent = "✅ 登入成功，已載入雲端學習進度...";
           } else if (!isDifferentUser && localAgentData) {
             // 雲端無紀錄，但本機同帳號已有有效學習進度：保留本機進度
             window.__hasUnsavedChanges = false;

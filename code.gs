@@ -2043,15 +2043,12 @@ function doPost(e) {
       }
 
       let records = {};
-      const cache = CacheService.getScriptCache();
-      const recCacheKey = "stu_rec_" + auth.username.toLowerCase();
-      let raw = "";
-      try { raw = cache.get(recCacheKey) || ""; } catch(_) {}
-
       const uSheet = getStudentSheet(ss, auth.username);
-      if (!raw && uSheet && uSheet.getLastRow() >= 2) {
-        // 優先搜尋前 20 列中最近一筆包含有效 JSON/GZ 備份的 Column B
-        const checkCount = Math.min(uSheet.getLastRow() - 1, 20);
+      let raw = "";
+
+      if (uSheet && uSheet.getLastRow() >= 2) {
+        // 直接從學生試算表讀取最新一筆有效備份（第 2 列起往下搜尋最多 35 列）
+        const checkCount = Math.min(uSheet.getLastRow() - 1, 35);
         const bVals = uSheet.getRange(2, 2, checkCount, 1).getValues();
         for (let r = 0; r < bVals.length; r++) {
           const cellVal = String(bVals[r][0] || "").trim();
@@ -2059,9 +2056,6 @@ function doPost(e) {
             raw = cellVal;
             break;
           }
-        }
-        if (raw) {
-          try { cache.put(recCacheKey, raw, 1200); } catch(_) {}
         }
       }
 
@@ -2071,7 +2065,14 @@ function doPost(e) {
           try {
             const parsed = JSON.parse(decomp);
             if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-              records = parsed;
+              // 完整相容：若存檔結構含有 spellAgent.v2 則直接採用；若本身即為 agentData 結構則自動包裝
+              if (parsed["spellAgent.v2"]) {
+                records = parsed;
+              } else if (parsed.box || parsed.stat || parsed.mstat || parsed.attempts !== undefined || parsed.level) {
+                records = { "spellAgent.v2": parsed };
+              } else {
+                records = parsed;
+              }
               // 確保 records 內所有屬性值皆為字串型態，防止前端寫入 localStorage 時變為 [object Object]
               for (let k in records) {
                 if (typeof records[k] === "object" && records[k] !== null) {
@@ -2560,13 +2561,6 @@ function handleSaveRecord(ss, params, auth) {
     const hasTaskActivity = !!(sum && (sum.inProgress || isCompleted));
 
     if (!hasTodayPractice && !hasAttIncrease && !hasTaskActivity) {
-      // 學生今天尚未有任何新作答與測驗進度（例如僅登入或開啟頁面），不開闢新列，僅快取備份即可
-      shouldInsertNewRow = false;
-      try {
-        const cache = CacheService.getScriptCache();
-        const recCacheKey = "stu_rec_" + username.toLowerCase();
-        cache.put(recCacheKey, stored, 1200);
-      } catch(_) {}
       return jsonResponse({status:"success", message:"未偵測到今日作答增量，保持現有紀錄", cached:true});
     }
 
@@ -3471,12 +3465,6 @@ function getTaskWordsDict(ss) {
 
 function getStudentDailyTaskHistory(ss, username) {
   if (!username) return [];
-  const cache = CacheService.getScriptCache();
-  const histCacheKey = "stu_hist_" + String(username).trim().toLowerCase();
-  try {
-    const cached = cache.get(histCacheKey);
-    if (cached) return JSON.parse(cached);
-  } catch(_) {}
 
   const sheet = getStudentSheet(ss, username);
   if (!sheet || sheet.getLastRow() < 2) return [];
@@ -3519,9 +3507,6 @@ function getStudentDailyTaskHistory(ss, username) {
     }
   }
   list.sort((a, b) => (b.updatedAt || "").localeCompare(a.updatedAt || "") || b.date.localeCompare(a.date));
-  try {
-    cache.put(histCacheKey, JSON.stringify(list), 600);
-  } catch(_) {}
   return list;
 }
 
@@ -3674,16 +3659,6 @@ function _getClassOverview(ss, targetClass, forceRefresh) {
 
 function _getStudentData(ss, username) {
   const cleanU = String(username || "").trim();
-  const cacheKey = "stu_data_" + cleanU.toLowerCase();
-  const cache = CacheService.getScriptCache();
-  try {
-    const cached = cache.get(cacheKey);
-    if (cached) {
-      const decomp = cached.startsWith("GZ:") ? decompressData(cached) : cached;
-      return JSON.parse(decomp);
-    }
-  } catch(_) {}
-
   const sheet = getStudentSheet(ss, cleanU);
   if (!sheet || sheet.getLastRow() < 2) {
     return {
@@ -3737,16 +3712,19 @@ function _getStudentData(ss, username) {
 
   if (rawJsonStr) {
     try {
-      const parsed = JSON.parse(decompressData(rawJsonStr));
-      const raw = parsed["spellAgent.v2"];
-      agentData = (typeof raw === "string") ? JSON.parse(raw) : (raw || {});
-      const stat = agentData.stat || {};
-      for (const w in stat) {
-        const {c=0, a=0} = stat[w];
-        wordList.push({
-          word: w, correct: c, attempts: a, wrong: Math.max(0, a - c),
-          status: c >= 3 ? "mastered" : c === 2 ? "practicing" : c === 1 ? "learning" : "new"
-        });
+      const decomp = decompressData(rawJsonStr);
+      if (decomp) {
+        const parsed = JSON.parse(decomp);
+        const raw = parsed["spellAgent.v2"] || (parsed.box || parsed.stat || parsed.attempts !== undefined ? parsed : null);
+        agentData = (typeof raw === "string") ? JSON.parse(raw) : (raw || {});
+        const stat = agentData.stat || {};
+        for (const w in stat) {
+          const {c=0, a=0} = stat[w];
+          wordList.push({
+            word: w, correct: c, attempts: a, wrong: Math.max(0, a - c),
+            status: c >= 3 ? "mastered" : c === 2 ? "practicing" : c === 1 ? "learning" : "new"
+          });
+        }
       }
     } catch(err) {
       logError("_getStudentData/parse", err, cleanU, "");
@@ -3777,19 +3755,7 @@ function _getStudentData(ss, username) {
     rawData[i][1] = "";
   }
 
-  const result = { status: "success", username: cleanU, headers, data: rawData, wordList, agentData };
-
-  // 寫入快取 60 秒，大幅加速使用者頻繁點擊與歷程查詢反應時間
-  try {
-    const jsonStr = JSON.stringify(result);
-    if (jsonStr.length < 90000) {
-      cache.put(cacheKey, jsonStr, 60);
-    } else {
-      cache.put(cacheKey, compressData(jsonStr), 60);
-    }
-  } catch(_) {}
-
-  return result;
+  return { status: "success", username: cleanU, headers, data: rawData, wordList, agentData };
 }
 
 function _getLeaderboard(ss, targetUsername, mode, isTeacher) {
