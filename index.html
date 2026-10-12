@@ -1508,32 +1508,12 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
      * 5. 頁面卸載背景存檔 (keepalive: true)：
      *    切頁或直接關閉時，瀏覽器底層確保資料送達，學生無須在頁面乾等。
      */
-    async function uploadLocalStorageData(isSilent = false, immediate = false) {
-      // 靜默背景同步防護：若本次無任何未儲存之作答變更，且無正在進行之指定測驗，不發起無效網路存檔
-      if (isSilent && !window.__hasUnsavedChanges) {
-        const rawProg = localStorage.getItem("today_task_in_progress");
-        if (!rawProg) {
-          return;
-        }
-      }
-
-      if (isSilent && !immediate) {
-        if (uploadDebounceTimer) clearTimeout(uploadDebounceTimer);
-        uploadDebounceTimer = setTimeout(() => {
-          uploadDebounceTimer = null;
-          uploadLocalStorageData(true, true);
-        }, 2500);
-        return;
-      }
-
-      if (uploadDebounceTimer) {
-        clearTimeout(uploadDebounceTimer);
-        uploadDebounceTimer = null;
-      }
+    async function uploadLocalStorageData(isSilent = false) {
+      // 依規範：只有在點擊「上傳紀錄」時才會儲存！拒絕任何自動/靜默背景上傳
+      if (isSilent) return;
 
       if (isUploading) {
-        hasPendingUpload = true;
-        if (!isSilent) console.log("資料同步中，最新進度將自動接續排程送出...");
+        alert("資料同步中，請稍候...");
         return;
       }
       isUploading = true;
@@ -1664,27 +1644,9 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
         if (!isSilent) alert("連線失敗，請檢查網路。");
       } finally {
         isUploading = false;
-        if (hasPendingUpload) {
-          hasPendingUpload = false;
-          setTimeout(() => uploadLocalStorageData(true, true), 100);
-        }
+        hasPendingUpload = false;
       }
     }
-
-    // 頁面卸載時自動觸發安全背景同步
-    window.addEventListener("pagehide", () => {
-      if (uploadDebounceTimer) {
-        clearTimeout(uploadDebounceTimer);
-        uploadDebounceTimer = null;
-      }
-      try {
-        const u = localStorage.getItem("current_user");
-        const p = sessionStorage.getItem("current_pass");
-        if (u && p && window.__hasUnsavedChanges) {
-          uploadLocalStorageData(true, true);
-        }
-      } catch(_) {}
-    });
 
     window.uploadLocalStorageData = uploadLocalStorageData;
 
@@ -2123,9 +2085,6 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
           });
         }
         overlay.style.display = "flex";
-        if (window.__hasUnsavedChanges && window.uploadLocalStorageData) {
-          window.uploadLocalStorageData(true);
-        }
       } else {
         overlay.style.display = "none";
       }
@@ -2323,10 +2282,6 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
       // ★ 核心修復：時間截止時，立即呼叫 refreshChrome 刷新學習進度與頂部數值（答對字、答對率）！
       if (typeof window.refreshChrome === "function") {
         window.refreshChrome();
-      }
-
-      if (window.__hasUnsavedChanges && window.uploadLocalStorageData) {
-        window.uploadLocalStorageData(true);
       }
 
       // 時間到的當下立即確認一次老師是否已加時／解除
