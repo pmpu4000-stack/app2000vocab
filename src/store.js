@@ -261,10 +261,10 @@ export function historyData(n = 28) {
       }
     }
 
-    // 4. 若為今天且 DB.attempts > 0
-    if (norm === todayStr() && DB.attempts > 0) {
-      a = Math.max(a, DB.attempts);
-      c = Math.max(c, DB.correct);
+    // 4. 若為今天且當日 session 有作答
+    if (norm === todayStr() && DB.session && DB.session.date === todayStr() && DB.session.answered > 0) {
+      a = Math.max(a, DB.session.answered);
+      c = Math.max(c, DB.session.correct);
     }
 
     return { a, c };

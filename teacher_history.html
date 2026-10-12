@@ -12488,6 +12488,7 @@ function renderStudentDailyTaskAndFreeSections(resp) {
 
   const agent = resp.agentData || {};
   const historyData = agent.history || {};
+  const dpMap = (agent && agent.dailyPractice) ? agent.dailyPractice : {};
   const dailyTaskHistory = (resp.dailyTaskHistory && Array.isArray(resp.dailyTaskHistory)) 
     ? resp.dailyTaskHistory 
     : (window.cachedStudentDailyHistory || []);
@@ -12516,6 +12517,13 @@ function renderStudentDailyTaskAndFreeSections(resp) {
     }
   });
 
+  Object.keys(dpMap).forEach(k => {
+    if (dpMap[k] && (dpMap[k].attempts > 0 || (dpMap[k].words && Object.keys(dpMap[k].words).length > 0))) {
+      const d = String(k).trim().split(" ")[0].replace(/\//g, "-");
+      if (d) dateSet.add(d);
+    }
+  });
+
   if (resp.data && Array.isArray(resp.data)) {
     resp.data.forEach(r => {
       if (r && r[0]) {
@@ -12530,11 +12538,17 @@ function renderStudentDailyTaskAndFreeSections(resp) {
 
   let defaultSelectedDate = todayDash;
   const hasTodayTask = dailyTaskHistory.some(h => String(h.date).split(" ")[0].replace(/\//g, "-") === todayDash && ((h.status && h.status.includes("已完成")) || (h.score && h.score !== "—")));
-  const hasTodayFree = (historyData[todayDash] && historyData[todayDash].a > 0) || (historyData[todayDash.replace(/-/g, "/")] && historyData[todayDash.replace(/-/g, "/")].a > 0);
+  const hasTodayFree = (dpMap[todayDash] && dpMap[todayDash].attempts > 0) ||
+                       (dpMap[todayDash.replace(/-/g, "/")] && dpMap[todayDash.replace(/-/g, "/")].attempts > 0) ||
+                       (historyData[todayDash] && historyData[todayDash].a > 0) || 
+                       (historyData[todayDash.replace(/-/g, "/")] && historyData[todayDash.replace(/-/g, "/")].a > 0);
   if (!hasTodayTask && !hasTodayFree && allDates.length > 0) {
     const latestActive = allDates.find(d => {
       const hTask = dailyTaskHistory.some(h => String(h.date).split(" ")[0].replace(/\//g, "-") === d && ((h.status && h.status.includes("已完成")) || (h.score && h.score !== "—")));
-      const hFree = (historyData[d] && historyData[d].a > 0) || (historyData[d.replace(/-/g, "/")] && historyData[d.replace(/-/g, "/")].a > 0);
+      const hFree = (dpMap[d] && dpMap[d].attempts > 0) ||
+                    (dpMap[d.replace(/-/g, "/")] && dpMap[d.replace(/-/g, "/")].attempts > 0) ||
+                    (historyData[d] && historyData[d].a > 0) || 
+                    (historyData[d.replace(/-/g, "/")] && historyData[d.replace(/-/g, "/")].a > 0);
       return hTask || hFree;
     });
     if (latestActive) defaultSelectedDate = latestActive;
@@ -12543,10 +12557,11 @@ function renderStudentDailyTaskAndFreeSections(resp) {
 
   if (quickSelect) {
     quickSelect.innerHTML = allDates.map(dateStr => {
-      const hasTask = dailyTaskHistory.some(h => String(h.date).split(" ")[0].replace(/\//g, "-") === dateStr) || 
-                      (todayTask && String(todayTask.date).split(" ")[0].replace(/\//g, "-") === dateStr && todayTask.hasDone);
+      const hasTask = dailyTaskHistory.some(h => String(h.date).split(" ")[0].replace(/\//g, "-") === dateStr && (!h.taskName || h.taskName !== "自主練習")) || 
+                      (todayTask && String(todayTask.date).split(" ")[0].replace(/\//g, "-") === dateStr && todayTask.hasDone && todayTask.taskName !== "自主練習");
+      const dpF = dpMap[dateStr] || dpMap[dateStr.replace(/-/g, "/")] || null;
       const hFree = historyData[dateStr] || historyData[dateStr.replace(/-/g, "/")] || null;
-      const freeAtt = hFree ? (hFree.a || 0) : 0;
+      const freeAtt = (dpF && dpF.attempts) ? dpF.attempts : (hFree ? (hFree.a || 0) : 0);
 
       let tag = "";
       if (hasTask && freeAtt > 0) tag = ` [測驗 + 練習 ${freeAtt}題]`;
@@ -12568,8 +12583,8 @@ function renderStudentDailyTaskAndFreeSections(resp) {
     if (freeDateLabel) freeDateLabel.textContent = targetDate;
 
     // A. 尋找教師指定測驗紀錄
-    let matchedTask = dailyTaskHistory.find(h => String(h.date).split(" ")[0].replace(/\//g, "-") === targetDate) || null;
-    if (!matchedTask && todayTask && String(todayTask.date).split(" ")[0].replace(/\//g, "-") === targetDate && todayTask.hasDone) {
+    let matchedTask = dailyTaskHistory.find(h => String(h.date).split(" ")[0].replace(/\//g, "-") === targetDate && (!h.taskName || h.taskName !== "自主練習")) || null;
+    if (!matchedTask && todayTask && String(todayTask.date).split(" ")[0].replace(/\//g, "-") === targetDate && todayTask.hasDone && todayTask.taskName !== "自主練習") {
       matchedTask = {
         date: targetDate,
         taskName: todayTask.taskName || "今日指定測驗",
@@ -12581,7 +12596,7 @@ function renderStudentDailyTaskAndFreeSections(resp) {
       };
     }
     if (!matchedTask && resp.data && Array.isArray(resp.data)) {
-      const matchedRow = resp.data.find(r => r && String(r[0]).trim().split(" ")[0].replace(/\//g, "-") === targetDate && r[18]);
+      const matchedRow = resp.data.find(r => r && String(r[0]).trim().split(" ")[0].replace(/\//g, "-") === targetDate && r[18] && r[18] !== "自主練習");
       if (matchedRow) {
         matchedTask = {
           date: targetDate,
@@ -12597,9 +12612,18 @@ function renderStudentDailyTaskAndFreeSections(resp) {
     taskDetailsContainer.innerHTML = buildTaskDetailsHtml(matchedTask, targetDate, agent);
 
     // B. 尋找自由練習紀錄
+    let dpFree = dpMap[targetDate] || dpMap[targetDate.replace(/-/g, "/")] || null;
     let hFree = historyData[targetDate] || historyData[targetDate.replace(/-/g, "/")] || null;
     let matchedFree = null;
-    if (hFree && (hFree.a || hFree.c || hFree.words)) {
+    if (dpFree && (dpFree.attempts > 0 || (dpFree.words && Object.keys(dpFree.words).length > 0))) {
+      matchedFree = {
+        date: targetDate,
+        attempts: dpFree.attempts || 0,
+        correct: dpFree.correct || 0,
+        wrong: (dpFree.wrong !== undefined) ? dpFree.wrong : Math.max(0, (dpFree.attempts || 0) - (dpFree.correct || 0)),
+        words: dpFree.words || {}
+      };
+    } else if (hFree && (hFree.a || hFree.c || hFree.words)) {
       matchedFree = {
         date: targetDate,
         attempts: hFree.a || 0,
@@ -12896,6 +12920,7 @@ function renderStudentSummary(resp) {
 
   // 7. 📅 練習紀錄（最近 4 週 / 28 天日曆熱力圖）
   const historyData = (agent && agent.history) ? agent.history : {};
+  const dpMap = (agent && agent.dailyPractice) ? agent.dailyPractice : {};
   const heatGrid = document.getElementById("stHeatmapGrid");
 
   const days = [];
@@ -12905,9 +12930,11 @@ function renderStudentSummary(resp) {
     d.setDate(d.getDate() - i);
     const keyDash  = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
     const keyShort = d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
-    const h = historyData[keyDash] || historyData[keyShort] || null;
-    const att = h ? (h.a || 0) : 0;
-    const cor = h ? (h.c || 0) : 0;
+    const keySlash = keyDash.replace(/-/g, "/");
+    const h = historyData[keyDash] || historyData[keyShort] || historyData[keySlash] || null;
+    const dpItem = dpMap[keyDash] || dpMap[keyShort] || dpMap[keySlash] || null;
+    const att = (h && h.a) ? h.a : (dpItem ? (dpItem.attempts || 0) : 0);
+    const cor = (h && h.c !== undefined) ? h.c : (dpItem ? (dpItem.correct || 0) : 0);
     const rate = att > 0 ? Math.round((cor / att) * 100) : 0;
     days.push({ key: keyDash, dateNum: d.getDate(), a: att, c: cor, rate: rate });
   }
@@ -12917,8 +12944,10 @@ function renderStudentSummary(resp) {
     streak = agent.streak || 0;
     best   = agent.best || 0;
   }
-  const histKeys = Object.keys(historyData);
-  totalActive = histKeys.filter(k => historyData[k] && historyData[k].a > 0).length;
+  const allActiveDates = new Set();
+  Object.keys(historyData).forEach(k => { if (historyData[k] && historyData[k].a > 0) allActiveDates.add(k.replace(/\//g, "-")); });
+  Object.keys(dpMap).forEach(k => { if (dpMap[k] && dpMap[k].attempts > 0) allActiveDates.add(k.replace(/\//g, "-")); });
+  totalActive = allActiveDates.size;
   if (totalActive === 0 && attempts > 0) totalActive = 1;
   if (streak === 0 && attempts > 0) streak = 1;
   if (best === 0 && streak > 0) best = streak;
@@ -13020,10 +13049,11 @@ function renderStudentFreePractice(resp, summaryMeta) {
   const statusBadge = document.getElementById("studentFreePracticeStatusBadge");
   const banner = document.getElementById("studentFreePracticeBanner");
   const todayDash = formatDateYMD(new Date());
-  const todaySlash = todayDash.replace(/-/g, "/");
+  const dpMap = (agent && agent.dailyPractice) ? agent.dailyPractice : {};
   const todayPractice = historyData[todayDash] || historyData[todaySlash] || null;
-  const todayAtt = todayPractice ? (todayPractice.a || 0) : 0;
-  const todayCor = todayPractice ? (todayPractice.c || 0) : 0;
+  const todayDp = dpMap[todayDash] || dpMap[todaySlash] || null;
+  const todayAtt = (todayDp && todayDp.attempts) ? todayDp.attempts : (todayPractice ? (todayPractice.a || 0) : 0);
+  const todayCor = (todayDp && todayDp.correct !== undefined) ? todayDp.correct : (todayPractice ? (todayPractice.c || 0) : 0);
   const todayAcc = todayAtt > 0 ? Math.round((todayCor / todayAtt) * 100) : 0;
 
   if (statusBadge) {

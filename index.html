@@ -1290,8 +1290,24 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
                                   Object.keys(result.records).length > 0 &&
                                   !!result.records["spellAgent.v2"];
 
-          // 僅在「切換不同使用者帳號」或「雲端有明確更新紀錄」時清理暫存；同一帳號且雲端無紀錄時，保留本機作答進度不被覆蓋
-          if (isDifferentUser || hasCloudRecords) {
+          // 比對本機進度與雲端進度：若同帳號且本機進度更新（作答數或分數更高），優先保護本機進度
+          let localHasMoreProgress = false;
+          if (!isDifferentUser && localAgentData && hasCloudRecords) {
+            try {
+              const cloudRaw = result.records["spellAgent.v2"];
+              const cloudAgent = (typeof cloudRaw === "string") ? JSON.parse(cloudRaw) : (cloudRaw || {});
+              const localAtt = Number(localAgentData.attempts) || 0;
+              const cloudAtt = Number(cloudAgent.attempts) || 0;
+              const localPts = Number(localAgentData.points) || 0;
+              const cloudPts = Number(cloudAgent.points) || 0;
+              if (localAtt > cloudAtt || (localAtt === cloudAtt && localPts > cloudPts)) {
+                localHasMoreProgress = true;
+              }
+            } catch(_) {}
+          }
+
+          // 僅在「切換不同使用者帳號」或「雲端有明確更新紀錄且本機無更新進度」時清理暫存；同一帳號且本機進度較新時保留本機
+          if (isDifferentUser || (hasCloudRecords && !localHasMoreProgress)) {
             const keysToRemove = [];
             for (let i = 0; i < localStorage.length; i++) {
               const k = localStorage.key(i);
@@ -1381,11 +1397,24 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
           if (hasCloudRecords) {
             // 雲端有存檔：將雲端最新進度寫入 LocalStorage（安全型別保護：物件轉為 JSON 字串，防止出現 [object Object]）
             for (let key in result.records) {
+              // 關鍵保護 1：不可用備份中舊的 student_task_history 覆蓋剛剛更新合成的最新 mergedHist
+              if (key === "student_task_history" && Array.isArray(result.dailyTaskHistory)) continue;
+              // 關鍵保護 2：若本機已有更新的進度，不覆蓋本機 spellAgent.v2
+              if (key === "spellAgent.v2" && localHasMoreProgress) continue;
+              // 關鍵保護 3：今日任務若剛由指派設定決定已完成/未完成，不被備份中舊的 task_done 殘留污染
+              if (result.assignedTask && !result.assignedTask.alreadyCompleted && (key.startsWith("task_done_") || key === "today_task_in_progress")) continue;
               const val = result.records[key];
               const valToStore = (typeof val === "object" && val !== null) ? JSON.stringify(val) : String(val);
               localStorage.setItem(key, valToStore);
             }
-            msgEl.textContent = "✅ 登入成功，正在啟動學習進度...";
+            if (localHasMoreProgress) {
+              msgEl.textContent = "✅ 登入成功，偵測到本機較新進度，正在自動同步雲端...";
+              setTimeout(() => {
+                try { uploadLocalStorageData(true, true); } catch(_) {}
+              }, 1200);
+            } else {
+              msgEl.textContent = "✅ 登入成功，正在啟動學習進度...";
+            }
           } else if (!isDifferentUser && localAgentData) {
             // 雲端無紀錄，但本機同帳號已有有效學習進度：完美保留並自動同步回傳雲端
             msgEl.textContent = "✅ 登入成功，已復原本機學習進度...";

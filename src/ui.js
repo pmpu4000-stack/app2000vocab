@@ -1102,13 +1102,13 @@ function resolveDailyPracticeRecord(dateStr, d, historyList) {
     }
   }
 
-  // 4. 若為今天且總作答題數大於 0 (DB.attempts > 0)，且今日有即時作答
-  if (isToday && d && d.attempts > 0) {
+  // 4. 若為今天且當日 session 有即時作答
+  if (isToday && d && d.session && d.session.date === todayStr() && d.session.answered > 0) {
     return {
       date: normYMD,
-      attempts: d.attempts,
-      correct: d.correct,
-      wrong: Math.max(0, d.attempts - d.correct),
+      attempts: d.session.answered,
+      correct: d.session.correct,
+      wrong: Math.max(0, d.session.answered - d.session.correct),
       words: (rec && rec.words) || {}
     };
   }
