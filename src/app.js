@@ -55,6 +55,7 @@ function persistTaskProgress() {
     }
 
     // 每題作答完畢立即自動背景同步上傳雲端（斷線防護！）
+    window.__hasUnsavedChanges = true;
     if (typeof window.uploadLocalStorageData === "function") {
       window.uploadLocalStorageData(true, false);
     }
@@ -390,6 +391,10 @@ function answer(correct, guessVal) {
   // ── 自由闖關中答錯：正常升降級，同步收錄至每日自由練習作答歷程 ──
   const info = store.grade(state.word.id, correct, store.progress().current, state.mode, state.word.word, true);
   ui.showResult(correct, state.word, info);
+  window.__hasUnsavedChanges = true;
+  if (typeof window.uploadLocalStorageData === "function") {
+    window.uploadLocalStorageData(true, false);
+  }
   // 依需求取消答對單字灑花特效
   refreshChrome();
   ui.setActionNext();

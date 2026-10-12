@@ -1407,20 +1407,16 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
               const valToStore = (typeof val === "object" && val !== null) ? JSON.stringify(val) : String(val);
               localStorage.setItem(key, valToStore);
             }
+            window.__hasUnsavedChanges = false;
             if (localHasMoreProgress) {
-              msgEl.textContent = "✅ 登入成功，偵測到本機較新進度，正在自動同步雲端...";
-              setTimeout(() => {
-                try { uploadLocalStorageData(true, true); } catch(_) {}
-              }, 1200);
+              msgEl.textContent = "✅ 登入成功，已載入學習進度...";
             } else {
               msgEl.textContent = "✅ 登入成功，正在啟動學習進度...";
             }
           } else if (!isDifferentUser && localAgentData) {
-            // 雲端無紀錄，但本機同帳號已有有效學習進度：完美保留並自動同步回傳雲端
+            // 雲端無紀錄，但本機同帳號已有有效學習進度：保留本機進度
+            window.__hasUnsavedChanges = false;
             msgEl.textContent = "✅ 登入成功，已復原本機學習進度...";
-            setTimeout(() => {
-              try { uploadLocalStorageData(true); } catch(_) {}
-            }, 1000);
           } else if (result.isNewStudent === true) {
             // 僅當雲端確認「無分頁」或「分頁完全無任何紀錄」時，才判定為全新帳號初始化
             const freshStore = {
@@ -1528,6 +1524,14 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
      *    切頁或直接關閉時，瀏覽器底層確保資料送達，學生無須在頁面乾等。
      */
     async function uploadLocalStorageData(isSilent = false, immediate = false) {
+      // 靜默背景同步防護：若本次無任何未儲存之作答變更，且無正在進行之指定測驗，不發起無效網路存檔
+      if (isSilent && !window.__hasUnsavedChanges) {
+        const rawProg = localStorage.getItem("today_task_in_progress");
+        if (!rawProg) {
+          return;
+        }
+      }
+
       if (isSilent && !immediate) {
         if (uploadDebounceTimer) clearTimeout(uploadDebounceTimer);
         uploadDebounceTimer = setTimeout(() => {
@@ -1648,6 +1652,7 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
         let result = await response.json();
         
         if (result.status === "success") {
+          window.__hasUnsavedChanges = false;
           if (iconEl) iconEl.textContent = "✅";
           setTimeout(() => { if (iconEl) iconEl.textContent = "🌱"; }, 2500);
 
@@ -1690,7 +1695,7 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
       try {
         const u = localStorage.getItem("current_user");
         const p = sessionStorage.getItem("current_pass");
-        if (u && p) {
+        if (u && p && window.__hasUnsavedChanges) {
           uploadLocalStorageData(true, true);
         }
       } catch(_) {}
@@ -2133,7 +2138,7 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
           });
         }
         overlay.style.display = "flex";
-        if (window.uploadLocalStorageData) {
+        if (window.__hasUnsavedChanges && window.uploadLocalStorageData) {
           window.uploadLocalStorageData(true);
         }
       } else {
@@ -2335,7 +2340,7 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
         window.refreshChrome();
       }
 
-      if (window.uploadLocalStorageData) {
+      if (window.__hasUnsavedChanges && window.uploadLocalStorageData) {
         window.uploadLocalStorageData(true);
       }
 

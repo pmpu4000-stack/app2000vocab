@@ -2549,7 +2549,28 @@ function handleSaveRecord(ss, params, auth) {
       shouldInsertNewRow = false;
     }
   } else {
-    // 【跨日（新的一天）】：必定開闢新列（插入至第 2 列）
+    // 【跨日（新的一天）】：
+    // 關鍵防護：檢查是否有「今日新作答」或「今日測驗進度」！
+    // 若學生今天尚未作答任何題目（attempts 未增加、今日無自主練習、無指定測驗），絕不開闢空白新列！
+    const existingAtt = (existingRow && existingRow[6]) ? Number(existingRow[6]) : 0;
+    const dp = agentData.dailyPractice || {};
+    const todayDp = dp[todayStr] || dp[todayStr.replace(/-/g, "/")] || null;
+    const hasTodayPractice = !!(todayDp && todayDp.attempts > 0);
+    const hasAttIncrease = (attempts > existingAtt);
+    const hasTaskActivity = !!(sum && (sum.inProgress || isCompleted));
+
+    if (!hasTodayPractice && !hasAttIncrease && !hasTaskActivity) {
+      // 學生今天尚未有任何新作答與測驗進度（例如僅登入或開啟頁面），不開闢新列，僅快取備份即可
+      shouldInsertNewRow = false;
+      try {
+        const cache = CacheService.getScriptCache();
+        const recCacheKey = "stu_rec_" + username.toLowerCase();
+        cache.put(recCacheKey, stored, 1200);
+      } catch(_) {}
+      return jsonResponse({status:"success", message:"未偵測到今日作答增量，保持現有紀錄", cached:true});
+    }
+
+    // 有真實作答進度，開闢新列（插入至第 2 列）
     shouldInsertNewRow = true;
     // 跨日的新一天，若今天尚未完成測驗，絕不繼承昨天的測驗名稱與成績！
   }
@@ -2576,7 +2597,7 @@ function handleSaveRecord(ss, params, auth) {
   uSheet.getRange(2, 1, 1, rowData.length)
     .setValues([rowData]).setHorizontalAlignment("center").setVerticalAlignment("middle");
 
-  // 【自動清理防護】：若同日因先前的 Bug 產生了重複的新列，自動將多餘的同日重複列合併或清理
+  // 【自動清理防護】：僅清理同日且「完全相同任務名稱」的多餘重複暫存列，絕不誤刪已完成的指定測驗列
   try {
     if (uSheet.getLastRow() > 2) {
       const checkRows = Math.min(uSheet.getLastRow() - 1, 15);
@@ -2585,9 +2606,13 @@ function handleSaveRecord(ss, params, auth) {
       for (let i = 1; i < datesVals.length; i++) {
         const rowD = formatStandardDateYMD(datesVals[i][0]);
         const rowTask = String(datesVals[i][18] || "").trim();
-        if (rowD === todayStr && (rowTask === taskName || rowTask === "自主練習" || taskName === "自主練習")) {
-          // 與第 2 列同日同任務的歷史多餘列，排入刪除清單 (從下往上刪)
-          deleteRowIndices.push(i + 2);
+        // 嚴格安全防護：僅刪除同日、完全同任務名稱且非相異測驗的重複列；自主練習存檔時絕不可刪除任何已完成之測驗列
+        if (rowD === todayStr) {
+          if (taskName === "自主練習" && rowTask === "自主練習") {
+            deleteRowIndices.push(i + 2);
+          } else if (taskName !== "自主練習" && rowTask === taskName) {
+            deleteRowIndices.push(i + 2);
+          }
         }
       }
       for (let k = deleteRowIndices.length - 1; k >= 0; k--) {
@@ -3465,18 +3490,22 @@ function getStudentDailyTaskHistory(ss, username) {
   for (let i = 0; i < vals.length; i++) {
     const dStr = formatStandardDateYMD(vals[i][0]);
     const taskName = String(vals[i][18] || "");
-    const scoreVal = String(vals[i][19] || "—");
+    const scoreVal = String(vals[i][19] || "—").replace(/^'/, "");
     const rateVal  = String(vals[i][20] || "—");
     const statusVal = String(vals[i][21] || "");
     const wrongStr = String(vals[i][22] || "");
     const wrongWords = wrongStr ? wrongStr.split(/[\s,;\n\r]+/).filter(w => w.trim().length > 0) : [];
-    if (dStr && (taskName || statusVal || scoreVal !== "—")) {
+    // 嚴格過濾：僅納入真正的「指定測驗」紀錄，排除純自由練習列
+    const isQuizRow = (taskName && taskName !== "自主練習") ||
+                      (scoreVal && scoreVal !== "—" && scoreVal !== "") ||
+                      (statusVal && (statusVal.includes("測驗") || statusVal.includes("已完成")));
+    if (dStr && isQuizRow) {
       const matchedWords = taskWordsDict[dStr + "_" + taskName.toLowerCase()] ||
                            taskWordsDict[taskName.toLowerCase()] ||
                            taskWordsDict[dStr] || [];
       list.push({
         date      : dStr,
-        taskName  : taskName || "每日指定測驗",
+        taskName  : (taskName && taskName !== "自主練習") ? taskName : "每日指定測驗",
         score     : scoreVal,
         rate      : rateVal,
         status    : statusVal || "🟢 已完成",
