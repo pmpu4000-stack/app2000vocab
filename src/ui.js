@@ -970,10 +970,7 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
 
   let correctContentHtml = "";
   if (correctList.length > 0) {
-    correctContentHtml = correctList.map(w => {
-      const cntBadge = (w.correct && w.correct > 1) ? `<span style="font-size:10px; opacity:0.8; margin-left:3px; background:rgba(22,163,74,0.18); padding:1px 4px; border-radius:4px;">×${w.correct}</span>` : "";
-      return `<span class="word-pill-tag correct" onclick="window.__sayWord && window.__sayWord('${w.word.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="答對 ${w.correct || 1} 次 (點擊聆聽發音)">${w.word}${cntBadge}</span>`;
-    }).join("");
+    correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" onclick="window.__sayWord && window.__sayWord('${w.word.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w.word}</span>`).join("");
   } else {
     correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（當日尚無全對單字）</span>`;
   }
@@ -981,11 +978,10 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
   let wrongContentHtml = "";
   if (wrongList.length > 0) {
     wrongContentHtml = wrongList.map(w => {
-      const wrongBadge = (w.wrong && w.wrong > 1) ? `<span style="font-size:10px; opacity:0.8; margin-left:3px; background:rgba(220,38,38,0.18); padding:1px 4px; border-radius:4px;">×${w.wrong}</span>` : "";
       if (w.correct > 0) {
-        return `<span class="word-pill-tag correct" onclick="window.__sayWord && window.__sayWord('${w.word.replace(/'/g, "\\'")}')" style="border:1px dashed #4ade80; cursor:pointer;" title="當日曾答錯 ${w.wrong} 次，當日已訂正答對 (點擊聆聽發音)">${w.word} <small style="font-size:10px; opacity:0.85;">(已訂正)</small></span>`;
+        return `<span class="word-pill-tag correct" onclick="window.__sayWord && window.__sayWord('${w.word.replace(/'/g, "\\'")}')" style="border:1px dashed #4ade80; cursor:pointer;" title="當日曾答錯，已訂正答對 (點擊聆聽發音)">${w.word} <small style="font-size:10px; opacity:0.85;">(已訂正)</small></span>`;
       } else {
-        return `<span class="word-pill-tag wrong" onclick="window.__sayWord && window.__sayWord('${w.word.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="答錯 ${w.wrong || 1} 次 (點擊聆聽發音)">${w.word}${wrongBadge}</span>`;
+        return `<span class="word-pill-tag wrong" onclick="window.__sayWord && window.__sayWord('${w.word.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w.word}</span>`;
       }
     }).join("");
   } else {
