@@ -1964,9 +1964,10 @@
   <div class="card" id="mainControlCard">
     <div class="header-title">
       <h2>📊 學生學習歷程儀表板</h2>
-      <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+      <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
         <button class="btn-secondary" id="btnThemeToggle" onclick="toggleTheme()">🌙 深色模式</button>
         <div id="userBadge" style="font-size:13.5px; font-weight:600; color:var(--primary);"></div>
+        <button class="btn-secondary btn-sm" id="btnStudentDirectLogout" onclick="logout()" style="display:none; padding:4px 12px; border-radius:6px; font-weight:700;">登出</button>
       </div>
     </div>
 
@@ -2740,10 +2741,10 @@
       </div>
     </div>
 
-    <!-- 模組 2：學習總結 Summary 卡片 -->
+    <!-- 模組 2：學習紀錄 Record 卡片 (與遊戲網頁完全一致) -->
     <div class="card" style="padding:24px 26px; margin-bottom:20px; border-radius:14px;">
       <div style="font-size:16px; font-weight:800; color:var(--text); margin-bottom:16px; display:flex; align-items:center; gap:8px;">
-        <span>📊 學習總結 Summary</span>
+        <span>📊 學習紀錄 Record</span>
       </div>
 
       <!-- 大數字橫幅 (綠底聚焦框) -->
@@ -2934,29 +2935,29 @@
     <!-- 🎯 每日指定單字測驗進度 Progress 方塊 (比照遊戲學習進度) -->
     <div style="background:var(--body-bg); border:1px solid var(--border); border-radius:14px; padding:18px 20px; margin-bottom:20px;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
-        <span style="font-size:15px; font-weight:800; color:var(--text); letter-spacing:0.5px;">🎯 測驗單字學習進度 PROGRESS</span>
+        <span style="font-size:15px; font-weight:800; color:var(--text); letter-spacing:0.3px;">🎯 測驗單字學習進度 Progress</span>
         <span id="stDailyProgressTotalWords" style="font-size:13px; color:var(--text-muted); font-weight:600;">共 0 測驗單字</span>
       </div>
 
-      <!-- 三色分段進度條 -->
-      <div style="height:14px; background:rgba(128,128,128,0.12); border-radius:10px; overflow:hidden; display:flex; margin-bottom:14px; border:1px solid var(--border);">
-        <div id="stDailyBarLearning" style="width:0%; background:#818cf8; transition:width 0.4s ease;" title="學習中（測驗錯題／待加強）"></div>
-        <div id="stDailyBarPracticing" style="width:0%; background:#34d399; transition:width 0.4s ease;" title="練習中（測驗答對 1 次）"></div>
+      <!-- 三色分段進度條 (與遊戲一致: #D9D5F2 / #B9E8D3 / #10b981) -->
+      <div style="height:14px; background:#EEEFF7; border-radius:8px; overflow:hidden; display:flex; margin-bottom:14px; border:1px solid var(--border);">
+        <div id="stDailyBarLearning" style="width:0%; background:#D9D5F2; transition:width 0.4s ease;" title="學習中（測驗錯題／待加強）"></div>
+        <div id="stDailyBarPracticing" style="width:0%; background:#B9E8D3; transition:width 0.4s ease;" title="練習中（測驗答對 1 次）"></div>
         <div id="stDailyBarMastered" style="width:0%; background:#10b981; transition:width 0.4s ease;" title="精通（測驗連續答對滿分）"></div>
       </div>
 
       <!-- 統計圖例 -->
       <div style="display:flex; align-items:center; gap:20px; flex-wrap:wrap; font-size:13px; margin-bottom:8px;">
         <span style="display:inline-flex; align-items:center; gap:6px;">
-          <span style="width:10px; height:10px; border-radius:50%; background:#818cf8; display:inline-block;"></span>
+          <span style="width:11px; height:11px; border-radius:3px; background:#D9D5F2; display:inline-block; border:1px solid rgba(0,0,0,0.08);"></span>
           學習中 <strong id="stDailyNumLearning" style="color:var(--text); font-size:14px;">0</strong>
         </span>
         <span style="display:inline-flex; align-items:center; gap:6px;">
-          <span style="width:10px; height:10px; border-radius:50%; background:#34d399; display:inline-block;"></span>
+          <span style="width:11px; height:11px; border-radius:3px; background:#B9E8D3; display:inline-block; border:1px solid rgba(0,0,0,0.08);"></span>
           練習中 <strong id="stDailyNumPracticing" style="color:var(--text); font-size:14px;">0</strong>
         </span>
         <span style="display:inline-flex; align-items:center; gap:6px;">
-          <span style="width:10px; height:10px; border-radius:50%; background:#10b981; display:inline-block;"></span>
+          <span style="width:11px; height:11px; border-radius:3px; background:#10b981; display:inline-block; border:1px solid rgba(0,0,0,0.08);"></span>
           精通 <strong id="stDailyNumMastered" style="color:var(--text); font-size:14px;">0</strong>
         </span>
       </div>
@@ -3076,29 +3077,29 @@
     <!-- 📖 自由練習進度 Progress 方塊 (比照遊戲學習進度) -->
     <div style="background:var(--body-bg); border:1px solid var(--border); border-radius:14px; padding:18px 20px; margin-bottom:20px;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
-        <span style="font-size:15px; font-weight:800; color:var(--text); letter-spacing:0.5px;">📖 自由練習學習進度 PROGRESS</span>
+        <span style="font-size:15px; font-weight:800; color:var(--text); letter-spacing:0.3px;">📖 自由練習學習進度 Progress</span>
         <span id="stFreeProgressTotalWords" style="font-size:13px; color:var(--text-muted); font-weight:600;">共 2055 字</span>
       </div>
 
-      <!-- 三色分段進度條 -->
-      <div style="height:14px; background:rgba(128,128,128,0.12); border-radius:10px; overflow:hidden; display:flex; margin-bottom:14px; border:1px solid var(--border);">
-        <div id="stFreeBarLearning" style="width:0%; background:#818cf8; transition:width 0.4s ease;" title="學習中（答對 1 次）"></div>
-        <div id="stFreeBarPracticing" style="width:0%; background:#34d399; transition:width 0.4s ease;" title="練習中（連續答對 2 次）"></div>
+      <!-- 三色分段進度條 (與遊戲一致: #D9D5F2 / #B9E8D3 / #10b981) -->
+      <div style="height:14px; background:#EEEFF7; border-radius:8px; overflow:hidden; display:flex; margin-bottom:14px; border:1px solid var(--border);">
+        <div id="stFreeBarLearning" style="width:0%; background:#D9D5F2; transition:width 0.4s ease;" title="學習中（答對 1 次）"></div>
+        <div id="stFreeBarPracticing" style="width:0%; background:#B9E8D3; transition:width 0.4s ease;" title="練習中（連續答對 2 次）"></div>
         <div id="stFreeBarMastered" style="width:0%; background:#10b981; transition:width 0.4s ease;" title="精通（連續答對 3 次）"></div>
       </div>
 
       <!-- 統計圖例 -->
       <div style="display:flex; align-items:center; gap:20px; flex-wrap:wrap; font-size:13px; margin-bottom:8px;">
         <span style="display:inline-flex; align-items:center; gap:6px;">
-          <span style="width:10px; height:10px; border-radius:50%; background:#818cf8; display:inline-block;"></span>
+          <span style="width:11px; height:11px; border-radius:3px; background:#D9D5F2; display:inline-block; border:1px solid rgba(0,0,0,0.08);"></span>
           學習中 <strong id="stFreeNumLearning" style="color:var(--text); font-size:14px;">0</strong>
         </span>
         <span style="display:inline-flex; align-items:center; gap:6px;">
-          <span style="width:10px; height:10px; border-radius:50%; background:#34d399; display:inline-block;"></span>
+          <span style="width:11px; height:11px; border-radius:3px; background:#B9E8D3; display:inline-block; border:1px solid rgba(0,0,0,0.08);"></span>
           練習中 <strong id="stFreeNumPracticing" style="color:var(--text); font-size:14px;">0</strong>
         </span>
         <span style="display:inline-flex; align-items:center; gap:6px;">
-          <span style="width:10px; height:10px; border-radius:50%; background:#10b981; display:inline-block;"></span>
+          <span style="width:11px; height:11px; border-radius:3px; background:#10b981; display:inline-block; border:1px solid rgba(0,0,0,0.08);"></span>
           精通 <strong id="stFreeNumMastered" style="color:var(--text); font-size:14px;">0</strong>
         </span>
         <span style="margin-left:auto; color:var(--text-muted);">
@@ -4311,6 +4312,8 @@ function logout() {
   currentLeaderboard = null;
   cachedLeaderboards = { class: null, all: null };
   document.getElementById("userBadge").innerText = "";
+  const btnDirectOut = document.getElementById("btnStudentDirectLogout");
+  if (btnDirectOut) btnDirectOut.style.display = "none";
   document.getElementById("teacherBadge").innerText = "";
   setQuickDateHighlight(null);
   destroyCharts();
@@ -4388,6 +4391,8 @@ function fetchData(isRefresh = false, onComplete = null) {
           const nameSuffix = studentRealName ? ` (${studentRealName})` : "";
           document.getElementById("userBadge").innerText = `👤 學生：${classPrefix}${resp.username || currentUser}${nameSuffix}`;
           document.getElementById("btnLogoutOrBack").textContent = "登出";
+          const btnDirectOut = document.getElementById("btnStudentDirectLogout");
+          if (btnDirectOut) btnDirectOut.style.display = "inline-flex";
         }
         showStudentSections();
         addFadeIn(["studentSummaryCard", "studentDailyTaskCard", "studentFreePracticeCard", "rankingCard"]);
