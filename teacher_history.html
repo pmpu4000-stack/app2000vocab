@@ -54,16 +54,37 @@
     }
     * { box-sizing: border-box; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+      font-family: ui-rounded, "SF Pro Rounded", "Hiragino Maru Gothic ProN", "Nunito", "PingFang TC", system-ui, sans-serif;
       font-feature-settings: "tnum";
       font-variant-numeric: tabular-nums;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
-      margin: 0; padding: 24px 16px;
-      background-color: var(--bg); color: var(--text); line-height: 1.6;
+      margin: 0; padding: 20px 16px 40px;
+      background:
+        radial-gradient(1200px 600px at 15% -10%, #ECE7FF 0%, transparent 55%),
+        radial-gradient(1000px 500px at 100% 0%, #E4F6EF 0%, transparent 50%),
+        var(--paper, #F6F7FB);
+      color: var(--text); line-height: 1.6;
       transition: background-color 0.3s ease, color 0.3s ease;
     }
-    .container { max-width: 1320px; margin: 0 auto; }
+    [data-theme="dark"] body {
+      background-color: #0F121C !important;
+      background-image: radial-gradient(at 15% 15%, rgba(108,76,224,0.18) 0px, transparent 50%),
+                        radial-gradient(at 85% 85%, rgba(47,180,124,0.15) 0px, transparent 50%) !important;
+      color: #F0F3FA !important;
+    }
+    .container {
+      max-width: 1320px;
+      margin: 0 auto;
+      transition: max-width 0.25s ease;
+    }
+    body.student-mode .container,
+    body.student-mode #mainControlCard,
+    #studentSummaryCard {
+      max-width: 740px !important;
+      margin-left: auto !important;
+      margin-right: auto !important;
+    }
     .card {
       background: var(--card); border-radius: 16px; padding: 24px;
       box-shadow: var(--shadow-sm); border: 1.5px solid var(--border);
@@ -2519,15 +2540,13 @@
     }
 
     .date-navigator-card {
-      background: linear-gradient(135deg, #F1EDFF, #F8F9FD);
-      border: 1.5px solid #E4DFFA;
+      background: #F8F9FD;
+      border: 1px solid var(--line);
       border-radius: 14px;
-      padding: 12px 16px;
-      margin: 12px 0 16px;
+      padding: 12px 14px;
+      margin: 14px 0 16px;
       display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
+      flex-direction: column;
       gap: 10px;
     }
     [data-theme="dark"] .date-navigator-card {
@@ -2536,8 +2555,24 @@
       color: #F0F3FA !important;
     }
     .date-nav-left { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
-    .date-nav-right { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; min-width: 260px; }
-    .date-nav-right .task-date-selector { width: 100%; min-width: 240px; }
+    .date-nav-right { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; width: 100%; }
+    .date-nav-right .task-date-selector {
+      width: 100%;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink);
+      outline: none;
+      cursor: pointer;
+    }
+    [data-theme="dark"] .date-nav-right .task-date-selector {
+      background: #131624 !important;
+      border-color: #2D354E !important;
+      color: #F0F3FA !important;
+    }
     .date-nav-title {
       font-weight: 800;
       font-size: 13.5px;
@@ -2641,7 +2676,7 @@
     [data-theme="dark"] .task-card-title { color: #F0F3FA !important; }
     .task-score-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      grid-template-columns: repeat(2, 1fr);
       gap: 8px;
       margin-bottom: 12px;
     }
@@ -2653,7 +2688,7 @@
       text-align: center;
     }
     [data-theme="dark"] .task-score-item {
-      background: #181C2A !important;
+      background: #131624 !important;
       border-color: #262C42 !important;
       color: #F0F3FA !important;
     }
@@ -2676,7 +2711,7 @@
       gap: 10px;
       margin-top: 12px;
     }
-    @media (max-width: 640px) {
+    @media (max-width: 580px) {
       .word-split-grid { grid-template-columns: 1fr; }
     }
     .word-split-box {
@@ -2716,11 +2751,15 @@
       display: inline-flex;
       align-items: center;
       gap: 3px;
-      padding: 3px 7px;
-      border-radius: 5px;
-      font-size: 11.5px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 12px;
       font-weight: 700;
       margin: 2px;
+      transition: transform .1s;
+    }
+    .word-pill-tag:hover {
+      transform: scale(1.05);
     }
     .word-pill-tag.correct {
       background: #E4F7EE;
@@ -2731,7 +2770,6 @@
       background: #FFE9E9;
       color: #D64545;
       border: 1px solid rgba(255, 107, 107, 0.4);
-      font-weight: 700;
     }
     [data-theme="dark"] .word-pill-tag.correct {
       background: rgba(47, 180, 124, 0.22) !important;
@@ -2761,21 +2799,35 @@
       display: grid;
       grid-template-columns: repeat(14, 1fr);
       gap: 4px;
-      max-width: 380px;
+      max-width: 100%;
+      margin: 8px 0 10px;
     }
     .hc {
       width: 100%;
       aspect-ratio: 1;
       border-radius: 4px;
-      background: #EEEFF7;
+      background: #DDE0F0;
+      border: 1px solid #CDD1E6;
     }
-    .hc.h1 { background: #C7EBD9; }
-    .hc.h2 { background: #79D2A9; }
-    .hc.h3 { background: var(--green, #2FB47C); }
-    [data-theme="dark"] .hc { background: #232A4D; }
-    [data-theme="dark"] .hc.h1 { background: #1F5240; }
-    [data-theme="dark"] .hc.h2 { background: #1B7853; }
-    [data-theme="dark"] .hc.h3 { background: #2FB47C; }
+    .hc.h1 { background: #B5E3CB; border-color: #9AD6B8; }
+    .hc.h2 { background: #6FCBA0; border-color: #55BE8E; }
+    .hc.h3 { background: var(--green); border-color: #1E9A66; }
+    [data-theme="dark"] .hc {
+      background: #0B0E18 !important;
+      border: 1px solid #1B2033 !important;
+    }
+    [data-theme="dark"] .hc.h1 {
+      background: #14573F !important;
+      border-color: #1B6B4D !important;
+    }
+    [data-theme="dark"] .hc.h2 {
+      background: #1E8F66 !important;
+      border-color: #27A878 !important;
+    }
+    [data-theme="dark"] .hc.h3 {
+      background: #2FB47C !important;
+      border-color: #4AD49A !important;
+    }
 
     .heat-legend {
       font-size: 12.5px;
@@ -3562,18 +3614,18 @@
           <a id="sumBtn" title="看學習紀錄與答題統計">📊 學習紀錄 Record</a>
         </span>
       </h3>
-      <div class="bar" title="依答對次數累積進度：答對1次進入學習中，連續2次進入練習中，連續3次進入精熟！答錯會退回學習中。">
+      <div class="bar" title="連續答對越多次，字就越熟練">
         <i class="learn" id="b-learn" style="width:0%;"></i>
         <i class="prac" id="b-prac" style="width:0%;"></i>
         <i class="mast" id="b-mast" style="width:0%;"></i>
       </div>
       <div class="legend">
-        <span title="答對 1 次，或最近有答錯需要再練習"><i style="background:#D9D5F2"></i>學習中<b id="n-learn" class="tnum">0</b></span>
-        <span title="連續答對 2 次"><i style="background:#B9E8D3"></i>練習中<b id="n-prac" class="tnum">0</b></span>
-        <span title="連續答對 3 次以上 ⭐"><i style="background:var(--green)"></i>精熟<b id="n-mast" class="tnum">0</b></span>
-        <span style="margin-left:auto;color:var(--ink3)">共<b id="n-total" class="tnum">2055</b> 字</span>
+        <span title="答對 1 次（或最近答錯，需要再練）"><i style="background:#D9D5F2"></i>學習中 <b id="n-learn" class="tnum">0</b></span>
+        <span title="連續答對 2 次"><i style="background:#B9E8D3"></i>練習中 <b id="n-prac" class="tnum">0</b></span>
+        <span title="連續答對 3 次，獲得 ⭐"><i style="background:var(--green)"></i>精通 <b id="n-mast" class="tnum">0</b></span>
+        <span style="margin-left:auto;color:var(--ink3)">共 <b id="n-total" class="tnum">2055</b> 字</span>
       </div>
-      <p class="defs">熟練度定義：<b>學習中</b>＝答對 1 次 · <b>練習中</b>＝連續答對 2 次 · <b>精熟</b>＝連續答對 3 次（答錯會退回「學習中」）</p>
+      <p class="defs">熟練度定義：<b>學習中</b>＝答對 1 次 · <b>練習中</b>＝連續答對 2 次 · <b>精通</b>＝連續答對 3 次（答錯會退回「學習中」）</p>
 
       <!-- 嵌入式學習紀錄 Record 區域 (與遊戲網頁一模一樣) -->
       <div id="summary" class="summary-embedded" style="display:block;">
@@ -3589,29 +3641,29 @@
         <div class="formula-note-box">
           💡 <b>各關卡進度格式詳細說明</b>：
           <div style="margin-top:6px; line-height:1.75; font-size:12.5px;">
-            <span class="formula-val"><b>0/0 (0%)</b> <span class="formula-desc">[ 答對單字數 / 考出總單字數，答對率 ]</span></span><span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span><span class="formula-val"><b>學習中 0</b> <span class="formula-desc">[ 答對 1 次或答錯待訂正字數 ]</span></span><span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span><span class="formula-val"><b>練習中 0</b> <span class="formula-desc">[ 連續答對 2 次字數 ]</span></span><span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span><span class="formula-val"><b>精熟 0</b> <span class="formula-desc">[ 連續答對 3 次已精熟字數⭐ ]</span></span><span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span><span class="formula-val"><b>共 411</b> <span class="formula-desc">[ 該關總單字數 ]</span></span>
+            <span class="formula-val"><b>0/0 (0%)</b> <span class="formula-desc">[ 答對單字數 / 考出總單字數，附正確率 ]</span></span><span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span><span class="formula-val"><b>學習中 0</b> <span class="formula-desc">[ 答對 1 次或答錯待訂正字數 ]</span></span><span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span><span class="formula-val"><b>練習中 0</b> <span class="formula-desc">[ 連續答對 2 次字數 ]</span></span><span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span><span class="formula-val"><b>精通 0</b> <span class="formula-desc">[ 連續答對 3 次已精熟字數⭐ ]</span></span><span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span><span class="formula-val"><b>共 411</b> <span class="formula-desc">[ 該關總單字數 ]</span></span>
           </div>
         </div>
 
         <div class="subh">🎮 4 大練習模式答題數</div>
         <div class="mode-stat-grid">
           <div class="mode-stat-card">
-            <div class="mode-stat-title">🎧 聽音辨字</div>
+            <div class="mode-stat-title">🎧 聽與拼</div>
             <div class="mode-stat-num" id="stModeListenAttempts">0 題</div>
             <div class="mode-stat-sub" id="stModeListenSub">答對 0 (0%)</div>
           </div>
           <div class="mode-stat-card">
-            <div class="mode-stat-title">✍️ 單字拼寫</div>
+            <div class="mode-stat-title">✅ 選拼法</div>
             <div class="mode-stat-num" id="stModePickAttempts">0 題</div>
             <div class="mode-stat-sub" id="stModePickSub">答對 0 (0%)</div>
           </div>
           <div class="mode-stat-card">
-            <div class="mode-stat-title">🧩 拼圖</div>
+            <div class="mode-stat-title">🧩 重組</div>
             <div class="mode-stat-num" id="stModeScrambleAttempts">0 題</div>
             <div class="mode-stat-sub" id="stModeScrambleSub">答對 0 (0%)</div>
           </div>
           <div class="mode-stat-card">
-            <div class="mode-stat-title">✏️ 填空格</div>
+            <div class="mode-stat-title">🖍️ 填陷阱</div>
             <div class="mode-stat-num" id="stModeTrapAttempts">0 題</div>
             <div class="mode-stat-sub" id="stModeTrapSub">答對 0 (0%)</div>
           </div>
@@ -5047,6 +5099,7 @@ function login() {
 // 登出 / 返回
 // ════════════════════════════════════════
 function logout() {
+  document.body.classList.remove("student-mode");
   currentUser = null; currentPass = null; currentRole = null;
   viewingStudent = null; teacherStudents = []; teacherOverview = [];
   teacherAllOverview = []; teacherClassList = []; teacherSelectedClass = "all";
@@ -8763,6 +8816,7 @@ window.addEventListener("error", (e) => {
 // 顯示 / 隱藏學生視圖區塊
 // ════════════════════════════════════════
 function showStudentSections() {
+  document.body.classList.add("student-mode");
   document.getElementById("mainControlCard").style.display = "block";
   document.getElementById("querySection").style.display = "none";
   
@@ -8785,6 +8839,7 @@ function showStudentSections() {
   document.getElementById("loginSection").style.display = "none";
 }
 function hideStudentSections() {
+  document.body.classList.remove("student-mode");
   const sumCard = document.getElementById("studentSummaryCard"); if (sumCard) sumCard.style.display = "none";
   const dtCard = document.getElementById("studentDailyTaskCard"); if (dtCard) dtCard.style.display = "none";
   const fpCard = document.getElementById("studentFreePracticeCard"); if (fpCard) fpCard.style.display = "none";
@@ -13307,7 +13362,7 @@ function renderStudentSummary(resp) {
       const lPrac = levelPracMap[lv] || 0;
       const lLearn = levelLearnMap[lv] || 0;
 
-      lvRowsHtml += `<tr><td><span style="color:${lvColors[lv-1]}">●</span> Level ${lv}「${lvNames[lv-1]}」</td><td>${lCorrWords}/${lTestedWords} (${lRate}%)<span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span>學習中 ${lLearn}<span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span>練習中 ${lPrac}<span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span>精熟 ${lMast}<span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span>共 411</td></tr>`;
+      lvRowsHtml += `<tr><td><span style="color:${lvColors[lv-1]}">●</span> Level ${lv}「${lvNames[lv-1]}」</td><td>${lCorrWords}/${lTestedWords} (${lRate}%)<span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span>學習中 ${lLearn}<span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span>練習中 ${lPrac}<span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span>精通 ${lMast}<span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span>共 411</td></tr>`;
     }
     lvTbody.innerHTML = lvRowsHtml;
   }
