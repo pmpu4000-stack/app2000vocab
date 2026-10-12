@@ -2809,8 +2809,8 @@
         </div>
       </div>
 
-      <!-- ✅ 已精通單字清單 (連續答對 3 次) -->
-      <div style="margin-bottom:16px; background:var(--body-bg); border:1px solid var(--border); border-radius:12px; padding:14px 16px;">
+      <!-- ✅ 已精通單字清單 (連續答對 3 次，暫時隱藏以維持學生視圖簡潔) -->
+      <div id="stMasteredSection" style="display:none; margin-bottom:16px; background:var(--body-bg); border:1px solid var(--border); border-radius:12px; padding:14px 16px;">
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:10px;">
           <div style="font-size:14px; font-weight:800; color:var(--text); display:flex; align-items:center; gap:6px;">
             <span>✅ 已精通 <span id="stMasteredWordCount" style="color:var(--primary); font-size:16px;">0</span> 字</span>
@@ -2855,8 +2855,8 @@
         </div>
       </div>
 
-      <!-- 🛠️ 曾拼錯、現在已訂正單字 -->
-      <div style="margin-bottom:20px; background:var(--body-bg); border:1px solid var(--border); border-radius:12px; padding:14px 16px;">
+      <!-- 🛠️ 曾拼錯、現在已訂正單字 (暫時隱藏以維持學生視圖簡潔) -->
+      <div id="stFixedSection" style="display:none; margin-bottom:20px; background:var(--body-bg); border:1px solid var(--border); border-radius:12px; padding:14px 16px;">
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:10px;">
           <div style="font-size:14px; font-weight:800; color:var(--text); display:flex; align-items:center; gap:6px;">
             <span>🛠️ 曾拼錯、現在已訂正 <span id="stFixedWordCount" style="color:#d97706; font-size:16px;">0</span> 字</span>
@@ -4395,7 +4395,7 @@ function fetchData(isRefresh = false, onComplete = null) {
           if (btnDirectOut) btnDirectOut.style.display = "inline-flex";
         }
         showStudentSections();
-        addFadeIn(["studentSummaryCard", "studentDailyTaskCard", "studentFreePracticeCard", "rankingCard"]);
+        addFadeIn(["studentSummaryCard"]);
         if (resp.leaderboard) {
           updateLeaderboardUI(resp.leaderboard);
         }
@@ -5134,7 +5134,7 @@ function applyStudentPortfolioData(resp, username) {
   processHistoryWithDiffs(resp.headers || [], resp.data || []);
   setQuickDateHighlight("qd-all");
   applyFilter();
-  addFadeIn(["studentSummaryCard", "studentDailyTaskCard", "studentFreePracticeCard", "rankingCard"]);
+  addFadeIn(["studentSummaryCard"]);
   if (resp.leaderboard) {
     updateLeaderboardUI(resp.leaderboard);
   }
@@ -7999,11 +7999,11 @@ function showStudentSections() {
   document.getElementById("mainControlCard").style.display = "block";
   document.getElementById("querySection").style.display = "none";
   
-  // 僅顯示簡潔易讀的核心項目：學習總結進度、每日指定測驗成果、每日自由練習成果、榮譽榜
+  // 依指示以拼字遊戲網頁的學習進度 Progress 核心內容為主，其餘卡片暫時不加
   const sumCard = document.getElementById("studentSummaryCard"); if (sumCard) sumCard.style.display = "block";
-  const dtCard = document.getElementById("studentDailyTaskCard"); if (dtCard) dtCard.style.display = "block";
-  const fpCard = document.getElementById("studentFreePracticeCard"); if (fpCard) fpCard.style.display = "block";
-  const rCard = document.getElementById("rankingCard"); if (rCard) rCard.style.display = "block";
+  const dtCard = document.getElementById("studentDailyTaskCard"); if (dtCard) dtCard.style.display = "none";
+  const fpCard = document.getElementById("studentFreePracticeCard"); if (fpCard) fpCard.style.display = "none";
+  const rCard = document.getElementById("rankingCard"); if (rCard) rCard.style.display = "none";
 
   // 隱藏複雜難懂的圖表與冗長流水帳（家長看不懂、老師未必想看的繁雜卡片）
   document.getElementById("kpiSection").style.display = "none";
