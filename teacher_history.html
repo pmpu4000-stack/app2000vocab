@@ -1664,6 +1664,7 @@
       .report-footer-note {
         margin-top: 8px !important;
       }
+    }
 
     /* 今日指定測驗成果與錯題大數據分析專屬樣式 */
     .error-rank-card {
@@ -2062,9 +2063,7 @@
     }
 
     /* 4 大練習模式統計區塊 */
-    .mode-stat-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    .mode-stat-grid { display: grid !important; grid-template-columns: repeat(4, 1fr) !important;
       gap: 8px;
       margin: 8px 0 14px;
     }
@@ -2483,9 +2482,7 @@
     [data-theme="dark"] .formula-note-box .formula-val { color: #38BDF8 !important; }
     [data-theme="dark"] .formula-note-box .formula-desc { color: #86efac !important; }
 
-    .mode-stat-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    .mode-stat-grid { display: grid !important; grid-template-columns: repeat(4, 1fr) !important;
       gap: 8px;
       margin: 8px 0 14px;
     }
@@ -2797,6 +2794,13 @@
       color: #9AA0BD !important;
     }
     [data-theme="dark"] .heat-legend b { color: #E2E8F0 !important; }
+
+
+    @media (max-width: 640px) {
+      .mode-stat-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+      }
+    }
 
 </style>
 </head>
