@@ -1247,7 +1247,7 @@ export function renderSummary(d) {
     <div class="streakline">🔥 連續 <b>${d.history.streak}</b> 天　·　最佳 <b>${d.history.best}</b> 天　·　累計練習 <b>${d.history.total}</b> 天</div>
     <div class="heatmap">${d.history.days.map((x) =>
       `<i class="hc h${x.level}" title="${x.key}：${x.a ? "作答 " + x.a + " · 正確率 " + x.rate + "%" : "沒有練習"}"></i>`).join("")}</div>
-    <div class="heat-legend">🔥 <b>連續</b>：從今天往回算，一天都沒中斷、天天有練習的天數。<br>🏆 <b>最佳</b>：你曾經創下「最長連續天天練習」的紀錄。<br>📅 <b>累計</b>：從開始到現在，總共有練習過的天數（中間有休息也算）。<br>🟩 方格顏色愈深，代表當天練習愈多。</div>`;
+    <div class="heat-legend">🔥 <b>連續</b>：從今天往回算，一天都沒中斷、天天有練習的天數。<br>🏆 <b>最佳</b>：你曾經創下「最長連續天天練習」的紀錄。<br>📅 <b>累計</b>：從開始到現在，總共有練習過的天數（中間有休息也算）。<br>🟩 <b>熱力圖</b>：方格顏色愈深，代表當天練習愈多。</div>`;
 
   let currentSelectedDate = defaultSelectedDate;
 
