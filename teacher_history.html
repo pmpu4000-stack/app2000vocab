@@ -2259,6 +2259,545 @@
       border-color: rgba(255, 107, 107, 0.45) !important;
     }
 
+
+    /* ============================================================
+       遊戲網頁 app2000vocab 1:1 學習進度 Progress 與 學習紀錄 Record 完整樣式
+       ============================================================ */
+    .progress {
+      margin-top: 18px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 16px 18px;
+      box-shadow: var(--shadow);
+    }
+    .progress h3 {
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: center !important;
+      font-size: 15px !important;
+      font-weight: 800 !important;
+      line-height: 1.4 !important;
+      letter-spacing: 0.3px !important;
+      margin-bottom: 12px !important;
+      text-transform: none !important;
+      color: var(--ink) !important;
+    }
+    [data-theme="dark"] .progress h3 {
+      color: #F0F3FA !important;
+    }
+    .progress h3 a, #sumBtn {
+      font-size: 12px !important;
+      color: var(--sky, #2D9CDB) !important;
+      cursor: pointer !important;
+      text-decoration: underline !important;
+      font-weight: 700 !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 4px !important;
+    }
+    [data-theme="dark"] .progress h3 a, [data-theme="dark"] #sumBtn {
+      color: #38BDF8 !important;
+    }
+    .bar {
+      height: 14px;
+      border-radius: 8px;
+      background: #EEEFF7;
+      overflow: hidden;
+      display: flex;
+      border: 1px solid rgba(0,0,0,0.06);
+    }
+    [data-theme="dark"] .bar {
+      background: #232A4D;
+      border-color: rgba(255,255,255,0.08);
+    }
+    .bar i {
+      display: block;
+      height: 100%;
+      transition: width 0.4s ease;
+    }
+    .bar .learn { background: #D9D5F2; }
+    .bar .prac { background: #B9E8D3; }
+    .bar .mast { background: var(--green, #2FB47C); }
+
+    .legend {
+      display: flex;
+      gap: 16px;
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--ink2);
+      font-weight: 700;
+      flex-wrap: wrap;
+    }
+    .legend span {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .legend i {
+      width: 11px;
+      height: 11px;
+      border-radius: 3px;
+      display: inline-block;
+    }
+    [data-theme="dark"] .legend {
+      color: #A5B0CF;
+    }
+
+    .defs {
+      font-size: 11.5px;
+      color: var(--ink3);
+      margin-top: 8px;
+      font-weight: 600;
+      line-height: 1.6;
+    }
+    .defs b {
+      color: var(--ink2);
+    }
+    [data-theme="dark"] .defs {
+      color: #6E7699;
+    }
+    [data-theme="dark"] .defs b {
+      color: #A5B0CF;
+    }
+
+    /* summary embedded */
+    .summary-embedded {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px dashed var(--line);
+    }
+    .summary-embedded h3, .summary h3 {
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: center !important;
+      font-size: 15px !important;
+      font-weight: 800 !important;
+      margin-bottom: 12px !important;
+      padding-bottom: 10px !important;
+      border-bottom: 1.5px solid var(--line) !important;
+      text-transform: none !important;
+      color: var(--ink) !important;
+    }
+    [data-theme="dark"] .summary-embedded h3, [data-theme="dark"] .summary h3 {
+      color: #F0F3FA !important;
+      border-bottom-color: #262C42 !important;
+    }
+    .summary-embedded h3 a, .summary h3 a, #sumClose {
+      font-size: 12px;
+      color: var(--ink3);
+      cursor: pointer;
+      text-decoration: none;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(0, 0, 0, 0.04);
+      transition: all .15s;
+    }
+    .summary-embedded h3 a:hover, .summary h3 a:hover, #sumClose:hover {
+      color: var(--violet);
+      background: rgba(108, 76, 224, 0.1);
+    }
+    [data-theme="dark"] .summary-embedded h3 a,
+    [data-theme="dark"] .summary h3 a,
+    [data-theme="dark"] #sumClose {
+      background: rgba(255, 255, 255, 0.08);
+      color: #A5B0CF;
+    }
+
+    .subh {
+      font-size: 13.5px !important;
+      font-weight: 800 !important;
+      color: var(--violet) !important;
+      letter-spacing: 0.3px;
+      margin: 18px 0 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border-left: 3.5px solid var(--violet);
+      padding-left: 8px;
+      line-height: 1.4;
+      text-transform: none !important;
+    }
+    [data-theme="dark"] .subh {
+      color: #A58CF5 !important;
+      border-left-color: #8B6BF0 !important;
+    }
+
+    .sumtable {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+    }
+    .sumtable td {
+      padding: 6px 4px;
+      border-bottom: 1px solid var(--line);
+      color: var(--ink2);
+      font-weight: 650;
+    }
+    .sumtable td:last-child {
+      text-align: right;
+      color: var(--ink);
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+    [data-theme="dark"] .sumtable td {
+      color: #A5B0CF;
+      border-bottom-color: #262C42;
+    }
+    [data-theme="dark"] .sumtable td:last-child {
+      color: #F0F3FA;
+    }
+
+    .stat-sep {
+      color: var(--sky, #0284c7);
+      font-weight: 700;
+      margin: 0 5px;
+      display: inline-block;
+      opacity: 0.85;
+    }
+    [data-theme="dark"] .stat-sep {
+      color: #38bdf8;
+      opacity: 0.95;
+    }
+
+    .formula-note-box {
+      font-size: 11.5px;
+      color: var(--ink2);
+      margin: 6px 0 14px;
+      line-height: 1.6;
+      background: rgba(108, 76, 224, 0.05);
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(108, 76, 224, 0.15);
+    }
+    .formula-note-box b { color: var(--ink); }
+    .formula-note-box .formula-val { color: var(--sky, #0284c7); font-weight: 700; }
+    .formula-note-box .formula-desc { color: #16a34a; font-weight: 500; }
+    [data-theme="dark"] .formula-note-box {
+      background: rgba(255, 255, 255, 0.04) !important;
+      border-color: rgba(255, 255, 255, 0.1) !important;
+      color: #A5B0CF !important;
+    }
+    [data-theme="dark"] .formula-note-box b { color: #F0F3FA !important; }
+    [data-theme="dark"] .formula-note-box .formula-val { color: #38BDF8 !important; }
+    [data-theme="dark"] .formula-note-box .formula-desc { color: #86efac !important; }
+
+    .mode-stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+      gap: 8px;
+      margin: 8px 0 14px;
+    }
+    .mode-stat-card {
+      background: #F8F9FD;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 8px 10px;
+      text-align: center;
+      transition: transform .12s, box-shadow .12s;
+    }
+    [data-theme="dark"] .mode-stat-card {
+      background: #181C2A !important;
+      border-color: #262C42 !important;
+    }
+    .mode-stat-title {
+      font-size: 12px;
+      color: var(--ink2);
+      font-weight: 750;
+    }
+    [data-theme="dark"] .mode-stat-title { color: #A5B0CF !important; }
+    .mode-stat-num {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--ink);
+      margin: 2px 0;
+      font-variant-numeric: tabular-nums;
+    }
+    [data-theme="dark"] .mode-stat-num { color: #F0F3FA !important; }
+    .mode-stat-sub {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--green, #2FB47C);
+    }
+
+    .date-navigator-card {
+      background: linear-gradient(135deg, #F1EDFF, #F8F9FD);
+      border: 1.5px solid #E4DFFA;
+      border-radius: 14px;
+      padding: 12px 16px;
+      margin: 12px 0 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    [data-theme="dark"] .date-navigator-card {
+      background: #181C2A !important;
+      border-color: #262C42 !important;
+      color: #F0F3FA !important;
+    }
+    .date-nav-left { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+    .date-nav-right { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; min-width: 260px; }
+    .date-nav-right .task-date-selector { width: 100%; min-width: 240px; }
+    .date-nav-title {
+      font-weight: 800;
+      font-size: 13.5px;
+      color: var(--violet);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    [data-theme="dark"] .date-nav-title { color: #38BDF8 !important; }
+    .date-quick-label {
+      font-size: 12.5px;
+      color: var(--ink2);
+      font-weight: 700;
+      white-space: nowrap;
+      display: block;
+    }
+    [data-theme="dark"] .date-quick-label { color: #A5B0CF !important; }
+    .date-picker-input {
+      background: #FFFFFF;
+      border: 1.5px solid var(--sky, #2D9CDB);
+      color: var(--ink);
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      outline: none;
+      cursor: pointer;
+    }
+    [data-theme="dark"] .date-picker-input {
+      background: #131624 !important;
+      border-color: #2D354E !important;
+      color: #F0F3FA !important;
+    }
+    .date-nav-btn {
+      background: #FFFFFF;
+      border: 1px solid var(--line);
+      color: var(--ink);
+      padding: 5px 11px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .date-nav-btn:hover {
+      background: #F1F8FC;
+      border-color: var(--sky, #2D9CDB);
+      color: var(--sky, #2D9CDB);
+    }
+    .date-nav-btn.today-btn {
+      background: #EDF8FD;
+      border-color: rgba(45, 156, 219, 0.4);
+      color: var(--sky, #2D9CDB);
+    }
+    .date-nav-btn.today-btn:hover {
+      background: var(--sky, #2D9CDB);
+      color: #FFFFFF;
+    }
+    [data-theme="dark"] .date-nav-btn {
+      background: #20263A !important;
+      border-color: #2D354E !important;
+      color: #E2E8F0 !important;
+    }
+    [data-theme="dark"] .date-nav-btn:hover {
+      background: #2B334D !important;
+      border-color: var(--sky) !important;
+      color: #38BDF8 !important;
+    }
+    [data-theme="dark"] .date-nav-btn.today-btn {
+      background: rgba(45, 156, 219, 0.18) !important;
+      border-color: rgba(45, 156, 219, 0.4) !important;
+      color: #38BDF8 !important;
+    }
+
+    .task-history-card {
+      background: #F8F9FD;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin: 10px 0 16px;
+    }
+    [data-theme="dark"] .task-history-card {
+      background: #181C2A !important;
+      border-color: #262C42 !important;
+      color: #F0F3FA !important;
+    }
+    .task-history-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .task-card-title {
+      font-size: 14.5px;
+      font-weight: 800;
+      color: var(--ink);
+      letter-spacing: 0.2px;
+    }
+    [data-theme="dark"] .task-card-title { color: #F0F3FA !important; }
+    .task-score-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .task-score-item {
+      background: #FFFFFF;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px;
+      text-align: center;
+    }
+    [data-theme="dark"] .task-score-item {
+      background: #181C2A !important;
+      border-color: #262C42 !important;
+      color: #F0F3FA !important;
+    }
+    .task-score-label {
+      font-size: 11.5px;
+      color: var(--ink2);
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    [data-theme="dark"] .task-score-label { color: #A5B0CF !important; }
+    .task-score-val {
+      font-size: 20px;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    .word-split-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    @media (max-width: 640px) {
+      .word-split-grid { grid-template-columns: 1fr; }
+    }
+    .word-split-box {
+      border-radius: 12px;
+      padding: 12px 14px;
+    }
+    .word-split-box.correct-box {
+      background: #F1FBF6;
+      border: 1px solid rgba(47, 180, 124, 0.3);
+    }
+    .word-split-box.wrong-box {
+      background: #FFF5F5;
+      border: 1px solid rgba(255, 107, 107, 0.3);
+    }
+    [data-theme="dark"] .word-split-box.correct-box {
+      background: rgba(47, 180, 124, 0.12) !important;
+      border-color: rgba(47, 180, 124, 0.35) !important;
+    }
+    [data-theme="dark"] .word-split-box.wrong-box {
+      background: rgba(255, 107, 107, 0.12) !important;
+      border-color: rgba(255, 107, 107, 0.35) !important;
+    }
+    .word-split-title {
+      font-size: 12.5px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .word-split-title.correct-title { color: var(--green-d, #1E9A66); }
+    .word-split-title.wrong-title { color: #D64545; }
+    [data-theme="dark"] .word-split-title.correct-title { color: #38C78B !important; }
+    [data-theme="dark"] .word-split-title.wrong-title { color: #FF8E8E !important; }
+
+    .word-pill-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 3px 7px;
+      border-radius: 5px;
+      font-size: 11.5px;
+      font-weight: 700;
+      margin: 2px;
+    }
+    .word-pill-tag.correct {
+      background: #E4F7EE;
+      color: var(--green-d, #1E9A66);
+      border: 1px solid rgba(47, 180, 124, 0.3);
+    }
+    .word-pill-tag.wrong {
+      background: #FFE9E9;
+      color: #D64545;
+      border: 1px solid rgba(255, 107, 107, 0.4);
+      font-weight: 700;
+    }
+    [data-theme="dark"] .word-pill-tag.correct {
+      background: rgba(47, 180, 124, 0.22) !important;
+      color: #6EE7B7 !important;
+      border-color: rgba(47, 180, 124, 0.45) !important;
+    }
+    [data-theme="dark"] .word-pill-tag.wrong {
+      background: rgba(255, 107, 107, 0.22) !important;
+      color: #FCA5A5 !important;
+      border-color: rgba(255, 107, 107, 0.45) !important;
+    }
+
+    .streakline {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--ink2);
+      margin-bottom: 8px;
+    }
+    .streakline b {
+      color: var(--catD, #E8892B);
+      font-variant-numeric: tabular-nums;
+    }
+    [data-theme="dark"] .streakline { color: #CBD5E1; }
+    [data-theme="dark"] .streakline b { color: #F59E0B; }
+
+    .heatmap {
+      display: grid;
+      grid-template-columns: repeat(14, 1fr);
+      gap: 4px;
+      max-width: 380px;
+    }
+    .hc {
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 4px;
+      background: #EEEFF7;
+    }
+    .hc.h1 { background: #C7EBD9; }
+    .hc.h2 { background: #79D2A9; }
+    .hc.h3 { background: var(--green, #2FB47C); }
+    [data-theme="dark"] .hc { background: #232A4D; }
+    [data-theme="dark"] .hc.h1 { background: #1F5240; }
+    [data-theme="dark"] .hc.h2 { background: #1B7853; }
+    [data-theme="dark"] .hc.h3 { background: #2FB47C; }
+
+    .heat-legend {
+      font-size: 12.5px;
+      line-height: 1.7;
+      color: var(--ink2);
+      margin-top: 10px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: rgba(108, 76, 224, 0.06);
+      border: 1px dashed rgba(108, 76, 224, 0.25);
+    }
+    .heat-legend b { color: var(--ink); }
+    [data-theme="dark"] .heat-legend {
+      background: rgba(255, 255, 255, 0.04) !important;
+      border-color: rgba(255, 255, 255, 0.14) !important;
+      color: #9AA0BD !important;
+    }
+    [data-theme="dark"] .heat-legend b { color: #E2E8F0 !important; }
+
 </style>
 </head>
 <body>
@@ -3011,95 +3550,66 @@
        📱 學生學習進度與總結簡潔儀表板 (Student Learning Progress & Summary)
   ══════════════════════════════════════════ -->
   <div id="studentSummaryCard" style="display:none; margin-bottom:24px;">
-    <!-- 學習進度 Progress 卡片 (100% 完整比照遊戲網頁 app2000vocab 架構，右上角附 📊 學習紀錄 Record 切換按鈕) -->
-    <div class="card progress" style="padding:22px 24px; margin-bottom:20px; border-radius:14px;">
-      <h3 style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
-        <span style="font-size:15px; font-weight:800; color:var(--text); letter-spacing:0.3px;">學習進度 Progress</span>
-        <span style="display:flex; align-items:center; gap:14px;">
-          <a id="sumBtn" title="看學習紀錄與答題統計" style="font-size:12px; color:var(--sky, #2D9CDB); cursor:pointer; text-decoration:underline; font-weight:700;">📊 學習紀錄 Record</a>
+    <!-- 學習進度 Progress 卡片 (1:1 完整完美複製遊戲網頁介面) -->
+    <section class="progress" id="studentProgressCard">
+      <h3>
+        <span>學習進度 Progress</span>
+        <span style="display:flex; gap:14px;">
+          <a id="sumBtn" title="看學習紀錄與答題統計">📊 學習紀錄 Record</a>
         </span>
       </h3>
-
-      <!-- 三段進度條 (學習中 / 練習中 / 精熟) -->
-      <div class="st-progress-track" style="height:14px; background:#EEEFF7; border-radius:8px; overflow:hidden; display:flex; margin-bottom:14px; border:1px solid rgba(0,0,0,0.06);">
-        <div id="stBarLearning" style="width:0%; background:#D9D5F2; transition:width 0.4s ease;" title="學習中"></div>
-        <div id="stBarPracticing" style="width:0%; background:#B9E8D3; transition:width 0.4s ease;" title="練習中"></div>
-        <div id="stBarMastered" style="width:0%; background:#2FB47C; transition:width 0.4s ease;" title="精熟"></div>
+      <div class="bar" title="依答對次數累積進度：答對1次進入學習中，連續2次進入練習中，連續3次進入精熟！答錯會退回學習中。">
+        <i class="learn" id="b-learn" style="width:0%;"></i>
+        <i class="prac" id="b-prac" style="width:0%;"></i>
+        <i class="mast" id="b-mast" style="width:0%;"></i>
       </div>
-
-      <!-- 統計圖例 -->
-      <div style="display:flex; align-items:center; gap:20px; flex-wrap:wrap; font-size:13px; margin-bottom:8px;">
-        <span style="display:inline-flex; align-items:center; gap:6px;">
-          <span style="width:11px; height:11px; border-radius:3px; background:#D9D5F2; display:inline-block; border:1px solid rgba(0,0,0,0.08);"></span>
-          學習中 <strong id="stNumLearning" style="color:var(--text); font-size:14px;">0</strong>
-        </span>
-        <span style="display:inline-flex; align-items:center; gap:6px;">
-          <span style="width:11px; height:11px; border-radius:3px; background:#B9E8D3; display:inline-block; border:1px solid rgba(0,0,0,0.08);"></span>
-          練習中 <strong id="stNumPracticing" style="color:var(--text); font-size:14px;">0</strong>
-        </span>
-        <span style="display:inline-flex; align-items:center; gap:6px;">
-          <span style="width:11px; height:11px; border-radius:3px; background:#2FB47C; display:inline-block; border:1px solid rgba(0,0,0,0.08);"></span>
-          精熟 <strong id="stNumMastered" style="color:var(--text); font-size:14px;">0</strong>
-        </span>
-        <span style="margin-left:auto; color:var(--text-muted); font-size:13px; font-weight:600;">共 <b id="stNumTotal" class="tnum" style="color:var(--text);">2055</b> 字</span>
+      <div class="legend">
+        <span title="答對 1 次，或最近有答錯需要再練習"><i style="background:#D9D5F2"></i>學習中<b id="n-learn" class="tnum">0</b></span>
+        <span title="連續答對 2 次"><i style="background:#B9E8D3"></i>練習中<b id="n-prac" class="tnum">0</b></span>
+        <span title="連續答對 3 次以上 ⭐"><i style="background:var(--green)"></i>精熟<b id="n-mast" class="tnum">0</b></span>
+        <span style="margin-left:auto;color:var(--ink3)">共<b id="n-total" class="tnum">2055</b> 字</span>
       </div>
+      <p class="defs">熟練度定義：<b>學習中</b>＝答對 1 次 · <b>練習中</b>＝連續答對 2 次 · <b>精熟</b>＝連續答對 3 次（答錯會退回「學習中」）</p>
 
-      <!-- 熟練度定義說明 -->
-      <div style="font-size:12px; color:var(--text-muted); line-height:1.6; border-top:1px dashed var(--border); padding-top:10px; margin-top:8px;">
-        熟練度定義：<strong>學習中</strong>＝答對 1 次 · <strong>練習中</strong>＝連續答對 2 次 · <strong>精熟</strong>＝連續答對 3 次；答錯則退回「學習中」。
-      </div>
-
-      <!-- 嵌入式學習紀錄 Record 區塊 (#summary .summary-embedded) -->
-      <div id="summary" class="summary-embedded" style="margin-top:18px; padding-top:18px; border-top:1px dashed var(--line, #e2e8f0); display:block;">
-        <h3 style="display:flex; justify-content:space-between; align-items:center; font-size:15px; font-weight:800; border-bottom:1.5px solid var(--line); padding-bottom:10px; margin-bottom:14px;">
-          <span>📊 學習紀錄 Record</span>
-          <a id="sumClose" style="font-size:12px; color:var(--ink3, #94a3b8); cursor:pointer; text-decoration:underline; font-weight:700;">收起 ▴</a>
+      <!-- 嵌入式學習紀錄 Record 區域 (與遊戲網頁一模一樣) -->
+      <div id="summary" class="summary-embedded" style="display:block;">
+        <h3>
+          <span>📊 學習紀錄 Record <span id="stUserTag"></span></span>
+          <a id="sumClose">收起 ✕</a>
         </h3>
 
-        <!-- 大數字橫條 (.bigrate 遊戲網頁樣式為 display:none !important) -->
-        <div class="bigrate" style="display:none !important;">
-          <b class="tnum" id="stSumAccuracyBig">0%</b>
-          <span>總答對率<br><small id="stSumAttemptsSub">0 題對 / 總作答 0 題</small></span>
-          <span style="margin-left:auto;text-align:right">
-            <b class="tnum" id="stSumDistinctBig" style="font-size:30px;color:var(--violet)">0</b><br>
-            <small>答對單字數（不重複）／ 共 2055 字</small>
-          </span>
-        </div>
-
-        <div class="subh">各級別進度</div>
+        <div class="subh">各關卡進度</div>
         <table class="sumtable">
-          <tbody id="stLevelProgressTbody">
-            <!-- Level 1 ~ 5 -->
-          </tbody>
+          <tbody id="stLevelProgressTbody"></tbody>
         </table>
         <div class="formula-note-box">
-          💡 <b>各級別進度格式詳細說明</b>：
+          💡 <b>各關卡進度格式詳細說明</b>：
           <div style="margin-top:6px; line-height:1.75; font-size:12.5px;">
-            <span class="formula-val"><b>0/0 (0%)</b> <span class="formula-desc">（答對單字數 / 測出總單字數，答對率）</span></span><span class="stat-sep">/</span><span class="formula-val"><b>學習中 0</b> <span class="formula-desc">（答對 1 次或答錯待加強單字數）</span></span><span class="stat-sep">/</span><span class="formula-val"><b>練習中 0</b> <span class="formula-desc">（連續答對 2 次單字數）</span></span><span class="stat-sep">/</span><span class="formula-val"><b>精熟 0</b> <span class="formula-desc">（連續答對 3 次已精熟字數⭐）</span></span><span class="stat-sep">/</span><span class="formula-val"><b>共 411</b> <span class="formula-desc">（該級總單字數）</span></span>
+            <span class="formula-val"><b>0/0 (0%)</b> <span class="formula-desc">[ 答對單字數 / 考出總單字數，答對率 ]</span></span><span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span><span class="formula-val"><b>學習中 0</b> <span class="formula-desc">[ 答對 1 次或答錯待訂正字數 ]</span></span><span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span><span class="formula-val"><b>練習中 0</b> <span class="formula-desc">[ 連續答對 2 次字數 ]</span></span><span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span><span class="formula-val"><b>精熟 0</b> <span class="formula-desc">[ 連續答對 3 次已精熟字數⭐ ]</span></span><span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span><span class="formula-val"><b>共 411</b> <span class="formula-desc">[ 該關總單字數 ]</span></span>
           </div>
         </div>
 
-        <div class="subh">🎯 4 大練習模式作題數</div>
+        <div class="subh">🎮 4 大練習模式答題數</div>
         <div class="mode-stat-grid">
           <div class="mode-stat-card">
-            <div class="mode-stat-title">🔊 聽音辨字</div>
+            <div class="mode-stat-title">🎧 聽音辨字</div>
             <div class="mode-stat-num" id="stModeListenAttempts">0 題</div>
-            <div class="mode-stat-sub" id="stModeListenSub">尚無作答</div>
+            <div class="mode-stat-sub" id="stModeListenSub">答對 0 (0%)</div>
           </div>
           <div class="mode-stat-card">
             <div class="mode-stat-title">✍️ 單字拼寫</div>
             <div class="mode-stat-num" id="stModePickAttempts">0 題</div>
-            <div class="mode-stat-sub" id="stModePickSub">尚無作答</div>
+            <div class="mode-stat-sub" id="stModePickSub">答對 0 (0%)</div>
           </div>
           <div class="mode-stat-card">
-            <div class="mode-stat-title">🧩 詞彙重組</div>
+            <div class="mode-stat-title">🧩 拼圖</div>
             <div class="mode-stat-num" id="stModeScrambleAttempts">0 題</div>
-            <div class="mode-stat-sub" id="stModeScrambleSub">尚無作答</div>
+            <div class="mode-stat-sub" id="stModeScrambleSub">答對 0 (0%)</div>
           </div>
           <div class="mode-stat-card">
-            <div class="mode-stat-title">🕳️ 克漏填陷</div>
+            <div class="mode-stat-title">✏️ 填空格</div>
             <div class="mode-stat-num" id="stModeTrapAttempts">0 題</div>
-            <div class="mode-stat-sub" id="stModeTrapSub">尚無作答</div>
+            <div class="mode-stat-sub" id="stModeTrapSub">答對 0 (0%)</div>
           </div>
         </div>
 
@@ -3107,14 +3617,14 @@
         <div class="date-navigator-card">
           <div class="date-nav-left">
             <span class="date-nav-title"><span>📅</span> 查詢指定日期：</span>
-            <input type="date" id="student-rec-date-picker" class="date-picker-input">
-            <button type="button" id="btn-st-date-today" class="date-nav-btn today-btn" title="回今日">📅 今日</button>
-            <button type="button" id="btn-st-date-prev" class="date-nav-btn" title="查看前一天">◀ 前一天</button>
-            <button type="button" id="btn-st-date-next" class="date-nav-btn" title="查看後一天">後一天 ▶</button>
+            <input type="date" id="record-date-picker" class="date-picker-input">
+            <button type="button" id="btn-date-today" class="date-nav-btn today-btn" title="回今日">📍 今日</button>
+            <button type="button" id="btn-date-prev" class="date-nav-btn" title="查看前一天">◀ 前一天</button>
+            <button type="button" id="btn-date-next" class="date-nav-btn" title="查看後一天">後一天 ▶</button>
           </div>
           <div class="date-nav-right">
-            <label for="student-rec-quick-dates" class="date-quick-label">⚡ 快速跳轉至紀錄日期</label>
-            <select id="student-rec-quick-dates" class="task-date-selector" style="width:100%; margin-top:2px;">
+            <label for="record-quick-dates" class="date-quick-label">⚡ 快速跳至有紀錄日期：</label>
+            <select id="record-quick-dates" class="task-date-selector" style="width:100%; margin-top:2px;">
             </select>
           </div>
         </div>
@@ -3122,78 +3632,16 @@
         <!-- 📝 教師指定單字測驗作答紀錄 -->
         <div class="subh" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
           <span>📝 教師指定單字測驗作答紀錄</span>
-          <span style="font-size:12px; color:var(--sky, #0284c7); font-weight:700;">📅 目前查看日期：<span id="st-task-view-date"></span></span>
+          <span style="font-size:12px; color:var(--sky, #0284c7); font-weight:700;">📅 目前查看日期：<span id="task-view-date"></span></span>
         </div>
-        <div id="st-task-record-details"></div>
+        <div id="task-record-details"></div>
 
         <!-- 🎮 自由練習作答紀錄 -->
         <div class="subh" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-top:20px;">
           <span>🎮 自由練習作答紀錄</span>
-          <span style="font-size:12px; color:var(--sky, #0284c7); font-weight:700;">📅 目前查看日期：<span id="st-free-view-date"></span></span>
+          <span style="font-size:12px; color:var(--sky, #0284c7); font-weight:700;">📅 目前查看日期：<span id="free-view-date"></span></span>
         </div>
-        <div id="st-free-record-details"></div>
-
-        <!-- ⭐ 已精熟單字清單 (折疊式互動工具) -->
-        <div id="stMasteredSection" style="display:none; margin-bottom:16px; background:var(--body-bg); border:1px solid var(--border); border-radius:12px; padding:14px 16px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:10px;">
-            <div style="font-size:14px; font-weight:800; color:var(--text); display:flex; align-items:center; gap:6px;">
-              <span>⭐ 已精熟 <span id="stMasteredWordCount" style="color:var(--primary); font-size:16px;">0</span> 字</span>
-              <span style="font-size:12px; color:var(--text-muted); font-weight:normal;">（連續答對 3 次）</span>
-            </div>
-            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-              <div style="position:relative; display:inline-block;">
-                <input id="stMasteredSearchInput" type="text" placeholder="🔍 搜尋單字或中文..." oninput="handleMasteredFilterChange()"
-                  style="padding:4px 10px 4px 26px; font-size:12px; border:1px solid var(--border); border-radius:16px; background:var(--input-bg); color:var(--text); width:150px; outline:none; transition:width 0.2s ease;"
-                  onfocus="this.style.width='190px'" onblur="if(!this.value) this.style.width='150px'" />
-                <span style="position:absolute; left:8px; top:50%; transform:translateY(-50%); font-size:11px; opacity:0.6; pointer-events:none;">🔍</span>
-              </div>
-              <button type="button" class="btn-secondary" onclick="copyMasteredWordsList()" style="font-size:11.5px; padding:3px 9px; border-radius:6px; height:28px; display:inline-flex; align-items:center; gap:4px;" title="複製目前篩選的單字清單到剪貼簿">
-                📋 複製清單
-              </button>
-              <button type="button" id="btnToggleMasteredExpand" class="btn-secondary" onclick="toggleMasteredWrapHeight()" style="font-size:11.5px; padding:3px 9px; border-radius:6px; height:28px; display:inline-flex; align-items:center; gap:4px;" title="展開完整單字晶片容器高度">
-                ↕️ <span id="txtToggleMasteredExpand">展開高度</span>
-              </button>
-            </div>
-          </div>
-          <div id="stMasteredLevelTabs" style="display:flex; flex-wrap:wrap; gap:5px; margin-bottom:10px;"></div>
-          <div id="stMasteredChipsWrap" style="display:flex; flex-wrap:wrap; gap:6px; max-height:140px; overflow-y:auto; padding:4px 0 6px; transition:max-height 0.25s ease;"></div>
-          <div id="stMasteredBottomBar" style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; font-size:12px; color:var(--text-muted); border-top:1px dashed var(--border); padding-top:8px;">
-            <span id="stMasteredStatsText">共 0 字</span>
-            <div style="display:flex; gap:6px;">
-              <button type="button" id="btnLoadMoreMastered" onclick="loadMoreMasteredWords()" style="display:none; font-size:11.5px; padding:3px 12px; border-radius:6px; border:1px solid var(--border); background:var(--card-bg, #ffffff); color:var(--primary); font-weight:700; cursor:pointer;">
-                載入更多 (+50 字) ▾
-              </button>
-              <button type="button" id="btnShowAllMastered" onclick="showAllMasteredWords()" style="display:none; font-size:11.5px; padding:3px 12px; border-radius:6px; border:1px solid var(--border); background:var(--card-bg, #ffffff); color:var(--text-muted); cursor:pointer;">
-                顯示全部
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- 🔄 曾答錯、現已訂正單字 -->
-        <div id="stFixedSection" style="display:none; margin-bottom:20px; background:var(--body-bg); border:1px solid var(--border); border-radius:12px; padding:14px 16px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:10px;">
-            <div style="font-size:14px; font-weight:800; color:var(--text); display:flex; align-items:center; gap:6px;">
-              <span>🔄 曾答錯、現已訂正 <span id="stFixedWordCount" style="color:#d97706; font-size:16px;">0</span> 字</span>
-            </div>
-            <div style="display:flex; align-items:center; gap:8px;">
-              <input id="stFixedSearchInput" type="text" placeholder="🔍 搜尋訂正字..." oninput="handleFixedFilterChange()"
-                style="padding:4px 10px 4px 26px; font-size:12px; border:1px solid var(--border); border-radius:16px; background:var(--input-bg); color:var(--text); width:140px; outline:none;" />
-              <button type="button" class="btn-secondary" onclick="copyFixedWordsList()" style="font-size:11.5px; padding:3px 9px; border-radius:6px; height:28px; display:inline-flex; align-items:center; gap:4px;" title="複製訂正字清單">
-                📋 複製
-              </button>
-            </div>
-          </div>
-          <div id="stFixedChipsWrap" style="display:flex; flex-wrap:wrap; gap:6px; max-height:140px; overflow-y:auto; padding:4px 0 6px;"></div>
-          <div id="stFixedBottomBar" style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; font-size:12px; color:var(--text-muted); border-top:1px dashed var(--border); padding-top:8px;">
-            <span id="stFixedStatsText">共 0 字</span>
-            <div style="display:flex; gap:6px;">
-              <button type="button" id="btnLoadMoreFixed" onclick="loadMoreFixedWords()" style="display:none; font-size:11.5px; padding:3px 12px; border-radius:6px; border:1px solid var(--border); background:var(--card-bg, #ffffff); color:#d97706; font-weight:700; cursor:pointer;">
-                載入更多 (+50 字) ▾
-              </button>
-            </div>
-          </div>
-        </div>
+        <div id="free-record-details"></div>
 
         <!-- 📅 練習紀錄（最近 4 週） -->
         <div class="subh">📅 練習紀錄（最近 4 週）</div>
@@ -3201,7 +3649,7 @@
         <div class="heatmap" id="stHeatmapGrid"></div>
         <div class="heat-legend">🔥 <b>連續</b>：從今天往回算，一天都沒中斷、天天有練習的天數。<br>🏆 <b>最佳</b>：你曾經創下「最長連續天天練習」的紀錄。<br>📅 <b>累計</b>：從開始到現在，總共有練習過的天數（中間有休息也算）。<br>🟩 <b>熱力圖</b>：方格顏色愈深，代表當天練習愈多。</div>
       </div>
-    </div>
+    </section>
   </div>
 
   <!-- 舊版 KPI 容器 (隱藏保持 DOM 相容) -->
@@ -12518,12 +12966,12 @@ function buildFreeDetailsHtml(record, selectedDate, agent) {
 }
 
 function renderStudentDailyTaskAndFreeSections(resp) {
-  const taskDetailsContainer = document.getElementById("st-task-record-details");
-  const freeDetailsContainer = document.getElementById("st-free-record-details");
-  const datePicker = document.getElementById("student-rec-date-picker");
-  const quickSelect = document.getElementById("student-rec-quick-dates");
-  const taskDateLabel = document.getElementById("st-task-view-date");
-  const freeDateLabel = document.getElementById("st-free-view-date");
+  const taskDetailsContainer = document.getElementById("task-record-details") || document.getElementById("st-task-record-details");
+  const freeDetailsContainer = document.getElementById("free-record-details") || document.getElementById("st-free-record-details");
+  const datePicker = document.getElementById("record-date-picker") || document.getElementById("student-rec-date-picker");
+  const quickSelect = document.getElementById("record-quick-dates") || document.getElementById("student-rec-quick-dates");
+  const taskDateLabel = document.getElementById("task-view-date") || document.getElementById("st-task-view-date");
+  const freeDateLabel = document.getElementById("free-view-date") || document.getElementById("st-free-view-date");
 
   if (!taskDetailsContainer || !freeDetailsContainer) return;
 
@@ -12535,7 +12983,7 @@ function renderStudentDailyTaskAndFreeSections(resp) {
     : (window.cachedStudentDailyHistory || []);
   const todayTask = resp.todayTaskResult || window.cachedStudentTodayTaskResult || null;
 
-  // 1. 整理所有有測驗或自由練習紀錄的日期
+  // 1. 整理所有有紀錄日期
   const dateSet = new Set();
   const todayDash = formatDateYMD(new Date());
   dateSet.add(todayDash);
@@ -12575,17 +13023,17 @@ function renderStudentDailyTaskAndFreeSections(resp) {
   }
 
   const allDates = Array.from(dateSet).filter(Boolean);
-  allDates.sort((a, b) => b.localeCompare(a)); // 新到舊
+  allDates.sort((a, b) => b.localeCompare(a));
 
   let defaultSelectedDate = todayDash;
-  const hasTodayTask = dailyTaskHistory.some(h => String(h.date).split(" ")[0].replace(/\//g, "-") === todayDash && ((h.status && h.status.includes("已完成")) || (h.score && h.score !== "—")));
+  const hasTodayTask = dailyTaskHistory.some(h => String(h.date).split(" ")[0].replace(/\//g, "-") === todayDash && ((h.status && h.status.includes("已")) || (h.score && h.score !== "—")));
   const hasTodayFree = (dpMap[todayDash] && dpMap[todayDash].attempts > 0) ||
                        (dpMap[todayDash.replace(/-/g, "/")] && dpMap[todayDash.replace(/-/g, "/")].attempts > 0) ||
                        (historyData[todayDash] && historyData[todayDash].a > 0) || 
                        (historyData[todayDash.replace(/-/g, "/")] && historyData[todayDash.replace(/-/g, "/")].a > 0);
   if (!hasTodayTask && !hasTodayFree && allDates.length > 0) {
     const latestActive = allDates.find(d => {
-      const hTask = dailyTaskHistory.some(h => String(h.date).split(" ")[0].replace(/\//g, "-") === d && ((h.status && h.status.includes("已完成")) || (h.score && h.score !== "—")));
+      const hTask = dailyTaskHistory.some(h => String(h.date).split(" ")[0].replace(/\//g, "-") === d && ((h.status && h.status.includes("已")) || (h.score && h.score !== "—")));
       const hFree = (dpMap[d] && dpMap[d].attempts > 0) ||
                     (dpMap[d.replace(/-/g, "/")] && dpMap[d.replace(/-/g, "/")].attempts > 0) ||
                     (historyData[d] && historyData[d].a > 0) || 
@@ -12596,19 +13044,20 @@ function renderStudentDailyTaskAndFreeSections(resp) {
     else if (allDates[0]) defaultSelectedDate = allDates[0];
   }
 
+  // 產生 1:1 比照截圖的快速跳轉選單標籤
   if (quickSelect) {
     quickSelect.innerHTML = allDates.map(dateStr => {
-      const hasTask = dailyTaskHistory.some(h => String(h.date).split(" ")[0].replace(/\//g, "-") === dateStr && (!h.taskName || h.taskName !== "自主練習")) || 
-                      (todayTask && String(todayTask.date).split(" ")[0].replace(/\//g, "-") === dateStr && todayTask.hasDone && todayTask.taskName !== "自主練習");
+      const matchedH = dailyTaskHistory.find(h => String(h.date).split(" ")[0].replace(/\//g, "-") === dateStr && (!h.taskName || h.taskName !== "自主練習")) ||
+                       (todayTask && String(todayTask.date).split(" ")[0].replace(/\//g, "-") === dateStr && todayTask.hasDone && todayTask.taskName !== "自主練習" ? todayTask : null);
       const dpF = dpMap[dateStr] || dpMap[dateStr.replace(/-/g, "/")] || null;
       const hFree = historyData[dateStr] || historyData[dateStr.replace(/-/g, "/")] || null;
       const freeAtt = (dpF && dpF.attempts) ? dpF.attempts : (hFree ? (hFree.a || 0) : 0);
 
       let tag = "";
-      if (hasTask && freeAtt > 0) tag = ` [測驗 + 練習 ${freeAtt}題]`;
-      else if (hasTask) tag = ` [指定測驗]`;
+      if (matchedH && freeAtt > 0) tag = ` [指派: ${matchedH.taskName || "任務"}] [自由: ${freeAtt}題]`;
+      else if (matchedH) tag = ` [指派: ${matchedH.taskName || "任務"}]`;
       else if (freeAtt > 0) tag = ` [自由練習: ${freeAtt}題]`;
-      else tag = ` (無練習紀錄)`;
+      else tag = " (尚無紀錄)";
 
       return `<option value="${dateStr}">${dateStr}${tag}</option>`;
     }).join("");
@@ -12623,15 +13072,15 @@ function renderStudentDailyTaskAndFreeSections(resp) {
     if (taskDateLabel) taskDateLabel.textContent = targetDate;
     if (freeDateLabel) freeDateLabel.textContent = targetDate;
 
-    // A. 尋找教師指定測驗紀錄
+    // A. 匹配教師指定測驗紀錄
     let matchedTask = dailyTaskHistory.find(h => String(h.date).split(" ")[0].replace(/\//g, "-") === targetDate && (!h.taskName || h.taskName !== "自主練習")) || null;
     if (!matchedTask && todayTask && String(todayTask.date).split(" ")[0].replace(/\//g, "-") === targetDate && todayTask.hasDone && todayTask.taskName !== "自主練習") {
       matchedTask = {
         date: targetDate,
-        taskName: todayTask.taskName || "今日指定測驗",
+        taskName: todayTask.taskName || "測驗",
         score: todayTask.score || "—",
         rate: todayTask.rate || "—",
-        status: "🟢 已完成",
+        status: "● 已完成",
         words: todayTask.words || [],
         wrongWords: todayTask.wrongWords || []
       };
@@ -12644,7 +13093,7 @@ function renderStudentDailyTaskAndFreeSections(resp) {
           taskName: matchedRow[18] || "教師指定測驗",
           score: matchedRow[19] || "—",
           rate: matchedRow[20] || "—",
-          status: matchedRow[21] || "🟢 已完成",
+          status: matchedRow[21] || "● 已完成",
           words: [],
           wrongWords: matchedRow[22] ? String(matchedRow[22]).split(/[,、\s]+/).filter(Boolean) : []
         };
@@ -12652,7 +13101,7 @@ function renderStudentDailyTaskAndFreeSections(resp) {
     }
     taskDetailsContainer.innerHTML = buildTaskDetailsHtml(matchedTask, targetDate, agent);
 
-    // B. 尋找自由練習紀錄
+    // B. 匹配自由練習紀錄
     let dpFree = dpMap[targetDate] || dpMap[targetDate.replace(/-/g, "/")] || null;
     let hFree = historyData[targetDate] || historyData[targetDate.replace(/-/g, "/")] || null;
     let matchedFree = null;
@@ -12697,24 +13146,24 @@ function renderStudentDailyTaskAndFreeSections(resp) {
     quickSelect.onchange = (e) => switchRecordDate(e.target.value);
   }
 
-  const btnToday = document.getElementById("btn-st-date-today");
+  const btnToday = document.getElementById("btn-date-today") || document.getElementById("btn-st-date-today");
   if (btnToday) {
     btnToday.onclick = () => switchRecordDate(todayDash);
   }
-  const btnPrev = document.getElementById("btn-st-date-prev");
+  const btnPrev = document.getElementById("btn-date-prev") || document.getElementById("btn-st-date-prev");
   if (btnPrev) {
     btnPrev.onclick = () => {
       const cur = (datePicker && datePicker.value) ? datePicker.value : defaultSelectedDate;
-      const d = new Date(cur);
+      const d = new Date(cur.replace(/-/g, "/"));
       d.setDate(d.getDate() - 1);
       switchRecordDate(formatDateYMD(d));
     };
   }
-  const btnNext = document.getElementById("btn-st-date-next");
+  const btnNext = document.getElementById("btn-date-next") || document.getElementById("btn-st-date-next");
   if (btnNext) {
     btnNext.onclick = () => {
       const cur = (datePicker && datePicker.value) ? datePicker.value : defaultSelectedDate;
-      const d = new Date(cur);
+      const d = new Date(cur.replace(/-/g, "/"));
       d.setDate(d.getDate() + 1);
       switchRecordDate(formatDateYMD(d));
     };
@@ -12723,14 +13172,11 @@ function renderStudentDailyTaskAndFreeSections(resp) {
   switchRecordDate(defaultSelectedDate);
 }
 
-// ════════════════════════════════════════
-// 📱 學生學習進度與總結簡潔儀表板渲染模組 (Learning Progress & Summary)
-// ════════════════════════════════════════
 function renderStudentSummary(resp) {
   const sumCard = document.getElementById("studentSummaryCard");
   if (!sumCard) return;
 
-  // 綁定「📊 學習紀錄 Record」與「收起 ▴」切換按鈕
+  // 1. 綁定「📊 學習紀錄 Record」與「收起 ✕」切換事件
   const sumBtn = document.getElementById("sumBtn");
   const sumClose = document.getElementById("sumClose");
   const sumPanel = document.getElementById("summary");
@@ -12751,8 +13197,15 @@ function renderStudentSummary(resp) {
 
   const agent = resp.agentData || null;
   const rawRow = (resp.data && resp.data.length > 0) ? resp.data[0] : [];
+  const currentStUser = viewingStudent || currentUser || resp.username || "";
 
-  // 1. 學習進度 PROGRESS (共 2055 字)
+  // 設置標題旁的使用者身分膠囊 (比照截圖 👤 d)
+  const userTagEl = document.getElementById("stUserTag");
+  if (userTagEl) {
+    userTagEl.innerHTML = currentStUser ? `<span style="font-size:13px;font-weight:700;color:var(--sky, #2D9CDB);background:rgba(56,189,248,0.12);padding:2px 8px;border-radius:999px;margin-left:8px;border:1px solid rgba(56,189,248,0.25);">👤 ${currentStUser}</span>` : "";
+  }
+
+  // 2. 學習進度 Progress (共 2055 字)
   let learn = 0, prac = 0, mast = 0;
   if (agent && agent.box) {
     for (const id in agent.box) {
@@ -12771,55 +13224,29 @@ function renderStudentSummary(resp) {
   const pctPrac  = Math.min(100, Math.max(0, (prac / totalVocab) * 100)).toFixed(1);
   const pctMast  = Math.min(100, Math.max(0, (mast / totalVocab) * 100)).toFixed(1);
 
-  const elBarL = document.getElementById("stBarLearning");
+  const elBarL = document.getElementById("b-learn") || document.getElementById("stBarLearning");
   if (elBarL) elBarL.style.width = pctLearn + "%";
-  const elBarP = document.getElementById("stBarPracticing");
+  const elBarP = document.getElementById("b-prac") || document.getElementById("stBarPracticing");
   if (elBarP) elBarP.style.width = pctPrac + "%";
-  const elBarM = document.getElementById("stBarMastered");
+  const elBarM = document.getElementById("b-mast") || document.getElementById("stBarMastered");
   if (elBarM) elBarM.style.width = pctMast + "%";
 
-  const elNumL = document.getElementById("stNumLearning");
+  const elNumL = document.getElementById("n-learn") || document.getElementById("stNumLearning");
   if (elNumL) elNumL.innerText = learn.toLocaleString();
-  const elNumP = document.getElementById("stNumPracticing");
+  const elNumP = document.getElementById("n-prac") || document.getElementById("stNumPracticing");
   if (elNumP) elNumP.innerText = prac.toLocaleString();
-  const elNumM = document.getElementById("stNumMastered");
+  const elNumM = document.getElementById("n-mast") || document.getElementById("stNumMastered");
   if (elNumM) elNumM.innerText = mast.toLocaleString();
+  const elNumT = document.getElementById("n-total") || document.getElementById("stNumTotal");
+  if (elNumT) elNumT.innerText = totalVocab.toLocaleString();
 
-  // 2. 總答對率橫幅 Summary Banner
-  let attempts = 0, correct = 0;
-  if (agent && agent.attempts !== undefined) {
-    attempts = agent.attempts || 0;
-    correct  = agent.correct || 0;
-  } else if (rawRow.length > 7) {
-    attempts = parseInt(rawRow[6]) || 0;
-    correct  = parseInt(rawRow[7]) || 0;
-  }
-  const passRate = attempts > 0 ? Math.round((correct / attempts) * 100) : 0;
-  let distinctC = 0;
-  if (agent && agent.stat) {
-    distinctC = Object.values(agent.stat).filter(s => s.c > 0).length;
-  } else if (rawRow.length > 14) {
-    distinctC = parseInt(rawRow[14]) || 0;
-  }
-
-  const elAccBig = document.getElementById("stSumAccuracyBig");
-  if (elAccBig) {
-    elAccBig.innerText = passRate + "%";
-    elAccBig.style.color = passRate >= 80 ? "#10b981" : passRate >= 60 ? "#f59e0b" : "#ef4444";
-  }
-  const elAttSub = document.getElementById("stSumAttemptsSub");
-  if (elAttSub) elAttSub.innerText = `${correct.toLocaleString()} 題對 / 共作答 ${attempts.toLocaleString()} 題`;
-
-  const elDistBig = document.getElementById("stSumDistinctBig");
-  if (elDistBig) elDistBig.innerText = distinctC.toLocaleString();
-
-  // 3. 各關卡進度 (Level 1 ~ 5)
+  // 3. 各關卡進度 (Level 1 ~ 5) - 1:1 比照遊戲計算 (testedCorrect / testedCount)
   const lvTbody = document.getElementById("stLevelProgressTbody");
   if (lvTbody) {
     let lvRowsHtml = "";
     const lvNames  = ["入門", "基礎", "進階", "挑戰", "精熟"];
     const lvColors = ["#2FB47C", "#2D9CDB", "#6C4CE0", "#E8892B", "#E0567B"];
-    // 預先建立單字等級索引（避免每次循環 5 次 2055 單字，大幅提升渲染效能）
+
     if (!window._wordBankLevelMap && typeof WORD_BANK_2000 !== "undefined" && Array.isArray(WORD_BANK_2000)) {
       window._wordBankLevelMap = new Map();
       for (let i = 0; i < WORD_BANK_2000.length; i++) {
@@ -12828,10 +13255,12 @@ function renderStudentSummary(resp) {
     }
     const bMap = window._wordBankLevelMap || null;
 
-    // 計算各關卡學習中、練習中與精通單字數 (levelLearnMap, levelPracMap, levelMastMap)
     const levelMastMap = [0, 0, 0, 0, 0, 0];
     const levelPracMap = [0, 0, 0, 0, 0, 0];
     const levelLearnMap = [0, 0, 0, 0, 0, 0];
+    const levelTestedMap = [0, 0, 0, 0, 0, 0];
+    const levelTestedCorrMap = [0, 0, 0, 0, 0, 0];
+
     if (bMap) {
       if (agent && agent.box) {
         for (const [w, bVal] of Object.entries(agent.box)) {
@@ -12842,71 +13271,59 @@ function renderStudentSummary(resp) {
             else if (bVal === 1) levelLearnMap[lv]++;
           }
         }
-      } else if (agent && agent.stat) {
+      }
+      if (agent && agent.stat) {
         for (const [w, s] of Object.entries(agent.stat)) {
           const lv = bMap.get(w.toLowerCase());
           if (lv >= 1 && lv <= 5 && s) {
-            if (s.c >= 3) levelMastMap[lv]++;
-            else if (s.c === 2) levelPracMap[lv]++;
-            else if (s.c === 1) levelLearnMap[lv]++;
+            if (s.a > 0) levelTestedMap[lv]++;
+            if (s.c > 0) levelTestedCorrMap[lv]++;
           }
-        }
-      } else if (resp.wordList && Array.isArray(resp.wordList)) {
-        for (const item of resp.wordList) {
-          const lv = bMap.get(item.word.toLowerCase());
-          if (lv >= 1 && lv <= 5) {
-            if (item.status === "mastered" || item.correct >= 3) levelMastMap[lv]++;
-            else if (item.status === "practicing" || item.correct === 2) levelPracMap[lv]++;
-            else if (item.status === "learning" || item.correct === 1) levelLearnMap[lv]++;
-          }
-        }
-      }
-    }
-
-    // 備援統計：若 agent.lstat 為空，由 agent.stat 聚合各等級作答數
-    const levelStatMap = [null, { a: 0, c: 0 }, { a: 0, c: 0 }, { a: 0, c: 0 }, { a: 0, c: 0 }, { a: 0, c: 0 }];
-    if (bMap && agent && agent.stat) {
-      for (const [w, s] of Object.entries(agent.stat)) {
-        const lv = bMap.get(w.toLowerCase());
-        if (lv >= 1 && lv <= 5 && s) {
-          levelStatMap[lv].a += (s.a || 0);
-          levelStatMap[lv].c += (s.c || 0);
         }
       }
     }
 
     for (let lv = 1; lv <= 5; lv++) {
-      let lCorr = 0, lAtt = 0;
-      if (agent && agent.lstat && (agent.lstat[lv] || agent.lstat[String(lv)])) {
+      let lCorrWords = levelTestedCorrMap[lv];
+      let lTestedWords = levelTestedMap[lv];
+
+      // 若 stat 無細項，降級採用 lstat 或 rawRow
+      if (lTestedWords === 0 && agent && agent.lstat && (agent.lstat[lv] || agent.lstat[String(lv)])) {
         const ls = agent.lstat[lv] || agent.lstat[String(lv)];
-        lCorr = ls.c || 0;
-        lAtt  = ls.a || 0;
-      } else if (rawRow.length > 8 + lv) {
+        lCorrWords = ls.c || 0;
+        lTestedWords = ls.a || 0;
+      } else if (lTestedWords === 0 && rawRow.length > 8 + lv) {
         const parts = String(rawRow[8 + lv] || "").split("/");
-        lCorr = parseInt(parts[0]) || 0;
-        lAtt  = parseInt(parts[1]) || 0;
-      }
-      // 若仍為 0 且備援統計有值，採用備援統計
-      if (lAtt === 0 && levelStatMap[lv] && levelStatMap[lv].a > 0) {
-        lCorr = levelStatMap[lv].c;
-        lAtt  = levelStatMap[lv].a;
+        lCorrWords = parseInt(parts[0]) || 0;
+        lTestedWords = parseInt(parts[1]) || 0;
       }
 
-      const lRate = lAtt > 0 ? Math.round((lCorr / lAtt) * 100) : 0;
+      const lRate = lTestedWords > 0 ? Math.round((lCorrWords / lTestedWords) * 100) : 0;
       const lMast = levelMastMap[lv] || 0;
-      lvRowsHtml += `<tr><td><span style="color:${lvColors[lv-1]}">●</span> Level ${lv}「${lvNames[lv-1]}」</td><td>${lCorr}/${lAtt} (${lRate}%)<span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span>學習中 ${levelLearnMap[lv]}<span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span>練習中 ${levelPracMap[lv]}<span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span>精通 ${lMast}<span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span>共 411</td></tr>`;
+      const lPrac = levelPracMap[lv] || 0;
+      const lLearn = levelLearnMap[lv] || 0;
+
+      lvRowsHtml += `<tr><td><span style="color:${lvColors[lv-1]}">●</span> Level ${lv}「${lvNames[lv-1]}」</td><td>${lCorrWords}/${lTestedWords} (${lRate}%)<span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span>學習中 ${lLearn}<span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span>練習中 ${lPrac}<span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span>精熟 ${lMast}<span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span>共 411</td></tr>`;
     }
     lvTbody.innerHTML = lvRowsHtml;
   }
 
-  // 4. 🎮 4 大練習模式答題數 (額外記錄)
+  // 4. 🎮 4 大練習模式答題數 (比照截圖：🎧 聽音辨字、✍️ 單字拼寫、🧩 拼圖、✏️ 填空格)
   const mstat = (agent && agent.mstat) ? agent.mstat : {};
   let mListen = mstat.listen ? { a: mstat.listen.a || 0, c: mstat.listen.c || 0 } : { a: 0, c: 0 };
   let mPick   = mstat.pick   ? { a: mstat.pick.a   || 0, c: mstat.pick.c   || 0 } : { a: 0, c: 0 };
   let mScram  = mstat.scramble ? { a: mstat.scramble.a || 0, c: mstat.scramble.c || 0 } : { a: 0, c: 0 };
   let mTrap   = mstat.trap   ? { a: mstat.trap.a   || 0, c: mstat.trap.c   || 0 } : { a: 0, c: 0 };
 
-  // 歷史數據自動對齊防護：若歷史版本早期未分流至 mstat，將未分類之作答題數自動補齊對齊至預設的「聽與拼」模式
+  let attempts = 0, correct = 0;
+  if (agent && agent.attempts !== undefined) {
+    attempts = agent.attempts || 0;
+    correct  = agent.correct || 0;
+  } else if (rawRow.length > 7) {
+    attempts = parseInt(rawRow[6]) || 0;
+    correct  = parseInt(rawRow[7]) || 0;
+  }
+
   const mTotalA = mListen.a + mPick.a + mScram.a + mTrap.a;
   if (attempts > mTotalA) {
     const diffA = attempts - mTotalA;
@@ -12924,50 +13341,24 @@ function renderStudentSummary(resp) {
   const elListenAtt = document.getElementById("stModeListenAttempts");
   if (elListenAtt) elListenAtt.innerText = `${mListen.a.toLocaleString()} 題`;
   const elListenSub = document.getElementById("stModeListenSub");
-  if (elListenSub) elListenSub.innerText = mListen.a > 0 ? `答對 ${mListen.c} 題 (${rListen}%)` : `尚無作答`;
+  if (elListenSub) elListenSub.innerText = `答對 ${mListen.c} (${rListen}%)`;
 
   const elPickAtt = document.getElementById("stModePickAttempts");
   if (elPickAtt) elPickAtt.innerText = `${mPick.a.toLocaleString()} 題`;
   const elPickSub = document.getElementById("stModePickSub");
-  if (elPickSub) elPickSub.innerText = mPick.a > 0 ? `答對 ${mPick.c} 題 (${rPick}%)` : `尚無作答`;
+  if (elPickSub) elPickSub.innerText = `答對 ${mPick.c} (${rPick}%)`;
 
   const elScramAtt = document.getElementById("stModeScrambleAttempts");
   if (elScramAtt) elScramAtt.innerText = `${mScram.a.toLocaleString()} 題`;
   const elScramSub = document.getElementById("stModeScrambleSub");
-  if (elScramSub) elScramSub.innerText = mScram.a > 0 ? `答對 ${mScram.c} 題 (${rScram}%)` : `尚無作答`;
+  if (elScramSub) elScramSub.innerText = `答對 ${mScram.c} (${rScram}%)`;
 
   const elTrapAtt = document.getElementById("stModeTrapAttempts");
   if (elTrapAtt) elTrapAtt.innerText = `${mTrap.a.toLocaleString()} 題`;
   const elTrapSub = document.getElementById("stModeTrapSub");
-  if (elTrapSub) elTrapSub.innerText = mTrap.a > 0 ? `答對 ${mTrap.c} 題 (${rTrap}%)` : `尚無作答`;
+  if (elTrapSub) elTrapSub.innerText = `答對 ${mTrap.c} (${rTrap}%)`;
 
-  // 5. ✅ 已精通單字清單 (連續答對 3 次)
-  const masteredCountEl = document.getElementById("stMasteredWordCount");
-  let masteredWords = [];
-  if (agent && agent.box) {
-    masteredWords = Object.keys(agent.box).filter(k => agent.box[k] >= 3).map(k => resolveWord(k));
-  } else if (agent && agent.stat) {
-    masteredWords = Object.keys(agent.stat).filter(k => agent.stat[k] && agent.stat[k].c >= 3).map(k => resolveWord(k));
-  } else if (resp.wordList) {
-    masteredWords = resp.wordList.filter(item => item.status === "mastered" || item.correct >= 3).map(i => resolveWord(i.word));
-  }
-  masteredWords = Array.from(new Set(masteredWords.filter(Boolean)));
-  if (masteredCountEl) masteredCountEl.innerText = masteredWords.length;
-  initMasteredChipsComponent(masteredWords);
-
-  // 6. 🛠️ 曾拼錯、現在已訂正單字
-  const fixedCountEl = document.getElementById("stFixedWordCount");
-  let fixedWords = [];
-  if (agent && agent.box && agent.stat) {
-    fixedWords = Object.keys(agent.box).filter(k => agent.box[k] >= 3 && agent.stat[k] && agent.stat[k].ew).map(k => resolveWord(k));
-  } else if (agent && agent.stat) {
-    fixedWords = Object.keys(agent.stat).filter(k => agent.stat[k] && agent.stat[k].c >= 3 && agent.stat[k].ew).map(k => resolveWord(k));
-  }
-  fixedWords = Array.from(new Set(fixedWords.filter(Boolean)));
-  if (fixedCountEl) fixedCountEl.innerText = fixedWords.length;
-  initFixedChipsComponent(fixedWords);
-
-  // 7. 📅 練習紀錄（最近 4 週 / 28 天日曆熱力圖）
+  // 5. 📅 練習紀錄（最近 4 週）熱力圖
   const historyData = (agent && agent.history) ? agent.history : {};
   const dpMap = (agent && agent.dailyPractice) ? agent.dailyPractice : {};
   const heatGrid = document.getElementById("stHeatmapGrid");
@@ -13026,14 +13417,7 @@ function renderStudentSummary(resp) {
     }).join("");
   }
 
-  // 8. 📖 渲染每日單字自由練習成果卡片 (Free Practice Progress & Results)
-  try {
-    renderStudentFreePractice(resp, { learn, prac, mast, totalVocab, attempts, correct, passRate, distinctC, streak, best, totalActive, days, historyData });
-  } catch (errFP) {
-    console.error("renderStudentFreePractice error:", errFP);
-  }
-
-  // 9. 📅 渲染指定日期查詢、教師指定測驗作答紀錄與自由練習作答紀錄
+  // 6. 渲染日期查詢、教師指定測驗作答紀錄與自由練習作答紀錄
   try {
     renderStudentDailyTaskAndFreeSections(resp);
   } catch (errDT) {
@@ -13041,9 +13425,6 @@ function renderStudentSummary(resp) {
   }
 }
 
-// ════════════════════════════════════════
-// 📖 每日單字自由練習成果渲染函式 (Daily Free Practice Results)
-// ════════════════════════════════════════
 function renderStudentFreePractice(resp, summaryMeta) {
   const card = document.getElementById("studentFreePracticeCard");
   if (!card) return;
