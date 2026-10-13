@@ -116,7 +116,7 @@ export function renderRound(word, mode, { onAnswer, onCheck, disablePeek }) {
     };
   }
 
-  if (word.sent && mode !== "pick") {
+  if (word.sent || (Array.isArray(word.sents) && word.sents.length > 0)) {
     let sentsList = (Array.isArray(word.sents) && word.sents.length > 0)
       ? [...word.sents]
       : [{ level: 'normal', levelName: '普通', sent: word.sent, sentZh: word.sentZh || '', src: word.sentSrc || '' }];
@@ -203,6 +203,7 @@ function renderPick(word, onAnswer) {
   let done = false;
   choices.forEach((choice) => {
     const b = document.createElement("button");
+    b.type = "button";
     b.className = "opt"; b.textContent = choice;
     b.onclick = () => {
       if (done) return; done = true;
@@ -2401,6 +2402,7 @@ export function askPick(word, meta) {
     let done = false;
     choices.forEach((choice) => {
       const b = document.createElement("button");
+      b.type = "button";
       b.className = "opt"; b.textContent = choice;
       b.onclick = () => {
         if (done) return; done = true;

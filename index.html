@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>拼字小特工 · Spelling Agent</title>
-  <link rel="stylesheet" href="css/styles.css?v=20261013_1220">
+  <link rel="stylesheet" href="css/styles.css?v=20261013_2135">
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" defer></script>
   <link rel="preload" href="data/words2000.json" as="fetch" crossorigin>
@@ -154,10 +154,13 @@ header{display:flex; align-items:center; gap:14px; margin-bottom:16px}
 .spellbox:focus{border-color:var(--violet);background:#fff;box-shadow:0 0 0 4px #EDE7FF}
 .spellbox.ok{border-color:var(--green);background:#F1FBF6} .spellbox.bad{border-color:var(--coral);background:#FFF4F4}
 
-.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:420px}
-.opt{padding:14px;border-radius:14px;border:2px solid var(--line);background:#FBFBFE;font-size:22px;font-weight:800;
-  cursor:pointer;color:var(--ink);font-family:inherit;transition:transform .1s,border-color .1s}
-.opt:hover{transform:translateY(-2px);border-color:var(--sky)}
+.opts{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;width:100%;max-width:660px;margin:6px auto}
+.opt{padding:12px 8px;min-height:52px;border-radius:14px;border:2px solid var(--line);background:#FBFBFE;font-size:20px;font-weight:800;
+  cursor:pointer;color:var(--ink);font-family:inherit;display:flex;align-items:center;justify-content:center;text-align:center;
+  word-break:break-word;overflow-wrap:break-word;transition:transform .12s,border-color .12s,background .12s,box-shadow .12s;
+  box-shadow:0 2px 4px rgba(35,42,77,.04);user-select:none}
+.opt:hover{transform:translateY(-2px);border-color:var(--sky);box-shadow:0 4px 12px rgba(45,156,219,.15)}
+.opt:active{transform:translateY(1px)}
 .opt.ok{border-color:var(--green);background:#EFFAF4;color:var(--green-d)}
 .opt.bad{border-color:var(--coral);background:#FFF1F1;color:#D64545}
 
@@ -345,7 +348,11 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 .date-nav-btn.today-btn{background:#EDF8FD;border-color:rgba(45,156,219,.4);color:var(--sky)}
 .date-nav-btn.today-btn:hover{background:var(--sky);color:#FFFFFF}
 .word-split-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
-@media (max-width:640px){.word-split-grid{grid-template-columns:1fr}}
+@media (max-width:640px){
+  .word-split-grid{grid-template-columns:1fr}
+  .opts{grid-template-columns:repeat(2,1fr);gap:10px;max-width:440px}
+  .opt{font-size:18px;padding:11px 6px;min-height:48px}
+}
 .word-split-box{border-radius:12px;padding:12px 14px}
 .word-split-box.correct-box{background:#F1FBF6;border:1px solid rgba(47,180,124,.3)}
 .word-split-box.wrong-box{background:#FFF5F5;border:1px solid rgba(255,107,107,.3)}
@@ -374,6 +381,10 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
   .mode{flex:1 1 calc(50% - 6px);font-size:12.5px;padding:9px 4px}
   .lvchip{flex:1 1 calc(50% - 6px);min-width:100px;padding:8px 10px}
   .lvchip .lvname{font-size:13px}
+}
+@media (max-width:360px){
+  .opts{grid-template-columns:1fr;gap:8px}
+  .opt{font-size:16.5px;padding:10px 4px;min-height:44px}
 }
 @media (max-width:320px){
   .mode{flex:1 1 100%}
@@ -509,6 +520,20 @@ body[data-theme="dark"],
   background: #181C2A !important;
   border-color: #262C42 !important;
   color: #F0F3FA !important;
+}
+[data-theme="dark"] .opt:hover {
+  border-color: var(--sky, #38BDF8) !important;
+  box-shadow: 0 4px 12px rgba(56, 189, 248, 0.2) !important;
+}
+[data-theme="dark"] .opt.ok {
+  background: rgba(16, 185, 129, 0.22) !important;
+  border-color: #10B981 !important;
+  color: #6EE7B7 !important;
+}
+[data-theme="dark"] .opt.bad {
+  background: rgba(239, 68, 68, 0.22) !important;
+  border-color: #EF4444 !important;
+  color: #FCA5A5 !important;
 }
 [data-theme="dark"] .sent-row {
   background: #131624 !important;
