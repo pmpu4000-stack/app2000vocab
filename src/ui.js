@@ -3,7 +3,7 @@
 // data and reports intent through callbacks; it never touches the store.
 // =====================================================================
 import { CATS } from "./data.js?v=20261013_1225";
-import { say, sayWord, spellOut, playContestSentence, stopAudio } from "./audio.js?v=20261013_1225";
+import { say, sayWord, spellOut, playContestSentence, stopAudio } from "./audio.js?v=20261013_2155";
 import { LEVELS, levelColor, levelName, misspellings, shuffle } from "./levels.js?v=20261013_1225";
 
 if (typeof window !== "undefined") {

@@ -11,68 +11,55 @@ const activeUtterances = new Set();
 let currentAudio = null;
 let currentSeqTimer = null;
 let currentSeqToken = 0;
-let cachedEnglishVoice = null;
+let cachedUSVoices = [];
+
+export function getAvailableUSVoices() {
+  if (!supported) return [];
+  try {
+    const all = speechSynthesis.getVoices() || [];
+    if (!all.length) return cachedUSVoices;
+
+    // 嚴格篩選純正美式英語 (en-US / en_US 或名稱明確標註為美國英語)
+    const usOnly = all.filter(v => {
+      const lang = String(v.lang || "").replace(/_/g, "-").toLowerCase();
+      const name = String(v.name || "").toLowerCase();
+      if (lang === "en-us") return true;
+      if (lang.startsWith("en") && (name.includes("united states") || name.includes("u.s.") || /\bus\b/i.test(name))) {
+        return true;
+      }
+      return false;
+    });
+
+    // 優先挑選知名高音質美語語音包 (男女聲完整涵蓋，免費可商用)
+    const preferredPatterns = [
+      /david|zira|mark|aria|jenny|guy|christopher|eric|michelle|samantha|alex|ava|allison|victoria|tom|susan|google us|natural/i
+    ];
+    const preferred = usOnly.filter(v => preferredPatterns.some(p => p.test(v.name)));
+    const result = preferred.length > 0 ? preferred : (usOnly.length > 0 ? usOnly : all.filter(v => /^en/i.test(v.lang)));
+    cachedUSVoices = result;
+    return result;
+  } catch (_) {
+    return cachedUSVoices;
+  }
+}
+
+export function getRandomUSVoice() {
+  const list = getAvailableUSVoices();
+  if (!list || !list.length) return null;
+  return list[Math.floor(Math.random() * list.length)];
+}
 
 export function getBestEnglishVoice() {
-  if (!supported) return null;
-  try {
-    const voices = speechSynthesis.getVoices() || [];
-    if (!voices.length) return null;
-    if (cachedEnglishVoice && voices.includes(cachedEnglishVoice)) {
-      return cachedEnglishVoice;
-    }
-    const enVoices = voices.filter(v => /^en(-|_|$)/i.test(String(v.lang || "").trim()));
-    if (!enVoices.length) return null;
-
-    // 優先選取本機穩定、免費可商用的作業系統內建男女聲 (避免 Chrome 遠端語音卡死無聲 Bug)
-    const localUS = enVoices.filter(v => v.localService && /en[-_]US/i.test(v.lang));
-    const localAnyEn = enVoices.filter(v => v.localService);
-
-    const preferredLocalPatterns = [
-      /Samantha|Alex|Ava|Allison|Victoria|Daniel|Karen|Moira/i,
-      /Microsoft (Zira|David|Mark|Aria|Jenny|Guy)/i,
-      /Natural/i
-    ];
-
-    for (const pat of preferredLocalPatterns) {
-      const mLocalUS = localUS.find(v => pat.test(v.name));
-      if (mLocalUS) {
-        cachedEnglishVoice = mLocalUS;
-        return mLocalUS;
-      }
-      const mLocalEn = localAnyEn.find(v => pat.test(v.name));
-      if (mLocalEn) {
-        cachedEnglishVoice = mLocalEn;
-        return mLocalEn;
-      }
-    }
-
-    if (localUS.length > 0) {
-      cachedEnglishVoice = localUS.find(v => v.default) || localUS[0];
-      return cachedEnglishVoice;
-    }
-    if (localAnyEn.length > 0) {
-      cachedEnglishVoice = localAnyEn[0];
-      return cachedEnglishVoice;
-    }
-
-    const fallback = enVoices.find(v => /en[-_]US/i.test(v.lang) && v.default)
-      || enVoices.find(v => /en[-_]US/i.test(v.lang))
-      || enVoices[0];
-    cachedEnglishVoice = fallback || null;
-    return cachedEnglishVoice;
-  } catch (_) {
-    return null;
-  }
+  return getRandomUSVoice() || null;
 }
 
 if (supported) {
   try {
-    getBestEnglishVoice();
+    getAvailableUSVoices();
     if ("onvoiceschanged" in speechSynthesis) {
       speechSynthesis.addEventListener("voiceschanged", () => {
-        cachedEnglishVoice = null;
-        getBestEnglishVoice();
+        cachedUSVoices = [];
+        getAvailableUSVoices();
       });
     }
   } catch (_) {}
@@ -103,11 +90,12 @@ export function stopAudio() {
   } catch (_) {}
 }
 
-function speakWithTTS(text, rate = 0.8, onEnd = null, token = currentSeqToken) {
+function speakWithTTS(text, rate = 0.8, onEnd = null, token = currentSeqToken, targetVoice = null) {
   if (!supported || !text) {
     if (onEnd) onEnd();
     return;
   }
+  const chosenVoice = targetVoice || getRandomUSVoice();
   const doSpeak = (useDefaultVoice = false) => {
     if (token !== currentSeqToken) return;
     try {
@@ -116,10 +104,10 @@ function speakWithTTS(text, rate = 0.8, onEnd = null, token = currentSeqToken) {
       }
       const u = new SpeechSynthesisUtterance(text);
       if (!useDefaultVoice) {
-        const bestVoice = getBestEnglishVoice();
-        if (bestVoice) {
-          u.voice = bestVoice;
-          u.lang = bestVoice.lang || "en-US";
+        const v = chosenVoice || getRandomUSVoice();
+        if (v) {
+          u.voice = v;
+          u.lang = v.lang || "en-US";
         } else {
           u.lang = "en-US";
         }
@@ -163,7 +151,7 @@ function speakWithTTS(text, rate = 0.8, onEnd = null, token = currentSeqToken) {
   }
 }
 
-function playSingleWordOrTTS(rawText, rate = 0.8, onEnd = null, token = currentSeqToken) {
+function playSingleWordOrTTS(rawText, rate = 0.8, onEnd = null, token = currentSeqToken, targetVoice = null) {
   const clean = String(rawText || "")
     .replace(/\(已訂正\)/g, "")
     .replace(/🔊/g, "")
@@ -174,44 +162,53 @@ function playSingleWordOrTTS(rawText, rate = 0.8, onEnd = null, token = currentS
     return;
   }
 
-  // 若為單一英文單字，優先播放清晰真人發音 MP3 音檔，失敗或無音檔時即時無縫切換至本機自然語音 TTS
+  // 若為單一英文單字，隨機使用免費可商用、純正美語腔之語音包 (約 50% 使用 Google US 真人發音音檔，50% 隨機使用系統優質美語 TTS 語音包)
   if (/^[a-zA-Z]+$/.test(clean) && typeof Audio !== "undefined") {
     const wordLower = clean.toLowerCase();
     const audioUrl = `https://ssl.gstatic.com/dictionary/static/sounds/20200429/${wordLower}--_us_1.mp3`;
-    let fallbackTriggered = false;
-    const triggerFallback = (err) => {
-      if (fallbackTriggered || token !== currentSeqToken) return;
-      if (err && err.name === "AbortError") return;
-      fallbackTriggered = true;
-      currentAudio = null;
-      speakWithTTS(clean, rate, onEnd, token);
-    };
 
-    try {
-      const audio = new Audio(audioUrl);
-      audio.playbackRate = 0.92;
-      currentAudio = audio;
-      audio.onended = () => {
-        if (currentAudio === audio) currentAudio = null;
-        if (!fallbackTriggered && token === currentSeqToken && onEnd) onEnd();
+    const useAudioMp3 = Math.random() < 0.5;
+
+    if (useAudioMp3) {
+      let fallbackTriggered = false;
+      const triggerFallback = (err) => {
+        if (fallbackTriggered || token !== currentSeqToken) return;
+        if (err && err.name === "AbortError") return;
+        fallbackTriggered = true;
+        currentAudio = null;
+        speakWithTTS(clean, rate, onEnd, token, targetVoice);
       };
-      audio.onerror = () => {
+
+      try {
+        const audio = new Audio(audioUrl);
+        audio.playbackRate = 0.92;
+        currentAudio = audio;
+        audio.onended = () => {
+          if (currentAudio === audio) currentAudio = null;
+          if (!fallbackTriggered && token === currentSeqToken && onEnd) onEnd();
+        };
+        audio.onerror = () => {
+          triggerFallback();
+        };
+        const playPromise = audio.play();
+        if (playPromise && typeof playPromise.catch === "function") {
+          playPromise.catch((err) => {
+            triggerFallback(err);
+          });
+        }
+        return;
+      } catch (_) {
         triggerFallback();
-      };
-      const playPromise = audio.play();
-      if (playPromise && typeof playPromise.catch === "function") {
-        playPromise.catch((err) => {
-          triggerFallback(err);
-        });
+        return;
       }
-      return;
-    } catch (_) {
-      triggerFallback();
+    } else {
+      // 隨機使用本機優質美語 TTS 語音包發音
+      speakWithTTS(clean, rate, onEnd, token, targetVoice);
       return;
     }
   }
 
-  speakWithTTS(clean, rate, onEnd, token);
+  speakWithTTS(clean, rate, onEnd, token, targetVoice);
 }
 
 // Speak a word or sentence at the given rate (預設 0.8).
@@ -254,6 +251,7 @@ export function spellOut(word) {
 /**
  * 嘉義縣單字王比賽標準播放模式：
  * 順序：【單字 (0.8)】 ➔ 停頓 1.0 秒 ➔ 【例句 (0.8)】 ➔ 停頓 1.0 秒 ➔ 【單字 (0.8)】
+ * 核心保證：朗讀例句時，全程使用「完全相同的同一個美式語音包」，避免單字與例句由不同聲音朗讀。
  */
 export function playContestSentence(word, sentence, onEnd = null) {
   if (typeof window !== "undefined" && window.__dailyUsageTimeIsUp) {
@@ -274,13 +272,6 @@ export function playContestSentence(word, sentence, onEnd = null) {
     }
   };
 
-  const speakPart = (text, rate, callback) => {
-    if (token !== currentSeqToken) return;
-    playSingleWordOrTTS(text, rate, () => {
-      if (token === currentSeqToken) callback();
-    }, token);
-  };
-
   const cleanWord = String(word || "").trim();
   let cleanSent = String(sentence || "").trim();
   // 若例句中有底線或挖空，自動替換為真實單字
@@ -288,25 +279,35 @@ export function playContestSentence(word, sentence, onEnd = null) {
     cleanSent = cleanSent.replace(/_+/g, cleanWord);
   }
 
-  // 缺單字或缺例句時退回單純朗讀 (速度 0.8)
+  // 隨機挑選一個純正美語語音包，整段【單字 ➔ 例句 ➔ 單字】全程鎖定使用同一個語音包
+  const sessionVoice = getRandomUSVoice();
+
+  const speakPart = (text, rate, callback) => {
+    if (token !== currentSeqToken) return;
+    speakWithTTS(text, rate, () => {
+      if (token === currentSeqToken) callback();
+    }, token, sessionVoice);
+  };
+
+  // 缺單字或缺例句時退回單純朗讀 (速度 0.8，使用同一個語音包)
   if (!cleanWord || !cleanSent) {
-    say(cleanSent || cleanWord, 0.8, cleanup);
+    speakWithTTS(cleanSent || cleanWord, 0.8, cleanup, token, sessionVoice);
     return;
   }
 
-  // 1. 播放單字 (速度 0.8)
+  // 1. 播放單字 (速度 0.8，使用 sessionVoice)
   speakPart(cleanWord, 0.8, () => {
     if (token !== currentSeqToken) return;
     // 2. 停頓 1.0 秒
     currentSeqTimer = setTimeout(() => {
       if (token !== currentSeqToken) return;
-      // 3. 播放例句 (速度 0.8)
+      // 3. 播放例句 (速度 0.8，使用完全相同的 sessionVoice)
       speakPart(cleanSent, 0.8, () => {
         if (token !== currentSeqToken) return;
         // 4. 停頓 1.0 秒
         currentSeqTimer = setTimeout(() => {
           if (token !== currentSeqToken) return;
-          // 5. 再次播放單字 (速度 0.8)
+          // 5. 再次播放單字 (速度 0.8，使用完全相同的 sessionVoice)
           speakPart(cleanWord, 0.8, () => {
             cleanup();
           });
