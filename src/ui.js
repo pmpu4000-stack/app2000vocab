@@ -806,8 +806,8 @@ function buildTaskDetailsHtml(record, selectedDate, d) {
   const scoreVal = record.score || "—";
   const rateVal = record.rate || "—";
   const statusStr = record.status || "🟢 已完成";
-  const statusColor = statusStr.includes("已完成") ? "#4ade80" : statusStr.includes("作答中") ? "#facc15" : "#94a3b8";
-  const statusBg = statusStr.includes("已完成") ? "rgba(34,197,94,0.15)" : statusStr.includes("作答中") ? "rgba(234,179,8,0.15)" : "rgba(148,163,184,0.15)";
+  const statusColor = statusStr.includes("已完成") ? "#047857" : statusStr.includes("作答中") ? "#d97706" : "#64748b";
+  const statusBg = statusStr.includes("已完成") ? "rgba(16,185,129,0.15)" : statusStr.includes("作答中") ? "rgba(234,179,8,0.15)" : "rgba(148,163,184,0.15)";
   const isFinished = statusStr.includes("已完成") || (scoreVal !== "—" && scoreVal !== "尚未開始");
 
   let correctContentHtml = "";
@@ -818,7 +818,7 @@ function buildTaskDetailsHtml(record, selectedDate, d) {
       correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（本次測驗全數答錯，尚無答對單字）</span>`;
     } else {
       correctContentHtml = (wrongList.length === 0)
-        ? `<span style="font-size:12px; color:#4ade80; font-weight:700;">🎉 太棒了！本次測驗全數答對！</span>`
+        ? `<span class="perfect-score-msg">🎉 太棒了！本次測驗全數答對！</span>`
         : `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（本次測驗作答 ${scoreVal}）</span>`;
     }
   } else {
@@ -829,7 +829,7 @@ function buildTaskDetailsHtml(record, selectedDate, d) {
   if (wrongList.length > 0) {
     wrongContentHtml = wrongList.map(w => `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); window.__sayWord && window.__sayWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
   } else if (isFinished) {
-    wrongContentHtml = `<span style="font-size:12px; color:#4ade80; font-weight:700;">🎉 太棒了！本次測驗全數答對，無任何答錯單字！</span>`;
+    wrongContentHtml = `<span class="perfect-score-msg">🎉 太棒了！本次測驗全數答對，無任何答錯單字！</span>`;
   } else {
     wrongContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（目前無答錯單字）</span>`;
   }
@@ -982,13 +982,13 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
   if (wrongList.length > 0) {
     wrongContentHtml = wrongList.map(w => {
       if (w.correct > 0) {
-        return `<span class="word-pill-tag correct" data-word="${w.word.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); window.__sayWord && window.__sayWord('${w.word.replace(/'/g, "\\'")}')" style="border:1px dashed #4ade80; cursor:pointer;" title="當日曾答錯，已訂正答對 (點擊聆聽發音)">${w.word} <small style="font-size:10px; opacity:0.85;">(已訂正)</small></span>`;
+        return `<span class="word-pill-tag correct" data-word="${w.word.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); window.__sayWord && window.__sayWord('${w.word.replace(/'/g, "\\'")}')" style="border:1.5px dashed var(--green, #10B981); cursor:pointer;" title="當日曾答錯，已訂正答對 (點擊聆聽發音)">${w.word} <small style="font-size:10px; opacity:0.85;">(已訂正)</small></span>`;
       } else {
         return `<span class="word-pill-tag wrong" data-word="${w.word.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); window.__sayWord && window.__sayWord('${w.word.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w.word}</span>`;
       }
     }).join("");
   } else {
-    wrongContentHtml = `<span style="font-size:12px; color:#4ade80; font-weight:700;">🎉 太棒了！當日自由練習全數答對，無任何答錯單字！</span>`;
+    wrongContentHtml = `<span class="perfect-score-msg">🎉 太棒了！當日自由練習全數答對，無任何答錯單字！</span>`;
   }
 
   return `
@@ -2130,7 +2130,7 @@ async function _exportRecordToPdf(payload) {
           ${r.hasTask ? `
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
               <div style="background:#F1FBF6; border:1px solid rgba(47,180,124,.3); border-radius:8px; padding:7px 9px;">
-                <div style="font-size:11.5px; font-weight:800; color:#1E9A66; margin-bottom:4px;">✅ 答對的單字</div>
+                <div style="font-size:11.5px; font-weight:800; color:#065F46; margin-bottom:4px;">✅ 答對的單字</div>
                 <div>${taskCorrPills}</div>
               </div>
               <div style="background:#FFF5F5; border:1px solid rgba(255,107,107,.3); border-radius:8px; padding:7px 9px;">
@@ -2150,7 +2150,7 @@ async function _exportRecordToPdf(payload) {
           ${r.hasFree ? `
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
               <div style="background:#F1FBF6; border:1px solid rgba(47,180,124,.3); border-radius:8px; padding:7px 9px;">
-                <div style="font-size:11.5px; font-weight:800; color:#1E9A66; margin-bottom:4px;">✅ 答對的單字</div>
+                <div style="font-size:11.5px; font-weight:800; color:#065F46; margin-bottom:4px;">✅ 答對的單字</div>
                 <div>${freeCorrPills}</div>
               </div>
               <div style="background:#FFF5F5; border:1px solid rgba(255,107,107,.3); border-radius:8px; padding:7px 9px;">
