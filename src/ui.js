@@ -2277,6 +2277,23 @@ export function initExportRecordsCard(getSummaryFn) {
   if (sec.__exportBound) return;
   sec.__exportBound = true;
 
+  const toggleBtn = document.getElementById("btn-toggle-export-card");
+  const navCard = document.getElementById("export-navigator-card") || sec.querySelector(".export-navigator-card");
+  if (toggleBtn && navCard) {
+    toggleBtn.onclick = (e) => {
+      e.preventDefault();
+      const isHidden = (navCard.style.display === "none");
+      if (isHidden) {
+        navCard.style.display = "flex";
+        sec.classList.remove("is-collapsed");
+        navCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      } else {
+        navCard.style.display = "none";
+        sec.classList.add("is-collapsed");
+      }
+    };
+  }
+
   let currentMode = "single";
   const setExportMode = (m) => {
     currentMode = (m === "range") ? "range" : "single";

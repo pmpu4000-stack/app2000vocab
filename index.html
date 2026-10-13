@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>拼字小特工 · Spelling Agent</title>
-  <link rel="stylesheet" href="css/styles.css?v=20261013_2145">
+  <link rel="stylesheet" href="css/styles.css?v=20261013_2205">
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" defer></script>
   <link rel="preload" href="data/words2000.json" as="fetch" crossorigin>
@@ -1055,15 +1055,35 @@ body[data-theme="dark"],
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 800;
   color: var(--ink);
   letter-spacing: 0.2px;
   text-transform: none;
   margin-bottom: 10px;
 }
+.export-records-card.is-collapsed h3 {
+  margin-bottom: 0 !important;
+}
+.export-records-card h3 a {
+  color: var(--violet);
+  font-size: 12px;
+  cursor: pointer;
+  text-decoration: underline;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.export-records-card h3 a:hover {
+  color: var(--violet-d);
+  opacity: 0.88;
+}
 [data-theme="dark"] .export-records-card h3 {
   color: #F0F3FA !important;
+}
+[data-theme="dark"] .export-records-card h3 a {
+  color: var(--sky, #38bdf8) !important;
 }
 .export-sub-hint {
   font-size: 11.5px;
@@ -1370,12 +1390,14 @@ body[data-theme="dark"],
       <div class="banner" id="banner"></div>
 
       <!-- 📥 底部作答歷程紀錄匯出下載方塊 (支援指定日期或指定範圍，PDF / Excel 雙格式輸出) -->
-      <section class="progress export-records-card" id="export-records-section">
+      <section class="progress export-records-card is-collapsed" id="export-records-section">
         <h3>
-          <span>📥 下載作答歷程記錄</span>
-          <span class="export-sub-hint">支援指定單日或日期範圍匯出</span>
+          <span>作答歷程</span>
+          <span style="display:flex;gap:14px">
+            <a id="btn-toggle-export-card" title="展開或收合作答歷程下載">📥 下載歷程</a>
+          </span>
         </h3>
-        <div class="date-navigator-card export-navigator-card">
+        <div class="date-navigator-card export-navigator-card" id="export-navigator-card" style="display:none;">
           <div class="export-controls-wrap">
             <div class="export-row">
               <span class="date-nav-title"><span>📅</span> 匯出範圍：</span>
