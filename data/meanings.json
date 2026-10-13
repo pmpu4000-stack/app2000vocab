@@ -9070,7 +9070,7 @@
         "level": "simple",
         "levelName": "簡單",
         "sent": "Chase silver.",
-        "sentZh": "Chase silver.",
+        "sentZh": "雕刻銀器。",
         "src": "Princeton WordNet 3.0 (WordNet License)"
       },
       {
@@ -15010,7 +15010,7 @@
         "level": "simple",
         "levelName": "簡單",
         "sent": "He is a doctor.",
-        "sentZh": "他是醫生來的。",
+        "sentZh": "他是醫生。",
         "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #293611 (CK) & #8593079 (easononizuka)"
       },
       {
@@ -27684,7 +27684,7 @@
         "level": "advanced",
         "levelName": "進階",
         "sent": "Right at that instant, the bus stopped.",
-        "sentZh": "就在那時，公交車停住了。",
+        "sentZh": "就在那時，公車停住了。",
         "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #2160716 (erikspen) & #1786150 (sadhen)"
       }
     ]
@@ -33573,21 +33573,21 @@
     "zh": "n. 地鐵",
     "ph": "ˋmɛtro",
     "sent": "We took the metro into the city.",
-    "sentZh": "我們乘地鐵進城。",
+    "sentZh": "我們搭捷運進城。",
     "sentSrc": "Webster's Revised Unabridged Dictionary (1913) / GCIDE (Public Domain)",
     "sents": [
       {
         "level": "simple",
         "levelName": "簡單",
         "sent": "Look at the metro.",
-        "sentZh": "看這個「地鐵」。",
+        "sentZh": "看這個「捷運」。",
         "src": "Tatoeba Project (CC-BY 2.0 FR)"
       },
       {
         "level": "normal",
         "levelName": "普通",
         "sent": "We took the metro into the city.",
-        "sentZh": "我們乘地鐵進城。",
+        "sentZh": "我們搭捷運進城。",
         "src": "Webster's Revised Unabridged Dictionary (1913) / GCIDE (Public Domain)"
       },
       {
@@ -34893,7 +34893,7 @@
     "zh": "n. 捷運",
     "ph": "ˏɛm ɑr ˋti",
     "sent": "We take the MRT to school.",
-    "sentZh": "我們乘坐地鐵去學校。",
+    "sentZh": "我們搭乘捷運去學校。",
     "sentSrc": "Webster's Revised Unabridged Dictionary (1913) / GCIDE (Public Domain)",
     "sents": [
       {
@@ -34907,7 +34907,7 @@
         "level": "normal",
         "levelName": "普通",
         "sent": "We take the MRT to school.",
-        "sentZh": "我們乘坐地鐵去學校。",
+        "sentZh": "我們搭乘捷運去學校。",
         "src": "Webster's Revised Unabridged Dictionary (1913) / GCIDE (Public Domain)"
       },
       {
@@ -37660,7 +37660,7 @@
         "level": "simple",
         "levelName": "簡單",
         "sent": "Give me an orange.",
-        "sentZh": "給我一個橙子。",
+        "sentZh": "給我一個柳橙。",
         "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #1615374 (marcelostockle) & #8824101 (xjjAstrus)"
       },
       {
@@ -37674,7 +37674,7 @@
         "level": "advanced",
         "levelName": "進階",
         "sent": "A girl gave me an orange in exchange for a piece of cake.",
-        "sentZh": "有個女生用一個橙子跟我換了一塊蛋糕。",
+        "sentZh": "有個女生用一個柳橙跟我換了一塊蛋糕。",
         "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #267205 (CK) & #406729 (fucongcong)"
       }
     ]
@@ -47193,7 +47193,7 @@
     "zh": "n. 形狀",
     "ph": "ʃep",
     "sent": "The earth is similar to an orange in shape.",
-    "sentZh": "地球的外形和橙子相似。",
+    "sentZh": "地球的外形和柳橙相似。",
     "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #277103 (CM) & #334742 (fucongcong)",
     "sents": [
       {
@@ -47207,7 +47207,7 @@
         "level": "normal",
         "levelName": "普通",
         "sent": "The earth is similar to an orange in shape.",
-        "sentZh": "地球的外形和橙子相似。",
+        "sentZh": "地球的外形和柳橙相似。",
         "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #277103 (CM) & #334742 (fucongcong)"
       },
       {
@@ -48910,7 +48910,7 @@
         "level": "simple",
         "levelName": "簡單",
         "sent": "I want to sleep.",
-        "sentZh": "真想睡過去啊。",
+        "sentZh": "我好想睡覺。",
         "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #321870 (CK) & #2442076 (fenfang557)"
       },
       {
@@ -51301,7 +51301,7 @@
   },
   "stomachache": {
     "zh": "n. 肚子痛",
-    "ph": "ˋstʌmək͵ek",
+    "ph": "ˋstʌməkˏek",
     "sent": "If you eat that much, you'll get a stomachache.",
     "sentZh": "那麼吃的話，肚子會吃壞的噢。",
     "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #4629312 (CK) & #5096703 (mirrorvan)",
@@ -55861,7 +55861,7 @@
   },
   "toothache": {
     "zh": "n. 牙痛",
-    "ph": "ˋtuθ͵ek",
+    "ph": "ˋtuθˏek",
     "sent": "I've got a toothache.",
     "sentZh": "我牙疼。",
     "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #263581 (CK) & #470984 (fucongcong)",
