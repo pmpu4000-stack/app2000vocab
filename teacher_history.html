@@ -2380,7 +2380,7 @@
       background: linear-gradient(135deg, #F1EDFF, #F8F9FD) !important;
       border: 1.5px solid #E4DFFa !important;
       border-radius: 14px !important;
-      padding: 12px 16px !important;
+      padding: 10px 14px !important;
       margin: 12px 0 16px !important;
       display: flex !important;
       flex-wrap: wrap !important;
@@ -2399,14 +2399,16 @@
       display: flex !important;
       align-items: center !important;
       flex-wrap: wrap !important;
-      gap: 8px !important;
+      gap: 6px !important;
     }
     .date-nav-right {
       display: flex !important;
       flex-direction: column !important;
       align-items: flex-start !important;
-      gap: 6px !important;
-      min-width: 260px !important;
+      gap: 4px !important;
+      width: 260px !important;
+      min-width: 240px !important;
+      max-width: 100% !important;
     }
     .date-nav-title {
       font-weight: 800 !important;
@@ -2415,6 +2417,7 @@
       display: flex !important;
       align-items: center !important;
       gap: 5px !important;
+      white-space: nowrap !important;
     }
     [data-theme="dark"] .date-nav-title {
       color: #38BDF8 !important;
@@ -2434,16 +2437,18 @@
       background: #FFFFFF !important;
       border: 1.5px solid var(--sky) !important;
       color: var(--ink) !important;
-      padding: 5px 10px !important;
+      padding: 3px 8px !important;
+      height: 28px !important;
+      min-height: 28px !important;
+      max-height: 28px !important;
       border-radius: 8px !important;
-      font-size: 13px !important;
+      font-size: 12.5px !important;
       font-weight: 700 !important;
       outline: none !important;
       cursor: pointer !important;
-      min-height: 0 !important;
-      height: auto !important;
-      line-height: 1.5 !important;
+      line-height: 1.2 !important;
       font-family: inherit !important;
+      box-sizing: border-box !important;
     }
     [data-theme="dark"] .date-picker-input {
       background: #131624 !important;
@@ -2451,20 +2456,27 @@
       color: #F0F3FA !important;
     }
     .date-nav-btn {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 2px !important;
       background: #FFFFFF !important;
       border: 1px solid var(--line) !important;
       color: var(--ink) !important;
-      padding: 5px 11px !important;
+      padding: 0 10px !important;
+      height: 28px !important;
+      min-height: 28px !important;
+      max-height: 28px !important;
       border-radius: 8px !important;
       font-size: 12px !important;
       font-weight: 700 !important;
       cursor: pointer !important;
       transition: all .15s !important;
-      min-height: 0 !important;
-      height: auto !important;
-      line-height: 1.5 !important;
+      line-height: 1 !important;
       font-family: inherit !important;
       transform: none !important;
+      box-sizing: border-box !important;
+      white-space: nowrap !important;
     }
     .date-nav-btn:hover {
       background: #F1F8FC !important;
@@ -2499,20 +2511,23 @@
     .task-date-selector,
     .date-nav-right .task-date-selector {
       width: 100% !important;
-      min-width: 240px !important;
+      min-width: 0 !important;
+      max-width: 100% !important;
       background: #FFFFFF !important;
       border: 1.5px solid var(--line) !important;
       color: var(--ink) !important;
-      padding: 6px 10px !important;
+      padding: 4px 8px !important;
+      height: 29px !important;
+      min-height: 29px !important;
+      max-height: 29px !important;
       border-radius: 8px !important;
-      font-size: 13px !important;
+      font-size: 12.5px !important;
       font-weight: 700 !important;
       outline: none !important;
       cursor: pointer !important;
-      min-height: 0 !important;
-      height: auto !important;
-      line-height: 1.5 !important;
+      line-height: 1.2 !important;
       font-family: inherit !important;
+      box-sizing: border-box !important;
     }
     [data-theme="dark"] .task-date-selector,
     [data-theme="dark"] .date-nav-right .task-date-selector {
@@ -2714,34 +2729,111 @@
       flex-shrink: 0 !important;
       background: #ECFDF5 !important;
       color: #065F46 !important;
-      border: 2px solid #34D399 !important;
+      border: 2px solid #10B981 !important;
       box-shadow: 0 2px 6px rgba(16, 185, 129, 0.14) !important;
       font-variant-numeric: tabular-nums !important;
     }
     .heat-day-info b {
-      color: #047857 !important;
       font-weight: 900 !important;
     }
+    /* 1. 無作答紀錄：灰色 */
+    .heat-day-info.tier-gray,
     .heat-day-info.empty {
-      background: #ECFDF5 !important;
-      color: #065F46 !important;
-      border: 2px solid #34D399 !important;
-      box-shadow: 0 2px 6px rgba(16, 185, 129, 0.14) !important;
+      background: #F1F5F9 !important;
+      color: #64748B !important;
+      border: 2px solid #94A3B8 !important;
+      box-shadow: 0 2px 5px rgba(100, 116, 139, 0.12) !important;
     }
+    .heat-day-info.tier-gray b,
     .heat-day-info.empty b {
-      color: #047857 !important;
-      font-weight: 900 !important;
+      color: #475569 !important;
     }
-    [data-theme="dark"] .heat-day-info,
+    [data-theme="dark"] .heat-day-info.tier-gray,
     [data-theme="dark"] .heat-day-info.empty {
-      background: rgba(16, 185, 129, 0.18) !important;
-      color: #A7F3D0 !important;
-      border: 2px solid rgba(52, 211, 153, 0.65) !important;
+      background: rgba(148, 163, 184, 0.12) !important;
+      color: #94A3B8 !important;
+      border: 2px solid #64748B !important;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35) !important;
     }
-    [data-theme="dark"] .heat-day-info b,
+    [data-theme="dark"] .heat-day-info.tier-gray b,
     [data-theme="dark"] .heat-day-info.empty b {
+      color: #CBD5E1 !important;
+    }
+    /* 2. 答對率 60 以下：白色 (淺色模式配深底使白字與白框高對比易讀；深色模式純白字與純白框) */
+    .heat-day-info.tier-white {
+      background: #334155 !important;
+      color: #FFFFFF !important;
+      border: 2px solid #CBD5E1 !important;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.18) !important;
+    }
+    .heat-day-info.tier-white b {
+      color: #FFFFFF !important;
+    }
+    [data-theme="dark"] .heat-day-info.tier-white {
+      background: rgba(255, 255, 255, 0.14) !important;
+      color: #FFFFFF !important;
+      border: 2px solid #FFFFFF !important;
+      box-shadow: 0 2px 8px rgba(255, 255, 255, 0.12) !important;
+    }
+    [data-theme="dark"] .heat-day-info.tier-white b {
+      color: #FFFFFF !important;
+    }
+    /* 3. 答對率 60 以上 80 以下：綠色 */
+    .heat-day-info.tier-green {
+      background: #ECFDF5 !important;
+      color: #065F46 !important;
+      border: 2px solid #10B981 !important;
+      box-shadow: 0 2px 6px rgba(16, 185, 129, 0.15) !important;
+    }
+    .heat-day-info.tier-green b {
+      color: #047857 !important;
+    }
+    [data-theme="dark"] .heat-day-info.tier-green {
+      background: rgba(16, 185, 129, 0.18) !important;
+      color: #6EE7B7 !important;
+      border: 2px solid #34D399 !important;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35) !important;
+    }
+    [data-theme="dark"] .heat-day-info.tier-green b {
       color: #34D399 !important;
+    }
+    /* 4. 答對率 80 以上 100 以下：黃色 */
+    .heat-day-info.tier-yellow {
+      background: #FEFCE8 !important;
+      color: #B45309 !important;
+      border: 2px solid #EAB308 !important;
+      box-shadow: 0 2px 6px rgba(234, 179, 8, 0.18) !important;
+    }
+    .heat-day-info.tier-yellow b {
+      color: #92400E !important;
+    }
+    [data-theme="dark"] .heat-day-info.tier-yellow {
+      background: rgba(250, 204, 21, 0.16) !important;
+      color: #FDE047 !important;
+      border: 2px solid #FACC15 !important;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35) !important;
+    }
+    [data-theme="dark"] .heat-day-info.tier-yellow b {
+      color: #FEF08A !important;
+    }
+    /* 5. 答對率 100：紅色 */
+    .heat-day-info.tier-red {
+      background: #FEF2F2 !important;
+      color: #DC2626 !important;
+      border: 2px solid #EF4444 !important;
+      box-shadow: 0 2px 6px rgba(239, 68, 68, 0.18) !important;
+    }
+    .heat-day-info.tier-red b {
+      color: #B91C1C !important;
+    }
+    [data-theme="dark"] .heat-day-info.tier-red {
+      background: rgba(239, 68, 68, 0.20) !important;
+      color: #FCA5A5 !important;
+      border: 2px solid #F87171 !important;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35) !important;
+    }
+    [data-theme="dark"] .heat-day-info.tier-red b {
+      color: #FECACA !important;
     }
     @media (max-width: 640px) {
       .streakline {
@@ -3679,7 +3771,7 @@
           <span id="stHeatDayInfo" class="heat-day-info"></span>
         </div>
         <div class="heatmap" id="stHeatmapGrid"></div>
-        <div class="heat-legend">🔥 <b>連續</b>：從今天往回算，一天都沒中斷、天天有練習的天數。<br>🏆 <b>最佳</b>：你曾經創下「最長連續天天練習」的紀錄。<br>📅 <b>累計</b>：從開始到現在，總共有練習過的天數（中間有休息也算）。<br>🟩 <b>熱力圖</b>：方格顏色愈深，代表當天練習愈多（點選或移至方格可於上方「累計練習」右方框框查看當日數值）。</div>
+        <div class="heat-legend">🔥 <b>連續</b>：從今天往回算，一天都沒中斷、天天有練習的天數。<br>🏆 <b>最佳</b>：你曾經創下「最長連續天天練習」的紀錄。<br>📅 <b>累計</b>：從開始到現在，總共有練習過的天數（中間有休息也算）。<br>🟩 <b>熱力圖</b>：方格顏色愈深，代表當天練習愈多。</div>
       </div>
     </section>
   </div>
@@ -13615,13 +13707,20 @@ function renderStudentSummary(resp) {
         }
       }
 
+      const getStHeatBadgeTierClass = (att, rate) => {
+        if (!att || att <= 0) return "heat-day-info tier-gray";
+        if (rate >= 100) return "heat-day-info tier-red";
+        if (rate >= 80) return "heat-day-info tier-yellow";
+        if (rate >= 60) return "heat-day-info tier-green";
+        return "heat-day-info tier-white";
+      };
+
       const renderStHeatBadgeContent = (dateKey, att, rate, activeCellIdx) => {
         if (!heatDayInfoEl) return;
+        heatDayInfoEl.className = getStHeatBadgeTierClass(att, rate);
         if (att > 0) {
-          heatDayInfoEl.className = "heat-day-info";
           heatDayInfoEl.innerHTML = `📅 <b>${dateKey}</b> ｜ 作答 <b>${att}</b> 題 · 正確率 <b>${rate}%</b>`;
         } else {
-          heatDayInfoEl.className = "heat-day-info empty";
           heatDayInfoEl.innerHTML = `📅 <b>${dateKey}</b> ｜ 作答 <b>0</b> 題 · 當日無練習`;
         }
         heatGrid.querySelectorAll(".hc").forEach((cell, cIdx) => {

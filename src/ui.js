@@ -1319,7 +1319,7 @@ export function renderSummary(d) {
     </div>
     <div class="heatmap" id="heatmap-grid">${d.history.days.map((x, idx) =>
       `<i class="hc h${x.level}" data-idx="${idx}" data-key="${x.key}" data-a="${x.a || 0}" data-rate="${x.rate || 0}"></i>`).join("")}</div>
-    <div class="heat-legend">🔥 <b>連續</b>：從今天往回算，一天都沒中斷、天天有練習的天數。<br>🏆 <b>最佳</b>：你曾經創下「最長連續天天練習」的紀錄。<br>📅 <b>累計</b>：從開始到現在，總共有練習過的天數（中間有休息也算）。<br>🟩 <b>熱力圖</b>：方格顏色愈深，代表當天練習愈多（點選或移至方格可於上方「累計練習」右方框框查看當日數值）。</div>`;
+    <div class="heat-legend">🔥 <b>連續</b>：從今天往回算，一天都沒中斷、天天有練習的天數。<br>🏆 <b>最佳</b>：你曾經創下「最長連續天天練習」的紀錄。<br>📅 <b>累計</b>：從開始到現在，總共有練習過的天數（中間有休息也算）。<br>🟩 <b>熱力圖</b>：方格顏色愈深，代表當天練習愈多。</div>`;
 
   // 綁定點擊「答對的單字 / 答錯的單字」標籤事件委派，確保 100% 發音
   el.summary.onclick = (e) => {
@@ -1343,13 +1343,20 @@ export function renderSummary(d) {
     }
   }
 
+  const getHeatBadgeTierClass = (att, rate) => {
+    if (!att || att <= 0) return "heat-day-info tier-gray";
+    if (rate >= 100) return "heat-day-info tier-red";
+    if (rate >= 80) return "heat-day-info tier-yellow";
+    if (rate >= 60) return "heat-day-info tier-green";
+    return "heat-day-info tier-white";
+  };
+
   const renderHeatBadgeContent = (dateKey, att, rate, activeCellIdx) => {
     if (!heatDayInfoEl) return;
+    heatDayInfoEl.className = getHeatBadgeTierClass(att, rate);
     if (att > 0) {
-      heatDayInfoEl.className = "heat-day-info";
       heatDayInfoEl.innerHTML = `📅 <b>${dateKey}</b> ｜ 作答 <b>${att}</b> 題 · 正確率 <b>${rate}%</b>`;
     } else {
-      heatDayInfoEl.className = "heat-day-info empty";
       heatDayInfoEl.innerHTML = `📅 <b>${dateKey}</b> ｜ 作答 <b>0</b> 題 · 當日無練習`;
     }
     if (heatGridEl) {

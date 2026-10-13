@@ -188,12 +188,33 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 .streakline{font-size:13.5px;font-weight:800;color:var(--ink2);margin-bottom:10px;display:flex;align-items:center;justify-content:flex-start;flex-wrap:nowrap;gap:10px}
 .streakline > span:first-child{white-space:nowrap;flex-shrink:0}
 .streakline b{color:var(--catD);font-variant-numeric:tabular-nums}
-.heat-day-info{display:inline-flex !important;align-items:center;justify-content:center;gap:6px;width:315px;min-width:315px;max-width:315px;height:34px;padding:0 12px;box-sizing:border-box;border-radius:9px;font-size:13px;font-weight:800;line-height:1;white-space:nowrap;flex-shrink:0;background:#ECFDF5;color:#065F46;border:2px solid #34D399;box-shadow:0 2px 6px rgba(16,185,129,.14);font-variant-numeric:tabular-nums}
-.heat-day-info b{color:#047857 !important;font-weight:900}
-.heat-day-info.empty{background:#ECFDF5;color:#065F46;border:2px solid #34D399;box-shadow:0 2px 6px rgba(16,185,129,.14)}
-.heat-day-info.empty b{color:#047857 !important;font-weight:900}
-[data-theme="dark"] .heat-day-info,[data-theme="dark"] .heat-day-info.empty{background:rgba(16,185,129,.18) !important;color:#A7F3D0 !important;border:2px solid rgba(52,211,153,.65) !important;box-shadow:0 2px 8px rgba(0,0,0,.35) !important}
-[data-theme="dark"] .heat-day-info b,[data-theme="dark"] .heat-day-info.empty b{color:#34D399 !important}
+.heat-day-info{display:inline-flex !important;align-items:center;justify-content:center;gap:6px;width:315px;min-width:315px;max-width:315px;height:34px;padding:0 12px;box-sizing:border-box;border-radius:9px;font-size:13px;font-weight:800;line-height:1;white-space:nowrap;flex-shrink:0;background:#ECFDF5;color:#065F46;border:2px solid #10B981;box-shadow:0 2px 6px rgba(16,185,129,.14);font-variant-numeric:tabular-nums}
+.heat-day-info b{font-weight:900}
+/* 1. 無作答紀錄：灰色 */
+.heat-day-info.tier-gray,.heat-day-info.empty{background:#F1F5F9 !important;color:#64748B !important;border:2px solid #94A3B8 !important;box-shadow:0 2px 5px rgba(100,116,139,.12) !important}
+.heat-day-info.tier-gray b,.heat-day-info.empty b{color:#475569 !important}
+[data-theme="dark"] .heat-day-info.tier-gray,[data-theme="dark"] .heat-day-info.empty{background:rgba(148,163,184,.12) !important;color:#94A3B8 !important;border:2px solid #64748B !important;box-shadow:0 2px 8px rgba(0,0,0,.35) !important}
+[data-theme="dark"] .heat-day-info.tier-gray b,[data-theme="dark"] .heat-day-info.empty b{color:#CBD5E1 !important}
+/* 2. 答對率 60 以下：白色 (淺色模式配深底使白字與白框高對比易讀；深色模式純白字與純白框) */
+.heat-day-info.tier-white{background:#334155 !important;color:#FFFFFF !important;border:2px solid #CBD5E1 !important;box-shadow:0 2px 6px rgba(15,23,42,.18) !important}
+.heat-day-info.tier-white b{color:#FFFFFF !important}
+[data-theme="dark"] .heat-day-info.tier-white{background:rgba(255,255,255,.14) !important;color:#FFFFFF !important;border:2px solid #FFFFFF !important;box-shadow:0 2px 8px rgba(255,255,255,.12) !important}
+[data-theme="dark"] .heat-day-info.tier-white b{color:#FFFFFF !important}
+/* 3. 答對率 60 以上 80 以下：綠色 */
+.heat-day-info.tier-green{background:#ECFDF5 !important;color:#065F46 !important;border:2px solid #10B981 !important;box-shadow:0 2px 6px rgba(16,185,129,.15) !important}
+.heat-day-info.tier-green b{color:#047857 !important}
+[data-theme="dark"] .heat-day-info.tier-green{background:rgba(16,185,129,.18) !important;color:#6EE7B7 !important;border:2px solid #34D399 !important;box-shadow:0 2px 8px rgba(0,0,0,.35) !important}
+[data-theme="dark"] .heat-day-info.tier-green b{color:#34D399 !important}
+/* 4. 答對率 80 以上 100 以下：黃色 */
+.heat-day-info.tier-yellow{background:#FEFCE8 !important;color:#B45309 !important;border:2px solid #EAB308 !important;box-shadow:0 2px 6px rgba(234,179,8,.18) !important}
+.heat-day-info.tier-yellow b{color:#92400E !important}
+[data-theme="dark"] .heat-day-info.tier-yellow{background:rgba(250,204,21,.16) !important;color:#FDE047 !important;border:2px solid #FACC15 !important;box-shadow:0 2px 8px rgba(0,0,0,.35) !important}
+[data-theme="dark"] .heat-day-info.tier-yellow b{color:#FEF08A !important}
+/* 5. 答對率 100：紅色 */
+.heat-day-info.tier-red{background:#FEF2F2 !important;color:#DC2626 !important;border:2px solid #EF4444 !important;box-shadow:0 2px 6px rgba(239,68,68,.18) !important}
+.heat-day-info.tier-red b{color:#B91C1C !important}
+[data-theme="dark"] .heat-day-info.tier-red{background:rgba(239,68,68,.20) !important;color:#FCA5A5 !important;border:2px solid #F87171 !important;box-shadow:0 2px 8px rgba(0,0,0,.35) !important}
+[data-theme="dark"] .heat-day-info.tier-red b{color:#FECACA !important}
 @media(max-width:640px){.streakline{flex-wrap:wrap;gap:8px}.heat-day-info{width:100%;min-width:0;max-width:100%}}
 .heatmap{display:grid !important;grid-template-columns:repeat(14,1fr) !important;gap:5px !important;width:100% !important;max-width:100% !important;margin:10px 0 12px !important}
 .hc{width:100% !important;aspect-ratio:1 !important;border-radius:5px !important;background:#DDE0F0;border:1px solid #CDD1E6;display:block !important;cursor:pointer;transition:transform .15s ease,box-shadow .15s ease}
@@ -255,7 +276,7 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 /* Teacher Daily Task Quiz Section */
 .task-history-card{background:#F8F9FD;border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:10px 0 16px}
 .task-history-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px}
-.task-date-selector{background:#FFFFFF;border:1.5px solid var(--line);color:var(--ink);padding:6px 10px;border-radius:8px;font-size:13px;font-weight:700;outline:none;cursor:pointer}
+.task-date-selector{background:#FFFFFF;border:1.5px solid var(--line);color:var(--ink);padding:4px 8px;height:29px;min-height:29px;max-height:29px;line-height:1.2;border-radius:8px;font-size:12.5px;font-weight:700;outline:none;cursor:pointer;box-sizing:border-box}
 .task-score-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:12px}
 .task-score-item{background:#FFFFFF;border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center}
 .task-score-val{font-size:20px;font-weight:800;line-height:1.2}
@@ -266,12 +287,12 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 .word-pill-tag.neutral{background:#F1F1F8;color:var(--ink2);border:1px solid var(--line)}
 
 /* Date Navigator Bar & Word Split Areas */
-.date-navigator-card{background:linear-gradient(135deg,#F1EDFF,#F8F9FD);border:1.5px solid #E4DFFa;border-radius:14px;padding:12px 16px;margin:12px 0 16px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
-.date-nav-left{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
-.date-nav-right{display:flex;flex-direction:column;align-items:flex-start;gap:6px;min-width:260px}
-.date-nav-right .task-date-selector{width:100%;min-width:240px}
-.date-picker-input{background:#FFFFFF;border:1.5px solid var(--sky);color:var(--ink);padding:5px 10px;border-radius:8px;font-size:13px;font-weight:700;outline:none;cursor:pointer}
-.date-nav-btn{background:#FFFFFF;border:1px solid var(--line);color:var(--ink);padding:5px 11px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s}
+.date-navigator-card{background:linear-gradient(135deg,#F1EDFF,#F8F9FD);border:1.5px solid #E4DFFa;border-radius:14px;padding:10px 14px;margin:12px 0 16px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
+.date-nav-left{display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+.date-nav-right{display:flex;flex-direction:column;align-items:flex-start;gap:4px;width:260px;min-width:240px;max-width:100%}
+.date-nav-right .task-date-selector{width:100%;min-width:0;max-width:100%}
+.date-picker-input{background:#FFFFFF;border:1.5px solid var(--sky);color:var(--ink);padding:3px 8px;height:28px;min-height:28px;max-height:28px;line-height:1.2;border-radius:8px;font-size:12.5px;font-weight:700;outline:none;cursor:pointer;box-sizing:border-box}
+.date-nav-btn{display:inline-flex;align-items:center;justify-content:center;gap:2px;background:#FFFFFF;border:1px solid var(--line);color:var(--ink);padding:0 10px;height:28px;min-height:28px;max-height:28px;line-height:1;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;box-sizing:border-box;white-space:nowrap}
 .date-nav-btn:hover{background:#F1F8FC;border-color:var(--sky);color:var(--sky)}
 .date-nav-btn.today-btn{background:#EDF8FD;border-color:rgba(45,156,219,.4);color:var(--sky)}
 .date-nav-btn.today-btn:hover{background:var(--sky);color:#FFFFFF}
