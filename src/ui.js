@@ -368,6 +368,7 @@ function renderScramble(word, onCheck) {
   actWrap.append(tipText);
 
   el.stage.append(scr, inp, actWrap);
+  say(word.word);
   setTimeout(() => inp.focus(), 60);
 
   return {
