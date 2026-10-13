@@ -1225,10 +1225,9 @@ export function renderSummary(d) {
       </div>
     </div>
 
-    <!-- 教師指定單字測驗作答紀錄 -->
+    <!-- 指定測驗作答紀錄 -->
     <div class="subh" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-      <span>📝 教師指定單字測驗作答紀錄</span>
-      <span style="font-size:12px; color:var(--sky); font-weight:700;">📅 目前查看日期：<span id="task-view-date">${defaultSelectedDate}</span></span>
+      <span>📝 指定測驗作答紀錄</span>
     </div>
     <div id="task-record-details">
       ${initialTaskDetailsHtml}
@@ -1237,7 +1236,6 @@ export function renderSummary(d) {
     <!-- 自由練習作答紀錄 -->
     <div class="subh" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-top:20px;">
       <span>🎮 自由練習作答紀錄</span>
-      <span style="font-size:12px; color:var(--sky); font-weight:700;">📅 目前查看日期：<span id="free-view-date">${defaultSelectedDate}</span></span>
     </div>
     <div id="free-record-details">
       ${initialFreeDetailsHtml}

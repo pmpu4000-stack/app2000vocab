@@ -3753,17 +3753,15 @@
           </div>
         </div>
 
-        <!-- 📝 教師指定單字測驗作答紀錄 -->
+        <!-- 📝 指定測驗作答紀錄 -->
         <div class="subh" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-          <span>📝 教師指定單字測驗作答紀錄</span>
-          <span style="font-size:12px; color:var(--sky, #0284c7); font-weight:700;">📅 目前查看日期：<span id="task-view-date"></span></span>
+          <span>📝 指定測驗作答紀錄</span>
         </div>
         <div id="task-record-details"></div>
 
         <!-- 🎮 自由練習作答紀錄 -->
         <div class="subh" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-top:20px;">
           <span>🎮 自由練習作答紀錄</span>
-          <span style="font-size:12px; color:var(--sky, #0284c7); font-weight:700;">📅 目前查看日期：<span id="free-view-date"></span></span>
         </div>
         <div id="free-record-details"></div>
 
@@ -12855,21 +12853,23 @@ function resolveTaskWords(record, selectedDate, agent) {
     }
   }
 
-  // 4. 錯題單字
+  // 4. 錯題單字 (確保代號轉為真實單字)
   const wrongWords = (Array.isArray(record.wrongWords) ? record.wrongWords : [])
-    .map(w => String(w).trim().toLowerCase())
+    .map(w => resolveWord(String(w).trim()).toLowerCase())
     .filter(Boolean);
+
+  pool = pool.map(w => resolveWord(String(w).trim()).toLowerCase()).filter(Boolean);
 
   let wrongList = [];
   let correctList = [];
   const seen = new Set();
 
   pool.forEach(w => {
-    const clean = String(w).trim();
-    if (!clean || seen.has(clean.toLowerCase())) return;
-    seen.add(clean.toLowerCase());
+    const clean = resolveWord(String(w).trim()).toLowerCase();
+    if (!clean || seen.has(clean)) return;
+    seen.add(clean);
 
-    if (wrongWords.includes(clean.toLowerCase())) {
+    if (wrongWords.includes(clean)) {
       wrongList.push(clean);
     } else {
       correctList.push(clean);
@@ -12877,21 +12877,37 @@ function resolveTaskWords(record, selectedDate, agent) {
   });
 
   wrongWords.forEach(w => {
-    if (!seen.has(w.toLowerCase())) {
-      seen.add(w.toLowerCase());
-      wrongList.push(w);
+    const clean = resolveWord(String(w).trim()).toLowerCase();
+    if (clean && !seen.has(clean)) {
+      seen.add(clean);
+      wrongList.push(clean);
     }
   });
 
-  if (correctList.length === 0 && wrongList.length === 0 && record.score && record.score.includes("/")) {
-    const parts = record.score.split("/");
-    const corCnt = parseInt(parts[0]) || 0;
-    if (corCnt > 0 && agent && agent.stat) {
-      const candidates = Object.keys(agent.stat).filter(k => agent.stat[k] && agent.stat[k].c > 0 && !wrongWords.includes(k.toLowerCase()));
-      candidates.slice(0, corCnt).forEach(w => {
-        correctList.push(w);
-      });
-    }
+  let corCnt = 0;
+  if (record.score && String(record.score).includes("/")) {
+    const parts = String(record.score).split("/");
+    corCnt = parseInt(parts[0], 10) || 0;
+  } else if (record.correct !== undefined) {
+    corCnt = parseInt(record.correct, 10) || 0;
+  }
+
+  if (corCnt > 0 && correctList.length < corCnt && agent && agent.stat) {
+    const allPracticed = Object.keys(agent.stat)
+      .filter(k => agent.stat[k] && (agent.stat[k].a > 0 || agent.stat[k].c > 0))
+      .map(k => ({
+        word: resolveWord(k).toLowerCase(),
+        correct: agent.stat[k].c || 0
+      }))
+      .filter(item => item.word && !/^w\d+$/i.test(item.word) && !seen.has(item.word) && !wrongWords.includes(item.word));
+    allPracticed.sort((a, b) => (b.correct || 0) - (a.correct || 0));
+    const need = corCnt - correctList.length;
+    allPracticed.slice(0, need).forEach(item => {
+      if (!seen.has(item.word)) {
+        seen.add(item.word);
+        correctList.push(item.word);
+      }
+    });
   }
 
   correctList.sort((a, b) => a.localeCompare(b));
@@ -13007,7 +13023,9 @@ function buildFreeDetailsHtml(record, selectedDate, agent) {
 
   Object.keys(wordsMap).forEach(k => {
     const info = wordsMap[k];
-    const wName = (typeof info === "object" && info.word) ? info.word : k;
+    const rawW = (typeof info === "object" && info.word) ? info.word : k;
+    const wName = resolveWord(rawW).toLowerCase();
+    if (!wName || /^w\d+$/i.test(wName)) return;
     const hasWrong = (typeof info === "object" && info.wrong > 0);
     const hasCorrect = (typeof info === "object" && info.correct > 0);
 
@@ -13022,22 +13040,50 @@ function buildFreeDetailsHtml(record, selectedDate, agent) {
 
   if (correctList.length === 0 && wrongList.length === 0 && attempts > 0) {
     if (agent && agent.stat) {
-      const allWords = Object.keys(agent.stat).map(w => ({ word: w, correct: agent.stat[w].c || 0, wrong: agent.stat[w].w || 0 }));
+      const allWords = Object.keys(agent.stat)
+        .filter(k => agent.stat[k] && (agent.stat[k].a > 0 || agent.stat[k].c > 0))
+        .map(w => {
+          const st = agent.stat[w] || {};
+          const att = st.a || 0;
+          const cor = st.c || 0;
+          const wrg = (st.w !== undefined) ? st.w : Math.max(0, att - cor);
+          return {
+            word: resolveWord(w).toLowerCase(),
+            attempts: att || 1,
+            correct: cor,
+            wrong: wrg,
+            ew: !!st.ew
+          };
+        })
+        .filter(item => item.word && !/^w\d+$/i.test(item.word));
+
       if (wrongCount > 0 && allWords.length > 0) {
-        const wrongCands = allWords.filter(w => w.wrong > 0);
-        wrongCands.sort((a, b) => b.wrong - a.wrong);
+        const wrongCands = allWords.filter(w => w.wrong > 0 || w.ew);
+        wrongCands.sort((a, b) => (b.wrong || 0) - (a.wrong || 0));
         const pickedWrong = wrongCands.slice(0, wrongCount);
         pickedWrong.forEach(w => {
-          wrongList.push({ word: w.word, attempts: 1, wrong: w.wrong, correct: w.correct || 0 });
+          wrongList.push({ word: w.word, attempts: w.attempts || 1, wrong: w.wrong || 1, correct: w.correct || 0 });
         });
+        if (wrongList.length < wrongCount) {
+          const remaining = allWords.filter(w => !wrongList.some(wl => wl.word === w.word)).slice(0, wrongCount - wrongList.length);
+          remaining.forEach(w => {
+            wrongList.push({ word: w.word, attempts: w.attempts || 1, wrong: 1, correct: w.correct || 0 });
+          });
+        }
       }
       if (correct > 0 && allWords.length > 0) {
         const correctCands = allWords.filter(w => w.correct > 0 && !wrongList.some(wl => wl.word === w.word));
-        correctCands.sort((a, b) => b.correct - a.correct);
+        correctCands.sort((a, b) => (b.correct || 0) - (a.correct || 0));
         const pickedCorrect = correctCands.slice(0, correct);
         pickedCorrect.forEach(w => {
-          correctList.push({ word: w.word, attempts: 1, correct: w.correct || 1 });
+          correctList.push({ word: w.word, attempts: w.attempts || 1, correct: w.correct || 1 });
         });
+        if (correctList.length < correct) {
+          const remaining = allWords.filter(w => !wrongList.some(wl => wl.word === w.word) && !correctList.some(cl => cl.word === w.word)).slice(0, correct - correctList.length);
+          remaining.forEach(w => {
+            correctList.push({ word: w.word, attempts: w.attempts || 1, correct: 1 });
+          });
+        }
       }
     }
   }
@@ -13055,10 +13101,7 @@ function buildFreeDetailsHtml(record, selectedDate, agent) {
 
   let correctContentHtml = "";
   if (correctList.length > 0) {
-    correctContentHtml = correctList.map(w => {
-      const cntBadge = (w.correct && w.correct > 1) ? `<span style="font-size:10px; opacity:0.8; margin-left:3px; background:rgba(22,163,74,0.18); padding:1px 4px; border-radius:4px;">×${w.correct}</span>` : "";
-      return `<span class="word-pill-tag correct" onclick="speakMasteredWord('${w.word.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="答對 ${w.correct || 1} 次 (點擊聆聽發音)">${w.word}${cntBadge}</span>`;
-    }).join("");
+    correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" onclick="speakMasteredWord('${w.word.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w.word}</span>`).join("");
   } else {
     correctContentHtml = `<span style="font-size:12px; color:var(--text-muted, #94a3b8); font-style:italic;">（當日尚無全對單字）</span>`;
   }
@@ -13066,11 +13109,10 @@ function buildFreeDetailsHtml(record, selectedDate, agent) {
   let wrongContentHtml = "";
   if (wrongList.length > 0) {
     wrongContentHtml = wrongList.map(w => {
-      const wrongBadge = (w.wrong && w.wrong > 1) ? `<span style="font-size:10px; opacity:0.8; margin-left:3px; background:rgba(220,38,38,0.18); padding:1px 4px; border-radius:4px;">×${w.wrong}</span>` : "";
       if (w.correct > 0) {
-        return `<span class="word-pill-tag correct" onclick="speakMasteredWord('${w.word.replace(/'/g, "\\'")}')" style="border:1px dashed #4ade80; cursor:pointer;" title="當日曾答錯 ${w.wrong} 次，當日已訂正答對 (點擊聆聽發音)">${w.word} <small style="font-size:10px; opacity:0.85;">(已訂正)</small></span>`;
+        return `<span class="word-pill-tag correct" onclick="speakMasteredWord('${w.word.replace(/'/g, "\\'")}')" style="border:1px dashed #4ade80; cursor:pointer;" title="當日曾答錯，已訂正答對 (點擊聆聽發音)">${w.word} <small style="font-size:10px; opacity:0.85;">(已訂正)</small></span>`;
       } else {
-        return `<span class="word-pill-tag wrong" onclick="speakMasteredWord('${w.word.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="答錯 ${w.wrong || 1} 次 (點擊聆聽發音)">${w.word}${wrongBadge}</span>`;
+        return `<span class="word-pill-tag wrong" onclick="speakMasteredWord('${w.word.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w.word}</span>`;
       }
     }).join("");
   } else {
@@ -13418,7 +13460,8 @@ function renderStudentSummary(resp) {
     if (bMap) {
       if (agent && agent.box) {
         for (const [w, bVal] of Object.entries(agent.box)) {
-          const lv = bMap.get(w.toLowerCase());
+          const realW = resolveWord(w).toLowerCase();
+          const lv = bMap.get(realW);
           if (lv >= 1 && lv <= 5) {
             if (bVal >= 3) levelMastMap[lv]++;
             else if (bVal === 2) levelPracMap[lv]++;
@@ -13428,7 +13471,8 @@ function renderStudentSummary(resp) {
       }
       if (agent && agent.stat) {
         for (const [w, s] of Object.entries(agent.stat)) {
-          const lv = bMap.get(w.toLowerCase());
+          const realW = resolveWord(w).toLowerCase();
+          const lv = bMap.get(realW);
           if (lv >= 1 && lv <= 5 && s) {
             if (s.a > 0) levelTestedMap[lv]++;
             if (s.c > 0) levelTestedCorrMap[lv]++;
