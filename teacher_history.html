@@ -79,12 +79,17 @@
       --bar-mast-text: #6EE7B7;
     }
     * { box-sizing: border-box; }
+    html {
+      min-height: 100%;
+      background-color: var(--paper, #F6F7FB);
+    }
     body {
       font-family: ui-rounded, "SF Pro Rounded", "Hiragino Maru Gothic ProN", "Nunito", "PingFang TC", system-ui, sans-serif;
       font-feature-settings: "tnum";
       font-variant-numeric: tabular-nums;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
+      min-height: 100vh;
       margin: 0; padding: 20px 16px 40px;
       background:
         radial-gradient(1200px 600px at 15% -10%, #ECE7FF 0%, transparent 55%),
@@ -93,6 +98,8 @@
       color: var(--text); line-height: 1.6;
       transition: background-color 0.3s ease, color 0.3s ease;
     }
+    html[data-theme="dark"],
+    body[data-theme="dark"],
     [data-theme="dark"] html,
     [data-theme="dark"] body {
       background: #141826 !important;
@@ -120,6 +127,7 @@
       background: var(--card) !important;
       border: 1.5px solid var(--border) !important;
       border-radius: 22px !important;
+      padding: 22px 26px;
       box-shadow: var(--shadow) !important;
       margin-bottom: 22px;
       transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
@@ -134,9 +142,9 @@
     [data-theme="dark"] .analytics-card,
     [data-theme="dark"] .table-legend-card,
     [data-theme="dark"] .chart-desc-card {
-      background: #181C2A !important;
-      border-color: #262C42 !important;
-      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.55) !important;
+      background: #1C2234 !important;
+      border-color: #2B334E !important;
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.45) !important;
       color: #F0F3FA !important;
     }
     .header-title {
@@ -158,6 +166,34 @@
       background: var(--input-bg); min-height: 40px;
     }
     input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.15); }
+    [data-theme="dark"] #loginSection {
+      background: transparent !important;
+    }
+    [data-theme="dark"] input[type="text"],
+    [data-theme="dark"] input[type="password"],
+    [data-theme="dark"] input[type="date"],
+    [data-theme="dark"] select {
+      background: #141826 !important;
+      background-color: #141826 !important;
+      border-color: #2B334E !important;
+      color: #F0F3FA !important;
+    }
+    [data-theme="dark"] input[type="text"]:focus,
+    [data-theme="dark"] input[type="password"]:focus,
+    [data-theme="dark"] input[type="date"]:focus,
+    [data-theme="dark"] select:focus {
+      border-color: #8B6BF0 !important;
+      box-shadow: 0 0 0 3px rgba(139, 107, 240, 0.22) !important;
+    }
+    [data-theme="dark"] input:-webkit-autofill,
+    [data-theme="dark"] input:-webkit-autofill:hover,
+    [data-theme="dark"] input:-webkit-autofill:focus,
+    [data-theme="dark"] input:-webkit-autofill:active {
+      -webkit-box-shadow: 0 0 0 1000px #141826 inset !important;
+      -webkit-text-fill-color: #F0F3FA !important;
+      caret-color: #F0F3FA !important;
+      border-color: #2B334E !important;
+    }
 
     /* ── 按鈕 ── */
     button {
@@ -171,6 +207,14 @@
     button:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
     .btn-secondary { background-color: var(--card); color: var(--text); border: 1.5px solid var(--border); }
     .btn-secondary:hover:not(:disabled) { background-color: var(--table-hover-bg); }
+    [data-theme="dark"] .btn-secondary {
+      background-color: #232A40 !important;
+      border-color: #333D5C !important;
+      color: #F0F3FA !important;
+    }
+    [data-theme="dark"] .btn-secondary:hover:not(:disabled) {
+      background-color: #2B334E !important;
+    }
     .btn-sm { padding: 5px 10px; font-size: 12.5px; border-radius: 6px; min-height: 34px; }
     .btn-danger { background-color: var(--danger); }
     .btn-danger:hover:not(:disabled) { background-color: #b91c1c; }
@@ -2718,9 +2762,9 @@
       align-items: center !important;
       justify-content: center !important;
       gap: 6px !important;
-      width: 315px !important;
-      min-width: 315px !important;
-      max-width: 315px !important;
+      width: 215px !important;
+      min-width: 215px !important;
+      max-width: 215px !important;
       height: 34px !important;
       padding: 0 12px !important;
       box-sizing: border-box !important;
@@ -3041,6 +3085,10 @@
     .hc.h1 { background: #B5E3CB !important; border-color: #9AD6B8 !important; }
     .hc.h2 { background: #6FCBA0 !important; border-color: #55BE8E !important; }
     .hc.h3 { background: var(--green) !important; border-color: #1E9A66 !important; }
+    .heatmap-yellow .hc.h1 { background: #FEF08A !important; border-color: #FDE047 !important; }
+    .heatmap-yellow .hc.h2 { background: #FACC15 !important; border-color: #EAB308 !important; }
+    .heatmap-yellow .hc.h3 { background: #EAB308 !important; border-color: #CA8A04 !important; }
+    .heatmap-yellow .hc.hc-active { outline: 2.5px solid #D97706 !important; outline-offset: 1px !important; }
     [data-theme="dark"] .hc {
       background: #0B0E18 !important;
       border: 1px solid #1B2033 !important;
@@ -3056,6 +3104,30 @@
     [data-theme="dark"] .hc.h3 {
       background: #2FB47C !important;
       border-color: #4AD49A !important;
+    }
+    [data-theme="dark"] .heatmap-yellow .hc.h1 {
+      background: #713F12 !important;
+      border-color: #854D0E !important;
+    }
+    [data-theme="dark"] .heatmap-yellow .hc.h2 {
+      background: #CA8A04 !important;
+      border-color: #EAB308 !important;
+    }
+    [data-theme="dark"] .heatmap-yellow .hc.h3 {
+      background: #FACC15 !important;
+      border-color: #FDE047 !important;
+    }
+    [data-theme="dark"] .heatmap-yellow .hc.hc-active {
+      outline: 2.5px solid #FDE047 !important;
+      outline-offset: 1px !important;
+    }
+    .embedded-heatmap-sec {
+      margin-top: 14px !important;
+      padding-top: 12px !important;
+      border-top: 1px dashed var(--line) !important;
+    }
+    [data-theme="dark"] .embedded-heatmap-sec {
+      border-top-color: #2B334E !important;
     }
 
     .heat-legend {
@@ -3908,26 +3980,36 @@
           </div>
         </div>
 
-        <!-- 📝 指定測驗作答紀錄 -->
+        <!-- 📝 指定測驗作答紀錄（含最近 4 週黃色熱力圖） -->
         <div class="subh" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
           <span>📝 指定測驗作答紀錄</span>
         </div>
-        <div id="task-record-details"></div>
+        <div class="task-history-card">
+          <div id="task-record-details"></div>
+          <div class="embedded-heatmap-sec">
+            <div class="streakline" id="stTaskStreakLine">
+              <span>連續 <b id="stTaskHeatStreak">0</b> 天 · 最佳 <b id="stTaskHeatBest">0</b> 天 · 累計練習 <b id="stTaskHeatTotal">0</b> 天</span>
+              <span id="stTaskHeatDayInfo" class="heat-day-info"></span>
+            </div>
+            <div class="heatmap heatmap-yellow" id="stTaskHeatmapGrid"></div>
+          </div>
+        </div>
 
-        <!-- 🎮 自由練習作答紀錄 -->
+        <!-- 🎮 自由練習作答紀錄（併入最近 4 週綠色熱力圖與說明） -->
         <div class="subh" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-top:20px;">
           <span>🎮 自由練習作答紀錄</span>
         </div>
-        <div id="free-record-details"></div>
-
-        <!-- 📅 練習紀錄（最近 4 週） -->
-        <div class="subh">📅 練習紀錄（最近 4 週）</div>
-        <div class="streakline" id="stStreakLine">
-          <span>🔥 連續 <b id="stHeatStreak">0</b> 天 · 最佳 <b id="stHeatBest">0</b> 天 · 累計練習 <b id="stHeatTotal">0</b> 天</span>
-          <span id="stHeatDayInfo" class="heat-day-info"></span>
+        <div class="task-history-card">
+          <div id="free-record-details"></div>
+          <div class="embedded-heatmap-sec">
+            <div class="streakline" id="stStreakLine">
+              <span>連續 <b id="stHeatStreak">0</b> 天 · 最佳 <b id="stHeatBest">0</b> 天 · 累計練習 <b id="stHeatTotal">0</b> 天</span>
+              <span id="stHeatDayInfo" class="heat-day-info"></span>
+            </div>
+            <div class="heatmap" id="stHeatmapGrid"></div>
+            <div class="heat-legend"><b>連續</b>：從今天往回算，一天都沒中斷、天天有練習的天數。<br><b>最佳</b>：你曾經創下「最長連續天天練習」的紀錄。<br><b>累計</b>：從開始到現在，總共有練習過的天數（中間有休息也算）。<br><b>熱力圖</b>：方格顏色愈深，代表當天練習愈多。</div>
+          </div>
         </div>
-        <div class="heatmap" id="stHeatmapGrid"></div>
-        <div class="heat-legend">🔥 <b>連續</b>：從今天往回算，一天都沒中斷、天天有練習的天數。<br>🏆 <b>最佳</b>：你曾經創下「最長連續天天練習」的紀錄。<br>📅 <b>累計</b>：從開始到現在，總共有練習過的天數（中間有休息也算）。<br>🟩 <b>熱力圖</b>：方格顏色愈深，代表當天練習愈多。</div>
       </div>
     </section>
 
@@ -5294,7 +5376,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("endDate").addEventListener("keyup", e => { if (e.key === "Enter") applyFilter(); });
 
   const savedTheme = localStorage.getItem("theme") || "light";
-  document.documentElement.setAttribute("data-theme", savedTheme);
+  applyPageThemeBackground(savedTheme);
   updateThemeButtonText(savedTheme);
 
   // 記住帳號便利體驗：自動載入前次登入帳號並聚焦密碼輸入框
@@ -5321,10 +5403,31 @@ document.addEventListener("DOMContentLoaded", () => {
 // ════════════════════════════════════════
 // 主題切換
 // ════════════════════════════════════════
+function applyPageThemeBackground(theme) {
+  const isDark = theme === "dark";
+  document.documentElement.setAttribute("data-theme", theme);
+  if (document.body) {
+    document.body.setAttribute("data-theme", theme);
+  }
+  const bgVal = isDark ? "#141826" : "#F6F7FB";
+  document.documentElement.style.backgroundColor = bgVal;
+  document.documentElement.style.backgroundImage = "none";
+  if (document.body) {
+    if (isDark) {
+      document.body.style.background = "#141826";
+      document.body.style.backgroundColor = "#141826";
+      document.body.style.backgroundImage = "none";
+    } else {
+      document.body.style.background = "";
+      document.body.style.backgroundColor = "";
+      document.body.style.backgroundImage = "";
+    }
+  }
+}
 function toggleTheme() {
   const cur = document.documentElement.getAttribute("data-theme") || "light";
   const next = cur === "light" ? "dark" : "light";
-  document.documentElement.setAttribute("data-theme", next);
+  applyPageThemeBackground(next);
   localStorage.setItem("theme", next);
   updateThemeButtonText(next);
   if (cumChartInstance || dailyChartInstance || wordCumChartInstance || wordDailyChartInstance || radarChartInstance) updateCharts();
@@ -13130,7 +13233,7 @@ function resolveTaskWords(record, selectedDate, agent) {
 function buildTaskDetailsHtml(record, selectedDate, agent) {
   if (!record) {
     return `
-      <div class="task-history-card" style="text-align:center; padding:22px 14px; color:var(--ink3);">
+      <div style="text-align:center; padding:18px 14px; color:var(--ink3);">
         <div style="font-size:26px; margin-bottom:6px;">📅</div>
         <div style="font-size:13.5px; font-weight:700; color:var(--ink2);">該指定日期（${selectedDate}）尚無教師指派之測驗作答紀錄</div>
         <div style="font-size:12px; margin-top:4px; color:var(--ink3);">可從上方下拉選單切換至其他日期查看詳細作答紀錄</div>
@@ -13172,7 +13275,7 @@ function buildTaskDetailsHtml(record, selectedDate, agent) {
   }
 
   return `
-    <div class="task-history-card">
+    <div>
       <div class="task-history-header">
         <div>
           <span class="task-card-title">${record.taskName}</span>
@@ -13216,7 +13319,7 @@ function buildTaskDetailsHtml(record, selectedDate, agent) {
 function buildFreeDetailsHtml(record, selectedDate, agent) {
   if (!record || !record.attempts) {
     return `
-      <div class="task-history-card" style="text-align:center; padding:22px 14px; color:var(--ink3);">
+      <div style="text-align:center; padding:18px 14px; color:var(--ink3);">
         <div style="font-size:26px; margin-bottom:6px;">🎮</div>
         <div style="font-size:13.5px; font-weight:700; color:var(--ink2);">該指定日期（${selectedDate}）尚無自由練習受測紀錄</div>
         <div style="font-size:12px; margin-top:4px; color:var(--ink3);">可從上方日曆選擇器或快速按鈕切換至其他日期查看作答狀況</div>
@@ -13331,7 +13434,7 @@ function buildFreeDetailsHtml(record, selectedDate, agent) {
   }
 
   return `
-    <div class="task-history-card">
+    <div>
       <div class="task-history-header">
         <div>
           <span class="task-card-title">🎮 自由練習成果</span>
@@ -13555,6 +13658,9 @@ function renderStudentDailyTaskAndFreeSections(resp) {
     }
     freeDetailsContainer.innerHTML = buildFreeDetailsHtml(matchedFree, targetDate, agent);
 
+    if (typeof window.__updateStTaskHeatDayBadgeByDate === "function") {
+      window.__updateStTaskHeatDayBadgeByDate(targetDate);
+    }
     if (typeof window.__updateStHeatDayBadgeByDate === "function") {
       window.__updateStHeatDayBadgeByDate(targetDate);
     }
@@ -13785,14 +13891,227 @@ function renderStudentSummary(resp) {
   const elTrapSub = document.getElementById("stModeTrapSub");
   if (elTrapSub) elTrapSub.innerText = `答對 ${mTrap.c} (${rTrap}%)`;
 
-  // 5. 📅 練習紀錄（最近 4 週）熱力圖
+  // 5. 📅 練習紀錄（最近 4 週）熱力圖（指定測驗黃色熱力圖 + 自由練習綠色熱力圖）
   const historyData = (agent && agent.history) ? agent.history : {};
   const dpMap = (agent && agent.dailyPractice) ? agent.dailyPractice : {};
   const dailyTaskHistory = (resp.dailyTaskHistory && Array.isArray(resp.dailyTaskHistory))
     ? resp.dailyTaskHistory
     : (window.cachedStudentDailyHistory || []);
+  const todayTask = resp.todayTaskResult || window.cachedStudentTodayTaskResult || null;
+  const taskHeatGrid = document.getElementById("stTaskHeatmapGrid");
   const heatGrid = document.getElementById("stHeatmapGrid");
 
+  const normalizeDayKey = (ds) => {
+    const parts = String(ds || "").trim().split(" ")[0].replace(/\//g, "-").split("-");
+    if (parts.length === 3) {
+      return `${parts[0]}-${String(parts[1]).padStart(2, "0")}-${String(parts[2]).padStart(2, "0")}`;
+    }
+    return String(ds || "").trim();
+  };
+
+  const toDayIdx = (ds) => {
+    const [y, m, d] = normalizeDayKey(ds).split("-").map(Number);
+    if (isNaN(y) || isNaN(m) || isNaN(d)) return null;
+    return Math.round(new Date(y, m - 1, d).getTime() / 86400000);
+  };
+
+  const getStHeatBadgeTierClass = (att, rate) => {
+    if (!att || att <= 0) return "heat-day-info tier-gray";
+    if (rate >= 100) return "heat-day-info tier-red";
+    if (rate >= 80) return "heat-day-info tier-yellow";
+    if (rate >= 60) return "heat-day-info tier-green";
+    return "heat-day-info tier-white";
+  };
+
+  // --- A. 指定測驗作答紀錄（最近 4 週黃色熱力圖） ---
+  const getTaskDayStatForHeat = (keyDash, keyShort) => {
+    let matchedTask = null;
+    if (Array.isArray(dailyTaskHistory)) {
+      matchedTask = dailyTaskHistory.find(item => {
+        if (!item || !item.date) return false;
+        if (item.taskName && item.taskName === "自主練習") return false;
+        const dNorm = normalizeDayKey(item.date);
+        return dNorm === keyDash || dNorm === keyShort;
+      }) || null;
+    }
+    if (!matchedTask && todayTask && todayTask.date && todayTask.hasDone && todayTask.taskName !== "自主練習") {
+      const tNorm = normalizeDayKey(todayTask.date);
+      if (tNorm === keyDash || tNorm === keyShort) {
+        matchedTask = todayTask;
+      }
+    }
+    if (!matchedTask && resp.data && Array.isArray(resp.data)) {
+      const matchedRow = resp.data.find(r => r && normalizeDayKey(r[0]) === keyDash && r[18] && r[18] !== "自主練習");
+      if (matchedRow) {
+        matchedTask = {
+          date: keyDash,
+          taskName: matchedRow[18] || "教師指定測驗",
+          score: matchedRow[19] || "—",
+          rate: matchedRow[20] || "—",
+          status: matchedRow[21] || "● 已完成",
+          words: [],
+          wrongWords: matchedRow[22] ? String(matchedRow[22]).split(/[,、\s]+/).filter(Boolean) : []
+        };
+      }
+    }
+    if (!matchedTask) return { a: 0, c: 0, rate: 0 };
+
+    let tAtt = parseInt(matchedTask.attempts) || 0;
+    let tCor = parseInt(matchedTask.correct) || 0;
+    if (!tAtt && matchedTask.score && matchedTask.score !== "—" && String(matchedTask.score).includes("/")) {
+      const p = String(matchedTask.score).split("/");
+      tCor = parseInt(p[0]) || 0;
+      tAtt = parseInt(p[1]) || 0;
+    }
+    let tRate = tAtt > 0 ? Math.round((tCor / tAtt) * 100) : (parseInt(matchedTask.rate) || 0);
+    if (tAtt === 0 && (String(matchedTask.status || "").includes("已") || (matchedTask.score && matchedTask.score !== "—" && matchedTask.score !== "尚未開始"))) {
+      const { rawWords, wrongList, correctList } = resolveTaskWords(matchedTask, keyDash, agent);
+      tAtt = (correctList.length + wrongList.length) || rawWords.length || 10;
+      tCor = correctList.length;
+      if (tRate === 0 && tAtt > 0) tRate = Math.round((tCor / tAtt) * 100);
+    }
+    return { a: tAtt, c: tCor, rate: tRate };
+  };
+
+  const now = new Date();
+  const taskDays = [];
+  for (let i = 27; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    const keyDash  = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+    const keyShort = d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
+    const { a: att, c: cor, rate } = getTaskDayStatForHeat(keyDash, keyShort);
+    const lvl = att === 0 ? 0 : att < 10 ? 1 : att < 20 ? 2 : 3;
+    taskDays.push({ key: keyDash, dateNum: d.getDate(), a: att, c: cor, rate: rate, level: lvl });
+  }
+
+  const allTaskActiveDates = new Set();
+  if (Array.isArray(dailyTaskHistory)) {
+    dailyTaskHistory.forEach(th => {
+      if (th && th.date && (!th.taskName || th.taskName !== "自主練習")) {
+        const nk = normalizeDayKey(th.date);
+        if (nk && getTaskDayStatForHeat(nk, nk).a > 0) allTaskActiveDates.add(nk);
+      }
+    });
+  }
+  if (todayTask && todayTask.date && todayTask.hasDone && todayTask.taskName !== "自主練習") {
+    const nk = normalizeDayKey(todayTask.date);
+    if (nk && getTaskDayStatForHeat(nk, nk).a > 0) allTaskActiveDates.add(nk);
+  }
+  if (resp.data && Array.isArray(resp.data)) {
+    resp.data.forEach(r => {
+      if (r && r[0] && r[18] && r[18] !== "自主練習") {
+        const nk = normalizeDayKey(r[0]);
+        if (nk && getTaskDayStatForHeat(nk, nk).a > 0) allTaskActiveDates.add(nk);
+      }
+    });
+  }
+  const taskTotalActive = allTaskActiveDates.size;
+  let taskStreak = 0;
+  const hasTaskDayOff = (off) => {
+    const d = new Date(now);
+    d.setDate(d.getDate() - off);
+    const kDash = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+    return allTaskActiveDates.has(kDash);
+  };
+  const taskStartOff = hasTaskDayOff(0) ? 0 : hasTaskDayOff(1) ? 1 : null;
+  if (taskStartOff !== null) {
+    let k = taskStartOff;
+    while (hasTaskDayOff(k)) { taskStreak++; k++; }
+  }
+  const taskDayIdxs = Array.from(allTaskActiveDates).map(toDayIdx).filter(x => x !== null && !isNaN(x)).sort((x, y) => x - y);
+  let taskBest = 0, curTaskRun = 0, prevTaskDayIdx = null;
+  for (const idxVal of taskDayIdxs) {
+    curTaskRun = (prevTaskDayIdx !== null && idxVal === prevTaskDayIdx + 1) ? curTaskRun + 1 : 1;
+    taskBest = Math.max(taskBest, curTaskRun);
+    prevTaskDayIdx = idxVal;
+  }
+  taskBest = Math.max(taskBest, taskStreak);
+
+  const elTaskStreakLine = document.getElementById("stTaskStreakLine");
+  if (elTaskStreakLine) {
+    elTaskStreakLine.innerHTML = `
+      <span>連續 <b id="stTaskHeatStreak">${taskStreak}</b> 天 · 最佳 <b id="stTaskHeatBest">${taskBest}</b> 天 · 累計練習 <b id="stTaskHeatTotal">${taskTotalActive}</b> 天</span>
+      <span id="stTaskHeatDayInfo" class="heat-day-info"></span>
+    `;
+  }
+
+  if (taskHeatGrid) {
+    taskHeatGrid.innerHTML = taskDays.map((day, idx) => {
+      return `<i class="hc h${day.level}" data-idx="${idx}" data-key="${day.key}" data-a="${day.a || 0}" data-rate="${day.rate || 0}"></i>`;
+    }).join("");
+
+    const taskHeatDayInfoEl = document.getElementById("stTaskHeatDayInfo");
+    if (taskHeatDayInfoEl && taskDays.length > 0) {
+      let pinnedTaskIdx = taskDays.length - 1;
+      for (let i = taskDays.length - 1; i >= 0; i--) {
+        if (taskDays[i] && taskDays[i].a > 0) {
+          pinnedTaskIdx = i;
+          break;
+        }
+      }
+
+      const renderStTaskHeatBadgeContent = (dateKey, att, rate, activeCellIdx) => {
+        if (!taskHeatDayInfoEl) return;
+        taskHeatDayInfoEl.className = getStHeatBadgeTierClass(att, rate);
+        if (att > 0) {
+          taskHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 正確率 <b>${rate}%</b>`;
+        } else {
+          taskHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 當日無練習`;
+        }
+        taskHeatGrid.querySelectorAll(".hc").forEach((cell, cIdx) => {
+          cell.classList.toggle("hc-active", cIdx === activeCellIdx);
+        });
+      };
+
+      const updateStTaskHeatDayBadge = (idx) => {
+        const item = taskDays[idx];
+        if (!item) return;
+        renderStTaskHeatBadgeContent(item.key, item.a || 0, item.rate || 0, idx);
+      };
+
+      window.__updateStTaskHeatDayBadgeByDate = (dateStr) => {
+        const normKey = normalizeDayKey(dateStr);
+        if (!normKey) return;
+        const foundIdx = taskDays.findIndex(x => x && x.key === normKey);
+        if (foundIdx !== -1) {
+          pinnedTaskIdx = foundIdx;
+          updateStTaskHeatDayBadge(foundIdx);
+          return;
+        }
+        const parts = normKey.split("-");
+        const shortKey = parts.length === 3 ? `${parts[0]}-${parseInt(parts[1], 10)}-${parseInt(parts[2], 10)}` : normKey;
+        const { a: att, rate } = getTaskDayStatForHeat(normKey, shortKey);
+        renderStTaskHeatBadgeContent(normKey, att, rate, -1);
+      };
+
+      updateStTaskHeatDayBadge(pinnedTaskIdx);
+
+      taskHeatGrid.querySelectorAll(".hc").forEach((cell) => {
+        const idx = parseInt(cell.getAttribute("data-idx"), 10);
+        cell.addEventListener("mouseenter", () => {
+          if (!isNaN(idx)) {
+            pinnedTaskIdx = idx;
+            updateStTaskHeatDayBadge(idx);
+          }
+        });
+        cell.addEventListener("click", () => {
+          if (!isNaN(idx)) {
+            pinnedTaskIdx = idx;
+            updateStTaskHeatDayBadge(idx);
+            if (taskDays[idx] && taskDays[idx].key && typeof window.__switchStRecordDate === "function") {
+              window.__switchStRecordDate(taskDays[idx].key);
+            }
+          }
+        });
+      });
+      taskHeatGrid.onmouseleave = () => {
+        updateStTaskHeatDayBadge(pinnedTaskIdx);
+      };
+    }
+  }
+
+  // --- B. 自由練習作答紀錄（最近 4 週綠色熱力圖） ---
   const getDayStatForHeat = (keyDash, keyShort, keySlash) => {
     let a = 0, c = 0;
     const dpItem = dpMap[keyDash] || dpMap[keyShort] || dpMap[keySlash] || null;
@@ -13829,7 +14148,6 @@ function renderStudentSummary(resp) {
   };
 
   const days = [];
-  const now = new Date();
   for (let i = 27; i >= 0; i--) {
     const d = new Date(now);
     d.setDate(d.getDate() - i);
@@ -13841,14 +14159,6 @@ function renderStudentSummary(resp) {
     const lvl = att === 0 ? 0 : att < 10 ? 1 : att < 20 ? 2 : 3;
     days.push({ key: keyDash, dateNum: d.getDate(), a: att, c: cor, rate: rate, level: lvl });
   }
-
-  const normalizeDayKey = (ds) => {
-    const parts = String(ds || "").trim().split(" ")[0].replace(/\//g, "-").split("-");
-    if (parts.length === 3) {
-      return `${parts[0]}-${String(parts[1]).padStart(2, "0")}-${String(parts[2]).padStart(2, "0")}`;
-    }
-    return String(ds || "").trim();
-  };
 
   const allActiveDates = new Set();
   Object.keys(historyData).forEach(k => { if (historyData[k] && historyData[k].a > 0) allActiveDates.add(normalizeDayKey(k)); });
@@ -13877,11 +14187,6 @@ function renderStudentSummary(resp) {
     while (hasDayOff(k)) { streak++; k++; }
   }
 
-  const toDayIdx = (ds) => {
-    const [y, m, d] = normalizeDayKey(ds).split("-").map(Number);
-    if (isNaN(y) || isNaN(m) || isNaN(d)) return null;
-    return Math.round(new Date(y, m - 1, d).getTime() / 86400000);
-  };
   const dayIdxs = Array.from(allActiveDates).map(toDayIdx).filter(x => x !== null && !isNaN(x)).sort((x, y) => x - y);
   let best = 0, curRun = 0, prevDayIdx = null;
   for (const idxVal of dayIdxs) {
@@ -13896,7 +14201,7 @@ function renderStudentSummary(resp) {
   const elStreakLine = document.getElementById("stStreakLine");
   if (elStreakLine) {
     elStreakLine.innerHTML = `
-      <span>🔥 連續 <b id="stHeatStreak">${streak}</b> 天 · 最佳 <b id="stHeatBest">${best}</b> 天 · 累計練習 <b id="stHeatTotal">${totalActive}</b> 天</span>
+      <span>連續 <b id="stHeatStreak">${streak}</b> 天 · 最佳 <b id="stHeatBest">${best}</b> 天 · 累計練習 <b id="stHeatTotal">${totalActive}</b> 天</span>
       <span id="stHeatDayInfo" class="heat-day-info"></span>
     `;
   }
@@ -13916,21 +14221,13 @@ function renderStudentSummary(resp) {
         }
       }
 
-      const getStHeatBadgeTierClass = (att, rate) => {
-        if (!att || att <= 0) return "heat-day-info tier-gray";
-        if (rate >= 100) return "heat-day-info tier-red";
-        if (rate >= 80) return "heat-day-info tier-yellow";
-        if (rate >= 60) return "heat-day-info tier-green";
-        return "heat-day-info tier-white";
-      };
-
       const renderStHeatBadgeContent = (dateKey, att, rate, activeCellIdx) => {
         if (!heatDayInfoEl) return;
         heatDayInfoEl.className = getStHeatBadgeTierClass(att, rate);
         if (att > 0) {
-          heatDayInfoEl.innerHTML = `📅 <b>${dateKey}</b> ｜ 作答 <b>${att}</b> 題 · 正確率 <b>${rate}%</b>`;
+          heatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 正確率 <b>${rate}%</b>`;
         } else {
-          heatDayInfoEl.innerHTML = `📅 <b>${dateKey}</b> ｜ 作答 <b>0</b> 題 · 當日無練習`;
+          heatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 當日無練習`;
         }
         heatGrid.querySelectorAll(".hc").forEach((cell, cIdx) => {
           cell.classList.toggle("hc-active", cIdx === activeCellIdx);

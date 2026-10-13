@@ -823,7 +823,7 @@ function resolveTaskWords(record, selectedDate, d) {
 function buildTaskDetailsHtml(record, selectedDate, d) {
   if (!record) {
     return `
-      <div class="task-history-card" style="text-align:center; padding:22px 14px; color:var(--ink3);">
+      <div style="text-align:center; padding:18px 14px; color:var(--ink3);">
         <div style="font-size:26px; margin-bottom:6px;">📅</div>
         <div style="font-size:13.5px; font-weight:700; color:var(--ink2);">該指定日期（${selectedDate}）尚無教師指派之測驗作答紀錄</div>
         <div style="font-size:12px; margin-top:4px; color:var(--ink3);">可從上方下拉選單切換至其他日期查看詳細作答紀錄</div>
@@ -865,7 +865,7 @@ function buildTaskDetailsHtml(record, selectedDate, d) {
   }
 
   return `
-    <div class="task-history-card">
+    <div>
       <div class="task-history-header">
         <div>
           <span class="task-card-title">${record.taskName}</span>
@@ -913,7 +913,7 @@ function buildTaskDetailsHtml(record, selectedDate, d) {
 function buildFreeDetailsHtml(record, selectedDate, d) {
   if (!record || !record.attempts) {
     return `
-      <div class="task-history-card" style="text-align:center; padding:22px 14px; color:var(--ink3);">
+      <div style="text-align:center; padding:18px 14px; color:var(--ink3);">
         <div style="font-size:26px; margin-bottom:6px;">🎮</div>
         <div style="font-size:13.5px; font-weight:700; color:var(--ink2);">該指定日期（${selectedDate}）尚無自由練習受測紀錄</div>
         <div style="font-size:12px; margin-top:4px; color:var(--ink3);">可從上方日曆選擇器或快速按鈕切換至其他日期查看作答狀況</div>
@@ -1022,7 +1022,7 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
   }
 
   return `
-    <div class="task-history-card">
+    <div>
       <div class="task-history-header">
         <div>
           <span class="task-card-title">🎮 自由練習成果</span>
@@ -1238,6 +1238,77 @@ export function renderSummary(d) {
   const initialFreeRecord = resolveDailyPracticeRecord(defaultSelectedDate, d, historyList);
   const initialFreeDetailsHtml = buildFreeDetailsHtml(initialFreeRecord, defaultSelectedDate, d);
 
+  // 計算「指定測驗作答紀錄」最近 4 週 (28 天) 黃色熱力圖資料與連續/最佳/累計天數
+  const getTaskDayStat = (dateKey) => {
+    const norm = normalizeDateStr(dateKey);
+    const tRec = historyList.find(item => item && item.date && normalizeDateStr(item.date) === norm && (!item.taskName || item.taskName !== "自主練習")) || null;
+    if (!tRec) return { a: 0, c: 0, rate: 0 };
+    let tAtt = parseInt(tRec.attempts) || 0;
+    let tCor = parseInt(tRec.correct) || 0;
+    if (!tAtt && tRec.score && String(tRec.score).includes("/")) {
+      const sp = String(tRec.score).split("/");
+      tCor = parseInt(sp[0]) || 0;
+      tAtt = parseInt(sp[1]) || 0;
+    }
+    let tRate = tAtt > 0 ? Math.round((tCor / tAtt) * 100) : (parseInt(tRec.rate) || 0);
+    if (tAtt === 0 && (String(tRec.status || "").includes("已完成") || (tRec.score && tRec.score !== "—" && tRec.score !== "尚未開始"))) {
+      const { rawWords, wrongList, correctList } = resolveTaskWords(tRec, norm, d);
+      tAtt = (correctList.length + wrongList.length) || rawWords.length || 10;
+      tCor = correctList.length;
+      if (tRate === 0 && tAtt > 0) tRate = Math.round((tCor / tAtt) * 100);
+    }
+    return { a: tAtt, c: tCor, rate: tRate };
+  };
+
+  const nowDt = new Date();
+  const taskHeatDays = [];
+  for (let i = 27; i >= 0; i--) {
+    const dt = new Date(nowDt);
+    dt.setDate(dt.getDate() - i);
+    const kDash = dt.getFullYear() + "-" + String(dt.getMonth() + 1).padStart(2, "0") + "-" + String(dt.getDate()).padStart(2, "0");
+    const { a, c, rate } = getTaskDayStat(kDash);
+    const level = a === 0 ? 0 : a < 10 ? 1 : a < 20 ? 2 : 3;
+    taskHeatDays.push({ key: kDash, a, c, rate, level });
+  }
+
+  const activeTaskDateSet = new Set();
+  historyList.forEach(item => {
+    if (!item || !item.date) return;
+    if (item.taskName && item.taskName !== "自主練習") {
+      const norm = normalizeDateStr(item.date);
+      if (norm && getTaskDayStat(norm).a > 0) activeTaskDateSet.add(norm);
+    } else if (!item.taskName) {
+      const norm = normalizeDateStr(item.date);
+      if (norm && getTaskDayStat(norm).a > 0) activeTaskDateSet.add(norm);
+    }
+  });
+  const taskTotal = activeTaskDateSet.size;
+  let taskStreak = 0;
+  const hasTaskDayOff = (off) => {
+    const dt = new Date(nowDt);
+    dt.setDate(dt.getDate() - off);
+    const kDash = dt.getFullYear() + "-" + String(dt.getMonth() + 1).padStart(2, "0") + "-" + String(dt.getDate()).padStart(2, "0");
+    return activeTaskDateSet.has(kDash);
+  };
+  const taskStartOff = hasTaskDayOff(0) ? 0 : hasTaskDayOff(1) ? 1 : null;
+  if (taskStartOff !== null) {
+    let k = taskStartOff;
+    while (hasTaskDayOff(k)) { taskStreak++; k++; }
+  }
+  const toDayIdx = (ds) => {
+    const [y, m, day] = String(ds || "").split("-").map(Number);
+    if (isNaN(y) || isNaN(m) || isNaN(day)) return null;
+    return Math.round(new Date(y, m - 1, day).getTime() / 86400000);
+  };
+  const taskDayIdxs = Array.from(activeTaskDateSet).map(toDayIdx).filter(x => x !== null && !isNaN(x)).sort((x, y) => x - y);
+  let taskBest = 0, curTaskRun = 0, prevTaskDayIdx = null;
+  for (const idxVal of taskDayIdxs) {
+    curTaskRun = (prevTaskDayIdx !== null && idxVal === prevTaskDayIdx + 1) ? curTaskRun + 1 : 1;
+    taskBest = Math.max(taskBest, curTaskRun);
+    prevTaskDayIdx = idxVal;
+  }
+  taskBest = Math.max(taskBest, taskStreak);
+
   el.summary.innerHTML = `
     <h3>📊 學習紀錄 Record ${userTagHtml} <a id="sumClose">收起 ✕</a></h3>
     <div class="bigrate">
@@ -1296,30 +1367,42 @@ export function renderSummary(d) {
       </div>
     </div>
 
-    <!-- 指定測驗作答紀錄 -->
+    <!-- 指定測驗作答紀錄（含最近 4 週黃色熱力圖） -->
     <div class="subh" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
       <span>📝 指定測驗作答紀錄</span>
     </div>
-    <div id="task-record-details">
-      ${initialTaskDetailsHtml}
+    <div class="task-history-card">
+      <div id="task-record-details">
+        ${initialTaskDetailsHtml}
+      </div>
+      <div class="embedded-heatmap-sec">
+        <div class="streakline">
+          <span>連續 <b>${taskStreak}</b> 天 · 最佳 <b>${taskBest}</b> 天 · 累計練習 <b>${taskTotal}</b> 天</span>
+          <span id="task-heat-day-info" class="heat-day-info"></span>
+        </div>
+        <div class="heatmap heatmap-yellow" id="task-heatmap-grid">${taskHeatDays.map((x, idx) =>
+          `<i class="hc h${x.level}" data-idx="${idx}" data-key="${x.key}" data-a="${x.a || 0}" data-rate="${x.rate || 0}"></i>`).join("")}</div>
+      </div>
     </div>
 
-    <!-- 自由練習作答紀錄 -->
+    <!-- 自由練習作答紀錄（併入最近 4 週綠色熱力圖與說明） -->
     <div class="subh" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-top:20px;">
       <span>🎮 自由練習作答紀錄</span>
     </div>
-    <div id="free-record-details">
-      ${initialFreeDetailsHtml}
-    </div>
-
-    <div class="subh">📅 練習紀錄（最近 4 週）</div>
-    <div class="streakline">
-      <span>🔥 連續 <b>${d.history.streak}</b> 天 · 最佳 <b>${d.history.best}</b> 天 · 累計練習 <b>${d.history.total}</b> 天</span>
-      <span id="heat-day-info" class="heat-day-info"></span>
-    </div>
-    <div class="heatmap" id="heatmap-grid">${d.history.days.map((x, idx) =>
-      `<i class="hc h${x.level}" data-idx="${idx}" data-key="${x.key}" data-a="${x.a || 0}" data-rate="${x.rate || 0}"></i>`).join("")}</div>
-    <div class="heat-legend">🔥 <b>連續</b>：從今天往回算，一天都沒中斷、天天有練習的天數。<br>🏆 <b>最佳</b>：你曾經創下「最長連續天天練習」的紀錄。<br>📅 <b>累計</b>：從開始到現在，總共有練習過的天數（中間有休息也算）。<br>🟩 <b>熱力圖</b>：方格顏色愈深，代表當天練習愈多。</div>`;
+    <div class="task-history-card">
+      <div id="free-record-details">
+        ${initialFreeDetailsHtml}
+      </div>
+      <div class="embedded-heatmap-sec">
+        <div class="streakline">
+          <span>連續 <b>${d.history.streak}</b> 天 · 最佳 <b>${d.history.best}</b> 天 · 累計練習 <b>${d.history.total}</b> 天</span>
+          <span id="heat-day-info" class="heat-day-info"></span>
+        </div>
+        <div class="heatmap" id="heatmap-grid">${d.history.days.map((x, idx) =>
+          `<i class="hc h${x.level}" data-idx="${idx}" data-key="${x.key}" data-a="${x.a || 0}" data-rate="${x.rate || 0}"></i>`).join("")}</div>
+        <div class="heat-legend"><b>連續</b>：從今天往回算，一天都沒中斷、天天有練習的天數。<br><b>最佳</b>：你曾經創下「最長連續天天練習」的紀錄。<br><b>累計</b>：從開始到現在，總共有練習過的天數（中間有休息也算）。<br><b>熱力圖</b>：方格顏色愈深，代表當天練習愈多。</div>
+      </div>
+    </div>`;
 
   // 綁定點擊「答對的單字 / 答錯的單字」標籤事件委派，確保 100% 發音
   el.summary.onclick = (e) => {
@@ -1331,7 +1414,87 @@ export function renderSummary(d) {
     }
   };
 
-  // 綁定熱力圖當日數值固定顯示於「累計練習 O 天」右側框框（不論指定日期有無練習皆固定顯示於此）
+  const getHeatBadgeTierClass = (att, rate) => {
+    if (!att || att <= 0) return "heat-day-info tier-gray";
+    if (rate >= 100) return "heat-day-info tier-red";
+    if (rate >= 80) return "heat-day-info tier-yellow";
+    if (rate >= 60) return "heat-day-info tier-green";
+    return "heat-day-info tier-white";
+  };
+
+  // 1. 綁定「指定測驗作答紀錄」黃色熱力圖與右側小方塊（僅顯示日期與正確率）
+  const taskHeatDayInfoEl = $("#task-heat-day-info");
+  const taskHeatGridEl = $("#task-heatmap-grid");
+  let pinnedTaskIdx = taskHeatDays.length > 0 ? taskHeatDays.length - 1 : 0;
+  for (let i = taskHeatDays.length - 1; i >= 0; i--) {
+    if (taskHeatDays[i] && taskHeatDays[i].key === defaultSelectedDate) {
+      pinnedTaskIdx = i;
+      break;
+    }
+  }
+
+  const renderTaskHeatBadgeContent = (dateKey, att, rate, activeCellIdx) => {
+    if (!taskHeatDayInfoEl) return;
+    taskHeatDayInfoEl.className = getHeatBadgeTierClass(att, rate);
+    if (att > 0) {
+      taskHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 正確率 <b>${rate}%</b>`;
+    } else {
+      taskHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 當日無練習`;
+    }
+    if (taskHeatGridEl) {
+      taskHeatGridEl.querySelectorAll(".hc").forEach((cell, cIdx) => {
+        cell.classList.toggle("hc-active", cIdx === activeCellIdx);
+      });
+    }
+  };
+
+  const updateTaskHeatDayBadge = (idx) => {
+    const item = taskHeatDays[idx];
+    if (!item) return;
+    renderTaskHeatBadgeContent(item.key, item.a || 0, item.rate || 0, idx);
+  };
+
+  const updateTaskHeatDayBadgeByDate = (dateStr) => {
+    const normDate = normalizeDateStr(dateStr);
+    if (!normDate) return;
+    const foundIdx = taskHeatDays.findIndex(x => x && x.key === normDate);
+    if (foundIdx !== -1) {
+      pinnedTaskIdx = foundIdx;
+      updateTaskHeatDayBadge(foundIdx);
+      return;
+    }
+    const { a: att, rate } = getTaskDayStat(normDate);
+    renderTaskHeatBadgeContent(normDate, att, rate, -1);
+  };
+
+  if (taskHeatDayInfoEl && taskHeatDays.length > 0) {
+    updateTaskHeatDayBadge(pinnedTaskIdx);
+    if (taskHeatGridEl) {
+      taskHeatGridEl.querySelectorAll(".hc").forEach((cell) => {
+        const idx = parseInt(cell.getAttribute("data-idx"), 10);
+        cell.addEventListener("mouseenter", () => {
+          if (!isNaN(idx)) {
+            pinnedTaskIdx = idx;
+            updateTaskHeatDayBadge(idx);
+          }
+        });
+        cell.addEventListener("click", () => {
+          if (!isNaN(idx)) {
+            pinnedTaskIdx = idx;
+            updateTaskHeatDayBadge(idx);
+            if (taskHeatDays[idx] && taskHeatDays[idx].key) {
+              switchRecordDate(taskHeatDays[idx].key);
+            }
+          }
+        });
+      });
+      taskHeatGridEl.addEventListener("mouseleave", () => {
+        updateTaskHeatDayBadge(pinnedTaskIdx);
+      });
+    }
+  }
+
+  // 2. 綁定「自由練習作答紀錄」綠色熱力圖與右側小方塊（僅顯示日期與正確率）
   const heatDayInfoEl = $("#heat-day-info");
   const heatGridEl = $("#heatmap-grid");
   const heatDays = (d.history && Array.isArray(d.history.days)) ? d.history.days : [];
@@ -1343,21 +1506,13 @@ export function renderSummary(d) {
     }
   }
 
-  const getHeatBadgeTierClass = (att, rate) => {
-    if (!att || att <= 0) return "heat-day-info tier-gray";
-    if (rate >= 100) return "heat-day-info tier-red";
-    if (rate >= 80) return "heat-day-info tier-yellow";
-    if (rate >= 60) return "heat-day-info tier-green";
-    return "heat-day-info tier-white";
-  };
-
   const renderHeatBadgeContent = (dateKey, att, rate, activeCellIdx) => {
     if (!heatDayInfoEl) return;
     heatDayInfoEl.className = getHeatBadgeTierClass(att, rate);
     if (att > 0) {
-      heatDayInfoEl.innerHTML = `📅 <b>${dateKey}</b> ｜ 作答 <b>${att}</b> 題 · 正確率 <b>${rate}%</b>`;
+      heatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 正確率 <b>${rate}%</b>`;
     } else {
-      heatDayInfoEl.innerHTML = `📅 <b>${dateKey}</b> ｜ 作答 <b>0</b> 題 · 當日無練習`;
+      heatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 當日無練習`;
     }
     if (heatGridEl) {
       heatGridEl.querySelectorAll(".hc").forEach((cell, cIdx) => {
@@ -1437,7 +1592,8 @@ export function renderSummary(d) {
     if (!targetDate) return;
     currentSelectedDate = targetDate;
 
-    // 同步更新熱力圖右側固定框框
+    // 同步更新兩個熱力圖右側固定框框
+    updateTaskHeatDayBadgeByDate(targetDate);
     updateHeatDayBadgeByDate(targetDate);
 
     // 更新日期輸入框
