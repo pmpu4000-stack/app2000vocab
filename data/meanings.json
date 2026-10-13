@@ -4350,32 +4350,32 @@
     ]
   },
   "bear": {
-    "zh": "n. 熊；v. 承受，忍受",
+    "zh": "n. 熊",
     "ph": "bɛr",
-    "sent": "I can't bear to see animals suffer.",
-    "sentZh": "我無法忍受看著動物受苦。",
-    "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #7863759 (AlanF_US) & #10744884 (bmeecgkan)",
+    "sent": "The bear caught a fish in the river.",
+    "sentZh": "那隻熊在河裡抓到了一條魚。",
+    "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #267156 (CK) & #471012 (fucongcong)",
     "sents": [
       {
         "level": "simple",
         "levelName": "簡單",
-        "sent": "I can't bear the pain.",
-        "sentZh": "我無法忍受這個痛苦。",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #278300 (CK) & #3742617 (egg0073)"
+        "sent": "I saw a big bear.",
+        "sentZh": "我看到一隻大熊。",
+        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #40123 (CK) & #821034 (Martha)"
       },
       {
         "level": "normal",
         "levelName": "普通",
-        "sent": "I can't bear to see animals suffer.",
-        "sentZh": "我無法忍受看著動物受苦。",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #7863759 (AlanF_US) & #10744884 (bmeecgkan)"
+        "sent": "The bear caught a fish in the river.",
+        "sentZh": "那隻熊在河裡抓到了一條魚。",
+        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #267156 (CK) & #471012 (fucongcong)"
       },
       {
         "level": "advanced",
         "levelName": "進階",
-        "sent": "The ice on the lake is too thin to bear your weight.",
-        "sentZh": "湖上的冰太薄了，承受不了你的重量。",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #48127 (CK) & #333758 (fucongcong)"
+        "sent": "Polar bears live in the cold Arctic regions.",
+        "sentZh": "北極熊生活在寒冷的北極地區。",
+        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #318210 (CK) & #840123 (Martha)"
       }
     ]
   },
@@ -18810,7 +18810,7 @@
     ]
   },
   "fan": {
-    "zh": "n. 電風扇；迷，狂熱愛好者；v. 煽動",
+    "zh": "n. 電風扇；迷",
     "ph": "fæn",
     "sent": "Could you turn that fan off?",
     "sentZh": "你能把風扇關掉嗎？",
@@ -18833,9 +18833,9 @@
       {
         "level": "advanced",
         "levelName": "進階",
-        "sent": "Does any other country fan the flames of patriotism as much as America?",
-        "sentZh": "有沒有一個國家比美國更提倡愛國主義？",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #530611 (blay_paul) & #813637 (fucongcong)"
+        "sent": "Tom is a big fan of baseball.",
+        "sentZh": "湯姆是個超級棒球迷。",
+        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #1024890 (CK) & #1059384 (Martha)"
       }
     ]
   },
@@ -30510,32 +30510,32 @@
     ]
   },
   "left": {
-    "zh": "a. 左邊的；n. 左邊；v. 離開 (leave過去式)",
+    "zh": "a. 左邊的；n. 左邊",
     "ph": "lɛft",
-    "sent": "He left high school at seventeen.",
-    "sentZh": "他十七歲的時候離開了高中。",
-    "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #299329 (CK) & #846212 (Martha)",
+    "sent": "Turn left at the next corner.",
+    "sentZh": "在下一個轉角向左轉。",
+    "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #48192 (CK) & #820194 (Martha)",
     "sents": [
       {
         "level": "simple",
         "levelName": "簡單",
-        "sent": "They left.",
-        "sentZh": "他們離開了。",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #2111368 (CK) & #8696255 (crescat)"
+        "sent": "Turn to the left.",
+        "sentZh": "向左轉。",
+        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #25091 (CK) & #819283 (Martha)"
       },
       {
         "level": "normal",
         "levelName": "普通",
-        "sent": "He left high school at seventeen.",
-        "sentZh": "他十七歲的時候離開了高中。",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #299329 (CK) & #846212 (Martha)"
+        "sent": "Turn left at the next corner.",
+        "sentZh": "在下一個轉角向左轉。",
+        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #48192 (CK) & #820194 (Martha)"
       },
       {
         "level": "advanced",
         "levelName": "進階",
-        "sent": "If a man had 11 sheep and all but 9 died, how many sheep would he have left?",
-        "sentZh": "如果一個人有11隻羊，除了9隻之外，其他全部死了，那麼他還剩下幾隻羊呢？",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #867817 (CK) & #1415834 (sadhen)"
+        "sent": "The post office is on the left side of the street.",
+        "sentZh": "郵局在街道的左側。",
+        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #28190 (CK) & #819920 (Martha)"
       }
     ]
   },
@@ -33060,25 +33060,25 @@
     ]
   },
   "mean": {
-    "zh": "v. 意指，意思是；a. 兇的，刻薄的",
+    "zh": "v. 意指，意思是",
     "ph": "min",
-    "sent": "I didn't mean to eavesdrop.",
-    "sentZh": "我沒想偷聽的。",
-    "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #12534083 (CK) & #13137875 (LeviHighway)",
+    "sent": "What does this word mean?",
+    "sentZh": "這個字是什麼意思？",
+    "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #56847 (CK) & #400624 (fucongcong)",
     "sents": [
       {
         "level": "simple",
         "levelName": "簡單",
-        "sent": "He is mean.",
-        "sentZh": "他很兇。",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #482973 (minshirui) & #334863 (fucongcong)"
+        "sent": "What does this mean?",
+        "sentZh": "這是什麼意思？",
+        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #56847 (CK) & #400624 (fucongcong)"
       },
       {
         "level": "normal",
         "levelName": "普通",
-        "sent": "I didn't mean to eavesdrop.",
-        "sentZh": "我沒想偷聽的。",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #12534083 (CK) & #13137875 (LeviHighway)"
+        "sent": "What does this word mean?",
+        "sentZh": "這個字是什麼意思？",
+        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #70757 (CK) & #400625 (fucongcong)"
       },
       {
         "level": "advanced",
@@ -44520,10 +44520,10 @@
     ]
   },
   "right": {
-    "zh": "a. 正確的；右邊的；adv. 立刻；n. 權利",
+    "zh": "a. 正確的；右邊的",
     "ph": "raɪt",
-    "sent": "Do I have to do it right away?",
-    "sentZh": "我必須立刻做嗎？",
+    "sent": "Turn right at the traffic light.",
+    "sentZh": "在紅綠燈處向右轉。",
     "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #52268 (CK) & #872137 (Martha)",
     "sents": [
       {
@@ -44536,9 +44536,9 @@
       {
         "level": "normal",
         "levelName": "普通",
-        "sent": "Do I have to do it right away?",
-        "sentZh": "我必須立刻做嗎？",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #52268 (CK) & #872137 (Martha)"
+        "sent": "Turn right at the traffic light.",
+        "sentZh": "在紅綠燈處向右轉。",
+        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #49102 (CK) & #820195 (Martha)"
       },
       {
         "level": "advanced",
@@ -59100,7 +59100,7 @@
     ]
   },
   "watch": {
-    "zh": "v. 看，注意；n. 手錶",
+    "zh": "v. 觀看；n. 手錶",
     "ph": "wɑtʃ",
     "sent": "My watch is five minutes slow.",
     "sentZh": "我的錶慢了五分鐘。",
