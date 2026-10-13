@@ -1061,7 +1061,8 @@ body[data-theme="dark"],
   width: 100%;
 }
 .export-action-row {
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: 8px 12px;
   padding-top: 8px;
   border-top: 1px dashed rgba(108, 76, 224, 0.2);
 }
@@ -1095,12 +1096,14 @@ body[data-theme="dark"],
   color: var(--ink2);
   padding: 0 2px;
 }
+.export-presets-row {
+  margin-top: -2px;
+}
 .export-quick-btns {
   display: inline-flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 5px;
-  margin-left: auto;
 }
 .export-format-group {
   display: inline-flex;
@@ -1116,8 +1119,8 @@ body[data-theme="dark"],
   display: inline-flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 6px;
-  margin-left: auto;
+  gap: 8px;
+  margin-left: 0;
 }
 .export-dl-btn {
   display: inline-flex;
@@ -1333,10 +1336,10 @@ body[data-theme="dark"],
 
       <div class="banner" id="banner"></div>
 
-      <!-- 📥 底部使用紀錄匯出下載方塊 (支援指定日期或指定範圍，PDF / Excel 雙格式輸出) -->
+      <!-- 📥 底部作答歷程紀錄匯出下載方塊 (支援指定日期或指定範圍，PDF / Excel 雙格式輸出) -->
       <section class="progress export-records-card" id="export-records-section">
         <h3>
-          <span>📥 下載使用紀錄 Export</span>
+          <span>📥 下載作答歷程記錄</span>
           <span class="export-sub-hint">支援指定單日或日期範圍匯出</span>
         </h3>
         <div class="date-navigator-card export-navigator-card">
@@ -1355,6 +1358,9 @@ body[data-theme="dark"],
                 <span class="export-range-sep">至</span>
                 <input type="date" id="export-end-date" class="date-picker-input">
               </div>
+            </div>
+            <div class="export-row export-presets-row">
+              <span class="date-nav-title" style="visibility:hidden; opacity:0; pointer-events:none;"><span>📅</span> 匯出範圍：</span>
               <div class="export-quick-btns">
                 <button type="button" class="date-nav-btn today-btn" id="btn-export-preset-today" title="匯出今日紀錄">📍 今日</button>
                 <button type="button" class="date-nav-btn" id="btn-export-preset-7d" title="最近 7 天">近 7 天</button>
@@ -1365,16 +1371,12 @@ body[data-theme="dark"],
             <div class="export-row export-action-row">
               <div class="export-format-group">
                 <span class="date-nav-title"><span>📄</span> 輸出格式：</span>
-                <select id="export-format-select" class="task-date-selector export-format-select">
-                  <option value="pdf">📄 PDF 格式 (.pdf 報表)</option>
-                  <option value="excel">📊 Excel 格式 (.xlsx 試算表)</option>
-                </select>
               </div>
               <div class="export-btn-group">
-                <button type="button" id="btn-export-download-pdf" class="export-dl-btn pdf-btn" title="下載 PDF 格式使用紀錄">
+                <button type="button" id="btn-export-download-pdf" class="export-dl-btn pdf-btn" title="下載 PDF 格式作答歷程記錄">
                   📄 下載 PDF 格式
                 </button>
-                <button type="button" id="btn-export-download-excel" class="export-dl-btn excel-btn" title="下載 Excel 格式使用紀錄">
+                <button type="button" id="btn-export-download-excel" class="export-dl-btn excel-btn" title="下載 Excel 格式作答歷程記錄">
                   📊 下載 Excel 格式
                 </button>
               </div>

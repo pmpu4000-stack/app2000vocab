@@ -1426,7 +1426,7 @@ export function renderSummary(d) {
     return "heat-day-info tier-white";
   };
 
-  // 1. 綁定「指定測驗作答紀錄」黃色熱力圖與右側小方塊（僅顯示日期與正確率）
+  // 1. 綁定「指定測驗作答紀錄」黃色熱力圖與右側小方塊（配合黃色熱力圖顏色，無紀錄顯示灰色）
   const taskHeatDayInfoEl = $("#task-heat-day-info");
   const taskHeatGridEl = $("#task-heatmap-grid");
   let pinnedTaskIdx = taskHeatDays.length > 0 ? taskHeatDays.length - 1 : 0;
@@ -1439,11 +1439,11 @@ export function renderSummary(d) {
 
   const renderTaskHeatBadgeContent = (dateKey, att, rate, activeCellIdx) => {
     if (!taskHeatDayInfoEl) return;
-    taskHeatDayInfoEl.className = getHeatBadgeTierClass(att, rate);
+    taskHeatDayInfoEl.className = (!att || att <= 0) ? "heat-day-info tier-gray" : "heat-day-info tier-yellow";
     if (att > 0) {
       taskHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 正確率 <b>${rate}%</b>`;
     } else {
-      taskHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 當日無練習`;
+      taskHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 無作答紀錄`;
     }
     if (taskHeatGridEl) {
       taskHeatGridEl.querySelectorAll(".hc").forEach((cell, cIdx) => {
@@ -1499,7 +1499,7 @@ export function renderSummary(d) {
     }
   }
 
-  // 2. 綁定「自由練習作答紀錄」綠色熱力圖與右側小方塊（僅顯示日期與正確率）
+  // 2. 綁定「自由練習作答紀錄」綠色熱力圖與右側小方塊（配合綠色熱力圖顏色，無紀錄顯示灰色）
   const heatDayInfoEl = $("#heat-day-info");
   const heatGridEl = $("#heatmap-grid");
   const heatDays = (d.history && Array.isArray(d.history.days)) ? d.history.days : [];
@@ -1513,11 +1513,11 @@ export function renderSummary(d) {
 
   const renderHeatBadgeContent = (dateKey, att, rate, activeCellIdx) => {
     if (!heatDayInfoEl) return;
-    heatDayInfoEl.className = getHeatBadgeTierClass(att, rate);
+    heatDayInfoEl.className = (!att || att <= 0) ? "heat-day-info tier-gray" : "heat-day-info tier-green";
     if (att > 0) {
       heatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 正確率 <b>${rate}%</b>`;
     } else {
-      heatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 當日無練習`;
+      heatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 無作答紀錄`;
     }
     if (heatGridEl) {
       heatGridEl.querySelectorAll(".hc").forEach((cell, cIdx) => {
@@ -2384,7 +2384,7 @@ export function initExportRecordsCard(getSummaryFn) {
     if (btnDlPdf) btnDlPdf.disabled = true;
     if (btnDlExcel) btnDlExcel.disabled = true;
     if (statusMsg) {
-      statusMsg.innerHTML = `⏳ 正在產生 <b>${chosenFmt === "excel" ? "Excel (.xlsx)" : "PDF (.pdf)"}</b> 使用紀錄檔案（${payload.scopeTitle}），請稍候...`;
+      statusMsg.innerHTML = `⏳ 正在產生 <b>${chosenFmt === "excel" ? "Excel (.xlsx)" : "PDF (.pdf)"}</b> 作答歷程記錄檔案（${payload.scopeTitle}），請稍候...`;
     }
 
     try {
@@ -2394,7 +2394,7 @@ export function initExportRecordsCard(getSummaryFn) {
         await _exportRecordToPdf(payload);
       }
       if (statusMsg) {
-        statusMsg.innerHTML = `✅ 已成功下載 <b>${chosenFmt === "excel" ? "Excel (.xlsx)" : "PDF (.pdf)"}</b> 使用紀錄（${payload.scopeTitle}）！`;
+        statusMsg.innerHTML = `✅ 已成功下載 <b>${chosenFmt === "excel" ? "Excel (.xlsx)" : "PDF (.pdf)"}</b> 作答歷程記錄（${payload.scopeTitle}）！`;
       }
     } catch (err) {
       console.error("Export error:", err);

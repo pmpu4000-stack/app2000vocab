@@ -479,7 +479,7 @@
 
     /* ── 手機觸控 ── */
     @media (max-width: 768px) {
-      button, input[type="text"], input[type="password"], input[type="date"], select { min-height: 44px !important; }
+      button:not(.date-nav-btn):not(.export-dl-btn):not(.export-mode-btn), input[type="text"], input[type="password"], input[type="date"]:not(.date-picker-input), select:not(.task-date-selector) { min-height: 44px !important; }
       .pagination-btn { min-height: 44px !important; min-width: 44px !important; }
     }
 
@@ -1358,7 +1358,7 @@
 
     @media (max-width: 768px) {
       /* 1. iOS Safari 聚焦時防止頁面放大 (必須 >= 16px) */
-      input[type="text"], input[type="password"], input[type="date"], select, textarea {
+      input[type="text"], input[type="password"], input[type="date"]:not(.date-picker-input), select:not(.task-date-selector), textarea {
         font-size: 16px !important;
       }
 
@@ -2487,10 +2487,13 @@
     [data-theme="dark"] .date-quick-label {
       color: #A5B0CF !important;
     }
+    .date-navigator-card input[type="date"],
+    .export-navigator-card input[type="date"],
+    input[type="date"].date-picker-input,
     .date-picker-input {
       background: #FFFFFF !important;
-      border: 1.5px solid var(--sky) !important;
-      color: var(--ink) !important;
+      border: 1.5px solid var(--sky, #2D9CDB) !important;
+      color: var(--ink, #232A4D) !important;
       padding: 3px 8px !important;
       height: 28px !important;
       min-height: 28px !important;
@@ -2501,22 +2504,29 @@
       outline: none !important;
       cursor: pointer !important;
       line-height: 1.2 !important;
-      font-family: inherit !important;
+      font-family: ui-rounded, "SF Pro Rounded", "Hiragino Maru Gothic ProN", "Nunito", "PingFang TC", system-ui, sans-serif !important;
       box-sizing: border-box !important;
+      width: auto !important;
+      max-width: 145px !important;
     }
+    [data-theme="dark"] .date-navigator-card input[type="date"],
+    [data-theme="dark"] .export-navigator-card input[type="date"],
+    [data-theme="dark"] input[type="date"].date-picker-input,
     [data-theme="dark"] .date-picker-input {
       background: #131624 !important;
       border-color: #2D354E !important;
       color: #F0F3FA !important;
     }
+    .date-navigator-card .date-nav-btn,
+    .export-navigator-card .date-nav-btn,
     .date-nav-btn {
       display: inline-flex !important;
       align-items: center !important;
       justify-content: center !important;
       gap: 2px !important;
       background: #FFFFFF !important;
-      border: 1px solid var(--line) !important;
-      color: var(--ink) !important;
+      border: 1px solid var(--line, #E7E9F5) !important;
+      color: var(--ink, #232A4D) !important;
       padding: 0 10px !important;
       height: 28px !important;
       min-height: 28px !important;
@@ -2527,7 +2537,7 @@
       cursor: pointer !important;
       transition: all .15s !important;
       line-height: 1 !important;
-      font-family: inherit !important;
+      font-family: ui-rounded, "SF Pro Rounded", "Hiragino Maru Gothic ProN", "Nunito", "PingFang TC", system-ui, sans-serif !important;
       transform: none !important;
       box-sizing: border-box !important;
       white-space: nowrap !important;
@@ -2562,14 +2572,18 @@
       border-color: rgba(45, 156, 219, 0.4) !important;
       color: #38BDF8 !important;
     }
+    .date-navigator-card select.task-date-selector,
+    .date-nav-right select.task-date-selector,
+    .date-nav-right #record-quick-dates,
+    select.task-date-selector,
     .task-date-selector,
     .date-nav-right .task-date-selector {
       width: 100% !important;
       min-width: 0 !important;
       max-width: 100% !important;
       background: #FFFFFF !important;
-      border: 1.5px solid var(--line) !important;
-      color: var(--ink) !important;
+      border: 1.5px solid var(--line, #E7E9F5) !important;
+      color: var(--ink, #232A4D) !important;
       padding: 4px 8px !important;
       height: 29px !important;
       min-height: 29px !important;
@@ -2580,12 +2594,16 @@
       outline: none !important;
       cursor: pointer !important;
       line-height: 1.2 !important;
-      font-family: inherit !important;
+      font-family: ui-rounded, "SF Pro Rounded", "Hiragino Maru Gothic ProN", "Nunito", "PingFang TC", system-ui, sans-serif !important;
       box-sizing: border-box !important;
     }
+    [data-theme="dark"] .date-navigator-card select.task-date-selector,
+    [data-theme="dark"] .date-nav-right select.task-date-selector,
+    [data-theme="dark"] .date-nav-right #record-quick-dates,
+    [data-theme="dark"] select.task-date-selector,
     [data-theme="dark"] .task-date-selector,
     [data-theme="dark"] .date-nav-right .task-date-selector {
-      background: #131624 !important;
+      background: #181C2A !important;
       border-color: #2D354E !important;
       color: #F0F3FA !important;
     }
@@ -2951,7 +2969,8 @@
       width: 100% !important;
     }
     .export-action-row {
-      justify-content: space-between !important;
+      justify-content: flex-start !important;
+      gap: 8px 12px !important;
       padding-top: 8px !important;
       border-top: 1px dashed rgba(108, 76, 224, 0.2) !important;
     }
@@ -2981,12 +3000,14 @@
       color: var(--ink2) !important;
       padding: 0 2px !important;
     }
+    .export-presets-row {
+      margin-top: -2px !important;
+    }
     .export-quick-btns {
       display: inline-flex !important;
       align-items: center !important;
       flex-wrap: wrap !important;
       gap: 5px !important;
-      margin-left: auto !important;
     }
     .export-format-group {
       display: inline-flex !important;
@@ -3002,8 +3023,8 @@
       display: inline-flex !important;
       align-items: center !important;
       flex-wrap: wrap !important;
-      gap: 6px !important;
-      margin-left: auto !important;
+      gap: 8px !important;
+      margin-left: 0 !important;
     }
     .export-dl-btn {
       display: inline-flex !important;
@@ -4020,10 +4041,10 @@
       </div>
     </section>
 
-    <!-- 📥 底部使用紀錄匯出下載方塊 (支援指定日期或指定範圍，PDF / Excel 雙格式輸出) -->
+    <!-- 📥 底部作答歷程紀錄匯出下載方塊 (支援指定日期或指定範圍，PDF / Excel 雙格式輸出) -->
     <section class="progress export-records-card" id="export-records-section">
       <h3>
-        <span>📥 下載使用紀錄 Export</span>
+        <span>📥 下載作答歷程記錄</span>
         <span class="export-sub-hint">支援指定單日或日期範圍匯出</span>
       </h3>
       <div class="date-navigator-card export-navigator-card">
@@ -4031,8 +4052,8 @@
           <div class="export-row">
             <span class="date-nav-title"><span>📅</span> 匯出範圍：</span>
             <div class="export-mode-tabs" role="group" aria-label="選擇匯出日期模式">
-              <button type="button" id="btn-export-mode-single" class="date-nav-btn export-mode-btn active" data-mode="single">指定日期</button>
-              <button type="button" id="btn-export-mode-range" class="date-nav-btn export-mode-btn" data-mode="range">指定範圍</button>
+              <button type="button" id="btn-export-mode-single" class="date-nav-btn export-mode-btn active" data-mode="single">單一指定日期</button>
+              <button type="button" id="btn-export-mode-range" class="date-nav-btn export-mode-btn" data-mode="range">自訂範圍區間</button>
             </div>
             <div id="export-single-wrap" class="export-date-inputs">
               <input type="date" id="export-single-date" class="date-picker-input">
@@ -4042,6 +4063,9 @@
               <span class="export-range-sep">至</span>
               <input type="date" id="export-end-date" class="date-picker-input">
             </div>
+          </div>
+          <div class="export-row export-presets-row">
+            <span class="date-nav-title" style="visibility:hidden; opacity:0; pointer-events:none;"><span>📅</span> 匯出範圍：</span>
             <div class="export-quick-btns">
               <button type="button" class="date-nav-btn today-btn" id="btn-export-preset-today" title="匯出今日紀錄">📍 今日</button>
               <button type="button" class="date-nav-btn" id="btn-export-preset-7d" title="最近 7 天">近 7 天</button>
@@ -4052,16 +4076,12 @@
           <div class="export-row export-action-row">
             <div class="export-format-group">
               <span class="date-nav-title"><span>📄</span> 輸出格式：</span>
-              <select id="export-format-select" class="task-date-selector export-format-select">
-                <option value="pdf">📄 PDF 格式 (.pdf 報表)</option>
-                <option value="excel">📊 Excel 格式 (.xlsx 試算表)</option>
-              </select>
             </div>
             <div class="export-btn-group">
-              <button type="button" id="btn-export-download-pdf" class="export-dl-btn pdf-btn" title="下載 PDF 格式使用紀錄">
+              <button type="button" id="btn-export-download-pdf" class="export-dl-btn pdf-btn" title="下載 PDF 格式作答歷程記錄">
                 📄 下載 PDF 格式
               </button>
-              <button type="button" id="btn-export-download-excel" class="export-dl-btn excel-btn" title="下載 Excel 格式使用紀錄">
+              <button type="button" id="btn-export-download-excel" class="export-dl-btn excel-btn" title="下載 Excel 格式作答歷程記錄">
                 📊 下載 Excel 格式
               </button>
             </div>
@@ -14109,11 +14129,11 @@ function renderStudentSummary(resp) {
 
       const renderStTaskHeatBadgeContent = (dateKey, att, rate, activeCellIdx) => {
         if (!taskHeatDayInfoEl) return;
-        taskHeatDayInfoEl.className = getStHeatBadgeTierClass(att, rate);
+        taskHeatDayInfoEl.className = (!att || att <= 0) ? "heat-day-info tier-gray" : "heat-day-info tier-yellow";
         if (att > 0) {
           taskHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 正確率 <b>${rate}%</b>`;
         } else {
-          taskHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 當日無練習`;
+          taskHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 無作答紀錄`;
         }
         taskHeatGrid.querySelectorAll(".hc").forEach((cell, cIdx) => {
           cell.classList.toggle("hc-active", cIdx === activeCellIdx);
@@ -14290,11 +14310,11 @@ function renderStudentSummary(resp) {
 
       const renderStHeatBadgeContent = (dateKey, att, rate, activeCellIdx) => {
         if (!heatDayInfoEl) return;
-        heatDayInfoEl.className = getStHeatBadgeTierClass(att, rate);
+        heatDayInfoEl.className = (!att || att <= 0) ? "heat-day-info tier-gray" : "heat-day-info tier-green";
         if (att > 0) {
           heatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 正確率 <b>${rate}%</b>`;
         } else {
-          heatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 當日無練習`;
+          heatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 無作答紀錄`;
         }
         heatGrid.querySelectorAll(".hc").forEach((cell, cIdx) => {
           cell.classList.toggle("hc-active", cIdx === activeCellIdx);
@@ -15099,7 +15119,7 @@ function initStudentExportRecordsCard(resp) {
     if (btnDlPdf) btnDlPdf.disabled = true;
     if (btnDlExcel) btnDlExcel.disabled = true;
     if (statusMsg) {
-      statusMsg.innerHTML = `⏳ 正在產生 <b>${chosenFmt === "excel" ? "Excel (.xlsx)" : "PDF (.pdf)"}</b> 使用紀錄檔案（${payload.scopeTitle}），請稍候...`;
+      statusMsg.innerHTML = `⏳ 正在產生 <b>${chosenFmt === "excel" ? "Excel (.xlsx)" : "PDF (.pdf)"}</b> 作答歷程記錄檔案（${payload.scopeTitle}），請稍候...`;
     }
 
     try {
@@ -15109,7 +15129,7 @@ function initStudentExportRecordsCard(resp) {
         await _exportStudentRecordToPdf(payload);
       }
       if (statusMsg) {
-        statusMsg.innerHTML = `✅ 已成功下載 <b>${chosenFmt === "excel" ? "Excel (.xlsx)" : "PDF (.pdf)"}</b> 使用紀錄（${payload.scopeTitle}）！`;
+        statusMsg.innerHTML = `✅ 已成功下載 <b>${chosenFmt === "excel" ? "Excel (.xlsx)" : "PDF (.pdf)"}</b> 作答歷程記錄（${payload.scopeTitle}）！`;
       }
     } catch (err) {
       console.error("Student export error:", err);

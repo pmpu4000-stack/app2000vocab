@@ -1005,7 +1005,8 @@ body[data-theme="dark"],
   width: 100%;
 }
 .export-action-row {
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: 8px 12px;
   padding-top: 8px;
   border-top: 1px dashed rgba(108, 76, 224, 0.2);
 }
@@ -1039,12 +1040,14 @@ body[data-theme="dark"],
   color: var(--ink2);
   padding: 0 2px;
 }
+.export-presets-row {
+  margin-top: -2px;
+}
 .export-quick-btns {
   display: inline-flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 5px;
-  margin-left: auto;
 }
 .export-format-group {
   display: inline-flex;
@@ -1060,8 +1063,8 @@ body[data-theme="dark"],
   display: inline-flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 6px;
-  margin-left: auto;
+  gap: 8px;
+  margin-left: 0;
 }
 .export-dl-btn {
   display: inline-flex;
