@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>拼字小特工 · Spelling Agent</title>
-  <link rel="stylesheet" href="css/styles.css?v=20261013_2135">
+  <link rel="stylesheet" href="css/styles.css?v=20261013_2145">
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" defer></script>
   <link rel="preload" href="data/words2000.json" as="fetch" crossorigin>
@@ -609,6 +609,12 @@ body[data-theme="dark"],
   background: #141826 !important;
   border-color: #2B334E !important;
 }
+#login-overlay {
+  background: var(--paper, #F6F7FB) !important;
+  background-color: #F6F7FB !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+}
 [data-theme="dark"] #login-overlay,
 [data-theme="dark"] #curfew-overlay {
   background: #141826 !important;
@@ -1208,7 +1214,7 @@ body[data-theme="dark"],
 <body>
 
   <!-- 登入驗證遮罩 -->
-  <div id="login-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(35,42,77,0.38); backdrop-filter:blur(10px); z-index:9999; display:flex; justify-content:center; align-items:center;">
+  <div id="login-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#F6F7FB; z-index:9999; display:flex; justify-content:center; align-items:center;">
     <div style="background:#ffffff; padding:36px 32px; border-radius:24px; box-shadow:0 20px 45px -10px rgba(35,42,77,0.22); width:320px; text-align:center; border:1px solid #E7E9F5; position:relative;">
       <!-- 登入視窗切換按鈕 -->
       <button type="button" id="btn-login-theme-toggle" title="切換深色/淺色模式"

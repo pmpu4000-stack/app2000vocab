@@ -559,6 +559,12 @@ body[data-theme="dark"],
   background: #141826 !important;
   border-color: #2B334E !important;
 }
+#login-overlay {
+  background: var(--paper, #F6F7FB) !important;
+  background-color: #F6F7FB !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+}
 [data-theme="dark"] #login-overlay,
 [data-theme="dark"] #curfew-overlay {
   background: #141826 !important;
