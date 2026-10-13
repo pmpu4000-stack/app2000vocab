@@ -354,45 +354,17 @@ function renderScramble(word, onCheck) {
     });
   };
 
-  // 4. 輔助操作按鈕：倒退刪除與清除重選
+  // 4. 輔助提示文字
   const actWrap = document.createElement("div");
   actWrap.className = "scramble-actions";
-  actWrap.style.cssText = "display:flex;gap:10px;justify-content:center;margin-top:12px;align-items:center;flex-wrap:wrap;";
-
-  const backBtn = document.createElement("button");
-  backBtn.className = "mini scramble-action-btn";
-  backBtn.type = "button";
-  backBtn.innerHTML = "<span>⌫</span> 倒退";
-  backBtn.title = "刪除最後輸入的一個字母";
-  backBtn.onclick = (e) => {
-    e.preventDefault();
-    if (inp.disabled) return;
-    if (selectedIndices.length > 0) {
-      selectedIndices.pop();
-      updateDisplay();
-      inp.focus();
-    }
-  };
-
-  const resetBtn = document.createElement("button");
-  resetBtn.className = "mini scramble-action-btn";
-  resetBtn.type = "button";
-  resetBtn.innerHTML = "<span>↺</span> 清除重選";
-  resetBtn.title = "清空所有已選字母";
-  resetBtn.onclick = (e) => {
-    e.preventDefault();
-    if (inp.disabled) return;
-    selectedIndices = [];
-    updateDisplay();
-    inp.focus();
-  };
+  actWrap.style.cssText = "display:flex;gap:10px;justify-content:center;margin-top:10px;align-items:center;flex-wrap:wrap;";
 
   const tipText = document.createElement("span");
   tipText.className = "scramble-tip-text";
   tipText.textContent = "💡 可點擊字母填入，或直接用鍵盤打字";
-  tipText.style.cssText = "font-size:12px;color:var(--ink3,#94a3b8);margin-left:4px;";
+  tipText.style.cssText = "font-size:12px;color:var(--ink3,#94a3b8);text-align:center;";
 
-  actWrap.append(backBtn, resetBtn, tipText);
+  actWrap.append(tipText);
 
   el.stage.append(scr, inp, actWrap);
   setTimeout(() => inp.focus(), 60);
@@ -402,8 +374,6 @@ function renderScramble(word, onCheck) {
     applyTypedResult: (ok) => {
       inp.classList.add(ok ? "ok" : "bad");
       inp.disabled = true;
-      backBtn.disabled = true;
-      resetBtn.disabled = true;
       tilesList.forEach(item => { item.el.style.pointerEvents = "none"; });
     },
   };
