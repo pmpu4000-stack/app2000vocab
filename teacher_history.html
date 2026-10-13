@@ -2030,433 +2030,77 @@
       border-radius: 14px;
     }
     /* ══════════════════════════════════════════
-       📊 學習紀錄 Record 完整移植樣式 (比照遊戲網頁 UI 與 styles.css 原版規範)
+       📊 學習進度 Progress 與 學習紀錄 Record 1:1 完整樣式 (完全對齊單字小特工遊戲網站 index.html & css/styles.css)
        ══════════════════════════════════════════ */
+    #studentSummaryCard,
+    #studentSummaryCard .progress,
+    #studentSummaryCard #summary {
+      font-family: ui-rounded, "SF Pro Rounded", "Hiragino Maru Gothic ProN", "Nunito", "PingFang TC", system-ui, sans-serif !important;
+      font-feature-settings: "tnum" !important;
+      font-variant-numeric: tabular-nums !important;
+      line-height: 1.5 !important;
+      color: var(--ink) !important;
+    }
+
     .bigrate { display: none !important; }
 
-    /* 區塊副標題 (Section Sub-headings / 大區塊標題) */
-    .subh {
-      font-size: 13.5px !important;
-      font-weight: 800 !important;
-      color: var(--violet) !important;
-      letter-spacing: 0.3px;
-      margin: 18px 0 10px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      border-left: 3.5px solid var(--violet);
-      padding-left: 8px;
-      line-height: 1.4;
-      text-transform: none !important;
+    .progress {
+      margin-top: 18px !important;
+      background: var(--card) !important;
+      border: 1.5px solid var(--line) !important;
+      border-radius: 22px !important;
+      padding: 18px 20px !important;
+      box-shadow: var(--shadow) !important;
     }
-    [data-theme="dark"] .subh {
-      color: #A58CF5 !important;
-      border-left-color: #8B6BF0 !important;
-    }
-
-    /* 各關卡表格與細節內容 */
-    .sumtable {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 12.5px;
-    }
-    .sumtable td {
-      padding: 6px 4px;
-      border-bottom: 1px solid var(--line);
-      color: var(--ink2);
-      font-weight: 650;
-    }
-    .sumtable td:last-child {
-      text-align: right;
-      color: var(--ink);
-      font-weight: 800;
-      font-variant-numeric: tabular-nums;
-    }
-    [data-theme="dark"] .sumtable td {
-      color: #A5B0CF;
-      border-bottom-color: #262C42;
-    }
-    [data-theme="dark"] .sumtable td:last-child {
-      color: #F0F3FA;
-    }
-
-    .stat-sep {
-      color: var(--sky, #0284c7);
-      font-weight: 700;
-      margin: 0 5px;
-      display: inline-block;
-      opacity: 0.85;
-    }
-    [data-theme="dark"] .stat-sep {
-      color: #38bdf8;
-      opacity: 0.95;
-    }
-
-    /* 描述說明文字 */
-    .formula-note-box {
-      font-size: 11.5px;
-      color: var(--ink2);
-      margin: 6px 0 14px;
-      line-height: 1.6;
-      background: rgba(108, 76, 224, 0.05);
-      padding: 8px 12px;
-      border-radius: 8px;
-      border: 1px solid rgba(108, 76, 224, 0.15);
-    }
-    .formula-note-box b {
-      color: var(--ink);
-    }
-    .formula-note-box .formula-val {
-      color: var(--sky);
-      font-weight: 700;
-    }
-    .formula-note-box .formula-desc {
-      color: #16a34a;
-      font-weight: 500;
-    }
-    [data-theme="dark"] .formula-note-box {
-      background: rgba(255, 255, 255, 0.04) !important;
-      border-color: rgba(255, 255, 255, 0.1) !important;
-      color: #A5B0CF !important;
-    }
-    [data-theme="dark"] .formula-note-box b {
-      color: #F0F3FA !important;
-    }
-    [data-theme="dark"] .formula-note-box .formula-val {
-      color: #38BDF8 !important;
-    }
-    [data-theme="dark"] .formula-note-box .formula-desc {
-      color: #86efac !important;
-    }
-
-    /* 4 大練習模式統計區塊 */
-    .mode-stat-grid { display: grid !important; grid-template-columns: repeat(4, 1fr) !important;
-      gap: 8px;
-      margin: 8px 0 14px;
-    }
-    .mode-stat-card {
-      background: #F8F9FD;
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      padding: 8px 10px;
-      text-align: center;
-      transition: transform .12s, box-shadow .12s;
-    }
-    [data-theme="dark"] .mode-stat-card {
+    [data-theme="dark"] .progress {
       background: #181C2A !important;
       border-color: #262C42 !important;
-    }
-    .mode-stat-title {
-      font-size: 12px;
-      color: var(--ink2);
-      font-weight: 750;
-    }
-    [data-theme="dark"] .mode-stat-title {
-      color: #A5B0CF !important;
-    }
-    .mode-stat-num {
-      font-size: 16px;
-      font-weight: 800;
-      color: var(--ink);
-      margin: 2px 0;
-      font-variant-numeric: tabular-nums;
-    }
-    [data-theme="dark"] .mode-stat-num {
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.55) !important;
       color: #F0F3FA !important;
     }
-    .mode-stat-sub {
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--green);
-    }
 
-    /* 練習紀錄熱力圖與連續天數 */
-    .streakline {
-      font-size: 13.5px;
-      font-weight: 800;
-      color: var(--ink2);
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: flex-start;
-      flex-wrap: nowrap;
-      gap: 10px;
-    }
-    .streakline > span:first-child {
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
-    .streakline b {
-      color: var(--catD, #E8892B);
-      font-variant-numeric: tabular-nums;
-    }
-    [data-theme="dark"] .streakline {
-      color: #A5B0CF;
-    }
-    [data-theme="dark"] .streakline b {
-      color: #F59E0B;
-    }
-    .heat-day-info {
-      display: inline-flex !important;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      width: 315px;
-      min-width: 315px;
-      max-width: 315px;
-      height: 34px;
-      padding: 0 12px;
-      box-sizing: border-box;
-      border-radius: 9px;
-      font-size: 13px;
-      font-weight: 800;
-      line-height: 1;
-      white-space: nowrap;
-      flex-shrink: 0;
-      background: #ECFDF5;
-      color: #065F46;
-      border: 2px solid #34D399;
-      box-shadow: 0 2px 6px rgba(16, 185, 129, 0.14);
-      font-variant-numeric: tabular-nums;
-    }
-    .heat-day-info b {
-      color: #047857 !important;
-      font-weight: 900;
-    }
-    .heat-day-info.empty {
-      background: #ECFDF5;
-      color: #065F46;
-      border: 2px solid #34D399;
-      box-shadow: 0 2px 6px rgba(16, 185, 129, 0.14);
-    }
-    .heat-day-info.empty b {
-      color: #047857 !important;
-      font-weight: 900;
-    }
-    [data-theme="dark"] .heat-day-info,
-    [data-theme="dark"] .heat-day-info.empty {
-      background: rgba(16, 185, 129, 0.18) !important;
-      color: #A7F3D0 !important;
-      border: 2px solid rgba(52, 211, 153, 0.65) !important;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35) !important;
-    }
-    [data-theme="dark"] .heat-day-info b,
-    [data-theme="dark"] .heat-day-info.empty b {
-      color: #34D399 !important;
-    }
-    @media (max-width: 640px) {
-      .streakline {
-        flex-wrap: wrap;
-        gap: 8px;
-      }
-      .heat-day-info {
-        width: 100%;
-        min-width: 0;
-        max-width: 100%;
-      }
-    }
-    [data-theme="dark"] .heat-day-info.empty b {
-      color: #F1F5F9 !important;
-    }
-    .heatmap {
-      display: grid !important;
-      grid-template-columns: repeat(14, 1fr) !important;
-      gap: 5px !important;
-      width: 100% !important;
-      max-width: 100% !important;
-      margin: 10px 0 12px !important;
-    }
-    .hc {
-      width: 100% !important;
-      aspect-ratio: 1 !important;
-      border-radius: 5px !important;
-      background: #DDE0F0;
-      border: 1px solid #CDD1E6;
-      display: block !important;
-      cursor: pointer;
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
-    }
-    .hc:hover {
-      transform: scale(1.14);
-      z-index: 2;
-    }
-    .hc.hc-active {
-      outline: 2.5px solid #059669;
-      outline-offset: 1px;
-      transform: scale(1.08);
-      z-index: 2;
-    }
-    [data-theme="dark"] .hc.hc-active {
-      outline: 2.5px solid #34D399;
-      outline-offset: 1px;
-    }
-    .hc.h1 { background: #B5E3CB; border-color: #9AD6B8; }
-    .hc.h2 { background: #6FCBA0; border-color: #55BE8E; }
-    .hc.h3 { background: var(--green); border-color: #1E9A66; }
-    [data-theme="dark"] .hc { background: #0B0E18; border-color: #1B2033; }
-    [data-theme="dark"] .hc.h1 { background: #14573F; border-color: #1B6B4D; }
-    [data-theme="dark"] .hc.h2 { background: #1E8F66; border-color: #27A878; }
-    [data-theme="dark"] .hc.h3 { background: #2FB47C; border-color: #4AD49A; }
-
-    .heat-legend {
-      font-size: 11.5px;
-      color: var(--ink3);
-      margin-top: 8px;
-      font-weight: 600;
-      line-height: 1.6;
-    }
-    .heat-legend b {
-      color: var(--ink2);
-    }
-    [data-theme="dark"] .heat-legend {
-      color: #8C98BA;
-    }
-    [data-theme="dark"] .heat-legend b {
-      color: #CBD5E1;
-    }
-
-    /* Teacher Daily Task Quiz & Free Practice Section */
-    .task-history-card {
-      background: #F8F9FD;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 14px 16px;
-      margin: 10px 0 16px;
-    }
-    .task-history-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-    .task-card-title {
-      font-size: 14.5px;
-      font-weight: 800;
-      color: var(--ink);
-      letter-spacing: 0.2px;
-    }
-    [data-theme="dark"] .task-card-title {
-      color: #F0F3FA !important;
-    }
-    .task-date-selector {
-      background: var(--card, #FFFFFF);
-      border: 1.5px solid var(--line);
-      color: var(--ink);
-      padding: 6px 10px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 700;
-      outline: none;
-      cursor: pointer;
-    }
-    .task-score-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-    .task-score-item {
-      background: var(--card, #FFFFFF);
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      padding: 10px;
-      text-align: center;
-    }
-    .task-score-label {
-      font-size: 11.5px;
-      color: var(--ink3);
-      font-weight: 700;
-      margin-bottom: 3px;
-    }
-    [data-theme="dark"] .task-score-label {
-      color: #8C98BA !important;
-    }
-    .task-score-val {
-      font-size: 20px;
-      font-weight: 800;
-      line-height: 1.2;
-    }
-    .word-pill-tag {
-      display: inline-flex;
-      align-items: center;
-      gap: 3px;
-      padding: 3px 7px;
-      border-radius: 5px;
-      font-size: 11.5px;
-      font-weight: 700;
-      margin: 2px;
-    }
-    .word-pill-tag.correct {
-      background: #E4F7EE;
-      color: var(--green-d);
-      border: 1px solid rgba(47, 180, 124, 0.3);
-    }
-    .word-pill-tag.wrong {
-      background: #FFE9E9;
-      color: #D64545;
-      border: 1px solid rgba(255, 107, 107, 0.4);
-      font-weight: 700;
-    }
-    [data-theme="dark"] .word-pill-tag.correct {
-      background: rgba(47, 180, 124, 0.22) !important;
-      color: #6EE7B7 !important;
-      border-color: rgba(47, 180, 124, 0.45) !important;
-    }
-    [data-theme="dark"] .word-pill-tag.wrong {
-      background: rgba(255, 107, 107, 0.22) !important;
-      color: #FCA5A5 !important;
-      border-color: rgba(255, 107, 107, 0.45) !important;
-    }
-
-
-    /* ============================================================
-       遊戲網頁 app2000vocab 1:1 學習進度 Progress 與 學習紀錄 Record 完整樣式
-       ============================================================ */
-    .progress {
-      margin-top: 18px;
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 20px;
-      padding: 16px 18px;
-      box-shadow: var(--shadow);
-    }
-    .progress h3 {
+    /* 1. 主標題 (Main Title) - 學習紀錄 Record 與 學習進度 Progress 同步大小 */
+    .summary-embedded h3, .summary h3, .progress h3 {
       display: flex !important;
       justify-content: space-between !important;
       align-items: center !important;
-      font-size: 15px !important;
+      font-size: 16px !important;
       font-weight: 800 !important;
-      line-height: 1.4 !important;
-      letter-spacing: 0.3px !important;
-      margin-bottom: 12px !important;
-      text-transform: none !important;
       color: var(--ink) !important;
+      letter-spacing: 0.2px !important;
+      text-transform: none !important;
+      margin: 0 0 12px 0 !important;
+      line-height: 1.5 !important;
     }
+    [data-theme="dark"] .summary-embedded h3,
+    [data-theme="dark"] .summary h3,
     [data-theme="dark"] .progress h3 {
       color: #F0F3FA !important;
     }
     .progress h3 a, #sumBtn {
-      font-size: 12px !important;
       color: var(--sky, #2D9CDB) !important;
+      font-size: 12px !important;
       cursor: pointer !important;
       text-decoration: underline !important;
       font-weight: 700 !important;
       display: inline-flex !important;
       align-items: center !important;
       gap: 4px !important;
+      background: transparent !important;
+      padding: 0 !important;
     }
-    [data-theme="dark"] .progress h3 a, [data-theme="dark"] #sumBtn {
-      color: #38BDF8 !important;
+    [data-theme="dark"] .progress h3 a,
+    [data-theme="dark"] #sumBtn {
+      color: var(--sky, #38bdf8) !important;
     }
+
     .bar {
       height: 16px !important;
       border-radius: 10px !important;
       background: var(--bar-track, #E8EBF5) !important;
       overflow: hidden !important;
       display: flex !important;
-      border: 1.5px solid var(--bar-border, rgba(35,42,77,0.12)) !important;
+      border: 1.5px solid var(--bar-border, rgba(35, 42, 77, 0.12)) !important;
       box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.08) !important;
       position: relative !important;
     }
@@ -2473,11 +2117,11 @@
     }
     .bar .learn {
       background: var(--bar-learn-bg, linear-gradient(90deg, #6366F1, #818CF8)) !important;
-      box-shadow: 1px 0 0 rgba(255, 255, 255, 0.35);
+      box-shadow: 1px 0 0 rgba(255, 255, 255, 0.35) !important;
     }
     .bar .prac {
       background: var(--bar-prac-bg, linear-gradient(90deg, #0284C7, #38BDF8)) !important;
-      box-shadow: 1px 0 0 rgba(255, 255, 255, 0.35);
+      box-shadow: 1px 0 0 rgba(255, 255, 255, 0.35) !important;
     }
     .bar .mast {
       background: var(--bar-mast-bg, linear-gradient(90deg, #10B981, #34D399)) !important;
@@ -2488,8 +2132,8 @@
       gap: 16px !important;
       margin-top: 12px !important;
       font-size: 13px !important;
-      font-weight: 700 !important;
       color: var(--ink2) !important;
+      font-weight: 700 !important;
       flex-wrap: wrap !important;
       align-items: center !important;
     }
@@ -2513,83 +2157,80 @@
     .legend span:nth-child(2) i { background: var(--bar-prac-dot, #0284C7) !important; }
     .legend span:nth-child(3) i { background: var(--bar-mast-dot, #10B981) !important; }
 
-    .legend span:nth-child(1) b { color: var(--bar-learn-text, #4F46E5) !important; font-weight: 800; font-size: 14px; }
-    .legend span:nth-child(2) b { color: var(--bar-prac-text, #0369A1) !important; font-weight: 800; font-size: 14px; }
-    .legend span:nth-child(3) b { color: var(--bar-mast-text, #047857) !important; font-weight: 800; font-size: 14px; }
+    .legend span:nth-child(1) b { color: var(--bar-learn-text, #4F46E5) !important; font-weight: 800 !important; font-size: 14px !important; }
+    .legend span:nth-child(2) b { color: var(--bar-prac-text, #0369A1) !important; font-weight: 800 !important; font-size: 14px !important; }
+    .legend span:nth-child(3) b { color: var(--bar-mast-text, #047857) !important; font-weight: 800 !important; font-size: 14px !important; }
 
     .defs {
-      font-size: 11.5px;
-      color: var(--ink3);
-      margin-top: 8px;
-      font-weight: 600;
-      line-height: 1.6;
+      font-size: 11.5px !important;
+      color: var(--ink3) !important;
+      margin: 8px 0 0 0 !important;
+      font-weight: 600 !important;
+      line-height: 1.6 !important;
     }
     .defs b {
-      color: var(--ink2);
+      color: var(--ink2) !important;
     }
     [data-theme="dark"] .defs {
-      color: #6E7699;
+      color: #6E7699 !important;
     }
     [data-theme="dark"] .defs b {
-      color: #A5B0CF;
+      color: #A5B0CF !important;
     }
 
     /* summary embedded */
     .summary-embedded {
-      margin-top: 14px;
-      padding-top: 14px;
-      border-top: 1px dashed var(--line);
+      margin-top: 14px !important;
+      padding-top: 14px !important;
+      border-top: 1px dashed var(--line) !important;
+    }
+    [data-theme="dark"] .summary-embedded {
+      border-top-color: #262C42 !important;
     }
     .summary-embedded h3, .summary h3 {
-      display: flex !important;
-      justify-content: space-between !important;
-      align-items: center !important;
-      font-size: 15px !important;
-      font-weight: 800 !important;
-      margin-bottom: 12px !important;
       padding-bottom: 10px !important;
+      margin-bottom: 14px !important;
       border-bottom: 1.5px solid var(--line) !important;
-      text-transform: none !important;
-      color: var(--ink) !important;
     }
-    [data-theme="dark"] .summary-embedded h3, [data-theme="dark"] .summary h3 {
-      color: #F0F3FA !important;
+    [data-theme="dark"] .summary-embedded h3,
+    [data-theme="dark"] .summary h3 {
       border-bottom-color: #262C42 !important;
     }
     .summary-embedded h3 a, .summary h3 a, #sumClose {
-      font-size: 12px;
-      color: var(--ink3);
-      cursor: pointer;
-      text-decoration: none;
-      font-weight: 700;
-      padding: 3px 8px;
-      border-radius: 6px;
-      background: rgba(0, 0, 0, 0.04);
-      transition: all .15s;
+      font-size: 12px !important;
+      color: var(--ink3) !important;
+      cursor: pointer !important;
+      text-decoration: none !important;
+      font-weight: 700 !important;
+      padding: 3px 8px !important;
+      border-radius: 6px !important;
+      background: rgba(0, 0, 0, 0.04) !important;
+      transition: all .15s !important;
     }
     .summary-embedded h3 a:hover, .summary h3 a:hover, #sumClose:hover {
-      color: var(--violet);
-      background: rgba(108, 76, 224, 0.1);
+      color: var(--violet) !important;
+      background: rgba(108, 76, 224, 0.1) !important;
     }
     [data-theme="dark"] .summary-embedded h3 a,
     [data-theme="dark"] .summary h3 a,
     [data-theme="dark"] #sumClose {
-      background: rgba(255, 255, 255, 0.08);
-      color: #A5B0CF;
+      background: rgba(255, 255, 255, 0.08) !important;
+      color: #A5B0CF !important;
     }
 
+    /* 2. 區塊副標題 (Section Sub-headings / 大區塊標題) */
     .subh {
       font-size: 13.5px !important;
       font-weight: 800 !important;
       color: var(--violet) !important;
-      letter-spacing: 0.3px;
-      margin: 18px 0 10px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      border-left: 3.5px solid var(--violet);
-      padding-left: 8px;
-      line-height: 1.4;
+      letter-spacing: 0.3px !important;
+      margin: 18px 0 10px !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 6px !important;
+      border-left: 3.5px solid var(--violet) !important;
+      padding-left: 8px !important;
+      line-height: 1.4 !important;
       text-transform: none !important;
     }
     [data-theme="dark"] .subh {
@@ -2597,162 +2238,212 @@
       border-left-color: #8B6BF0 !important;
     }
 
+    /* 各關卡進度表格 (隔離全域 table/td/tr 污染，與 index.html 100% 一致) */
     .sumtable {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 12.5px;
+      width: 100% !important;
+      border-collapse: collapse !important;
+      font-size: 12.5px !important;
+      background: transparent !important;
+    }
+    .sumtable tr,
+    .sumtable tbody tr:nth-child(even) td,
+    .sumtable tbody tr:nth-child(odd) td,
+    .sumtable tr:hover td {
+      background: transparent !important;
+      background-color: transparent !important;
     }
     .sumtable td {
-      padding: 6px 4px;
-      border-bottom: 1px solid var(--line);
-      color: var(--ink2);
-      font-weight: 650;
+      padding: 6px 4px !important;
+      border-top: none !important;
+      border-left: none !important;
+      border-right: none !important;
+      border-bottom: 1px solid var(--line) !important;
+      color: var(--ink2) !important;
+      font-weight: 650 !important;
+      text-align: left !important;
+      vertical-align: middle !important;
+      white-space: normal !important;
+      line-height: 1.5 !important;
+    }
+    .sumtable tr:last-child td {
+      border-bottom: 1px solid var(--line) !important;
     }
     .sumtable td:last-child {
-      text-align: right;
-      color: var(--ink);
-      font-weight: 800;
-      font-variant-numeric: tabular-nums;
+      text-align: right !important;
+      color: var(--ink) !important;
+      font-weight: 800 !important;
+      font-variant-numeric: tabular-nums !important;
     }
-    [data-theme="dark"] .sumtable td {
-      color: #A5B0CF;
-      border-bottom-color: #262C42;
+    [data-theme="dark"] .sumtable td,
+    [data-theme="dark"] .sumtable tr:last-child td {
+      color: #A5B0CF !important;
+      border-bottom-color: #262C42 !important;
     }
     [data-theme="dark"] .sumtable td:last-child {
-      color: #F0F3FA;
+      color: #F0F3FA !important;
     }
 
     .stat-sep {
-      color: var(--sky, #0284c7);
-      font-weight: 700;
-      margin: 0 5px;
-      display: inline-block;
-      opacity: 0.85;
+      color: var(--sky, #0284c7) !important;
+      font-weight: 700 !important;
+      margin: 0 5px !important;
+      display: inline-block !important;
+      opacity: 0.85 !important;
     }
     [data-theme="dark"] .stat-sep {
-      color: #38bdf8;
-      opacity: 0.95;
+      color: #38bdf8 !important;
+      opacity: 0.95 !important;
     }
 
+    /* 描述說明文字 */
     .formula-note-box {
-      font-size: 11.5px;
-      color: var(--ink2);
-      margin: 6px 0 14px;
-      line-height: 1.6;
-      background: rgba(108, 76, 224, 0.05);
-      padding: 8px 12px;
-      border-radius: 8px;
-      border: 1px solid rgba(108, 76, 224, 0.15);
+      font-size: 11.5px !important;
+      color: var(--ink2) !important;
+      margin: 6px 0 14px !important;
+      line-height: 1.6 !important;
+      background: rgba(108, 76, 224, 0.05) !important;
+      padding: 8px 12px !important;
+      border-radius: 8px !important;
+      border: 1px solid rgba(108, 76, 224, 0.15) !important;
     }
-    .formula-note-box b { color: var(--ink); }
-    .formula-note-box .formula-val { color: var(--sky, #0284c7); font-weight: 700; }
-    .formula-note-box .formula-desc { color: #16a34a; font-weight: 500; }
+    .formula-note-box b {
+      color: var(--ink) !important;
+    }
+    .formula-note-box .formula-val {
+      color: var(--sky) !important;
+      font-weight: 700 !important;
+    }
+    .formula-note-box .formula-desc {
+      color: #16a34a !important;
+      font-weight: 500 !important;
+    }
     [data-theme="dark"] .formula-note-box {
       background: rgba(255, 255, 255, 0.04) !important;
       border-color: rgba(255, 255, 255, 0.1) !important;
       color: #A5B0CF !important;
     }
-    [data-theme="dark"] .formula-note-box b { color: #F0F3FA !important; }
-    [data-theme="dark"] .formula-note-box .formula-val { color: #38BDF8 !important; }
-    [data-theme="dark"] .formula-note-box .formula-desc { color: #86efac !important; }
+    [data-theme="dark"] .formula-note-box b {
+      color: #F0F3FA !important;
+    }
+    [data-theme="dark"] .formula-note-box .formula-val {
+      color: #38BDF8 !important;
+    }
+    [data-theme="dark"] .formula-note-box .formula-desc {
+      color: #86efac !important;
+    }
 
-    .mode-stat-grid { display: grid !important; grid-template-columns: repeat(4, 1fr) !important;
-      gap: 8px;
-      margin: 8px 0 14px;
+    /* 4 大練習模式統計區塊 */
+    .mode-stat-grid {
+      display: grid !important;
+      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)) !important;
+      gap: 8px !important;
+      margin: 8px 0 14px !important;
     }
     .mode-stat-card {
-      background: #F8F9FD;
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      padding: 8px 10px;
-      text-align: center;
-      transition: transform .12s, box-shadow .12s;
+      background: #F8F9FD !important;
+      border: 1px solid var(--line) !important;
+      border-radius: 10px !important;
+      padding: 8px 10px !important;
+      text-align: center !important;
+      transition: transform .12s, box-shadow .12s !important;
     }
     [data-theme="dark"] .mode-stat-card {
       background: #181C2A !important;
       border-color: #262C42 !important;
     }
     .mode-stat-title {
-      font-size: 12px;
-      color: var(--ink2);
-      font-weight: 750;
+      font-size: 12px !important;
+      color: var(--ink2) !important;
+      font-weight: 750 !important;
     }
-    [data-theme="dark"] .mode-stat-title { color: #A5B0CF !important; }
+    [data-theme="dark"] .mode-stat-title {
+      color: #A5B0CF !important;
+    }
     .mode-stat-num {
-      font-size: 16px;
-      font-weight: 800;
-      color: var(--ink);
-      margin: 2px 0;
-      font-variant-numeric: tabular-nums;
+      font-size: 16px !important;
+      font-weight: 800 !important;
+      color: var(--ink) !important;
+      margin: 2px 0 !important;
+      font-variant-numeric: tabular-nums !important;
     }
-    [data-theme="dark"] .mode-stat-num { color: #F0F3FA !important; }
+    [data-theme="dark"] .mode-stat-num {
+      color: #F0F3FA !important;
+    }
     .mode-stat-sub {
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--green, #2FB47C);
+      font-size: 11px !important;
+      font-weight: 700 !important;
+      color: var(--green) !important;
     }
 
+    /* 日期快速導覽工具列 (完全對齊 index.html & styles.css，隔離全域 input/select/button 高度污染) */
     .date-navigator-card {
-      background: #F8F9FD;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 12px 14px;
-      margin: 14px 0 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
+      background: linear-gradient(135deg, #F1EDFF, #F8F9FD) !important;
+      border: 1.5px solid #E4DFFa !important;
+      border-radius: 14px !important;
+      padding: 12px 16px !important;
+      margin: 12px 0 16px !important;
+      display: flex !important;
+      flex-wrap: wrap !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      gap: 10px !important;
+      box-shadow: none !important;
     }
     [data-theme="dark"] .date-navigator-card {
       background: #181C2A !important;
       border-color: #262C42 !important;
       color: #F0F3FA !important;
+      box-shadow: none !important;
     }
-    .date-nav-left { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
-    .date-nav-right { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; width: 100%; }
-    .date-nav-right .task-date-selector {
-      width: 100%;
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 8px 10px;
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--ink);
-      outline: none;
-      cursor: pointer;
+    .date-nav-left {
+      display: flex !important;
+      align-items: center !important;
+      flex-wrap: wrap !important;
+      gap: 8px !important;
     }
-    [data-theme="dark"] .date-nav-right .task-date-selector {
-      background: #131624 !important;
-      border-color: #2D354E !important;
-      color: #F0F3FA !important;
+    .date-nav-right {
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: flex-start !important;
+      gap: 6px !important;
+      min-width: 260px !important;
     }
     .date-nav-title {
-      font-weight: 800;
-      font-size: 13.5px;
-      color: var(--violet);
-      display: flex;
-      align-items: center;
-      gap: 5px;
+      font-weight: 800 !important;
+      font-size: 13.5px !important;
+      color: var(--violet) !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 5px !important;
     }
-    [data-theme="dark"] .date-nav-title { color: #38BDF8 !important; }
+    [data-theme="dark"] .date-nav-title {
+      color: #38BDF8 !important;
+    }
     .date-quick-label {
-      font-size: 12.5px;
-      color: var(--ink2);
-      font-weight: 700;
-      white-space: nowrap;
-      display: block;
+      font-size: 12.5px !important;
+      color: var(--ink2) !important;
+      font-weight: 700 !important;
+      white-space: nowrap !important;
+      display: block !important;
+      margin: 0 !important;
     }
-    [data-theme="dark"] .date-quick-label { color: #A5B0CF !important; }
+    [data-theme="dark"] .date-quick-label {
+      color: #A5B0CF !important;
+    }
     .date-picker-input {
-      background: #FFFFFF;
-      border: 1.5px solid var(--sky, #2D9CDB);
-      color: var(--ink);
-      padding: 5px 10px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 700;
-      outline: none;
-      cursor: pointer;
+      background: #FFFFFF !important;
+      border: 1.5px solid var(--sky) !important;
+      color: var(--ink) !important;
+      padding: 5px 10px !important;
+      border-radius: 8px !important;
+      font-size: 13px !important;
+      font-weight: 700 !important;
+      outline: none !important;
+      cursor: pointer !important;
+      min-height: 0 !important;
+      height: auto !important;
+      line-height: 1.5 !important;
+      font-family: inherit !important;
     }
     [data-theme="dark"] .date-picker-input {
       background: #131624 !important;
@@ -2760,29 +2451,35 @@
       color: #F0F3FA !important;
     }
     .date-nav-btn {
-      background: #FFFFFF;
-      border: 1px solid var(--line);
-      color: var(--ink);
-      padding: 5px 11px;
-      border-radius: 8px;
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all .15s;
+      background: #FFFFFF !important;
+      border: 1px solid var(--line) !important;
+      color: var(--ink) !important;
+      padding: 5px 11px !important;
+      border-radius: 8px !important;
+      font-size: 12px !important;
+      font-weight: 700 !important;
+      cursor: pointer !important;
+      transition: all .15s !important;
+      min-height: 0 !important;
+      height: auto !important;
+      line-height: 1.5 !important;
+      font-family: inherit !important;
+      transform: none !important;
     }
     .date-nav-btn:hover {
-      background: #F1F8FC;
-      border-color: var(--sky, #2D9CDB);
-      color: var(--sky, #2D9CDB);
+      background: #F1F8FC !important;
+      border-color: var(--sky) !important;
+      color: var(--sky) !important;
+      transform: none !important;
     }
     .date-nav-btn.today-btn {
-      background: #EDF8FD;
-      border-color: rgba(45, 156, 219, 0.4);
-      color: var(--sky, #2D9CDB);
+      background: #EDF8FD !important;
+      border-color: rgba(45, 156, 219, 0.4) !important;
+      color: var(--sky) !important;
     }
     .date-nav-btn.today-btn:hover {
-      background: var(--sky, #2D9CDB);
-      color: #FFFFFF;
+      background: var(--sky) !important;
+      color: #FFFFFF !important;
     }
     [data-theme="dark"] .date-nav-btn {
       background: #20263A !important;
@@ -2799,85 +2496,119 @@
       border-color: rgba(45, 156, 219, 0.4) !important;
       color: #38BDF8 !important;
     }
+    .task-date-selector,
+    .date-nav-right .task-date-selector {
+      width: 100% !important;
+      min-width: 240px !important;
+      background: #FFFFFF !important;
+      border: 1.5px solid var(--line) !important;
+      color: var(--ink) !important;
+      padding: 6px 10px !important;
+      border-radius: 8px !important;
+      font-size: 13px !important;
+      font-weight: 700 !important;
+      outline: none !important;
+      cursor: pointer !important;
+      min-height: 0 !important;
+      height: auto !important;
+      line-height: 1.5 !important;
+      font-family: inherit !important;
+    }
+    [data-theme="dark"] .task-date-selector,
+    [data-theme="dark"] .date-nav-right .task-date-selector {
+      background: #131624 !important;
+      border-color: #2D354E !important;
+      color: #F0F3FA !important;
+    }
 
+    /* 指定測驗與自由練習卡片 */
     .task-history-card {
-      background: #F8F9FD;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 14px 16px;
-      margin: 10px 0 16px;
+      background: #F8F9FD !important;
+      border: 1px solid var(--line) !important;
+      border-radius: 14px !important;
+      padding: 14px 16px !important;
+      margin: 10px 0 16px !important;
+      box-shadow: none !important;
     }
     [data-theme="dark"] .task-history-card {
       background: #181C2A !important;
       border-color: #262C42 !important;
       color: #F0F3FA !important;
+      box-shadow: none !important;
     }
     .task-history-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 12px;
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: center !important;
+      flex-wrap: wrap !important;
+      gap: 8px !important;
+      margin-bottom: 12px !important;
     }
     .task-card-title {
-      font-size: 14.5px;
-      font-weight: 800;
-      color: var(--ink);
-      letter-spacing: 0.2px;
+      font-size: 14.5px !important;
+      font-weight: 800 !important;
+      color: var(--ink) !important;
+      letter-spacing: 0.2px !important;
     }
-    [data-theme="dark"] .task-card-title { color: #F0F3FA !important; }
+    [data-theme="dark"] .task-card-title {
+      color: #F0F3FA !important;
+    }
     .task-score-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
-      margin-bottom: 12px;
+      display: grid !important;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)) !important;
+      gap: 8px !important;
+      margin-bottom: 12px !important;
     }
     .task-score-item {
-      background: #FFFFFF;
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      padding: 10px;
-      text-align: center;
+      background: #FFFFFF !important;
+      border: 1px solid var(--line) !important;
+      border-radius: 10px !important;
+      padding: 10px !important;
+      text-align: center !important;
     }
     [data-theme="dark"] .task-score-item {
-      background: #131624 !important;
+      background: #181C2A !important;
       border-color: #262C42 !important;
       color: #F0F3FA !important;
     }
     .task-score-label {
-      font-size: 11.5px;
-      color: var(--ink2);
-      font-weight: 700;
-      margin-bottom: 4px;
+      font-size: 11.5px !important;
+      color: var(--ink3) !important;
+      font-weight: 700 !important;
+      margin-bottom: 3px !important;
     }
-    [data-theme="dark"] .task-score-label { color: #A5B0CF !important; }
+    [data-theme="dark"] .task-score-label {
+      color: #A5B0CF !important;
+    }
     .task-score-val {
-      font-size: 20px;
-      font-weight: 800;
-      line-height: 1.2;
+      font-size: 20px !important;
+      font-weight: 800 !important;
+      line-height: 1.2 !important;
     }
 
+    /* 答對/答錯單字雙欄盒與單字膠囊 */
     .word-split-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 12px;
+      display: grid !important;
+      grid-template-columns: 1fr 1fr !important;
+      gap: 10px !important;
+      margin-top: 12px !important;
     }
-    @media (max-width: 580px) {
-      .word-split-grid { grid-template-columns: 1fr; }
+    @media (max-width: 640px) {
+      .word-split-grid {
+        grid-template-columns: 1fr !important;
+      }
     }
     .word-split-box {
-      border-radius: 12px;
-      padding: 12px 14px;
+      border-radius: 12px !important;
+      padding: 12px 14px !important;
     }
     .word-split-box.correct-box {
-      background: #F1FBF6;
-      border: 1px solid rgba(47, 180, 124, 0.3);
+      background: #F1FBF6 !important;
+      border: 1px solid rgba(47, 180, 124, 0.3) !important;
     }
     .word-split-box.wrong-box {
-      background: #FFF5F5;
-      border: 1px solid rgba(255, 107, 107, 0.3);
+      background: #FFF5F5 !important;
+      border: 1px solid rgba(255, 107, 107, 0.3) !important;
     }
     [data-theme="dark"] .word-split-box.correct-box {
       background: rgba(47, 180, 124, 0.12) !important;
@@ -2888,41 +2619,44 @@
       border-color: rgba(255, 107, 107, 0.35) !important;
     }
     .word-split-title {
-      font-size: 12.5px;
-      font-weight: 800;
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
+      font-size: 12.5px !important;
+      font-weight: 800 !important;
+      margin-bottom: 8px !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 6px !important;
     }
-    .word-split-title.correct-title { color: var(--green-d, #1E9A66); }
-    .word-split-title.wrong-title { color: #D64545; }
+    .word-split-title.correct-title { color: var(--green-d) !important; }
+    .word-split-title.wrong-title { color: #D64545 !important; }
     [data-theme="dark"] .word-split-title.correct-title { color: #38C78B !important; }
     [data-theme="dark"] .word-split-title.wrong-title { color: #FF8E8E !important; }
 
     .word-pill-tag {
-      display: inline-flex;
-      align-items: center;
-      gap: 3px;
-      padding: 4px 8px;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 700;
-      margin: 2px;
-      transition: transform .1s;
-    }
-    .word-pill-tag:hover {
-      transform: scale(1.05);
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 3px !important;
+      padding: 3px 7px !important;
+      border-radius: 5px !important;
+      font-size: 11.5px !important;
+      font-weight: 700 !important;
+      margin: 2px !important;
+      line-height: 1.5 !important;
     }
     .word-pill-tag.correct {
-      background: #E4F7EE;
-      color: var(--green-d, #1E9A66);
-      border: 1px solid rgba(47, 180, 124, 0.3);
+      background: #E4F7EE !important;
+      color: var(--green-d) !important;
+      border: 1px solid rgba(47, 180, 124, 0.3) !important;
     }
     .word-pill-tag.wrong {
-      background: #FFE9E9;
-      color: #D64545;
-      border: 1px solid rgba(255, 107, 107, 0.4);
+      background: #FFE9E9 !important;
+      color: #D64545 !important;
+      border: 1px solid rgba(255, 107, 107, 0.4) !important;
+      font-weight: 700 !important;
+    }
+    .word-pill-tag.neutral {
+      background: #F1F1F8 !important;
+      color: var(--ink2) !important;
+      border: 1px solid var(--line) !important;
     }
     [data-theme="dark"] .word-pill-tag.correct {
       background: rgba(47, 180, 124, 0.22) !important;
@@ -2935,27 +2669,94 @@
       border-color: rgba(255, 107, 107, 0.45) !important;
     }
 
+    /* 練習紀錄熱力圖與連續天數 */
     .streakline {
-      font-size: 13.5px;
-      font-weight: 800;
-      color: var(--ink2);
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: flex-start;
-      flex-wrap: nowrap;
-      gap: 10px;
+      font-size: 13.5px !important;
+      font-weight: 800 !important;
+      color: var(--ink2) !important;
+      margin-bottom: 10px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: flex-start !important;
+      flex-wrap: nowrap !important;
+      gap: 10px !important;
     }
     .streakline > span:first-child {
-      white-space: nowrap;
-      flex-shrink: 0;
+      white-space: nowrap !important;
+      flex-shrink: 0 !important;
     }
     .streakline b {
-      color: var(--catD, #E8892B);
-      font-variant-numeric: tabular-nums;
+      color: var(--catD, #E8892B) !important;
+      font-variant-numeric: tabular-nums !important;
     }
-    [data-theme="dark"] .streakline { color: #CBD5E1; }
-    [data-theme="dark"] .streakline b { color: #F59E0B; }
+    [data-theme="dark"] .streakline {
+      color: #A5B0CF !important;
+    }
+    [data-theme="dark"] .streakline b {
+      color: #F59E0B !important;
+    }
+    .heat-day-info {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 6px !important;
+      width: 315px !important;
+      min-width: 315px !important;
+      max-width: 315px !important;
+      height: 34px !important;
+      padding: 0 12px !important;
+      box-sizing: border-box !important;
+      border-radius: 9px !important;
+      font-size: 13px !important;
+      font-weight: 800 !important;
+      line-height: 1 !important;
+      white-space: nowrap !important;
+      flex-shrink: 0 !important;
+      background: #ECFDF5 !important;
+      color: #065F46 !important;
+      border: 2px solid #34D399 !important;
+      box-shadow: 0 2px 6px rgba(16, 185, 129, 0.14) !important;
+      font-variant-numeric: tabular-nums !important;
+    }
+    .heat-day-info b {
+      color: #047857 !important;
+      font-weight: 900 !important;
+    }
+    .heat-day-info.empty {
+      background: #ECFDF5 !important;
+      color: #065F46 !important;
+      border: 2px solid #34D399 !important;
+      box-shadow: 0 2px 6px rgba(16, 185, 129, 0.14) !important;
+    }
+    .heat-day-info.empty b {
+      color: #047857 !important;
+      font-weight: 900 !important;
+    }
+    [data-theme="dark"] .heat-day-info,
+    [data-theme="dark"] .heat-day-info.empty {
+      background: rgba(16, 185, 129, 0.18) !important;
+      color: #A7F3D0 !important;
+      border: 2px solid rgba(52, 211, 153, 0.65) !important;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35) !important;
+    }
+    [data-theme="dark"] .heat-day-info b,
+    [data-theme="dark"] .heat-day-info.empty b {
+      color: #34D399 !important;
+    }
+    @media (max-width: 640px) {
+      .streakline {
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+      }
+      .heat-day-info {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+      }
+      .date-nav-right {
+        width: 100% !important;
+      }
+    }
 
     .heatmap {
       display: grid !important;
@@ -2969,14 +2770,29 @@
       width: 100% !important;
       aspect-ratio: 1 !important;
       border-radius: 5px !important;
-      background: #DDE0F0;
-      border: 1px solid #CDD1E6;
+      background: #DDE0F0 !important;
+      border: 1px solid #CDD1E6 !important;
       display: block !important;
-      cursor: pointer;
+      cursor: pointer !important;
+      transition: transform 0.15s ease, box-shadow 0.15s ease !important;
     }
-    .hc.h1 { background: #B5E3CB; border-color: #9AD6B8; }
-    .hc.h2 { background: #6FCBA0; border-color: #55BE8E; }
-    .hc.h3 { background: var(--green); border-color: #1E9A66; }
+    .hc:hover {
+      transform: scale(1.14) !important;
+      z-index: 2 !important;
+    }
+    .hc.hc-active {
+      outline: 2.5px solid #059669 !important;
+      outline-offset: 1px !important;
+      transform: scale(1.08) !important;
+      z-index: 2 !important;
+    }
+    [data-theme="dark"] .hc.hc-active {
+      outline: 2.5px solid #34D399 !important;
+      outline-offset: 1px !important;
+    }
+    .hc.h1 { background: #B5E3CB !important; border-color: #9AD6B8 !important; }
+    .hc.h2 { background: #6FCBA0 !important; border-color: #55BE8E !important; }
+    .hc.h3 { background: var(--green) !important; border-color: #1E9A66 !important; }
     [data-theme="dark"] .hc {
       background: #0B0E18 !important;
       border: 1px solid #1B2033 !important;
@@ -2995,28 +2811,25 @@
     }
 
     .heat-legend {
-      font-size: 12.5px;
-      line-height: 1.7;
-      color: var(--ink2);
-      margin-top: 10px;
-      padding: 8px 12px;
-      border-radius: 10px;
-      background: rgba(108, 76, 224, 0.06);
-      border: 1px dashed rgba(108, 76, 224, 0.25);
+      font-size: 12.5px !important;
+      line-height: 1.7 !important;
+      color: var(--ink2) !important;
+      margin-top: 10px !important;
+      padding: 8px 12px !important;
+      border-radius: 10px !important;
+      background: rgba(108, 76, 224, 0.06) !important;
+      border: 1px dashed rgba(108, 76, 224, 0.25) !important;
     }
-    .heat-legend b { color: var(--ink); }
+    .heat-legend b {
+      color: var(--ink) !important;
+    }
     [data-theme="dark"] .heat-legend {
       background: rgba(255, 255, 255, 0.04) !important;
       border-color: rgba(255, 255, 255, 0.14) !important;
       color: #9AA0BD !important;
     }
-    [data-theme="dark"] .heat-legend b { color: #E2E8F0 !important; }
-
-
-    @media (max-width: 640px) {
-      .mode-stat-grid {
-        grid-template-columns: repeat(2, 1fr) !important;
-      }
+    [data-theme="dark"] .heat-legend b {
+      color: #E2E8F0 !important;
     }
 
 </style>
@@ -3794,10 +3607,7 @@
 
       <!-- 嵌入式學習紀錄 Record 區域 (與遊戲網頁一模一樣) -->
       <div id="summary" class="summary-embedded" style="display:block;">
-        <h3>
-          <span>📊 學習紀錄 Record <span id="stUserTag"></span></span>
-          <a id="sumClose">收起 ✕</a>
-        </h3>
+        <h3>📊 學習紀錄 Record <span id="stUserTag"></span> <a id="sumClose">收起 ✕</a></h3>
 
         <div class="subh">各關卡進度</div>
         <table class="sumtable">
@@ -3806,7 +3616,7 @@
         <div class="formula-note-box">
           💡 <b>各關卡進度格式詳細說明</b>：
           <div style="margin-top:6px; line-height:1.75; font-size:12.5px;">
-            <span class="formula-val"><b>0/0 (0%)</b> <span class="formula-desc">[ 答對單字數 / 考出總單字數，附正確率 ]</span></span><span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span><span class="formula-val"><b>學習中 0</b> <span class="formula-desc">[ 答對 1 次或答錯待訂正字數 ]</span></span><span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span><span class="formula-val"><b>練習中 0</b> <span class="formula-desc">[ 連續答對 2 次字數 ]</span></span><span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span><span class="formula-val"><b>精通 0</b> <span class="formula-desc">[ 連續答對 3 次已精熟字數⭐ ]</span></span><span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span><span class="formula-val"><b>共 411</b> <span class="formula-desc">[ 該關總單字數 ]</span></span>
+            <span class="formula-val"><b>0/0 (0%)</b> <span class="formula-desc">（答對單字數 / 考出總單字數，附正確率）</span></span><span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span><span class="formula-val"><b>學習中 0</b> <span class="formula-desc">（答對 1 次或答錯待訂正字數）</span></span><span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span><span class="formula-val"><b>練習中 0</b> <span class="formula-desc">（連續答對 2 次字數）</span></span><span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span><span class="formula-val"><b>精通 0</b> <span class="formula-desc">（連續答對 3 次已精熟字數⭐）</span></span><span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span><span class="formula-val"><b>共 411</b> <span class="formula-desc">（該關總單字數）</span></span>
           </div>
         </div>
 
@@ -3834,17 +3644,17 @@
           </div>
         </div>
 
-        <!-- 📅 查詢指定日期工具列 -->
+        <!-- 📅 指定日期查詢工具列（直覺日曆與快速切換） -->
         <div class="date-navigator-card">
           <div class="date-nav-left">
             <span class="date-nav-title"><span>📅</span> 查詢指定日期：</span>
             <input type="date" id="record-date-picker" class="date-picker-input">
-            <button type="button" id="btn-date-today" class="date-nav-btn today-btn" title="回今日">📍 今日</button>
+            <button type="button" id="btn-date-today" class="date-nav-btn today-btn" title="切換回今日">📍 今日</button>
             <button type="button" id="btn-date-prev" class="date-nav-btn" title="查看前一天">◀ 前一天</button>
             <button type="button" id="btn-date-next" class="date-nav-btn" title="查看後一天">後一天 ▶</button>
           </div>
           <div class="date-nav-right">
-            <label for="record-quick-dates" class="date-quick-label">⚡ 快速跳至有紀錄日期：</label>
+            <label for="record-quick-dates" class="date-quick-label">🎯 快速跳至有紀錄日期：</label>
             <select id="record-quick-dates" class="task-date-selector" style="width:100%; margin-top:2px;">
             </select>
           </div>
@@ -3865,11 +3675,11 @@
         <!-- 📅 練習紀錄（最近 4 週） -->
         <div class="subh">📅 練習紀錄（最近 4 週）</div>
         <div class="streakline" id="stStreakLine">
-          <span>🔥 連續 <b id="stHeatStreak">0</b> 天　·　最佳 <b id="stHeatBest">0</b> 天　·　累計練習 <b id="stHeatTotal">0</b> 天</span>
+          <span>🔥 連續 <b id="stHeatStreak">0</b> 天 · 最佳 <b id="stHeatBest">0</b> 天 · 累計練習 <b id="stHeatTotal">0</b> 天</span>
           <span id="stHeatDayInfo" class="heat-day-info"></span>
         </div>
         <div class="heatmap" id="stHeatmapGrid"></div>
-        <div class="heat-legend">🔥 <b>連續</b>：從今天往回算，一天都沒中斷、天天有練習的天數。<br>🏆 <b>最佳</b>：你曾經創下「最長連續天天練習」的紀錄。<br>📅 <b>累計</b>：從開始到現在，總共有練習過的天數（中間有休息也算）。<br>🟩 <b>熱力圖</b>：方格顏色愈深，代表當天練習愈多（點選或移至方格可於上方固定查看當日數值）。</div>
+        <div class="heat-legend">🔥 <b>連續</b>：從今天往回算，一天都沒中斷、天天有練習的天數。<br>🏆 <b>最佳</b>：你曾經創下「最長連續天天練習」的紀錄。<br>📅 <b>累計</b>：從開始到現在，總共有練習過的天數（中間有休息也算）。<br>🟩 <b>熱力圖</b>：方格顏色愈深，代表當天練習愈多（點選或移至方格可於上方「累計練習」右方框框查看當日數值）。</div>
       </div>
     </section>
   </div>
@@ -13019,10 +12829,10 @@ function resolveTaskWords(record, selectedDate, agent) {
 function buildTaskDetailsHtml(record, selectedDate, agent) {
   if (!record) {
     return `
-      <div class="task-history-card" style="text-align:center; padding:22px 14px; color:var(--text-muted, #94a3b8);">
+      <div class="task-history-card" style="text-align:center; padding:22px 14px; color:var(--ink3);">
         <div style="font-size:26px; margin-bottom:6px;">📅</div>
-        <div style="font-size:13.5px; font-weight:700; color:var(--text, #1e293b);">該指定日期（${selectedDate}）尚無教師指派之測驗作答紀錄</div>
-        <div style="font-size:12px; margin-top:4px; color:var(--text-muted, #94a3b8);">可從上方快速選單或日曆切換至其他日期查看作答狀況</div>
+        <div style="font-size:13.5px; font-weight:700; color:var(--ink2);">該指定日期（${selectedDate}）尚無教師指派之測驗作答紀錄</div>
+        <div style="font-size:12px; margin-top:4px; color:var(--ink3);">可從上方下拉選單切換至其他日期查看詳細作答紀錄</div>
       </div>
     `;
   }
@@ -13041,14 +12851,14 @@ function buildTaskDetailsHtml(record, selectedDate, agent) {
     correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" data-word="${w.replace(/"/g, "&quot;")}" onclick="speakMasteredWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
   } else if (isFinished) {
     if (rawWords.length > 0) {
-      correctContentHtml = `<span style="font-size:12px; color:var(--text-muted, #94a3b8); font-style:italic;">（本次測驗全數答錯，尚無答對單字）</span>`;
+      correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（本次測驗全數答錯，尚無答對單字）</span>`;
     } else {
       correctContentHtml = (wrongList.length === 0)
         ? `<span style="font-size:12px; color:#4ade80; font-weight:700;">🎉 太棒了！本次測驗全數答對！</span>`
-        : `<span style="font-size:12px; color:var(--text-muted, #94a3b8); font-style:italic;">（本次測驗作答 ${scoreVal}）</span>`;
+        : `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（本次測驗作答 ${scoreVal}）</span>`;
     }
   } else {
-    correctContentHtml = `<span style="font-size:12px; color:var(--text-muted, #94a3b8); font-style:italic;">（測驗待完成，尚未作答）</span>`;
+    correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（測驗待完成，尚未作答）</span>`;
   }
 
   let wrongContentHtml = "";
@@ -13057,7 +12867,7 @@ function buildTaskDetailsHtml(record, selectedDate, agent) {
   } else if (isFinished) {
     wrongContentHtml = `<span style="font-size:12px; color:#4ade80; font-weight:700;">🎉 太棒了！本次測驗全數答對，無任何答錯單字！</span>`;
   } else {
-    wrongContentHtml = `<span style="font-size:12px; color:var(--text-muted, #94a3b8); font-style:italic;">（目前無答錯單字）</span>`;
+    wrongContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（目前無答錯單字）</span>`;
   }
 
   return `
@@ -13105,10 +12915,10 @@ function buildTaskDetailsHtml(record, selectedDate, agent) {
 function buildFreeDetailsHtml(record, selectedDate, agent) {
   if (!record || !record.attempts) {
     return `
-      <div class="task-history-card" style="text-align:center; padding:22px 14px; color:var(--text-muted, #94a3b8);">
+      <div class="task-history-card" style="text-align:center; padding:22px 14px; color:var(--ink3);">
         <div style="font-size:26px; margin-bottom:6px;">🎮</div>
-        <div style="font-size:13.5px; font-weight:700; color:var(--text, #1e293b);">該指定日期（${selectedDate}）尚無自由練習受測紀錄</div>
-        <div style="font-size:12px; margin-top:4px; color:var(--text-muted, #94a3b8);">可從上方快速選單或日曆切換至其他日期查看作答狀況</div>
+        <div style="font-size:13.5px; font-weight:700; color:var(--ink2);">該指定日期（${selectedDate}）尚無自由練習受測紀錄</div>
+        <div style="font-size:12px; margin-top:4px; color:var(--ink3);">可從上方日曆選擇器或快速按鈕切換至其他日期查看作答狀況</div>
       </div>
     `;
   }
@@ -13203,7 +13013,7 @@ function buildFreeDetailsHtml(record, selectedDate, agent) {
   if (correctList.length > 0) {
     correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" data-word="${w.word.replace(/"/g, "&quot;")}" onclick="speakMasteredWord('${w.word.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w.word}</span>`).join("");
   } else {
-    correctContentHtml = `<span style="font-size:12px; color:var(--text-muted, #94a3b8); font-style:italic;">（當日尚無全對單字）</span>`;
+    correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（當日尚無全對單字）</span>`;
   }
 
   let wrongContentHtml = "";
