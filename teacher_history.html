@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8" />
-  <title>學生學習歷程儀表板</title>
+  <title>學生作答歷程記錄表</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
@@ -2984,6 +2984,11 @@
       text-transform: none !important;
       letter-spacing: 0 !important;
     }
+    .export-records-card.is-collapsed .export-navigator-card,
+    .export-records-card.is-collapsed .defs,
+    .export-records-card.is-collapsed #export-status-msg {
+      display: none !important;
+    }
     .export-navigator-card {
       margin: 6px 0 0 0 !important;
       padding: 12px 14px !important;
@@ -3226,12 +3231,14 @@
        主控制卡片 (登入 + 學生查詢控制列)
   ══════════════════════════════════════════ -->
   <div class="card" id="mainControlCard">
-    <div class="header-title">
-      <h2>📊 學生學習歷程儀表板</h2>
-      <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
-        <button class="btn-secondary" id="btnThemeToggle" onclick="toggleTheme()">🌙 深色模式</button>
-        <div id="userBadge" style="font-size:13.5px; font-weight:600; color:var(--primary);"></div>
-        <button class="btn-secondary btn-sm" id="btnStudentDirectLogout" onclick="logout()" style="display:none; padding:4px 12px; border-radius:6px; font-weight:700;">登出</button>
+    <div class="header-title" style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px;">
+      <div>
+        <h2>📊 學生作答歷程記錄表</h2>
+        <div id="userBadge" style="font-size:13.5px; font-weight:700; color:var(--primary); margin-top:5px; line-height:1.4;"></div>
+      </div>
+      <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+        <button class="btn-secondary btn-sm" id="btnStudentDirectLogout" onclick="logout()" style="display:none; padding:5px 14px; border-radius:8px; font-weight:700; font-size:12.5px;">登出</button>
+        <button class="btn-secondary btn-sm" id="btnThemeToggle" onclick="toggleTheme()" style="padding:4px 12px; font-size:12px; border-radius:8px;">🌙 深色模式</button>
       </div>
     </div>
 
@@ -3998,11 +4005,8 @@
         <table class="sumtable">
           <tbody id="stLevelProgressTbody"></tbody>
         </table>
-        <div class="formula-note-box">
-          💡 <b>各關卡進度格式詳細說明</b>：
-          <div style="margin-top:6px; line-height:1.75; font-size:12.5px;">
-            <span class="formula-val"><b>0/0 (0%)</b> <span class="formula-desc">（答對單字數 / 考出總單字數，附正確率）</span></span><span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span><span class="formula-val"><b>學習中 0</b> <span class="formula-desc">（答對 1 次或答錯待訂正字數）</span></span><span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span><span class="formula-val"><b>練習中 0</b> <span class="formula-desc">（連續答對 2 次字數）</span></span><span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span><span class="formula-val"><b>精通 0</b> <span class="formula-desc">（連續答對 3 次已精熟字數⭐）</span></span><span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span><span class="formula-val"><b>共 411</b> <span class="formula-desc">（該關總單字數）</span></span>
-          </div>
+        <div class="formula-note-box" style="font-size:12.5px; padding:6px 12px; margin-top:8px;">
+          💡 說明：數值均是單字數量
         </div>
 
         <div class="subh">🎮 4 大練習模式答題數</div>
@@ -5464,6 +5468,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const fb = document.getElementById("filterBody");
     if (fb) { fb.style.maxHeight = "0"; fb.classList.add("collapsed"); }
   }
+
+  try {
+    initStudentExportRecordsCard(null);
+  } catch (e) {}
 });
 
 // ════════════════════════════════════════
@@ -5653,9 +5661,9 @@ function fetchData(isRefresh = false, onComplete = null) {
           currentRole = "student";
           studentMyClass = resp.className || "";
           studentRealName = resp.realName || "";
-          const classPrefix = studentMyClass ? `[${studentMyClass}] ` : "";
-          const nameSuffix = studentRealName ? ` (${studentRealName})` : "";
-          document.getElementById("userBadge").innerText = `👤 學生：${classPrefix}${resp.username || currentUser}${nameSuffix}`;
+          const dispStudent = studentRealName || resp.username || currentUser;
+          const classStr = studentMyClass ? `班級：${studentMyClass}  ` : "";
+          document.getElementById("userBadge").innerText = `👤 ${classStr}學生：${dispStudent}`;
           document.getElementById("btnLogoutOrBack").textContent = "登出";
           const btnDirectOut = document.getElementById("btnStudentDirectLogout");
           if (btnDirectOut) btnDirectOut.style.display = "inline-flex";
@@ -6396,9 +6404,9 @@ const clientStudentCache = new Map();
 function applyStudentPortfolioData(resp, username) {
   if (resp.className) studentMyClass = resp.className;
   if (resp.realName) studentRealName = resp.realName;
-  const classP = studentMyClass ? `[${studentMyClass}] ` : "";
-  const nameS = studentRealName ? ` (${studentRealName})` : "";
-  document.getElementById("userBadge").innerText = `👀 查看中：${classP}${username}${nameS}`;
+  const dispStudent = studentRealName || username;
+  const classStr = studentMyClass ? `班級：${studentMyClass}  ` : "";
+  document.getElementById("userBadge").innerText = `👀 ${classStr}學生：${dispStudent}`;
 
   processHistoryWithDiffs(resp.headers || [], resp.data || []);
   setQuickDateHighlight("qd-all");
@@ -6448,10 +6456,9 @@ function viewStudentAsTeacher(username, forceRefresh = false) {
 
   showStudentSections();
   studentMyClass = (foundMeta && foundMeta.className) || "";
-  studentRealName = (foundMeta && foundMeta.realName) || "";
-  const classPrefix = studentMyClass ? `[${studentMyClass}] ` : "";
-  const nameSuffix = studentRealName ? ` (${studentRealName})` : "";
-  document.getElementById("userBadge").innerText = `👀 查看中：${classPrefix}${username}${nameSuffix}`;
+  const dispStudent = studentRealName || username;
+  const classStr = studentMyClass ? `班級：${studentMyClass}  ` : "";
+  document.getElementById("userBadge").innerText = `👀 ${classStr}學生：${dispStudent}`;
 
   // 1. 記憶體快取秒開（2 分鐘內免重複等待）
   if (!forceRefresh && clientStudentCache.has(username)) {
@@ -15090,14 +15097,16 @@ function initStudentExportRecordsCard(resp) {
   if (toggleBtn && navCard) {
     toggleBtn.onclick = (e) => {
       e.preventDefault();
-      const isHidden = (navCard.style.display === "none");
+      const isHidden = (navCard.style.display === "none") || sec.classList.contains("is-collapsed");
       if (isHidden) {
         navCard.style.display = "flex";
         sec.classList.remove("is-collapsed");
+        toggleBtn.innerHTML = "收起 ✕";
         navCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
       } else {
         navCard.style.display = "none";
         sec.classList.add("is-collapsed");
+        toggleBtn.innerHTML = "📥 下載歷程";
       }
     };
   }

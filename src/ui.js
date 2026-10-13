@@ -135,8 +135,8 @@ export function renderRound(word, mode, { onAnswer, onCheck, disablePeek }) {
       let zhHtml = '';
       if (dlg) {
         const wordRegex = new RegExp("\\b" + word.word + "\\b", "i");
-        const maskedA = dlg.partA.replace(wordRegex, "<u>_____</u>");
-        const maskedB = dlg.partB.replace(wordRegex, "<u>_____</u>");
+        const maskedA = dlg.partA.replace(wordRegex, '<u class="sent-blank"></u>');
+        const maskedB = dlg.partB.replace(wordRegex, '<u class="sent-blank"></u>');
         enHtml = `
           <div class="sent-dialogue-turn"><span class="dlg-badge dlg-a">👩 A</span><span class="dlg-text">${maskedA}</span></div>
           <div class="sent-dialogue-turn"><span class="dlg-badge dlg-b">👨 B</span><span class="dlg-text">${maskedB}</span></div>
@@ -153,17 +153,17 @@ export function renderRound(word, mode, { onAnswer, onCheck, disablePeek }) {
           }
         }
       } else {
-        const maskedSent = s.sent.replace(new RegExp("\\b" + word.word + "\\b", "i"), "<u>_____</u>");
+        const maskedSent = s.sent.replace(new RegExp("\\b" + word.word + "\\b", "i"), '<u class="sent-blank"></u>');
         enHtml = maskedSent;
         zhHtml = s.sentZh || '';
       }
 
       html += `
         <div class="sent-row" data-idx="${i}">
-          <button type="button" class="sent-speaker-btn ${levelCls}" data-idx="${i}" title="${levelText}${dlg ? '生活對話 (雙聲道：女聲問 ➔ 男聲答)' : '例句 (單字王模式：單字 ➔ 例句 ➔ 單字)'}" aria-label="${levelText}例句朗讀">
+          <button type="button" class="sent-speaker-btn ${levelCls}" data-idx="${i}" aria-label="${levelText}例句朗讀">
             🔊
           </button>
-          <div class="sent-text-wrap" data-idx="${i}" title="點擊朗讀 (${dlg ? '雙聲道生活對話' : '單字 ➔ 例句 ➔ 單字'})">
+          <div class="sent-text-wrap" data-idx="${i}">
             <div class="sent-en">${enHtml}</div>
             ${zhHtml ? `<div class="sent-zh">${zhHtml}</div>` : ''}
           </div>
@@ -1324,11 +1324,8 @@ export function renderSummary(d) {
     </div>
     <div class="subh">各關卡進度</div>
     <table class="sumtable">${lvRows}</table>
-    <div class="formula-note-box">
-      💡 <b>各關卡進度格式詳細說明</b>：
-      <div style="margin-top:6px; line-height:1.75; font-size:12.5px;">
-        <span class="formula-val"><b>0/0 (0%)</b> <span class="formula-desc">（答對單字數 / 考出總單字數，附正確率）</span></span><span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span><span class="formula-val"><b>學習中 0</b> <span class="formula-desc">（答對 1 次或答錯待訂正字數）</span></span><span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span><span class="formula-val"><b>練習中 0</b> <span class="formula-desc">（連續答對 2 次字數）</span></span><span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span><span class="formula-val"><b>精通 0</b> <span class="formula-desc">（連續答對 3 次已精熟字數⭐）</span></span><span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span><span class="formula-val"><b>共 411</b> <span class="formula-desc">（該關總單字數）</span></span>
-      </div>
+    <div class="formula-note-box" style="font-size:12.5px; padding:6px 12px; margin-top:8px;">
+      💡 說明：數值均是單字數量
     </div>
     <div class="subh">🎮 4 大練習模式答題數</div>
     <div class="mode-stat-grid">
@@ -2310,14 +2307,16 @@ export function initExportRecordsCard(getSummaryFn) {
   if (toggleBtn && navCard) {
     toggleBtn.onclick = (e) => {
       e.preventDefault();
-      const isHidden = (navCard.style.display === "none");
+      const isHidden = (navCard.style.display === "none") || sec.classList.contains("is-collapsed");
       if (isHidden) {
         navCard.style.display = "flex";
         sec.classList.remove("is-collapsed");
+        toggleBtn.innerHTML = "收起 ✕";
         navCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
       } else {
         navCard.style.display = "none";
         sec.classList.add("is-collapsed");
+        toggleBtn.innerHTML = "📥 下載歷程";
       }
     };
   }
