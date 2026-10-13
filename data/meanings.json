@@ -9069,9 +9069,9 @@
       {
         "level": "simple",
         "levelName": "簡單",
-        "sent": "Chase silver.",
-        "sentZh": "雕刻銀器。",
-        "src": "Princeton WordNet 3.0 (WordNet License)"
+        "sent": "Dogs like to chase cats.",
+        "sentZh": "狗喜歡追貓。",
+        "src": "Tatoeba Project (CC-BY 2.0 FR) - Tatoeba corpus"
       },
       {
         "level": "normal",
