@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>拼字小特工 · Spelling Agent</title>
-  <link rel="stylesheet" href="css/styles.css?v=20261013_1000">
+  <link rel="stylesheet" href="css/styles.css?v=20261013_1130">
   <link rel="preload" href="data/words2000.json" as="fetch" crossorigin>
   <link rel="preload" href="data/meanings.json" as="fetch" crossorigin>
   <style id="embedded-vocab-tutor-theme">
@@ -221,16 +221,16 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 .sumtable{width:100%;border-collapse:collapse;font-size:13px}
 .sumtable td{padding:5px 0;border-bottom:1px solid var(--line);color:var(--ink2);font-weight:700}
 .sumtable td:last-child{text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
-.streakline{font-size:14px;font-weight:800;color:var(--ink2);margin-bottom:10px;display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px}
+.streakline{font-size:13.5px;font-weight:800;color:var(--ink2);margin-bottom:10px;display:flex;align-items:center;justify-content:flex-start;flex-wrap:nowrap;gap:10px}
+.streakline > span:first-child{white-space:nowrap;flex-shrink:0}
 .streakline b{color:var(--catD);font-variant-numeric:tabular-nums}
-.heat-day-info{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:9px;font-size:13.5px;font-weight:800;line-height:1.4;background:#ECFDF5;color:#065F46;border:2px solid #34D399;box-shadow:0 2px 6px rgba(16,185,129,.14);font-variant-numeric:tabular-nums}
+.heat-day-info{display:inline-flex !important;align-items:center;justify-content:center;gap:6px;width:315px;min-width:315px;max-width:315px;height:34px;padding:0 12px;box-sizing:border-box;border-radius:9px;font-size:13px;font-weight:800;line-height:1;white-space:nowrap;flex-shrink:0;background:#ECFDF5;color:#065F46;border:2px solid #34D399;box-shadow:0 2px 6px rgba(16,185,129,.14);font-variant-numeric:tabular-nums}
 .heat-day-info b{color:#047857 !important;font-weight:900}
-.heat-day-info.empty{background:#F8FAFC;color:#475569;border:2px solid #CBD5E1;box-shadow:none}
-.heat-day-info.empty b{color:#334155 !important}
-[data-theme="dark"] .heat-day-info{background:rgba(16,185,129,.18) !important;color:#A7F3D0 !important;border:2px solid rgba(52,211,153,.65) !important;box-shadow:0 2px 8px rgba(0,0,0,.35) !important}
-[data-theme="dark"] .heat-day-info b{color:#34D399 !important}
-[data-theme="dark"] .heat-day-info.empty{background:rgba(148,163,184,.12) !important;color:#CBD5E1 !important;border:2px solid rgba(148,163,184,.38) !important}
-[data-theme="dark"] .heat-day-info.empty b{color:#F1F5F9 !important}
+.heat-day-info.empty{background:#ECFDF5;color:#065F46;border:2px solid #34D399;box-shadow:0 2px 6px rgba(16,185,129,.14)}
+.heat-day-info.empty b{color:#047857 !important;font-weight:900}
+[data-theme="dark"] .heat-day-info,[data-theme="dark"] .heat-day-info.empty{background:rgba(16,185,129,.18) !important;color:#A7F3D0 !important;border:2px solid rgba(52,211,153,.65) !important;box-shadow:0 2px 8px rgba(0,0,0,.35) !important}
+[data-theme="dark"] .heat-day-info b,[data-theme="dark"] .heat-day-info.empty b{color:#34D399 !important}
+@media(max-width:640px){.streakline{flex-wrap:wrap;gap:8px}.heat-day-info{width:100%;min-width:0;max-width:100%}}
 .heatmap{display:grid !important;grid-template-columns:repeat(14,1fr) !important;gap:5px !important;width:100% !important;max-width:100% !important;margin:10px 0 12px !important}
 .hc{width:100% !important;aspect-ratio:1 !important;border-radius:5px !important;background:#DDE0F0;border:1px solid #CDD1E6;display:block !important;cursor:pointer;transition:transform .15s ease,box-shadow .15s ease}
 .hc:hover{transform:scale(1.14);z-index:2}

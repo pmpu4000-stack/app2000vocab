@@ -2,9 +2,9 @@
 // ui.js — the view. All DOM rendering lives here. It renders from plain
 // data and reports intent through callbacks; it never touches the store.
 // =====================================================================
-import { CATS } from "./data.js?v=20261013_1000";
-import { say, sayWord, spellOut, playContestSentence, stopAudio } from "./audio.js?v=20261013_1000";
-import { LEVELS, levelColor, levelName, misspellings, shuffle } from "./levels.js?v=20261013_1000";
+import { CATS } from "./data.js?v=20261013_1130";
+import { say, sayWord, spellOut, playContestSentence, stopAudio } from "./audio.js?v=20261013_1130";
+import { LEVELS, levelColor, levelName, misspellings, shuffle } from "./levels.js?v=20261013_1130";
 
 if (typeof window !== "undefined") {
   window.__say = say;
@@ -1314,7 +1314,7 @@ export function renderSummary(d) {
 
     <div class="subh">📅 練習紀錄（最近 4 週）</div>
     <div class="streakline">
-      <span>🔥 連續 <b>${d.history.streak}</b> 天　·　最佳 <b>${d.history.best}</b> 天　·　累計練習 <b>${d.history.total}</b> 天</span>
+      <span>🔥 連續 <b>${d.history.streak}</b> 天 · 最佳 <b>${d.history.best}</b> 天 · 累計練習 <b>${d.history.total}</b> 天</span>
       <span id="heat-day-info" class="heat-day-info"></span>
     </div>
     <div class="heatmap" id="heatmap-grid">${d.history.days.map((x, idx) =>
@@ -1331,34 +1331,70 @@ export function renderSummary(d) {
     }
   };
 
-  // 綁定熱力圖當日數值固定顯示於「累計練習 O 天」右側框框
+  // 綁定熱力圖當日數值固定顯示於「累計練習 O 天」右側框框（不論指定日期有無練習皆固定顯示於此）
   const heatDayInfoEl = $("#heat-day-info");
   const heatGridEl = $("#heatmap-grid");
   const heatDays = (d.history && Array.isArray(d.history.days)) ? d.history.days : [];
-  if (heatDayInfoEl && heatDays.length > 0) {
-    let pinnedIdx = heatDays.length - 1;
-    for (let i = heatDays.length - 1; i >= 0; i--) {
-      if (heatDays[i] && heatDays[i].a > 0) {
-        pinnedIdx = i;
-        break;
-      }
+  let pinnedIdx = heatDays.length > 0 ? heatDays.length - 1 : 0;
+  for (let i = heatDays.length - 1; i >= 0; i--) {
+    if (heatDays[i] && heatDays[i].key === defaultSelectedDate) {
+      pinnedIdx = i;
+      break;
     }
-    const updateHeatDayBadge = (idx) => {
-      const item = heatDays[idx];
-      if (!item) return;
-      if (item.a > 0) {
-        heatDayInfoEl.className = "heat-day-info";
-        heatDayInfoEl.innerHTML = `📅 <b>${item.key}</b> ｜ 作答 <b>${item.a}</b> 題 · 正確率 <b>${item.rate}%</b>`;
-      } else {
-        heatDayInfoEl.className = "heat-day-info empty";
-        heatDayInfoEl.innerHTML = `📅 <b>${item.key}</b> ｜ 沒有練習`;
+  }
+
+  const renderHeatBadgeContent = (dateKey, att, rate, activeCellIdx) => {
+    if (!heatDayInfoEl) return;
+    if (att > 0) {
+      heatDayInfoEl.className = "heat-day-info";
+      heatDayInfoEl.innerHTML = `📅 <b>${dateKey}</b> ｜ 作答 <b>${att}</b> 題 · 正確率 <b>${rate}%</b>`;
+    } else {
+      heatDayInfoEl.className = "heat-day-info empty";
+      heatDayInfoEl.innerHTML = `📅 <b>${dateKey}</b> ｜ 作答 <b>0</b> 題 · 當日無練習`;
+    }
+    if (heatGridEl) {
+      heatGridEl.querySelectorAll(".hc").forEach((cell, cIdx) => {
+        cell.classList.toggle("hc-active", cIdx === activeCellIdx);
+      });
+    }
+  };
+
+  const updateHeatDayBadge = (idx) => {
+    const item = heatDays[idx];
+    if (!item) return;
+    renderHeatBadgeContent(item.key, item.a || 0, item.rate || 0, idx);
+  };
+
+  const updateHeatDayBadgeByDate = (dateStr) => {
+    const normDate = normalizeDateStr(dateStr);
+    if (!normDate) return;
+    const foundIdx = heatDays.findIndex(x => x && x.key === normDate);
+    if (foundIdx !== -1) {
+      pinnedIdx = foundIdx;
+      updateHeatDayBadge(foundIdx);
+      return;
+    }
+    // 若指定日期不在最近 28 天內，仍計算該日作答狀況並固定顯示於右側框框
+    const tRec = historyList.find(item => normalizeDateStr(item.date) === normDate && (!item.taskName || item.taskName !== "自主練習")) || null;
+    const fRec = resolveDailyPracticeRecord(normDate, d, historyList);
+    let att = fRec ? (fRec.attempts || 0) : 0;
+    let cor = fRec ? (fRec.correct || 0) : 0;
+    if (tRec) {
+      let tAtt = parseInt(tRec.attempts) || 0;
+      let tCor = parseInt(tRec.correct) || 0;
+      if (!tAtt && tRec.score && String(tRec.score).includes("/")) {
+        const sp = String(tRec.score).split("/");
+        tCor = parseInt(sp[0]) || 0;
+        tAtt = parseInt(sp[1]) || 0;
       }
-      if (heatGridEl) {
-        heatGridEl.querySelectorAll(".hc").forEach((cell, cIdx) => {
-          cell.classList.toggle("hc-active", cIdx === idx);
-        });
-      }
-    };
+      att = Math.max(att, tAtt);
+      cor = Math.max(cor, tCor);
+    }
+    const rate = att > 0 ? Math.round((cor / att) * 100) : 0;
+    renderHeatBadgeContent(normDate, att, rate, -1);
+  };
+
+  if (heatDayInfoEl && heatDays.length > 0) {
     updateHeatDayBadge(pinnedIdx);
 
     if (heatGridEl) {
@@ -1366,7 +1402,7 @@ export function renderSummary(d) {
         const idx = parseInt(cell.getAttribute("data-idx"), 10);
         cell.addEventListener("mouseenter", () => {
           if (!isNaN(idx)) {
-            if (heatDays[idx] && heatDays[idx].a > 0) pinnedIdx = idx;
+            pinnedIdx = idx;
             updateHeatDayBadge(idx);
           }
         });
@@ -1374,6 +1410,9 @@ export function renderSummary(d) {
           if (!isNaN(idx)) {
             pinnedIdx = idx;
             updateHeatDayBadge(idx);
+            if (heatDays[idx] && heatDays[idx].key) {
+              switchRecordDate(heatDays[idx].key);
+            }
           }
         });
       });
@@ -1390,6 +1429,9 @@ export function renderSummary(d) {
     const targetDate = normalizeDateStr(newDate);
     if (!targetDate) return;
     currentSelectedDate = targetDate;
+
+    // 同步更新熱力圖右側固定框框
+    updateHeatDayBadgeByDate(targetDate);
 
     // 更新日期輸入框
     const datePicker = $("#record-date-picker");

@@ -2172,14 +2172,19 @@
 
     /* 練習紀錄熱力圖與連續天數 */
     .streakline {
-      font-size: 14px;
+      font-size: 13.5px;
       font-weight: 800;
       color: var(--ink2);
       margin-bottom: 10px;
       display: flex;
       align-items: center;
-      flex-wrap: wrap;
-      gap: 8px 12px;
+      justify-content: flex-start;
+      flex-wrap: nowrap;
+      gap: 10px;
+    }
+    .streakline > span:first-child {
+      white-space: nowrap;
+      flex-shrink: 0;
     }
     .streakline b {
       color: var(--catD, #E8892B);
@@ -2192,14 +2197,22 @@
       color: #F59E0B;
     }
     .heat-day-info {
-      display: inline-flex;
+      display: inline-flex !important;
       align-items: center;
+      justify-content: center;
       gap: 6px;
-      padding: 5px 14px;
+      width: 315px;
+      min-width: 315px;
+      max-width: 315px;
+      height: 34px;
+      padding: 0 12px;
+      box-sizing: border-box;
       border-radius: 9px;
-      font-size: 13.5px;
+      font-size: 13px;
       font-weight: 800;
-      line-height: 1.4;
+      line-height: 1;
+      white-space: nowrap;
+      flex-shrink: 0;
       background: #ECFDF5;
       color: #065F46;
       border: 2px solid #34D399;
@@ -2211,27 +2224,36 @@
       font-weight: 900;
     }
     .heat-day-info.empty {
-      background: #F8FAFC;
-      color: #475569;
-      border: 2px solid #CBD5E1;
-      box-shadow: none;
+      background: #ECFDF5;
+      color: #065F46;
+      border: 2px solid #34D399;
+      box-shadow: 0 2px 6px rgba(16, 185, 129, 0.14);
     }
     .heat-day-info.empty b {
-      color: #334155 !important;
+      color: #047857 !important;
+      font-weight: 900;
     }
-    [data-theme="dark"] .heat-day-info {
+    [data-theme="dark"] .heat-day-info,
+    [data-theme="dark"] .heat-day-info.empty {
       background: rgba(16, 185, 129, 0.18) !important;
       color: #A7F3D0 !important;
       border: 2px solid rgba(52, 211, 153, 0.65) !important;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35) !important;
     }
-    [data-theme="dark"] .heat-day-info b {
+    [data-theme="dark"] .heat-day-info b,
+    [data-theme="dark"] .heat-day-info.empty b {
       color: #34D399 !important;
     }
-    [data-theme="dark"] .heat-day-info.empty {
-      background: rgba(148, 163, 184, 0.12) !important;
-      color: #CBD5E1 !important;
-      border: 2px solid rgba(148, 163, 184, 0.38) !important;
+    @media (max-width: 640px) {
+      .streakline {
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .heat-day-info {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+      }
     }
     [data-theme="dark"] .heat-day-info.empty b {
       color: #F1F5F9 !important;
@@ -2914,14 +2936,19 @@
     }
 
     .streakline {
-      font-size: 14px;
+      font-size: 13.5px;
       font-weight: 800;
       color: var(--ink2);
       margin-bottom: 10px;
       display: flex;
       align-items: center;
-      flex-wrap: wrap;
-      gap: 8px 12px;
+      justify-content: flex-start;
+      flex-wrap: nowrap;
+      gap: 10px;
+    }
+    .streakline > span:first-child {
+      white-space: nowrap;
+      flex-shrink: 0;
     }
     .streakline b {
       color: var(--catD, #E8892B);
@@ -13416,7 +13443,12 @@ function renderStudentDailyTaskAndFreeSections(resp) {
       }
     }
     freeDetailsContainer.innerHTML = buildFreeDetailsHtml(matchedFree, targetDate, agent);
+
+    if (typeof window.__updateStHeatDayBadgeByDate === "function") {
+      window.__updateStHeatDayBadgeByDate(targetDate);
+    }
   }
+  window.__switchStRecordDate = switchRecordDate;
 
   if (datePicker) {
     datePicker.value = defaultSelectedDate;
@@ -13753,8 +13785,8 @@ function renderStudentSummary(resp) {
   const elStreakLine = document.getElementById("stStreakLine");
   if (elStreakLine) {
     elStreakLine.innerHTML = `
-      <span>🔥 連續 <b id="stHeatStreak">${streak}</b> 天　·　最佳 <b id="stHeatBest">${best}</b> 天　·　累計練習 <b id="stHeatTotal">${totalActive}</b> 天</span>
-      <span id="stHeatDayInfo" class="heat-day-info">📅 尚無練習紀錄</span>
+      <span>🔥 連續 <b id="stHeatStreak">${streak}</b> 天 · 最佳 <b id="stHeatBest">${best}</b> 天 · 累計練習 <b id="stHeatTotal">${totalActive}</b> 天</span>
+      <span id="stHeatDayInfo" class="heat-day-info"></span>
     `;
   }
 
@@ -13772,27 +13804,51 @@ function renderStudentSummary(resp) {
           break;
         }
       }
+
+      const renderStHeatBadgeContent = (dateKey, att, rate, activeCellIdx) => {
+        if (!heatDayInfoEl) return;
+        if (att > 0) {
+          heatDayInfoEl.className = "heat-day-info";
+          heatDayInfoEl.innerHTML = `📅 <b>${dateKey}</b> ｜ 作答 <b>${att}</b> 題 · 正確率 <b>${rate}%</b>`;
+        } else {
+          heatDayInfoEl.className = "heat-day-info empty";
+          heatDayInfoEl.innerHTML = `📅 <b>${dateKey}</b> ｜ 作答 <b>0</b> 題 · 當日無練習`;
+        }
+        heatGrid.querySelectorAll(".hc").forEach((cell, cIdx) => {
+          cell.classList.toggle("hc-active", cIdx === activeCellIdx);
+        });
+      };
+
       const updateStHeatDayBadge = (idx) => {
         const item = days[idx];
         if (!item) return;
-        if (item.a > 0) {
-          heatDayInfoEl.className = "heat-day-info";
-          heatDayInfoEl.innerHTML = `📅 <b>${item.key}</b> ｜ 作答 <b>${item.a}</b> 題 · 正確率 <b>${item.rate}%</b>`;
-        } else {
-          heatDayInfoEl.className = "heat-day-info empty";
-          heatDayInfoEl.innerHTML = `📅 <b>${item.key}</b> ｜ 當天無練習紀錄`;
-        }
-        heatGrid.querySelectorAll(".hc").forEach((cell, cIdx) => {
-          cell.classList.toggle("hc-active", cIdx === idx);
-        });
+        renderStHeatBadgeContent(item.key, item.a || 0, item.rate || 0, idx);
       };
+
+      window.__updateStHeatDayBadgeByDate = (dateStr) => {
+        const normKey = normalizeDayKey(dateStr);
+        if (!normKey) return;
+        const foundIdx = days.findIndex(x => x && x.key === normKey);
+        if (foundIdx !== -1) {
+          pinnedIdx = foundIdx;
+          updateStHeatDayBadge(foundIdx);
+          return;
+        }
+        const parts = normKey.split("-");
+        const shortKey = parts.length === 3 ? `${parts[0]}-${parseInt(parts[1], 10)}-${parseInt(parts[2], 10)}` : normKey;
+        const slashKey = normKey.replace(/-/g, "/");
+        const { a: att, c: cor } = getDayStatForHeat(normKey, shortKey, slashKey);
+        const rate = att > 0 ? Math.round((cor / att) * 100) : 0;
+        renderStHeatBadgeContent(normKey, att, rate, -1);
+      };
+
       updateStHeatDayBadge(pinnedIdx);
 
       heatGrid.querySelectorAll(".hc").forEach((cell) => {
         const idx = parseInt(cell.getAttribute("data-idx"), 10);
         cell.addEventListener("mouseenter", () => {
           if (!isNaN(idx)) {
-            if (days[idx] && days[idx].a > 0) pinnedIdx = idx;
+            pinnedIdx = idx;
             updateStHeatDayBadge(idx);
           }
         });
@@ -13800,6 +13856,9 @@ function renderStudentSummary(resp) {
           if (!isNaN(idx)) {
             pinnedIdx = idx;
             updateStHeatDayBadge(idx);
+            if (days[idx] && days[idx].key && typeof window.__switchStRecordDate === "function") {
+              window.__switchStRecordDate(days[idx].key);
+            }
           }
         });
       });
