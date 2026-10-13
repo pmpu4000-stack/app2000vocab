@@ -1149,6 +1149,7 @@ function resolveDailyPracticeRecord(dateStr, d, historyList) {
 }
 
 // ---------- summary ----------
+let _activeRecordSelectedDate = "";
 export function summaryHidden() { return el.summary.hidden; }
 export function renderSummary(d) {
   const currentUser = localStorage.getItem("current_user") || "";
@@ -1197,18 +1198,21 @@ export function renderSummary(d) {
 
   const sortedDates = Array.from(dateSet).filter(Boolean).sort((a, b) => b.localeCompare(a));
 
-  // 若今日尚無紀錄，自動預設跳至最近一個有紀錄的日期（與學習歷程網站完全一致）
-  let defaultSelectedDate = todayDash;
-  const hasTodayTask = historyList.some(item => normalizeDateStr(item.date) === todayDash);
-  const todayFreeRec = resolveDailyPracticeRecord(todayDash, d, historyList);
-  const hasTodayFree = !!(todayFreeRec && todayFreeRec.attempts > 0);
-  if (!hasTodayTask && !hasTodayFree && sortedDates.length > 0) {
-    const latestActive = sortedDates.find(dt => {
-      const hTask = historyList.some(item => normalizeDateStr(item.date) === dt);
-      const rFree = resolveDailyPracticeRecord(dt, d, historyList);
-      return hTask || (rFree && rFree.attempts > 0);
-    });
-    if (latestActive) defaultSelectedDate = latestActive;
+  // 若使用者先前已選定特定日期，且面板重新渲染，優先保留使用者的選定日期不跳走
+  let defaultSelectedDate = (_activeRecordSelectedDate && normalizeDateStr(_activeRecordSelectedDate)) || "";
+  if (!defaultSelectedDate) {
+    defaultSelectedDate = todayDash;
+    const hasTodayTask = historyList.some(item => normalizeDateStr(item.date) === todayDash);
+    const todayFreeRec = resolveDailyPracticeRecord(todayDash, d, historyList);
+    const hasTodayFree = !!(todayFreeRec && todayFreeRec.attempts > 0);
+    if (!hasTodayTask && !hasTodayFree && sortedDates.length > 0) {
+      const latestActive = sortedDates.find(dt => {
+        const hTask = historyList.some(item => normalizeDateStr(item.date) === dt);
+        const rFree = resolveDailyPracticeRecord(dt, d, historyList);
+        return hTask || (rFree && rFree.attempts > 0);
+      });
+      if (latestActive) defaultSelectedDate = latestActive;
+    }
   }
 
   const buildOptionLabel = (dateStr) => {
@@ -1474,7 +1478,7 @@ export function renderSummary(d) {
         const idx = parseInt(cell.getAttribute("data-idx"), 10);
         cell.addEventListener("mouseenter", () => {
           if (!isNaN(idx)) {
-            pinnedTaskIdx = idx;
+            // 僅預覽該日資料，絕不覆寫選定的 pinnedTaskIdx
             updateTaskHeatDayBadge(idx);
           }
         });
@@ -1489,7 +1493,8 @@ export function renderSummary(d) {
         });
       });
       taskHeatGridEl.addEventListener("mouseleave", () => {
-        updateTaskHeatDayBadge(pinnedTaskIdx);
+        // 滑鼠離開時，穩定還原回當前選定的日期
+        updateTaskHeatDayBadgeByDate(currentSelectedDate);
       });
     }
   }
@@ -1564,7 +1569,7 @@ export function renderSummary(d) {
         const idx = parseInt(cell.getAttribute("data-idx"), 10);
         cell.addEventListener("mouseenter", () => {
           if (!isNaN(idx)) {
-            pinnedIdx = idx;
+            // 僅預覽該日資料，絕不覆寫選定的 pinnedIdx
             updateHeatDayBadge(idx);
           }
         });
@@ -1579,18 +1584,21 @@ export function renderSummary(d) {
         });
       });
       heatGridEl.addEventListener("mouseleave", () => {
-        updateHeatDayBadge(pinnedIdx);
+        // 滑鼠離開時，穩定還原回當前選定的日期
+        updateHeatDayBadgeByDate(currentSelectedDate);
       });
     }
   }
 
   let currentSelectedDate = defaultSelectedDate;
+  _activeRecordSelectedDate = defaultSelectedDate;
 
   const switchRecordDate = (newDate) => {
     if (!newDate) return;
     const targetDate = normalizeDateStr(newDate);
     if (!targetDate) return;
     currentSelectedDate = targetDate;
+    _activeRecordSelectedDate = targetDate;
 
     // 同步更新兩個熱力圖右側固定框框
     updateTaskHeatDayBadgeByDate(targetDate);

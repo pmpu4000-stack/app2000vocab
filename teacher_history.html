@@ -1638,6 +1638,13 @@
       }
     }
 
+    #task-record-details,
+    #free-record-details,
+    #st-task-record-details,
+    #st-free-record-details {
+      min-height: 115px;
+    }
+
     /* ── 列印專用樣式 (@media print) ── */
     @media print {
       /* 1. 當處於學習報告書列印模式時，徹底隱藏主畫面容器與所有非報告元素（完全移出文檔流，杜絕空白頁） */
@@ -13114,6 +13121,9 @@ function resolveTaskWords(record, selectedDate, agent) {
   if (!record) return { rawWords: [], wrongList: [], correctList: [] };
 
   const normDate = String(selectedDate || record.date || "").trim().split(" ")[0].replace(/\//g, "-");
+  const p = normDate.split("-");
+  const shortDate = p.length === 3 ? `${p[0]}-${parseInt(p[1], 10)}-${parseInt(p[2], 10)}` : normDate;
+  const padDate = p.length === 3 ? `${p[0]}-${String(p[1]).padStart(2, "0")}-${String(p[2]).padStart(2, "0")}` : normDate;
   let pool = [];
 
   // 1. 若 record 本身已有 words 陣列
@@ -13125,7 +13135,7 @@ function resolveTaskWords(record, selectedDate, agent) {
   if (pool.length === 0 && window.cachedStudentDailyHistory && Array.isArray(window.cachedStudentDailyHistory)) {
     const matched = window.cachedStudentDailyHistory.find(h => {
       const hDate = String(h.date || "").trim().split(" ")[0].replace(/\//g, "-");
-      return hDate === normDate || (h.taskName && record.taskName && h.taskName === record.taskName);
+      return hDate === padDate || hDate === shortDate || (h.taskName && record.taskName && h.taskName === record.taskName);
     });
     if (matched && Array.isArray(matched.words) && matched.words.length > 0) {
       pool = matched.words.map(w => typeof w === "string" ? w : (w.word || w.display || w.w)).filter(Boolean);
@@ -13135,7 +13145,7 @@ function resolveTaskWords(record, selectedDate, agent) {
   // 3. 從 cachedStudentTodayTaskResult 或 cachedStudentAssignedTask 尋找
   if (pool.length === 0 && window.cachedStudentTodayTaskResult && Array.isArray(window.cachedStudentTodayTaskResult.words) && window.cachedStudentTodayTaskResult.words.length > 0) {
     const tDate = String(window.cachedStudentTodayTaskResult.date || "").trim().split(" ")[0].replace(/\//g, "-");
-    if (tDate === normDate) {
+    if (tDate === padDate || tDate === shortDate) {
       pool = window.cachedStudentTodayTaskResult.words.map(w => typeof w === "string" ? w : (w.word || w.display || w.w)).filter(Boolean);
     }
   }
@@ -13145,22 +13155,23 @@ function resolveTaskWords(record, selectedDate, agent) {
 
   // 3-1. 從備份字典 cachedTaskWordsMap 或 cachedBackupTodayTaskSummary 尋找
   if (pool.length === 0 && window.cachedTaskWordsMap) {
-    const slashDate = normDate.replace(/-/g, "/");
-    const mWords = window.cachedTaskWordsMap[normDate] || window.cachedTaskWordsMap[slashDate];
+    const slashPad = padDate.replace(/-/g, "/");
+    const slashShort = shortDate.replace(/-/g, "/");
+    const mWords = window.cachedTaskWordsMap[padDate] || window.cachedTaskWordsMap[shortDate] || window.cachedTaskWordsMap[slashPad] || window.cachedTaskWordsMap[slashShort];
     if (Array.isArray(mWords) && mWords.length > 0) {
       pool = mWords.map(w => typeof w === "string" ? w : (w.word || w.display || w.w)).filter(Boolean);
     }
   }
   if (pool.length === 0 && window.cachedBackupTodayTaskSummary) {
     const bDate = String(window.cachedBackupTodayTaskSummary.date || "").trim().split(" ")[0].replace(/\//g, "-");
-    if (bDate === normDate && Array.isArray(window.cachedBackupTodayTaskSummary.words) && window.cachedBackupTodayTaskSummary.words.length > 0) {
+    if ((bDate === padDate || bDate === shortDate) && Array.isArray(window.cachedBackupTodayTaskSummary.words) && window.cachedBackupTodayTaskSummary.words.length > 0) {
       pool = window.cachedBackupTodayTaskSummary.words.map(w => typeof w === "string" ? w : (w.word || w.display || w.w)).filter(Boolean);
     }
   }
   if (pool.length === 0 && Array.isArray(window.cachedBackupTaskHistory)) {
     const matched = window.cachedBackupTaskHistory.find(h => {
       const hDate = String(h.date || "").trim().split(" ")[0].replace(/\//g, "-");
-      return hDate === normDate || (h.taskName && record.taskName && h.taskName === record.taskName);
+      return hDate === padDate || hDate === shortDate || (h.taskName && record.taskName && h.taskName === record.taskName);
     });
     if (matched && Array.isArray(matched.words) && matched.words.length > 0) {
       pool = matched.words.map(w => typeof w === "string" ? w : (w.word || w.display || w.w)).filter(Boolean);
@@ -13494,31 +13505,50 @@ function renderStudentDailyTaskAndFreeSections(resp) {
   const todayTask = resp.todayTaskResult || window.cachedStudentTodayTaskResult || null;
 
   // 1. 整理所有有紀錄日期
+  const normalizeDateKey = (ds) => {
+    if (!ds) return "";
+    const clean = String(ds).trim().split(" ")[0].replace(/\//g, "-");
+    const parts = clean.split("-");
+    if (parts.length === 3) {
+      return `${parts[0]}-${String(parts[1]).padStart(2, "0")}-${String(parts[2]).padStart(2, "0")}`;
+    }
+    return clean;
+  };
+  const unpadDateKey = (ds) => {
+    if (!ds) return "";
+    const clean = String(ds).trim().split(" ")[0].replace(/\//g, "-");
+    const parts = clean.split("-");
+    if (parts.length === 3) {
+      return `${parts[0]}-${parseInt(parts[1], 10)}-${parseInt(parts[2], 10)}`;
+    }
+    return clean;
+  };
+
   const dateSet = new Set();
   const todayDash = formatDateYMD(new Date());
   dateSet.add(todayDash);
 
   dailyTaskHistory.forEach(h => {
     if (h && h.date) {
-      const d = String(h.date).trim().split(" ")[0].replace(/\//g, "-");
+      const d = normalizeDateKey(h.date);
       if (d) dateSet.add(d);
     }
   });
   if (todayTask && todayTask.date) {
-    const d = String(todayTask.date).trim().split(" ")[0].replace(/\//g, "-");
+    const d = normalizeDateKey(todayTask.date);
     if (d) dateSet.add(d);
   }
 
   Object.keys(historyData).forEach(k => {
     if (historyData[k] && historyData[k].a > 0) {
-      const d = String(k).trim().split(" ")[0].replace(/\//g, "-");
+      const d = normalizeDateKey(k);
       if (d) dateSet.add(d);
     }
   });
 
   Object.keys(dpMap).forEach(k => {
     if (dpMap[k] && (dpMap[k].attempts > 0 || (dpMap[k].words && Object.keys(dpMap[k].words).length > 0))) {
-      const d = String(k).trim().split(" ")[0].replace(/\//g, "-");
+      const d = normalizeDateKey(k);
       if (d) dateSet.add(d);
     }
   });
@@ -13526,7 +13556,7 @@ function renderStudentDailyTaskAndFreeSections(resp) {
   if (resp.data && Array.isArray(resp.data)) {
     resp.data.forEach(r => {
       if (r && r[0]) {
-        const d = String(r[0]).trim().split(" ")[0].replace(/\//g, "-");
+        const d = normalizeDateKey(r[0]);
         if (d && d.match(/^\d{4}-\d{2}-\d{2}$/)) dateSet.add(d);
       }
     });
@@ -13535,31 +13565,42 @@ function renderStudentDailyTaskAndFreeSections(resp) {
   const allDates = Array.from(dateSet).filter(Boolean);
   allDates.sort((a, b) => b.localeCompare(a));
 
-  let defaultSelectedDate = todayDash;
-  const hasTodayTask = dailyTaskHistory.some(h => String(h.date).split(" ")[0].replace(/\//g, "-") === todayDash && ((h.status && h.status.includes("已")) || (h.score && h.score !== "—")));
-  const hasTodayFree = (dpMap[todayDash] && dpMap[todayDash].attempts > 0) ||
-                       (dpMap[todayDash.replace(/-/g, "/")] && dpMap[todayDash.replace(/-/g, "/")].attempts > 0) ||
-                       (historyData[todayDash] && historyData[todayDash].a > 0) || 
-                       (historyData[todayDash.replace(/-/g, "/")] && historyData[todayDash.replace(/-/g, "/")].a > 0);
-  if (!hasTodayTask && !hasTodayFree && allDates.length > 0) {
-    const latestActive = allDates.find(d => {
-      const hTask = dailyTaskHistory.some(h => String(h.date).split(" ")[0].replace(/\//g, "-") === d && ((h.status && h.status.includes("已")) || (h.score && h.score !== "—")));
-      const hFree = (dpMap[d] && dpMap[d].attempts > 0) ||
-                    (dpMap[d.replace(/-/g, "/")] && dpMap[d.replace(/-/g, "/")].attempts > 0) ||
-                    (historyData[d] && historyData[d].a > 0) || 
-                    (historyData[d.replace(/-/g, "/")] && historyData[d.replace(/-/g, "/")].a > 0);
-      return hTask || hFree;
-    });
-    if (latestActive) defaultSelectedDate = latestActive;
-    else if (allDates[0]) defaultSelectedDate = allDates[0];
+  // 若先前已選定日期，優先保留使用者的選定日期不跳走
+  let defaultSelectedDate = (window.__activeStSelectedDate && normalizeDateKey(window.__activeStSelectedDate)) || "";
+  if (!defaultSelectedDate) {
+    defaultSelectedDate = todayDash;
+    const hasTodayTask = dailyTaskHistory.some(h => normalizeDateKey(h.date) === todayDash && ((h.status && h.status.includes("已")) || (h.score && h.score !== "—")));
+    const hasTodayFree = (dpMap[todayDash] && dpMap[todayDash].attempts > 0) ||
+                         (dpMap[todayDash.replace(/-/g, "/")] && dpMap[todayDash.replace(/-/g, "/")].attempts > 0) ||
+                         (historyData[todayDash] && historyData[todayDash].a > 0) || 
+                         (historyData[todayDash.replace(/-/g, "/")] && historyData[todayDash.replace(/-/g, "/")].a > 0);
+    if (!hasTodayTask && !hasTodayFree && allDates.length > 0) {
+      const latestActive = allDates.find(d => {
+        const hTask = dailyTaskHistory.some(h => normalizeDateKey(h.date) === d && ((h.status && h.status.includes("已")) || (h.score && h.score !== "—")));
+        const shortD = unpadDateKey(d);
+        const slashD = d.replace(/-/g, "/");
+        const hFree = (dpMap[d] && dpMap[d].attempts > 0) ||
+                      (dpMap[shortD] && dpMap[shortD].attempts > 0) ||
+                      (dpMap[slashD] && dpMap[slashD].attempts > 0) ||
+                      (historyData[d] && historyData[d].a > 0) || 
+                      (historyData[shortD] && historyData[shortD].a > 0) || 
+                      (historyData[slashD] && historyData[slashD].a > 0);
+        return hTask || hFree;
+      });
+      if (latestActive) defaultSelectedDate = latestActive;
+      else if (allDates[0]) defaultSelectedDate = allDates[0];
+    }
   }
 
   const buildOptionTag = (dateStr) => {
-    const isToday = (dateStr === todayDash);
-    const matchedH = dailyTaskHistory.find(h => String(h.date).split(" ")[0].replace(/\//g, "-") === dateStr && (!h.taskName || h.taskName !== "自主練習")) ||
-                     (todayTask && String(todayTask.date).split(" ")[0].replace(/\//g, "-") === dateStr && todayTask.hasDone && todayTask.taskName !== "自主練習" ? todayTask : null);
-    const dpF = dpMap[dateStr] || dpMap[dateStr.replace(/-/g, "/")] || null;
-    const hFree = historyData[dateStr] || historyData[dateStr.replace(/-/g, "/")] || null;
+    const norm = normalizeDateKey(dateStr);
+    const shortD = unpadDateKey(dateStr);
+    const slashD = norm.replace(/-/g, "/");
+    const isToday = (norm === todayDash);
+    const matchedH = dailyTaskHistory.find(h => (normalizeDateKey(h.date) === norm || unpadDateKey(h.date) === shortD) && (!h.taskName || h.taskName !== "自主練習")) ||
+                     (todayTask && (normalizeDateKey(todayTask.date) === norm || unpadDateKey(todayTask.date) === shortD) && todayTask.hasDone && todayTask.taskName !== "自主練習" ? todayTask : null);
+    const dpF = dpMap[norm] || dpMap[shortD] || dpMap[slashD] || null;
+    const hFree = historyData[norm] || historyData[shortD] || historyData[slashD] || null;
     const freeAtt = (dpF && dpF.attempts) ? dpF.attempts : (hFree ? (hFree.a || 0) : 0);
 
     let tag = "";
@@ -13567,7 +13608,7 @@ function renderStudentDailyTaskAndFreeSections(resp) {
     else if (matchedH) tag = ` [指派: ${matchedH.taskName || "任務"}]`;
     else if (freeAtt > 0) tag = ` [自由練習: ${freeAtt}題]`;
     else tag = " (尚無紀錄)";
-    return `${dateStr}${isToday ? " (今日)" : ""}${tag}`;
+    return `${norm}${isToday ? " (今日)" : ""}${tag}`;
   };
 
   // 產生 1:1 比照截圖的快速跳轉選單標籤
@@ -13579,7 +13620,10 @@ function renderStudentDailyTaskAndFreeSections(resp) {
 
   function switchRecordDate(targetDate) {
     if (!targetDate) return;
-    targetDate = String(targetDate).trim().split(" ")[0].replace(/\//g, "-");
+    targetDate = normalizeDateKey(targetDate);
+    window.__activeStSelectedDate = targetDate;
+    const shortTarget = unpadDateKey(targetDate);
+    const slashTarget = targetDate.replace(/-/g, "/");
 
     if (datePicker && datePicker.value !== targetDate) datePicker.value = targetDate;
     if (quickSelect) {
@@ -13595,21 +13639,27 @@ function renderStudentDailyTaskAndFreeSections(resp) {
     if (taskDateLabel) taskDateLabel.textContent = targetDate;
     if (freeDateLabel) freeDateLabel.textContent = targetDate;
 
-    // A. 匹配教師指定測驗紀錄
-    let matchedTask = dailyTaskHistory.find(h => String(h.date).split(" ")[0].replace(/\//g, "-") === targetDate && (!h.taskName || h.taskName !== "自主練習")) || null;
-    if (!matchedTask && todayTask && String(todayTask.date).split(" ")[0].replace(/\//g, "-") === targetDate && todayTask.hasDone && todayTask.taskName !== "自主練習") {
-      matchedTask = {
-        date: targetDate,
-        taskName: todayTask.taskName || "測驗",
-        score: todayTask.score || "—",
-        rate: todayTask.rate || "—",
-        status: "● 已完成",
-        words: todayTask.words || [],
-        wrongWords: todayTask.wrongWords || []
-      };
+    // A. 匹配教師指定測驗紀錄 (相容 2026-10-05 與 2026-10-5 與 2026/10/05)
+    let matchedTask = dailyTaskHistory.find(h => {
+      const hdNorm = normalizeDateKey(h.date);
+      return (hdNorm === targetDate || unpadDateKey(h.date) === shortTarget) && (!h.taskName || h.taskName !== "自主練習");
+    }) || null;
+    if (!matchedTask && todayTask && todayTask.date && todayTask.hasDone && todayTask.taskName !== "自主練習") {
+      const tdNorm = normalizeDateKey(todayTask.date);
+      if (tdNorm === targetDate || unpadDateKey(todayTask.date) === shortTarget) {
+        matchedTask = {
+          date: targetDate,
+          taskName: todayTask.taskName || "測驗",
+          score: todayTask.score || "—",
+          rate: todayTask.rate || "—",
+          status: "● 已完成",
+          words: todayTask.words || [],
+          wrongWords: todayTask.wrongWords || []
+        };
+      }
     }
     if (!matchedTask && resp.data && Array.isArray(resp.data)) {
-      const matchedRow = resp.data.find(r => r && String(r[0]).trim().split(" ")[0].replace(/\//g, "-") === targetDate && r[18] && r[18] !== "自主練習");
+      const matchedRow = resp.data.find(r => r && (normalizeDateKey(r[0]) === targetDate || unpadDateKey(r[0]) === shortTarget) && r[18] && r[18] !== "自主練習");
       if (matchedRow) {
         matchedTask = {
           date: targetDate,
@@ -13624,9 +13674,9 @@ function renderStudentDailyTaskAndFreeSections(resp) {
     }
     taskDetailsContainer.innerHTML = buildTaskDetailsHtml(matchedTask, targetDate, agent);
 
-    // B. 匹配自由練習紀錄
-    let dpFree = dpMap[targetDate] || dpMap[targetDate.replace(/-/g, "/")] || null;
-    let hFree = historyData[targetDate] || historyData[targetDate.replace(/-/g, "/")] || null;
+    // B. 匹配自由練習紀錄 (相容 padded, unpadded, slash 鍵名)
+    let dpFree = dpMap[targetDate] || dpMap[shortTarget] || dpMap[slashTarget] || null;
+    let hFree = historyData[targetDate] || historyData[shortTarget] || historyData[slashTarget] || null;
     let matchedFree = null;
     if (dpFree && (dpFree.attempts > 0 || (dpFree.words && Object.keys(dpFree.words).length > 0))) {
       matchedFree = {
@@ -13645,7 +13695,7 @@ function renderStudentDailyTaskAndFreeSections(resp) {
         words: hFree.words || {}
       };
     } else if (resp.data && Array.isArray(resp.data)) {
-      const matchedRow = resp.data.find(r => r && String(r[0]).trim().split(" ")[0].replace(/\//g, "-") === targetDate);
+      const matchedRow = resp.data.find(r => r && (normalizeDateKey(r[0]) === targetDate || unpadDateKey(r[0]) === shortTarget));
       if (matchedRow && Number(matchedRow[6]) > 0) {
         matchedFree = {
           date: targetDate,
@@ -14044,10 +14094,16 @@ function renderStudentSummary(resp) {
     const taskHeatDayInfoEl = document.getElementById("stTaskHeatDayInfo");
     if (taskHeatDayInfoEl && taskDays.length > 0) {
       let pinnedTaskIdx = taskDays.length - 1;
-      for (let i = taskDays.length - 1; i >= 0; i--) {
-        if (taskDays[i] && taskDays[i].a > 0) {
-          pinnedTaskIdx = i;
-          break;
+      const targetInitKey = window.__activeStSelectedDate || "";
+      if (targetInitKey) {
+        const found = taskDays.findIndex(x => x && x.key === targetInitKey);
+        if (found !== -1) pinnedTaskIdx = found;
+      } else {
+        for (let i = taskDays.length - 1; i >= 0; i--) {
+          if (taskDays[i] && taskDays[i].a > 0) {
+            pinnedTaskIdx = i;
+            break;
+          }
         }
       }
 
@@ -14091,7 +14147,7 @@ function renderStudentSummary(resp) {
         const idx = parseInt(cell.getAttribute("data-idx"), 10);
         cell.addEventListener("mouseenter", () => {
           if (!isNaN(idx)) {
-            pinnedTaskIdx = idx;
+            // 僅預覽該日資料，絕不覆寫選定的 pinnedTaskIdx
             updateStTaskHeatDayBadge(idx);
           }
         });
@@ -14106,7 +14162,12 @@ function renderStudentSummary(resp) {
         });
       });
       taskHeatGrid.onmouseleave = () => {
-        updateStTaskHeatDayBadge(pinnedTaskIdx);
+        // 滑鼠離開時，穩定還原回當前選定的日期
+        if (typeof window.__updateStTaskHeatDayBadgeByDate === "function") {
+          window.__updateStTaskHeatDayBadgeByDate(window.__activeStSelectedDate || (taskDays[pinnedTaskIdx] ? taskDays[pinnedTaskIdx].key : ""));
+        } else {
+          updateStTaskHeatDayBadge(pinnedTaskIdx);
+        }
       };
     }
   }
@@ -14214,10 +14275,16 @@ function renderStudentSummary(resp) {
     const heatDayInfoEl = document.getElementById("stHeatDayInfo");
     if (heatDayInfoEl && days.length > 0) {
       let pinnedIdx = days.length - 1;
-      for (let i = days.length - 1; i >= 0; i--) {
-        if (days[i] && days[i].a > 0) {
-          pinnedIdx = i;
-          break;
+      const targetInitKey = window.__activeStSelectedDate || "";
+      if (targetInitKey) {
+        const found = days.findIndex(x => x && x.key === targetInitKey);
+        if (found !== -1) pinnedIdx = found;
+      } else {
+        for (let i = days.length - 1; i >= 0; i--) {
+          if (days[i] && days[i].a > 0) {
+            pinnedIdx = i;
+            break;
+          }
         }
       }
 
@@ -14263,7 +14330,7 @@ function renderStudentSummary(resp) {
         const idx = parseInt(cell.getAttribute("data-idx"), 10);
         cell.addEventListener("mouseenter", () => {
           if (!isNaN(idx)) {
-            pinnedIdx = idx;
+            // 僅預覽該日資料，絕不覆寫選定的 pinnedIdx
             updateStHeatDayBadge(idx);
           }
         });
@@ -14278,7 +14345,12 @@ function renderStudentSummary(resp) {
         });
       });
       heatGrid.onmouseleave = () => {
-        updateStHeatDayBadge(pinnedIdx);
+        // 滑鼠離開時，穩定還原回當前選定的日期
+        if (typeof window.__updateStHeatDayBadgeByDate === "function") {
+          window.__updateStHeatDayBadgeByDate(window.__activeStSelectedDate || (days[pinnedIdx] ? days[pinnedIdx].key : ""));
+        } else {
+          updateStHeatDayBadge(pinnedIdx);
+        }
       };
     }
   }
