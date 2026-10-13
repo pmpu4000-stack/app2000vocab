@@ -3,7 +3,7 @@
 // data and reports intent through callbacks; it never touches the store.
 // =====================================================================
 import { CATS } from "./data.js?v=20261013_1225";
-import { say, sayWord, spellOut, playContestSentence, stopAudio } from "./audio.js?v=20261013_2155";
+import { say, sayWord, spellOut, playContestSentence, stopAudio, parseDialogue } from "./audio.js?v=20261013_2225";
 import { LEVELS, levelColor, levelName, misspellings, shuffle } from "./levels.js?v=20261013_1225";
 
 if (typeof window !== "undefined") {
@@ -121,23 +121,51 @@ export function renderRound(word, mode, { onAnswer, onCheck, disablePeek }) {
       ? [...word.sents]
       : [{ level: 'normal', levelName: '普通', sent: word.sent, sentZh: word.sentZh || '', src: word.sentSrc || '' }];
 
-    const levelOrder = { simple: 1, normal: 2, advanced: 3 };
+    const levelOrder = { simple: 1, normal: 2, advanced: 3, dialogue: 4 };
     sentsList.sort((a, b) => (levelOrder[a.level] || 9) - (levelOrder[b.level] || 9));
 
     let html = '<div class="sents-vertical-list">';
     sentsList.forEach((s, i) => {
-      const levelCls = s.level === 'simple' ? 'level-simple' : s.level === 'advanced' ? 'level-advanced' : 'level-normal';
-      const levelText = s.levelName || (i === 0 ? '簡單' : i === 1 ? '普通' : '進階');
-      const maskedSent = s.sent.replace(new RegExp("\\b" + word.word + "\\b", "i"), "<u>_____</u>");
+      const dlg = parseDialogue(s.sent);
+      const isDlg = Boolean(dlg || s.level === 'dialogue');
+      const levelCls = s.level === 'simple' ? 'level-simple' : s.level === 'advanced' ? 'level-advanced' : isDlg ? 'level-dialogue' : 'level-normal';
+      const levelText = s.levelName || (isDlg ? '對話' : i === 0 ? '簡單' : i === 1 ? '普通' : '進階');
+
+      let enHtml = '';
+      let zhHtml = '';
+      if (dlg) {
+        const wordRegex = new RegExp("\\b" + word.word + "\\b", "i");
+        const maskedA = dlg.partA.replace(wordRegex, "<u>_____</u>");
+        const maskedB = dlg.partB.replace(wordRegex, "<u>_____</u>");
+        enHtml = `
+          <div class="sent-dialogue-turn"><span class="dlg-badge dlg-a">👩 A</span><span class="dlg-text">${maskedA}</span></div>
+          <div class="sent-dialogue-turn"><span class="dlg-badge dlg-b">👨 B</span><span class="dlg-text">${maskedB}</span></div>
+        `;
+        if (s.sentZh) {
+          const dlgZh = parseDialogue(s.sentZh);
+          if (dlgZh) {
+            zhHtml = `
+              <div class="sent-dialogue-turn"><span class="dlg-badge dlg-a">👩 A</span><span class="dlg-text">${dlgZh.partA}</span></div>
+              <div class="sent-dialogue-turn"><span class="dlg-badge dlg-b">👨 B</span><span class="dlg-text">${dlgZh.partB}</span></div>
+            `;
+          } else {
+            zhHtml = s.sentZh;
+          }
+        }
+      } else {
+        const maskedSent = s.sent.replace(new RegExp("\\b" + word.word + "\\b", "i"), "<u>_____</u>");
+        enHtml = maskedSent;
+        zhHtml = s.sentZh || '';
+      }
 
       html += `
         <div class="sent-row" data-idx="${i}">
-          <button type="button" class="sent-speaker-btn ${levelCls}" data-idx="${i}" title="${levelText}例句 (單字王模式：單字 ➔ 例句 ➔ 單字)" aria-label="${levelText}例句朗讀">
+          <button type="button" class="sent-speaker-btn ${levelCls}" data-idx="${i}" title="${levelText}${dlg ? '生活對話 (雙聲道：女聲問 ➔ 男聲答)' : '例句 (單字王模式：單字 ➔ 例句 ➔ 單字)'}" aria-label="${levelText}例句朗讀">
             🔊
           </button>
-          <div class="sent-text-wrap" data-idx="${i}" title="點擊朗讀 (單字 ➔ 例句 ➔ 單字)">
-            <div class="sent-en">${maskedSent}</div>
-            ${s.sentZh ? `<div class="sent-zh">${s.sentZh}</div>` : ''}
+          <div class="sent-text-wrap" data-idx="${i}" title="點擊朗讀 (${dlg ? '雙聲道生活對話' : '單字 ➔ 例句 ➔ 單字'})">
+            <div class="sent-en">${enHtml}</div>
+            ${zhHtml ? `<div class="sent-zh">${zhHtml}</div>` : ''}
           </div>
         </div>
       `;

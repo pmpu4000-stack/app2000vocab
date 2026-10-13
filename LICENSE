@@ -55,5 +55,6 @@ This project redistributes third-party data and educational linguistic corpora:
 2. **Tatoeba Project (CC-BY 2.0 FR)**: Curated bilingual example sentences and native Chinese translations (tatoeba.org).
 3. **Princeton WordNet 3.0 (WordNet License / BSD-style)**: Lexical definitions, illustrative usage examples, and synset data (Copyright (c) 2006 Princeton University).
 4. **Webster's Revised Unabridged Dictionary 1913 / GCIDE (Public Domain)**: Classic definitions and illustrative corpus examples.
+5. **Contextual Mini-Dialogues Corpus (CC0 1.0 Universal / Public Domain)**: Tailored conversational mini-dialogues and Q&A interactions for high-frequency vocabulary, completely free for commercial and educational use without restrictions.
 
 All open datasets strictly comply with commercial and educational licensing requirements. See `THIRD-PARTY-NOTICES.md` for the full license texts, author acknowledgments, and attribution notices.

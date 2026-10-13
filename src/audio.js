@@ -49,6 +49,47 @@ export function getRandomUSVoice() {
   return list[Math.floor(Math.random() * list.length)];
 }
 
+const FEMALE_VOICE_REGEX = /zira|samantha|ava|allison|victoria|jenny|aria|susan|michelle|katherine|lisa|stephanie|female/i;
+const MALE_VOICE_REGEX = /david|alex|guy|mark|tom|christopher|eric|george|richard|male/i;
+
+export function getUSFemaleVoice() {
+  const list = getAvailableUSVoices();
+  if (!list || !list.length) return null;
+  const females = list.filter(v => FEMALE_VOICE_REGEX.test(v.name));
+  if (females.length > 0) {
+    return females[Math.floor(Math.random() * females.length)];
+  }
+  return list[0];
+}
+
+export function getUSMaleVoice() {
+  const list = getAvailableUSVoices();
+  if (!list || !list.length) return null;
+  const males = list.filter(v => MALE_VOICE_REGEX.test(v.name));
+  if (males.length > 0) {
+    return males[Math.floor(Math.random() * males.length)];
+  }
+  const notFemale = list.filter(v => !FEMALE_VOICE_REGEX.test(v.name));
+  if (notFemale.length > 0) {
+    return notFemale[Math.floor(Math.random() * notFemale.length)];
+  }
+  return list[list.length - 1];
+}
+
+export function parseDialogue(text) {
+  if (!text) return null;
+  const raw = String(text).trim();
+  const match = raw.match(/^(?:A|甲):\s*(.+?)\s*(?:\n|\/|\s{1,4})\s*(?:B|乙):\s*(.+)$/is);
+  if (match) {
+    return {
+      partA: match[1].trim(),
+      partB: match[2].trim(),
+      isDialogue: true
+    };
+  }
+  return null;
+}
+
 export function getBestEnglishVoice() {
   return getRandomUSVoice() || null;
 }
@@ -162,6 +203,21 @@ function playSingleWordOrTTS(rawText, rate = 0.8, onEnd = null, token = currentS
     return;
   }
 
+  // 若為情境微對話 (A: ... B: ...)，使用美式女聲(A)與男聲(B)雙聲道互動朗讀
+  const dlg = parseDialogue(clean);
+  if (dlg) {
+    const femaleVoice = getUSFemaleVoice();
+    const maleVoice = getUSMaleVoice();
+    speakWithTTS(dlg.partA, rate || 0.85, () => {
+      if (token !== currentSeqToken) return;
+      currentSeqTimer = setTimeout(() => {
+        if (token !== currentSeqToken) return;
+        speakWithTTS(dlg.partB, rate || 0.85, onEnd, token, maleVoice);
+      }, 450);
+    }, token, femaleVoice);
+    return;
+  }
+
   // 若為單一英文單字，隨機使用免費可商用、純正美語腔之語音包 (約 50% 使用 Google US 真人發音音檔，50% 隨機使用系統優質美語 TTS 語音包)
   if (/^[a-zA-Z]+$/.test(clean) && typeof Audio !== "undefined") {
     const wordLower = clean.toLowerCase();
@@ -251,7 +307,9 @@ export function spellOut(word) {
 /**
  * 嘉義縣單字王比賽標準播放模式：
  * 順序：【單字 (0.8)】 ➔ 停頓 1.0 秒 ➔ 【例句 (0.8)】 ➔ 停頓 1.0 秒 ➔ 【單字 (0.8)】
- * 核心保證：朗讀例句時，全程使用「完全相同的同一個美式語音包」，避免單字與例句由不同聲音朗讀。
+ * 核心保證：
+ * 1. 若為情境微對話（A: ... B: ...），例句部分啟用雙聲道（角色 A 女聲提問、角色 B 男聲回答），自然交替朗讀。
+ * 2. 若為一般例句，全程使用「完全相同的同一個美式語音包」，避免單字與例句聲音突變。
  */
 export function playContestSentence(word, sentence, onEnd = null) {
   if (typeof window !== "undefined" && window.__dailyUsageTimeIsUp) {
@@ -279,19 +337,48 @@ export function playContestSentence(word, sentence, onEnd = null) {
     cleanSent = cleanSent.replace(/_+/g, cleanWord);
   }
 
-  // 隨機挑選一個純正美語語音包，整段【單字 ➔ 例句 ➔ 單字】全程鎖定使用同一個語音包
+  // 隨機挑選一個純正美語語音包；若為微對話則準備女聲與男聲
   const sessionVoice = getRandomUSVoice();
+  const femaleVoice = getUSFemaleVoice();
+  const maleVoice = getUSMaleVoice();
 
-  const speakPart = (text, rate, callback) => {
+  const speakPart = (text, rate, callback, targetVoice = sessionVoice) => {
     if (token !== currentSeqToken) return;
     speakWithTTS(text, rate, () => {
       if (token === currentSeqToken) callback();
-    }, token, sessionVoice);
+    }, token, targetVoice);
   };
 
-  // 缺單字或缺例句時退回單純朗讀 (速度 0.8，使用同一個語音包)
+  const dlg = parseDialogue(cleanSent);
+
+  const speakSentPart = (callback) => {
+    if (dlg) {
+      // 角色 A：女聲提問 (速度 0.85)
+      speakPart(dlg.partA, 0.85, () => {
+        if (token !== currentSeqToken) return;
+        // 角色之間自然呼吸停頓 0.45 秒
+        currentSeqTimer = setTimeout(() => {
+          if (token !== currentSeqToken) return;
+          // 角色 B：男聲回答 (速度 0.85)
+          speakPart(dlg.partB, 0.85, () => {
+            if (token !== currentSeqToken) return;
+            callback();
+          }, maleVoice);
+        }, 450);
+      }, femaleVoice);
+    } else {
+      // 一般例句：全程鎖定使用同一個美語語音包
+      speakPart(cleanSent, 0.8, callback, sessionVoice);
+    }
+  };
+
+  // 缺單字或缺例句時退回單純朗讀
   if (!cleanWord || !cleanSent) {
-    speakWithTTS(cleanSent || cleanWord, 0.8, cleanup, token, sessionVoice);
+    if (dlg) {
+      speakSentPart(cleanup);
+    } else {
+      speakPart(cleanSent || cleanWord, 0.8, cleanup, sessionVoice);
+    }
     return;
   }
 
@@ -301,8 +388,8 @@ export function playContestSentence(word, sentence, onEnd = null) {
     // 2. 停頓 1.0 秒
     currentSeqTimer = setTimeout(() => {
       if (token !== currentSeqToken) return;
-      // 3. 播放例句 (速度 0.8，使用完全相同的 sessionVoice)
-      speakPart(cleanSent, 0.8, () => {
+      // 3. 播放例句 (微對話則雙聲道女問男答，一般例句則同一個 sessionVoice)
+      speakSentPart(() => {
         if (token !== currentSeqToken) return;
         // 4. 停頓 1.0 秒
         currentSeqTimer = setTimeout(() => {
@@ -310,9 +397,9 @@ export function playContestSentence(word, sentence, onEnd = null) {
           // 5. 再次播放單字 (速度 0.8，使用完全相同的 sessionVoice)
           speakPart(cleanWord, 0.8, () => {
             cleanup();
-          });
+          }, sessionVoice);
         }, 1000);
       });
     }, 1000);
-  });
+  }, sessionVoice);
 }

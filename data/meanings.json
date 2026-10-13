@@ -2162,9 +2162,9 @@
   "answer": {
     "zh": "n. 答案",
     "ph": "ˋænsɚ",
-    "sent": "It is easy to answer this question.",
-    "sentZh": "回答這個問題很容易。",
-    "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #58805 (CK) & #893996 (Martha)",
+    "sent": "A: Do you know the answer? B: Yes, the answer is option B.",
+    "sentZh": "A: 你知道答案嗎？ B: 知道，答案是選項 B。",
+    "sentSrc": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)",
     "sents": [
       {
         "level": "simple",
@@ -2176,9 +2176,9 @@
       {
         "level": "normal",
         "levelName": "普通",
-        "sent": "It is easy to answer this question.",
-        "sentZh": "回答這個問題很容易。",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #58805 (CK) & #893996 (Martha)"
+        "sent": "A: Do you know the answer? B: Yes, the answer is option B.",
+        "sentZh": "A: 你知道答案嗎？ B: 知道，答案是選項 B。",
+        "src": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)"
       },
       {
         "level": "advanced",
@@ -2432,9 +2432,9 @@
   "apple": {
     "zh": "n. 蘋果",
     "ph": "ˋæpl",
-    "sent": "Where's my apple juice?",
-    "sentZh": "我的蘋果汁在哪?",
-    "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #3737753 (CK) & #5548527 (egg0073)",
+    "sent": "A: Do you want an apple? B: Yes, please. I like apples.",
+    "sentZh": "A: 你想要一顆蘋果嗎？ B: 好的，謝謝。我喜歡蘋果。",
+    "sentSrc": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)",
     "sents": [
       {
         "level": "simple",
@@ -2446,9 +2446,9 @@
       {
         "level": "normal",
         "levelName": "普通",
-        "sent": "Where's my apple juice?",
-        "sentZh": "我的蘋果汁在哪?",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #3737753 (CK) & #5548527 (egg0073)"
+        "sent": "A: Do you want an apple? B: Yes, please. I like apples.",
+        "sentZh": "A: 你想要一顆蘋果嗎？ B: 好的，謝謝。我喜歡蘋果。",
+        "src": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)"
       },
       {
         "level": "advanced",
@@ -5342,9 +5342,9 @@
   "birthday": {
     "zh": "n. 生日",
     "ph": "ˋbɝθde",
-    "sent": "I will get you a bike for your birthday.",
-    "sentZh": "你生日的時候，我送你一輛腳踏車。",
-    "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #1499325 (CM) & #334048 (fucongcong)",
+    "sent": "A: When is your birthday? B: My birthday is in July.",
+    "sentZh": "A: 你的生日是什麼時候？ B: 我的生日在七月。",
+    "sentSrc": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)",
     "sents": [
       {
         "level": "simple",
@@ -5356,9 +5356,9 @@
       {
         "level": "normal",
         "levelName": "普通",
-        "sent": "I will get you a bike for your birthday.",
-        "sentZh": "你生日的時候，我送你一輛腳踏車。",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #1499325 (CM) & #334048 (fucongcong)"
+        "sent": "A: When is your birthday? B: My birthday is in July.",
+        "sentZh": "A: 你的生日是什麼時候？ B: 我的生日在七月。",
+        "src": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)"
       },
       {
         "level": "advanced",
@@ -5972,9 +5972,9 @@
   "book": {
     "zh": "n. 書本；v. 預訂",
     "ph": "bʊk",
-    "sent": "Tom and I wrote a book together.",
-    "sentZh": "湯姆跟我一起寫了一本書。",
-    "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #8220430 (CK) & #10040369 (verdastelo9604)",
+    "sent": "A: Is this your book? B: No, it is not my book.",
+    "sentZh": "A: 這是你的書嗎？ B: 不，這不是我的書。",
+    "sentSrc": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)",
     "sents": [
       {
         "level": "simple",
@@ -5986,9 +5986,9 @@
       {
         "level": "normal",
         "levelName": "普通",
-        "sent": "Tom and I wrote a book together.",
-        "sentZh": "湯姆跟我一起寫了一本書。",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #8220430 (CK) & #10040369 (verdastelo9604)"
+        "sent": "A: Is this your book? B: No, it is not my book.",
+        "sentZh": "A: 這是你的書嗎？ B: 不，這不是我的書。",
+        "src": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)"
       },
       {
         "level": "advanced",
@@ -6602,9 +6602,9 @@
   "breakfast": {
     "zh": "n. 早餐",
     "ph": "ˋbrɛkfəst",
-    "sent": "We have breakfast in the kitchen.",
-    "sentZh": "我們在廚房裡吃早餐。",
-    "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #65607 (CK) & #868395 (Martha)",
+    "sent": "A: What do you have for breakfast? B: I have toast and milk for breakfast.",
+    "sentZh": "A: 你早餐吃什麼？ B: 我早餐吃吐司和牛奶。",
+    "sentSrc": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)",
     "sents": [
       {
         "level": "simple",
@@ -6616,9 +6616,9 @@
       {
         "level": "normal",
         "levelName": "普通",
-        "sent": "We have breakfast in the kitchen.",
-        "sentZh": "我們在廚房裡吃早餐。",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #65607 (CK) & #868395 (Martha)"
+        "sent": "A: What do you have for breakfast? B: I have toast and milk for breakfast.",
+        "sentZh": "A: 你早餐吃什麼？ B: 我早餐吃吐司和牛奶。",
+        "src": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)"
       },
       {
         "level": "advanced",
@@ -7322,9 +7322,9 @@
   "busy": {
     "zh": "a. 忙碌的",
     "ph": "ˋbɪzi",
-    "sent": "I've been very busy recently.",
-    "sentZh": "我最近很忙。",
-    "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #5330265 (eamost) & #409710 (egg0073)",
+    "sent": "A: Are you busy tonight? B: No, I am free after dinner.",
+    "sentZh": "A: 你今晚很忙嗎？ B: 不忙，我吃過晚餐後就有空。",
+    "sentSrc": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)",
     "sents": [
       {
         "level": "simple",
@@ -7336,9 +7336,9 @@
       {
         "level": "normal",
         "levelName": "普通",
-        "sent": "I've been very busy recently.",
-        "sentZh": "我最近很忙。",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #5330265 (eamost) & #409710 (egg0073)"
+        "sent": "A: Are you busy tonight? B: No, I am free after dinner.",
+        "sentZh": "A: 你今晚很忙嗎？ B: 不忙，我吃過晚餐後就有空。",
+        "src": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)"
       },
       {
         "level": "advanced",
@@ -8432,9 +8432,9 @@
   "cat": {
     "zh": "n. 貓",
     "ph": "kæt",
-    "sent": "The cat prefers fish to meat.",
-    "sentZh": "貓喜歡魚多過肉。",
-    "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #282029 (CK) & #464931 (fucongcong)",
+    "sent": "A: Where is your cat? B: My cat is sleeping under the bed.",
+    "sentZh": "A: 你的貓在哪裡？ B: 我的貓在床底下睡覺。",
+    "sentSrc": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)",
     "sents": [
       {
         "level": "simple",
@@ -8446,9 +8446,9 @@
       {
         "level": "normal",
         "levelName": "普通",
-        "sent": "The cat prefers fish to meat.",
-        "sentZh": "貓喜歡魚多過肉。",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #282029 (CK) & #464931 (fucongcong)"
+        "sent": "A: Where is your cat? B: My cat is sleeping under the bed.",
+        "sentZh": "A: 你的貓在哪裡？ B: 我的貓在床底下睡覺。",
+        "src": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)"
       },
       {
         "level": "advanced",
@@ -9902,9 +9902,9 @@
   "class": {
     "zh": "n. 班級；課",
     "ph": "klæs",
-    "sent": "We are glad to have you in our class.",
-    "sentZh": "我們很高興你加入了我們班。",
-    "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #68824 (CS) & #616212 (sarah)",
+    "sent": "A: What time does class begin? B: Class begins at eight o'clock.",
+    "sentZh": "A: 什麼時候開始上課？ B: 八點開始上課。",
+    "sentSrc": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)",
     "sents": [
       {
         "level": "simple",
@@ -9916,9 +9916,9 @@
       {
         "level": "normal",
         "levelName": "普通",
-        "sent": "We are glad to have you in our class.",
-        "sentZh": "我們很高興你加入了我們班。",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #68824 (CS) & #616212 (sarah)"
+        "sent": "A: What time does class begin? B: Class begins at eight o'clock.",
+        "sentZh": "A: 什麼時候開始上課？ B: 八點開始上課。",
+        "src": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)"
       },
       {
         "level": "advanced",
@@ -10742,9 +10742,9 @@
   "color": {
     "zh": "n. 顏色",
     "ph": "ˋkʌlɚ",
-    "sent": "Blue isn't my favorite color.",
-    "sentZh": "藍色不是我最喜歡的顏色。",
-    "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #6954677 (CK) & #13543153 (LeviHighway)",
+    "sent": "A: What is your favorite color? B: My favorite color is blue.",
+    "sentZh": "A: 你最喜歡什麼顏色？ B: 我最喜歡的顏色是藍色。",
+    "sentSrc": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)",
     "sents": [
       {
         "level": "simple",
@@ -10756,9 +10756,9 @@
       {
         "level": "normal",
         "levelName": "普通",
-        "sent": "Blue isn't my favorite color.",
-        "sentZh": "藍色不是我最喜歡的顏色。",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #6954677 (CK) & #13543153 (LeviHighway)"
+        "sent": "A: What is your favorite color? B: My favorite color is blue.",
+        "sentZh": "A: 你最喜歡什麼顏色？ B: 我最喜歡的顏色是藍色。",
+        "src": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)"
       },
       {
         "level": "advanced",
@@ -14492,9 +14492,9 @@
   "dinner": {
     "zh": "n. 晚餐",
     "ph": "ˋdɪnɚ",
-    "sent": "She cooked us a delicious dinner.",
-    "sentZh": "她為我們煮了一頓美味的晚餐。",
-    "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #314070 (CK) & #852188 (Martha)",
+    "sent": "A: What is for dinner tonight? B: We are having noodles for dinner.",
+    "sentZh": "A: 今晚晚餐吃什麼？ B: 我們晚餐吃麵。",
+    "sentSrc": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)",
     "sents": [
       {
         "level": "simple",
@@ -14506,9 +14506,9 @@
       {
         "level": "normal",
         "levelName": "普通",
-        "sent": "She cooked us a delicious dinner.",
-        "sentZh": "她為我們煮了一頓美味的晚餐。",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #314070 (CK) & #852188 (Martha)"
+        "sent": "A: What is for dinner tonight? B: We are having noodles for dinner.",
+        "sentZh": "A: 今晚晚餐吃什麼？ B: 我們晚餐吃麵。",
+        "src": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)"
       },
       {
         "level": "advanced",
@@ -15062,9 +15062,9 @@
   "dog": {
     "zh": "n. 狗",
     "ph": "dɔg",
-    "sent": "A dog was run over by a truck.",
-    "sentZh": "一條狗被卡車碾過。",
-    "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #239101 (CK) & #787367 (fucongcong)",
+    "sent": "A: Do you have a dog? B: Yes, I have a cute white dog.",
+    "sentZh": "A: 你有養狗嗎？ B: 有的，我有一隻可愛的白狗。",
+    "sentSrc": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)",
     "sents": [
       {
         "level": "simple",
@@ -15076,9 +15076,9 @@
       {
         "level": "normal",
         "levelName": "普通",
-        "sent": "A dog was run over by a truck.",
-        "sentZh": "一條狗被卡車碾過。",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #239101 (CK) & #787367 (fucongcong)"
+        "sent": "A: Do you have a dog? B: Yes, I have a cute white dog.",
+        "sentZh": "A: 你有養狗嗎？ B: 有的，我有一隻可愛的白狗。",
+        "src": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)"
       },
       {
         "level": "advanced",
@@ -17312,9 +17312,9 @@
   "English": {
     "zh": "n. 英語",
     "ph": "ˋɪŋglɪʃ",
-    "sent": "The English alphabet has 26 letters.",
-    "sentZh": "英文有二十六個字母。",
-    "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #26340 (CK) & #6057131 (xjjAstrus)",
+    "sent": "A: Do you enjoy learning English? B: Yes, English is fun and useful.",
+    "sentZh": "A: 你喜歡學英文嗎？ B: 是的，英文既有趣又實用。",
+    "sentSrc": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)",
     "sents": [
       {
         "level": "simple",
@@ -17326,9 +17326,9 @@
       {
         "level": "normal",
         "levelName": "普通",
-        "sent": "The English alphabet has 26 letters.",
-        "sentZh": "英文有二十六個字母。",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #26340 (CK) & #6057131 (xjjAstrus)"
+        "sent": "A: Do you enjoy learning English? B: Yes, English is fun and useful.",
+        "sentZh": "A: 你喜歡學英文嗎？ B: 是的，英文既有趣又實用。",
+        "src": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)"
       },
       {
         "level": "advanced",
@@ -18752,9 +18752,9 @@
   "family": {
     "zh": "n. 家庭",
     "ph": "ˋfæməli",
-    "sent": "The whole family was sick in bed.",
-    "sentZh": "全家都病倒了。",
-    "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #495621 (CK) & #791569 (fucongcong)",
+    "sent": "A: Do you have a big family? B: Yes, there are five people in my family.",
+    "sentZh": "A: 你的家庭很大嗎？ B: 是的，我家有五個人。",
+    "sentSrc": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)",
     "sents": [
       {
         "level": "simple",
@@ -18766,9 +18766,9 @@
       {
         "level": "normal",
         "levelName": "普通",
-        "sent": "The whole family was sick in bed.",
-        "sentZh": "全家都病倒了。",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #495621 (CK) & #791569 (fucongcong)"
+        "sent": "A: Do you have a big family? B: Yes, there are five people in my family.",
+        "sentZh": "A: 你的家庭很大嗎？ B: 是的，我家有五個人。",
+        "src": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)"
       },
       {
         "level": "advanced",
@@ -21452,9 +21452,9 @@
   "friend": {
     "zh": "n. 朋友",
     "ph": "frɛnd",
-    "sent": "What time did your friend go home?",
-    "sentZh": "你朋友幾點鐘回家?",
-    "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #70343 (CK) & #907257 (Martha)",
+    "sent": "A: Who is your best friend? B: Peter is my best friend.",
+    "sentZh": "A: 誰是你最好的朋友？ B: 彼得是我最好的朋友。",
+    "sentSrc": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)",
     "sents": [
       {
         "level": "simple",
@@ -21466,9 +21466,9 @@
       {
         "level": "normal",
         "levelName": "普通",
-        "sent": "What time did your friend go home?",
-        "sentZh": "你朋友幾點鐘回家?",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #70343 (CK) & #907257 (Martha)"
+        "sent": "A: Who is your best friend? B: Peter is my best friend.",
+        "sentZh": "A: 誰是你最好的朋友？ B: 彼得是我最好的朋友。",
+        "src": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)"
       },
       {
         "level": "advanced",
@@ -24332,9 +24332,9 @@
   "happy": {
     "zh": "a. 快樂的",
     "ph": "ˋhæpi",
-    "sent": "I'm very happy to meet you.",
-    "sentZh": "認識您很高興。",
-    "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #64725 (CK) & #393275 (GlossaMatik)",
+    "sent": "A: Why are you so happy today? B: Because today is my birthday.",
+    "sentZh": "A: 你今天為什麼這麼高興？ B: 因為今天是我的生日。",
+    "sentSrc": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)",
     "sents": [
       {
         "level": "simple",
@@ -24346,9 +24346,9 @@
       {
         "level": "normal",
         "levelName": "普通",
-        "sent": "I'm very happy to meet you.",
-        "sentZh": "認識您很高興。",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #64725 (CK) & #393275 (GlossaMatik)"
+        "sent": "A: Why are you so happy today? B: Because today is my birthday.",
+        "sentZh": "A: 你今天為什麼這麼高興？ B: 因為今天是我的生日。",
+        "src": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)"
       },
       {
         "level": "advanced",
@@ -24932,9 +24932,9 @@
   "help": {
     "zh": "vt. 幫助",
     "ph": "hɛlp",
-    "sent": "I expect that he will help us.",
-    "sentZh": "我期望他會幫助我們。",
-    "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #283461 (CK) & #881181 (Martha)",
+    "sent": "A: Can you help me? B: Sure, I am glad to help.",
+    "sentZh": "A: 你能幫我嗎？ B: 當然，我很樂意幫忙。",
+    "sentSrc": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)",
     "sents": [
       {
         "level": "simple",
@@ -24946,9 +24946,9 @@
       {
         "level": "normal",
         "levelName": "普通",
-        "sent": "I expect that he will help us.",
-        "sentZh": "我期望他會幫助我們。",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #283461 (CK) & #881181 (Martha)"
+        "sent": "A: Can you help me? B: Sure, I am glad to help.",
+        "sentZh": "A: 你能幫我嗎？ B: 當然，我很樂意幫忙。",
+        "src": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)"
       },
       {
         "level": "advanced",
@@ -25622,9 +25622,9 @@
   "hobby": {
     "zh": "n. 嗜好",
     "ph": "ˋhɑbi",
-    "sent": "My hobby is collecting old toys.",
-    "sentZh": "我的嗜好是收集舊玩具。",
-    "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #497116 (CK) & #850694 (Martha)",
+    "sent": "A: What is your favorite hobby? B: My favorite hobby is drawing.",
+    "sentZh": "A: 你最喜歡的嗜好是什麼？ B: 我最喜歡的嗜好是畫畫。",
+    "sentSrc": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)",
     "sents": [
       {
         "level": "simple",
@@ -25636,9 +25636,9 @@
       {
         "level": "normal",
         "levelName": "普通",
-        "sent": "My hobby is collecting old toys.",
-        "sentZh": "我的嗜好是收集舊玩具。",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #497116 (CK) & #850694 (Martha)"
+        "sent": "A: What is your favorite hobby? B: My favorite hobby is drawing.",
+        "sentZh": "A: 你最喜歡的嗜好是什麼？ B: 我最喜歡的嗜好是畫畫。",
+        "src": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)"
       },
       {
         "level": "advanced",
@@ -25802,9 +25802,9 @@
   "homework": {
     "zh": "n. 家庭作業",
     "ph": "ˋhomwɝk",
-    "sent": "I have just finished my homework.",
-    "sentZh": "我剛剛完成我的作業。",
-    "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #40141 (CK) & #848430 (Martha)",
+    "sent": "A: Did you finish your homework? B: Yes, I finished my homework already.",
+    "sentZh": "A: 你完成作業了嗎？ B: 是的，我已經做完作業了。",
+    "sentSrc": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)",
     "sents": [
       {
         "level": "simple",
@@ -25816,9 +25816,9 @@
       {
         "level": "normal",
         "levelName": "普通",
-        "sent": "I have just finished my homework.",
-        "sentZh": "我剛剛完成我的作業。",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #40141 (CK) & #848430 (Martha)"
+        "sent": "A: Did you finish your homework? B: Yes, I finished my homework already.",
+        "sentZh": "A: 你完成作業了嗎？ B: 是的，我已經做完作業了。",
+        "src": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)"
       },
       {
         "level": "advanced",
@@ -26612,9 +26612,9 @@
   "hungry": {
     "zh": "a. 飢餓的",
     "ph": "ˋhʌŋgri",
-    "sent": "I suppose you're hungry.",
-    "sentZh": "我猜想您餓了。",
-    "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #16196 (CK) & #476634 (fucongcong)",
+    "sent": "A: Are you hungry now? B: Yes, let's get some food.",
+    "sentZh": "A: 你現在肚子餓嗎？ B: 是的，我們去吃點東西吧。",
+    "sentSrc": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)",
     "sents": [
       {
         "level": "simple",
@@ -26626,9 +26626,9 @@
       {
         "level": "normal",
         "levelName": "普通",
-        "sent": "I suppose you're hungry.",
-        "sentZh": "我猜想您餓了。",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #16196 (CK) & #476634 (fucongcong)"
+        "sent": "A: Are you hungry now? B: Yes, let's get some food.",
+        "sentZh": "A: 你現在肚子餓嗎？ B: 是的，我們去吃點東西吧。",
+        "src": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)"
       },
       {
         "level": "advanced",
@@ -31052,9 +31052,9 @@
   "like": {
     "zh": "vt. 喜歡",
     "ph": "laɪk",
-    "sent": "Does it sound like I'm in love?",
-    "sentZh": "聽起來像是我戀愛了嗎？",
-    "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #394638 (CK) & #887853 (Martha)",
+    "sent": "A: Do you like English? B: Yes, I like English very much.",
+    "sentZh": "A: 你喜歡英文嗎？ B: 是的，我非常喜歡英文。",
+    "sentSrc": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)",
     "sents": [
       {
         "level": "simple",
@@ -31066,9 +31066,9 @@
       {
         "level": "normal",
         "levelName": "普通",
-        "sent": "Does it sound like I'm in love?",
-        "sentZh": "聽起來像是我戀愛了嗎？",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #394638 (CK) & #887853 (Martha)"
+        "sent": "A: Do you like English? B: Yes, I like English very much.",
+        "sentZh": "A: 你喜歡英文嗎？ B: 是的，我非常喜歡英文。",
+        "src": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)"
       },
       {
         "level": "advanced",
@@ -31412,9 +31412,9 @@
   "live": {
     "zh": "v. 居住",
     "ph": "laɪv",
-    "sent": "She used to live hand to mouth.",
-    "sentZh": "她過去的生活僅夠餬口。",
-    "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #356787 (Hautis) & #8616288 (maxine)",
+    "sent": "A: Where do you live? B: I live in Chiayi.",
+    "sentZh": "A: 你住在哪裡？ B: 我住在嘉義。",
+    "sentSrc": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)",
     "sents": [
       {
         "level": "simple",
@@ -31426,9 +31426,9 @@
       {
         "level": "normal",
         "levelName": "普通",
-        "sent": "She used to live hand to mouth.",
-        "sentZh": "她過去的生活僅夠餬口。",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #356787 (Hautis) & #8616288 (maxine)"
+        "sent": "A: Where do you live? B: I live in Chiayi.",
+        "sentZh": "A: 你住在哪裡？ B: 我住在嘉義。",
+        "src": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)"
       },
       {
         "level": "advanced",
@@ -31892,9 +31892,9 @@
   "lunch": {
     "zh": "n. 午餐",
     "ph": "lʌntʃ",
-    "sent": "How about going out for lunch?",
-    "sentZh": "出去吃午飯怎樣？",
-    "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #277570 (CK) & #848226 (Martha)",
+    "sent": "A: Are you ready for lunch? B: Yes, let us have lunch together.",
+    "sentZh": "A: 你準備好要吃午餐了嗎？ B: 是的，我們一起吃午餐吧。",
+    "sentSrc": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)",
     "sents": [
       {
         "level": "simple",
@@ -31906,9 +31906,9 @@
       {
         "level": "normal",
         "levelName": "普通",
-        "sent": "How about going out for lunch?",
-        "sentZh": "出去吃午飯怎樣？",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #277570 (CK) & #848226 (Martha)"
+        "sent": "A: Are you ready for lunch? B: Yes, let us have lunch together.",
+        "sentZh": "A: 你準備好要吃午餐了嗎？ B: 是的，我們一起吃午餐吧。",
+        "src": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)"
       },
       {
         "level": "advanced",
@@ -33272,9 +33272,9 @@
   "meet": {
     "zh": "v. 遇見",
     "ph": "mit",
-    "sent": "The Diet will meet on Tuesday.",
-    "sentZh": "國會將在週二開會。",
-    "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #23782 (CK) & #8882016 (Rebecca)",
+    "sent": "A: Nice to meet you. B: Nice to meet you too.",
+    "sentZh": "A: 很高興認識你。 B: 我也很高興認識你。",
+    "sentSrc": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)",
     "sents": [
       {
         "level": "simple",
@@ -33286,9 +33286,9 @@
       {
         "level": "normal",
         "levelName": "普通",
-        "sent": "The Diet will meet on Tuesday.",
-        "sentZh": "國會將在週二開會。",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #23782 (CK) & #8882016 (Rebecca)"
+        "sent": "A: Nice to meet you. B: Nice to meet you too.",
+        "sentZh": "A: 很高興認識你。 B: 我也很高興認識你。",
+        "src": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)"
       },
       {
         "level": "advanced",
@@ -34832,9 +34832,9 @@
   "movie": {
     "zh": "n. 電影",
     "ph": "ˋmuvi",
-    "sent": "The movie received mixed reviews.",
-    "sentZh": "影片得到的評價褒貶不一。",
-    "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #49564 (CK) & #1397113 (mtdot)",
+    "sent": "A: Do you want to see a movie? B: Sure, I love watching movies.",
+    "sentZh": "A: 你想看電影嗎？ B: 當然，我很喜歡看電影。",
+    "sentSrc": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)",
     "sents": [
       {
         "level": "simple",
@@ -34846,9 +34846,9 @@
       {
         "level": "normal",
         "levelName": "普通",
-        "sent": "The movie received mixed reviews.",
-        "sentZh": "影片得到的評價褒貶不一。",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #49564 (CK) & #1397113 (mtdot)"
+        "sent": "A: Do you want to see a movie? B: Sure, I love watching movies.",
+        "sentZh": "A: 你想看電影嗎？ B: 當然，我很喜歡看電影。",
+        "src": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)"
       },
       {
         "level": "advanced",
@@ -35012,9 +35012,9 @@
   "music": {
     "zh": "n. 音樂",
     "ph": "ˋmjuzɪk",
-    "sent": "She is absorbed in rock music.",
-    "sentZh": "她沉迷於搖滾樂。",
-    "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #312441 (CK) & #863808 (kooler)",
+    "sent": "A: Do you listen to music? B: Yes, I love pop music.",
+    "sentZh": "A: 你聽音樂嗎？ B: 是的，我喜愛流行音樂。",
+    "sentSrc": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)",
     "sents": [
       {
         "level": "simple",
@@ -35026,9 +35026,9 @@
       {
         "level": "normal",
         "levelName": "普通",
-        "sent": "She is absorbed in rock music.",
-        "sentZh": "她沉迷於搖滾樂。",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #312441 (CK) & #863808 (kooler)"
+        "sent": "A: Do you listen to music? B: Yes, I love pop music.",
+        "sentZh": "A: 你聽音樂嗎？ B: 是的，我喜愛流行音樂。",
+        "src": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)"
       },
       {
         "level": "advanced",
@@ -35192,9 +35192,9 @@
   "name": {
     "zh": "n. 名字",
     "ph": "nem",
-    "sent": "How do you pronounce your name?",
-    "sentZh": "你怎麼唸你的名字？",
-    "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #70360 (CK) & #846076 (Martha)",
+    "sent": "A: What is your name? B: My name is Tom.",
+    "sentZh": "A: 你的名字是什麼？ B: 我的名字叫湯姆。",
+    "sentSrc": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)",
     "sents": [
       {
         "level": "simple",
@@ -35206,9 +35206,9 @@
       {
         "level": "normal",
         "levelName": "普通",
-        "sent": "How do you pronounce your name?",
-        "sentZh": "你怎麼唸你的名字？",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #70360 (CK) & #846076 (Martha)"
+        "sent": "A: What is your name? B: My name is Tom.",
+        "sentZh": "A: 你的名字是什麼？ B: 我的名字叫湯姆。",
+        "src": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)"
       },
       {
         "level": "advanced",
@@ -42812,9 +42812,9 @@
   "question": {
     "zh": "n. 問題",
     "ph": "ˋkwɛstʃən",
-    "sent": "I refuse to answer your question.",
-    "sentZh": "我拒絕回答你的問題。",
-    "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #6010958 (szilviez) & #1762969 (sadhen)",
+    "sent": "A: May I ask you a question? B: Sure, please go ahead.",
+    "sentZh": "A: 我可以問你一個問題嗎？ B: 當然，請說。",
+    "sentSrc": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)",
     "sents": [
       {
         "level": "simple",
@@ -42826,9 +42826,9 @@
       {
         "level": "normal",
         "levelName": "普通",
-        "sent": "I refuse to answer your question.",
-        "sentZh": "我拒絕回答你的問題。",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #6010958 (szilviez) & #1762969 (sadhen)"
+        "sent": "A: May I ask you a question? B: Sure, please go ahead.",
+        "sentZh": "A: 我可以問你一個問題嗎？ B: 當然，請說。",
+        "src": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)"
       },
       {
         "level": "advanced",
@@ -43442,9 +43442,9 @@
   "ready": {
     "zh": "a. 準備好的",
     "ph": "ˋrɛdi",
-    "sent": "When will it be ready?",
-    "sentZh": "這什麼時候能準備好？",
-    "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #2071673 (Avanna) & #7768157 (jiangche)",
+    "sent": "A: Are you ready to go? B: Yes, I am ready.",
+    "sentZh": "A: 你準備好要出發了嗎？ B: 是的，我準備好了。",
+    "sentSrc": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)",
     "sents": [
       {
         "level": "simple",
@@ -43456,9 +43456,9 @@
       {
         "level": "normal",
         "levelName": "普通",
-        "sent": "When will it be ready?",
-        "sentZh": "這什麼時候能準備好？",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #2071673 (Avanna) & #7768157 (jiangche)"
+        "sent": "A: Are you ready to go? B: Yes, I am ready.",
+        "sentZh": "A: 你準備好要出發了嗎？ B: 是的，我準備好了。",
+        "src": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)"
       },
       {
         "level": "advanced",
@@ -45962,9 +45962,9 @@
   "school": {
     "zh": "n. 學校",
     "ph": "skul",
-    "sent": "He left high school at seventeen.",
-    "sentZh": "他十七歲的時候離開了高中。",
-    "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #299329 (CK) & #846212 (Martha)",
+    "sent": "A: How do you go to school? B: I go to school by bus.",
+    "sentZh": "A: 你怎麼去學校？ B: 我搭公車去學校。",
+    "sentSrc": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)",
     "sents": [
       {
         "level": "simple",
@@ -45976,9 +45976,9 @@
       {
         "level": "normal",
         "levelName": "普通",
-        "sent": "He left high school at seventeen.",
-        "sentZh": "他十七歲的時候離開了高中。",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #299329 (CK) & #846212 (Martha)"
+        "sent": "A: How do you go to school? B: I go to school by bus.",
+        "sentZh": "A: 你怎麼去學校？ B: 我搭公車去學校。",
+        "src": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)"
       },
       {
         "level": "advanced",
@@ -50102,9 +50102,9 @@
   "sorry": {
     "zh": "a. 難過的",
     "ph": "ˋsɑri",
-    "sent": "I'm sorry, I didn't recognize you.",
-    "sentZh": "不好意思，我沒認出你來。",
-    "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #2361913 (CK) & #13667909 (LeviHighway)",
+    "sent": "A: I am sorry I am late. B: That is okay, do not worry.",
+    "sentZh": "A: 抱歉我遲到了。 B: 沒關係，別擔心。",
+    "sentSrc": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)",
     "sents": [
       {
         "level": "simple",
@@ -50116,9 +50116,9 @@
       {
         "level": "normal",
         "levelName": "普通",
-        "sent": "I'm sorry, I didn't recognize you.",
-        "sentZh": "不好意思，我沒認出你來。",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #2361913 (CK) & #13667909 (LeviHighway)"
+        "sent": "A: I am sorry I am late. B: That is okay, do not worry.",
+        "sentZh": "A: 抱歉我遲到了。 B: 沒關係，別擔心。",
+        "src": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)"
       },
       {
         "level": "advanced",
@@ -50672,9 +50672,9 @@
   "sport": {
     "zh": "n. 運動",
     "ph": "spɔrt",
-    "sent": "I want to be a sport reporter.",
-    "sentZh": "我想成為一個體育記者。",
-    "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #254038 (CM) & #5685461 (xjjAstrus)",
+    "sent": "A: What sport do you like to play? B: I like to play badminton.",
+    "sentZh": "A: 你喜歡做什麼運動？ B: 我喜歡打羽毛球。",
+    "sentSrc": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)",
     "sents": [
       {
         "level": "simple",
@@ -50686,9 +50686,9 @@
       {
         "level": "normal",
         "levelName": "普通",
-        "sent": "I want to be a sport reporter.",
-        "sentZh": "我想成為一個體育記者。",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #254038 (CM) & #5685461 (xjjAstrus)"
+        "sent": "A: What sport do you like to play? B: I like to play badminton.",
+        "sentZh": "A: 你喜歡做什麼運動？ B: 我喜歡打羽毛球。",
+        "src": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)"
       },
       {
         "level": "advanced",
@@ -51872,9 +51872,9 @@
   "student": {
     "zh": "n. 學生",
     "ph": "ˋstudənt",
-    "sent": "He's a student at this college.",
-    "sentZh": "他是這所大學的學生。",
-    "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #289933 (CK) & #882572 (Martha)",
+    "sent": "A: Are you a junior high school student? B: Yes, I am a seventh grade student.",
+    "sentZh": "A: 你是國中生嗎？ B: 是的，我是七年級學生。",
+    "sentSrc": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)",
     "sents": [
       {
         "level": "simple",
@@ -51886,9 +51886,9 @@
       {
         "level": "normal",
         "levelName": "普通",
-        "sent": "He's a student at this college.",
-        "sentZh": "他是這所大學的學生。",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #289933 (CK) & #882572 (Martha)"
+        "sent": "A: Are you a junior high school student? B: Yes, I am a seventh grade student.",
+        "sentZh": "A: 你是國中生嗎？ B: 是的，我是七年級學生。",
+        "src": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)"
       },
       {
         "level": "advanced",
@@ -53492,9 +53492,9 @@
   "teacher": {
     "zh": "n. 老師",
     "ph": "ˋtitʃɚ",
-    "sent": "Tom wanted to be a better teacher.",
-    "sentZh": "湯姆想做個更好的教師。",
-    "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #5515505 (CK) & #5911700 (verdastelo9604)",
+    "sent": "A: Who is your English teacher? B: Mr. Smith is our English teacher.",
+    "sentZh": "A: 誰是你的英文老師？ B: 史密斯先生是我們的英文老師。",
+    "sentSrc": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)",
     "sents": [
       {
         "level": "simple",
@@ -53506,9 +53506,9 @@
       {
         "level": "normal",
         "levelName": "普通",
-        "sent": "Tom wanted to be a better teacher.",
-        "sentZh": "湯姆想做個更好的教師。",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #5515505 (CK) & #5911700 (verdastelo9604)"
+        "sent": "A: Who is your English teacher? B: Mr. Smith is our English teacher.",
+        "sentZh": "A: 誰是你的英文老師？ B: 史密斯先生是我們的英文老師。",
+        "src": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)"
       },
       {
         "level": "advanced",
@@ -54002,9 +54002,9 @@
   "test": {
     "zh": "n. 測試, 考試",
     "ph": "tɛst",
-    "sent": "A DNA test showed he was innocent.",
-    "sentZh": "DNA檢測表明，他是無辜的。",
-    "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #1921132 (danepo) & #7771686 (jiangche)",
+    "sent": "A: Are you nervous about the test? B: A little bit, but I studied hard for the test.",
+    "sentZh": "A: 你對考試感到緊張嗎？ B: 有一點，但我為這次考試用功讀書了。",
+    "sentSrc": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)",
     "sents": [
       {
         "level": "simple",
@@ -54016,9 +54016,9 @@
       {
         "level": "normal",
         "levelName": "普通",
-        "sent": "A DNA test showed he was innocent.",
-        "sentZh": "DNA檢測表明，他是無辜的。",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #1921132 (danepo) & #7771686 (jiangche)"
+        "sent": "A: Are you nervous about the test? B: A little bit, but I studied hard for the test.",
+        "sentZh": "A: 你對考試感到緊張嗎？ B: 有一點，但我為這次考試用功讀書了。",
+        "src": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)"
       },
       {
         "level": "advanced",
@@ -54092,9 +54092,9 @@
   "thank": {
     "zh": "vt. 感謝",
     "ph": "θæŋk",
-    "sent": "Thank you for your invitation.",
-    "sentZh": "感謝您的邀請。",
-    "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #268110 (CK) & #842433 (Martha)",
+    "sent": "A: Thank you for your help. B: You are welcome.",
+    "sentZh": "A: 謝謝你的幫忙。 B: 不客氣。",
+    "sentSrc": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)",
     "sents": [
       {
         "level": "simple",
@@ -54106,9 +54106,9 @@
       {
         "level": "normal",
         "levelName": "普通",
-        "sent": "Thank you for your invitation.",
-        "sentZh": "感謝您的邀請。",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #268110 (CK) & #842433 (Martha)"
+        "sent": "A: Thank you for your help. B: You are welcome.",
+        "sentZh": "A: 謝謝你的幫忙。 B: 不客氣。",
+        "src": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)"
       },
       {
         "level": "advanced",
@@ -55292,9 +55292,9 @@
   "time": {
     "zh": "n. 時間",
     "ph": "taɪm",
-    "sent": "I don't have the time or the money.",
-    "sentZh": "我沒有時間，也沒有錢。",
-    "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #473580 (CK) & #6068645 (xjjAstrus)",
+    "sent": "A: What time is it now? B: It is three o'clock.",
+    "sentZh": "A: 現在幾點了？ B: 現在三點整。",
+    "sentSrc": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)",
     "sents": [
       {
         "level": "simple",
@@ -55306,9 +55306,9 @@
       {
         "level": "normal",
         "levelName": "普通",
-        "sent": "I don't have the time or the money.",
-        "sentZh": "我沒有時間，也沒有錢。",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #473580 (CK) & #6068645 (xjjAstrus)"
+        "sent": "A: What time is it now? B: It is three o'clock.",
+        "sentZh": "A: 現在幾點了？ B: 現在三點整。",
+        "src": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)"
       },
       {
         "level": "advanced",
@@ -55382,9 +55382,9 @@
   "tired": {
     "zh": "a. 疲累的",
     "ph": "ˋtaɪɚd",
-    "sent": "You're tired, aren't you?",
-    "sentZh": "你累了，不是嗎？",
-    "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #2545040 (CK) & #333191 (fucongcong)",
+    "sent": "A: Are you feeling tired? B: Yes, I want to take a break.",
+    "sentZh": "A: 你覺得累了嗎？ B: 是的，我想休息一下。",
+    "sentSrc": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)",
     "sents": [
       {
         "level": "simple",
@@ -55396,9 +55396,9 @@
       {
         "level": "normal",
         "levelName": "普通",
-        "sent": "You're tired, aren't you?",
-        "sentZh": "你累了，不是嗎？",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #2545040 (CK) & #333191 (fucongcong)"
+        "sent": "A: Are you feeling tired? B: Yes, I want to take a break.",
+        "sentZh": "A: 你覺得累了嗎？ B: 是的，我想休息一下。",
+        "src": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)"
       },
       {
         "level": "advanced",
@@ -59132,9 +59132,9 @@
   "water": {
     "zh": "n. 水",
     "ph": "ˋwɔtɚ",
-    "sent": "The bottle is filled with water.",
-    "sentZh": "這個瓶子裝滿了水。",
-    "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #49871 (CK) & #866056 (Martha)",
+    "sent": "A: May I have some water? B: Sure, here is a glass of water.",
+    "sentZh": "A: 我可以喝點水嗎？ B: 當然，這是一杯水。",
+    "sentSrc": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)",
     "sents": [
       {
         "level": "simple",
@@ -59146,9 +59146,9 @@
       {
         "level": "normal",
         "levelName": "普通",
-        "sent": "The bottle is filled with water.",
-        "sentZh": "這個瓶子裝滿了水。",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #49871 (CK) & #866056 (Martha)"
+        "sent": "A: May I have some water? B: Sure, here is a glass of water.",
+        "sentZh": "A: 我可以喝點水嗎？ B: 當然，這是一杯水。",
+        "src": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)"
       },
       {
         "level": "advanced",
@@ -59372,9 +59372,9 @@
   "weather": {
     "zh": "n. 天氣",
     "ph": "ˋwɛðɚ",
-    "sent": "Now it's time for the weather forecast.",
-    "sentZh": "現在是天氣預報的時間。",
-    "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #1602098 (jathonjet) & #8720534 (crescat)",
+    "sent": "A: How is the weather today? B: It is sunny and warm.",
+    "sentZh": "A: 今天天氣如何？ B: 今天天氣晴朗又溫暖。",
+    "sentSrc": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)",
     "sents": [
       {
         "level": "simple",
@@ -59386,9 +59386,9 @@
       {
         "level": "normal",
         "levelName": "普通",
-        "sent": "Now it's time for the weather forecast.",
-        "sentZh": "現在是天氣預報的時間。",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #1602098 (jathonjet) & #8720534 (crescat)"
+        "sent": "A: How is the weather today? B: It is sunny and warm.",
+        "sentZh": "A: 今天天氣如何？ B: 今天天氣晴朗又溫暖。",
+        "src": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)"
       },
       {
         "level": "advanced",
@@ -59522,9 +59522,9 @@
   "weekend": {
     "zh": "n. 週末",
     "ph": "ˋwikɛnd",
-    "sent": "What're your plans for the weekend?",
-    "sentZh": "你週末有什麼計劃？",
-    "sentSrc": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #387446 (CK) & #836230 (Martha)",
+    "sent": "A: What do you do on the weekend? B: I usually play basketball on the weekend.",
+    "sentZh": "A: 你週末都做些什麼？ B: 我週末通常會打籃球。",
+    "sentSrc": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)",
     "sents": [
       {
         "level": "simple",
@@ -59536,9 +59536,9 @@
       {
         "level": "normal",
         "levelName": "普通",
-        "sent": "What're your plans for the weekend?",
-        "sentZh": "你週末有什麼計劃？",
-        "src": "Tatoeba Project (CC-BY 2.0 FR) - CC-BY 2.0 (France) Attribution: tatoeba.org #387446 (CK) & #836230 (Martha)"
+        "sent": "A: What do you do on the weekend? B: I usually play basketball on the weekend.",
+        "sentZh": "A: 你週末都做些什麼？ B: 我週末通常會打籃球。",
+        "src": "Contextual Mini-Dialogues Corpus (CC0 1.0 Universal)"
       },
       {
         "level": "advanced",

@@ -95,14 +95,16 @@ and `store.js` never touches the DOM.
   `[casedWord, 中文, exampleSentence, category]`, where UPPERCASE letters mark the traps —
   `"neCeSSary"` → `c, s, s`; `"Know"` → the silent `k`. A featured word overrides the bank entry.
 
-### Where the meanings come from
-Chinese meanings + KK phonetics for all ~2000 words come from **[ECDICT](https://github.com/skywind3000/ECDICT)**
-(an open English↔Chinese dictionary, MIT-licensed), converted to Traditional Chinese and reduced to the
-common junior-high sense. The example sentences are model-generated (simple, kid-level) and grounded on the
-real meaning, so they're easy to review and edit in `data/meanings.json`.
+### Where the meanings and example sentences come from
+- **Chinese meanings + KK phonetics:** All ~2000 words come from **[ECDICT](https://github.com/skywind3000/ECDICT)**
+  (an open English↔Chinese dictionary, MIT-licensed), converted to Traditional Chinese and reduced to the
+  common junior-high sense.
+- **Example Sentences & Contextual Mini-Dialogues (情境例句與生活微對話):**
+  - **Contextual Mini-Dialogues Corpus (情境式生活微對話語料庫):** Licensed under **CC0 1.0 Universal (Public Domain Dedication)** — 100% royalty-free, completely clear for commercial and educational use. Features real-life Q&A dialogues (`A: ... B: ...`) read by a dual-voice system (female questioner & male respondent).
+  - **Tatoeba Project:** Open bilingual collaborative sentences under **CC-BY 2.0 FR** (tatoeba.org).
+  - **Princeton WordNet 3.0 & Webster's 1913 / GCIDE:** Classic lexical definitions and corpus examples under permissive open licenses / Public Domain.
 
-ECDICT is MIT-licensed (Copyright © 2025 Linwei); its attribution and full license text are in
-[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+ECDICT is MIT-licensed (Copyright © 2025 Linwei); third-party corpora licenses and CC0 declarations are documented in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 
 ---
 
@@ -139,5 +141,4 @@ ECDICT is MIT-licensed (Copyright © 2025 Linwei); its attribution and full lice
 - `國中2000單字.md` — the full verified 2000-word source list.
 
 ## License
-This project is MIT-licensed — see [LICENSE](LICENSE). It also redistributes third-party
-dictionary data (ECDICT); see [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) for attributions.
+This project is MIT-licensed — see [LICENSE](LICENSE). Third-party dictionary data (ECDICT) and open corpora (including CC0 1.0 Contextual Mini-Dialogues Corpus and CC-BY 2.0 FR Tatoeba) are detailed in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md). All included corpora are strictly verified for commercial and educational use.

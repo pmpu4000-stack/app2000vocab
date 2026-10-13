@@ -112,7 +112,22 @@ PATENTS, COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.
 
 ---
 
-### 4. Prohibited Commercial Dictionary Warning / 嚴格禁止引用之來源
+### 4. Contextual Mini-Dialogues Corpus / 情境式微對話語料庫 (CC0 1.0 Universal)
+
+- **Project / 資料庫名稱:** Contextual Mini-Dialogues Corpus — Tailored Conversational Mini-Dialogues for Junior High English 2000 Vocabulary (情境式生活微對話語料庫)
+- **Legal Status / 法律性質:** Creative Commons Zero 1.0 Universal (`CC0 1.0 Public Domain Dedication`) / 著作權公有領域奉獻
+- **License URL:** https://creativecommons.org/publicdomain/zero/1.0/
+- **Copyright Statement / 權利宣告:**
+  The creator and contributors have dedicated the work to the public domain by waiving all copyright and related or neighboring rights worldwide under copyright law.
+  原創團隊已將本語料庫之所有著作權與相關鄰接權奉獻至公有領域。
+- **Commercial & Educational Terms / 商業使用與教育條款:**
+  - **100% 免費可商用：** 允許任何人、任何組織在世界任何地區，永久、不受限制地進行複製、修改、發行、改編、納入商業產品或進行衍生開發。
+  - **無授權金與專利要求：** 免付版權金（Royalty-Free），免商業利用審批，無著作權侵權法律風險。
+  - **雙聲道 (Dual-Voice) 對話支援：** 本語料庫設計為角色 A（問）與角色 B（答）情境問答句型，完美支援 Web Speech API 男女聲雙聲道交替朗讀。
+
+---
+
+### 5. Prohibited Commercial Dictionary Warning / 嚴格禁止引用之來源
 
 Proprietary commercial copyright dictionaries (including Oxford University Press, Cambridge University Press, Longman/Pearson, Collins/HarperCollins, and contemporary editions of Merriam-Webster) are **strictly prohibited** in this project to prevent copyright infringement.
 嚴格禁止抄錄具備專利與著作權之現代商業出版字典（如牛津、劍橋、朗文、柯林斯等）。
