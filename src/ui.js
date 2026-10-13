@@ -2,9 +2,9 @@
 // ui.js — the view. All DOM rendering lives here. It renders from plain
 // data and reports intent through callbacks; it never touches the store.
 // =====================================================================
-import { CATS } from "./data.js?v=20261012_0215";
-import { say, spellOut, playContestSentence, stopAudio } from "./audio.js?v=20261012_0215";
-import { LEVELS, levelColor, levelName, misspellings, shuffle } from "./levels.js?v=20261012_0215";
+import { CATS } from "./data.js?v=20261013_0920";
+import { say, spellOut, playContestSentence, stopAudio } from "./audio.js?v=20261013_0920";
+import { LEVELS, levelColor, levelName, misspellings, shuffle } from "./levels.js?v=20261013_0920";
 
 if (typeof window !== "undefined") {
   window.__say = say;
@@ -420,7 +420,7 @@ export function showResult(correct, word, info) {
   } else {
     el.fb.className = "feedback bad";
     el.fb.innerHTML = `❌ 再看一次！ 正確拼法：<span class="reveal" style="display:inline">${revealHtml(word)}</span>`;
-    pulse("shake"); say(word.word, 0.7);
+    pulse("shake"); say(word.word, 0.8);
   }
 }
 export function setActionNext() {
@@ -1242,10 +1242,65 @@ export function renderSummary(d) {
     </div>
 
     <div class="subh">📅 練習紀錄（最近 4 週）</div>
-    <div class="streakline">🔥 連續 <b>${d.history.streak}</b> 天　·　最佳 <b>${d.history.best}</b> 天　·　累計練習 <b>${d.history.total}</b> 天</div>
-    <div class="heatmap">${d.history.days.map((x) =>
-      `<i class="hc h${x.level}" title="${x.key}：${x.a ? "作答 " + x.a + " · 正確率 " + x.rate + "%" : "沒有練習"}"></i>`).join("")}</div>
-    <div class="heat-legend">🔥 <b>連續</b>：從今天往回算，一天都沒中斷、天天有練習的天數。<br>🏆 <b>最佳</b>：你曾經創下「最長連續天天練習」的紀錄。<br>📅 <b>累計</b>：從開始到現在，總共有練習過的天數（中間有休息也算）。<br>🟩 <b>熱力圖</b>：方格顏色愈深，代表當天練習愈多。</div>`;
+    <div class="streakline">
+      <span>🔥 連續 <b>${d.history.streak}</b> 天　·　最佳 <b>${d.history.best}</b> 天　·　累計練習 <b>${d.history.total}</b> 天</span>
+      <span id="heat-day-info" class="heat-day-info"></span>
+    </div>
+    <div class="heatmap" id="heatmap-grid">${d.history.days.map((x, idx) =>
+      `<i class="hc h${x.level}" data-idx="${idx}" data-key="${x.key}" data-a="${x.a || 0}" data-rate="${x.rate || 0}" title="${x.key}：${x.a ? "作答 " + x.a + " 題 · 正確率 " + x.rate + "%" : "沒有練習"}"></i>`).join("")}</div>
+    <div class="heat-legend">🔥 <b>連續</b>：從今天往回算，一天都沒中斷、天天有練習的天數。<br>🏆 <b>最佳</b>：你曾經創下「最長連續天天練習」的紀錄。<br>📅 <b>累計</b>：從開始到現在，總共有練習過的天數（中間有休息也算）。<br>🟩 <b>熱力圖</b>：方格顏色愈深，代表當天練習愈多（點選或移至方格可於上方固定查看當日數值）。</div>`;
+
+  // 綁定熱力圖當日數值固定顯示於「累計練習 O 天」右側
+  const heatDayInfoEl = $("#heat-day-info");
+  const heatGridEl = $("#heatmap-grid");
+  const heatDays = (d.history && Array.isArray(d.history.days)) ? d.history.days : [];
+  if (heatDayInfoEl && heatDays.length > 0) {
+    let pinnedIdx = heatDays.length - 1;
+    for (let i = heatDays.length - 1; i >= 0; i--) {
+      if (heatDays[i] && heatDays[i].a > 0) {
+        pinnedIdx = i;
+        break;
+      }
+    }
+    const updateHeatDayBadge = (idx) => {
+      const item = heatDays[idx];
+      if (!item) return;
+      if (item.a > 0) {
+        heatDayInfoEl.className = "heat-day-info";
+        heatDayInfoEl.innerHTML = `📅 <b>${item.key}</b>：作答 <b>${item.a}</b> 題 · 正確率 <b>${item.rate}%</b>`;
+      } else {
+        heatDayInfoEl.className = "heat-day-info empty";
+        heatDayInfoEl.innerHTML = `📅 <b>${item.key}</b>：沒有練習`;
+      }
+      if (heatGridEl) {
+        heatGridEl.querySelectorAll(".hc").forEach((cell, cIdx) => {
+          cell.classList.toggle("hc-active", cIdx === idx);
+        });
+      }
+    };
+    updateHeatDayBadge(pinnedIdx);
+
+    if (heatGridEl) {
+      heatGridEl.querySelectorAll(".hc").forEach((cell) => {
+        const idx = parseInt(cell.getAttribute("data-idx"), 10);
+        cell.addEventListener("mouseenter", () => {
+          if (!isNaN(idx)) {
+            if (heatDays[idx] && heatDays[idx].a > 0) pinnedIdx = idx;
+            updateHeatDayBadge(idx);
+          }
+        });
+        cell.addEventListener("click", () => {
+          if (!isNaN(idx)) {
+            pinnedIdx = idx;
+            updateHeatDayBadge(idx);
+          }
+        });
+      });
+      heatGridEl.addEventListener("mouseleave", () => {
+        updateHeatDayBadge(pinnedIdx);
+      });
+    }
+  }
 
   let currentSelectedDate = defaultSelectedDate;
 

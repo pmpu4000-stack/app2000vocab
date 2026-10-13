@@ -2176,6 +2176,10 @@
       font-weight: 800;
       color: var(--ink2);
       margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px 14px;
     }
     .streakline b {
       color: var(--catD, #E8892B);
@@ -2187,31 +2191,90 @@
     [data-theme="dark"] .streakline b {
       color: #F59E0B;
     }
+    .heat-day-info {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-weight: 800;
+      line-height: 1.4;
+      background: #ECFDF5;
+      color: #065F46;
+      border: 1.5px solid #6EE7B7;
+      box-shadow: 0 1px 2px rgba(16, 185, 129, 0.08);
+      font-variant-numeric: tabular-nums;
+    }
+    .heat-day-info b {
+      color: #047857 !important;
+      font-weight: 900;
+    }
+    .heat-day-info.empty {
+      background: #F1F5F9;
+      color: #475569;
+      border-color: #CBD5E1;
+      box-shadow: none;
+    }
+    .heat-day-info.empty b {
+      color: #334155 !important;
+    }
+    [data-theme="dark"] .heat-day-info {
+      background: rgba(16, 185, 129, 0.16) !important;
+      color: #A7F3D0 !important;
+      border-color: rgba(52, 211, 153, 0.45) !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+    }
+    [data-theme="dark"] .heat-day-info b {
+      color: #34D399 !important;
+    }
+    [data-theme="dark"] .heat-day-info.empty {
+      background: rgba(148, 163, 184, 0.12) !important;
+      color: #CBD5E1 !important;
+      border-color: rgba(148, 163, 184, 0.28) !important;
+    }
+    [data-theme="dark"] .heat-day-info.empty b {
+      color: #F1F5F9 !important;
+    }
     .heatmap {
       display: grid;
       grid-template-columns: repeat(14, 1fr);
       gap: 4px;
-      max-width: 380px;
+      width: 100%;
+      max-width: 100%;
+      margin: 8px 0 10px;
     }
     .hc {
       width: 100%;
       aspect-ratio: 1;
       border-radius: 4px;
-      background: #EEEFF7;
+      background: #DDE0F0;
+      border: 1px solid #CDD1E6;
       display: block;
       cursor: pointer;
-      transition: transform 0.15s ease;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
     .hc:hover {
-      transform: scale(1.2);
+      transform: scale(1.15);
+      z-index: 2;
     }
-    .hc.h1 { background: #C7EBD9; }
-    .hc.h2 { background: #79D2A9; }
-    .hc.h3 { background: var(--green); }
-    [data-theme="dark"] .hc { background: #262C42; }
-    [data-theme="dark"] .hc.h1 { background: #164e63; }
-    [data-theme="dark"] .hc.h2 { background: #0d9488; }
-    [data-theme="dark"] .hc.h3 { background: #10b981; }
+    .hc.hc-active {
+      outline: 2.5px solid #059669;
+      outline-offset: 1px;
+      transform: scale(1.08);
+      z-index: 2;
+    }
+    [data-theme="dark"] .hc.hc-active {
+      outline: 2.5px solid #34D399;
+      outline-offset: 1px;
+    }
+    .hc.h1 { background: #B5E3CB; border-color: #9AD6B8; }
+    .hc.h2 { background: #6FCBA0; border-color: #55BE8E; }
+    .hc.h3 { background: var(--green); border-color: #1E9A66; }
+    [data-theme="dark"] .hc { background: #0B0E18; border-color: #1B2033; }
+    [data-theme="dark"] .hc.h1 { background: #14573F; border-color: #1B6B4D; }
+    [data-theme="dark"] .hc.h2 { background: #1E8F66; border-color: #27A878; }
+    [data-theme="dark"] .hc.h3 { background: #2FB47C; border-color: #4AD49A; }
 
     .heat-legend {
       font-size: 11.5px;
@@ -3767,9 +3830,12 @@
 
         <!-- 📅 練習紀錄（最近 4 週） -->
         <div class="subh">📅 練習紀錄（最近 4 週）</div>
-        <div class="streakline" id="stStreakLine">🔥 連續 <b id="stHeatStreak">0</b> 天　·　最佳 <b id="stHeatBest">0</b> 天　·　累計練習 <b id="stHeatTotal">0</b> 天</div>
+        <div class="streakline" id="stStreakLine">
+          <span>🔥 連續 <b id="stHeatStreak">0</b> 天　·　最佳 <b id="stHeatBest">0</b> 天　·　累計練習 <b id="stHeatTotal">0</b> 天</span>
+          <span id="stHeatDayInfo" class="heat-day-info"></span>
+        </div>
         <div class="heatmap" id="stHeatmapGrid"></div>
-        <div class="heat-legend">🔥 <b>連續</b>：從今天往回算，一天都沒中斷、天天有練習的天數。<br>🏆 <b>最佳</b>：你曾經創下「最長連續天天練習」的紀錄。<br>📅 <b>累計</b>：從開始到現在，總共有練習過的天數（中間有休息也算）。<br>🟩 <b>熱力圖</b>：方格顏色愈深，代表當天練習愈多。</div>
+        <div class="heat-legend">🔥 <b>連續</b>：從今天往回算，一天都沒中斷、天天有練習的天數。<br>🏆 <b>最佳</b>：你曾經創下「最長連續天天練習」的紀錄。<br>📅 <b>累計</b>：從開始到現在，總共有練習過的天數（中間有休息也算）。<br>🟩 <b>熱力圖</b>：方格顏色愈深，代表當天練習愈多（點選或移至方格可於上方固定查看當日數值）。</div>
       </div>
     </section>
   </div>
@@ -13559,7 +13625,45 @@ function renderStudentSummary(resp) {
   // 5. 📅 練習紀錄（最近 4 週）熱力圖
   const historyData = (agent && agent.history) ? agent.history : {};
   const dpMap = (agent && agent.dailyPractice) ? agent.dailyPractice : {};
+  const dailyTaskHistory = (resp.dailyTaskHistory && Array.isArray(resp.dailyTaskHistory))
+    ? resp.dailyTaskHistory
+    : (window.cachedStudentDailyHistory || []);
   const heatGrid = document.getElementById("stHeatmapGrid");
+
+  const getDayStatForHeat = (keyDash, keyShort, keySlash) => {
+    let a = 0, c = 0;
+    const dpItem = dpMap[keyDash] || dpMap[keyShort] || dpMap[keySlash] || null;
+    if (dpItem && dpItem.attempts > 0) {
+      a = Math.max(a, dpItem.attempts || 0);
+      c = Math.max(c, dpItem.correct || 0);
+    }
+    const h = historyData[keyDash] || historyData[keyShort] || historyData[keySlash] || null;
+    if (h && h.a > 0) {
+      a = Math.max(a, h.a || 0);
+      c = Math.max(c, h.c || 0);
+    }
+    if (Array.isArray(dailyTaskHistory)) {
+      const th = dailyTaskHistory.find(item => {
+        if (!item || !item.date) return false;
+        const dNorm = String(item.date).trim().split(" ")[0].replace(/\//g, "-");
+        return dNorm === keyDash || dNorm === keyShort;
+      });
+      if (th) {
+        let tAtt = parseInt(th.attempts) || 0;
+        let tCorr = parseInt(th.correct) || 0;
+        if (!tAtt && th.score && th.score !== "—" && String(th.score).includes("/")) {
+          const p = String(th.score).split("/");
+          tCorr = parseInt(p[0]) || 0;
+          tAtt = parseInt(p[1]) || 0;
+        }
+        if (tAtt > 0) {
+          a = Math.max(a, tAtt);
+          c = Math.max(c, tCorr);
+        }
+      }
+    }
+    return { a, c };
+  };
 
   const days = [];
   const now = new Date();
@@ -13569,50 +13673,121 @@ function renderStudentSummary(resp) {
     const keyDash  = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
     const keyShort = d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
     const keySlash = keyDash.replace(/-/g, "/");
-    const h = historyData[keyDash] || historyData[keyShort] || historyData[keySlash] || null;
-    const dpItem = dpMap[keyDash] || dpMap[keyShort] || dpMap[keySlash] || null;
-    const att = (h && h.a) ? h.a : (dpItem ? (dpItem.attempts || 0) : 0);
-    const cor = (h && h.c !== undefined) ? h.c : (dpItem ? (dpItem.correct || 0) : 0);
+    const { a: att, c: cor } = getDayStatForHeat(keyDash, keyShort, keySlash);
     const rate = att > 0 ? Math.round((cor / att) * 100) : 0;
-    days.push({ key: keyDash, dateNum: d.getDate(), a: att, c: cor, rate: rate });
+    const lvl = att === 0 ? 0 : att < 10 ? 1 : att < 20 ? 2 : 3;
+    days.push({ key: keyDash, dateNum: d.getDate(), a: att, c: cor, rate: rate, level: lvl });
   }
 
-  let streak = 0, best = 0, totalActive = 0;
-  if (agent && agent.streak !== undefined) {
-    streak = agent.streak || 0;
-    best   = agent.best || 0;
-  }
+  const normalizeDayKey = (ds) => {
+    const parts = String(ds || "").trim().split(" ")[0].replace(/\//g, "-").split("-");
+    if (parts.length === 3) {
+      return `${parts[0]}-${String(parts[1]).padStart(2, "0")}-${String(parts[2]).padStart(2, "0")}`;
+    }
+    return String(ds || "").trim();
+  };
+
   const allActiveDates = new Set();
-  Object.keys(historyData).forEach(k => { if (historyData[k] && historyData[k].a > 0) allActiveDates.add(k.replace(/\//g, "-")); });
-  Object.keys(dpMap).forEach(k => { if (dpMap[k] && dpMap[k].attempts > 0) allActiveDates.add(k.replace(/\//g, "-")); });
-  totalActive = allActiveDates.size;
+  Object.keys(historyData).forEach(k => { if (historyData[k] && historyData[k].a > 0) allActiveDates.add(normalizeDayKey(k)); });
+  Object.keys(dpMap).forEach(k => { if (dpMap[k] && dpMap[k].attempts > 0) allActiveDates.add(normalizeDayKey(k)); });
+  if (Array.isArray(dailyTaskHistory)) {
+    dailyTaskHistory.forEach(th => {
+      if (th && th.date && (th.attempts > 0 || (th.score && th.score !== "—"))) {
+        allActiveDates.add(normalizeDayKey(th.date));
+      }
+    });
+  }
+  let totalActive = allActiveDates.size;
   if (totalActive === 0 && attempts > 0) totalActive = 1;
-  if (streak === 0 && attempts > 0) streak = 1;
-  if (best === 0 && streak > 0) best = streak;
 
-  const elHeatStreak = document.getElementById("stHeatStreak");
-  if (elHeatStreak) elHeatStreak.innerText = streak;
-  const elHeatBest = document.getElementById("stHeatBest");
-  if (elHeatBest) elHeatBest.innerText = best;
-  const elHeatTotal = document.getElementById("stHeatTotal");
-  if (elHeatTotal) elHeatTotal.innerText = totalActive;
+  // 計算連續天數 (streak) 與最佳連續天數 (best) - 1:1 對齊 store.js
+  let streak = 0;
+  const hasDayOff = (off) => {
+    const d = new Date(now);
+    d.setDate(d.getDate() - off);
+    const kDash = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+    return allActiveDates.has(kDash);
+  };
+  let startOff = hasDayOff(0) ? 0 : hasDayOff(1) ? 1 : null;
+  if (startOff !== null) {
+    let k = startOff;
+    while (hasDayOff(k)) { streak++; k++; }
+  }
+
+  const toDayIdx = (ds) => {
+    const [y, m, d] = normalizeDayKey(ds).split("-").map(Number);
+    if (isNaN(y) || isNaN(m) || isNaN(d)) return null;
+    return Math.round(new Date(y, m - 1, d).getTime() / 86400000);
+  };
+  const dayIdxs = Array.from(allActiveDates).map(toDayIdx).filter(x => x !== null && !isNaN(x)).sort((x, y) => x - y);
+  let best = 0, curRun = 0, prevDayIdx = null;
+  for (const idxVal of dayIdxs) {
+    curRun = (prevDayIdx !== null && idxVal === prevDayIdx + 1) ? curRun + 1 : 1;
+    best = Math.max(best, curRun);
+    prevDayIdx = idxVal;
+  }
+  best = Math.max(best, streak);
+  if (streak === 0 && attempts > 0 && totalActive === 1) streak = 1;
+  if (best === 0 && totalActive > 0) best = Math.max(1, streak);
 
   const elStreakLine = document.getElementById("stStreakLine");
   if (elStreakLine) {
-    elStreakLine.innerHTML = `🔥 連續 <b>${streak}</b> 天　·　最佳 <b>${best}</b> 天　·　累計練習 <b>${totalActive}</b> 天`;
+    elStreakLine.innerHTML = `
+      <span>🔥 連續 <b id="stHeatStreak">${streak}</b> 天　·　最佳 <b id="stHeatBest">${best}</b> 天　·　累計練習 <b id="stHeatTotal">${totalActive}</b> 天</span>
+      <span id="stHeatDayInfo" class="heat-day-info"></span>
+    `;
   }
 
   if (heatGrid) {
-    heatGrid.innerHTML = days.map(day => {
-      let lvl = 0;
-      if (day.a > 0) {
-        if (day.a >= 25) lvl = 3;
-        else if (day.a >= 10) lvl = 2;
-        else lvl = 1;
-      }
-      const title = `${day.key}：${day.a ? "作答 " + day.a + " · 正確率 " + day.rate + "%" : "沒有練習"}`;
-      return `<i class="hc h${lvl}" title="${title}"></i>`;
+    heatGrid.innerHTML = days.map((day, idx) => {
+      const title = `${day.key}：${day.a ? "作答 " + day.a + " 題 · 正確率 " + day.rate + "%" : "沒有練習"}`;
+      return `<i class="hc h${day.level}" data-idx="${idx}" data-key="${day.key}" data-a="${day.a || 0}" data-rate="${day.rate || 0}" title="${title}"></i>`;
     }).join("");
+
+    const heatDayInfoEl = document.getElementById("stHeatDayInfo");
+    if (heatDayInfoEl && days.length > 0) {
+      let pinnedIdx = days.length - 1;
+      for (let i = days.length - 1; i >= 0; i--) {
+        if (days[i] && days[i].a > 0) {
+          pinnedIdx = i;
+          break;
+        }
+      }
+      const updateStHeatDayBadge = (idx) => {
+        const item = days[idx];
+        if (!item) return;
+        if (item.a > 0) {
+          heatDayInfoEl.className = "heat-day-info";
+          heatDayInfoEl.innerHTML = `📅 <b>${item.key}</b>：作答 <b>${item.a}</b> 題 · 正確率 <b>${item.rate}%</b>`;
+        } else {
+          heatDayInfoEl.className = "heat-day-info empty";
+          heatDayInfoEl.innerHTML = `📅 <b>${item.key}</b>：沒有練習`;
+        }
+        heatGrid.querySelectorAll(".hc").forEach((cell, cIdx) => {
+          cell.classList.toggle("hc-active", cIdx === idx);
+        });
+      };
+      updateStHeatDayBadge(pinnedIdx);
+
+      heatGrid.querySelectorAll(".hc").forEach((cell) => {
+        const idx = parseInt(cell.getAttribute("data-idx"), 10);
+        cell.addEventListener("mouseenter", () => {
+          if (!isNaN(idx)) {
+            if (days[idx] && days[idx].a > 0) pinnedIdx = idx;
+            updateStHeatDayBadge(idx);
+          }
+        });
+        cell.addEventListener("click", () => {
+          if (!isNaN(idx)) {
+            pinnedIdx = idx;
+            updateStHeatDayBadge(idx);
+          }
+        });
+      });
+      heatGrid.onmouseleave = () => {
+        updateStHeatDayBadge(pinnedIdx);
+      };
+    }
   }
 
   // 6. 渲染日期查詢、教師指定測驗作答紀錄與自由練習作答紀錄
@@ -13848,13 +14023,64 @@ window._fixedViewer = {
   limit: 50
 };
 
+let _cachedTtsEnVoice = null;
+function getBestEnVoiceForHistory() {
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) return null;
+  try {
+    const voices = window.speechSynthesis.getVoices() || [];
+    if (!voices.length) return null;
+    if (_cachedTtsEnVoice && voices.includes(_cachedTtsEnVoice)) return _cachedTtsEnVoice;
+    const enVoices = voices.filter(v => /^en(-|_|$)/i.test(String(v.lang || "").trim()));
+    if (!enVoices.length) return null;
+    const preferredPatterns = [
+      /Aria.*Natural|Jenny.*Natural|Guy.*Natural|Ana.*Natural|Christopher.*Natural|Eric.*Natural|Michelle.*Natural|Roger.*Natural|Steffan.*Natural|Ava.*Natural|Andrew.*Natural|Emma.*Natural|Brian.*Natural/i,
+      /Natural|Online/i,
+      /Google US English/i,
+      /Samantha|Alex|Ava|Allison|Susan|Victoria|Daniel|Karen|Moira/i,
+      /Microsoft (Zira|David|Mark)/i
+    ];
+    for (const pat of preferredPatterns) {
+      const mUS = enVoices.find(v => pat.test(v.name) && /en[-_]US/i.test(v.lang));
+      if (mUS) { _cachedTtsEnVoice = mUS; return mUS; }
+      const mEn = enVoices.find(v => pat.test(v.name));
+      if (mEn) { _cachedTtsEnVoice = mEn; return mEn; }
+    }
+    _cachedTtsEnVoice = enVoices.find(v => /en[-_]US/i.test(v.lang) && v.default)
+      || enVoices.find(v => /en[-_]US/i.test(v.lang) && v.localService)
+      || enVoices.find(v => /en[-_]US/i.test(v.lang))
+      || enVoices[0] || null;
+    return _cachedTtsEnVoice;
+  } catch (_) {
+    return null;
+  }
+}
+if (typeof window !== "undefined" && "speechSynthesis" in window) {
+  try {
+    getBestEnVoiceForHistory();
+    if ("onvoiceschanged" in window.speechSynthesis) {
+      window.speechSynthesis.addEventListener("voiceschanged", () => {
+        _cachedTtsEnVoice = null;
+        getBestEnVoiceForHistory();
+      });
+    }
+  } catch (_) {}
+}
+
 function speakMasteredWord(text) {
   if (!text || !('speechSynthesis' in window)) return;
   try {
     window.speechSynthesis.cancel();
+    if (window.speechSynthesis.paused) window.speechSynthesis.resume();
     const utter = new SpeechSynthesisUtterance(text);
-    utter.lang = 'en-US';
-    utter.rate = 0.7;
+    const bestVoice = getBestEnVoiceForHistory();
+    if (bestVoice) {
+      utter.voice = bestVoice;
+      utter.lang = bestVoice.lang || 'en-US';
+    } else {
+      utter.lang = 'en-US';
+    }
+    utter.rate = 0.8;
+    utter.pitch = 1.0;
     window.speechSynthesis.speak(utter);
   } catch(e) {
     console.warn("TTS error:", e);
