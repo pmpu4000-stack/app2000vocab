@@ -4131,9 +4131,7 @@
           </div>
         </div>
       </div>
-      <p class="defs" id="export-status-msg" style="margin-top:8px;">
-        💡 可選擇「<b>指定日期</b>」或「<b>指定範圍</b>」，點擊右側按鈕即可下載 <b>PDF 報表</b> 或 <b>Excel 試算表</b>（含指定測驗、自由練習單字明細與關卡進度）。
-      </p>
+      <div class="defs" id="export-status-msg" style="margin-top:8px; display:none;"></div>
     </section>
   </div>
 
@@ -13181,6 +13179,38 @@ function renderPrintReportContent(targetStudent) {
 }
 
 // ════════════════════════════════════════
+// 📊 正確率格式化工具（強制使用百分比，不使用小數）
+// ════════════════════════════════════════
+function formatRatePercentage(rawRate, scoreStr) {
+  if (rawRate === undefined || rawRate === null || rawRate === "" || rawRate === "—") {
+    if (scoreStr && String(scoreStr).includes("/")) {
+      const m = String(scoreStr).match(/^(\d+)\s*\/\s*(\d+)/);
+      if (m && parseInt(m[2], 10) > 0) {
+        return Math.round((parseInt(m[1], 10) / parseInt(m[2], 10)) * 100) + "%";
+      }
+    }
+    return "—";
+  }
+  const s = String(rawRate).trim();
+  if (s.endsWith("%")) {
+    const n = parseFloat(s);
+    if (!isNaN(n)) return Math.round(n) + "%";
+    return s;
+  }
+  const num = parseFloat(s);
+  if (!isNaN(num)) {
+    return Math.round(num <= 1 ? num * 100 : num) + "%";
+  }
+  return s;
+}
+
+function resolveStudentTaskWords(record, selectedDate, agent) {
+  return (typeof resolveTaskWords === "function")
+    ? resolveTaskWords(record, selectedDate, agent)
+    : { rawWords: [], wrongList: [], correctList: [] };
+}
+
+// ════════════════════════════════════════
 // 📝 單字測驗與自由練習按日期查詢模組 (比照拼字遊戲網頁)
 // ════════════════════════════════════════
 function resolveTaskWords(record, selectedDate, agent) {
@@ -13321,7 +13351,7 @@ function buildTaskDetailsHtml(record, selectedDate, agent) {
   const { rawWords, wrongList, correctList } = resolveTaskWords(record, selectedDate, agent);
 
   const scoreVal = record.score || "—";
-  const rateVal = record.rate || "—";
+  const rateVal = formatRatePercentage(record.rate, record.score);
   const statusStr = record.status || "🟢 已完成";
   const statusColor = statusStr.includes("已完成") ? "#047857" : statusStr.includes("作答中") ? "#d97706" : "#64748b";
   const statusBg = statusStr.includes("已完成") ? "rgba(16,185,129,0.15)" : statusStr.includes("作答中") ? "rgba(234,179,8,0.15)" : "rgba(148,163,184,0.15)";
@@ -14590,7 +14620,7 @@ function _buildStudentExportPayload(resp, mode, startDate, endDate) {
         date: dt,
         taskName: todayTask.taskName || "每日指定測驗",
         score: todayTask.score || "—",
-        rate: todayTask.rate || "—",
+        rate: formatRatePercentage(todayTask.rate, todayTask.score),
         status: "已完成",
         words: todayTask.words || [],
         wrongWords: todayTask.wrongWords || []
@@ -14603,7 +14633,7 @@ function _buildStudentExportPayload(resp, mode, startDate, endDate) {
           date: dt,
           taskName: matchedRow[18] || "教師指定測驗",
           score: matchedRow[19] || "—",
-          rate: matchedRow[20] || "—",
+          rate: formatRatePercentage(matchedRow[20], matchedRow[19]),
           status: matchedRow[21] || "已完成",
           words: [],
           wrongWords: matchedRow[22] ? String(matchedRow[22]).split(/[,、\s]+/).filter(Boolean) : []
@@ -14620,7 +14650,7 @@ function _buildStudentExportPayload(resp, mode, startDate, endDate) {
       taskName = matchedTask.taskName || "每日指定測驗";
       taskStatus = String(matchedTask.status || "已完成").replace(/^[🟢●⏳\s]+/, "");
       taskScore = matchedTask.score || "—";
-      taskRate = matchedTask.rate || "—";
+      taskRate = formatRatePercentage(matchedTask.rate, matchedTask.score);
       const resolved = resolveStudentTaskWords(matchedTask, dt, agent);
       taskCorrectWords = resolved.correctList || [];
       taskWrongWords = resolved.wrongList || [];
@@ -15179,28 +15209,36 @@ function initStudentExportRecordsCard(resp) {
       ? sDate
       : (inputEnd && inputEnd.value ? inputEnd.value : todayDash);
 
-    const payload = _buildStudentExportPayload(_latestStudentExportResp || {}, currentMode, sDate, eDate);
-
     if (btnDlPdf) btnDlPdf.disabled = true;
     if (btnDlExcel) btnDlExcel.disabled = true;
     if (statusMsg) {
-      statusMsg.innerHTML = `⏳ 正在產生 <b>${chosenFmt === "excel" ? "Excel (.xlsx)" : "PDF (.pdf)"}</b> 作答歷程記錄檔案（${payload.scopeTitle}），請稍候...`;
+      statusMsg.style.display = "block";
+      statusMsg.innerHTML = `⏳ 正在準備 <b>${chosenFmt === "excel" ? "Excel (.xlsx)" : "PDF (.pdf)"}</b> 作答歷程記錄報表，請稍候...`;
     }
 
     try {
+      const payload = _buildStudentExportPayload(_latestStudentExportResp || {}, currentMode, sDate, eDate);
+      if (statusMsg) {
+        statusMsg.style.display = "block";
+        statusMsg.innerHTML = `⏳ 正在產生 <b>${chosenFmt === "excel" ? "Excel (.xlsx)" : "PDF (.pdf)"}</b> 作答歷程記錄檔案（${payload.scopeTitle}），請稍候...`;
+      }
+
       if (chosenFmt === "excel") {
         await _exportStudentRecordToExcel(payload);
       } else {
         await _exportStudentRecordToPdf(payload);
       }
       if (statusMsg) {
+        statusMsg.style.display = "block";
         statusMsg.innerHTML = `✅ 已成功下載 <b>${chosenFmt === "excel" ? "Excel (.xlsx)" : "PDF (.pdf)"}</b> 作答歷程記錄（${payload.scopeTitle}）！`;
       }
     } catch (err) {
       console.error("Student export error:", err);
       if (statusMsg) {
+        statusMsg.style.display = "block";
         statusMsg.innerHTML = `⚠️ 匯出時發生錯誤：${err.message || "請稍後再試"}`;
       }
+      alert("匯出下載失敗：" + (err.message || "請稍後再試"));
     } finally {
       if (btnDlPdf) btnDlPdf.disabled = false;
       if (btnDlExcel) btnDlExcel.disabled = false;
@@ -15888,7 +15926,7 @@ function renderStudentDailyTask(todayTaskResult, dailyTaskHistory, assignedTask)
       cachedStudentTodayTaskResult.inProgress = false;
       cachedStudentTodayTaskResult.taskName = matchedToday.taskName || "今日指定測驗";
       cachedStudentTodayTaskResult.score = matchedToday.score;
-      cachedStudentTodayTaskResult.rate = matchedToday.rate;
+      cachedStudentTodayTaskResult.rate = formatRatePercentage(matchedToday.rate, matchedToday.score);
       cachedStudentTodayTaskResult.status = matchedToday.status;
       cachedStudentTodayTaskResult.updatedAt = matchedToday.updatedAt;
       cachedStudentTodayTaskResult.wrongWords = matchedToday.wrongWords || [];
@@ -15906,7 +15944,8 @@ function renderStudentDailyTask(todayTaskResult, dailyTaskHistory, assignedTask)
       statusBadge.className = "analytics-status-pill analytics-status-done";
       statusBadge.innerText = "✨ 今日測驗已完成";
     }
-    const accNum = parseFloat(today.rate) || 0;
+    const accRateStr = formatRatePercentage(today.rate, today.score);
+    const accNum = parseFloat(accRateStr) || 0;
     let accColor = "#10b981";
     if (accNum < 60) accColor = "#ef4444";
     else if (accNum < 80) accColor = "#f59e0b";
@@ -15964,7 +16003,7 @@ function renderStudentDailyTask(todayTaskResult, dailyTaskHistory, assignedTask)
             <div style="font-size:13.5px; color:var(--text-muted); line-height:1.7;">
               測驗任務：<strong style="color:var(--text);">${escapeHtml(today.taskName || '每日指定測驗')}</strong>｜
               得分：<strong style="color:var(--primary); font-size:15px;">${escapeHtml(today.score || '—')}</strong>｜
-              正確率：<strong style="color:${accColor}; font-size:15px;">${escapeHtml(today.rate || '0%')}</strong>｜
+              正確率：<strong style="color:${accColor}; font-size:15px;">${escapeHtml(accRateStr)}</strong>｜
               完成時間：<span>${escapeHtml(today.updatedAt || '—')}</span>
             </div>
           </div>
@@ -16213,7 +16252,7 @@ function applyStudentDailyFilterAndRender() {
     }
   });
 
-  const avgAccPct = totalAtt > 0 ? ((totalCorr / totalAtt) * 100).toFixed(1) + "%" : "0%";
+  const avgAccPct = totalAtt > 0 ? Math.round((totalCorr / totalAtt) * 100) + "%" : "0%";
   const avgAccVal = totalAtt > 0 ? (totalCorr / totalAtt) * 100 : 0;
   let avgAccColor = "#10b981";
   if (avgAccVal < 60) avgAccColor = "#ef4444";
@@ -16236,7 +16275,7 @@ function applyStudentDailyFilterAndRender() {
   if (elPerf) elPerf.innerText = `${perfectCount} 次`;
   const elPerfSub = document.getElementById("stDailyPerfectCountSub");
   if (elPerfSub) {
-    const perfectRate = totalCount > 0 ? ((perfectCount / totalCount) * 100).toFixed(0) + "%" : "0%";
+    const perfectRate = totalCount > 0 ? Math.round((perfectCount / totalCount) * 100) + "%" : "0%";
     elPerfSub.innerText = `滿分達成率 ${perfectRate}`;
   }
 
@@ -16302,7 +16341,8 @@ function applyStudentDailyFilterAndRender() {
       `;
     } else {
       const rowsHtml = filtered.map(item => {
-        const rateNum = parseFloat(item.rate || item.accuracy) || 0;
+        const rateStr = formatRatePercentage(item.rate, item.score);
+        const rateNum = parseFloat(rateStr) || 0;
         let rateBadgeClass = "score-badge score-low";
         if (rateNum >= 80) rateBadgeClass = "score-badge score-high";
         else if (rateNum >= 60) rateBadgeClass = "score-badge score-mid";
@@ -16348,7 +16388,7 @@ function applyStudentDailyFilterAndRender() {
             <td style="padding:10px 12px; font-weight:700; white-space:nowrap; color:var(--text);">${escapeHtml(item.date || '—')}</td>
             <td style="padding:10px 12px; white-space:nowrap; color:var(--text-muted); font-size:12.5px;">${escapeHtml(item.taskName || '每日指定測驗')}</td>
             <td style="padding:10px 12px; text-align:center; font-weight:700; color:var(--text); white-space:nowrap;">${scoreDisplay}</td>
-            <td style="padding:10px 12px; text-align:center; white-space:nowrap;"><span class="${rateBadgeClass}">${escapeHtml(item.rate || '0%')}</span></td>
+            <td style="padding:10px 12px; text-align:center; white-space:nowrap;"><span class="${rateBadgeClass}">${escapeHtml(rateStr)}</span></td>
             <td style="padding:10px 12px; text-align:center; white-space:nowrap;"><span class="${statusPillClass}">${escapeHtml(statusText)}</span></td>
             <td style="padding:10px 12px; line-height:1.7;">${wrongWordsHtml}</td>
             <td style="padding:8px 6px; text-align:center; white-space:nowrap; width:85px;">
@@ -16400,7 +16440,7 @@ function copyStudentDailyReport() {
   if (today && today.hasDone) {
     const taskTitle = today.taskName || "每日單字指定測驗";
     const scoreVal = today.score || "—";
-    const rateVal = today.rate || "100%";
+    const rateVal = formatRatePercentage(today.rate, today.score) || "100%";
     let wrongWordsText = "✨ 無（全對滿分，實力超群！）";
     if (Array.isArray(today.wrongWords) && today.wrongWords.length > 0) {
       wrongWordsText = today.wrongWords.map(w => {
@@ -16566,9 +16606,9 @@ function renderStudentDailyReportPrintContent(targetStudent, records, scopeLabel
     }
   });
 
-  const avgAccPct = totalAtt > 0 ? ((totalCorr / totalAtt) * 100).toFixed(1) + "%" : "0%";
+  const avgAccPct = totalAtt > 0 ? Math.round((totalCorr / totalAtt) * 100) + "%" : "0%";
   const avgAccVal = totalAtt > 0 ? (totalCorr / totalAtt) * 100 : 0;
-  const perfectRate = completed.length > 0 ? ((perfectCount / completed.length) * 100).toFixed(0) + "%" : "0%";
+  const perfectRate = completed.length > 0 ? Math.round((perfectCount / completed.length) * 100) + "%" : "0%";
 
   let assessmentText = "";
   if (avgAccVal >= 90) {
@@ -16592,7 +16632,8 @@ function renderStudentDailyReportPrintContent(targetStudent, records, scopeLabel
       att = parseInt(item.attempts) || 0;
       corr = parseInt(item.correct) || 0;
     }
-    const rateNum = parseFloat(item.rate || item.accuracy) || 0;
+    const rateStr = formatRatePercentage(item.rate, item.score);
+    const rateNum = parseFloat(rateStr) || 0;
     const isRowPerfect = (rateNum >= 100) || (att > 0 && corr === att);
 
     let wrongWordsHtml = "";
@@ -16615,7 +16656,7 @@ function renderStudentDailyReportPrintContent(targetStudent, records, scopeLabel
         <td style="padding:8px 10px; font-weight:bold; white-space:nowrap; text-align:center;">${escapeHtml(item.date || '—')}</td>
         <td style="padding:8px 10px; font-size:12px;">${escapeHtml(item.taskName || '每日指定測驗')}</td>
         <td style="padding:8px 10px; text-align:center; font-weight:bold; white-space:nowrap;">${scoreDisplay}</td>
-        <td style="padding:8px 10px; text-align:center; font-weight:bold; color:${rateNum >= 80 ? '#059669' : (rateNum >= 60 ? '#d97706' : '#dc2626')}; white-space:nowrap;">${escapeHtml(item.rate || '0%')}</td>
+        <td style="padding:8px 10px; text-align:center; font-weight:bold; color:${rateNum >= 80 ? '#059669' : (rateNum >= 60 ? '#d97706' : '#dc2626')}; white-space:nowrap;">${escapeHtml(rateStr)}</td>
         <td style="padding:8px 10px; text-align:center; font-size:11.5px; white-space:nowrap;">${escapeHtml(item.status || '已完成')}</td>
         <td style="padding:8px 10px; line-height:1.5;">${wrongWordsHtml}</td>
         <td style="padding:8px 6px; text-align:center; font-size:11px; font-family:monospace; color:#475569; white-space:nowrap; width:80px;" title="交卷完整時間：${escapeHtml(item.updatedAt || '—')}">${escapeHtml(compactTime)}</td>

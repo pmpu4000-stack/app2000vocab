@@ -676,6 +676,29 @@ function getCombinedTaskHistory() {
   return list;
 }
 
+export function formatRatePercentage(rawRate, scoreStr) {
+  if (rawRate === undefined || rawRate === null || rawRate === "" || rawRate === "—") {
+    if (scoreStr && String(scoreStr).includes("/")) {
+      const m = String(scoreStr).match(/^(\d+)\s*\/\s*(\d+)/);
+      if (m && parseInt(m[2], 10) > 0) {
+        return Math.round((parseInt(m[1], 10) / parseInt(m[2], 10)) * 100) + "%";
+      }
+    }
+    return "—";
+  }
+  const s = String(rawRate).trim();
+  if (s.endsWith("%")) {
+    const n = parseFloat(s);
+    if (!isNaN(n)) return Math.round(n) + "%";
+    return s;
+  }
+  const num = parseFloat(s);
+  if (!isNaN(num)) {
+    return Math.round(num <= 1 ? num * 100 : num) + "%";
+  }
+  return s;
+}
+
 function resolveTaskWords(record, selectedDate, d) {
   if (!record) return { rawWords: [], wrongList: [], correctList: [] };
 
@@ -834,7 +857,7 @@ function buildTaskDetailsHtml(record, selectedDate, d) {
   const { rawWords, wrongList, correctList } = resolveTaskWords(record, selectedDate, d);
 
   const scoreVal = record.score || "—";
-  const rateVal = record.rate || "—";
+  const rateVal = formatRatePercentage(record.rate, record.score);
   const statusStr = record.status || "🟢 已完成";
   const statusColor = statusStr.includes("已完成") ? "#047857" : statusStr.includes("作答中") ? "#d97706" : "#64748b";
   const statusBg = statusStr.includes("已完成") ? "rgba(16,185,129,0.15)" : statusStr.includes("作答中") ? "rgba(234,179,8,0.15)" : "rgba(148,163,184,0.15)";
@@ -1848,7 +1871,7 @@ function _buildExportPayload(d, mode, startDate, endDate) {
       taskName = tRec.taskName || "每日指定測驗";
       taskStatus = String(tRec.status || "已完成").replace(/^[🟢●⏳\s]+/, "");
       taskScore = tRec.score || "—";
-      taskRate = tRec.rate || "—";
+      taskRate = formatRatePercentage(tRec.rate, tRec.score);
       const resolved = resolveTaskWords(tRec, dt, d);
       taskCorrectWords = resolved.correctList || [];
       taskWrongWords = resolved.wrongList || [];

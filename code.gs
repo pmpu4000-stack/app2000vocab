@@ -3384,13 +3384,18 @@ function parseScoreAndRate(rawScore, rawRate) {
     } catch(_) {}
   }
   
-  // 2. 防禦：修復正確率為小數點 (0.8 -> 80%, 1 -> 100%)
+  // 2. 防禦：修復正確率為小數點 (0.8 -> 80%, 1 -> 100%)，或帶小數點的百分比 (85.4% -> 85%)
   if (typeof rawRate === "number") {
     rateStr = Math.round(rawRate <= 1 ? rawRate * 100 : rawRate) + "%";
-  } else if (rateStr !== "—" && !rateStr.endsWith("%")) {
-    const num = parseFloat(rateStr);
-    if (!isNaN(num)) {
-      rateStr = Math.round(num <= 1 ? num * 100 : num) + "%";
+  } else if (rateStr !== "—") {
+    if (rateStr.endsWith("%")) {
+      const num = parseFloat(rateStr);
+      if (!isNaN(num)) rateStr = Math.round(num) + "%";
+    } else {
+      const num = parseFloat(rateStr);
+      if (!isNaN(num)) {
+        rateStr = Math.round(num <= 1 ? num * 100 : num) + "%";
+      }
     }
   }
 
@@ -3426,8 +3431,9 @@ function getStudentTodayTaskResult(ss, username, todayStr) {
     const dStr = formatStandardDateYMD(vals[i][0]);
     if (dStr === targetDateStr) {
       const taskName = String(vals[i][18] || "今日指定測驗");
-      const scoreVal = String(vals[i][19] || "—");
-      const rateVal  = String(vals[i][20] || "—");
+      const parsedSR = parseScoreAndRate(vals[i][19], vals[i][20]);
+      const scoreVal = parsedSR.score;
+      const rateVal  = parsedSR.rate;
       const statusVal = String(vals[i][21] || "");
       const wrongStr = String(vals[i][22] || "");
       const wrongWords = wrongStr ? wrongStr.split(/[\s,;\n\r]+/).filter(w => w.trim().length > 0) : [];
@@ -3478,8 +3484,9 @@ function getStudentDailyTaskHistory(ss, username) {
   for (let i = 0; i < vals.length; i++) {
     const dStr = formatStandardDateYMD(vals[i][0]);
     const taskName = String(vals[i][18] || "");
-    const scoreVal = String(vals[i][19] || "—").replace(/^'/, "");
-    const rateVal  = String(vals[i][20] || "—");
+    const parsedSR = parseScoreAndRate(vals[i][19], vals[i][20]);
+    const scoreVal = parsedSR.score;
+    const rateVal  = parsedSR.rate;
     const statusVal = String(vals[i][21] || "");
     const wrongStr = String(vals[i][22] || "");
     const wrongWords = wrongStr ? wrongStr.split(/[\s,;\n\r]+/).filter(w => w.trim().length > 0) : [];
