@@ -2,13 +2,13 @@
 // ui.js — the view. All DOM rendering lives here. It renders from plain
 // data and reports intent through callbacks; it never touches the store.
 // =====================================================================
-import { CATS } from "./data.js?v=20261013_0920";
-import { say, spellOut, playContestSentence, stopAudio } from "./audio.js?v=20261013_0920";
-import { LEVELS, levelColor, levelName, misspellings, shuffle } from "./levels.js?v=20261013_0920";
+import { CATS } from "./data.js?v=20261013_1000";
+import { say, sayWord, spellOut, playContestSentence, stopAudio } from "./audio.js?v=20261013_1000";
+import { LEVELS, levelColor, levelName, misspellings, shuffle } from "./levels.js?v=20261013_1000";
 
 if (typeof window !== "undefined") {
   window.__say = say;
-  window.__sayWord = (w) => say(w);
+  window.__sayWord = (w) => sayWord(w);
 }
 
 const $ = (s) => document.querySelector(s);
@@ -523,14 +523,32 @@ export function renderBanner(level, ls, ready, hint, onChallenge) {
 
 function normalizeDateStr(ds) {
   if (!ds) return "";
-  const parts = String(ds).trim().replace(/\//g, "-").split("-");
+  const clean = String(ds).trim().split(/[T\s]/)[0];
+  const parts = clean.replace(/\//g, "-").split("-");
   if (parts.length === 3) {
     const y = parts[0];
     const m = parts[1].padStart(2, "0");
     const d = parts[2].padStart(2, "0");
     return `${y}-${m}-${d}`;
   }
-  return String(ds).trim();
+  return clean;
+}
+
+function resolveWordStr(raw, d) {
+  if (!raw) return "";
+  const s = String(raw).trim();
+  if (/^w\d+$/i.test(s)) {
+    const idx = parseInt(s.slice(1), 10);
+    if (d && Array.isArray(d.words) && d.words.length > 0) {
+      const byId = d.words.find(item => item && item.id === s.toLowerCase());
+      if (byId && byId.word) return String(byId.word).trim();
+      if (!isNaN(idx) && d.words[idx] && d.words[idx].word) return String(d.words[idx].word).trim();
+    }
+    if (typeof window !== "undefined" && Array.isArray(window.WORD_BANK_2000) && !isNaN(idx) && window.WORD_BANK_2000[idx]) {
+      return String(window.WORD_BANK_2000[idx][0] || s).trim();
+    }
+  }
+  return s;
 }
 
 function getCombinedTaskHistory() {
@@ -539,7 +557,13 @@ function getCombinedTaskHistory() {
     const raw = localStorage.getItem("student_task_history");
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) list.push(...parsed);
+      if (Array.isArray(parsed)) {
+        parsed.forEach(item => {
+          if (item && item.date && (!item.taskName || item.taskName !== "自主練習")) {
+            list.push({ ...item, date: normalizeDateStr(item.date) });
+          }
+        });
+      }
     }
   } catch(_) {}
 
@@ -547,7 +571,7 @@ function getCombinedTaskHistory() {
     const rawSum = localStorage.getItem("today_task_summary");
     if (rawSum) {
       const s = JSON.parse(rawSum);
-      if (s && s.date && s.taskName) {
+      if (s && s.date && s.taskName && s.taskName !== "自主練習") {
         const sNormDate = normalizeDateStr(s.date);
         const sCleanName = String(s.taskName).replace(/[\(（][^\)）]*[\)）]/g, "").trim().toLowerCase();
         const existIdx = list.findIndex(item => {
@@ -571,7 +595,7 @@ function getCombinedTaskHistory() {
           score: (s.score !== undefined && s.total !== undefined) ? `${s.score}/${s.total}` : "—",
           rate: s.rate || "—",
           status: s.completed ? "🟢 已完成" : "🟡 作答中",
-          updatedAt: s.updatedAt || `${s.date} (今日)`,
+          updatedAt: s.updatedAt || `${sNormDate} (今日)`,
           wrongWords: sWrong,
           words: sWords
         };
@@ -599,7 +623,7 @@ function getCombinedTaskHistory() {
                         localStorage.getItem("assigned_task_backup");
     if (rawAssigned) {
       const a = JSON.parse(rawAssigned);
-      if (a && (a.hasTask || a.alreadyCompleted) && a.taskName) {
+      if (a && (a.hasTask || a.alreadyCompleted) && a.taskName && a.taskName !== "自主練習") {
         const dStr = normalizeDateStr(a.date || new Date().toISOString().split("T")[0]);
         const aClean = String(a.taskName).replace(/[\(（][^\)）]*[\)）]/g, "").trim().toLowerCase();
         const aWords = (Array.isArray(a.words) && a.words.length > 0)
@@ -737,10 +761,14 @@ function resolveTaskWords(record, selectedDate, d) {
     } catch(_) {}
   }
 
-  // 整理答錯單字
+  // 整理答錯單字並將 w0/w1 代號轉為實際單字
   let wrongList = Array.from(new Set(
-    (record.wrongWords || []).map(w => String(w).trim().toLowerCase()).filter(Boolean)
+    (record.wrongWords || [])
+      .map(w => resolveWordStr(w, d).toLowerCase())
+      .filter(w => w && !/^w\d+$/i.test(w))
   )).sort((a, b) => a.localeCompare(b));
+
+  pool = pool.map(w => resolveWordStr(w, d).toLowerCase()).filter(w => w && !/^w\d+$/i.test(w));
 
   if (pool.length === 0 && wrongList.length > 0) {
     pool = [...wrongList];
@@ -766,12 +794,12 @@ function resolveTaskWords(record, selectedDate, d) {
   if (expectedCorrect > 0 && correctList.length < expectedCorrect) {
     const allWords = (d && d.allPracticedWords) || [];
     const candidates = allWords.filter(w => {
-      const wordStr = String(w.word || w).trim().toLowerCase();
-      return !wrongSet.has(wordStr) && !correctList.includes(wordStr);
+      const wordStr = resolveWordStr(w.word || w, d).toLowerCase();
+      return wordStr && !/^w\d+$/i.test(wordStr) && !wrongSet.has(wordStr) && !correctList.includes(wordStr);
     });
     candidates.sort((a, b) => (b.correct || 0) - (a.correct || 0));
     const need = expectedCorrect - correctList.length;
-    const added = candidates.slice(0, need).map(w => String(w.word || w).trim().toLowerCase());
+    const added = candidates.slice(0, need).map(w => resolveWordStr(w.word || w, d).toLowerCase());
     added.forEach(w => {
       if (!rawWords.includes(w)) rawWords.push(w);
       if (!correctList.includes(w)) correctList.push(w);
@@ -814,7 +842,7 @@ function buildTaskDetailsHtml(record, selectedDate, d) {
 
   let correctContentHtml = "";
   if (correctList.length > 0) {
-    correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" onclick="window.__sayWord && window.__sayWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
+    correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" data-word="${w.replace(/"/g, "&quot;")}" onclick="window.__sayWord && window.__sayWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
   } else if (isFinished) {
     if (rawWords.length > 0) {
       correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（本次測驗全數答錯，尚無答對單字）</span>`;
@@ -829,7 +857,7 @@ function buildTaskDetailsHtml(record, selectedDate, d) {
 
   let wrongContentHtml = "";
   if (wrongList.length > 0) {
-    wrongContentHtml = wrongList.map(w => `<span class="word-pill-tag wrong" onclick="window.__sayWord && window.__sayWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
+    wrongContentHtml = wrongList.map(w => `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" onclick="window.__sayWord && window.__sayWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
   } else if (isFinished) {
     wrongContentHtml = `<span style="font-size:12px; color:#4ade80; font-weight:700;">🎉 太棒了！本次測驗全數答對，無任何答錯單字！</span>`;
   } else {
@@ -905,22 +933,27 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
 
   Object.keys(wordsMap).forEach(k => {
     const info = wordsMap[k];
-    const wName = info.word || k;
-    const hasWrong = (info.wrong > 0);
-    const hasCorrect = (info.correct > 0);
+    const rawW = (typeof info === "object" && info && info.word) ? info.word : k;
+    const wName = resolveWordStr(rawW, d).toLowerCase();
+    if (!wName || /^w\d+$/i.test(wName)) return;
+    const hasWrong = (info && info.wrong > 0);
+    const hasCorrect = (info && info.correct > 0);
 
     if (hasWrong) {
       wrongList.push({ word: wName, attempts: info.attempts || 1, wrong: info.wrong, correct: info.correct || 0 });
     } else if (hasCorrect) {
       correctList.push({ word: wName, attempts: info.attempts || 1, correct: info.correct });
     } else {
-      correctList.push({ word: wName, attempts: info.attempts || 1, correct: 1 });
+      correctList.push({ word: wName, attempts: (info && info.attempts) || 1, correct: 1 });
     }
   });
 
   // 【核心修復】：若該日有作答題數但 words 為空，從 d.allPracticedWords 智能動態還原出受測單字細節！
   if (correctList.length === 0 && wrongList.length === 0 && attempts > 0) {
-    const allWords = (d && d.allPracticedWords) || [];
+    const allWords = ((d && d.allPracticedWords) || []).map(w => ({
+      ...w,
+      word: resolveWordStr(w.word || w, d).toLowerCase()
+    })).filter(w => w.word && !/^w\d+$/i.test(w.word));
 
     // 1. 補齊答錯單字
     if (wrongCount > 0 && allWords.length > 0) {
@@ -970,7 +1003,7 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
 
   let correctContentHtml = "";
   if (correctList.length > 0) {
-    correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" onclick="window.__sayWord && window.__sayWord('${w.word.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w.word}</span>`).join("");
+    correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" data-word="${w.word.replace(/"/g, "&quot;")}" onclick="window.__sayWord && window.__sayWord('${w.word.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w.word}</span>`).join("");
   } else {
     correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（當日尚無全對單字）</span>`;
   }
@@ -979,9 +1012,9 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
   if (wrongList.length > 0) {
     wrongContentHtml = wrongList.map(w => {
       if (w.correct > 0) {
-        return `<span class="word-pill-tag correct" onclick="window.__sayWord && window.__sayWord('${w.word.replace(/'/g, "\\'")}')" style="border:1px dashed #4ade80; cursor:pointer;" title="當日曾答錯，已訂正答對 (點擊聆聽發音)">${w.word} <small style="font-size:10px; opacity:0.85;">(已訂正)</small></span>`;
+        return `<span class="word-pill-tag correct" data-word="${w.word.replace(/"/g, "&quot;")}" onclick="window.__sayWord && window.__sayWord('${w.word.replace(/'/g, "\\'")}')" style="border:1px dashed #4ade80; cursor:pointer;" title="當日曾答錯，已訂正答對 (點擊聆聽發音)">${w.word} <small style="font-size:10px; opacity:0.85;">(已訂正)</small></span>`;
       } else {
-        return `<span class="word-pill-tag wrong" onclick="window.__sayWord && window.__sayWord('${w.word.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w.word}</span>`;
+        return `<span class="word-pill-tag wrong" data-word="${w.word.replace(/"/g, "&quot;")}" onclick="window.__sayWord && window.__sayWord('${w.word.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w.word}</span>`;
       }
     }).join("");
   } else {
@@ -1036,10 +1069,9 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
 
 function resolveDailyPracticeRecord(dateStr, d, historyList) {
   if (!dateStr) return null;
-  const norm = String(dateStr).trim().replace(/\//g, "-");
-  const parts = norm.split("-");
-  const normYMD = (parts.length === 3) ? `${parts[0]}-${parts[1].padStart(2, "0")}-${parts[2].padStart(2, "0")}` : norm;
-  const unpadYMD = (parts.length === 3) ? `${parts[0]}-${parseInt(parts[1], 10)}-${parseInt(parts[2], 10)}` : norm;
+  const normYMD = normalizeDateStr(dateStr);
+  const parts = normYMD.split("-");
+  const unpadYMD = (parts.length === 3) ? `${parts[0]}-${parseInt(parts[1], 10)}-${parseInt(parts[2], 10)}` : normYMD;
   const slashYMD = normYMD.replace(/-/g, "/");
 
   const today = new Date();
@@ -1049,12 +1081,14 @@ function resolveDailyPracticeRecord(dateStr, d, historyList) {
   // 1. 從 d.dailyPractice 尋找
   const dpMap = (d && d.dailyPractice) || {};
   let rec = dpMap[normYMD] || dpMap[unpadYMD] || dpMap[slashYMD] || dpMap[dateStr] || null;
-  if (rec && rec.attempts > 0) {
+  if (rec && (rec.attempts > 0 || (rec.words && Object.keys(rec.words).length > 0))) {
+    const att = rec.attempts || Object.keys(rec.words || {}).length;
+    const cor = rec.correct || 0;
     return {
       date: normYMD,
-      attempts: rec.attempts,
-      correct: rec.correct,
-      wrong: (rec.wrong !== undefined) ? rec.wrong : Math.max(0, rec.attempts - rec.correct),
+      attempts: att,
+      correct: cor,
+      wrong: (rec.wrong !== undefined) ? rec.wrong : Math.max(0, att - cor),
       words: rec.words || {}
     };
   }
@@ -1072,38 +1106,36 @@ function resolveDailyPracticeRecord(dateStr, d, historyList) {
     };
   }
 
-  // 3. 從 student_task_history 尋找 (Google Sheets 雲端同步各日作答歷程)
-  if (Array.isArray(historyList)) {
-    const matchedTask = historyList.find(item => {
-      if (!item || !item.date) return false;
-      const iDate = String(item.date).trim().replace(/\//g, "-");
-      const iParts = iDate.split("-");
-      const iNorm = (iParts.length === 3) ? `${iParts[0]}-${iParts[1].padStart(2, "0")}-${iParts[2].padStart(2, "0")}` : iDate;
-      return iNorm === normYMD;
-    });
-
-    if (matchedTask) {
-      let att = parseInt(matchedTask.attempts) || 0;
-      let corr = parseInt(matchedTask.correct) || 0;
-      if (!att && matchedTask.score && matchedTask.score !== "—" && matchedTask.score.includes("/")) {
-        const p = matchedTask.score.split("/");
-        corr = parseInt(p[0]) || 0;
-        att = parseInt(p[1]) || 0;
-      }
-      if (att > 0) {
-        return {
-          date: normYMD,
-          attempts: att,
-          correct: corr,
-          wrong: Math.max(0, att - corr),
-          words: (rec && rec.words) || {}
-        };
+  // 3. 從 student_task_history 尋找標記為「自主練習」的紀錄（絕不誤抓教師指派測驗分數）
+  try {
+    const rawHist = localStorage.getItem("student_task_history");
+    if (rawHist) {
+      const parsedHist = JSON.parse(rawHist);
+      if (Array.isArray(parsedHist)) {
+        const matchedFreeRow = parsedHist.find(item => {
+          if (!item || !item.date) return false;
+          if (item.taskName && item.taskName !== "自主練習") return false;
+          return normalizeDateStr(item.date) === normYMD;
+        });
+        if (matchedFreeRow) {
+          let att = parseInt(matchedFreeRow.attempts) || 0;
+          let corr = parseInt(matchedFreeRow.correct) || 0;
+          if (att > 0) {
+            return {
+              date: normYMD,
+              attempts: att,
+              correct: corr,
+              wrong: Math.max(0, att - corr),
+              words: (rec && rec.words) || {}
+            };
+          }
+        }
       }
     }
-  }
+  } catch (_) {}
 
   // 4. 若為今天且當日 session 有即時作答
-  if (isToday && d && d.session && d.session.date === todayStr() && d.session.answered > 0) {
+  if (isToday && d && d.session && normalizeDateStr(d.session.date) === todayDash && d.session.answered > 0) {
     return {
       date: normYMD,
       attempts: d.session.answered,
@@ -1113,7 +1145,7 @@ function resolveDailyPracticeRecord(dateStr, d, historyList) {
     };
   }
 
-  return rec;
+  return null;
 }
 
 // ---------- summary ----------
@@ -1130,24 +1162,58 @@ export function renderSummary(d) {
   const practiceDates = Array.isArray(d.practiceDates) ? d.practiceDates : [];
 
   const todayDash = new Date().getFullYear() + "-" + String(new Date().getMonth() + 1).padStart(2, "0") + "-" + String(new Date().getDate()).padStart(2, "0");
-  
-  // 建立日期選項集合（整合教師指定測驗、自由練習與今日）
+
+  // 建立有紀錄日期選項集合（1:1 比照學習歷程網站，僅納入有實質作答紀錄之日期與今日）
   const dateSet = new Set();
-  historyList.forEach(item => { if (item.date) dateSet.add(normalizeDateStr(item.date)); });
-  practiceDates.forEach(dateStr => { if (dateStr) dateSet.add(normalizeDateStr(dateStr)); });
-  Object.keys(dailyPracticeMap).forEach(dateStr => { if (dateStr) dateSet.add(normalizeDateStr(dateStr)); });
-  if (d.rawHistory) {
-    Object.keys(d.rawHistory).forEach(dateStr => { if (dateStr) dateSet.add(normalizeDateStr(dateStr)); });
-  }
   dateSet.add(todayDash);
+  historyList.forEach(item => {
+    if (item && item.date && (!item.taskName || item.taskName !== "自主練習")) {
+      const nd = normalizeDateStr(item.date);
+      if (nd) dateSet.add(nd);
+    }
+  });
+  Object.keys(dailyPracticeMap).forEach(dateStr => {
+    const dp = dailyPracticeMap[dateStr];
+    if (dp && (dp.attempts > 0 || (dp.words && Object.keys(dp.words).length > 0))) {
+      const nd = normalizeDateStr(dateStr);
+      if (nd) dateSet.add(nd);
+    }
+  });
+  if (d.rawHistory) {
+    Object.keys(d.rawHistory).forEach(dateStr => {
+      if (d.rawHistory[dateStr] && d.rawHistory[dateStr].a > 0) {
+        const nd = normalizeDateStr(dateStr);
+        if (nd) dateSet.add(nd);
+      }
+    });
+  }
+  practiceDates.forEach(dateStr => {
+    const nd = normalizeDateStr(dateStr);
+    if (nd) {
+      const recF = resolveDailyPracticeRecord(nd, d, historyList);
+      if (recF && recF.attempts > 0) dateSet.add(nd);
+    }
+  });
 
   const sortedDates = Array.from(dateSet).filter(Boolean).sort((a, b) => b.localeCompare(a));
-  const defaultSelectedDate = sortedDates[0] || todayDash;
 
-  // 建立「🎯 快速跳至有紀錄日期」下拉選單
-  const quickDateOptionsHtml = sortedDates.map(dateStr => {
+  // 若今日尚無紀錄，自動預設跳至最近一個有紀錄的日期（與學習歷程網站完全一致）
+  let defaultSelectedDate = todayDash;
+  const hasTodayTask = historyList.some(item => normalizeDateStr(item.date) === todayDash);
+  const todayFreeRec = resolveDailyPracticeRecord(todayDash, d, historyList);
+  const hasTodayFree = !!(todayFreeRec && todayFreeRec.attempts > 0);
+  if (!hasTodayTask && !hasTodayFree && sortedDates.length > 0) {
+    const latestActive = sortedDates.find(dt => {
+      const hTask = historyList.some(item => normalizeDateStr(item.date) === dt);
+      const rFree = resolveDailyPracticeRecord(dt, d, historyList);
+      return hTask || (rFree && rFree.attempts > 0);
+    });
+    if (latestActive) defaultSelectedDate = latestActive;
+  }
+
+  const buildOptionLabel = (dateStr) => {
     const isToday = (dateStr === todayDash);
-    const matchedTask = historyList.find(item => normalizeDateStr(item.date) === dateStr);
+    const matchedTask = historyList.find(item => normalizeDateStr(item.date) === dateStr && (!item.taskName || item.taskName !== "自主練習"));
     const recFree = resolveDailyPracticeRecord(dateStr, d, historyList);
     const freeAtt = recFree ? (recFree.attempts || 0) : 0;
 
@@ -1157,11 +1223,16 @@ export function renderSummary(d) {
     else if (freeAtt > 0) desc = ` [自由練習: ${freeAtt}題]`;
     else desc = " (尚無紀錄)";
 
-    const label = `${dateStr}${isToday ? " (今日)" : ""}${desc}`;
+    return `${dateStr}${isToday ? " (今日)" : ""}${desc}`;
+  };
+
+  // 建立「🎯 快速跳至有紀錄日期」下拉選單
+  const quickDateOptionsHtml = sortedDates.map(dateStr => {
+    const label = buildOptionLabel(dateStr);
     return `<option value="${dateStr}" ${dateStr === defaultSelectedDate ? "selected" : ""}>${label}</option>`;
   }).join("");
 
-  const initialTaskRecord = historyList.find(item => normalizeDateStr(item.date) === defaultSelectedDate) || null;
+  const initialTaskRecord = historyList.find(item => normalizeDateStr(item.date) === defaultSelectedDate && (!item.taskName || item.taskName !== "自主練習")) || null;
   const initialTaskDetailsHtml = buildTaskDetailsHtml(initialTaskRecord, defaultSelectedDate, d);
 
   const initialFreeRecord = resolveDailyPracticeRecord(defaultSelectedDate, d, historyList);
@@ -1247,10 +1318,20 @@ export function renderSummary(d) {
       <span id="heat-day-info" class="heat-day-info"></span>
     </div>
     <div class="heatmap" id="heatmap-grid">${d.history.days.map((x, idx) =>
-      `<i class="hc h${x.level}" data-idx="${idx}" data-key="${x.key}" data-a="${x.a || 0}" data-rate="${x.rate || 0}" title="${x.key}：${x.a ? "作答 " + x.a + " 題 · 正確率 " + x.rate + "%" : "沒有練習"}"></i>`).join("")}</div>
-    <div class="heat-legend">🔥 <b>連續</b>：從今天往回算，一天都沒中斷、天天有練習的天數。<br>🏆 <b>最佳</b>：你曾經創下「最長連續天天練習」的紀錄。<br>📅 <b>累計</b>：從開始到現在，總共有練習過的天數（中間有休息也算）。<br>🟩 <b>熱力圖</b>：方格顏色愈深，代表當天練習愈多（點選或移至方格可於上方固定查看當日數值）。</div>`;
+      `<i class="hc h${x.level}" data-idx="${idx}" data-key="${x.key}" data-a="${x.a || 0}" data-rate="${x.rate || 0}"></i>`).join("")}</div>
+    <div class="heat-legend">🔥 <b>連續</b>：從今天往回算，一天都沒中斷、天天有練習的天數。<br>🏆 <b>最佳</b>：你曾經創下「最長連續天天練習」的紀錄。<br>📅 <b>累計</b>：從開始到現在，總共有練習過的天數（中間有休息也算）。<br>🟩 <b>熱力圖</b>：方格顏色愈深，代表當天練習愈多（點選或移至方格可於上方「累計練習」右方框框查看當日數值）。</div>`;
 
-  // 綁定熱力圖當日數值固定顯示於「累計練習 O 天」右側
+  // 綁定點擊「答對的單字 / 答錯的單字」標籤事件委派，確保 100% 發音
+  el.summary.onclick = (e) => {
+    const pill = e.target && e.target.closest ? e.target.closest(".word-pill-tag") : null;
+    if (pill) {
+      e.stopPropagation();
+      const w = pill.getAttribute("data-word") || pill.textContent || "";
+      if (w) sayWord(w);
+    }
+  };
+
+  // 綁定熱力圖當日數值固定顯示於「累計練習 O 天」右側框框
   const heatDayInfoEl = $("#heat-day-info");
   const heatGridEl = $("#heatmap-grid");
   const heatDays = (d.history && Array.isArray(d.history.days)) ? d.history.days : [];
@@ -1267,10 +1348,10 @@ export function renderSummary(d) {
       if (!item) return;
       if (item.a > 0) {
         heatDayInfoEl.className = "heat-day-info";
-        heatDayInfoEl.innerHTML = `📅 <b>${item.key}</b>：作答 <b>${item.a}</b> 題 · 正確率 <b>${item.rate}%</b>`;
+        heatDayInfoEl.innerHTML = `📅 <b>${item.key}</b> ｜ 作答 <b>${item.a}</b> 題 · 正確率 <b>${item.rate}%</b>`;
       } else {
         heatDayInfoEl.className = "heat-day-info empty";
-        heatDayInfoEl.innerHTML = `📅 <b>${item.key}</b>：沒有練習`;
+        heatDayInfoEl.innerHTML = `📅 <b>${item.key}</b> ｜ 沒有練習`;
       }
       if (heatGridEl) {
         heatGridEl.querySelectorAll(".hc").forEach((cell, cIdx) => {
@@ -1307,6 +1388,7 @@ export function renderSummary(d) {
   const switchRecordDate = (newDate) => {
     if (!newDate) return;
     const targetDate = normalizeDateStr(newDate);
+    if (!targetDate) return;
     currentSelectedDate = targetDate;
 
     // 更新日期輸入框
@@ -1315,26 +1397,29 @@ export function renderSummary(d) {
       datePicker.value = targetDate;
     }
 
-    // 更新快速跳轉選單
+    // 更新快速跳轉選單（若切換至未在清單內的日期，動態補入選項，確保選單不空白且能隨時切回有紀錄日期）
     const quickSelect = $("#record-quick-dates");
-    if (quickSelect && quickSelect.value !== targetDate) {
-      quickSelect.value = targetDate;
+    if (quickSelect) {
+      let hasOpt = Array.from(quickSelect.options).some(opt => opt.value === targetDate);
+      if (!hasOpt) {
+        const newOpt = document.createElement("option");
+        newOpt.value = targetDate;
+        newOpt.textContent = buildOptionLabel(targetDate);
+        quickSelect.appendChild(newOpt);
+      }
+      if (quickSelect.value !== targetDate) {
+        quickSelect.value = targetDate;
+      }
     }
 
-    // 更新卡片副標日期
-    const taskDateLabel = $("#task-view-date");
-    if (taskDateLabel) taskDateLabel.textContent = targetDate;
-    const freeDateLabel = $("#free-view-date");
-    if (freeDateLabel) freeDateLabel.textContent = targetDate;
-
-    // 更新教師指定測驗
-    const targetTaskRecord = historyList.find(item => normalizeDateStr(item.date) === targetDate) || null;
+    // 更新指定測驗作答紀錄
+    const targetTaskRecord = historyList.find(item => normalizeDateStr(item.date) === targetDate && (!item.taskName || item.taskName !== "自主練習")) || null;
     const taskDetailsContainer = $("#task-record-details");
     if (taskDetailsContainer) {
       taskDetailsContainer.innerHTML = buildTaskDetailsHtml(targetTaskRecord, targetDate, d);
     }
 
-    // 更新自由練習（拆分為答對與答錯區域）
+    // 更新自由練習作答紀錄
     const targetFreeRecord = resolveDailyPracticeRecord(targetDate, d, historyList);
     const freeDetailsContainer = $("#free-record-details");
     if (freeDetailsContainer) {
@@ -1380,6 +1465,12 @@ export function renderSummary(d) {
   const quickSelect = $("#record-quick-dates");
   if (quickSelect) {
     quickSelect.onchange = (e) => switchRecordDate(e.target.value);
+    quickSelect.onclick = (e) => {
+      // 若使用者再次點選當前項目，也確保同步顯示
+      if (quickSelect.value && quickSelect.value !== currentSelectedDate) {
+        switchRecordDate(quickSelect.value);
+      }
+    };
   }
 
   $("#sumClose").onclick = () => { el.summary.hidden = true; };

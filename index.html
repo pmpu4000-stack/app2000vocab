@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>拼字小特工 · Spelling Agent</title>
-  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/styles.css?v=20261013_1000">
   <link rel="preload" href="data/words2000.json" as="fetch" crossorigin>
   <link rel="preload" href="data/meanings.json" as="fetch" crossorigin>
   <style id="embedded-vocab-tutor-theme">
@@ -221,19 +221,19 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 .sumtable{width:100%;border-collapse:collapse;font-size:13px}
 .sumtable td{padding:5px 0;border-bottom:1px solid var(--line);color:var(--ink2);font-weight:700}
 .sumtable td:last-child{text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
-.streakline{font-size:14px;font-weight:800;color:var(--ink2);margin-bottom:8px;display:flex;align-items:center;flex-wrap:wrap;gap:8px 14px}
+.streakline{font-size:14px;font-weight:800;color:var(--ink2);margin-bottom:10px;display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px}
 .streakline b{color:var(--catD);font-variant-numeric:tabular-nums}
-.heat-day-info{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:8px;font-size:13.5px;font-weight:800;line-height:1.4;background:#ECFDF5;color:#065F46;border:1.5px solid #6EE7B7;box-shadow:0 1px 2px rgba(16,185,129,.08);font-variant-numeric:tabular-nums}
+.heat-day-info{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:9px;font-size:13.5px;font-weight:800;line-height:1.4;background:#ECFDF5;color:#065F46;border:2px solid #34D399;box-shadow:0 2px 6px rgba(16,185,129,.14);font-variant-numeric:tabular-nums}
 .heat-day-info b{color:#047857 !important;font-weight:900}
-.heat-day-info.empty{background:#F1F5F9;color:#475569;border-color:#CBD5E1;box-shadow:none}
+.heat-day-info.empty{background:#F8FAFC;color:#475569;border:2px solid #CBD5E1;box-shadow:none}
 .heat-day-info.empty b{color:#334155 !important}
-[data-theme="dark"] .heat-day-info{background:rgba(16,185,129,.16) !important;color:#A7F3D0 !important;border-color:rgba(52,211,153,.45) !important;box-shadow:0 1px 3px rgba(0,0,0,.3) !important}
+[data-theme="dark"] .heat-day-info{background:rgba(16,185,129,.18) !important;color:#A7F3D0 !important;border:2px solid rgba(52,211,153,.65) !important;box-shadow:0 2px 8px rgba(0,0,0,.35) !important}
 [data-theme="dark"] .heat-day-info b{color:#34D399 !important}
-[data-theme="dark"] .heat-day-info.empty{background:rgba(148,163,184,.12) !important;color:#CBD5E1 !important;border-color:rgba(148,163,184,.28) !important}
+[data-theme="dark"] .heat-day-info.empty{background:rgba(148,163,184,.12) !important;color:#CBD5E1 !important;border:2px solid rgba(148,163,184,.38) !important}
 [data-theme="dark"] .heat-day-info.empty b{color:#F1F5F9 !important}
-.heatmap{display:grid;grid-template-columns:repeat(14,1fr);gap:4px;width:100%;max-width:100%;margin:8px 0 10px}
-.hc{width:100%;aspect-ratio:1;border-radius:4px;background:#DDE0F0;border:1px solid #CDD1E6;display:block;cursor:pointer;transition:transform .15s ease,box-shadow .15s ease}
-.hc:hover{transform:scale(1.15);z-index:2}
+.heatmap{display:grid !important;grid-template-columns:repeat(14,1fr) !important;gap:5px !important;width:100% !important;max-width:100% !important;margin:10px 0 12px !important}
+.hc{width:100% !important;aspect-ratio:1 !important;border-radius:5px !important;background:#DDE0F0;border:1px solid #CDD1E6;display:block !important;cursor:pointer;transition:transform .15s ease,box-shadow .15s ease}
+.hc:hover{transform:scale(1.14);z-index:2}
 .hc.hc-active{outline:2.5px solid #059669;outline-offset:1px;transform:scale(1.08);z-index:2}
 [data-theme="dark"] .hc.hc-active{outline:2.5px solid #34D399;outline-offset:1px}
 .hc.h1{background:#B5E3CB;border-color:#9AD6B8} .hc.h2{background:#6FCBA0;border-color:#55BE8E} .hc.h3{background:var(--green);border-color:#1E9A66}
@@ -1387,46 +1387,6 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
           }
           sessionStorage.setItem("current_pass", pass);
 
-          if (Array.isArray(result.dailyTaskHistory)) {
-            let mergedHist = result.dailyTaskHistory;
-            try {
-              const localHist = JSON.parse(localStorage.getItem("student_task_history") || "[]");
-              mergedHist = result.dailyTaskHistory.map(cloudItem => {
-                const cloudWords = (Array.isArray(cloudItem.words) && cloudItem.words.length > 0) ? cloudItem.words : [];
-                if (cloudWords.length === 0) {
-                  const cDate = String(cloudItem.date || "").trim().replace(/\//g, "-");
-                  const loc = localHist.find(l => String(l.date || "").trim().replace(/\//g, "-") === cDate);
-                  if (loc && Array.isArray(loc.words) && loc.words.length > 0) {
-                    cloudItem.words = loc.words;
-                  }
-                }
-                return cloudItem;
-              });
-            } catch(_) {}
-            localStorage.setItem("student_task_history", JSON.stringify(mergedHist));
-          }
-          
-          // 若有今日指定任務，存入 sessionStorage 與 localStorage 供 app.js 抓取
-          if (result.assignedTask) {
-            sessionStorage.setItem("assigned_task", JSON.stringify(result.assignedTask));
-            localStorage.setItem("assigned_task_active", JSON.stringify(result.assignedTask));
-            const d = new Date();
-            const ds1 = d.getFullYear() + "/" + String(d.getMonth() + 1).padStart(2, "0") + "/" + String(d.getDate()).padStart(2, "0");
-            const ds2 = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
-            if (result.assignedTask.alreadyCompleted) {
-              localStorage.setItem("task_done_" + ds1, "true");
-              localStorage.setItem("task_done_" + ds2, "true");
-              localStorage.removeItem("today_task_in_progress");
-            } else {
-              // 老師指派了新任務或今日尚未完成，清除舊的當日鎖定標記，避免誤鎖
-              localStorage.removeItem("task_done_" + ds1);
-              localStorage.removeItem("task_done_" + ds2);
-            }
-          } else {
-            sessionStorage.removeItem("assigned_task");
-            localStorage.removeItem("assigned_task_active");
-          }
-
           if (hasCloudRecords) {
             // 雲端有存檔：將雲端最新進度寫入 LocalStorage（安全型別保護：物件轉為 JSON 字串，防止出現 [object Object]）
             for (let key in result.records) {
@@ -1457,6 +1417,53 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
           } else {
             // 雲端確認已有分頁且有紀錄：絕不隨意抹除本機紀錄
             msgEl.textContent = "✅ 登入成功，正在啟動學習進度...";
+          }
+
+          // 【關鍵順序修正】在還原 result.records 備份之後，才寫入伺服器最新計算的 dailyTaskHistory 與 assignedTask，避免被舊備份覆蓋
+          if (Array.isArray(result.dailyTaskHistory)) {
+            let mergedHist = result.dailyTaskHistory;
+            try {
+              const localHist = JSON.parse(localStorage.getItem("student_task_history") || "[]");
+              mergedHist = result.dailyTaskHistory.map(cloudItem => {
+                const cloudWords = (Array.isArray(cloudItem.words) && cloudItem.words.length > 0) ? cloudItem.words : [];
+                if (cloudWords.length === 0) {
+                  const cDate = String(cloudItem.date || "").trim().split(/[T\s]/)[0].replace(/\//g, "-");
+                  const loc = localHist.find(l => String(l.date || "").trim().split(/[T\s]/)[0].replace(/\//g, "-") === cDate);
+                  if (loc && Array.isArray(loc.words) && loc.words.length > 0) {
+                    cloudItem.words = loc.words;
+                  } else {
+                    const cachedW = localStorage.getItem("task_words_" + cDate) || localStorage.getItem("task_words_" + cDate.replace(/-/g, "/"));
+                    if (cachedW) {
+                      const parsedW = JSON.parse(cachedW);
+                      if (Array.isArray(parsedW) && parsedW.length > 0) cloudItem.words = parsedW;
+                    }
+                  }
+                }
+                return cloudItem;
+              });
+            } catch(_) {}
+            localStorage.setItem("student_task_history", JSON.stringify(mergedHist));
+          }
+
+          // 若有今日指定任務，存入 sessionStorage 與 localStorage 供 app.js 抓取
+          if (result.assignedTask) {
+            sessionStorage.setItem("assigned_task", JSON.stringify(result.assignedTask));
+            localStorage.setItem("assigned_task_active", JSON.stringify(result.assignedTask));
+            const d = new Date();
+            const ds1 = d.getFullYear() + "/" + String(d.getMonth() + 1).padStart(2, "0") + "/" + String(d.getDate()).padStart(2, "0");
+            const ds2 = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+            if (result.assignedTask.alreadyCompleted) {
+              localStorage.setItem("task_done_" + ds1, "true");
+              localStorage.setItem("task_done_" + ds2, "true");
+              localStorage.removeItem("today_task_in_progress");
+            } else {
+              // 老師指派了新任務或今日尚未完成，清除舊的當日鎖定標記，避免誤鎖
+              localStorage.removeItem("task_done_" + ds1);
+              localStorage.removeItem("task_done_" + ds2);
+            }
+          } else {
+            sessionStorage.removeItem("assigned_task");
+            localStorage.removeItem("assigned_task_active");
           }
 
           // 若先前已載入過遊戲核心模組（例如切換帳號情境），強制重新整理以徹底銷毀記憶體殘留

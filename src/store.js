@@ -9,27 +9,29 @@ const LS_KEY = "spellAgent.v2"; // bumped: added level progression
 // Standard calendar date "YYYY-MM-DD"
 export function normalizeDateStr(ds) {
   if (!ds) return "";
-  const parts = String(ds).trim().replace(/\//g, "-").split("-");
+  const clean = String(ds).trim().split(/[T\s]/)[0];
+  const parts = clean.replace(/\//g, "-").split("-");
   if (parts.length === 3) {
     const y = parts[0];
     const m = parts[1].padStart(2, "0");
     const d = parts[2].padStart(2, "0");
     return `${y}-${m}-${d}`;
   }
-  return String(ds).trim();
+  return clean;
 }
 
 // Calendar date without leading zeros "YYYY-M-D"
 export function unpadDateStr(ds) {
   if (!ds) return "";
-  const parts = String(ds).trim().replace(/\//g, "-").split("-");
+  const clean = String(ds).trim().split(/[T\s]/)[0];
+  const parts = clean.replace(/\//g, "-").split("-");
   if (parts.length === 3) {
     const y = parts[0];
     const m = String(parseInt(parts[1], 10));
     const d = String(parseInt(parts[2], 10));
     return `${y}-${m}-${d}`;
   }
-  return String(ds).trim();
+  return clean;
 }
 
 // Local calendar date "YYYY-MM-DD" (used to scope a training session or daily practice).
@@ -88,6 +90,18 @@ function load() {
       history: d.history || {},
       dailyPractice: d.dailyPractice || {},
     };
+    // 清理過去因累積題數誤回填而產生但無實際當日 history 的幽靈日期紀錄
+    const histKeysWithAtt = Object.keys(merged.history).filter(hk => merged.history[hk] && merged.history[hk].a > 0).map(normalizeDateStr);
+    if (histKeysWithAtt.length > 0 && merged.dailyPractice) {
+      Object.keys(merged.dailyPractice).forEach(dpKey => {
+        const normDp = normalizeDateStr(dpKey);
+        const hasRealHist = histKeysWithAtt.includes(normDp);
+        const isSessionToday = (normDp === todayStr() && merged.session && merged.session.date === todayStr() && merged.session.answered > 0);
+        if (!hasRealHist && !isSessionToday) {
+          delete merged.dailyPractice[dpKey];
+        }
+      });
+    }
     // 歷史版本數據自動對齊：若早期未記錄 mstat，自動對齊至預設 listen 模式
     const mSumA = (merged.mstat.listen?.a || 0) + (merged.mstat.pick?.a || 0) + (merged.mstat.scramble?.a || 0) + (merged.mstat.trap?.a || 0);
     if ((merged.attempts || 0) > mSumA) {
@@ -310,7 +324,7 @@ export function historyData(n = 28) {
       }
     });
   }
-  if (DB.attempts > 0) {
+  if (DB.attempts > 0 && activeDateSet.size === 0) {
     activeDateSet.add(todayStr());
   }
 
@@ -425,7 +439,9 @@ export function getDailyPractice(dateStr) {
 export function getPracticeDates() {
   const set = new Set();
   if (DB.dailyPractice) {
-    Object.keys(DB.dailyPractice).forEach(k => { if (k) set.add(normalizeDateStr(k)); });
+    Object.keys(DB.dailyPractice).forEach(k => {
+      if (k && DB.dailyPractice[k] && DB.dailyPractice[k].attempts > 0) set.add(normalizeDateStr(k));
+    });
   }
   if (DB.history) {
     Object.keys(DB.history).forEach(k => {
@@ -488,6 +504,20 @@ export function summary(words) {
   const tKey = todayStr();
   if (!DB.dailyPractice) DB.dailyPractice = {};
   let changed = false;
+
+  // 先清理若已有歷史紀錄卻在無當日 history 下誤生成的幽靈日期
+  const histKeysWithAtt = Object.keys(DB.history || {}).filter(hk => DB.history[hk] && DB.history[hk].a > 0).map(normalizeDateStr);
+  if (histKeysWithAtt.length > 0) {
+    Object.keys(DB.dailyPractice).forEach(dpKey => {
+      const normDp = normalizeDateStr(dpKey);
+      const hasRealHist = histKeysWithAtt.includes(normDp);
+      const isSessionToday = (normDp === tKey && DB.session && DB.session.date === tKey && DB.session.answered > 0);
+      if (!hasRealHist && !isSessionToday) {
+        delete DB.dailyPractice[dpKey];
+        changed = true;
+      }
+    });
+  }
 
   // 整理所有歷史日期（含 dailyPractice 與 DB.history）
   const allHistoryDates = new Set([
@@ -564,22 +594,18 @@ export function summary(words) {
     }
   });
 
-  // 若今日有作答（或 DB.attempts > 0），確保今日有完整的自由練習受測單字紀錄
-  if (s.attempts > 0) {
-    const curToday = DB.dailyPractice[tKey] || (DB.dailyPractice[tKey] = {
+  // 僅在完全沒有任何歷史日期紀錄但 DB.attempts > 0 的舊版遷移情境下，才建立今日預設紀錄
+  const hasAnyRecordedDate = Object.keys(DB.dailyPractice || {}).some(k => DB.dailyPractice[k] && DB.dailyPractice[k].attempts > 0)
+    || Object.keys(DB.history || {}).some(k => DB.history[k] && DB.history[k].a > 0);
+  if (s.attempts > 0 && !hasAnyRecordedDate) {
+    DB.dailyPractice[tKey] = {
       date: tKey,
       attempts: s.attempts,
       correct: s.correct,
       wrong: Math.max(0, s.attempts - s.correct),
       words: {}
-    });
-
-    if (curToday.attempts === 0 && s.attempts > 0) {
-      curToday.attempts = s.attempts;
-      curToday.correct = s.correct;
-      curToday.wrong = Math.max(0, s.attempts - s.correct);
-      changed = true;
-    }
+    };
+    changed = true;
   }
 
   if (changed) save();
@@ -593,5 +619,6 @@ export function summary(words) {
     practiceDates: getPracticeDates(),
     rawHistory: DB.history || {},
     allPracticedWords,
+    words,
   };
 }

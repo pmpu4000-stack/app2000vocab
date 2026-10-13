@@ -2175,11 +2175,11 @@
       font-size: 14px;
       font-weight: 800;
       color: var(--ink2);
-      margin-bottom: 8px;
+      margin-bottom: 10px;
       display: flex;
       align-items: center;
       flex-wrap: wrap;
-      gap: 8px 14px;
+      gap: 8px 12px;
     }
     .streakline b {
       color: var(--catD, #E8892B);
@@ -2195,15 +2195,15 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 4px 12px;
-      border-radius: 8px;
+      padding: 5px 14px;
+      border-radius: 9px;
       font-size: 13.5px;
       font-weight: 800;
       line-height: 1.4;
       background: #ECFDF5;
       color: #065F46;
-      border: 1.5px solid #6EE7B7;
-      box-shadow: 0 1px 2px rgba(16, 185, 129, 0.08);
+      border: 2px solid #34D399;
+      box-shadow: 0 2px 6px rgba(16, 185, 129, 0.14);
       font-variant-numeric: tabular-nums;
     }
     .heat-day-info b {
@@ -2211,19 +2211,19 @@
       font-weight: 900;
     }
     .heat-day-info.empty {
-      background: #F1F5F9;
+      background: #F8FAFC;
       color: #475569;
-      border-color: #CBD5E1;
+      border: 2px solid #CBD5E1;
       box-shadow: none;
     }
     .heat-day-info.empty b {
       color: #334155 !important;
     }
     [data-theme="dark"] .heat-day-info {
-      background: rgba(16, 185, 129, 0.16) !important;
+      background: rgba(16, 185, 129, 0.18) !important;
       color: #A7F3D0 !important;
-      border-color: rgba(52, 211, 153, 0.45) !important;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+      border: 2px solid rgba(52, 211, 153, 0.65) !important;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35) !important;
     }
     [data-theme="dark"] .heat-day-info b {
       color: #34D399 !important;
@@ -2231,31 +2231,31 @@
     [data-theme="dark"] .heat-day-info.empty {
       background: rgba(148, 163, 184, 0.12) !important;
       color: #CBD5E1 !important;
-      border-color: rgba(148, 163, 184, 0.28) !important;
+      border: 2px solid rgba(148, 163, 184, 0.38) !important;
     }
     [data-theme="dark"] .heat-day-info.empty b {
       color: #F1F5F9 !important;
     }
     .heatmap {
-      display: grid;
-      grid-template-columns: repeat(14, 1fr);
-      gap: 4px;
-      width: 100%;
-      max-width: 100%;
-      margin: 8px 0 10px;
+      display: grid !important;
+      grid-template-columns: repeat(14, 1fr) !important;
+      gap: 5px !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      margin: 10px 0 12px !important;
     }
     .hc {
-      width: 100%;
-      aspect-ratio: 1;
-      border-radius: 4px;
+      width: 100% !important;
+      aspect-ratio: 1 !important;
+      border-radius: 5px !important;
       background: #DDE0F0;
       border: 1px solid #CDD1E6;
-      display: block;
+      display: block !important;
       cursor: pointer;
       transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
     .hc:hover {
-      transform: scale(1.15);
+      transform: scale(1.14);
       z-index: 2;
     }
     .hc.hc-active {
@@ -2917,7 +2917,11 @@
       font-size: 14px;
       font-weight: 800;
       color: var(--ink2);
-      margin-bottom: 8px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px 12px;
     }
     .streakline b {
       color: var(--catD, #E8892B);
@@ -2927,18 +2931,21 @@
     [data-theme="dark"] .streakline b { color: #F59E0B; }
 
     .heatmap {
-      display: grid;
-      grid-template-columns: repeat(14, 1fr);
-      gap: 4px;
-      max-width: 100%;
-      margin: 8px 0 10px;
+      display: grid !important;
+      grid-template-columns: repeat(14, 1fr) !important;
+      gap: 5px !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      margin: 10px 0 12px !important;
     }
     .hc {
-      width: 100%;
-      aspect-ratio: 1;
-      border-radius: 4px;
+      width: 100% !important;
+      aspect-ratio: 1 !important;
+      border-radius: 5px !important;
       background: #DDE0F0;
       border: 1px solid #CDD1E6;
+      display: block !important;
+      cursor: pointer;
     }
     .hc.h1 { background: #B5E3CB; border-color: #9AD6B8; }
     .hc.h2 { background: #6FCBA0; border-color: #55BE8E; }
@@ -13004,7 +13011,7 @@ function buildTaskDetailsHtml(record, selectedDate, agent) {
 
   let correctContentHtml = "";
   if (correctList.length > 0) {
-    correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" onclick="speakMasteredWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
+    correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" data-word="${w.replace(/"/g, "&quot;")}" onclick="speakMasteredWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
   } else if (isFinished) {
     if (rawWords.length > 0) {
       correctContentHtml = `<span style="font-size:12px; color:var(--text-muted, #94a3b8); font-style:italic;">（本次測驗全數答錯，尚無答對單字）</span>`;
@@ -13019,7 +13026,7 @@ function buildTaskDetailsHtml(record, selectedDate, agent) {
 
   let wrongContentHtml = "";
   if (wrongList.length > 0) {
-    wrongContentHtml = wrongList.map(w => `<span class="word-pill-tag wrong" onclick="speakMasteredWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
+    wrongContentHtml = wrongList.map(w => `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" onclick="speakMasteredWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
   } else if (isFinished) {
     wrongContentHtml = `<span style="font-size:12px; color:#4ade80; font-weight:700;">🎉 太棒了！本次測驗全數答對，無任何答錯單字！</span>`;
   } else {
@@ -13167,7 +13174,7 @@ function buildFreeDetailsHtml(record, selectedDate, agent) {
 
   let correctContentHtml = "";
   if (correctList.length > 0) {
-    correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" onclick="speakMasteredWord('${w.word.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w.word}</span>`).join("");
+    correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" data-word="${w.word.replace(/"/g, "&quot;")}" onclick="speakMasteredWord('${w.word.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w.word}</span>`).join("");
   } else {
     correctContentHtml = `<span style="font-size:12px; color:var(--text-muted, #94a3b8); font-style:italic;">（當日尚無全對單字）</span>`;
   }
@@ -13176,9 +13183,9 @@ function buildFreeDetailsHtml(record, selectedDate, agent) {
   if (wrongList.length > 0) {
     wrongContentHtml = wrongList.map(w => {
       if (w.correct > 0) {
-        return `<span class="word-pill-tag correct" onclick="speakMasteredWord('${w.word.replace(/'/g, "\\'")}')" style="border:1px dashed #4ade80; cursor:pointer;" title="當日曾答錯，已訂正答對 (點擊聆聽發音)">${w.word} <small style="font-size:10px; opacity:0.85;">(已訂正)</small></span>`;
+        return `<span class="word-pill-tag correct" data-word="${w.word.replace(/"/g, "&quot;")}" onclick="speakMasteredWord('${w.word.replace(/'/g, "\\'")}')" style="border:1px dashed #4ade80; cursor:pointer;" title="當日曾答錯，已訂正答對 (點擊聆聽發音)">${w.word} <small style="font-size:10px; opacity:0.85;">(已訂正)</small></span>`;
       } else {
-        return `<span class="word-pill-tag wrong" onclick="speakMasteredWord('${w.word.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w.word}</span>`;
+        return `<span class="word-pill-tag wrong" data-word="${w.word.replace(/"/g, "&quot;")}" onclick="speakMasteredWord('${w.word.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w.word}</span>`;
       }
     }).join("");
   } else {
@@ -13306,22 +13313,26 @@ function renderStudentDailyTaskAndFreeSections(resp) {
     else if (allDates[0]) defaultSelectedDate = allDates[0];
   }
 
+  const buildOptionTag = (dateStr) => {
+    const isToday = (dateStr === todayDash);
+    const matchedH = dailyTaskHistory.find(h => String(h.date).split(" ")[0].replace(/\//g, "-") === dateStr && (!h.taskName || h.taskName !== "自主練習")) ||
+                     (todayTask && String(todayTask.date).split(" ")[0].replace(/\//g, "-") === dateStr && todayTask.hasDone && todayTask.taskName !== "自主練習" ? todayTask : null);
+    const dpF = dpMap[dateStr] || dpMap[dateStr.replace(/-/g, "/")] || null;
+    const hFree = historyData[dateStr] || historyData[dateStr.replace(/-/g, "/")] || null;
+    const freeAtt = (dpF && dpF.attempts) ? dpF.attempts : (hFree ? (hFree.a || 0) : 0);
+
+    let tag = "";
+    if (matchedH && freeAtt > 0) tag = ` [指派: ${matchedH.taskName || "任務"}] [自由: ${freeAtt}題]`;
+    else if (matchedH) tag = ` [指派: ${matchedH.taskName || "任務"}]`;
+    else if (freeAtt > 0) tag = ` [自由練習: ${freeAtt}題]`;
+    else tag = " (尚無紀錄)";
+    return `${dateStr}${isToday ? " (今日)" : ""}${tag}`;
+  };
+
   // 產生 1:1 比照截圖的快速跳轉選單標籤
   if (quickSelect) {
     quickSelect.innerHTML = allDates.map(dateStr => {
-      const matchedH = dailyTaskHistory.find(h => String(h.date).split(" ")[0].replace(/\//g, "-") === dateStr && (!h.taskName || h.taskName !== "自主練習")) ||
-                       (todayTask && String(todayTask.date).split(" ")[0].replace(/\//g, "-") === dateStr && todayTask.hasDone && todayTask.taskName !== "自主練習" ? todayTask : null);
-      const dpF = dpMap[dateStr] || dpMap[dateStr.replace(/-/g, "/")] || null;
-      const hFree = historyData[dateStr] || historyData[dateStr.replace(/-/g, "/")] || null;
-      const freeAtt = (dpF && dpF.attempts) ? dpF.attempts : (hFree ? (hFree.a || 0) : 0);
-
-      let tag = "";
-      if (matchedH && freeAtt > 0) tag = ` [指派: ${matchedH.taskName || "任務"}] [自由: ${freeAtt}題]`;
-      else if (matchedH) tag = ` [指派: ${matchedH.taskName || "任務"}]`;
-      else if (freeAtt > 0) tag = ` [自由練習: ${freeAtt}題]`;
-      else tag = " (尚無紀錄)";
-
-      return `<option value="${dateStr}">${dateStr}${tag}</option>`;
+      return `<option value="${dateStr}">${buildOptionTag(dateStr)}</option>`;
     }).join("");
   }
 
@@ -13330,7 +13341,16 @@ function renderStudentDailyTaskAndFreeSections(resp) {
     targetDate = String(targetDate).trim().split(" ")[0].replace(/\//g, "-");
 
     if (datePicker && datePicker.value !== targetDate) datePicker.value = targetDate;
-    if (quickSelect && quickSelect.value !== targetDate) quickSelect.value = targetDate;
+    if (quickSelect) {
+      const hasOpt = Array.from(quickSelect.options).some(opt => opt.value === targetDate);
+      if (!hasOpt) {
+        const newOpt = document.createElement("option");
+        newOpt.value = targetDate;
+        newOpt.textContent = buildOptionTag(targetDate);
+        quickSelect.appendChild(newOpt);
+      }
+      if (quickSelect.value !== targetDate) quickSelect.value = targetDate;
+    }
     if (taskDateLabel) taskDateLabel.textContent = targetDate;
     if (freeDateLabel) freeDateLabel.textContent = targetDate;
 
@@ -13734,14 +13754,13 @@ function renderStudentSummary(resp) {
   if (elStreakLine) {
     elStreakLine.innerHTML = `
       <span>🔥 連續 <b id="stHeatStreak">${streak}</b> 天　·　最佳 <b id="stHeatBest">${best}</b> 天　·　累計練習 <b id="stHeatTotal">${totalActive}</b> 天</span>
-      <span id="stHeatDayInfo" class="heat-day-info"></span>
+      <span id="stHeatDayInfo" class="heat-day-info">📅 尚無練習紀錄</span>
     `;
   }
 
   if (heatGrid) {
     heatGrid.innerHTML = days.map((day, idx) => {
-      const title = `${day.key}：${day.a ? "作答 " + day.a + " 題 · 正確率 " + day.rate + "%" : "沒有練習"}`;
-      return `<i class="hc h${day.level}" data-idx="${idx}" data-key="${day.key}" data-a="${day.a || 0}" data-rate="${day.rate || 0}" title="${title}"></i>`;
+      return `<i class="hc h${day.level}" data-idx="${idx}" data-key="${day.key}" data-a="${day.a || 0}" data-rate="${day.rate || 0}"></i>`;
     }).join("");
 
     const heatDayInfoEl = document.getElementById("stHeatDayInfo");
@@ -13758,10 +13777,10 @@ function renderStudentSummary(resp) {
         if (!item) return;
         if (item.a > 0) {
           heatDayInfoEl.className = "heat-day-info";
-          heatDayInfoEl.innerHTML = `📅 <b>${item.key}</b>：作答 <b>${item.a}</b> 題 · 正確率 <b>${item.rate}%</b>`;
+          heatDayInfoEl.innerHTML = `📅 <b>${item.key}</b> ｜ 作答 <b>${item.a}</b> 題 · 正確率 <b>${item.rate}%</b>`;
         } else {
           heatDayInfoEl.className = "heat-day-info empty";
-          heatDayInfoEl.innerHTML = `📅 <b>${item.key}</b>：沒有練習`;
+          heatDayInfoEl.innerHTML = `📅 <b>${item.key}</b> ｜ 當天無練習紀錄`;
         }
         heatGrid.querySelectorAll(".hc").forEach((cell, cIdx) => {
           cell.classList.toggle("hc-active", cIdx === idx);
@@ -13795,6 +13814,18 @@ function renderStudentSummary(resp) {
     renderStudentDailyTaskAndFreeSections(resp);
   } catch (errDT) {
     console.error("renderStudentDailyTaskAndFreeSections error:", errDT);
+  }
+
+  // 確保點擊單字標籤可立即發音（事件委派備援）
+  const summarySec = document.getElementById("summary");
+  if (summarySec && !summarySec.__wordPillBound) {
+    summarySec.__wordPillBound = true;
+    summarySec.addEventListener("click", (ev) => {
+      const pill = ev.target && ev.target.closest ? ev.target.closest(".word-pill-tag") : null;
+      if (!pill) return;
+      const w = pill.getAttribute("data-word");
+      if (w) speakMasteredWord(w);
+    });
   }
 }
 
@@ -14066,11 +14097,17 @@ if (typeof window !== "undefined" && "speechSynthesis" in window) {
   } catch (_) {}
 }
 
-function speakMasteredWord(text) {
+let _activeHistoryAudio = null;
+const _historyWordAudioCache = new Map();
+
+function _speakHistoryViaTTS(text) {
   if (!text || !('speechSynthesis' in window)) return;
   try {
-    window.speechSynthesis.cancel();
-    if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+    const synth = window.speechSynthesis;
+    if (synth.speaking || synth.pending) {
+      synth.cancel();
+    }
+    if (synth.paused) synth.resume();
     const utter = new SpeechSynthesisUtterance(text);
     const bestVoice = getBestEnVoiceForHistory();
     if (bestVoice) {
@@ -14081,10 +14118,63 @@ function speakMasteredWord(text) {
     }
     utter.rate = 0.8;
     utter.pitch = 1.0;
-    window.speechSynthesis.speak(utter);
-  } catch(e) {
+    utter.volume = 1.0;
+    window.__lastHistoryUtterance = utter;
+    setTimeout(() => {
+      try {
+        if (synth.paused) synth.resume();
+        synth.speak(utter);
+      } catch (_) {}
+    }, 15);
+  } catch (e) {
     console.warn("TTS error:", e);
   }
+}
+
+function speakMasteredWord(text) {
+  const cleanText = String(text || "").trim();
+  if (!cleanText) return;
+
+  try {
+    if (_activeHistoryAudio) {
+      _activeHistoryAudio.pause();
+      _activeHistoryAudio.currentTime = 0;
+      _activeHistoryAudio = null;
+    }
+  } catch (_) {}
+
+  const singleWordMatch = cleanText.match(/^[A-Za-z]{2,25}$/);
+  if (singleWordMatch && typeof Audio !== "undefined") {
+    const wordLower = singleWordMatch[0].toLowerCase();
+    const dictUrl = `https://ssl.gstatic.com/dictionary/static/sounds/20200429/${wordLower}--_us_1.mp3`;
+
+    if (_historyWordAudioCache.get(wordLower) !== false) {
+      try {
+        const audio = new Audio(dictUrl);
+        audio.playbackRate = 0.92;
+        _activeHistoryAudio = audio;
+        let fallbackTriggered = false;
+        const triggerFallback = () => {
+          if (fallbackTriggered) return;
+          fallbackTriggered = true;
+          _historyWordAudioCache.set(wordLower, false);
+          _speakHistoryViaTTS(cleanText);
+        };
+        audio.onerror = triggerFallback;
+        const playPromise = audio.play();
+        if (playPromise && typeof playPromise.then === "function") {
+          playPromise.then(() => {
+            _historyWordAudioCache.set(wordLower, true);
+          }).catch(triggerFallback);
+          return;
+        }
+      } catch (_) {
+        // Fallback below
+      }
+    }
+  }
+
+  _speakHistoryViaTTS(cleanText);
 }
 
 function initMasteredChipsComponent(words) {
