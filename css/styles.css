@@ -389,10 +389,10 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
    Dark Mode Theme Support (暗黑模式支援)
    ============================================================ */
 [data-theme="dark"] {
-  --paper: #0F121C;
-  --card: #181C2A;
-  --line: #262C42;
-  --line-sub: #1E2336;
+  --paper: #141826;
+  --card: #1C2234;
+  --line: #2B334E;
+  --line-sub: #222940;
   --ink: #F0F3FA;
   --ink2: #A5B0CF;
   --ink3: #6B779E;
@@ -403,13 +403,14 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
   --sky: #38BDF8;
   --marker: #F6C343;
   --coral: #FF6B6B;
-  --shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.55);
-  --shadow-lg: 0 18px 45px -12px rgba(0, 0, 0, 0.7);
+  --shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 18px 45px -12px rgba(0, 0, 0, 0.6);
 }
+[data-theme="dark"] html,
 [data-theme="dark"] body {
-  background-color: #0F121C !important;
-  background-image: radial-gradient(at 15% 15%, rgba(108,76,224,0.18) 0px, transparent 50%),
-                    radial-gradient(at 85% 85%, rgba(47,180,124,0.15) 0px, transparent 50%) !important;
+  background: #141826 !important;
+  background-color: #141826 !important;
+  background-image: none !important;
   color: #F0F3FA !important;
 }
 [data-theme="dark"] .card,
@@ -927,3 +928,163 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
   color: #475569 !important;
   opacity: 0.25;
 }
+
+/* ============================================================
+   📥 底部使用紀錄下載方塊 (Export Records Card - 遊戲一致風格)
+   ============================================================ */
+.export-records-card {
+  margin-top: 14px;
+}
+.export-records-card h3 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: 0.2px;
+  text-transform: none;
+  margin-bottom: 10px;
+}
+[data-theme="dark"] .export-records-card h3 {
+  color: #F0F3FA !important;
+}
+.export-sub-hint {
+  font-size: 11.5px;
+  color: var(--ink3);
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.export-navigator-card {
+  margin: 6px 0 0 0 !important;
+  padding: 12px 14px !important;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch !important;
+  gap: 10px !important;
+}
+.export-controls-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+.export-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  width: 100%;
+}
+.export-action-row {
+  justify-content: space-between;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(108, 76, 224, 0.2);
+}
+[data-theme="dark"] .export-action-row {
+  border-top-color: #2B334E;
+}
+.export-mode-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.export-mode-btn.active {
+  background: var(--violet) !important;
+  border-color: var(--violet) !important;
+  color: #FFFFFF !important;
+}
+[data-theme="dark"] .export-mode-btn.active {
+  background: var(--violet) !important;
+  border-color: var(--violet) !important;
+  color: #FFFFFF !important;
+}
+.export-date-inputs {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.export-range-sep {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--ink2);
+  padding: 0 2px;
+}
+.export-quick-btns {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-left: auto;
+}
+.export-format-group {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.export-format-select {
+  width: 195px !important;
+  min-width: 170px !important;
+}
+.export-btn-group {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-left: auto;
+}
+.export-dl-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  height: 30px;
+  min-height: 30px;
+  max-height: 30px;
+  padding: 0 12px;
+  border-radius: 9px;
+  font-size: 12.5px;
+  font-weight: 800;
+  font-family: inherit;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.15s ease;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+.export-dl-btn:hover {
+  transform: translateY(-1px);
+}
+.export-dl-btn:active {
+  transform: translateY(0);
+}
+.export-dl-btn:disabled {
+  opacity: 0.55;
+  cursor: wait;
+  transform: none;
+}
+.export-dl-btn.pdf-btn {
+  background: linear-gradient(135deg, #6C4CE0, #8A6BF0);
+  color: #FFFFFF;
+  border: 1px solid #573BC4;
+  box-shadow: 0 3px 8px rgba(108, 76, 224, 0.25);
+}
+.export-dl-btn.excel-btn {
+  background: linear-gradient(135deg, #2FB47C, #1E9A66);
+  color: #FFFFFF;
+  border: 1px solid #178254;
+  box-shadow: 0 3px 8px rgba(47, 180, 124, 0.25);
+}
+@media (max-width: 640px) {
+  .export-quick-btns,
+  .export-btn-group {
+    margin-left: 0;
+    width: 100%;
+  }
+  .export-dl-btn {
+    flex: 1 1 auto;
+  }
+}
+

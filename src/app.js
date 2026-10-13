@@ -3,15 +3,15 @@
 // drives level-based practice, gates progression behind challenges,
 // and manages teacher-assigned tasks & weekend mistake remediation.
 // =====================================================================
-import { loadWordBank } from "./wordbank.js?v=20261013_1130";
-import * as store from "./store.js?v=20261013_1130";
-import { nextWord } from "./srs.js?v=20261013_1130";
-import * as ui from "./ui.js?v=20261013_1130";
-import { burst } from "./confetti.js?v=20261013_1130";
+import { loadWordBank } from "./wordbank.js?v=20261013_1220";
+import * as store from "./store.js?v=20261013_1220";
+import { nextWord } from "./srs.js?v=20261013_1220";
+import * as ui from "./ui.js?v=20261013_1220";
+import { burst } from "./confetti.js?v=20261013_1220";
 import {
   LEVELS, levelColor, levelName, sample,
   PASS_RATE, GATE_MIN_ATTEMPTS, CHALLENGE_LEN, PLACEMENT_PER_LEVEL, DAILY_GOAL,
-} from "./levels.js?v=20261013_1130";
+} from "./levels.js?v=20261013_1220";
 
 let WORDS = [];
 const state = { mode: "listen", word: null, answered: false, round: null };
@@ -215,6 +215,9 @@ function refreshChrome() {
   else if (ls.attempts < GATE_MIN_ATTEMPTS) hint = `再練習 ${GATE_MIN_ATTEMPTS - ls.attempts} 題（正確率保持 ≥80%）就能挑戰。`;
   else hint = "正確率再高一點（需 ≥80%）就能挑戰本關。";
   ui.renderBanner(cur, ls, ready, hint, startChallenge);
+  if (typeof ui.initExportRecordsCard === "function") {
+    ui.initExportRecordsCard(() => store.summary(WORDS));
+  }
   if (!ui.summaryHidden()) ui.renderSummary(store.summary(WORDS));
 
   // ⚠️ 今日指定測驗進行中或待開始：強制隱藏模式列、關卡列與等級挑戰橫幅

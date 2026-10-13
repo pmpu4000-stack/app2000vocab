@@ -5,6 +5,8 @@
   <title>學生學習歷程儀表板</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" defer></script>
   <style>
     :root {
       --primary: #2563eb; --primary-hover: #1d4ed8; --primary-light: #eff6ff;
@@ -42,26 +44,26 @@
       --bar-mast-text: #047857;
     }
     [data-theme="dark"] {
-      --bg: #0F121C; --body-bg: #0F121C; --card: #181C2A; --card-bg: #181C2A; --border: #262C42;
-      --text: #F0F3FA; --text-muted: #A5B0CF; --input-bg: #181C2A;
+      --bg: #141826; --body-bg: #141826; --card: #1C2234; --card-bg: #1C2234; --border: #2B334E;
+      --text: #F0F3FA; --text-muted: #A5B0CF; --input-bg: #1C2234;
       --primary: #8B6BF0; --primary-hover: #A58CF5; --primary-light: rgba(108,76,224,0.18);
-      --table-header-bg: #181C2A; --table-hover-bg: #262C42;
-      --chart-container-bg: #181C2A; --chart-title-color: #F0F3FA;
+      --table-header-bg: #1C2234; --table-hover-bg: #2B334E;
+      --chart-container-bg: #1C2234; --chart-title-color: #F0F3FA;
       --success: #2FB47C; --success-bg: rgba(47,180,124,0.2);
       --danger: #FF6B6B;  --danger-bg: rgba(255,107,107,0.2);
       --warning: #F59E0B; --warning-bg: rgba(245,158,11,0.2);
-      --diff-zero-bg: #262C42;
+      --diff-zero-bg: #2B334E;
       --kpi1: #8B6BF0; --kpi2: #2FB47C; --kpi3: #F59E0B; --kpi4: #38BDF8; --kpi5: #FB7185; --kpi6: #A78BFA;
       --heatmap-lvl-0: rgba(255, 255, 255, 0.08); --heatmap-lvl-1: #0e4429; --heatmap-lvl-2: #006d32; --heatmap-lvl-3: #26a641; --heatmap-lvl-4: #39d353;
       --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-      --shadow-sm: 0 10px 30px -10px rgba(0, 0, 0, 0.55);
-      --shadow-md: 0 10px 30px -10px rgba(0, 0, 0, 0.55);
-      --shadow-lg: 0 18px 45px -12px rgba(0, 0, 0, 0.7);
+      --shadow-sm: 0 10px 30px -10px rgba(0, 0, 0, 0.45);
+      --shadow-md: 0 10px 30px -10px rgba(0, 0, 0, 0.45);
+      --shadow-lg: 0 18px 45px -12px rgba(0, 0, 0, 0.6);
       /* 遊戲網頁 app2000vocab 原版深色色彩變數 */
-      --paper: #0F121C; --ink: #F0F3FA; --ink2: #A5B0CF; --ink3: #6B779E;
+      --paper: #141826; --ink: #F0F3FA; --ink2: #A5B0CF; --ink3: #6B779E;
       --violet: #8B6BF0; --violet-d: #A58CF5; --marker: #F6C343; --marker-soft: #FFF0B3;
       --green: #2FB47C; --green-d: #38C78B; --coral: #FF6B6B; --sky: #38BDF8;
-      --line: #262C42; --shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.55);
+      --line: #2B334E; --shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.45);
       --catA: #2FB47C; --catB: #38BDF8; --catC: #8B6BF0; --catD: #F59E0B; --catE: #FB7185;
       /* Progress Bar 暗黑高對比鮮明色彩 */
       --bar-track: #0D111E;
@@ -91,10 +93,11 @@
       color: var(--text); line-height: 1.6;
       transition: background-color 0.3s ease, color 0.3s ease;
     }
+    [data-theme="dark"] html,
     [data-theme="dark"] body {
-      background-color: #0F121C !important;
-      background-image: radial-gradient(at 15% 15%, rgba(108,76,224,0.18) 0px, transparent 50%),
-                        radial-gradient(at 85% 85%, rgba(47,180,124,0.15) 0px, transparent 50%) !important;
+      background: #141826 !important;
+      background-color: #141826 !important;
+      background-image: none !important;
       color: #F0F3FA !important;
     }
     .container {
@@ -2850,6 +2853,159 @@
       }
     }
 
+    /* 📥 底部使用紀錄下載方塊 (Export Records Card - 遊戲一致風格) */
+    .export-records-card {
+      margin-top: 14px !important;
+    }
+    .export-records-card h3 {
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: center !important;
+      font-size: 16px !important;
+      font-weight: 800 !important;
+      color: var(--ink) !important;
+      letter-spacing: 0.2px !important;
+      text-transform: none !important;
+      margin: 0 0 10px 0 !important;
+    }
+    [data-theme="dark"] .export-records-card h3 {
+      color: #F0F3FA !important;
+    }
+    .export-sub-hint {
+      font-size: 11.5px !important;
+      color: var(--ink3) !important;
+      font-weight: 700 !important;
+      text-transform: none !important;
+      letter-spacing: 0 !important;
+    }
+    .export-navigator-card {
+      margin: 6px 0 0 0 !important;
+      padding: 12px 14px !important;
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: stretch !important;
+      gap: 10px !important;
+    }
+    .export-controls-wrap {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 10px !important;
+      width: 100% !important;
+    }
+    .export-row {
+      display: flex !important;
+      align-items: center !important;
+      flex-wrap: wrap !important;
+      gap: 6px 8px !important;
+      width: 100% !important;
+    }
+    .export-action-row {
+      justify-content: space-between !important;
+      padding-top: 8px !important;
+      border-top: 1px dashed rgba(108, 76, 224, 0.2) !important;
+    }
+    [data-theme="dark"] .export-action-row {
+      border-top-color: #2B334E !important;
+    }
+    .export-mode-tabs {
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 4px !important;
+    }
+    .export-mode-btn.active,
+    [data-theme="dark"] .export-mode-btn.active {
+      background: var(--violet) !important;
+      border-color: var(--violet) !important;
+      color: #FFFFFF !important;
+    }
+    .export-date-inputs {
+      display: inline-flex !important;
+      align-items: center !important;
+      flex-wrap: wrap !important;
+      gap: 5px !important;
+    }
+    .export-range-sep {
+      font-size: 12px !important;
+      font-weight: 800 !important;
+      color: var(--ink2) !important;
+      padding: 0 2px !important;
+    }
+    .export-quick-btns {
+      display: inline-flex !important;
+      align-items: center !important;
+      flex-wrap: wrap !important;
+      gap: 5px !important;
+      margin-left: auto !important;
+    }
+    .export-format-group {
+      display: inline-flex !important;
+      align-items: center !important;
+      flex-wrap: wrap !important;
+      gap: 6px !important;
+    }
+    .export-format-select {
+      width: 195px !important;
+      min-width: 170px !important;
+    }
+    .export-btn-group {
+      display: inline-flex !important;
+      align-items: center !important;
+      flex-wrap: wrap !important;
+      gap: 6px !important;
+      margin-left: auto !important;
+    }
+    .export-dl-btn {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 5px !important;
+      height: 30px !important;
+      min-height: 30px !important;
+      max-height: 30px !important;
+      padding: 0 12px !important;
+      border-radius: 9px !important;
+      font-size: 12.5px !important;
+      font-weight: 800 !important;
+      font-family: inherit !important;
+      cursor: pointer !important;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.15s ease !important;
+      white-space: nowrap !important;
+      box-sizing: border-box !important;
+    }
+    .export-dl-btn:hover {
+      transform: translateY(-1px) !important;
+    }
+    .export-dl-btn:active {
+      transform: translateY(0) !important;
+    }
+    .export-dl-btn:disabled {
+      opacity: 0.55 !important;
+      cursor: wait !important;
+      transform: none !important;
+    }
+    .export-dl-btn.pdf-btn {
+      background: linear-gradient(135deg, #6C4CE0, #8A6BF0) !important;
+      color: #FFFFFF !important;
+      border: 1px solid #573BC4 !important;
+      box-shadow: 0 3px 8px rgba(108, 76, 224, 0.25) !important;
+    }
+    .export-dl-btn.excel-btn {
+      background: linear-gradient(135deg, #2FB47C, #1E9A66) !important;
+      color: #FFFFFF !important;
+      border: 1px solid #178254 !important;
+      box-shadow: 0 3px 8px rgba(47, 180, 124, 0.25) !important;
+    }
+    @media (max-width: 640px) {
+      .export-quick-btns,
+      .export-btn-group {
+        margin-left: 0 !important;
+        width: 100% !important;
+      }
+      .export-dl-btn {
+        flex: 1 1 auto !important;
+      }
+    }
+
     .heatmap {
       display: grid !important;
       grid-template-columns: repeat(14, 1fr) !important;
@@ -3773,6 +3929,59 @@
         <div class="heatmap" id="stHeatmapGrid"></div>
         <div class="heat-legend">🔥 <b>連續</b>：從今天往回算，一天都沒中斷、天天有練習的天數。<br>🏆 <b>最佳</b>：你曾經創下「最長連續天天練習」的紀錄。<br>📅 <b>累計</b>：從開始到現在，總共有練習過的天數（中間有休息也算）。<br>🟩 <b>熱力圖</b>：方格顏色愈深，代表當天練習愈多。</div>
       </div>
+    </section>
+
+    <!-- 📥 底部使用紀錄匯出下載方塊 (支援指定日期或指定範圍，PDF / Excel 雙格式輸出) -->
+    <section class="progress export-records-card" id="export-records-section">
+      <h3>
+        <span>📥 下載使用紀錄 Export</span>
+        <span class="export-sub-hint">支援指定單日或日期範圍匯出</span>
+      </h3>
+      <div class="date-navigator-card export-navigator-card">
+        <div class="export-controls-wrap">
+          <div class="export-row">
+            <span class="date-nav-title"><span>📅</span> 匯出範圍：</span>
+            <div class="export-mode-tabs" role="group" aria-label="選擇匯出日期模式">
+              <button type="button" id="btn-export-mode-single" class="date-nav-btn export-mode-btn active" data-mode="single">指定日期</button>
+              <button type="button" id="btn-export-mode-range" class="date-nav-btn export-mode-btn" data-mode="range">指定範圍</button>
+            </div>
+            <div id="export-single-wrap" class="export-date-inputs">
+              <input type="date" id="export-single-date" class="date-picker-input">
+            </div>
+            <div id="export-range-wrap" class="export-date-inputs" style="display:none;">
+              <input type="date" id="export-start-date" class="date-picker-input">
+              <span class="export-range-sep">至</span>
+              <input type="date" id="export-end-date" class="date-picker-input">
+            </div>
+            <div class="export-quick-btns">
+              <button type="button" class="date-nav-btn today-btn" id="btn-export-preset-today" title="匯出今日紀錄">📍 今日</button>
+              <button type="button" class="date-nav-btn" id="btn-export-preset-7d" title="最近 7 天">近 7 天</button>
+              <button type="button" class="date-nav-btn" id="btn-export-preset-30d" title="最近 30 天">近 30 天</button>
+              <button type="button" class="date-nav-btn" id="btn-export-preset-all" title="全部有紀錄日期">全部紀錄</button>
+            </div>
+          </div>
+          <div class="export-row export-action-row">
+            <div class="export-format-group">
+              <span class="date-nav-title"><span>📄</span> 輸出格式：</span>
+              <select id="export-format-select" class="task-date-selector export-format-select">
+                <option value="pdf">📄 PDF 格式 (.pdf 報表)</option>
+                <option value="excel">📊 Excel 格式 (.xlsx 試算表)</option>
+              </select>
+            </div>
+            <div class="export-btn-group">
+              <button type="button" id="btn-export-download-pdf" class="export-dl-btn pdf-btn" title="下載 PDF 格式使用紀錄">
+                📄 下載 PDF 格式
+              </button>
+              <button type="button" id="btn-export-download-excel" class="export-dl-btn excel-btn" title="下載 Excel 格式使用紀錄">
+                📊 下載 Excel 格式
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="defs" id="export-status-msg" style="margin-top:8px;">
+        💡 可選擇「<b>指定日期</b>」或「<b>指定範圍</b>」，點擊右側按鈕即可下載 <b>PDF 報表</b> 或 <b>Excel 試算表</b>（含指定測驗、自由練習單字明細與關卡進度）。
+      </p>
     </section>
   </div>
 
@@ -13795,6 +14004,757 @@ function renderStudentSummary(resp) {
       if (w) speakMasteredWord(w);
     });
   }
+
+  // 7. 初始化底部使用紀錄匯出下載方塊 (PDF / Excel)
+  try {
+    initStudentExportRecordsCard(resp);
+  } catch (errExp) {
+    console.error("initStudentExportRecordsCard error:", errExp);
+  }
+}
+
+// ════════════════════════════════════════
+// 📥 底部使用紀錄匯出下載模組 (支援指定日期或指定範圍，PDF / Excel 雙格式輸出)
+// ════════════════════════════════════════
+let _latestStudentExportResp = null;
+
+function _ensureExternalScript(globalName, srcUrl) {
+  if (typeof window !== "undefined" && window[globalName]) return Promise.resolve(window[globalName]);
+  return new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = srcUrl;
+    s.onload = () => resolve(window[globalName]);
+    s.onerror = () => reject(new Error(`無法載入匯出套件 (${globalName})`));
+    document.head.appendChild(s);
+  });
+}
+
+function _extractStFreeWordsForExport(record, agent) {
+  if (!record || !record.attempts) return { correctWords: [], wrongWords: [], totalWords: 0, correctCount: 0, rate: 0 };
+  const attempts = record.attempts || 0;
+  const correct = record.correct || 0;
+  const wrongCount = (record.wrong !== undefined) ? record.wrong : Math.max(0, attempts - correct);
+  const wordsMap = record.words || {};
+  let correctList = [];
+  let wrongList = [];
+
+  Object.keys(wordsMap).forEach(k => {
+    const info = wordsMap[k];
+    const rawW = (typeof info === "object" && info && info.word) ? info.word : k;
+    const wName = resolveWord(rawW).toLowerCase();
+    if (!wName || /^w\d+$/i.test(wName)) return;
+    const hasWrong = (typeof info === "object" && info && info.wrong > 0);
+    const hasCorrect = (typeof info === "object" && info && info.correct > 0);
+    if (hasWrong) wrongList.push({ word: wName, correct: info.correct || 0 });
+    else if (hasCorrect) correctList.push({ word: wName });
+    else correctList.push({ word: wName });
+  });
+
+  if (correctList.length === 0 && wrongList.length === 0 && attempts > 0 && agent && agent.stat) {
+    const allWords = Object.keys(agent.stat)
+      .filter(k => agent.stat[k] && (agent.stat[k].a > 0 || agent.stat[k].c > 0))
+      .map(w => {
+        const st = agent.stat[w] || {};
+        const att = st.a || 0;
+        const cor = st.c || 0;
+        const wrg = (st.w !== undefined) ? st.w : Math.max(0, att - cor);
+        return { word: resolveWord(w).toLowerCase(), attempts: att || 1, correct: cor, wrong: wrg, ew: !!st.ew };
+      })
+      .filter(item => item.word && !/^w\d+$/i.test(item.word));
+
+    if (wrongCount > 0 && allWords.length > 0) {
+      const wrongCands = allWords.filter(w => w.wrong > 0 || w.ew);
+      wrongCands.sort((a, b) => (b.wrong || 0) - (a.wrong || 0));
+      wrongCands.slice(0, wrongCount).forEach(w => wrongList.push({ word: w.word, correct: w.correct || 0 }));
+    }
+    if (correct > 0 && allWords.length > 0) {
+      const correctCands = allWords.filter(w => w.correct > 0 && !wrongList.some(wl => wl.word === w.word));
+      correctCands.sort((a, b) => (b.correct || 0) - (a.correct || 0));
+      correctCands.slice(0, correct).forEach(w => correctList.push({ word: w.word }));
+    }
+  }
+
+  correctList.sort((a, b) => a.word.localeCompare(b.word));
+  wrongList.sort((a, b) => a.word.localeCompare(b.word));
+  const totalWords = (correctList.length + wrongList.length) > 0 ? (correctList.length + wrongList.length) : attempts;
+  const correctCount = (correctList.length + wrongList.length) > 0 ? correctList.length : correct;
+  const rate = totalWords > 0 ? Math.round((correctCount / totalWords) * 100) : 0;
+
+  return {
+    correctWords: correctList.map(x => x.word),
+    wrongWords: wrongList.map(x => x.correct > 0 ? `${x.word}(已訂正)` : x.word),
+    totalWords,
+    correctCount,
+    rate
+  };
+}
+
+function _buildStudentExportPayload(resp, mode, startDate, endDate) {
+  const studentId = viewingStudent || currentUser || "學員";
+  const agent = (resp && resp.agentData) || {};
+  const historyData = agent.history || {};
+  const dpMap = agent.dailyPractice || {};
+  const dailyTaskHistory = (resp && Array.isArray(resp.dailyTaskHistory))
+    ? resp.dailyTaskHistory
+    : (window.cachedStudentDailyHistory || []);
+  const todayTask = (resp && resp.todayTaskResult) || window.cachedStudentTodayTaskResult || null;
+  const todayDash = formatDateYMD(new Date());
+
+  const normKey = (ds) => {
+    const parts = String(ds || "").trim().split(" ")[0].replace(/\//g, "-").split("-");
+    if (parts.length === 3) return `${parts[0]}-${String(parts[1]).padStart(2, "0")}-${String(parts[2]).padStart(2, "0")}`;
+    return String(ds || "").trim();
+  };
+
+  const activeDateSet = new Set();
+  dailyTaskHistory.forEach(h => { if (h && h.date) activeDateSet.add(normKey(h.date)); });
+  if (todayTask && todayTask.date) activeDateSet.add(normKey(todayTask.date));
+  Object.keys(historyData).forEach(k => { if (historyData[k] && historyData[k].a > 0) activeDateSet.add(normKey(k)); });
+  Object.keys(dpMap).forEach(k => { if (dpMap[k] && (dpMap[k].attempts > 0 || (dpMap[k].words && Object.keys(dpMap[k].words).length > 0))) activeDateSet.add(normKey(k)); });
+  if (resp && Array.isArray(resp.data)) {
+    resp.data.forEach(r => {
+      if (r && r[0]) {
+        const d = normKey(r[0]);
+        if (/^\d{4}-\d{2}-\d{2}$/.test(d)) activeDateSet.add(d);
+      }
+    });
+  }
+
+  let sDate = normKey(startDate) || todayDash;
+  let eDate = normKey(endDate) || sDate;
+  if (sDate > eDate) { const tmp = sDate; sDate = eDate; eDate = tmp; }
+
+  let targetDates = [];
+  if (mode === "single" || sDate === eDate) {
+    targetDates = [sDate];
+  } else {
+    const sTime = new Date(sDate.replace(/-/g, "/")).getTime();
+    const eTime = new Date(eDate.replace(/-/g, "/")).getTime();
+    const daySpan = Math.round((eTime - sTime) / 86400000) + 1;
+    if (daySpan <= 14) {
+      for (let i = 0; i < daySpan; i++) {
+        targetDates.push(formatDateYMD(new Date(sTime + i * 86400000)));
+      }
+      targetDates.sort((a, b) => b.localeCompare(a));
+    } else {
+      targetDates = Array.from(activeDateSet).filter(dt => dt >= sDate && dt <= eDate).sort((a, b) => b.localeCompare(a));
+      if (targetDates.length === 0) targetDates = [eDate];
+    }
+  }
+
+  let periodAttempts = 0;
+  let periodCorrect = 0;
+  let periodActiveDays = 0;
+  let periodTaskDone = 0;
+  let periodFreeDays = 0;
+
+  const dailyRecords = targetDates.map(dt => {
+    let matchedTask = dailyTaskHistory.find(h => normKey(h.date) === dt && (!h.taskName || h.taskName !== "自主練習")) || null;
+    if (!matchedTask && todayTask && normKey(todayTask.date) === dt && todayTask.hasDone && todayTask.taskName !== "自主練習") {
+      matchedTask = {
+        date: dt,
+        taskName: todayTask.taskName || "每日指定測驗",
+        score: todayTask.score || "—",
+        rate: todayTask.rate || "—",
+        status: "已完成",
+        words: todayTask.words || [],
+        wrongWords: todayTask.wrongWords || []
+      };
+    }
+    if (!matchedTask && resp && Array.isArray(resp.data)) {
+      const matchedRow = resp.data.find(r => r && normKey(r[0]) === dt && r[18] && r[18] !== "自主練習");
+      if (matchedRow) {
+        matchedTask = {
+          date: dt,
+          taskName: matchedRow[18] || "教師指定測驗",
+          score: matchedRow[19] || "—",
+          rate: matchedRow[20] || "—",
+          status: matchedRow[21] || "已完成",
+          words: [],
+          wrongWords: matchedRow[22] ? String(matchedRow[22]).split(/[,、\s]+/).filter(Boolean) : []
+        };
+      }
+    }
+
+    let hasTask = false, taskName = "無指派測驗", taskStatus = "無紀錄", taskScore = "—", taskRate = "—";
+    let taskCorrectWords = [], taskWrongWords = [];
+    let tAtt = 0, tCor = 0;
+
+    if (matchedTask) {
+      hasTask = true;
+      taskName = matchedTask.taskName || "每日指定測驗";
+      taskStatus = String(matchedTask.status || "已完成").replace(/^[🟢●⏳\s]+/, "");
+      taskScore = matchedTask.score || "—";
+      taskRate = matchedTask.rate || "—";
+      const resolved = resolveStudentTaskWords(matchedTask, dt, agent);
+      taskCorrectWords = resolved.correctList || [];
+      taskWrongWords = resolved.wrongList || [];
+      tAtt = parseInt(matchedTask.attempts) || 0;
+      tCor = parseInt(matchedTask.correct) || 0;
+      if (!tAtt && String(taskScore).includes("/")) {
+        const sp = String(taskScore).split("/");
+        tCor = parseInt(sp[0]) || 0;
+        tAtt = parseInt(sp[1]) || 0;
+      }
+      if (!tAtt && (taskCorrectWords.length + taskWrongWords.length) > 0) {
+        tCor = taskCorrectWords.length;
+        tAtt = taskCorrectWords.length + taskWrongWords.length;
+      }
+      if (taskStatus.includes("完成") || tAtt > 0) periodTaskDone++;
+    }
+
+    let dpFree = dpMap[dt] || dpMap[dt.replace(/-/g, "/")] || null;
+    let hFree = historyData[dt] || historyData[dt.replace(/-/g, "/")] || null;
+    let matchedFree = null;
+    if (dpFree && (dpFree.attempts > 0 || (dpFree.words && Object.keys(dpFree.words).length > 0))) {
+      matchedFree = {
+        date: dt,
+        attempts: dpFree.attempts || 0,
+        correct: dpFree.correct || 0,
+        wrong: (dpFree.wrong !== undefined) ? dpFree.wrong : Math.max(0, (dpFree.attempts || 0) - (dpFree.correct || 0)),
+        words: dpFree.words || {}
+      };
+    } else if (hFree && (hFree.a || hFree.c || hFree.words)) {
+      matchedFree = {
+        date: dt,
+        attempts: hFree.a || 0,
+        correct: hFree.c || 0,
+        wrong: (hFree.a && hFree.c) ? Math.max(0, hFree.a - hFree.c) : 0,
+        words: hFree.words || {}
+      };
+    } else if (resp && Array.isArray(resp.data)) {
+      const matchedRow = resp.data.find(r => r && normKey(r[0]) === dt);
+      if (matchedRow && Number(matchedRow[6]) > 0) {
+        matchedFree = {
+          date: dt,
+          attempts: Number(matchedRow[6] || 0),
+          correct: Number(matchedRow[7] || 0),
+          wrong: Math.max(0, Number(matchedRow[6] || 0) - Number(matchedRow[7] || 0)),
+          words: {}
+        };
+      }
+    }
+
+    const fInfo = _extractStFreeWordsForExport(matchedFree, agent);
+    const hasFree = fInfo.totalWords > 0;
+    if (hasFree) periodFreeDays++;
+
+    const dayAtt = Math.max(tAtt + fInfo.totalWords, (matchedFree ? matchedFree.attempts : 0), tAtt);
+    const dayCor = Math.min(dayAtt, Math.max(tCor + fInfo.correctCount, (matchedFree ? matchedFree.correct : 0), tCor));
+    const dayRate = dayAtt > 0 ? Math.round((dayCor / dayAtt) * 100) : 0;
+
+    if (dayAtt > 0 || hasTask) {
+      if (dayAtt > 0) periodActiveDays++;
+      periodAttempts += dayAtt;
+      periodCorrect += dayCor;
+    }
+
+    return {
+      date: dt,
+      totalAttempts: dayAtt,
+      totalCorrect: dayCor,
+      totalRate: dayRate,
+      hasTask,
+      taskName,
+      taskStatus,
+      taskScore,
+      taskRate,
+      taskCorrectWords,
+      taskWrongWords,
+      hasFree,
+      freeAttempts: fInfo.totalWords,
+      freeCorrect: fInfo.correctCount,
+      freeWrong: Math.max(0, fInfo.totalWords - fInfo.correctCount),
+      freeRate: fInfo.rate,
+      freeCorrectWords: fInfo.correctWords,
+      freeWrongWords: fInfo.wrongWords
+    };
+  });
+
+  // 取得畫面上的整體學習進度與關卡進度
+  const getNum = (id) => parseInt(String((document.getElementById(id) || {}).textContent || "0").replace(/,/g, ""), 10) || 0;
+  const learnCount = getNum("n-learn");
+  const pracCount = getNum("n-prac");
+  const mastCount = getNum("n-mast");
+  const totalVocab = getNum("n-total") || 2055;
+  const streak = getNum("stHeatStreak");
+  const best = getNum("stHeatBest");
+  const totalDays = getNum("stHeatTotal");
+
+  const lvNames = ["入門", "基礎", "進階", "挑戰", "精熟"];
+  const levels = [];
+  const lvTbody = document.getElementById("stLevelProgressTbody");
+  if (lvTbody) {
+    const trs = lvTbody.querySelectorAll("tr");
+    trs.forEach((tr, idx) => {
+      const tds = tr.querySelectorAll("td");
+      const rightTxt = tds[1] ? tds[1].textContent.trim() : "";
+      levels.push({
+        level: idx + 1,
+        name: lvNames[idx] || "",
+        summaryText: rightTxt
+      });
+    });
+  }
+
+  const mstat = (agent && agent.mstat) || {};
+  const now = new Date();
+  const exportTime = `${formatDateYMD(now)} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+  const scopeTitle = (mode === "single" || sDate === eDate) ? `指定日期：${sDate}` : `指定範圍：${sDate} 至 ${eDate}`;
+  const fileScopeTag = (mode === "single" || sDate === eDate) ? sDate : `${sDate}_至_${eDate}`;
+
+  const totalAttemptsAll = (agent && agent.attempts) || 0;
+  const totalCorrectAll = (agent && agent.correct) || 0;
+  const passRateAll = totalAttemptsAll > 0 ? Math.round((totalCorrectAll / totalAttemptsAll) * 100) : 0;
+
+  return {
+    studentId,
+    exportTime,
+    mode,
+    startDate: sDate,
+    endDate: eDate,
+    scopeTitle,
+    fileScopeTag,
+    periodSummary: {
+      activeDaysCount: periodActiveDays,
+      totalAttempts: periodAttempts,
+      totalCorrect: periodCorrect,
+      avgRate: periodAttempts > 0 ? Math.round((periodCorrect / periodAttempts) * 100) : 0,
+      taskDoneCount: periodTaskDone,
+      freeActiveDays: periodFreeDays
+    },
+    overall: {
+      attempts: totalAttemptsAll,
+      correct: totalCorrectAll,
+      passRate: passRateAll,
+      totalVocab,
+      learn: learnCount,
+      prac: pracCount,
+      mast: mastCount,
+      streak,
+      best,
+      totalDays,
+      levels,
+      modeStats: mstat
+    },
+    dailyRecords
+  };
+}
+
+async function _exportStudentRecordToExcel(payload) {
+  const fileName = `學習歷程_使用紀錄_${payload.studentId}_${payload.fileScopeTag}`;
+  try {
+    const XLSX = await _ensureExternalScript("XLSX", "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js");
+    const wb = XLSX.utils.book_new();
+
+    const ws1Data = [
+      ["學生學習歷程 · 使用與作答紀錄明細表"],
+      ["學生帳號", payload.studentId, "匯出範圍", payload.scopeTitle, "匯出時間", payload.exportTime],
+      ["區間練習天數", `${payload.periodSummary.activeDaysCount} 天`, "區間總作答", `${payload.periodSummary.totalAttempts} 題`, "區間總答對", `${payload.periodSummary.totalCorrect} 題`, "區間平均正確率", `${payload.periodSummary.avgRate}%`],
+      [],
+      [
+        "日期",
+        "當日總作答(題)",
+        "當日總答對(題)",
+        "當日正確率(%)",
+        "指定測驗名稱",
+        "指定測驗狀態",
+        "指定測驗得分",
+        "指定測驗正確率",
+        "指定測驗-答對單字",
+        "指定測驗-答錯單字",
+        "自由練習-總題數",
+        "自由練習-答對數",
+        "自由練習-答錯數",
+        "自由練習-正確率(%)",
+        "自由練習-答對單字",
+        "自由練習-答錯單字"
+      ]
+    ];
+
+    payload.dailyRecords.forEach(r => {
+      ws1Data.push([
+        r.date,
+        r.totalAttempts,
+        r.totalCorrect,
+        `${r.totalRate}%`,
+        r.hasTask ? r.taskName : "無指派測驗",
+        r.hasTask ? r.taskStatus : "無紀錄",
+        r.hasTask ? `${r.taskScore} 題` : "—",
+        r.hasTask ? r.taskRate : "—",
+        r.taskCorrectWords.length > 0 ? r.taskCorrectWords.join(", ") : "—",
+        r.taskWrongWords.length > 0 ? r.taskWrongWords.join(", ") : (r.hasTask ? "全對無錯題" : "—"),
+        r.freeAttempts,
+        r.freeCorrect,
+        r.freeWrong,
+        r.hasFree ? `${r.freeRate}%` : "0%",
+        r.freeCorrectWords.length > 0 ? r.freeCorrectWords.join(", ") : "—",
+        r.freeWrongWords.length > 0 ? r.freeWrongWords.join(", ") : (r.hasFree ? "全對無錯題" : "—")
+      ]);
+    });
+
+    ws1Data.push([]);
+    ws1Data.push([
+      "區間合計 / 平均",
+      payload.periodSummary.totalAttempts,
+      payload.periodSummary.totalCorrect,
+      `${payload.periodSummary.avgRate}%`,
+      `完成 ${payload.periodSummary.taskDoneCount} 次測驗`,
+      "", "", "", "", "",
+      `活躍 ${payload.periodSummary.freeActiveDays} 天`,
+      "", "", "", "", ""
+    ]);
+
+    const ws1 = XLSX.utils.aoa_to_sheet(ws1Data);
+    ws1["!cols"] = [
+      { wch: 13 }, { wch: 14 }, { wch: 14 }, { wch: 13 },
+      { wch: 20 }, { wch: 13 }, { wch: 13 }, { wch: 14 },
+      { wch: 36 }, { wch: 36 },
+      { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 },
+      { wch: 36 }, { wch: 36 }
+    ];
+    XLSX.utils.book_append_sheet(wb, ws1, "每日使用紀錄明細");
+
+    const ov = payload.overall;
+    const ms = ov.modeStats || {};
+    const mRate = (m) => (m && m.a > 0) ? `${Math.round((m.c / m.a) * 100)}%` : "0%";
+    const ws2Data = [
+      ["學生學習歷程 · 整體學習進度與關卡總覽"],
+      ["學生帳號", payload.studentId, "匯出時間", payload.exportTime],
+      [],
+      ["【一、整體學習進度指標】"],
+      ["累積總作答題數", `${ov.attempts} 題`, "累積總答對題數", `${ov.correct} 題`, "累積總答對率", `${ov.passRate}%`],
+      ["連續練習天數", `${ov.streak} 天`, "最佳連續天數", `${ov.best} 天`, "累計練習天數", `${ov.totalDays} 天`],
+      ["學習中單字數", `${ov.learn} 字`, "練習中單字數", `${ov.prac} 字`, "已精通單字數 ⭐", `${ov.mast} 字`],
+      [],
+      ["【二、4 大練習模式統計】"],
+      ["練習模式", "作答題數", "答對題數", "正確率"],
+      ["🎧 聽與拼", (ms.listen && ms.listen.a) || 0, (ms.listen && ms.listen.c) || 0, mRate(ms.listen)],
+      ["✅ 選拼法", (ms.pick && ms.pick.a) || 0, (ms.pick && ms.pick.c) || 0, mRate(ms.pick)],
+      ["🧩 重組", (ms.scramble && ms.scramble.a) || 0, (ms.scramble && ms.scramble.c) || 0, mRate(ms.scramble)],
+      ["🖍️ 填陷阱", (ms.trap && ms.trap.a) || 0, (ms.trap && ms.trap.c) || 0, mRate(ms.trap)],
+      [],
+      ["【三、各關卡進度 (Level 1 ~ Level 5)】"],
+      ["關卡名稱", "進度明細"]
+    ];
+    (ov.levels || []).forEach(L => {
+      ws2Data.push([`Level ${L.level}「${L.name}」`, L.summaryText]);
+    });
+    const ws2 = XLSX.utils.aoa_to_sheet(ws2Data);
+    ws2["!cols"] = [{ wch: 22 }, { wch: 52 }, { wch: 16 }, { wch: 16 }, { wch: 18 }, { wch: 18 }];
+    XLSX.utils.book_append_sheet(wb, ws2, "整體學習進度總覽");
+
+    XLSX.writeFile(wb, `${fileName}.xlsx`);
+  } catch (err) {
+    console.warn("XLSX fallback to CSV:", err);
+    const rows = [
+      ["日期", "當日總作答", "當日總答對", "當日正確率", "指定測驗名稱", "指定測驗狀態", "指定測驗得分", "指定測驗正確率", "指定測驗答對單字", "指定測驗答錯單字", "自由練習題數", "自由練習答對", "自由練習答錯", "自由練習正確率", "自由練習答對單字", "自由練習答錯單字"]
+    ];
+    payload.dailyRecords.forEach(r => {
+      rows.push([
+        r.date, r.totalAttempts, r.totalCorrect, `${r.totalRate}%`,
+        r.hasTask ? r.taskName : "無指派測驗", r.hasTask ? r.taskStatus : "無紀錄",
+        r.hasTask ? r.taskScore : "—", r.hasTask ? r.taskRate : "—",
+        r.taskCorrectWords.join(" "), r.taskWrongWords.join(" "),
+        r.freeAttempts, r.freeCorrect, r.freeWrong, `${r.freeRate}%`,
+        r.freeCorrectWords.join(" "), r.freeWrongWords.join(" ")
+      ]);
+    });
+    const csvContent = "\uFEFF" + rows.map(row => row.map(c => `"${String(c ?? "").replace(/"/g, '""')}"`).join(",")).join("\r\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `${fileName}.csv`;
+    a.click();
+  }
+}
+
+async function _exportStudentRecordToPdf(payload) {
+  const fileName = `學習歷程_使用紀錄_${payload.studentId}_${payload.fileScopeTag}.pdf`;
+  const ov = payload.overall;
+  const ps = payload.periodSummary;
+  const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+  const lvRowsHtml = (ov.levels || []).map(L => `
+    <tr>
+      <td style="padding:6px 8px; border-bottom:1px solid #E7E9F5; font-weight:700; color:#232A4D;">Level ${L.level}「${esc(L.name)}」</td>
+      <td style="padding:6px 8px; border-bottom:1px solid #E7E9F5; text-align:right; font-weight:700; color:#232A4D;">${esc(L.summaryText)}</td>
+    </tr>
+  `).join("");
+
+  const dailyCardsHtml = payload.dailyRecords.map(r => {
+    const badgeColor = r.totalAttempts === 0 ? "#64748B" : r.totalRate >= 80 ? "#1E9A66" : r.totalRate >= 60 ? "#B45309" : "#DC2626";
+    const badgeBg = r.totalAttempts === 0 ? "#F1F5F9" : r.totalRate >= 80 ? "#ECFDF5" : r.totalRate >= 60 ? "#FEFCE8" : "#FEF2F2";
+    const taskCorrPills = r.taskCorrectWords.length > 0
+      ? r.taskCorrectWords.map(w => `<span style="display:inline-block;padding:2px 6px;margin:2px;border-radius:4px;background:#E4F7EE;color:#1E9A66;border:1px solid rgba(47,180,124,.35);font-size:11px;font-weight:700;">${esc(w)}</span>`).join("")
+      : `<span style="font-size:11px;color:#9AA0BD;">（無答對單字紀錄）</span>`;
+    const taskWrongPills = r.taskWrongWords.length > 0
+      ? r.taskWrongWords.map(w => `<span style="display:inline-block;padding:2px 6px;margin:2px;border-radius:4px;background:#FFE9E9;color:#D64545;border:1px solid rgba(255,107,107,.4);font-size:11px;font-weight:700;">${esc(w)}</span>`).join("")
+      : `<span style="font-size:11px;color:#1E9A66;font-weight:700;">${r.hasTask ? "🎉 全數答對無錯題" : "（無錯題紀錄）"}</span>`;
+
+    const freeCorrPills = r.freeCorrectWords.length > 0
+      ? r.freeCorrectWords.map(w => `<span style="display:inline-block;padding:2px 6px;margin:2px;border-radius:4px;background:#E4F7EE;color:#1E9A66;border:1px solid rgba(47,180,124,.35);font-size:11px;font-weight:700;">${esc(w)}</span>`).join("")
+      : `<span style="font-size:11px;color:#9AA0BD;">（當日無自由練習答對單字）</span>`;
+    const freeWrongPills = r.freeWrongWords.length > 0
+      ? r.freeWrongWords.map(w => `<span style="display:inline-block;padding:2px 6px;margin:2px;border-radius:4px;background:#FFE9E9;color:#D64545;border:1px solid rgba(255,107,107,.4);font-size:11px;font-weight:700;">${esc(w)}</span>`).join("")
+      : `<span style="font-size:11px;color:#1E9A66;font-weight:700;">${r.hasFree ? "🎉 全數答對無錯題" : "（當日無自由練習錯題）"}</span>`;
+
+    return `
+      <div style="border:1.5px solid #E7E9F5; border-radius:14px; padding:12px 14px; margin-bottom:12px; background:#F8F9FD; page-break-inside:avoid;">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #E7E9F5; padding-bottom:8px; margin-bottom:10px;">
+          <div style="font-size:14px; font-weight:800; color:#232A4D;">📅 日期：${esc(r.date)}</div>
+          <div style="padding:3px 10px; border-radius:8px; font-size:12px; font-weight:800; background:${badgeBg}; color:${badgeColor}; border:1px solid ${badgeColor};">
+            當日作答 ${r.totalAttempts} 題 · 答對 ${r.totalCorrect} 題 · 正確率 ${r.totalRate}%
+          </div>
+        </div>
+
+        <div style="margin-bottom:8px; background:#FFFFFF; border:1px solid #E7E9F5; border-radius:10px; padding:9px 11px;">
+          <div style="font-size:12.5px; font-weight:800; color:#232A4D; margin-bottom:6px; display:flex; justify-content:space-between;">
+            <span>📝 指定測驗：${esc(r.hasTask ? r.taskName : "當日無指派測驗紀錄")}</span>
+            <span style="color:#0284C7;">${r.hasTask ? `狀態：${esc(r.taskStatus)} ｜ 得分：${esc(r.taskScore)} 題 (${esc(r.taskRate)})` : "未施測"}</span>
+          </div>
+          ${r.hasTask ? `
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+              <div style="background:#F1FBF6; border:1px solid rgba(47,180,124,.3); border-radius:8px; padding:7px 9px;">
+                <div style="font-size:11.5px; font-weight:800; color:#1E9A66; margin-bottom:4px;">✅ 答對的單字</div>
+                <div>${taskCorrPills}</div>
+              </div>
+              <div style="background:#FFF5F5; border:1px solid rgba(255,107,107,.3); border-radius:8px; padding:7px 9px;">
+                <div style="font-size:11.5px; font-weight:800; color:#D64545; margin-bottom:4px;">❌ 答錯的單字</div>
+                <div>${taskWrongPills}</div>
+              </div>
+            </div>
+          ` : ""}
+        </div>
+
+        <div style="background:#FFFFFF; border:1px solid #E7E9F5; border-radius:10px; padding:9px 11px;">
+          <div style="font-size:12.5px; font-weight:800; color:#232A4D; margin-bottom:6px; display:flex; justify-content:space-between;">
+            <span>🎮 自由練習成果</span>
+            <span style="color:#0284C7;">${r.hasFree ? `答對 ${r.freeCorrect}/${r.freeAttempts} 題 (${r.freeRate}%)` : "當日無自由練習紀錄"}</span>
+          </div>
+          ${r.hasFree ? `
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+              <div style="background:#F1FBF6; border:1px solid rgba(47,180,124,.3); border-radius:8px; padding:7px 9px;">
+                <div style="font-size:11.5px; font-weight:800; color:#1E9A66; margin-bottom:4px;">✅ 答對的單字</div>
+                <div>${freeCorrPills}</div>
+              </div>
+              <div style="background:#FFF5F5; border:1px solid rgba(255,107,107,.3); border-radius:8px; padding:7px 9px;">
+                <div style="font-size:11.5px; font-weight:800; color:#D64545; margin-bottom:4px;">❌ 答錯的單字</div>
+                <div>${freeWrongPills}</div>
+              </div>
+            </div>
+          ` : ""}
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  const reportHtml = `
+    <div id="pdf-export-paper" style="width:720px; background:#FFFFFF; color:#232A4D; padding:22px 24px; font-family:ui-rounded,'SF Pro Rounded','PingFang TC','Microsoft JhengHei',sans-serif; line-height:1.5; box-sizing:border-box;">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid #6C4CE0; padding-bottom:12px; margin-bottom:14px;">
+        <div>
+          <div style="font-size:20px; font-weight:900; color:#232A4D;">🎯 學生學習歷程 · 使用與作答紀錄報表</div>
+          <div style="font-size:12.5px; color:#5A6183; font-weight:700; margin-top:3px;">${esc(payload.scopeTitle)}</div>
+        </div>
+        <div style="text-align:right; font-size:12px; color:#5A6183; font-weight:700;">
+          <div>👤 學生帳號：<b style="color:#6C4CE0; font-size:13.5px;">${esc(payload.studentId)}</b></div>
+          <div>🕒 匯出時間：${esc(payload.exportTime)}</div>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:14px;">
+        <div style="background:#F8F9FD; border:1px solid #E7E9F5; border-radius:10px; padding:8px 10px; text-align:center;">
+          <div style="font-size:11px; color:#5A6183; font-weight:700;">📅 區間練習天數</div>
+          <div style="font-size:18px; font-weight:900; color:#6C4CE0;">${ps.activeDaysCount} 天</div>
+        </div>
+        <div style="background:#F8F9FD; border:1px solid #E7E9F5; border-radius:10px; padding:8px 10px; text-align:center;">
+          <div style="font-size:11px; color:#5A6183; font-weight:700;">✍️ 區間總作答題數</div>
+          <div style="font-size:18px; font-weight:900; color:#0284C7;">${ps.totalAttempts} 題</div>
+        </div>
+        <div style="background:#F8F9FD; border:1px solid #E7E9F5; border-radius:10px; padding:8px 10px; text-align:center;">
+          <div style="font-size:11px; color:#5A6183; font-weight:700;">✅ 區間總答對題數</div>
+          <div style="font-size:18px; font-weight:900; color:#2FB47C;">${ps.totalCorrect} 題</div>
+        </div>
+        <div style="background:#F8F9FD; border:1px solid #E7E9F5; border-radius:10px; padding:8px 10px; text-align:center;">
+          <div style="font-size:11px; color:#5A6183; font-weight:700;">📊 區間平均正確率</div>
+          <div style="font-size:18px; font-weight:900; color:${ps.avgRate >= 80 ? '#1E9A66' : '#E8892B'};">${ps.avgRate}%</div>
+        </div>
+      </div>
+
+      <div style="border:1px solid #E7E9F5; border-radius:12px; padding:10px 14px; margin-bottom:14px; background:#FFFFFF;">
+        <div style="font-size:13px; font-weight:800; color:#232A4D; margin-bottom:6px; display:flex; justify-content:space-between;">
+          <span>📊 整體學習進度與各關卡統計</span>
+          <span style="font-size:11.5px; color:#5A6183;">學習中 ${ov.learn} 字 · 練習中 ${ov.prac} 字 · 精通 ⭐ ${ov.mast} 字（累計練習 ${ov.totalDays} 天）</span>
+        </div>
+        <table style="width:100%; border-collapse:collapse; font-size:12px;">
+          ${lvRowsHtml}
+        </table>
+      </div>
+
+      <div style="font-size:13.5px; font-weight:800; color:#232A4D; margin-bottom:8px;">📋 每日使用與作答紀錄明細（共 ${payload.dailyRecords.length} 日）</div>
+      ${dailyCardsHtml}
+    </div>
+  `;
+
+  const overlay = document.createElement("div");
+  overlay.id = "pdf-export-temp-overlay";
+  overlay.style.cssText = "position:fixed;inset:0;z-index:99999;background:rgba(20,24,38,0.82);display:flex;flex-direction:column;align-items:center;overflow:auto;padding:20px;";
+  overlay.innerHTML = `
+    <div style="color:#FFFFFF;font-weight:800;font-size:14px;margin-bottom:12px;background:#6C4CE0;padding:8px 18px;border-radius:999px;box-shadow:0 4px 12px rgba(0,0,0,0.3);">
+      ⏳ 正在產生 PDF 報表並準備下載，請稍候...
+    </div>
+    ${reportHtml}
+  `;
+  document.body.appendChild(overlay);
+
+  try {
+    const html2pdfLib = await _ensureExternalScript("html2pdf", "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js");
+    const paperEl = overlay.querySelector("#pdf-export-paper");
+    await html2pdfLib().set({
+      margin: [8, 8, 8, 8],
+      filename: fileName,
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, backgroundColor: "#FFFFFF", scrollY: 0 },
+      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+      pagebreak: { mode: ["avoid-all", "css", "legacy"] }
+    }).from(paperEl).save();
+  } finally {
+    if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
+  }
+}
+
+function initStudentExportRecordsCard(resp) {
+  if (resp) _latestStudentExportResp = resp;
+  const sec = document.getElementById("export-records-section");
+  if (!sec) return;
+
+  const todayDash = formatDateYMD(new Date());
+  const d7 = new Date(); d7.setDate(d7.getDate() - 6);
+  const sevenDaysAgo = formatDateYMD(d7);
+  const d30 = new Date(); d30.setDate(d30.getDate() - 29);
+  const thirtyDaysAgo = formatDateYMD(d30);
+
+  const btnModeSingle = document.getElementById("btn-export-mode-single");
+  const btnModeRange = document.getElementById("btn-export-mode-range");
+  const singleWrap = document.getElementById("export-single-wrap");
+  const rangeWrap = document.getElementById("export-range-wrap");
+  const inputSingle = document.getElementById("export-single-date");
+  const inputStart = document.getElementById("export-start-date");
+  const inputEnd = document.getElementById("export-end-date");
+  const formatSelect = document.getElementById("export-format-select");
+  const btnDlPdf = document.getElementById("btn-export-download-pdf");
+  const btnDlExcel = document.getElementById("btn-export-download-excel");
+  const statusMsg = document.getElementById("export-status-msg");
+
+  const recPicker = document.getElementById("record-date-picker");
+  if (inputSingle) {
+    inputSingle.value = (recPicker && recPicker.value) ? recPicker.value : todayDash;
+    inputSingle.max = todayDash;
+  }
+  if (inputStart && !inputStart.value) { inputStart.value = sevenDaysAgo; inputStart.max = todayDash; }
+  if (inputEnd && !inputEnd.value) { inputEnd.value = todayDash; inputEnd.max = todayDash; }
+
+  if (sec.__exportBound) return;
+  sec.__exportBound = true;
+
+  let currentMode = "single";
+  const setExportMode = (m) => {
+    currentMode = (m === "range") ? "range" : "single";
+    if (btnModeSingle) btnModeSingle.classList.toggle("active", currentMode === "single");
+    if (btnModeRange) btnModeRange.classList.toggle("active", currentMode === "range");
+    if (singleWrap) singleWrap.style.display = (currentMode === "single") ? "inline-flex" : "none";
+    if (rangeWrap) rangeWrap.style.display = (currentMode === "range") ? "inline-flex" : "none";
+  };
+
+  if (btnModeSingle) btnModeSingle.onclick = () => setExportMode("single");
+  if (btnModeRange) btnModeRange.onclick = () => setExportMode("range");
+
+  const btnPresetToday = document.getElementById("btn-export-preset-today");
+  if (btnPresetToday) {
+    btnPresetToday.onclick = () => {
+      setExportMode("single");
+      if (inputSingle) inputSingle.value = todayDash;
+    };
+  }
+  const btnPreset7d = document.getElementById("btn-export-preset-7d");
+  if (btnPreset7d) {
+    btnPreset7d.onclick = () => {
+      setExportMode("range");
+      if (inputStart) inputStart.value = sevenDaysAgo;
+      if (inputEnd) inputEnd.value = todayDash;
+    };
+  }
+  const btnPreset30d = document.getElementById("btn-export-preset-30d");
+  if (btnPreset30d) {
+    btnPreset30d.onclick = () => {
+      setExportMode("range");
+      if (inputStart) inputStart.value = thirtyDaysAgo;
+      if (inputEnd) inputEnd.value = todayDash;
+    };
+  }
+  const btnPresetAll = document.getElementById("btn-export-preset-all");
+  if (btnPresetAll) {
+    btnPresetAll.onclick = () => {
+      setExportMode("range");
+      const rData = _latestStudentExportResp || {};
+      const ag = rData.agentData || {};
+      let earliest = thirtyDaysAgo;
+      const checkKey = (k) => {
+        const parts = String(k || "").trim().split(" ")[0].replace(/\//g, "-").split("-");
+        if (parts.length === 3) {
+          const nd = `${parts[0]}-${String(parts[1]).padStart(2, "0")}-${String(parts[2]).padStart(2, "0")}`;
+          if (/^\d{4}-\d{2}-\d{2}$/.test(nd) && nd < earliest) earliest = nd;
+        }
+      };
+      if (Array.isArray(rData.dailyTaskHistory)) rData.dailyTaskHistory.forEach(h => h && checkKey(h.date));
+      if (ag.dailyPractice) Object.keys(ag.dailyPractice).forEach(checkKey);
+      if (ag.history) Object.keys(ag.history).forEach(checkKey);
+      if (Array.isArray(rData.data)) rData.data.forEach(row => row && checkKey(row[0]));
+      if (inputStart) inputStart.value = earliest;
+      if (inputEnd) inputEnd.value = todayDash;
+    };
+  }
+
+  const runDownload = async (fmt) => {
+    if (formatSelect && fmt) formatSelect.value = fmt;
+    const chosenFmt = fmt || (formatSelect ? formatSelect.value : "pdf");
+    const sDate = (currentMode === "single")
+      ? (inputSingle && inputSingle.value ? inputSingle.value : todayDash)
+      : (inputStart && inputStart.value ? inputStart.value : sevenDaysAgo);
+    const eDate = (currentMode === "single")
+      ? sDate
+      : (inputEnd && inputEnd.value ? inputEnd.value : todayDash);
+
+    const payload = _buildStudentExportPayload(_latestStudentExportResp || {}, currentMode, sDate, eDate);
+
+    if (btnDlPdf) btnDlPdf.disabled = true;
+    if (btnDlExcel) btnDlExcel.disabled = true;
+    if (statusMsg) {
+      statusMsg.innerHTML = `⏳ 正在產生 <b>${chosenFmt === "excel" ? "Excel (.xlsx)" : "PDF (.pdf)"}</b> 使用紀錄檔案（${payload.scopeTitle}），請稍候...`;
+    }
+
+    try {
+      if (chosenFmt === "excel") {
+        await _exportStudentRecordToExcel(payload);
+      } else {
+        await _exportStudentRecordToPdf(payload);
+      }
+      if (statusMsg) {
+        statusMsg.innerHTML = `✅ 已成功下載 <b>${chosenFmt === "excel" ? "Excel (.xlsx)" : "PDF (.pdf)"}</b> 使用紀錄（${payload.scopeTitle}）！`;
+      }
+    } catch (err) {
+      console.error("Student export error:", err);
+      if (statusMsg) {
+        statusMsg.innerHTML = `⚠️ 匯出時發生錯誤：${err.message || "請稍後再試"}`;
+      }
+    } finally {
+      if (btnDlPdf) btnDlPdf.disabled = false;
+      if (btnDlExcel) btnDlExcel.disabled = false;
+    }
+  };
+
+  if (btnDlPdf) btnDlPdf.onclick = () => runDownload("pdf");
+  if (btnDlExcel) btnDlExcel.onclick = () => runDownload("excel");
 }
 
 function renderStudentFreePractice(resp, summaryMeta) {
