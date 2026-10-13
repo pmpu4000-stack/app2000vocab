@@ -893,9 +893,19 @@ body[data-theme="dark"],
 /* 4 大練習模式統計區塊 */
 .mode-stat-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 8px;
   margin: 8px 0 14px;
+}
+@media (max-width: 720px) {
+  .mode-stat-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+@media (max-width: 320px) {
+  .mode-stat-grid {
+    grid-template-columns: 1fr !important;
+  }
 }
 .mode-stat-card {
   background: #F8F9FD;
