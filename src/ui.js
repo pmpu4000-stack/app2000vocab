@@ -1894,8 +1894,10 @@ function _buildExportPayload(d, mode, startDate, endDate) {
     const hasFree = fInfo.totalWords > 0;
     if (hasFree) periodFreeDays++;
 
-    const dayAtt = Math.max(tAtt + fInfo.totalWords, (fRec ? fRec.attempts : 0), tAtt);
-    const dayCor = Math.min(dayAtt, Math.max(tCor + fInfo.correctCount, (fRec ? fRec.correct : 0), tCor));
+    const freeAtt = fInfo.totalWords;
+    const freeCor = fInfo.correctCount;
+    const dayAtt = tAtt + freeAtt;
+    const dayCor = tCor + freeCor;
     const dayRate = dayAtt > 0 ? Math.round((dayCor / dayAtt) * 100) : 0;
 
     if (dayAtt > 0 || hasTask) {

@@ -13800,17 +13800,6 @@ function renderStudentDailyTaskAndFreeSections(resp) {
         wrong: (hFree.a && hFree.c) ? Math.max(0, hFree.a - hFree.c) : 0,
         words: hFree.words || {}
       };
-    } else if (resp.data && Array.isArray(resp.data)) {
-      const matchedRow = resp.data.find(r => r && (normalizeDateKey(r[0]) === targetDate || unpadDateKey(r[0]) === shortTarget));
-      if (matchedRow && Number(matchedRow[6]) > 0) {
-        matchedFree = {
-          date: targetDate,
-          attempts: Number(matchedRow[6] || 0),
-          correct: Number(matchedRow[7] || 0),
-          wrong: Math.max(0, Number(matchedRow[6] || 0) - Number(matchedRow[7] || 0)),
-          words: {}
-        };
-      }
     }
     freeDetailsContainer.innerHTML = buildFreeDetailsHtml(matchedFree, targetDate, agent);
 
@@ -14678,8 +14667,12 @@ function _buildStudentExportPayload(resp, mode, startDate, endDate) {
       if (taskStatus.includes("完成") || tAtt > 0) periodTaskDone++;
     }
 
-    let dpFree = dpMap[dt] || dpMap[dt.replace(/-/g, "/")] || null;
-    let hFree = historyData[dt] || historyData[dt.replace(/-/g, "/")] || null;
+    const dtParts = dt.split("-");
+    const unpadDt = (dtParts.length === 3) ? `${dtParts[0]}-${parseInt(dtParts[1], 10)}-${parseInt(dtParts[2], 10)}` : dt;
+    const slashDt = dt.replace(/-/g, "/");
+
+    let dpFree = dpMap[dt] || dpMap[unpadDt] || dpMap[slashDt] || null;
+    let hFree = historyData[dt] || historyData[unpadDt] || historyData[slashDt] || null;
     let matchedFree = null;
     if (dpFree && (dpFree.attempts > 0 || (dpFree.words && Object.keys(dpFree.words).length > 0))) {
       matchedFree = {
@@ -14697,25 +14690,16 @@ function _buildStudentExportPayload(resp, mode, startDate, endDate) {
         wrong: (hFree.a && hFree.c) ? Math.max(0, hFree.a - hFree.c) : 0,
         words: hFree.words || {}
       };
-    } else if (resp && Array.isArray(resp.data)) {
-      const matchedRow = resp.data.find(r => r && normKey(r[0]) === dt);
-      if (matchedRow && Number(matchedRow[6]) > 0) {
-        matchedFree = {
-          date: dt,
-          attempts: Number(matchedRow[6] || 0),
-          correct: Number(matchedRow[7] || 0),
-          wrong: Math.max(0, Number(matchedRow[6] || 0) - Number(matchedRow[7] || 0)),
-          words: {}
-        };
-      }
     }
 
     const fInfo = _extractStFreeWordsForExport(matchedFree, agent);
     const hasFree = fInfo.totalWords > 0;
     if (hasFree) periodFreeDays++;
 
-    const dayAtt = Math.max(tAtt + fInfo.totalWords, (matchedFree ? matchedFree.attempts : 0), tAtt);
-    const dayCor = Math.min(dayAtt, Math.max(tCor + fInfo.correctCount, (matchedFree ? matchedFree.correct : 0), tCor));
+    const freeAtt = fInfo.totalWords;
+    const freeCor = fInfo.correctCount;
+    const dayAtt = tAtt + freeAtt;
+    const dayCor = tCor + freeCor;
     const dayRate = dayAtt > 0 ? Math.round((dayCor / dayAtt) * 100) : 0;
 
     if (dayAtt > 0 || hasTask) {
