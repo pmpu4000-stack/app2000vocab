@@ -13149,7 +13149,7 @@ function buildTaskDetailsHtml(record, selectedDate, agent) {
 
   let correctContentHtml = "";
   if (correctList.length > 0) {
-    correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" data-word="${w.replace(/"/g, "&quot;")}" onclick="speakMasteredWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
+    correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); speakMasteredWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
   } else if (isFinished) {
     if (rawWords.length > 0) {
       correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（本次測驗全數答錯，尚無答對單字）</span>`;
@@ -13164,7 +13164,7 @@ function buildTaskDetailsHtml(record, selectedDate, agent) {
 
   let wrongContentHtml = "";
   if (wrongList.length > 0) {
-    wrongContentHtml = wrongList.map(w => `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" onclick="speakMasteredWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
+    wrongContentHtml = wrongList.map(w => `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); speakMasteredWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
   } else if (isFinished) {
     wrongContentHtml = `<span style="font-size:12px; color:#4ade80; font-weight:700;">🎉 太棒了！本次測驗全數答對，無任何答錯單字！</span>`;
   } else {
@@ -13312,7 +13312,7 @@ function buildFreeDetailsHtml(record, selectedDate, agent) {
 
   let correctContentHtml = "";
   if (correctList.length > 0) {
-    correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" data-word="${w.word.replace(/"/g, "&quot;")}" onclick="speakMasteredWord('${w.word.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w.word}</span>`).join("");
+    correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" data-word="${w.word.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); speakMasteredWord('${w.word.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w.word}</span>`).join("");
   } else {
     correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（當日尚無全對單字）</span>`;
   }
@@ -13321,9 +13321,9 @@ function buildFreeDetailsHtml(record, selectedDate, agent) {
   if (wrongList.length > 0) {
     wrongContentHtml = wrongList.map(w => {
       if (w.correct > 0) {
-        return `<span class="word-pill-tag correct" data-word="${w.word.replace(/"/g, "&quot;")}" onclick="speakMasteredWord('${w.word.replace(/'/g, "\\'")}')" style="border:1px dashed #4ade80; cursor:pointer;" title="當日曾答錯，已訂正答對 (點擊聆聽發音)">${w.word} <small style="font-size:10px; opacity:0.85;">(已訂正)</small></span>`;
+        return `<span class="word-pill-tag correct" data-word="${w.word.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); speakMasteredWord('${w.word.replace(/'/g, "\\'")}')" style="border:1px dashed #4ade80; cursor:pointer;" title="當日曾答錯，已訂正答對 (點擊聆聽發音)">${w.word} <small style="font-size:10px; opacity:0.85;">(已訂正)</small></span>`;
       } else {
-        return `<span class="word-pill-tag wrong" data-word="${w.word.replace(/"/g, "&quot;")}" onclick="speakMasteredWord('${w.word.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w.word}</span>`;
+        return `<span class="word-pill-tag wrong" data-word="${w.word.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); speakMasteredWord('${w.word.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w.word}</span>`;
       }
     }).join("");
   } else {
@@ -15026,10 +15026,13 @@ if (typeof window !== "undefined" && "speechSynthesis" in window) {
 }
 
 let _activeHistoryAudio = null;
+let _historyAudioSeqToken = 0;
+let _lastHistorySpokenWord = "";
+let _lastHistorySpokenAt = 0;
 const _historyWordAudioCache = new Map();
 
-function _speakHistoryViaTTS(text) {
-  if (!text || !('speechSynthesis' in window)) return;
+function _speakHistoryViaTTS(text, token = _historyAudioSeqToken) {
+  if (!text || !('speechSynthesis' in window) || token !== _historyAudioSeqToken) return;
   try {
     const synth = window.speechSynthesis;
     if (synth.speaking || synth.pending) {
@@ -15049,6 +15052,7 @@ function _speakHistoryViaTTS(text) {
     utter.volume = 1.0;
     window.__lastHistoryUtterance = utter;
     setTimeout(() => {
+      if (token !== _historyAudioSeqToken) return;
       try {
         if (synth.paused) synth.resume();
         synth.speak(utter);
@@ -15063,11 +15067,27 @@ function speakMasteredWord(text) {
   const cleanText = String(text || "").trim();
   if (!cleanText) return;
 
+  const now = Date.now();
+  if (cleanText.toLowerCase() === _lastHistorySpokenWord && (now - _lastHistorySpokenAt) < 180) {
+    return;
+  }
+  _lastHistorySpokenWord = cleanText.toLowerCase();
+  _lastHistorySpokenAt = now;
+
+  const token = ++_historyAudioSeqToken;
+
   try {
     if (_activeHistoryAudio) {
+      _activeHistoryAudio.onended = null;
+      _activeHistoryAudio.onerror = null;
       _activeHistoryAudio.pause();
       _activeHistoryAudio.currentTime = 0;
       _activeHistoryAudio = null;
+    }
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+        window.speechSynthesis.cancel();
+      }
     }
   } catch (_) {}
 
@@ -15082,17 +15102,20 @@ function speakMasteredWord(text) {
         audio.playbackRate = 0.92;
         _activeHistoryAudio = audio;
         let fallbackTriggered = false;
-        const triggerFallback = () => {
-          if (fallbackTriggered) return;
+        const triggerFallback = (err) => {
+          if (fallbackTriggered || token !== _historyAudioSeqToken) return;
+          if (err && err.name === "AbortError") return;
           fallbackTriggered = true;
           _historyWordAudioCache.set(wordLower, false);
-          _speakHistoryViaTTS(cleanText);
+          _speakHistoryViaTTS(cleanText, token);
         };
-        audio.onerror = triggerFallback;
+        audio.onerror = () => triggerFallback();
         const playPromise = audio.play();
         if (playPromise && typeof playPromise.then === "function") {
           playPromise.then(() => {
-            _historyWordAudioCache.set(wordLower, true);
+            if (token === _historyAudioSeqToken) {
+              _historyWordAudioCache.set(wordLower, true);
+            }
           }).catch(triggerFallback);
           return;
         }
@@ -15102,7 +15125,7 @@ function speakMasteredWord(text) {
     }
   }
 
-  _speakHistoryViaTTS(cleanText);
+  _speakHistoryViaTTS(cleanText, token);
 }
 
 function initMasteredChipsComponent(words) {

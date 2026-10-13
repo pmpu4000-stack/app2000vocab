@@ -179,8 +179,9 @@ function playSingleWordOrTTS(rawText, rate = 0.8, onEnd = null, token = currentS
     const wordLower = clean.toLowerCase();
     const audioUrl = `https://ssl.gstatic.com/dictionary/static/sounds/20200429/${wordLower}--_us_1.mp3`;
     let fallbackTriggered = false;
-    const triggerFallback = () => {
+    const triggerFallback = (err) => {
       if (fallbackTriggered || token !== currentSeqToken) return;
+      if (err && err.name === "AbortError") return;
       fallbackTriggered = true;
       currentAudio = null;
       speakWithTTS(clean, rate, onEnd, token);
@@ -199,8 +200,8 @@ function playSingleWordOrTTS(rawText, rate = 0.8, onEnd = null, token = currentS
       };
       const playPromise = audio.play();
       if (playPromise && typeof playPromise.catch === "function") {
-        playPromise.catch(() => {
-          triggerFallback();
+        playPromise.catch((err) => {
+          triggerFallback(err);
         });
       }
       return;
@@ -229,8 +230,18 @@ export function say(text, rate = 0.8, onEnd = null, forcePlay = false) {
   playSingleWordOrTTS(text, rate, onEnd, token);
 }
 
-// 專供點擊「答對的單字 / 答錯的單字 / 精通單字」發音，永遠允許播放
+let _lastSayWordText = "";
+let _lastSayWordAt = 0;
+
+// 專供點擊「答對的單字 / 答錯的單字 / 精通單字」發音，永遠允許播放且防重複連點觸發兩次發音
 export function sayWord(word, rate = 0.8, onEnd = null) {
+  const clean = String(word || "").trim().toLowerCase();
+  const now = Date.now();
+  if (clean && clean === _lastSayWordText && (now - _lastSayWordAt) < 180) {
+    return;
+  }
+  _lastSayWordText = clean;
+  _lastSayWordAt = now;
   say(word, rate, onEnd, true);
 }
 
