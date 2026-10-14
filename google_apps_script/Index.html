@@ -2340,11 +2340,11 @@
     [data-theme="dark"] .summary h3 {
       border-bottom-color: #262C42 !important;
     }
-    .summary-embedded h3 a, .summary h3 a, #sumClose {
+    .summary-embedded h3 a, .summary h3 a, #sumClose, #btn-toggle-export-card, #sumBtn, .sum-toggle-btn {
       font-size: 12px !important;
       color: var(--violet) !important;
       cursor: pointer !important;
-      text-decoration: underline !important;
+      text-decoration: none !important;
       font-weight: 700 !important;
       display: inline-flex !important;
       align-items: center !important;
@@ -2355,21 +2355,27 @@
       border: 1px solid rgba(108, 76, 224, 0.16) !important;
       transition: all .15s !important;
     }
-    .summary-embedded h3 a:hover, .summary h3 a:hover, #sumClose:hover {
+    .summary-embedded h3 a:hover, .summary h3 a:hover, #sumClose:hover, #btn-toggle-export-card:hover, #sumBtn:hover, .sum-toggle-btn:hover {
       color: var(--violet-d) !important;
       background: rgba(108, 76, 224, 0.16) !important;
       opacity: 0.88 !important;
     }
     [data-theme="dark"] .summary-embedded h3 a,
     [data-theme="dark"] .summary h3 a,
-    [data-theme="dark"] #sumClose {
+    [data-theme="dark"] #sumClose,
+    [data-theme="dark"] #btn-toggle-export-card,
+    [data-theme="dark"] #sumBtn,
+    [data-theme="dark"] .sum-toggle-btn {
       background: rgba(56, 189, 248, 0.12) !important;
       border-color: rgba(56, 189, 248, 0.22) !important;
       color: var(--sky, #38bdf8) !important;
     }
     [data-theme="dark"] .summary-embedded h3 a:hover,
     [data-theme="dark"] .summary h3 a:hover,
-    [data-theme="dark"] #sumClose:hover {
+    [data-theme="dark"] #sumClose:hover,
+    [data-theme="dark"] #btn-toggle-export-card:hover,
+    [data-theme="dark"] #sumBtn:hover,
+    [data-theme="dark"] .sum-toggle-btn:hover {
       background: rgba(56, 189, 248, 0.22) !important;
       color: #7dd3fc !important;
     }
@@ -3070,14 +3076,15 @@
       text-transform: none !important;
       margin: 0 0 10px 0 !important;
     }
-    .export-records-card.is-collapsed h3 {
+    .export-records-card.is-collapsed h3,
+    .learning-record-card.is-collapsed h3 {
       margin-bottom: 0 !important;
     }
     .export-records-card h3 a {
       color: var(--sky, #2D9CDB) !important;
       font-size: 12px !important;
       cursor: pointer !important;
-      text-decoration: underline !important;
+      text-decoration: none !important;
       font-weight: 700 !important;
       display: inline-flex !important;
       align-items: center !important;
@@ -3098,7 +3105,8 @@
     }
     .export-records-card.is-collapsed .export-navigator-card,
     .export-records-card.is-collapsed .defs,
-    .export-records-card.is-collapsed #export-status-msg {
+    .export-records-card.is-collapsed #export-status-msg,
+    .learning-record-card.is-collapsed #summary {
       display: none !important;
     }
     .export-navigator-card {
@@ -4126,9 +4134,6 @@
     <section class="progress" id="studentProgressCard">
       <h3>
         <span>學習進度 Progress</span>
-        <span style="display:flex; gap:14px;">
-          <a id="sumBtn" title="看學習紀錄與答題統計">📊 學習紀錄 Record</a>
-        </span>
       </h3>
       <div class="bar" title="連續答對越多次，字就越熟練">
         <i class="learn" id="b-learn" style="width:0%;"></i>
@@ -4142,12 +4147,21 @@
         <span style="margin-left:auto;color:var(--ink3)">共 <b id="n-total" class="tnum">2055</b> 字</span>
       </div>
       <p class="defs">熟練度定義：<b>學習中</b>＝答對 1 次 · <b>練習中</b>＝連續答對 2 次 · <b>精通</b>＝連續答對 3 次（答錯會退回「學習中」）</p>
+    </section>
 
-      <!-- 嵌入式學習紀錄 Record 區域 (與遊戲網頁一模一樣) -->
+    <!-- 📊 學習紀錄 Record 獨立卡片 -->
+    <section class="progress learning-record-card" id="studentLearningRecordCard">
+      <h3>
+        <span style="display:inline-flex; align-items:center; gap:6px;">
+          <span>📊 學習紀錄 Record</span>
+          <span id="stUserTag"></span>
+        </span>
+        <span style="display:flex; gap:14px;">
+          <a id="sumBtn" class="sum-toggle-btn" title="展開或收起學習紀錄">收起 ✕</a>
+        </span>
+      </h3>
       <div id="summary" class="summary-embedded" style="display:block;">
-        <h3>📊 學習紀錄 Record <span id="stUserTag"></span> <a id="sumClose">收起 ✕</a></h3>
-
-        <div class="subh">各關卡進度</div>
+        <div class="subh" style="margin-top:2px;">各關卡進度</div>
         <table class="sumtable">
           <tbody id="stLevelProgressTbody"></tbody>
         </table>
@@ -4231,7 +4245,7 @@
     <!-- 📥 底部作答歷程紀錄匯出下載方塊 (支援指定日期或指定範圍，PDF / Excel 雙格式輸出) -->
     <section class="progress export-records-card is-collapsed" id="export-records-section">
       <h3>
-        <span>作答歷程</span>
+        <span>作答歷程 History</span>
         <span style="display:flex;gap:14px">
           <a id="btn-toggle-export-card" title="展開或收合作答歷程下載">📥 下載歷程</a>
         </span>
@@ -14058,10 +14072,13 @@ function renderStudentSummary(resp) {
   const sumBtn = document.getElementById("sumBtn");
   const sumClose = document.getElementById("sumClose");
   const sumPanel = document.getElementById("summary");
+  const sumRecordCard = document.getElementById("studentLearningRecordCard");
   if (sumBtn && sumPanel) {
     sumBtn.onclick = () => {
       const isHidden = (sumPanel.style.display === "none");
       sumPanel.style.display = isHidden ? "block" : "none";
+      sumBtn.innerHTML = isHidden ? "收起 ✕" : "📊 學習紀錄 Record";
+      if (sumRecordCard) sumRecordCard.classList.toggle("is-collapsed", !isHidden);
       if (isHidden) {
         sumPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
       }
@@ -14070,6 +14087,8 @@ function renderStudentSummary(resp) {
   if (sumClose && sumPanel) {
     sumClose.onclick = () => {
       sumPanel.style.display = "none";
+      if (sumBtn) sumBtn.innerHTML = "📊 學習紀錄 Record";
+      if (sumRecordCard) sumRecordCard.classList.add("is-collapsed");
     };
   }
 

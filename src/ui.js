@@ -1381,9 +1381,13 @@ export function renderSummary(d) {
   }
   taskBest = Math.max(taskBest, taskStreak);
 
+  const userTagArea = document.getElementById("userTagArea") || document.getElementById("stUserTag");
+  if (userTagArea) {
+    userTagArea.innerHTML = userTagHtml;
+  }
+
   el.summary.innerHTML = `
-    <h3>📊 學習紀錄 Record ${userTagHtml} <a id="sumClose">收起 ✕</a></h3>
-    <div class="bigrate">
+    <div class="bigrate" style="margin-top:2px;">
       <b class="tnum">${d.passRate}%</b>
       <span>總答對率<br><small>${d.correct} 題對 / 共作答 ${d.attempts} 題</small></span>
       <span style="margin-left:auto;text-align:right">
@@ -1751,27 +1755,34 @@ export function renderSummary(d) {
     };
   }
 
-  $("#sumClose").onclick = () => { el.summary.hidden = true; };
+  const sumCloseEl = document.getElementById("sumClose");
+  if (sumCloseEl) sumCloseEl.onclick = () => { toggleSummary(d); };
   initExportRecordsCard(() => d);
 }
 export function toggleSummary(data) {
+  const sumBtn = document.getElementById("sumBtn");
+  const sec = document.getElementById("learning-record-section") || document.getElementById("studentLearningRecordCard");
   if (el.summary.hidden) {
     el.summary.hidden = false;
+    if (sec) sec.classList.remove("is-collapsed");
+    if (sumBtn) sumBtn.innerHTML = "收起 ✕";
     try {
       renderSummary(data);
-      el.summary.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      if (sec) sec.scrollIntoView({ behavior: "smooth", block: "nearest" });
     } catch (err) {
       console.error("renderSummary error:", err);
       el.summary.innerHTML = `
         <div style="padding:18px; text-align:center; color:#f87171;">
           <div style="font-size:20px; margin-bottom:6px;">⚠️</div>
           <b>載入紀錄時發生問題：</b> ${err.message}<br>
-          <button onclick="document.getElementById('summary').hidden=true" style="margin-top:10px; padding:6px 14px; background:#334155; color:#fff; border:none; border-radius:6px; cursor:pointer;">關閉</button>
+          <button onclick="if(window.toggleSummary)window.toggleSummary();else document.getElementById('summary').hidden=true" style="margin-top:10px; padding:6px 14px; background:#334155; color:#fff; border:none; border-radius:6px; cursor:pointer;">關閉</button>
         </div>
       `;
     }
   } else {
     el.summary.hidden = true;
+    if (sec) sec.classList.add("is-collapsed");
+    if (sumBtn) sumBtn.innerHTML = "📊 學習紀錄 Record";
   }
 }
 

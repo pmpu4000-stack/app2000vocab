@@ -835,11 +835,11 @@ body[data-theme="dark"],
   margin-bottom: 14px;
   border-bottom: 1.5px solid var(--line);
 }
-.summary-embedded h3 a, .summary h3 a, #sumClose {
+.summary-embedded h3 a, .summary h3 a, #sumClose, #btn-toggle-export-card, #sumBtn, .sum-toggle-btn {
   font-size: 12px;
   color: var(--violet);
   cursor: pointer;
-  text-decoration: underline;
+  text-decoration: none !important;
   font-weight: 700;
   display: inline-flex;
   align-items: center;
@@ -850,21 +850,27 @@ body[data-theme="dark"],
   border: 1px solid rgba(108, 76, 224, 0.16);
   transition: all .15s;
 }
-.summary-embedded h3 a:hover, .summary h3 a:hover, #sumClose:hover {
+.summary-embedded h3 a:hover, .summary h3 a:hover, #sumClose:hover, #btn-toggle-export-card:hover, #sumBtn:hover, .sum-toggle-btn:hover {
   color: var(--violet-d);
   background: rgba(108, 76, 224, 0.16);
   opacity: 0.88;
 }
 [data-theme="dark"] .summary-embedded h3 a,
 [data-theme="dark"] .summary h3 a,
-[data-theme="dark"] #sumClose {
+[data-theme="dark"] #sumClose,
+[data-theme="dark"] #btn-toggle-export-card,
+[data-theme="dark"] #sumBtn,
+[data-theme="dark"] .sum-toggle-btn {
   background: rgba(56, 189, 248, 0.12) !important;
   border-color: rgba(56, 189, 248, 0.22) !important;
   color: var(--sky, #38bdf8) !important;
 }
 [data-theme="dark"] .summary-embedded h3 a:hover,
 [data-theme="dark"] .summary h3 a:hover,
-[data-theme="dark"] #sumClose:hover {
+[data-theme="dark"] #sumClose:hover,
+[data-theme="dark"] #btn-toggle-export-card:hover,
+[data-theme="dark"] #sumBtn:hover,
+[data-theme="dark"] .sum-toggle-btn:hover {
   background: rgba(56, 189, 248, 0.22) !important;
   color: #7dd3fc !important;
 }
@@ -1134,7 +1140,8 @@ body[data-theme="dark"],
   text-transform: none;
   margin-bottom: 10px;
 }
-.export-records-card.is-collapsed h3 {
+.export-records-card.is-collapsed h3,
+.learning-record-card.is-collapsed h3 {
   margin-bottom: 0 !important;
 }
 .export-records-card h3 a {
@@ -1166,7 +1173,8 @@ body[data-theme="dark"],
 }
 .export-records-card.is-collapsed .export-navigator-card,
 .export-records-card.is-collapsed .defs,
-.export-records-card.is-collapsed #export-status-msg {
+.export-records-card.is-collapsed #export-status-msg,
+.learning-record-card.is-collapsed #summary {
   display: none !important;
 }
 .export-navigator-card {
@@ -1478,12 +1486,10 @@ body[data-theme="dark"],
         </div>
       </main>
 
-      <section class="progress">
+      <!-- 學習進度 Progress 獨立方塊 -->
+      <section class="progress" id="progress-card">
         <h3>
           <span>學習進度 Progress</span>
-          <span style="display:flex;gap:14px">
-            <a id="sumBtn" title="看學習紀錄與答對率">📊 學習紀錄 Record</a>
-          </span>
         </h3>
         <div class="bar" title="連續答對越多次，字就越熟練">
           <i class="learn" id="b-learn"></i>
@@ -1497,6 +1503,19 @@ body[data-theme="dark"],
           <span style="margin-left:auto;color:var(--ink3)">共 <b id="n-total" class="tnum">0</b> 字</span>
         </div>
         <p class="defs">熟練度定義：<b>學習中</b>＝答對 1 次 · <b>練習中</b>＝連續答對 2 次 · <b>精通</b>＝連續答對 3 次（答錯會退回「學習中」）</p>
+      </section>
+
+      <!-- 📊 學習紀錄 Record 獨立方塊 -->
+      <section class="progress learning-record-card is-collapsed" id="learning-record-section">
+        <h3>
+          <span style="display:inline-flex;align-items:center;gap:6px;">
+            <span>📊 學習紀錄 Record</span>
+            <span id="userTagArea"></span>
+          </span>
+          <span style="display:flex;gap:14px">
+            <a id="sumBtn" class="sum-toggle-btn" title="展開或收起學習紀錄">📊 學習紀錄 Record</a>
+          </span>
+        </h3>
         <div id="summary" class="summary-embedded" hidden></div>
       </section>
 
@@ -1505,7 +1524,7 @@ body[data-theme="dark"],
       <!-- 📥 底部作答歷程紀錄匯出下載方塊 (支援指定日期或指定範圍，PDF / Excel 雙格式輸出) -->
       <section class="progress export-records-card is-collapsed" id="export-records-section">
         <h3>
-          <span>作答歷程</span>
+          <span>作答歷程 History</span>
           <span style="display:flex;gap:14px">
             <a id="btn-toggle-export-card" title="展開或收合作答歷程下載">📥 下載歷程</a>
           </span>
@@ -2780,8 +2799,9 @@ body[data-theme="dark"],
 
       document.body.classList.add("daily-limit-reached");
 
-      const progressSec = document.querySelector("section.progress");
-      if (progressSec && progressSec.style.display !== "block") progressSec.style.display = "block";
+      document.querySelectorAll("section.progress").forEach(sec => {
+        if (sec && sec.style.display !== "block") sec.style.display = "block";
+      });
 
       // 確保頂部數值（答對字、答對率）與進度條即時更新
       if (typeof window.refreshChrome === "function") {
