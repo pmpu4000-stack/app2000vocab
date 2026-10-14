@@ -800,20 +800,59 @@ body[data-theme="dark"],
 }
 
   
-.curfew-note-box {
-  background: #F6F7FB;
-  border: 1px dashed #D2D6E8;
+.curfew-note-box,
+.login-study-note {
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: rgba(108,76,224,0.05);
+  border: 1px solid rgba(108,76,224,0.12);
+  border-radius: 10px;
+  font-size: 11.5px;
+  line-height: 1.45;
+  text-align: center;
   color: #5A6183;
 }
-[data-theme="dark"] .curfew-note-box {
-  background: rgba(255, 255, 255, 0.05) !important;
-  border: 1px dashed rgba(255, 255, 255, 0.16) !important;
-  color: #9AA0BD !important;
-}
+[data-theme="dark"] .curfew-note-box,
 [data-theme="dark"] .login-study-note {
-  background: rgba(255, 255, 255, 0.04) !important;
-  border-color: rgba(255, 255, 255, 0.12) !important;
-  color: #9AA0BD !important;
+  background: rgba(108, 76, 224, 0.15) !important;
+  border: 1px solid rgba(108, 76, 224, 0.3) !important;
+  color: #B4A2F8 !important;
+}
+#login-overlay input {
+  background: #F6F7FB !important;
+  color: #232A4D !important;
+  border-color: #E7E9F5 !important;
+}
+#login-overlay input:focus {
+  background: #FFFFFF !important;
+  border-color: #6C4CE0 !important;
+}
+[data-theme="dark"] #login-overlay > div {
+  background: #1C2234 !important;
+  border-color: #2B334E !important;
+  color: #F0F3FA !important;
+}
+[data-theme="dark"] #login-overlay h2 {
+  color: #F0F3FA !important;
+}
+[data-theme="dark"] #login-overlay input,
+[data-theme="dark"] #login-user,
+[data-theme="dark"] #login-pass {
+  background: #141826 !important;
+  background-color: #141826 !important;
+  border-color: #2B334E !important;
+  color: #F0F3FA !important;
+}
+[data-theme="dark"] #login-overlay input:focus,
+[data-theme="dark"] #login-user:focus,
+[data-theme="dark"] #login-pass:focus {
+  border-color: #8B5CF6 !important;
+  background: #1C2234 !important;
+}
+[data-theme="dark"] #login-overlay input::placeholder,
+[data-theme="dark"] #login-user::placeholder,
+[data-theme="dark"] #login-pass::placeholder {
+  color: #6B779E !important;
 }
 [data-theme="dark"] #login-overlay p,
 [data-theme="dark"] #curfew-overlay p {
@@ -1242,10 +1281,18 @@ body[data-theme="dark"],
   width: 100%;
 }
 .export-action-row {
-  justify-content: flex-start;
-  gap: 8px 12px;
-  padding-top: 8px;
-  border-top: 1px dashed rgba(108, 76, 224, 0.2);
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: 8px !important;
+  padding-top: 8px !important;
+  border-top: 1px dashed rgba(108, 76, 224, 0.2) !important;
+  width: 100% !important;
+}
+.export-action-row .export-format-group {
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
 }
 [data-theme="dark"] .export-action-row {
   border-top-color: #2B334E;
@@ -1357,29 +1404,31 @@ body[data-theme="dark"],
   min-width: 170px !important;
 }
 .export-btn-group {
-  display: inline-flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-left: 0;
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 8px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
 }
 .export-dl-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  height: 30px;
-  min-height: 30px;
-  max-height: 30px;
-  padding: 0 12px;
-  border-radius: 9px;
-  font-size: 12.5px;
-  font-weight: 800;
-  font-family: inherit;
-  cursor: pointer;
-  transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.15s ease;
-  white-space: nowrap;
-  box-sizing: border-box;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 5px !important;
+  height: 32px !important;
+  min-height: 32px !important;
+  max-height: 32px !important;
+  padding: 0 4px !important;
+  border-radius: 9px !important;
+  font-size: 12.5px !important;
+  font-weight: 800 !important;
+  font-family: inherit !important;
+  cursor: pointer !important;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.15s ease !important;
+  white-space: nowrap !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  min-width: 0 !important;
 }
 .export-dl-btn:hover {
   transform: translateY(-1px);
@@ -1483,10 +1532,10 @@ body[data-theme="dark"],
       <p style="color:#5A6183; font-size:13px; margin-bottom:20px; line-height:1.5;">請輸入學號與密碼</p>
       
       <input type="text" id="login-user" placeholder="請輸入學號 (如: 70101)" 
-        style="width:100%; padding:13px 14px; margin-bottom:12px; border:1.5px solid #E7E9F5; border-radius:12px; box-sizing:border-box; background:#F6F7FB; color:#232A4D; font-size:15px; outline:none; transition:all .2s;">
+        style="width:100%; padding:13px 14px; margin-bottom:12px; border:1.5px solid #E7E9F5; border-radius:12px; box-sizing:border-box; font-size:15px; outline:none; transition:all .2s;">
       
       <input type="password" id="login-pass" placeholder="請輸入密碼" 
-        style="width:100%; padding:13px 14px; margin-bottom:20px; border:1.5px solid #E7E9F5; border-radius:12px; box-sizing:border-box; background:#F6F7FB; color:#232A4D; font-size:15px; outline:none; transition:all .2s;">
+        style="width:100%; padding:13px 14px; margin-bottom:20px; border:1.5px solid #E7E9F5; border-radius:12px; box-sizing:border-box; font-size:15px; outline:none; transition:all .2s;">
       
       <button id="login-btn" 
         style="width:100%; padding:13px; background:#6C4CE0; color:white; border:none; border-radius:12px; font-weight:700; font-size:15px; cursor:pointer; box-shadow:0 8px 20px -6px rgba(108,76,224,0.45); transition:all 0.2s;">
@@ -1495,8 +1544,8 @@ body[data-theme="dark"],
 
       <p id="login-msg" style="color:#FF6B6B; font-size:13px; margin-top:12px; min-height:18px; line-height:1.5;"></p>
 
-      <div class="curfew-note-box" style="margin-top:14px; padding:10px 14px; border-radius:12px; font-size:12px; line-height:1.5; text-align:center;">
-        ⏰ 每日可作答時間為早上七點半到晚上十點
+      <div class="curfew-note-box" style="margin-top:10px; padding:8px 12px; background:rgba(108,76,224,0.05); border:1px solid rgba(108,76,224,0.12); border-radius:10px; font-size:11.5px; line-height:1.45; text-align:center; color:#5A6183;">
+        ⏰ 每日系統開放作答時間為 07:30 至 22:00，請於開放時段內進行測驗練習。
       </div>
 
       <div class="login-study-note" style="margin-top:10px; padding:8px 12px; background:rgba(108,76,224,0.05); border:1px solid rgba(108,76,224,0.12); border-radius:10px; font-size:11.5px; line-height:1.45; text-align:center; color:#5A6183;">
@@ -1672,11 +1721,11 @@ body[data-theme="dark"],
               </div>
               <div id="export-range-wrap" class="export-date-inputs export-range-container" style="display:none;">
                 <div class="export-date-col">
-                  <label for="export-start-date" class="export-col-label">起始日</label>
+                  <label for="export-start-date" class="export-col-label">起始日期</label>
                   <input type="date" id="export-start-date" class="date-picker-input">
                 </div>
                 <div class="export-date-col">
-                  <label for="export-end-date" class="export-col-label">結束日</label>
+                  <label for="export-end-date" class="export-col-label">結束日期</label>
                   <input type="date" id="export-end-date" class="date-picker-input">
                 </div>
               </div>
@@ -1779,6 +1828,7 @@ body[data-theme="dark"],
         document.documentElement.removeAttribute("data-theme");
       }
       localStorage.setItem("app_theme", isDark ? "dark" : "light");
+      localStorage.setItem("theme", isDark ? "dark" : "light");
       
       // 同步頂端按鈕文字與圖示
       const icon = document.getElementById("s-theme-icon");
@@ -1794,6 +1844,22 @@ body[data-theme="dark"],
         if (lIcon) lIcon.textContent = isDark ? "☀️" : "🌙";
         if (lTxt) lTxt.textContent = isDark ? "淺色" : "深色";
       }
+
+      // 同步登入卡片與輸入框底色
+      const loginCard = document.querySelector("#login-overlay > div");
+      if (loginCard) {
+        loginCard.style.background = isDark ? "#1C2234" : "#ffffff";
+        loginCard.style.borderColor = isDark ? "#2B334E" : "#E7E9F5";
+      }
+      const uInp = document.getElementById("login-user");
+      const pInp = document.getElementById("login-pass");
+      [uInp, pInp].forEach(inp => {
+        if (inp) {
+          inp.style.background = isDark ? "#141826" : "#F6F7FB";
+          inp.style.color = isDark ? "#F0F3FA" : "#232A4D";
+          inp.style.borderColor = isDark ? "#2B334E" : "#E7E9F5";
+        }
+      });
     }
 
     function toggleTheme() {
