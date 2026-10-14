@@ -3613,6 +3613,11 @@
       border-color: rgba(108, 76, 224, 0.3) !important;
       color: #B4A2F8 !important;
     }
+    /* 嚴格保證未登入時絕不出現任何登出按鈕 */
+    body:not(.student-mode):not(.teacher-mode) #btnStudentDirectLogout,
+    body:not(.student-mode):not(.teacher-mode) #btnLogoutOrBack {
+      display: none !important;
+    }
 
 </style>
 </head>
@@ -3708,7 +3713,7 @@
   <!-- ══════════════════════════════════════════
        教師：返回班級總覽列
   ══════════════════════════════════════════ -->
-  <div id="teacherBackBar" class="card">
+  <div id="teacherBackBar" class="card" style="display:none;">
     <div class="back-inner">
       <button class="btn-secondary" onclick="backToClassOverview()">← 返回班級總覽</button>
       <span class="viewing-label">正在查看：</span>
