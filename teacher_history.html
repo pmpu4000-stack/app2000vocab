@@ -2273,23 +2273,21 @@
 
     .legend {
       display: flex !important;
-      gap: 16px !important;
+      flex-direction: column !important;
+      gap: 8px !important;
       margin-top: 12px !important;
       font-size: 13px !important;
       color: var(--ink2) !important;
       font-weight: 700 !important;
-      flex-wrap: wrap !important;
-      align-items: center !important;
     }
     [data-theme="dark"] .legend {
       color: #A5B0CF !important;
     }
-    .legend-break {
-      flex-basis: 100% !important;
-      width: 100% !important;
-      height: 0 !important;
-      margin: -4px 0 !important;
-      display: block !important;
+    .legend-row {
+      display: flex !important;
+      gap: 8px 12px !important;
+      align-items: center !important;
+      flex-wrap: wrap !important;
     }
     .legend span {
       display: flex !important;
@@ -2304,13 +2302,13 @@
       flex-shrink: 0 !important;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15) !important;
     }
-    .legend span:nth-child(1) i { background: var(--bar-learn-dot, #6366F1) !important; }
-    .legend span:nth-child(2) i { background: var(--bar-prac-dot, #0284C7) !important; }
-    .legend span:nth-child(3) i { background: var(--bar-mast-dot, #10B981) !important; }
+    .legend-row-mastery span:nth-child(1) i, .legend span:nth-child(1) i { background: var(--bar-learn-dot, #6366F1) !important; }
+    .legend-row-mastery span:nth-child(2) i, .legend span:nth-child(2) i { background: var(--bar-prac-dot, #0284C7) !important; }
+    .legend-row-mastery span:nth-child(3) i, .legend span:nth-child(3) i { background: var(--bar-mast-dot, #10B981) !important; }
 
-    .legend span:nth-child(1) b { color: var(--bar-learn-text, #4F46E5) !important; font-weight: 800 !important; font-size: 14px !important; }
-    .legend span:nth-child(2) b { color: var(--bar-prac-text, #0369A1) !important; font-weight: 800 !important; font-size: 14px !important; }
-    .legend span:nth-child(3) b { color: var(--bar-mast-text, #047857) !important; font-weight: 800 !important; font-size: 14px !important; }
+    .legend-row-mastery span:nth-child(1) b, .legend span:nth-child(1) b { color: var(--bar-learn-text, #4F46E5) !important; font-weight: 800 !important; font-size: 14px !important; }
+    .legend-row-mastery span:nth-child(2) b, .legend span:nth-child(2) b { color: var(--bar-prac-text, #0369A1) !important; font-weight: 800 !important; font-size: 14px !important; }
+    .legend-row-mastery span:nth-child(3) b, .legend span:nth-child(3) b { color: var(--bar-mast-text, #047857) !important; font-weight: 800 !important; font-size: 14px !important; }
 
     .defs {
       font-size: 11.5px !important;
@@ -4235,13 +4233,16 @@
         <i class="mast" id="b-mast" style="width:0%;"></i>
       </div>
       <div class="legend">
-        <span title="答對 1 次（或最近答錯，需要再練）"><i style="background:#D9D5F2"></i>學習中 <b id="n-learn" class="tnum">0</b></span>
-        <span title="連續答對 2 次"><i style="background:#B9E8D3"></i>練習中 <b id="n-prac" class="tnum">0</b></span>
-        <span title="連續答對 3 次，獲得 ⭐"><i style="background:var(--green)"></i>精通 <b id="n-mast" class="tnum">0</b></span>
-        <div class="legend-break"></div>
-        <span title="答對單字與答對率"><i style="background:var(--violet, #6C4CE0)"></i>答對 <b id="n-correct" class="tnum">0</b> 字<span style="color:var(--ink3);margin:0 2px;">/</span>共 <b id="n-total" class="tnum">2055</b> 字（答對率 <b id="n-rate" class="tnum">0%</b>）</span>
-        <span class="stat-sep" style="margin:0 -2px;">/</span>
-        <span title="目前獲得累積總分"><i style="background:var(--sky, #2D9CDB)"></i>獲得 <b id="n-score" class="tnum">0</b> 分</span>
+        <div class="legend-row legend-row-mastery">
+          <span title="答對 1 次（或最近答錯，需要再練）"><i style="background:#D9D5F2"></i>學習中 <b id="n-learn" class="tnum">0</b></span>
+          <span title="連續答對 2 次"><i style="background:#B9E8D3"></i>練習中 <b id="n-prac" class="tnum">0</b></span>
+          <span title="連續答對 3 次，獲得 ⭐"><i style="background:var(--green)"></i>精通 <b id="n-mast" class="tnum">0</b></span>
+        </div>
+        <div class="legend-row legend-row-stats">
+          <span title="答對單字與答對率"><i style="background:var(--violet, #6C4CE0)"></i>答對 <b id="n-correct" class="tnum">0</b> 字<span style="color:var(--ink3);margin:0 2px;">/</span>共 <b id="n-total" class="tnum">2055</b> 字（答對率 <b id="n-rate" class="tnum">0%</b>）</span>
+          <span class="stat-sep" style="margin:0 -2px;">/</span>
+          <span title="目前獲得累積總分"><i style="background:var(--sky, #2D9CDB)"></i>獲得 <b id="n-score" class="tnum">0</b> 分</span>
+        </div>
       </div>
       <p class="defs">熟練度定義：<b>學習中</b>＝答對 1 次 · <b>練習中</b>＝連續答對 2 次 · <b>精通</b>＝連續答對 3 次（答錯會退回「學習中」）</p>
     </section>
