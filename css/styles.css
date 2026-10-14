@@ -301,6 +301,29 @@ body.daily-limit-reached #session {
   display: none !important;
 }
 
+/* 今日練習時間已結束：隱藏上方上傳紀錄、得分、答對字、答對率、今日剩餘方塊，僅留下登入帳號和淺色/深色主題方塊 */
+body.daily-limit-reached .stat.upload,
+body.daily-limit-reached .stat.score,
+body.daily-limit-reached .stat.ok,
+body.daily-limit-reached .stat.streak,
+body.daily-limit-reached .stat.rate,
+body.daily-limit-reached .stat.timer,
+body.daily-limit-reached #stat-daily-timer,
+body.daily-limit-reached #btn-upload {
+  display: none !important;
+}
+
+@media (max-width: 580px) {
+  body.daily-limit-reached .stats {
+    justify-content: flex-end !important;
+  }
+  body.daily-limit-reached .stat.user,
+  body.daily-limit-reached .stat.theme {
+    flex: 0 1 auto !important;
+    min-width: 72px !important;
+  }
+}
+
 /* Teacher Daily Task Quiz Section */
 .task-history-card{background:#F8F9FD;border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:10px 0 16px}
 .task-history-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px}
