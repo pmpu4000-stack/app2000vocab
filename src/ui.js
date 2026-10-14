@@ -1787,7 +1787,7 @@ export function toggleSummary(data) {
   } else {
     el.summary.hidden = true;
     if (sec) sec.classList.add("is-collapsed");
-    if (sumBtn) sumBtn.innerHTML = "📊 學習紀錄 Record";
+    if (sumBtn) sumBtn.innerHTML = "學習紀錄 Records";
   }
 }
 

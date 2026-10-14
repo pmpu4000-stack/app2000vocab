@@ -4239,7 +4239,7 @@
           <span title="連續答對 3 次，獲得 ⭐"><i style="background:var(--green)"></i>精通 <b id="n-mast" class="tnum">0</b></span>
         </div>
         <div class="legend-row legend-row-stats">
-          <span title="答對單字與答對率"><i style="background:var(--violet, #6C4CE0)"></i>答對 <b id="n-correct" class="tnum">0</b> 字<span style="color:var(--ink3);margin:0 2px;">/</span>共 <b id="n-total" class="tnum">2055</b> 字（答對率 <b id="n-rate" class="tnum">0%</b>）</span>
+          <span title="單字掌握率：已答對字數占全體 2055 字的百分比"><i style="background:var(--violet, #6C4CE0)"></i>答對 <b id="n-correct" class="tnum">0</b> 字<span style="color:var(--ink3);margin:0 2px;">/</span>共 <b id="n-total" class="tnum">2055</b> 字（掌握率 <b id="n-rate" class="tnum">0%</b>）</span>
           <span class="stat-sep" style="margin:0 -2px;">/</span>
           <span title="目前獲得累積總分"><i style="background:var(--sky, #2D9CDB)"></i>獲得 <b id="n-score" class="tnum">0</b> 分</span>
         </div>
@@ -4247,11 +4247,11 @@
       <p class="defs">熟練度定義：<b>學習中</b>＝答對 1 次 · <b>練習中</b>＝連續答對 2 次 · <b>精通</b>＝連續答對 3 次（答錯會退回「學習中」）</p>
     </section>
 
-    <!-- 📊 學習紀錄 Record 獨立卡片 -->
+    <!-- 學習紀錄 Records 獨立卡片 -->
     <section class="progress learning-record-card" id="studentLearningRecordCard">
       <h3>
         <span style="display:inline-flex; align-items:center; gap:6px;">
-          <span>📊 學習紀錄 Record</span>
+          <span>學習紀錄 Records</span>
           <span id="stUserTag"></span>
         </span>
         <span style="display:flex; gap:14px;">
@@ -14186,7 +14186,7 @@ function renderStudentSummary(resp) {
     sumBtn.onclick = () => {
       const isHidden = (sumPanel.style.display === "none");
       sumPanel.style.display = isHidden ? "block" : "none";
-      sumBtn.innerHTML = isHidden ? "收起 ✕" : "📊 學習紀錄 Record";
+      sumBtn.innerHTML = isHidden ? "收起 ✕" : "學習紀錄 Records";
       if (sumRecordCard) sumRecordCard.classList.toggle("is-collapsed", !isHidden);
       if (isHidden) {
         sumPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -14196,7 +14196,7 @@ function renderStudentSummary(resp) {
   if (sumClose && sumPanel) {
     sumClose.onclick = () => {
       sumPanel.style.display = "none";
-      if (sumBtn) sumBtn.innerHTML = "📊 學習紀錄 Record";
+      if (sumBtn) sumBtn.innerHTML = "學習紀錄 Records";
       if (sumRecordCard) sumRecordCard.classList.add("is-collapsed");
     };
   }
