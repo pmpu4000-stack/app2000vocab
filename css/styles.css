@@ -177,7 +177,7 @@ header{display:flex; align-items:center; gap:14px; margin-bottom:14px}
 .foot{text-align:center;font-size:12px;color:var(--ink3);margin-top:18px;font-weight:600;line-height:1.7}
 
 canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
-@keyframes pop{0%{transform:scale(.7)}60%{transform:scale(1.12)}100%{transform:scale(1)}}
+@keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.035)}100%{transform:scale(1)}}
 .pop{animation:pop .32s ease}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
 .shake{animation:shake .3s}
