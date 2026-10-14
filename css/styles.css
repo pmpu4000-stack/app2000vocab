@@ -292,6 +292,15 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 .result .sub{font-size:15px;color:var(--ink2);font-weight:700}
 .result .lvpill{font-size:20px;font-weight:800;color:#fff;padding:8px 20px;border-radius:999px}
 
+/* 今日練習時間已結束：一併隱藏 Level 1~5 關卡小方塊、模式、卡片等，留下乾淨清爽畫面 */
+body.daily-limit-reached #levelbar,
+body.daily-limit-reached #modes,
+body.daily-limit-reached #card,
+body.daily-limit-reached #banner,
+body.daily-limit-reached #session {
+  display: none !important;
+}
+
 /* Teacher Daily Task Quiz Section */
 .task-history-card{background:#F8F9FD;border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:10px 0 16px}
 .task-history-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px}

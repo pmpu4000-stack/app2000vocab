@@ -303,6 +303,15 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 .lvchip[data-state="locked"]{opacity:.5;cursor:not-allowed;background:#F4F4F8}
 .lvchip[data-state="locked"] .lvname{color:var(--ink3)}
 
+/* 今日練習時間已結束：一併隱藏 Level 1~5 關卡小方塊、模式、卡片等，留下乾淨清爽畫面 */
+body.daily-limit-reached #levelbar,
+body.daily-limit-reached #modes,
+body.daily-limit-reached #card,
+body.daily-limit-reached #banner,
+body.daily-limit-reached #session {
+  display: none !important;
+}
+
 /* ---------- gate banner ---------- */
 .banner{margin-top:12px}
 .banner .gate{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);
@@ -1914,6 +1923,9 @@ body[data-theme="dark"],
               if (fl) localStorage.setItem(`daily_usage_${uName}_first_login_time`, String(fl));
               window.__dailyUsageTimeIsUp = (!unl && fl > 0 && ((lim + ext) * 60000 - (Date.now() - fl)) <= 0);
               window.__bootedLocked = window.__dailyUsageTimeIsUp;
+              if (window.__dailyUsageTimeIsUp) {
+                document.body.classList.add("daily-limit-reached");
+              }
             }
             const cacheBuster = Date.now();
             await import(`./src/app.js?v=${cacheBuster}`);
@@ -2763,17 +2775,13 @@ body[data-theme="dark"],
       const limitCard = document.getElementById("daily-limit-reached-card");
       if (limitCard && limitCard.style.display !== "block") limitCard.style.display = "block";
 
-      // 各關卡進度與整體學習進度維持正常顯示，關卡點擊作答則自動鎖定
+      // 今日練習時間已結束：一併隱藏 LEVEL 1~5 關卡小方塊，留下乾淨清爽的畫面
       const levelbar = document.getElementById("levelbar");
-      if (levelbar) {
-        levelbar.style.display = "flex";
-        levelbar.style.pointerEvents = "none";
-        levelbar.style.opacity = "0.9";
-        // 確保 LEVEL 1~5 關卡方塊位於上方，今日練習時間已結束方塊位於下方
-        if (limitCard && limitCard.parentNode) {
-          limitCard.parentNode.insertBefore(levelbar, limitCard);
-        }
+      if (levelbar && levelbar.style.display !== "none") {
+        levelbar.style.display = "none";
       }
+
+      document.body.classList.add("daily-limit-reached");
 
       const progressSec = document.querySelector("section.progress");
       if (progressSec && progressSec.style.display !== "block") progressSec.style.display = "block";
@@ -2833,6 +2841,8 @@ body[data-theme="dark"],
 
     function liftDailyUsageLockdown() {
       dailyUsageState.isLockedDown = false;
+      window.__dailyUsageTimeIsUp = false;
+      document.body.classList.remove("daily-limit-reached");
       console.log("🔓 每日練習限制已解除或延長，恢復作答卡片");
 
       const limitCard = document.getElementById("daily-limit-reached-card");

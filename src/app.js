@@ -231,6 +231,16 @@ function refreshChrome() {
     const bannerEl = document.getElementById("banner");
     if (bannerEl) bannerEl.style.display = "none";
   }
+
+  // ⚠️ 今日練習時間已結束：一併隱藏模式列、關卡列與等級挑戰橫幅，留下乾淨清爽畫面
+  if (window.__dailyUsageTimeIsUp || (window.dailyUsageState && window.dailyUsageState.isLockedDown) || document.body.classList.contains("daily-limit-reached")) {
+    const modesEl = document.getElementById("modes");
+    if (modesEl) modesEl.style.display = "none";
+    const levelBar = document.getElementById("levelbar");
+    if (levelBar) levelBar.style.display = "none";
+    const bannerEl = document.getElementById("banner");
+    if (bannerEl) bannerEl.style.display = "none";
+  }
 }
 
 function renderCurrent() {
@@ -582,15 +592,16 @@ function checkAndStartDailyTask() {
     taskState.active = false;
     taskState.pending = false;
 
-    // 確保按鈕恢復自由模式
+    // 確保按鈕恢復自由模式（若每日時間已到則維持隱藏）
+    const isTimeUp = window.__dailyUsageTimeIsUp || (window.dailyUsageState && window.dailyUsageState.isLockedDown) || document.body.classList.contains("daily-limit-reached");
     const checkBtn = document.getElementById("checkBtn");
-    if (checkBtn) checkBtn.style.display = "";
+    if (checkBtn) checkBtn.style.display = isTimeUp ? "none" : "";
     const modesEl = document.getElementById("modes");
-    if (modesEl) modesEl.style.display = "";
+    if (modesEl) modesEl.style.display = isTimeUp ? "none" : "";
     const levelBar = document.getElementById("levelbar");
-    if (levelBar) levelBar.style.display = "";
+    if (levelBar) levelBar.style.display = isTimeUp ? "none" : "";
     const bannerEl = document.getElementById("banner");
-    if (bannerEl) bannerEl.style.display = "";
+    if (bannerEl) bannerEl.style.display = isTimeUp ? "none" : "";
 
     const catLabel = document.getElementById("catlabel");
     if (catLabel) catLabel.textContent = "✅ 今日指定練習已完成，明天再繼續！已開放自由升級闖關";
@@ -648,14 +659,15 @@ function checkAndStartDailyTask() {
   if (!taskToRun) {
     taskState.active = false;
     taskState.pending = false;
+    const isTimeUp = window.__dailyUsageTimeIsUp || (window.dailyUsageState && window.dailyUsageState.isLockedDown) || document.body.classList.contains("daily-limit-reached");
     const checkBtn = document.getElementById("checkBtn");
-    if (checkBtn) checkBtn.style.display = "";
+    if (checkBtn) checkBtn.style.display = isTimeUp ? "none" : "";
     const modesEl = document.getElementById("modes");
-    if (modesEl) modesEl.style.display = "";
+    if (modesEl) modesEl.style.display = isTimeUp ? "none" : "";
     const levelBar = document.getElementById("levelbar");
-    if (levelBar) levelBar.style.display = "";
+    if (levelBar) levelBar.style.display = isTimeUp ? "none" : "";
     const bannerEl = document.getElementById("banner");
-    if (bannerEl) bannerEl.style.display = "";
+    if (bannerEl) bannerEl.style.display = isTimeUp ? "none" : "";
     const catLabel = document.getElementById("catlabel");
     if (catLabel) {
       catLabel.textContent = "💡 今日尚無指派任務，已開放自由闖關升級";
@@ -922,15 +934,16 @@ function finishTaskMode() {
     localStorage.setItem("student_task_history", JSON.stringify(filtered));
   } catch(_) {}
 
-  // 4. 還原自由模式按鈕
+  // 4. 還原自由模式按鈕（若每日時間已到則維持隱藏）
+  const isTimeUp = window.__dailyUsageTimeIsUp || (window.dailyUsageState && window.dailyUsageState.isLockedDown) || document.body.classList.contains("daily-limit-reached");
   const checkBtn = document.getElementById("checkBtn");
-  if (checkBtn) checkBtn.style.display = "";
+  if (checkBtn) checkBtn.style.display = isTimeUp ? "none" : "";
   const modesEl = document.getElementById("modes");
-  if (modesEl) modesEl.style.display = "";
+  if (modesEl) modesEl.style.display = isTimeUp ? "none" : "";
   const levelBar = document.getElementById("levelbar");
-  if (levelBar) levelBar.style.display = "";
+  if (levelBar) levelBar.style.display = isTimeUp ? "none" : "";
   const bannerEl = document.getElementById("banner");
-  if (bannerEl) bannerEl.style.display = "";
+  if (bannerEl) bannerEl.style.display = isTimeUp ? "none" : "";
 
   burst();
 
