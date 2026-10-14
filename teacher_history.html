@@ -3467,20 +3467,197 @@
       background: rgba(255, 255, 255, 0.04) !important;
       border-color: rgba(255, 255, 255, 0.14) !important;
       color: #9AA0BD !important;
+    /* ══════════════════════════════════════════
+       登入驗證遮罩樣式 (1:1 完美比照遊戲網頁登入處)
+    ══════════════════════════════════════════ */
+    #login-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--paper, #F6F7FB) !important;
+      background-color: #F6F7FB !important;
+      background-image: none !important;
+      backdrop-filter: none !important;
+      z-index: 9999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
-    [data-theme="dark"] .heat-legend b {
-      color: #E2E8F0 !important;
+    [data-theme="dark"] #login-overlay {
+      background: #141826 !important;
+      background-color: #141826 !important;
+      background-image: none !important;
+      backdrop-filter: none !important;
+    }
+    #login-overlay > div {
+      background: #ffffff;
+      padding: 36px 32px;
+      border-radius: 24px;
+      box-shadow: 0 20px 45px -10px rgba(35,42,77,0.22);
+      width: 320px;
+      max-width: 90vw;
+      text-align: center;
+      border: 1px solid #E7E9F5;
+      position: relative;
+      box-sizing: border-box;
+    }
+    [data-theme="dark"] #login-overlay > div {
+      background: #1C2234 !important;
+      border-color: #2B334E !important;
+      color: #F0F3FA !important;
+      box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.5) !important;
+    }
+    #login-overlay h2 {
+      color: #232A4D;
+      margin: 0 0 8px 0;
+      font-size: 22px;
+      font-weight: 800;
+    }
+    [data-theme="dark"] #login-overlay h2 {
+      color: #F0F3FA !important;
+    }
+    #login-overlay p {
+      color: #5A6183;
+      font-size: 13px;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+    [data-theme="dark"] #login-overlay p {
+      color: #9AA0BD !important;
+    }
+    #login-overlay input {
+      width: 100%;
+      padding: 13px 14px;
+      border: 1.5px solid #E7E9F5;
+      border-radius: 12px;
+      box-sizing: border-box;
+      background: #F6F7FB;
+      color: #232A4D;
+      font-size: 15px;
+      outline: none;
+      transition: all .2s;
+    }
+    #login-overlay input:focus {
+      border-color: #6C4CE0 !important;
+      background: #FFFFFF !important;
+    }
+    [data-theme="dark"] #login-overlay input {
+      background: #141826 !important;
+      border-color: #2B334E !important;
+      color: #F0F3FA !important;
+    }
+    [data-theme="dark"] #login-overlay input:focus {
+      border-color: #8B5CF6 !important;
+      background: #1C2234 !important;
+    }
+    [data-theme="dark"] #login-overlay input:-webkit-autofill,
+    [data-theme="dark"] #login-overlay input:-webkit-autofill:hover,
+    [data-theme="dark"] #login-overlay input:-webkit-autofill:focus {
+      -webkit-box-shadow: 0 0 0 1000px #141826 inset !important;
+      -webkit-text-fill-color: #F0F3FA !important;
+      caret-color: #F0F3FA !important;
+    }
+    #btn-login-theme-toggle {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: rgba(108,76,224,0.08);
+      border: 1px solid #E7E9F5;
+      border-radius: 20px;
+      padding: 5px 11px;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--ink2, #5A6183);
+      transition: all .2s;
+    }
+    [data-theme="dark"] #btn-login-theme-toggle {
+      background: #20263A !important;
+      border-color: #2B334E !important;
+      color: #9AA0BD !important;
+    }
+    .curfew-note-box {
+      margin-top: 14px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 12px;
+      line-height: 1.5;
+      text-align: center;
+      background: #FFFBEB;
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      color: #92400E;
+    }
+    [data-theme="dark"] .curfew-note-box {
+      background: rgba(245, 158, 11, 0.1) !important;
+      border-color: rgba(245, 158, 11, 0.3) !important;
+      color: #FCD34D !important;
+    }
+    .login-study-note {
+      margin-top: 10px;
+      padding: 8px 12px;
+      background: rgba(108,76,224,0.05);
+      border: 1px solid rgba(108,76,224,0.12);
+      border-radius: 10px;
+      font-size: 11.5px;
+      line-height: 1.45;
+      text-align: center;
+      color: #5A6183;
+    }
+    [data-theme="dark"] .login-study-note {
+      background: rgba(108, 76, 224, 0.15) !important;
+      border-color: rgba(108, 76, 224, 0.3) !important;
+      color: #B4A2F8 !important;
     }
 
 </style>
 </head>
 <body>
+  <!-- 登入驗證遮罩 (1:1 完美比照遊戲網頁登入處) -->
+  <div id="login-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#F6F7FB; z-index:9999; display:flex; justify-content:center; align-items:center;">
+    <div style="background:#ffffff; padding:36px 32px; border-radius:24px; box-shadow:0 20px 45px -10px rgba(35,42,77,0.22); width:320px; text-align:center; border:1px solid #E7E9F5; position:relative;">
+      <!-- 登入視窗切換按鈕 -->
+      <button type="button" id="btn-login-theme-toggle" onclick="toggleTheme()" title="切換深色/淺色模式"
+        style="position:absolute; top:16px; right:16px; background:rgba(108,76,224,0.08); border:1px solid #E7E9F5; border-radius:20px; padding:5px 11px; font-size:12.5px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:4px; color:var(--ink2, #5A6183);">
+        <span class="theme-icon">🌙</span><span class="theme-text">深色</span>
+      </button>
+      <div style="font-size:40px; margin-bottom:8px;">🎯</div>
+      <h2 style="color:#232A4D; margin:0 0 8px 0; font-size:22px; font-weight:800;">拼字小特工</h2>
+      <p style="color:#5A6183; font-size:13px; margin-bottom:20px; line-height:1.5;">請輸入學號與密碼</p>
+      
+      <input type="text" id="username" placeholder="請輸入學號 (如: 70101)" autocomplete="username"
+        style="width:100%; padding:13px 14px; margin-bottom:12px; border:1.5px solid #E7E9F5; border-radius:12px; box-sizing:border-box; background:#F6F7FB; color:#232A4D; font-size:15px; outline:none; transition:all .2s;">
+      
+      <input type="password" id="password" placeholder="請輸入密碼" autocomplete="current-password"
+        style="width:100%; padding:13px 14px; margin-bottom:20px; border:1.5px solid #E7E9F5; border-radius:12px; box-sizing:border-box; background:#F6F7FB; color:#232A4D; font-size:15px; outline:none; transition:all .2s;">
+      
+      <button id="btnLogin" onclick="login()"
+        style="width:100%; padding:13px; background:#6C4CE0; color:white; border:none; border-radius:12px; font-weight:700; font-size:15px; cursor:pointer; box-shadow:0 8px 20px -6px rgba(108,76,224,0.45); transition:all 0.2s;">
+        確認登入
+      </button>
+
+      <p id="login-msg" style="color:#FF6B6B; font-size:13px; margin-top:12px; min-height:18px; line-height:1.5;"></p>
+
+      <div class="curfew-note-box" style="margin-top:14px; padding:10px 14px; border-radius:12px; font-size:12px; line-height:1.5; text-align:center;">
+        ⏰ 每日可作答時間為早上七點半到晚上十點
+      </div>
+
+      <div class="login-study-note" style="margin-top:10px; padding:8px 12px; background:rgba(108,76,224,0.05); border:1px solid rgba(108,76,224,0.12); border-radius:10px; font-size:11.5px; line-height:1.45; text-align:center; color:#5A6183;">
+        💡 登入將記錄班級座號與答題成績，作為英語科學習歷程與教學輔導使用。
+      </div>
+    </div>
+  </div>
+
 <div class="container">
 
   <!-- ══════════════════════════════════════════
        主控制卡片 (登入 + 學生查詢控制列)
   ══════════════════════════════════════════ -->
-  <div class="card" id="mainControlCard">
+  <div class="card" id="mainControlCard" style="display:none;">
     <div class="header-title main-header-row">
       <div class="header-title-left">
         <h2>📊 學生作答歷程記錄表</h2>
@@ -3493,19 +3670,7 @@
     </div>
 
     <div id="toast" class="toast-box"></div>
-
-    <!-- 登入介面 -->
-    <div id="loginSection" class="controls-grid">
-      <div class="input-field">
-        <label for="username">帳號</label>
-        <input type="text" id="username" placeholder="請輸入學號/帳號" autocomplete="username" />
-      </div>
-      <div class="input-field">
-        <label for="password">密碼</label>
-        <input type="password" id="password" placeholder="請輸入密碼" autocomplete="current-password" />
-      </div>
-      <button id="btnLogin" onclick="login()">登入系統</button>
-    </div>
+    <div id="loginSection" style="display:none;"></div>
 
     <!-- 學生查詢介面 (登入後顯示) -->
     <div id="querySection" style="display:none;">
@@ -5788,7 +5953,15 @@ function toggleTheme() {
   if (document.getElementById("heatmapCard") && document.getElementById("heatmapCard").style.display !== "none") renderHeatmap();
 }
 function updateThemeButtonText(theme) {
-  document.getElementById("btnThemeToggle").innerHTML = theme === "dark" ? "☀️ 明亮模式" : "🌙 深色模式";
+  const btn = document.getElementById("btnThemeToggle");
+  if (btn) btn.innerHTML = theme === "dark" ? "☀️ 明亮模式" : "🌙 深色模式";
+  const loginThemeBtn = document.getElementById("btn-login-theme-toggle");
+  if (loginThemeBtn) {
+    const lIcon = loginThemeBtn.querySelector(".theme-icon");
+    const lTxt = loginThemeBtn.querySelector(".theme-text");
+    if (lIcon) lIcon.textContent = theme === "dark" ? "☀️" : "🌙";
+    if (lTxt) lTxt.textContent = theme === "dark" ? "淺色" : "深色";
+  }
 }
 
 // ════════════════════════════════════════
@@ -5796,12 +5969,21 @@ function updateThemeButtonText(theme) {
 // ════════════════════════════════════════
 function showToast(msg, type = "danger") {
   const el = document.getElementById("toast");
-  el.className = `toast-box toast-${type} show`;
-  el.innerText = msg;
+  if (el) {
+    el.className = `toast-box toast-${type} show`;
+    el.innerText = msg;
+  }
+  const lMsg = document.getElementById("login-msg");
+  if (lMsg) {
+    lMsg.innerText = msg;
+    lMsg.style.color = (type === "warning" || type === "danger") ? "#FF6B6B" : "#10B981";
+  }
 }
 function hideToast() {
   const el = document.getElementById("toast");
-  el.className = "toast-box"; el.innerText = "";
+  if (el) { el.className = "toast-box"; el.innerText = ""; }
+  const lMsg = document.getElementById("login-msg");
+  if (lMsg) { lMsg.innerText = ""; }
 }
 function setBtnLoading(btnId, isLoading, text) {
   const btn = document.getElementById(btnId);
@@ -5817,11 +5999,11 @@ function login() {
   hideToast();
   const u = document.getElementById("username").value.trim();
   const p = document.getElementById("password").value.trim();
-  if (!u || !p) { showToast("請輸入帳號與密碼"); return; }
+  if (!u || !p) { showToast("請輸入學號與密碼"); return; }
   try { localStorage.setItem("remembered_username", u); } catch(_) {}
   currentUser = u; currentPass = p;
-  setBtnLoading("btnLogin", true, "登入系統");
-  fetchData(false, () => setBtnLoading("btnLogin", false, "登入系統"));
+  setBtnLoading("btnLogin", true, "登入中...");
+  fetchData(false, () => setBtnLoading("btnLogin", false, "確認登入"));
 }
 
 // ════════════════════════════════════════
@@ -5841,7 +6023,12 @@ function logout() {
   document.getElementById("startDate").value = "";
   document.getElementById("endDate").value = "";
 
-  document.getElementById("loginSection").style.display = "flex";
+  const overlay = document.getElementById("login-overlay");
+  if (overlay) overlay.style.display = "flex";
+  const mainCard = document.getElementById("mainControlCard");
+  if (mainCard) mainCard.style.display = "none";
+  const loginSec = document.getElementById("loginSection");
+  if (loginSec) loginSec.style.display = "none";
   document.getElementById("querySection").style.display = "none";
   document.getElementById("teacherBackBar").style.display = "none";
   document.getElementById("teacherOverviewCard").style.display = "none";
@@ -5983,7 +6170,11 @@ function fetchData(isRefresh = false, onComplete = null) {
 // 教師：初始化班級總覽
 // ════════════════════════════════════════
 function initTeacherDashboard(resp) {
-  // 隱藏學生視圖
+  // 隱藏登入遮罩並顯示主控制區
+  const overlay = document.getElementById("login-overlay");
+  if (overlay) overlay.style.display = "none";
+  const mainCard = document.getElementById("mainControlCard");
+  if (mainCard) mainCard.style.display = "block";
   document.getElementById("loginSection").style.display = "none";
   document.getElementById("querySection").style.display = "none";
   document.getElementById("teacherBackBar").style.display = "none";
@@ -9548,6 +9739,8 @@ window.addEventListener("error", (e) => {
 // ════════════════════════════════════════
 function showStudentSections() {
   document.body.classList.add("student-mode");
+  const overlay = document.getElementById("login-overlay");
+  if (overlay) overlay.style.display = "none";
   document.getElementById("mainControlCard").style.display = "block";
   document.getElementById("querySection").style.display = "none";
   
