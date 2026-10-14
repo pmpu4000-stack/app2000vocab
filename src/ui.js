@@ -2407,8 +2407,8 @@ export function initExportRecordsCard(getSummaryFn) {
     currentMode = (m === "range") ? "range" : "single";
     if (btnModeSingle) btnModeSingle.classList.toggle("active", currentMode === "single");
     if (btnModeRange) btnModeRange.classList.toggle("active", currentMode === "range");
-    if (singleWrap) singleWrap.style.display = (currentMode === "single") ? "inline-flex" : "none";
-    if (rangeWrap) rangeWrap.style.display = (currentMode === "range") ? "inline-flex" : "none";
+    if (singleWrap) singleWrap.style.display = (currentMode === "single") ? "flex" : "none";
+    if (rangeWrap) rangeWrap.style.display = (currentMode === "range") ? "flex" : "none";
   };
 
   if (btnModeSingle) btnModeSingle.onclick = () => setExportMode("single");

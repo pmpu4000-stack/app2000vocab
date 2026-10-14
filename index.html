@@ -1245,20 +1245,64 @@ body[data-theme="dark"],
   border-color: var(--violet) !important;
   color: #FFFFFF !important;
 }
+.export-label-row {
+  margin-bottom: -2px;
+}
+.export-mode-row {
+  margin-bottom: 2px;
+}
+.export-date-row {
+  width: 100%;
+}
 .export-date-inputs {
-  display: inline-flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 5px;
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  width: 100%;
+}
+.export-range-container {
+  display: flex;
+  width: 100%;
+  gap: 10px;
+}
+.export-range-container .export-date-col {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.export-single-container {
+  display: flex;
+  width: 100%;
+}
+.export-single-container .export-date-col {
+  flex: 1 1 auto;
+  max-width: 240px;
+  min-width: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.export-col-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--ink2);
+  letter-spacing: 0.2px;
+}
+[data-theme="dark"] .export-col-label {
+  color: #A0AEC0;
+}
+.export-date-col .date-picker-input {
+  width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
 }
 .export-range-sep {
-  font-size: 12px;
-  font-weight: 800;
-  color: var(--ink2);
-  padding: 0 2px;
+  display: none;
 }
 .export-presets-row {
-  margin-top: -2px;
+  margin-top: 2px;
 }
 .export-quick-btns {
   display: inline-flex;
@@ -1338,14 +1382,28 @@ body[data-theme="dark"],
     margin-top: 0 !important;
     width: 100% !important;
   }
+  .export-date-row {
+    width: 100% !important;
+  }
   .export-date-inputs {
     width: 100% !important;
     margin-top: 2px !important;
   }
-  .export-date-inputs input[type="date"] {
-    flex: 1 1 auto !important;
+  .export-range-container {
     width: 100% !important;
-    min-width: 130px !important;
+    gap: 8px !important;
+  }
+  .export-range-container .export-date-col {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+  }
+  .export-single-container .export-date-col {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+  .export-date-col .date-picker-input {
+    width: 100% !important;
+    min-width: 0 !important;
     box-sizing: border-box !important;
   }
   .export-quick-btns {
@@ -1554,23 +1612,34 @@ body[data-theme="dark"],
         </h3>
         <div class="date-navigator-card export-navigator-card" id="export-navigator-card" style="display:none;">
           <div class="export-controls-wrap">
-            <div class="export-row">
+            <div class="export-row export-label-row">
               <span class="date-nav-title"><span>📅</span> 匯出範圍：</span>
+            </div>
+            <div class="export-row export-mode-row">
               <div class="export-mode-tabs" role="group" aria-label="選擇匯出日期模式">
                 <button type="button" id="btn-export-mode-single" class="date-nav-btn export-mode-btn active" data-mode="single">指定日期</button>
                 <button type="button" id="btn-export-mode-range" class="date-nav-btn export-mode-btn" data-mode="range">指定範圍</button>
               </div>
-              <div id="export-single-wrap" class="export-date-inputs">
-                <input type="date" id="export-single-date" class="date-picker-input">
+            </div>
+            <div class="export-row export-date-row">
+              <div id="export-single-wrap" class="export-date-inputs export-single-container">
+                <div class="export-date-col single-col">
+                  <label for="export-single-date" class="export-col-label">指定日期</label>
+                  <input type="date" id="export-single-date" class="date-picker-input">
+                </div>
               </div>
-              <div id="export-range-wrap" class="export-date-inputs" style="display:none;">
-                <input type="date" id="export-start-date" class="date-picker-input">
-                <span class="export-range-sep">至</span>
-                <input type="date" id="export-end-date" class="date-picker-input">
+              <div id="export-range-wrap" class="export-date-inputs export-range-container" style="display:none;">
+                <div class="export-date-col">
+                  <label for="export-start-date" class="export-col-label">起始日</label>
+                  <input type="date" id="export-start-date" class="date-picker-input">
+                </div>
+                <div class="export-date-col">
+                  <label for="export-end-date" class="export-col-label">結束日</label>
+                  <input type="date" id="export-end-date" class="date-picker-input">
+                </div>
               </div>
             </div>
             <div class="export-row export-presets-row">
-              <span class="date-nav-title" style="visibility:hidden; opacity:0; pointer-events:none;"><span>📅</span> 匯出範圍：</span>
               <div class="export-quick-btns">
                 <button type="button" class="date-nav-btn today-btn" id="btn-export-preset-today" title="匯出今日紀錄">📍 今日</button>
                 <button type="button" class="date-nav-btn" id="btn-export-preset-7d" title="最近 7 天">近 7 天</button>
