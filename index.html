@@ -1829,11 +1829,8 @@ body[data-theme="dark"],
             }
             msgEl.textContent = "✅ 登入成功，正在啟動學習進度...";
           } else if (!isDifferentUser && localAgentData) {
-            // 雲端無紀錄，但本機同帳號已有有效學習進度：完美保留並自動同步回傳雲端
+            // 雲端無紀錄，但本機同帳號已有有效學習進度：保留本機進度（登入時絕不上傳，確保純下載無覆蓋風險）
             msgEl.textContent = "✅ 登入成功，已復原本機學習進度...";
-            setTimeout(() => {
-              try { uploadLocalStorageData(true); } catch(_) {}
-            }, 1000);
           } else if (result.isNewStudent === true) {
             // 僅當雲端確認「無分頁」或「分頁完全無任何紀錄」時，才判定為全新帳號初始化
             const freshStore = {
