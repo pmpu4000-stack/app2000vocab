@@ -826,25 +826,38 @@ body[data-theme="dark"],
   margin-bottom: 14px;
   border-bottom: 1.5px solid var(--line);
 }
-.summary-embedded h3 a, .summary h3 a {
+.summary-embedded h3 a, .summary h3 a, #sumClose {
   font-size: 12px;
-  color: var(--ink3);
+  color: var(--violet);
   cursor: pointer;
-  text-decoration: none;
+  text-decoration: underline;
   font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   padding: 3px 8px;
   border-radius: 6px;
-  background: rgba(0, 0, 0, 0.04);
+  background: rgba(108, 76, 224, 0.08);
+  border: 1px solid rgba(108, 76, 224, 0.16);
   transition: all .15s;
 }
-.summary-embedded h3 a:hover, .summary h3 a:hover {
-  color: var(--violet);
-  background: rgba(108, 76, 224, 0.1);
+.summary-embedded h3 a:hover, .summary h3 a:hover, #sumClose:hover {
+  color: var(--violet-d);
+  background: rgba(108, 76, 224, 0.16);
+  opacity: 0.88;
 }
 [data-theme="dark"] .summary-embedded h3 a,
-[data-theme="dark"] .summary h3 a {
-  background: rgba(255, 255, 255, 0.08);
-  color: #A5B0CF;
+[data-theme="dark"] .summary h3 a,
+[data-theme="dark"] #sumClose {
+  background: rgba(56, 189, 248, 0.12) !important;
+  border-color: rgba(56, 189, 248, 0.22) !important;
+  color: var(--sky, #38bdf8) !important;
+}
+[data-theme="dark"] .summary-embedded h3 a:hover,
+[data-theme="dark"] .summary h3 a:hover,
+[data-theme="dark"] #sumClose:hover {
+  background: rgba(56, 189, 248, 0.22) !important;
+  color: #7dd3fc !important;
 }
 
 /* 2. 區塊副標題 (Section Sub-headings / 大區塊標題) */
