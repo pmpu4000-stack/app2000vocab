@@ -8,11 +8,16 @@ echo "========================================================"
 echo "  🚀 準備推送修改至線上倉庫 (GitHub Pages)"
 echo "========================================================"
 
-# 確保同步 code.gs 與 google_apps_script
-if [ -f "google_apps_script/Code.gs" ]; then
+# 確保同步 code.gs 與 google_apps_script (以較新檔案為準)
+if [ -f "google_apps_script/Code.gs" ] && [ "google_apps_script/Code.gs" -nt "code.gs" ]; then
   cp "google_apps_script/Code.gs" "code.gs"
+elif [ -f "code.gs" ]; then
+  cp "code.gs" "google_apps_script/Code.gs"
 fi
-if [ -f "google_apps_script/Index.html" ]; then
+
+if [ -f "teacher_history.html" ] && [ "teacher_history.html" -nt "google_apps_script/Index.html" ]; then
+  cp "teacher_history.html" "google_apps_script/Index.html"
+elif [ -f "google_apps_script/Index.html" ]; then
   cp "google_apps_script/Index.html" "teacher_history.html"
 fi
 
@@ -37,6 +42,13 @@ git pull --rebase origin main
 
 echo "==> 推送至 GitHub (main 分支)..."
 git push origin main
+
+# 若有設定 GAS 憑證，自動同步推送並部署 Google Apps Script
+if [ -f "$HOME/.clasprc.json" ]; then
+  echo ""
+  echo "==> 🚀 自動推送與部署 Google Apps Script..."
+  ./deploy_gas.sh || echo "⚠️ GAS 自動部署未完成，可稍後手動執行 ./deploy_gas.sh"
+fi
 
 echo ""
 echo "========================================================"
