@@ -2456,6 +2456,19 @@
       color: #38bdf8 !important;
       opacity: 0.95 !important;
     }
+    .legend .stat-sep {
+      color: var(--sky, #0284c7) !important;
+      font-weight: 800 !important;
+      margin: 0 -2px !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      opacity: 0.9 !important;
+      user-select: none !important;
+    }
+    [data-theme="dark"] .legend .stat-sep {
+      color: #38bdf8 !important;
+      opacity: 1 !important;
+    }
 
     /* 描述說明文字 */
     .formula-note-box {
@@ -4218,9 +4231,8 @@
         <span title="答對 1 次（或最近答錯，需要再練）"><i style="background:#D9D5F2"></i>學習中 <b id="n-learn" class="tnum">0</b></span>
         <span title="連續答對 2 次"><i style="background:#B9E8D3"></i>練習中 <b id="n-prac" class="tnum">0</b></span>
         <span title="連續答對 3 次，獲得 ⭐"><i style="background:var(--green)"></i>精通 <b id="n-mast" class="tnum">0</b></span>
-        <span title="答對單字數量"><i style="background:var(--violet, #6C4CE0)"></i>答對 <b id="n-correct" class="tnum">0</b> 字</span>
-        <span title="總單字數量" style="color:var(--ink3)"><i style="background:#8C98BA"></i>共 <b id="n-total" class="tnum">2055</b> 字</span>
-        <span title="目前作答答對率"><i style="background:var(--amber, #E8892B)"></i>答對率 <b id="n-rate" class="tnum">0%</b></span>
+        <span title="答對單字與答對率"><i style="background:var(--violet, #6C4CE0)"></i>答對 <b id="n-correct" class="tnum">0</b> 字<span style="color:var(--ink3);margin:0 2px;">/</span>共 <b id="n-total" class="tnum">2055</b> 字（答對率 <b id="n-rate" class="tnum">0%</b>）</span>
+        <span class="stat-sep" style="margin:0 -2px;">/</span>
         <span title="目前獲得累積總分"><i style="background:var(--sky, #2D9CDB)"></i>獲得 <b id="n-score" class="tnum">0</b> 分</span>
       </div>
       <p class="defs">熟練度定義：<b>學習中</b>＝答對 1 次 · <b>練習中</b>＝連續答對 2 次 · <b>精通</b>＝連續答對 3 次（答錯會退回「學習中」）</p>

@@ -1022,6 +1022,19 @@ body[data-theme="dark"],
   color: #38bdf8;
   opacity: 0.95;
 }
+.legend .stat-sep {
+  color: #0284c7;
+  font-weight: 800;
+  margin: 0 -2px;
+  display: inline-flex;
+  align-items: center;
+  opacity: 0.9;
+  user-select: none;
+}
+[data-theme="dark"] .legend .stat-sep {
+  color: #38bdf8;
+  opacity: 1;
+}
 
 /* 題目卡片內部指標小標與數值 */
 .task-score-label {
