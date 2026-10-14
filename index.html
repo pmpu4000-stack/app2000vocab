@@ -44,7 +44,7 @@ body{
 .tnum{font-variant-numeric:tabular-nums}
 
 /* ---------- header ---------- */
-header{display:flex; align-items:center; gap:14px; margin-bottom:16px}
+header{display:flex; align-items:center; gap:14px; margin-bottom:14px}
 .logo{width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,var(--violet),#9a7bff);
   display:grid;place-items:center;color:#fff;font-weight:800;font-size:26px;box-shadow:var(--shadow);flex:none;
   transform:rotate(-4deg)}
@@ -80,7 +80,7 @@ header{display:flex; align-items:center; gap:14px; margin-bottom:16px}
 .chip[data-c="E"][aria-pressed="true"]{background:var(--catE)} .chip[data-c="F"][aria-pressed="true"]{background:var(--catF)}
 
 /* ---------- mode tabs ---------- */
-.modes{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 14px}
+.modes{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
 .mode{flex:1 1 135px;min-width:105px;border:1.5px solid var(--line);background:var(--card);border-radius:13px;padding:9px 8px;cursor:pointer;
   text-align:center;font-weight:700;color:var(--ink2);font-size:13px;transition:transform .12s,border-color .12s,background .12s;box-sizing:border-box}
 .mode .ic{font-size:20px;display:block;line-height:1.3;margin-bottom:2px}
@@ -89,7 +89,7 @@ header{display:flex; align-items:center; gap:14px; margin-bottom:16px}
 
 /* ---------- practice card ---------- */
 .card{background:var(--card);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);
-  padding:24px 22px 22px;position:relative;overflow:hidden;min-height:360px;display:flex;flex-direction:column}
+  padding:24px 22px 22px;position:relative;overflow:hidden;min-height:360px;margin:0 0 14px;display:flex;flex-direction:column}
 .card::before{content:"";position:absolute;inset:0 0 auto 0;height:6px;
   background:linear-gradient(90deg,var(--catA),var(--catB),var(--catC),var(--catD),var(--catE))}
 .prompt-row{display:flex;align-items:center;gap:10px;margin-bottom:4px}
@@ -185,7 +185,7 @@ header{display:flex; align-items:center; gap:14px; margin-bottom:16px}
 .btn:disabled{opacity:.4;cursor:default}
 
 /* progress footer */
-.progress{margin-top:18px;background:var(--card);border:1.5px solid var(--line);border-radius:22px;padding:18px 20px;box-shadow:var(--shadow)}
+.progress{margin:0 0 14px;background:var(--card);border:1.5px solid var(--line);border-radius:20px;padding:16px 18px;box-shadow:var(--shadow)}
 .progress h3{font-size:15px;font-weight:800;letter-spacing:.3px;color:var(--ink);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
 .progress h3 a{color:var(--sky,#2D9CDB);font-size:12px;cursor:pointer;text-decoration:underline;font-weight:700;display:inline-flex;align-items:center;gap:4px}
 [data-theme="dark"] .progress h3 a{color:var(--sky,#38bdf8)}
@@ -197,9 +197,9 @@ header{display:flex; align-items:center; gap:14px; margin-bottom:16px}
 .bar .prac{background:var(--bar-prac-bg,linear-gradient(90deg, #0284C7, #38BDF8));box-shadow:1px 0 0 rgba(255,255,255,0.35)}
 .bar .mast{background:var(--bar-mast-bg,linear-gradient(90deg, #10B981, #34D399))}
 
-.legend{display:flex;gap:16px;margin-top:12px;font-size:13px;color:var(--ink2);font-weight:700;flex-wrap:wrap;align-items:center}
+.legend{display:flex;gap:8px 12px;margin-top:12px;font-size:12.5px;color:var(--ink2);font-weight:700;flex-wrap:wrap;align-items:center}
 [data-theme="dark"] .legend{color:#A5B0CF}
-.legend span{display:flex;align-items:center;gap:6px}
+.legend span{display:flex;align-items:center;gap:5px}
 .legend i{width:12px;height:12px;border-radius:4px;display:inline-block;flex-shrink:0;box-shadow:0 1px 3px rgba(0,0,0,0.15)}
 .legend span:nth-child(1) i{background:var(--bar-learn-dot,#6366F1) !important}
 .legend span:nth-child(2) i{background:var(--bar-prac-dot,#0284C7) !important}
@@ -288,7 +288,7 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 .session{display:none !important;}
 
 /* ---------- level bar ---------- */
-.levelbar{display:flex;flex-wrap:wrap;gap:8px;padding:4px 2px 10px}
+.levelbar{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px;padding:0 0 2px}
 .lvchip{flex:1 1 115px;min-width:105px;border:1.5px solid var(--line);background:var(--card);border-radius:15px;
   padding:9px 12px;cursor:pointer;text-align:left;transition:transform .12s,box-shadow .12s;position:relative;box-shadow:0 2px 0 var(--line);box-sizing:border-box}
 .lvchip:hover{transform:translateY(-1px)}
@@ -337,7 +337,8 @@ body.daily-limit-reached #btn-upload {
 }
 
 /* ---------- gate banner ---------- */
-.banner{margin-top:12px}
+.banner{margin:0 0 14px}
+.banner:empty{display:none !important;margin:0 !important;padding:0 !important}
 .banner .gate{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);
   border-radius:16px;padding:12px 16px;box-shadow:var(--shadow)}
 .banner .gate .info{font-size:13px;font-weight:700;color:var(--ink2);line-height:1.4}
@@ -377,7 +378,7 @@ body.daily-limit-reached #btn-upload {
 .word-pill-tag.neutral{background:#F1F1F8;color:var(--ink2);border:1px solid var(--line)}
 
 /* Date Navigator Bar & Word Split Areas */
-.date-navigator-card{background:linear-gradient(135deg,#F1EDFF,#F8F9FD);border:1.5px solid #E4DFFa;border-radius:14px;padding:10px 14px;margin:12px 0 16px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
+.date-navigator-card{background:linear-gradient(135deg,#F1EDFF,#F8F9FD);border:1.5px solid #E4DFFa;border-radius:14px;padding:10px 14px;margin:12px 0 0;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
 .date-nav-left{display:flex;align-items:center;flex-wrap:wrap;gap:6px}
 .date-nav-right{display:flex;flex-direction:column;align-items:flex-start;gap:4px;width:260px;min-width:240px;max-width:100%}
 .date-nav-right .task-date-selector{width:100%;min-width:0;max-width:100%}
@@ -1280,7 +1281,7 @@ body[data-theme="dark"],
 .export-range-container {
   display: flex;
   width: 100%;
-  gap: 10px;
+  gap: 8px;
 }
 .export-range-container .export-date-col {
   flex: 1 1 0;
@@ -1325,7 +1326,7 @@ body[data-theme="dark"],
   display: inline-flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 5px;
+  gap: 8px;
 }
 .export-format-group {
   display: inline-flex;
