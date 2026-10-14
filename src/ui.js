@@ -439,6 +439,7 @@ export function peek(word) {
 
 // ---------- header, progress bar, gate banner ----------
 export function renderProgress(s) {
+  initProgressCard();
   if (!s) return;
   const u = localStorage.getItem("current_user");
   const userEl = $("#s-user");
@@ -1388,7 +1389,7 @@ export function renderSummary(d) {
 
   const userTagArea = document.getElementById("userTagArea") || document.getElementById("stUserTag");
   if (userTagArea) {
-    userTagArea.innerHTML = userTagHtml;
+    userTagArea.innerHTML = "";
   }
 
   el.summary.innerHTML = `
@@ -1787,7 +1788,7 @@ export function toggleSummary(data) {
   } else {
     el.summary.hidden = true;
     if (sec) sec.classList.add("is-collapsed");
-    if (sumBtn) sumBtn.innerHTML = "學習紀錄 Records";
+    if (sumBtn) sumBtn.innerHTML = "🔍 查詢紀錄";
   }
 }
 
@@ -2572,4 +2573,27 @@ export function onCheckClick(fn) { el.checkBtn.onclick = fn; }
 export function onReset(fn) { const btn = $("#resetBtn"); if (btn) btn.onclick = fn; }
 export function onSummary(fn) { $("#sumBtn").onclick = fn; }
 export function onPlace(fn) { const btn = $("#placeBtn"); if (btn) btn.onclick = fn; }
+
+export function initProgressCard() {
+  const sec = document.getElementById("progress-card") || document.getElementById("learning-progress-section");
+  const body = document.getElementById("progress-collapsible-body");
+  const toggleBtn = document.getElementById("btn-toggle-progress-card");
+  if (!sec || !toggleBtn) return;
+  if (sec.__progressBound) return;
+  sec.__progressBound = true;
+
+  toggleBtn.onclick = (e) => {
+    e.preventDefault();
+    const isHidden = (body && body.style.display === "none") || sec.classList.contains("is-collapsed");
+    if (isHidden) {
+      if (body) body.style.display = "block";
+      sec.classList.remove("is-collapsed");
+      toggleBtn.innerHTML = "收起 ✕";
+    } else {
+      if (body) body.style.display = "none";
+      sec.classList.add("is-collapsed");
+      toggleBtn.innerHTML = "🔍 查詢進度";
+    }
+  };
+}
 

@@ -861,7 +861,7 @@ body[data-theme="dark"],
   margin-bottom: 14px;
   border-bottom: 1.5px solid var(--line);
 }
-.summary-embedded h3 a, .summary h3 a, #sumClose, #btn-toggle-export-card, #sumBtn, .sum-toggle-btn {
+.summary-embedded h3 a, .summary h3 a, #sumClose, #btn-toggle-export-card, #btn-toggle-progress-card, #sumBtn, .sum-toggle-btn {
   font-size: 12px;
   color: var(--violet);
   cursor: pointer;
@@ -876,7 +876,7 @@ body[data-theme="dark"],
   border: 1px solid rgba(108, 76, 224, 0.16);
   transition: all .15s;
 }
-.summary-embedded h3 a:hover, .summary h3 a:hover, #sumClose:hover, #btn-toggle-export-card:hover, #sumBtn:hover, .sum-toggle-btn:hover {
+.summary-embedded h3 a:hover, .summary h3 a:hover, #sumClose:hover, #btn-toggle-export-card:hover, #btn-toggle-progress-card:hover, #sumBtn:hover, .sum-toggle-btn:hover {
   color: var(--violet-d);
   background: rgba(108, 76, 224, 0.16);
   opacity: 0.88;
@@ -885,6 +885,7 @@ body[data-theme="dark"],
 [data-theme="dark"] .summary h3 a,
 [data-theme="dark"] #sumClose,
 [data-theme="dark"] #btn-toggle-export-card,
+[data-theme="dark"] #btn-toggle-progress-card,
 [data-theme="dark"] #sumBtn,
 [data-theme="dark"] .sum-toggle-btn {
   background: rgba(56, 189, 248, 0.12) !important;
@@ -895,6 +896,7 @@ body[data-theme="dark"],
 [data-theme="dark"] .summary h3 a:hover,
 [data-theme="dark"] #sumClose:hover,
 [data-theme="dark"] #btn-toggle-export-card:hover,
+[data-theme="dark"] #btn-toggle-progress-card:hover,
 [data-theme="dark"] #sumBtn:hover,
 [data-theme="dark"] .sum-toggle-btn:hover {
   background: rgba(56, 189, 248, 0.22) !important;
@@ -1180,7 +1182,8 @@ body[data-theme="dark"],
   margin-bottom: 10px;
 }
 .export-records-card.is-collapsed h3,
-.learning-record-card.is-collapsed h3 {
+.learning-record-card.is-collapsed h3,
+.learning-progress-card.is-collapsed h3 {
   margin-bottom: 0 !important;
 }
 .export-records-card h3 a {
@@ -1213,7 +1216,8 @@ body[data-theme="dark"],
 .export-records-card.is-collapsed .export-navigator-card,
 .export-records-card.is-collapsed .defs,
 .export-records-card.is-collapsed #export-status-msg,
-.learning-record-card.is-collapsed #summary {
+.learning-record-card.is-collapsed #summary,
+.learning-progress-card.is-collapsed .progress-collapsible-body {
   display: none !important;
 }
 .export-navigator-card {
@@ -1598,28 +1602,33 @@ body[data-theme="dark"],
       <div class="banner" id="banner"></div>
 
       <!-- 學習進度 Progress 獨立方塊 -->
-      <section class="progress" id="progress-card">
+      <section class="progress learning-progress-card is-collapsed" id="progress-card">
         <h3>
           <span>學習進度 Progress</span>
+          <span style="display:flex;gap:14px">
+            <a id="btn-toggle-progress-card" class="sum-toggle-btn" title="展開或收起學習進度">🔍 查詢進度</a>
+          </span>
         </h3>
-        <div class="bar" title="連續答對越多次，字就越熟練">
-          <i class="learn" id="b-learn"></i>
-          <i class="prac" id="b-prac"></i>
-          <i class="mast" id="b-mast"></i>
-        </div>
-        <div class="legend">
-          <div class="legend-row legend-row-mastery">
-            <span title="答對 1 次（或最近答錯，需要再練）"><i style="background:#D9D5F2"></i>學習中 <b id="n-learn" class="tnum">0</b></span>
-            <span title="連續答對 2 次"><i style="background:#B9E8D3"></i>練習中 <b id="n-prac" class="tnum">0</b></span>
-            <span title="連續答對 3 次，獲得 ⭐"><i style="background:var(--green)"></i>精通 <b id="n-mast" class="tnum">0</b></span>
+        <div class="progress-collapsible-body" id="progress-collapsible-body" style="display:none;">
+          <div class="bar" title="連續答對越多次，字就越熟練">
+            <i class="learn" id="b-learn"></i>
+            <i class="prac" id="b-prac"></i>
+            <i class="mast" id="b-mast"></i>
           </div>
-          <div class="legend-row legend-row-stats">
-            <span title="單字掌握率：已答對字數占全體 2055 字的百分比"><i style="background:var(--violet, #6C4CE0)"></i>答對 <b id="n-correct" class="tnum">0</b> 字<span style="color:var(--ink3);margin:0 2px;">/</span>共 <b id="n-total" class="tnum">2055</b> 字（掌握率 <b id="n-rate" class="tnum">0%</b>）</span>
-            <span class="stat-sep" style="margin:0 -2px;">/</span>
-            <span title="目前獲得累積總分"><i style="background:var(--sky, #2D9CDB)"></i>獲得 <b id="n-score" class="tnum">0</b> 分</span>
+          <div class="legend">
+            <div class="legend-row legend-row-mastery">
+              <span title="答對 1 次（或最近答錯，需要再練）"><i style="background:#D9D5F2"></i>學習中 <b id="n-learn" class="tnum">0</b></span>
+              <span title="連續答對 2 次"><i style="background:#B9E8D3"></i>練習中 <b id="n-prac" class="tnum">0</b></span>
+              <span title="連續答對 3 次，獲得 ⭐"><i style="background:var(--green)"></i>精通 <b id="n-mast" class="tnum">0</b></span>
+            </div>
+            <div class="legend-row legend-row-stats">
+              <span title="單字掌握率：已答對字數占全體 2055 字的百分比"><i style="background:var(--violet, #6C4CE0)"></i>答對 <b id="n-correct" class="tnum">0</b> 字<span style="color:var(--ink3);margin:0 2px;">/</span>共 <b id="n-total" class="tnum">2055</b> 字（掌握率 <b id="n-rate" class="tnum">0%</b>）</span>
+              <span class="stat-sep" style="margin:0 -2px;">/</span>
+              <span title="目前獲得累積總分"><i style="background:var(--sky, #2D9CDB)"></i>獲得 <b id="n-score" class="tnum">0</b> 分</span>
+            </div>
           </div>
+          <p class="defs">熟練度定義：<b>學習中</b>＝答對 1 次 · <b>練習中</b>＝連續答對 2 次 · <b>精通</b>＝連續答對 3 次（答錯會退回「學習中」）</p>
         </div>
-        <p class="defs">熟練度定義：<b>學習中</b>＝答對 1 次 · <b>練習中</b>＝連續答對 2 次 · <b>精通</b>＝連續答對 3 次（答錯會退回「學習中」）</p>
       </section>
 
       <!-- 學習紀錄 Records 獨立方塊 -->
@@ -1627,10 +1636,9 @@ body[data-theme="dark"],
         <h3>
           <span style="display:inline-flex;align-items:center;gap:6px;">
             <span>學習紀錄 Records</span>
-            <span id="userTagArea"></span>
           </span>
           <span style="display:flex;gap:14px">
-            <a id="sumBtn" class="sum-toggle-btn" title="展開或收起學習紀錄">學習紀錄 Records</a>
+            <a id="sumBtn" class="sum-toggle-btn" title="展開或收起學習紀錄">🔍 查詢紀錄</a>
           </span>
         </h3>
         <div id="summary" class="summary-embedded" hidden></div>
@@ -1851,7 +1859,26 @@ body[data-theme="dark"],
       const nc = document.getElementById("n-correct"); if (nc) nc.textContent = "0";
       const ss = document.getElementById("s-streak");  if (ss) ss.textContent = "0";
       const sr = document.getElementById("s-rate");    if (sr) sr.textContent = "0%";
-      const nr = document.getElementById("n-rate");    if (nr) nr.textContent = "0%";
+    }
+
+    // 綁定「學習進度 Progress」展開/收起
+    const btnProg = document.getElementById("btn-toggle-progress-card");
+    const secProg = document.getElementById("progress-card") || document.getElementById("learning-progress-section");
+    const bodyProg = document.getElementById("progress-collapsible-body");
+    if (btnProg && secProg) {
+      btnProg.onclick = (e) => {
+        e.preventDefault();
+        const isHidden = (bodyProg && bodyProg.style.display === "none") || secProg.classList.contains("is-collapsed");
+        if (isHidden) {
+          if (bodyProg) bodyProg.style.display = "block";
+          secProg.classList.remove("is-collapsed");
+          btnProg.innerHTML = "收起 ✕";
+        } else {
+          if (bodyProg) bodyProg.style.display = "none";
+          secProg.classList.add("is-collapsed");
+          btnProg.innerHTML = "🔍 查詢進度";
+        }
+      };
     }
 
     // 點擊「登入帳號」欄位可確認資訊或切換登出

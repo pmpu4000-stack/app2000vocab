@@ -989,6 +989,7 @@ ui.initModes(state.mode, (mode) => {
 
 ui.onCheckClick(check);
 ui.onSummary(() => ui.toggleSummary(store.summary(WORDS)));
+ui.initProgressCard();
 
 // ---- boot ----
 (async function boot() {
