@@ -3140,9 +3140,24 @@
       border-top-color: #2B334E !important;
     }
     .export-mode-tabs {
+      display: flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+      width: 100% !important;
+    }
+    .export-mode-tabs .export-mode-btn {
+      flex: 1 1 0 !important;
+      min-width: 0 !important;
+      height: 30px !important;
+      min-height: 30px !important;
+      max-height: 30px !important;
+      font-size: 12.5px !important;
+      font-weight: 800 !important;
+      border-radius: 9px !important;
       display: inline-flex !important;
       align-items: center !important;
-      gap: 4px !important;
+      justify-content: center !important;
+      box-sizing: border-box !important;
     }
     .export-mode-btn.active,
     [data-theme="dark"] .export-mode-btn.active {
@@ -3155,6 +3170,7 @@
     }
     .export-mode-row {
       margin-bottom: 2px !important;
+      width: 100% !important;
     }
     .export-date-row {
       width: 100% !important;

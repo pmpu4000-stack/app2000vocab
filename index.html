@@ -1231,9 +1231,24 @@ body[data-theme="dark"],
   border-top-color: #2B334E;
 }
 .export-mode-tabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+.export-mode-tabs .export-mode-btn {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 30px;
+  min-height: 30px;
+  max-height: 30px;
+  font-size: 12.5px;
+  font-weight: 800;
+  border-radius: 9px;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
+  box-sizing: border-box;
 }
 .export-mode-btn.active {
   background: var(--violet) !important;
@@ -1250,6 +1265,7 @@ body[data-theme="dark"],
 }
 .export-mode-row {
   margin-bottom: 2px;
+  width: 100%;
 }
 .export-date-row {
   width: 100%;
