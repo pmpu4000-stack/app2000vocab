@@ -18,13 +18,14 @@ const state = { mode: "listen", word: null, answered: false, round: null };
 
 // ── 今日指定任務與週末錯題狀態 ──
 const taskState = {
-  active     : false,
-  pending    : false,
-  index      : 0,
-  pool       : [],
-  correct    : 0,
-  task       : null,
-  wrongWords : []
+  active       : false,
+  pending      : false,
+  index        : 0,
+  pool         : [],
+  correct      : 0,
+  task         : null,
+  correctWords : [],
+  wrongWords   : []
 };
 
 // ── 隨時保存任務中途進度（中途存檔或強制關閉防護） ──
@@ -39,14 +40,15 @@ function persistTaskProgress() {
     }).filter(Boolean);
 
     const saveObj = {
-      date       : todayDash,
-      username   : localStorage.getItem("current_user") || "",
-      task       : taskState.task,
-      pool       : taskState.pool,
-      words      : poolWords,
-      index      : taskState.index,
-      correct    : taskState.correct,
-      wrongWords : taskState.wrongWords || []
+      date         : todayDash,
+      username     : localStorage.getItem("current_user") || "",
+      task         : taskState.task,
+      pool         : taskState.pool,
+      words        : poolWords,
+      index        : taskState.index,
+      correct      : taskState.correct,
+      correctWords : taskState.correctWords || [],
+      wrongWords   : taskState.wrongWords || []
     };
     localStorage.setItem("today_task_in_progress", JSON.stringify(saveObj));
     if (poolWords.length > 0) {
@@ -364,6 +366,11 @@ function answer(correct, guessVal) {
   if (taskState.active) {
     if (correct) {
       taskState.correct++;
+      const cw = String(state.word.word).trim().toLowerCase();
+      taskState.correctWords = taskState.correctWords || [];
+      if (!taskState.correctWords.includes(cw)) {
+        taskState.correctWords.push(cw);
+      }
       // 依需求取消答對單字灑花特效
     } else {
       const w = String(state.word.word).trim().toLowerCase();
@@ -694,7 +701,8 @@ function showTaskIntroScreen(task) {
       taskState.task = task;
       taskState.pool = pool;
       taskState.correct = resumeCorrect;
-      taskState.wrongWords = savedProgress.wrongWords || [];
+      taskState.correctWords = (savedProgress && Array.isArray(savedProgress.correctWords)) ? savedProgress.correctWords : [];
+      taskState.wrongWords = (savedProgress && Array.isArray(savedProgress.wrongWords)) ? savedProgress.wrongWords : [];
       finishTaskMode();
       return;
     }
@@ -723,13 +731,14 @@ function showTaskIntroScreen(task) {
   }
 
   // 設定待開始狀態
-  taskState.active     = false;
-  taskState.pending    = true;
-  taskState.task       = task;
-  taskState.pool       = pool;
-  taskState.index      = resumeIndex;
-  taskState.correct    = resumeCorrect;
-  taskState.wrongWords = (savedProgress && Array.isArray(savedProgress.wrongWords)) ? savedProgress.wrongWords : [];
+  taskState.active       = false;
+  taskState.pending      = true;
+  taskState.task         = task;
+  taskState.pool         = pool;
+  taskState.index        = resumeIndex;
+  taskState.correct      = resumeCorrect;
+  taskState.correctWords = (savedProgress && Array.isArray(savedProgress.correctWords)) ? savedProgress.correctWords : [];
+  taskState.wrongWords   = (savedProgress && Array.isArray(savedProgress.wrongWords)) ? savedProgress.wrongWords : [];
 
   // 隱藏自由模式按鈕
   const checkBtn = document.getElementById("checkBtn");
@@ -855,6 +864,9 @@ function finishTaskMode() {
   const cleanWrongWords = Array.from(new Set(
     (taskState.wrongWords || []).map(w => String(w).trim().toLowerCase()).filter(Boolean)
   ));
+  const cleanCorrectWords = Array.from(new Set(
+    (taskState.correctWords || []).map(w => String(w).trim().toLowerCase()).filter(Boolean)
+  ));
 
   const finishedTaskPayload = {
     hasTask: false,
@@ -862,6 +874,7 @@ function finishTaskMode() {
     taskName: task.taskName,
     words: allTaskWords,
     wrongWords: cleanWrongWords,
+    correctWords: cleanCorrectWords,
     score: `${correct}/${total}`,
     rate: rate + "%",
     date: todayDash
@@ -877,16 +890,17 @@ function finishTaskMode() {
   // 3. 儲存今日任務成績摘要（標記 completed: true）
   const nowTs = new Date().toLocaleString("zh-TW", { hour12: false });
   const summaryObj = {
-    taskName   : task.taskName,
-    score      : correct,
-    total      : total,
-    rate       : rate + "%",
-    completed  : true,
-    isWeekend  : !!task.isWeekend,
-    date       : todayDash,
-    wrongWords : cleanWrongWords,
-    words      : allTaskWords,
-    updatedAt  : nowTs
+    taskName     : task.taskName,
+    score        : correct,
+    total        : total,
+    rate         : rate + "%",
+    completed    : true,
+    isWeekend    : !!task.isWeekend,
+    date         : todayDash,
+    wrongWords   : cleanWrongWords,
+    correctWords : cleanCorrectWords,
+    words        : allTaskWords,
+    updatedAt    : nowTs
   };
   localStorage.setItem("today_task_summary", JSON.stringify(summaryObj));
 
@@ -902,6 +916,7 @@ function finishTaskMode() {
       status: "🟢 已完成",
       updatedAt: nowTs,
       wrongWords: cleanWrongWords,
+      correctWords: cleanCorrectWords,
       words: allTaskWords
     });
     localStorage.setItem("student_task_history", JSON.stringify(filtered));

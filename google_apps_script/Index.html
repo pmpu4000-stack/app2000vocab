@@ -13386,8 +13386,12 @@ function resolveTaskWords(record, selectedDate, agent) {
     }
   }
 
-  // 4. 錯題單字 (確保代號轉為真實單字)
+  // 4. 錯題單字與作答題數精準校驗 (確保代號轉為真實單字)
   const wrongWords = (Array.isArray(record.wrongWords) ? record.wrongWords : [])
+    .map(w => resolveWord(String(w).trim()).toLowerCase())
+    .filter(Boolean);
+
+  const explicitCorrect = (Array.isArray(record.correctWords) ? record.correctWords : [])
     .map(w => resolveWord(String(w).trim()).toLowerCase())
     .filter(Boolean);
 
@@ -13397,14 +13401,25 @@ function resolveTaskWords(record, selectedDate, agent) {
   let correctList = [];
   const seen = new Set();
 
+  // 若 record 本身有明確記錄 correctWords，優先放入
+  if (explicitCorrect.length > 0) {
+    explicitCorrect.forEach(w => {
+      if (!seen.has(w) && !wrongWords.includes(w)) {
+        seen.add(w);
+        correctList.push(w);
+      }
+    });
+  }
+
   pool.forEach(w => {
     const clean = resolveWord(String(w).trim()).toLowerCase();
     if (!clean || seen.has(clean)) return;
-    seen.add(clean);
 
     if (wrongWords.includes(clean)) {
+      seen.add(clean);
       wrongList.push(clean);
     } else {
+      seen.add(clean);
       correctList.push(clean);
     }
   });
@@ -13417,14 +13432,35 @@ function resolveTaskWords(record, selectedDate, agent) {
     }
   });
 
-  let corCnt = 0;
+  // 解析作答紀錄的答對題數 (corCnt) 與 總題數 (totCnt)
+  let corCnt = -1;
+  let totCnt = -1;
   if (record.score && String(record.score).includes("/")) {
     const parts = String(record.score).split("/");
-    corCnt = parseInt(parts[0], 10) || 0;
-  } else if (record.correct !== undefined) {
-    corCnt = parseInt(record.correct, 10) || 0;
+    corCnt = parseInt(parts[0], 10);
+    totCnt = parseInt(parts[1], 10);
+  } else if (record.correct !== undefined && record.correct !== null && record.correct !== "") {
+    corCnt = parseInt(record.correct, 10);
+    if (record.total !== undefined && record.total !== null && record.total !== "") {
+      totCnt = parseInt(record.total, 10);
+    } else if (record.attempts !== undefined && record.attempts !== null && record.attempts !== "") {
+      totCnt = parseInt(record.attempts, 10);
+    }
+  } else if (record.score && record.score !== "—" && record.score !== "尚未開始") {
+    const m = String(record.score).match(/\d+/);
+    if (m) corCnt = parseInt(m[0], 10);
   }
+  if (isNaN(corCnt)) corCnt = -1;
+  if (isNaN(totCnt)) totCnt = -1;
 
+  // 取得當日每日練習紀錄以供優先匹配
+  const dpMap = (agent && agent.dailyPractice) ? agent.dailyPractice : {};
+  const slashPad = padDate.replace(/-/g, "/");
+  const slashShort = shortDate.replace(/-/g, "/");
+  const dpDay = dpMap[padDate] || dpMap[shortDate] || dpMap[slashPad] || dpMap[slashShort] || dpMap[normDate] || null;
+  const dayWords = (dpDay && dpDay.words) ? dpDay.words : {};
+
+  // 若已識別的答對單字少於預期答對題數，從受測紀錄與 DB.stat 智能補齊
   if (corCnt > 0 && correctList.length < corCnt && agent && agent.stat) {
     const allPracticed = Object.keys(agent.stat)
       .filter(k => agent.stat[k] && (agent.stat[k].a > 0 || agent.stat[k].c > 0))
@@ -13441,6 +13477,36 @@ function resolveTaskWords(record, selectedDate, agent) {
         correctList.push(item.word);
       }
     });
+  }
+
+  // 嚴格保證：若有明確答對題數 corCnt，答對單字列表長度絕不超過 corCnt！
+  if (corCnt >= 0) {
+    if (corCnt === 0) {
+      correctList = [];
+    } else if (correctList.length > corCnt) {
+      const getWordWeight = (w) => {
+        let wt = 0;
+        if (explicitCorrect.includes(w)) wt += 10000;
+        const dInfo = dayWords[w] || dayWords[resolveWord(w)];
+        if (dInfo) {
+          const c = (typeof dInfo === "object") ? (dInfo.correct || dInfo.c || 0) : 0;
+          if (c > 0) wt += 1000 + c;
+        }
+        const st = (agent && agent.stat) ? (agent.stat[w] || agent.stat[resolveWord(w)]) : null;
+        if (st && st.c > 0) wt += st.c;
+        return wt;
+      };
+      correctList.sort((a, b) => getWordWeight(b) - getWordWeight(a));
+      correctList = correctList.slice(0, corCnt);
+    }
+  }
+
+  // 答錯單字列表防禦：若總題數與答對題數明確，錯題數不超過 expectedWrong
+  if (totCnt > 0 && corCnt >= 0) {
+    const expWrong = Math.max(0, totCnt - corCnt);
+    if (wrongList.length > expWrong) {
+      wrongList = wrongList.slice(0, expWrong);
+    }
   }
 
   correctList.sort((a, b) => a.localeCompare(b));

@@ -798,20 +798,37 @@ function resolveTaskWords(record, selectedDate, d) {
   }
 
   // 解析預期答對題數與總題數
-  let expectedCorrect = 0;
-  let expectedTotal = 0;
+  let expectedCorrect = -1;
+  let expectedTotal = -1;
   if (record.score && String(record.score).includes("/")) {
     const parts = String(record.score).split("/");
-    expectedCorrect = parseInt(parts[0], 10) || 0;
-    expectedTotal = parseInt(parts[1], 10) || 0;
-  } else if (record.correct !== undefined) {
-    expectedCorrect = parseInt(record.correct, 10) || 0;
-    expectedTotal = parseInt(record.attempts, 10) || 0;
+    expectedCorrect = parseInt(parts[0], 10);
+    expectedTotal = parseInt(parts[1], 10);
+  } else if (record.correct !== undefined && record.correct !== null && record.correct !== "") {
+    expectedCorrect = parseInt(record.correct, 10);
+    expectedTotal = parseInt(record.attempts !== undefined ? record.attempts : record.total, 10);
+  } else if (record.score && record.score !== "—" && record.score !== "尚未開始") {
+    const m = String(record.score).match(/\d+/);
+    if (m) expectedCorrect = parseInt(m[0], 10);
   }
+  if (isNaN(expectedCorrect)) expectedCorrect = -1;
+  if (isNaN(expectedTotal)) expectedTotal = -1;
 
   const wrongSet = new Set(wrongList.map(w => w.toLowerCase()));
   let rawWords = Array.from(new Set(pool.map(w => String(w).trim().toLowerCase()).filter(Boolean)));
-  let correctList = rawWords.filter(w => !wrongSet.has(w.toLowerCase()));
+  
+  // 若 record 本身有明確記錄 correctWords，優先載入
+  const explicitCorrect = (Array.isArray(record.correctWords) ? record.correctWords : [])
+    .map(w => resolveWordStr(w, d).toLowerCase())
+    .filter(Boolean);
+
+  let correctList = [];
+  explicitCorrect.forEach(w => {
+    if (!wrongSet.has(w) && !correctList.includes(w)) correctList.push(w);
+  });
+  rawWords.forEach(w => {
+    if (!wrongSet.has(w) && !correctList.includes(w)) correctList.push(w);
+  });
 
   // 8. 若預期答對題數大於目前已識別的答對單字數，從當日受測紀錄與 DB.stat 智能補齊
   if (expectedCorrect > 0 && correctList.length < expectedCorrect) {
@@ -829,12 +846,40 @@ function resolveTaskWords(record, selectedDate, d) {
     });
   }
 
+  // 嚴格保證：若有明確答對題數 expectedCorrect，答對單字列表長度絕不超過 expectedCorrect！
+  if (expectedCorrect >= 0) {
+    if (expectedCorrect === 0) {
+      correctList = [];
+    } else if (correctList.length > expectedCorrect) {
+      const allWords = (d && d.allPracticedWords) || [];
+      const wordWeightMap = {};
+      allWords.forEach(item => {
+        const str = resolveWordStr(item.word || item, d).toLowerCase();
+        if (str) wordWeightMap[str] = (item.correct || 0);
+      });
+      correctList.sort((a, b) => {
+        let wtA = (explicitCorrect.includes(a) ? 10000 : 0) + (wordWeightMap[a] || 0);
+        let wtB = (explicitCorrect.includes(b) ? 10000 : 0) + (wordWeightMap[b] || 0);
+        return wtB - wtA;
+      });
+      correctList = correctList.slice(0, expectedCorrect);
+    }
+  }
+
+  if (expectedTotal > 0 && expectedCorrect >= 0) {
+    const expWrong = Math.max(0, expectedTotal - expectedCorrect);
+    if (wrongList.length > expWrong) {
+      wrongList = wrongList.slice(0, expWrong);
+    }
+  }
+
   wrongList.sort((a, b) => a.localeCompare(b));
   correctList.sort((a, b) => a.localeCompare(b));
 
   // 回寫快取防止刷新遺失
   if (rawWords.length > 0) {
     record.words = rawWords;
+    record.correctWords = correctList;
     try {
       localStorage.setItem("task_words_" + normDate, JSON.stringify(rawWords));
     } catch(_) {}
