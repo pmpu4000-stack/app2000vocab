@@ -2443,18 +2443,24 @@
     .sumtable tr:last-child td {
       border-bottom: 1px solid var(--line) !important;
     }
-    .sumtable td:last-child {
+    .sumtable td:last-child,
+    .sumtable tr td:last-child,
+    .sumtable tr:last-child td:last-child {
       text-align: right !important;
       color: var(--ink) !important;
       font-weight: 800 !important;
       font-variant-numeric: tabular-nums !important;
     }
-    [data-theme="dark"] .sumtable td,
-    [data-theme="dark"] .sumtable tr:last-child td {
+    [data-theme="dark"] .sumtable td {
       color: #A5B0CF !important;
       border-bottom-color: #262C42 !important;
     }
-    [data-theme="dark"] .sumtable td:last-child {
+    [data-theme="dark"] .sumtable tr:last-child td {
+      border-bottom-color: #262C42 !important;
+    }
+    [data-theme="dark"] .sumtable td:last-child,
+    [data-theme="dark"] .sumtable tr td:last-child,
+    [data-theme="dark"] .sumtable tr:last-child td:last-child {
       color: #F0F3FA !important;
     }
 

@@ -1087,7 +1087,9 @@ body[data-theme="dark"],
   color: var(--ink2);
   font-weight: 650;
 }
-.sumtable td:last-child {
+.sumtable td:last-child,
+.sumtable tr td:last-child,
+.sumtable tr:last-child td:last-child {
   text-align: right;
   color: var(--ink);
   font-weight: 800;
@@ -1097,8 +1099,10 @@ body[data-theme="dark"],
   color: #A5B0CF;
   border-bottom-color: #262C42;
 }
-[data-theme="dark"] .sumtable td:last-child {
-  color: #F0F3FA;
+[data-theme="dark"] .sumtable td:last-child,
+[data-theme="dark"] .sumtable tr td:last-child,
+[data-theme="dark"] .sumtable tr:last-child td:last-child {
+  color: #F0F3FA !important;
 }
 
 .stat-sep {
