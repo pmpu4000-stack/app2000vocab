@@ -1284,15 +1284,50 @@ body[data-theme="dark"],
   border: 1px solid #178254;
   box-shadow: 0 3px 8px rgba(47, 180, 124, 0.25);
 }
-@media (max-width: 640px) {
-  .export-quick-btns,
+@media (max-width: 720px) {
+  .export-controls-wrap {
+    gap: 8px !important;
+  }
+  .export-row {
+    gap: 8px !important;
+  }
+  .export-presets-row .date-nav-title {
+    display: none !important;
+  }
+  .export-presets-row {
+    margin-top: 0 !important;
+    width: 100% !important;
+  }
+  .export-date-inputs {
+    width: 100% !important;
+    margin-top: 2px !important;
+  }
+  .export-date-inputs input[type="date"] {
+    flex: 1 1 auto !important;
+    width: 100% !important;
+    min-width: 130px !important;
+    box-sizing: border-box !important;
+  }
+  .export-quick-btns {
+    width: 100% !important;
+    margin-left: 0 !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+  }
+  .export-quick-btns .date-nav-btn {
+    flex: 1 1 auto !important;
+    text-align: center !important;
+    padding: 6px 8px !important;
+  }
   .export-btn-group {
-    margin-left: 0;
-    width: 100%;
+    margin-left: 0 !important;
+    width: 100% !important;
   }
   .export-dl-btn {
-    flex: 1 1 auto;
+    flex: 1 1 auto !important;
   }
+}
 #task-record-details,
 #free-record-details {
   min-height: 115px;
