@@ -2734,6 +2734,10 @@ body[data-theme="dark"],
         levelbar.style.display = "flex";
         levelbar.style.pointerEvents = "none";
         levelbar.style.opacity = "0.9";
+        // 確保 LEVEL 1~5 關卡方塊位於上方，今日練習時間已結束方塊位於下方
+        if (limitCard && limitCard.parentNode) {
+          limitCard.parentNode.insertBefore(levelbar, limitCard);
+        }
       }
 
       const progressSec = document.querySelector("section.progress");
