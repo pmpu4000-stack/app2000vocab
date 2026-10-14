@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8" />
-  <title>學生作答歷程記錄表</title>
+  <title>學生學習歷程查詢系統</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
@@ -160,7 +160,7 @@
     h2 { margin: 0; font-size: 1.35rem; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px; }
     h3 { margin: 0 0 16px; font-size: 1.1rem; font-weight: 700; color: var(--text); }
 
-    /* ── 主控制卡片 (學生作答歷程記錄表) 極致纖薄與清爽響應式美化 ── */
+    /* ── 主控制卡片 (學生學習歷程查詢系統) 極致纖薄與清爽響應式美化 ── */
     #mainControlCard {
       padding: 12px 20px !important;
       border-radius: 16px !important;
@@ -1459,7 +1459,7 @@
         justify-content: space-between !important;
       }
 
-      /* 學生作答歷程主卡片手機端纖薄化 */
+      /* 學生學習歷程查詢系統主卡片手機端纖薄化 */
       #mainControlCard {
         padding: 10px 14px !important;
         border-radius: 14px !important;
@@ -3650,7 +3650,7 @@
         <span class="theme-icon">🌙</span><span class="theme-text">深色</span>
       </button>
       <div style="font-size:40px; margin-bottom:8px;">🎯</div>
-      <h2 style="color:#232A4D; margin:0 0 8px 0; font-size:20px; font-weight:800; text-align:center;">學生作答歷程紀錄表</h2>
+      <h2 style="color:#232A4D; margin:0 0 8px 0; font-size:20px; font-weight:800; text-align:center;">學生學習歷程查詢系統</h2>
       <p style="color:#5A6183; font-size:13px; margin-bottom:20px; line-height:1.5; text-align:center;">請輸入帳號與密碼</p>
       
       <input type="text" id="username" placeholder="請輸入帳號 (如: 70101)" autocomplete="username" class="login-input"
@@ -3684,7 +3684,7 @@
   <div class="card" id="mainControlCard" style="display:none;">
     <div class="header-title main-header-row">
       <div class="header-title-left">
-        <h2>📊 學生作答歷程記錄表</h2>
+        <h2>📊 學生學習歷程查詢系統</h2>
         <div id="userBadge" style="font-size:12.5px; font-weight:700; color:var(--primary); margin-top:2px; line-height:1.3;"></div>
       </div>
       <div class="header-controls">
@@ -15104,13 +15104,39 @@ function renderStudentSummary(resp) {
 // ════════════════════════════════════════
 let _latestStudentExportResp = null;
 
-function _ensureExternalScript(globalName, srcUrl) {
+function triggerBlobDownload(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.style.display = "none";
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    try {
+      if (a.parentNode) a.parentNode.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (_) {}
+  }, 1500);
+}
+
+function _ensureExternalScript(globalName, primaryUrl, fallbackUrl) {
   if (typeof window !== "undefined" && window[globalName]) return Promise.resolve(window[globalName]);
   return new Promise((resolve, reject) => {
     const s = document.createElement("script");
-    s.src = srcUrl;
+    s.src = primaryUrl;
     s.onload = () => resolve(window[globalName]);
-    s.onerror = () => reject(new Error(`無法載入匯出套件 (${globalName})`));
+    s.onerror = () => {
+      if (fallbackUrl) {
+        const s2 = document.createElement("script");
+        s2.src = fallbackUrl;
+        s2.onload = () => resolve(window[globalName]);
+        s2.onerror = () => reject(new Error(`無法載入匯出套件 (${globalName})`));
+        document.head.appendChild(s2);
+      } else {
+        reject(new Error(`無法載入匯出套件 (${globalName})`));
+      }
+    };
     document.head.appendChild(s);
   });
 }
@@ -15176,14 +15202,15 @@ function _extractStFreeWordsForExport(record, agent) {
 }
 
 function _buildStudentExportPayload(resp, mode, startDate, endDate) {
-  const studentId = viewingStudent || currentUser || "學員";
-  const agent = (resp && resp.agentData) || {};
+  const effectiveResp = resp || _latestStudentExportResp || window.cachedStudentExportResp || {};
+  const studentId = viewingStudent || currentUser || (effectiveResp && effectiveResp.username) || (window.currentLoginUser ? window.currentLoginUser.username : "") || "學員";
+  const agent = (effectiveResp && effectiveResp.agentData) || window.cachedStudentAgentData || {};
   const historyData = agent.history || {};
   const dpMap = agent.dailyPractice || {};
-  const dailyTaskHistory = (resp && Array.isArray(resp.dailyTaskHistory))
-    ? resp.dailyTaskHistory
-    : (window.cachedStudentDailyHistory || []);
-  const todayTask = (resp && resp.todayTaskResult) || window.cachedStudentTodayTaskResult || null;
+  const dailyTaskHistory = (effectiveResp && Array.isArray(effectiveResp.dailyTaskHistory))
+    ? effectiveResp.dailyTaskHistory
+    : (window.cachedStudentDailyHistory || window.cachedBackupTaskHistory || []);
+  const todayTask = (effectiveResp && effectiveResp.todayTaskResult) || window.cachedStudentTodayTaskResult || window.cachedBackupTodayTaskSummary || null;
   const todayDash = formatDateYMD(new Date());
 
   const normKey = (ds) => {
@@ -15197,10 +15224,18 @@ function _buildStudentExportPayload(resp, mode, startDate, endDate) {
   if (todayTask && todayTask.date) activeDateSet.add(normKey(todayTask.date));
   Object.keys(historyData).forEach(k => { if (historyData[k] && historyData[k].a > 0) activeDateSet.add(normKey(k)); });
   Object.keys(dpMap).forEach(k => { if (dpMap[k] && (dpMap[k].attempts > 0 || (dpMap[k].words && Object.keys(dpMap[k].words).length > 0))) activeDateSet.add(normKey(k)); });
-  if (resp && Array.isArray(resp.data)) {
-    resp.data.forEach(r => {
+  if (effectiveResp && Array.isArray(effectiveResp.data)) {
+    effectiveResp.data.forEach(r => {
       if (r && r[0]) {
         const d = normKey(r[0]);
+        if (/^\d{4}-\d{2}-\d{2}$/.test(d)) activeDateSet.add(d);
+      }
+    });
+  }
+  if (window.fullProcessedData && Array.isArray(window.fullProcessedData)) {
+    window.fullProcessedData.forEach(r => {
+      if (r && r.date) {
+        const d = normKey(r.date);
         if (/^\d{4}-\d{2}-\d{2}$/.test(d)) activeDateSet.add(d);
       }
     });
@@ -15247,8 +15282,8 @@ function _buildStudentExportPayload(resp, mode, startDate, endDate) {
         wrongWords: todayTask.wrongWords || []
       };
     }
-    if (!matchedTask && resp && Array.isArray(resp.data)) {
-      const matchedRow = resp.data.find(r => r && normKey(r[0]) === dt && r[18] && r[18] !== "自主練習");
+    if (!matchedTask && effectiveResp && Array.isArray(effectiveResp.data)) {
+      const matchedRow = effectiveResp.data.find(r => r && normKey(r[0]) === dt && r[18] && r[18] !== "自主練習");
       if (matchedRow) {
         matchedTask = {
           date: dt,
@@ -15312,6 +15347,19 @@ function _buildStudentExportPayload(resp, mode, startDate, endDate) {
         wrong: (hFree.a && hFree.c) ? Math.max(0, hFree.a - hFree.c) : 0,
         words: hFree.words || {}
       };
+    }
+
+    if (!matchedFree && window.fullProcessedData && Array.isArray(window.fullProcessedData)) {
+      const fp = window.fullProcessedData.find(item => normKey(item.date) === dt);
+      if (fp && (fp.dailyAttempts > 0 || fp.dailyCorrect > 0)) {
+        matchedFree = {
+          date: dt,
+          attempts: fp.dailyAttempts || 0,
+          correct: fp.dailyCorrect || 0,
+          wrong: Math.max(0, (fp.dailyAttempts || 0) - (fp.dailyCorrect || 0)),
+          words: {}
+        };
+      }
     }
 
     const fInfo = _extractStFreeWordsForExport(matchedFree, agent);
@@ -15425,7 +15473,11 @@ function _buildStudentExportPayload(resp, mode, startDate, endDate) {
 async function _exportStudentRecordToExcel(payload) {
   const fileName = `學習歷程_使用紀錄_${payload.studentId}_${payload.fileScopeTag}`;
   try {
-    const XLSX = await _ensureExternalScript("XLSX", "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js");
+    const XLSX = await _ensureExternalScript(
+      "XLSX",
+      "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js",
+      "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"
+    );
     const wb = XLSX.utils.book_new();
 
     const ws1Data = [
@@ -15525,7 +15577,14 @@ async function _exportStudentRecordToExcel(payload) {
     ws2["!cols"] = [{ wch: 22 }, { wch: 52 }, { wch: 16 }, { wch: 16 }, { wch: 18 }, { wch: 18 }];
     XLSX.utils.book_append_sheet(wb, ws2, "整體學習進度總覽");
 
-    XLSX.writeFile(wb, `${fileName}.xlsx`);
+    try {
+      const wbout = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+      const blob = new Blob([wbout], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+      triggerBlobDownload(blob, `${fileName}.xlsx`);
+    } catch (writeErr) {
+      console.warn("XLSX write blob failed, trying XLSX.writeFile:", writeErr);
+      XLSX.writeFile(wb, `${fileName}.xlsx`);
+    }
   } catch (err) {
     console.warn("XLSX fallback to CSV:", err);
     const rows = [
@@ -15543,10 +15602,7 @@ async function _exportStudentRecordToExcel(payload) {
     });
     const csvContent = "\uFEFF" + rows.map(row => row.map(c => `"${String(c ?? "").replace(/"/g, '""')}"`).join(",")).join("\r\n");
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `${fileName}.csv`;
-    a.click();
+    triggerBlobDownload(blob, `${fileName}.csv`);
   }
 }
 
@@ -15689,23 +15745,44 @@ async function _exportStudentRecordToPdf(payload) {
   document.body.appendChild(overlay);
 
   try {
-    const html2pdfLib = await _ensureExternalScript("html2pdf", "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js");
+    const html2pdfLib = await _ensureExternalScript(
+      "html2pdf",
+      "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js",
+      "https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"
+    );
     const paperEl = overlay.querySelector("#pdf-export-paper");
-    await html2pdfLib().set({
+    const opt = {
       margin: [8, 8, 8, 8],
       filename: fileName,
       image: { type: "jpeg", quality: 0.98 },
       html2canvas: { scale: 2, useCORS: true, backgroundColor: "#FFFFFF", scrollY: 0 },
       jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
       pagebreak: { mode: ["avoid-all", "css", "legacy"] }
-    }).from(paperEl).save();
+    };
+    let downloaded = false;
+    try {
+      const pdfBlob = await html2pdfLib().set(opt).from(paperEl).outputPdf("blob");
+      if (pdfBlob && pdfBlob.size > 0) {
+        triggerBlobDownload(pdfBlob, fileName);
+        downloaded = true;
+      }
+    } catch (blobErr) {
+      console.warn("outputPdf blob failed, falling back to .save():", blobErr);
+    }
+    if (!downloaded) {
+      await html2pdfLib().set(opt).from(paperEl).save();
+    }
   } finally {
     if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
   }
 }
 
 function initStudentExportRecordsCard(resp) {
-  if (resp) _latestStudentExportResp = resp;
+  if (resp) {
+    _latestStudentExportResp = resp;
+    window.cachedStudentExportResp = resp;
+    if (resp.agentData) window.cachedStudentAgentData = resp.agentData;
+  }
   const sec = document.getElementById("export-records-section");
   if (!sec) return;
 
@@ -15734,6 +15811,15 @@ function initStudentExportRecordsCard(resp) {
   }
   if (inputStart && !inputStart.value) { inputStart.value = sevenDaysAgo; inputStart.max = todayDash; }
   if (inputEnd && !inputEnd.value) { inputEnd.value = todayDash; inputEnd.max = todayDash; }
+
+  if (recPicker && !recPicker.__exportSyncBound) {
+    recPicker.__exportSyncBound = true;
+    recPicker.addEventListener("change", () => {
+      if (inputSingle && recPicker.value) {
+        inputSingle.value = recPicker.value;
+      }
+    });
+  }
 
   if (sec.__exportBound) return;
   sec.__exportBound = true;
@@ -15796,8 +15882,8 @@ function initStudentExportRecordsCard(resp) {
   if (btnPresetAll) {
     btnPresetAll.onclick = () => {
       setExportMode("range");
-      const rData = _latestStudentExportResp || {};
-      const ag = rData.agentData || {};
+      const rData = _latestStudentExportResp || window.cachedStudentExportResp || {};
+      const ag = rData.agentData || window.cachedStudentAgentData || {};
       let earliest = thirtyDaysAgo;
       const checkKey = (k) => {
         const parts = String(k || "").trim().split(" ")[0].replace(/\//g, "-").split("-");
@@ -15810,6 +15896,7 @@ function initStudentExportRecordsCard(resp) {
       if (ag.dailyPractice) Object.keys(ag.dailyPractice).forEach(checkKey);
       if (ag.history) Object.keys(ag.history).forEach(checkKey);
       if (Array.isArray(rData.data)) rData.data.forEach(row => row && checkKey(row[0]));
+      if (Array.isArray(window.fullProcessedData)) window.fullProcessedData.forEach(row => row && checkKey(row.date));
       if (inputStart) inputStart.value = earliest;
       if (inputEnd) inputEnd.value = todayDash;
     };
@@ -15829,14 +15916,14 @@ function initStudentExportRecordsCard(resp) {
     if (btnDlExcel) btnDlExcel.disabled = true;
     if (statusMsg) {
       statusMsg.style.display = "block";
-      statusMsg.innerHTML = `⏳ 正在準備 <b>${chosenFmt === "excel" ? "Excel (.xlsx)" : "PDF (.pdf)"}</b> 作答歷程記錄報表，請稍候...`;
+      statusMsg.innerHTML = `⏳ 正在準備 <b>${chosenFmt === "excel" ? "Excel (.xlsx)" : "PDF (.pdf)"}</b> 歷程檔案報表，請稍候...`;
     }
 
     try {
-      const payload = _buildStudentExportPayload(_latestStudentExportResp || {}, currentMode, sDate, eDate);
+      const payload = _buildStudentExportPayload(_latestStudentExportResp || window.cachedStudentExportResp || {}, currentMode, sDate, eDate);
       if (statusMsg) {
         statusMsg.style.display = "block";
-        statusMsg.innerHTML = `⏳ 正在產生 <b>${chosenFmt === "excel" ? "Excel (.xlsx)" : "PDF (.pdf)"}</b> 作答歷程記錄檔案（${payload.scopeTitle}），請稍候...`;
+        statusMsg.innerHTML = `⏳ 正在產生 <b>${chosenFmt === "excel" ? "Excel (.xlsx)" : "PDF (.pdf)"}</b> 歷程檔案（${payload.scopeTitle}），請稍候...`;
       }
 
       if (chosenFmt === "excel") {
@@ -15846,7 +15933,7 @@ function initStudentExportRecordsCard(resp) {
       }
       if (statusMsg) {
         statusMsg.style.display = "block";
-        statusMsg.innerHTML = `✅ 已成功下載 <b>${chosenFmt === "excel" ? "Excel (.xlsx)" : "PDF (.pdf)"}</b> 作答歷程記錄（${payload.scopeTitle}）！`;
+        statusMsg.innerHTML = `✅ 已成功下載 <b>${chosenFmt === "excel" ? "Excel (.xlsx)" : "PDF (.pdf)"}</b> 歷程檔案（${payload.scopeTitle}）！`;
       }
     } catch (err) {
       console.error("Student export error:", err);

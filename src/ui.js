@@ -2044,13 +2044,39 @@ function _buildExportPayload(d, mode, startDate, endDate) {
   };
 }
 
-function _ensureScriptLoaded(globalVar, srcUrl) {
+function triggerBlobDownload(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.style.display = "none";
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    try {
+      if (a.parentNode) a.parentNode.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (_) {}
+  }, 1500);
+}
+
+function _ensureScriptLoaded(globalVar, primaryUrl, fallbackUrl) {
   if (typeof window !== "undefined" && window[globalVar]) return Promise.resolve(window[globalVar]);
   return new Promise((resolve, reject) => {
     const s = document.createElement("script");
-    s.src = srcUrl;
+    s.src = primaryUrl;
     s.onload = () => resolve(window[globalVar]);
-    s.onerror = () => reject(new Error(`無法載入套件 ${globalVar}`));
+    s.onerror = () => {
+      if (fallbackUrl) {
+        const s2 = document.createElement("script");
+        s2.src = fallbackUrl;
+        s2.onload = () => resolve(window[globalVar]);
+        s2.onerror = () => reject(new Error(`無法載入套件 ${globalVar}`));
+        document.head.appendChild(s2);
+      } else {
+        reject(new Error(`無法載入套件 ${globalVar}`));
+      }
+    };
     document.head.appendChild(s);
   });
 }
@@ -2058,7 +2084,11 @@ function _ensureScriptLoaded(globalVar, srcUrl) {
 async function _exportRecordToExcel(payload) {
   const fileName = `拼字小特工_使用紀錄_${payload.studentId}_${payload.fileScopeTag}`;
   try {
-    const XLSX = await _ensureScriptLoaded("XLSX", "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js");
+    const XLSX = await _ensureScriptLoaded(
+      "XLSX",
+      "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js",
+      "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"
+    );
     const wb = XLSX.utils.book_new();
 
     // Sheet 1: 每日使用紀錄明細
@@ -2168,7 +2198,14 @@ async function _exportRecordToExcel(payload) {
     ws2["!cols"] = [{ wch: 22 }, { wch: 20 }, { wch: 16 }, { wch: 16 }, { wch: 18 }, { wch: 18 }, { wch: 16 }];
     XLSX.utils.book_append_sheet(wb, ws2, "整體學習進度總覽");
 
-    XLSX.writeFile(wb, `${fileName}.xlsx`);
+    try {
+      const wbout = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+      const blob = new Blob([wbout], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+      triggerBlobDownload(blob, `${fileName}.xlsx`);
+    } catch (writeErr) {
+      console.warn("XLSX write blob failed, trying XLSX.writeFile:", writeErr);
+      XLSX.writeFile(wb, `${fileName}.xlsx`);
+    }
   } catch (err) {
     console.warn("XLSX fallback to CSV:", err);
     // 備援 CSV 輸出 (含 UTF-8 BOM，Excel 可直接開啟)
@@ -2187,10 +2224,7 @@ async function _exportRecordToExcel(payload) {
     });
     const csvContent = "\uFEFF" + rows.map(row => row.map(c => `"${String(c ?? "").replace(/"/g, '""')}"`).join(",")).join("\r\n");
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `${fileName}.csv`;
-    a.click();
+    triggerBlobDownload(blob, `${fileName}.csv`);
   }
 }
 
@@ -2340,16 +2374,33 @@ async function _exportRecordToPdf(payload) {
   document.body.appendChild(overlay);
 
   try {
-    const html2pdfLib = await _ensureScriptLoaded("html2pdf", "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js");
+    const html2pdfLib = await _ensureScriptLoaded(
+      "html2pdf",
+      "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js",
+      "https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"
+    );
     const paperEl = overlay.querySelector("#pdf-export-paper");
-    await html2pdfLib().set({
+    const opt = {
       margin: [8, 8, 8, 8],
       filename: fileName,
       image: { type: "jpeg", quality: 0.98 },
       html2canvas: { scale: 2, useCORS: true, backgroundColor: "#FFFFFF", scrollY: 0 },
       jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
       pagebreak: { mode: ["avoid-all", "css", "legacy"] }
-    }).from(paperEl).save();
+    };
+    let downloaded = false;
+    try {
+      const pdfBlob = await html2pdfLib().set(opt).from(paperEl).outputPdf("blob");
+      if (pdfBlob && pdfBlob.size > 0) {
+        triggerBlobDownload(pdfBlob, fileName);
+        downloaded = true;
+      }
+    } catch (blobErr) {
+      console.warn("outputPdf blob failed, falling back to .save():", blobErr);
+    }
+    if (!downloaded) {
+      await html2pdfLib().set(opt).from(paperEl).save();
+    }
   } finally {
     if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
   }
