@@ -308,6 +308,7 @@ body.daily-limit-reached #levelbar,
 body.daily-limit-reached #modes,
 body.daily-limit-reached #card,
 body.daily-limit-reached #banner,
+body.daily-limit-reached .banner,
 body.daily-limit-reached #session {
   display: none !important;
 }
@@ -1579,6 +1580,8 @@ body[data-theme="dark"],
         </div>
       </main>
 
+      <div class="banner" id="banner"></div>
+
       <!-- 學習進度 Progress 獨立方塊 -->
       <section class="progress" id="progress-card">
         <h3>
@@ -1614,8 +1617,6 @@ body[data-theme="dark"],
         </h3>
         <div id="summary" class="summary-embedded" hidden></div>
       </section>
-
-      <div class="banner" id="banner"></div>
 
       <!-- 📥 底部作答歷程紀錄匯出下載方塊 (支援指定日期或指定範圍，PDF / Excel 雙格式輸出) -->
       <section class="progress export-records-card is-collapsed" id="export-records-section">
