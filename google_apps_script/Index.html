@@ -4218,7 +4218,10 @@
         <span title="答對 1 次（或最近答錯，需要再練）"><i style="background:#D9D5F2"></i>學習中 <b id="n-learn" class="tnum">0</b></span>
         <span title="連續答對 2 次"><i style="background:#B9E8D3"></i>練習中 <b id="n-prac" class="tnum">0</b></span>
         <span title="連續答對 3 次，獲得 ⭐"><i style="background:var(--green)"></i>精通 <b id="n-mast" class="tnum">0</b></span>
-        <span style="margin-left:auto;color:var(--ink3)">共 <b id="n-total" class="tnum">2055</b> 字</span>
+        <span title="答對單字數量"><i style="background:var(--violet, #6C4CE0)"></i>答對 <b id="n-correct" class="tnum">0</b> 字</span>
+        <span title="總單字數量" style="color:var(--ink3)"><i style="background:#8C98BA"></i>共 <b id="n-total" class="tnum">2055</b> 字</span>
+        <span title="目前作答答對率"><i style="background:var(--amber, #E8892B)"></i>答對率 <b id="n-rate" class="tnum">0%</b></span>
+        <span title="目前獲得累積總分"><i style="background:var(--sky, #2D9CDB)"></i>獲得 <b id="n-score" class="tnum">0</b> 分</span>
       </div>
       <p class="defs">熟練度定義：<b>學習中</b>＝答對 1 次 · <b>練習中</b>＝連續答對 2 次 · <b>精通</b>＝連續答對 3 次（答錯會退回「學習中」）</p>
     </section>
@@ -14221,6 +14224,27 @@ function renderStudentSummary(resp) {
   if (elNumM) elNumM.innerText = mast.toLocaleString();
   const elNumT = document.getElementById("n-total") || document.getElementById("stNumTotal");
   if (elNumT) elNumT.innerText = totalVocab.toLocaleString();
+
+  let distinctCorrect = 0;
+  if (agent && agent.stat) {
+    distinctCorrect = Math.max(
+      Object.values(agent.stat).filter(s => s.c > 0).length,
+      agent.box ? Object.values(agent.box).filter(b => b >= 2).length : 0
+    );
+  } else if (agent && agent.box) {
+    distinctCorrect = Object.values(agent.box).filter(b => b >= 2).length;
+  }
+  const pts = (agent && agent.points !== undefined) ? agent.points : (parseInt(rawRow[4]) || 0);
+  const attTotal = (agent && agent.attempts !== undefined) ? agent.attempts : (parseInt(rawRow[6]) || 0);
+  const corrTotal = (agent && agent.correct !== undefined) ? agent.correct : (parseInt(rawRow[7]) || 0);
+  const ovRate = attTotal > 0 ? Math.round((corrTotal / attTotal) * 100) : 0;
+
+  const elNumC = document.getElementById("n-correct");
+  if (elNumC) elNumC.innerText = distinctCorrect.toLocaleString();
+  const elNumR = document.getElementById("n-rate");
+  if (elNumR) elNumR.innerText = ovRate + "%";
+  const elNumS = document.getElementById("n-score");
+  if (elNumS) elNumS.innerText = pts.toLocaleString();
 
   // 3. 各關卡進度 (Level 1 ~ 5) - 1:1 比照遊戲計算 (testedCorrect / testedCount)
   const lvTbody = document.getElementById("stLevelProgressTbody");

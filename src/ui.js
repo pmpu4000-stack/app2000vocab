@@ -462,17 +462,23 @@ export function renderProgress(s) {
 
   const sScore = $("#s-score");
   if (sScore) sScore.textContent = s.points !== undefined ? s.points : 0;
+  const nScore = $("#n-score");
+  if (nScore) nScore.textContent = s.points !== undefined ? s.points : 0;
 
   const sCorr = $("#s-correct");
   if (sCorr) sCorr.textContent = s.distinctCorrect !== undefined ? s.distinctCorrect : 0;
+  const nCorr = $("#n-correct");
+  if (nCorr) nCorr.textContent = s.distinctCorrect !== undefined ? s.distinctCorrect : 0;
 
   const sStreak = $("#s-streak");
   if (sStreak) sStreak.textContent = s.streak !== undefined ? s.streak : 0;
 
   const sRate = $("#s-rate");
   if (sRate) sRate.textContent = (s.passRate !== undefined ? s.passRate : 0) + "%";
+  const nRate = $("#n-rate");
+  if (nRate) nRate.textContent = (s.passRate !== undefined ? s.passRate : 0) + "%";
 
-  const total = s.total || 2000;
+  const total = s.total || 2055;
   const bLearn = $("#b-learn");
   if (bLearn) bLearn.style.width = Math.min(100, Math.max(0, ((s.learn || 0) / total * 100))) + "%";
 
@@ -490,9 +496,6 @@ export function renderProgress(s) {
 
   const nMast = $("#n-mast");
   if (nMast) nMast.textContent = s.mast || 0;
-
-  const nCorr = $("#n-correct");
-  if (nCorr) nCorr.textContent = s.distinctCorrect !== undefined ? s.distinctCorrect : 0;
 
   const nTotal = $("#n-total");
   if (nTotal) nTotal.textContent = total;

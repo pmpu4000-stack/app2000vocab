@@ -1526,13 +1526,9 @@ body[data-theme="dark"],
           <b id="s-upload" class="tnum">🌱</b>
           <span>上傳紀錄</span>
         </div>
-        <div class="stat score" title="目前累積總得分"><b id="s-score" class="tnum">0</b><span>得分</span></div>
-        <div class="stat ok"><b id="s-correct" class="tnum">0</b><span>答對字</span></div>
-        <div class="stat streak" style="display:none"><b id="s-streak" class="tnum">0</b><span>連勝</span></div>
-        <div class="stat rate"><b id="s-rate" class="tnum">0%</b><span>答對率</span></div>
         <div class="stat timer" id="stat-daily-timer" style="cursor:pointer; display:none;" title="今日剩餘練習時間（點擊查看說明）">
           <b id="s-timer-val" class="tnum" style="color:var(--violet);">10:00</b>
-          <span>今日剩餘</span>
+          <span>今日剩餘時間</span>
         </div>
         <div class="stat user" id="stat-user" title="目前登入帳號">
           <b id="s-user" class="tnum">-</b>
@@ -1597,7 +1593,10 @@ body[data-theme="dark"],
           <span title="答對 1 次（或最近答錯，需要再練）"><i style="background:#D9D5F2"></i>學習中 <b id="n-learn" class="tnum">0</b></span>
           <span title="連續答對 2 次"><i style="background:#B9E8D3"></i>練習中 <b id="n-prac" class="tnum">0</b></span>
           <span title="連續答對 3 次，獲得 ⭐"><i style="background:var(--green)"></i>精通 <b id="n-mast" class="tnum">0</b></span>
-          <span style="margin-left:auto;color:var(--ink3)">共 <b id="n-total" class="tnum">0</b> 字</span>
+          <span title="答對單字數量"><i style="background:var(--violet, #6C4CE0)"></i>答對 <b id="n-correct" class="tnum">0</b> 字</span>
+          <span title="總單字數量" style="color:var(--ink3)"><i style="background:#8C98BA"></i>共 <b id="n-total" class="tnum">2055</b> 字</span>
+          <span title="目前作答答對率"><i style="background:var(--amber, #E8892B)"></i>答對率 <b id="n-rate" class="tnum">0%</b></span>
+          <span title="目前獲得累積總分"><i style="background:var(--sky, #2D9CDB)"></i>獲得 <b id="n-score" class="tnum">0</b> 分</span>
         </div>
         <p class="defs">熟練度定義：<b>學習中</b>＝答對 1 次 · <b>練習中</b>＝連續答對 2 次 · <b>精通</b>＝連續答對 3 次（答錯會退回「學習中」）</p>
       </section>
@@ -1788,34 +1787,50 @@ body[data-theme="dark"],
     try {
       const sa = JSON.parse(localStorage.getItem("spellAgent.v2"));
       const sc = document.getElementById("s-correct");
+      const nc = document.getElementById("n-correct");
       const ss = document.getElementById("s-streak");
       const sr = document.getElementById("s-rate");
+      const nr = document.getElementById("n-rate");
       const sp = document.getElementById("s-score");
+      const np = document.getElementById("n-score");
       if (sa) {
-        if (sp) sp.textContent = String(sa.points !== undefined ? sa.points : 0);
-        if (sc && sa.stat) {
+        const pts = String(sa.points !== undefined ? sa.points : 0);
+        if (sp) sp.textContent = pts;
+        if (np) np.textContent = pts;
+
+        if (sa.stat) {
           const distinctCorrect = Math.max(
             Object.values(sa.stat).filter(s => s.c > 0).length,
             sa.box ? Object.values(sa.box).filter(b => b >= 2).length : 0
           );
-          sc.textContent = String(distinctCorrect);
-        } else if (sc) sc.textContent = "0";
+          if (sc) sc.textContent = String(distinctCorrect);
+          if (nc) nc.textContent = String(distinctCorrect);
+        } else {
+          if (sc) sc.textContent = "0";
+          if (nc) nc.textContent = "0";
+        }
 
         if (ss) ss.textContent = String(sa.streak !== undefined ? sa.streak : 0);
-        if (sr) {
-          sr.textContent = (sa.attempts ? Math.round((sa.correct / sa.attempts) * 100) : 0) + "%";
-        } else if (sr) sr.textContent = "0%";
+        const rateStr = (sa.attempts ? Math.round((sa.correct / sa.attempts) * 100) : 0) + "%";
+        if (sr) sr.textContent = rateStr;
+        if (nr) nr.textContent = rateStr;
       } else {
         if (sp) sp.textContent = "0";
+        if (np) np.textContent = "0";
         if (sc) sc.textContent = "0";
+        if (nc) nc.textContent = "0";
         if (ss) ss.textContent = "0";
         if (sr) sr.textContent = "0%";
+        if (nr) nr.textContent = "0%";
       }
     } catch(_) {
       const sp = document.getElementById("s-score");   if (sp) sp.textContent = "0";
+      const np = document.getElementById("n-score");   if (np) np.textContent = "0";
       const sc = document.getElementById("s-correct"); if (sc) sc.textContent = "0";
+      const nc = document.getElementById("n-correct"); if (nc) nc.textContent = "0";
       const ss = document.getElementById("s-streak");  if (ss) ss.textContent = "0";
       const sr = document.getElementById("s-rate");    if (sr) sr.textContent = "0%";
+      const nr = document.getElementById("n-rate");    if (nr) nr.textContent = "0%";
     }
 
     // 點擊「登入帳號」欄位可確認資訊或切換登出
