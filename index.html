@@ -1817,8 +1817,9 @@ body[data-theme="dark"],
         if (sp) sp.textContent = pts;
         if (np) np.textContent = pts;
 
+        let distinctCorrect = 0;
         if (sa.stat) {
-          const distinctCorrect = Math.max(
+          distinctCorrect = Math.max(
             Object.values(sa.stat).filter(s => s.c > 0).length,
             sa.box ? Object.values(sa.box).filter(b => b >= 2).length : 0
           );
@@ -1831,8 +1832,9 @@ body[data-theme="dark"],
 
         if (ss) ss.textContent = String(sa.streak !== undefined ? sa.streak : 0);
         const rateStr = (sa.attempts ? Math.round((sa.correct / sa.attempts) * 100) : 0) + "%";
+        const vocabRateStr = Math.round((distinctCorrect / 2055) * 100) + "%";
         if (sr) sr.textContent = rateStr;
-        if (nr) nr.textContent = rateStr;
+        if (nr) nr.textContent = vocabRateStr;
       } else {
         if (sp) sp.textContent = "0";
         if (np) np.textContent = "0";

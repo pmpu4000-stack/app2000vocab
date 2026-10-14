@@ -473,12 +473,14 @@ export function renderProgress(s) {
   const sStreak = $("#s-streak");
   if (sStreak) sStreak.textContent = s.streak !== undefined ? s.streak : 0;
 
+  const total = s.total || 2055;
+  const distinctCorr = s.distinctCorrect !== undefined ? s.distinctCorrect : 0;
+  const vocabRate = total > 0 ? Math.round((distinctCorr / total) * 100) : 0;
+
   const sRate = $("#s-rate");
   if (sRate) sRate.textContent = (s.passRate !== undefined ? s.passRate : 0) + "%";
   const nRate = $("#n-rate");
-  if (nRate) nRate.textContent = (s.passRate !== undefined ? s.passRate : 0) + "%";
-
-  const total = s.total || 2055;
+  if (nRate) nRate.textContent = vocabRate + "%";
   const bLearn = $("#b-learn");
   if (bLearn) bLearn.style.width = Math.min(100, Math.max(0, ((s.learn || 0) / total * 100))) + "%";
 

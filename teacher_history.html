@@ -14259,11 +14259,12 @@ function renderStudentSummary(resp) {
   const attTotal = (agent && agent.attempts !== undefined) ? agent.attempts : (parseInt(rawRow[6]) || 0);
   const corrTotal = (agent && agent.correct !== undefined) ? agent.correct : (parseInt(rawRow[7]) || 0);
   const ovRate = attTotal > 0 ? Math.round((corrTotal / attTotal) * 100) : 0;
+  const vocabRate = totalVocab > 0 ? Math.round((distinctCorrect / totalVocab) * 100) : 0;
 
   const elNumC = document.getElementById("n-correct");
   if (elNumC) elNumC.innerText = distinctCorrect.toLocaleString();
   const elNumR = document.getElementById("n-rate");
-  if (elNumR) elNumR.innerText = ovRate + "%";
+  if (elNumR) elNumR.innerText = vocabRate + "%";
   const elNumS = document.getElementById("n-score");
   if (elNumS) elNumS.innerText = pts.toLocaleString();
 
