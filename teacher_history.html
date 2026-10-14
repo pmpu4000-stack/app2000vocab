@@ -2284,6 +2284,13 @@
     [data-theme="dark"] .legend {
       color: #A5B0CF !important;
     }
+    .legend-break {
+      flex-basis: 100% !important;
+      width: 100% !important;
+      height: 0 !important;
+      margin: -4px 0 !important;
+      display: block !important;
+    }
     .legend span {
       display: flex !important;
       align-items: center !important;
@@ -4231,6 +4238,7 @@
         <span title="答對 1 次（或最近答錯，需要再練）"><i style="background:#D9D5F2"></i>學習中 <b id="n-learn" class="tnum">0</b></span>
         <span title="連續答對 2 次"><i style="background:#B9E8D3"></i>練習中 <b id="n-prac" class="tnum">0</b></span>
         <span title="連續答對 3 次，獲得 ⭐"><i style="background:var(--green)"></i>精通 <b id="n-mast" class="tnum">0</b></span>
+        <div class="legend-break"></div>
         <span title="答對單字與答對率"><i style="background:var(--violet, #6C4CE0)"></i>答對 <b id="n-correct" class="tnum">0</b> 字<span style="color:var(--ink3);margin:0 2px;">/</span>共 <b id="n-total" class="tnum">2055</b> 字（答對率 <b id="n-rate" class="tnum">0%</b>）</span>
         <span class="stat-sep" style="margin:0 -2px;">/</span>
         <span title="目前獲得累積總分"><i style="background:var(--sky, #2D9CDB)"></i>獲得 <b id="n-score" class="tnum">0</b> 分</span>
