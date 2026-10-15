@@ -2480,8 +2480,7 @@
       color: var(--ink) !important;
     }
     .level-stats-grid {
-      display: grid !important;
-      grid-template-columns: 80px 14px 80px 14px 66px 14px 58px !important;
+      display: inline-flex !important;
       align-items: center !important;
       white-space: nowrap !important;
       font-size: 12.5px !important;
@@ -2491,30 +2490,34 @@
     .level-stats-grid .st-item {
       display: inline-flex !important;
       align-items: center !important;
-      justify-content: flex-end !important;
       color: var(--ink) !important;
       font-weight: 650 !important;
       white-space: nowrap !important;
     }
-    .level-stats-grid .st-item b,
-    .level-stats-grid .st-item .tnum {
+    .level-stats-grid .st-item .st-lbl {
+      display: inline-block !important;
+      white-space: nowrap !important;
+    }
+    .level-stats-grid .st-item .st-num {
+      display: inline-block !important;
+      width: 25px !important;
+      text-align: right !important;
       font-weight: 800 !important;
       color: var(--ink) !important;
-      font-variant-numeric: tabular-nums !important;
-      margin: 0 1px !important;
+      margin-right: 1px !important;
     }
     .level-stats-grid .st-sep {
       text-align: center !important;
       color: var(--sky, #0284c7) !important;
       font-weight: 700 !important;
       display: inline-block !important;
+      margin: 0 4px !important;
       user-select: none !important;
     }
     [data-theme="dark"] .sumtable td.st-level-name,
     [data-theme="dark"] .sumtable td:first-child,
     [data-theme="dark"] .level-stats-grid .st-item,
-    [data-theme="dark"] .level-stats-grid .st-item b,
-    [data-theme="dark"] .level-stats-grid .st-item .tnum {
+    [data-theme="dark"] .level-stats-grid .st-item .st-num {
       color: #F0F3FA !important;
     }
     [data-theme="dark"] .sumtable tr {
@@ -2544,29 +2547,10 @@
       }
     }
 
-    @media (max-width: 440px) {
+    @media (max-width: 280px) {
       .level-stats-grid {
-        grid-template-columns: 80px 14px 80px !important;
-        row-gap: 3px !important;
-        font-size: 12px !important;
-      }
-      .level-stats-grid .st-sep-mid {
-        display: none !important;
-      }
-      .level-stats-grid .st-item.st-mast {
-        grid-column: 1 !important;
-      }
-    }
-
-    @media (max-width: 320px) {
-      .level-stats-grid {
-        display: flex !important;
         flex-wrap: wrap !important;
-        gap: 3px 6px !important;
-        font-size: 11.5px !important;
-      }
-      .level-stats-grid .st-sep {
-        display: none !important;
+        row-gap: 3px !important;
       }
     }
 
@@ -14742,7 +14726,7 @@ function renderStudentSummary(resp) {
       const lPrac = levelPracMap[lv] || 0;
       const lLearn = levelLearnMap[lv] || 0;
 
-      lvRowsHtml += `<tr><td class="st-level-name"><span style="color:${lvColors[lv-1]}">●</span> Level ${lv}「${lvNames[lv-1]}」</td><td class="st-level-stats"><div class="level-stats-grid"><span class="st-item st-learn">學習中 <b class="tnum">${lLearn}</b> 字</span><span class="st-sep">/</span><span class="st-item st-prac">練習中 <b class="tnum">${lPrac}</b> 字</span><span class="st-sep st-sep-mid">/</span><span class="st-item st-mast">精通 <b class="tnum">${lMast}</b> 字</span><span class="st-sep">/</span><span class="st-item st-total">共 <b class="tnum">411</b> 字</span></div></td></tr>`;
+      lvRowsHtml += `<tr><td class="st-level-name"><span style="color:${lvColors[lv-1]}">●</span> Level ${lv}「${lvNames[lv-1]}」</td><td class="st-level-stats"><div class="level-stats-grid"><span class="st-item"><span class="st-lbl">學習中</span><b class="tnum st-num">${lLearn}</b>字</span><span class="st-sep">/</span><span class="st-item"><span class="st-lbl">練習中</span><b class="tnum st-num">${lPrac}</b>字</span><span class="st-sep">/</span><span class="st-item"><span class="st-lbl">精通</span><b class="tnum st-num">${lMast}</b>字</span></div></td></tr>`;
     }
     lvTbody.innerHTML = lvRowsHtml;
   }
