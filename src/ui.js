@@ -466,16 +466,17 @@ export function renderProgress(s) {
   const nScore = $("#n-score");
   if (nScore) nScore.textContent = s.points !== undefined ? s.points : 0;
 
+  const totCorr = (s.learn || 0) + (s.prac || 0) + (s.mast || 0);
+  const distinctCorr = totCorr > 0 ? totCorr : (s.distinctCorrect !== undefined ? s.distinctCorrect : 0);
   const sCorr = $("#s-correct");
-  if (sCorr) sCorr.textContent = s.distinctCorrect !== undefined ? s.distinctCorrect : 0;
+  if (sCorr) sCorr.textContent = distinctCorr;
   const nCorr = $("#n-correct");
-  if (nCorr) nCorr.textContent = s.distinctCorrect !== undefined ? s.distinctCorrect : 0;
+  if (nCorr) nCorr.textContent = distinctCorr;
 
   const sStreak = $("#s-streak");
   if (sStreak) sStreak.textContent = s.streak !== undefined ? s.streak : 0;
 
   const total = s.total || 2055;
-  const distinctCorr = s.distinctCorrect !== undefined ? s.distinctCorrect : 0;
   const vocabRate = total > 0 ? Math.round((distinctCorr / total) * 100) : 0;
 
   const sRate = $("#s-rate");

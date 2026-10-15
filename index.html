@@ -1260,27 +1260,27 @@ body[data-theme="dark"],
 
 
 .stat-sep {
-  color: #0284c7;
-  font-weight: 700;
-  margin: 0 5px;
+  color: var(--ink3, #94A3B8) !important;
+  font-weight: 600;
+  margin: 0 4px;
   display: inline-block;
-  opacity: 0.85;
+  opacity: 0.9;
 }
 [data-theme="dark"] .stat-sep {
-  color: #38bdf8;
+  color: #64748B !important;
   opacity: 0.95;
 }
 .legend .stat-sep {
-  color: #0284c7;
-  font-weight: 800;
-  margin: 0 -2px;
+  color: var(--ink3, #94A3B8) !important;
+  font-weight: 600;
+  margin: 0 4px;
   display: inline-flex;
   align-items: center;
   opacity: 0.9;
   user-select: none;
 }
 [data-theme="dark"] .legend .stat-sep {
-  color: #38bdf8;
+  color: #64748B !important;
   opacity: 1;
 }
 
@@ -1843,8 +1843,8 @@ body[data-theme="dark"],
               <span title="連續答對 3 次，獲得 ⭐"><i style="background:var(--green)"></i>精通 <b id="n-mast" class="tnum">0</b></span>
             </div>
             <div class="legend-row legend-row-stats">
-              <span title="單字掌握率：已答對字數占全體 2055 字的百分比">答對 <b id="n-correct" class="tnum">0</b> 字<span style="color:var(--ink3);margin:0 2px;">/</span>共 <b id="n-total" class="tnum">2055</b> 字（掌握率 <b id="n-rate" class="tnum">0%</b>）</span>
-              <span class="stat-sep" style="margin:0 -2px;">/</span>
+              <span title="單字掌握率：已答對字數占全體 2055 字的百分比">答對 <b id="n-correct" class="tnum">0</b> 字，共 <b id="n-total" class="tnum">2055</b> 字，掌握率 <b id="n-rate" class="tnum">0%</b></span>
+              <span class="stat-sep">/</span>
               <span title="目前獲得累積總分">獲得 <b id="n-score" class="tnum">0</b> 分</span>
             </div>
           </div>
@@ -2070,17 +2070,17 @@ body[data-theme="dark"],
         if (np) np.textContent = pts;
 
         let distinctCorrect = 0;
-        if (sa.stat) {
-          distinctCorrect = Math.max(
-            Object.values(sa.stat).filter(s => s.c > 0).length,
-            sa.box ? Object.values(sa.box).filter(b => b >= 2).length : 0
-          );
-          if (sc) sc.textContent = String(distinctCorrect);
-          if (nc) nc.textContent = String(distinctCorrect);
-        } else {
-          if (sc) sc.textContent = "0";
-          if (nc) nc.textContent = "0";
+        if (sa.box) {
+          const lCnt = Object.values(sa.box).filter(b => b === 1).length;
+          const pCnt = Object.values(sa.box).filter(b => b === 2).length;
+          const mCnt = Object.values(sa.box).filter(b => b >= 3).length;
+          distinctCorrect = lCnt + pCnt + mCnt;
         }
+        if (distinctCorrect === 0 && sa.stat) {
+          distinctCorrect = Object.values(sa.stat).filter(s => s.c > 0).length;
+        }
+        if (sc) sc.textContent = String(distinctCorrect);
+        if (nc) nc.textContent = String(distinctCorrect);
 
         if (ss) ss.textContent = String(sa.streak !== undefined ? sa.streak : 0);
         const rateStr = (sa.attempts ? Math.round((sa.correct / sa.attempts) * 100) : 0) + "%";

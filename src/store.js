@@ -401,10 +401,12 @@ export function stats(words) {
       if (b >= 3) mast++; else if (b === 2) prac++; else if (b === 1) learn++;
     }
   }
-  const distinctCorrect = Math.max(
-    Object.values(DB.stat || {}).filter((s) => s.c > 0).length,
-    Object.values(DB.box || {}).filter((b) => b >= 2).length
-  );
+  const distinctCorrect = (learn + prac + mast) > 0
+    ? (learn + prac + mast)
+    : Math.max(
+        Object.values(DB.stat || {}).filter((s) => s.c > 0).length,
+        Object.values(DB.box || {}).filter((b) => b >= 1).length
+      );
   const passRate = DB.attempts ? Math.round((DB.correct / DB.attempts) * 100) : 0;
   const total = wList.length || 2000;
   return {

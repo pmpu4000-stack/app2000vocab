@@ -2585,27 +2585,27 @@
     }
 
     .stat-sep {
-      color: var(--sky, #0284c7) !important;
-      font-weight: 700 !important;
-      margin: 0 5px !important;
+      color: var(--ink3, #94A3B8) !important;
+      font-weight: 600 !important;
+      margin: 0 4px !important;
       display: inline-block !important;
-      opacity: 0.85 !important;
+      opacity: 0.9 !important;
     }
     [data-theme="dark"] .stat-sep {
-      color: #38bdf8 !important;
+      color: #64748B !important;
       opacity: 0.95 !important;
     }
     .legend .stat-sep {
-      color: var(--sky, #0284c7) !important;
-      font-weight: 800 !important;
-      margin: 0 -2px !important;
+      color: var(--ink3, #94A3B8) !important;
+      font-weight: 600 !important;
+      margin: 0 4px !important;
       display: inline-flex !important;
       align-items: center !important;
       opacity: 0.9 !important;
       user-select: none !important;
     }
     [data-theme="dark"] .legend .stat-sep {
-      color: #38bdf8 !important;
+      color: #64748B !important;
       opacity: 1 !important;
     }
 
@@ -4585,8 +4585,8 @@
             <span title="連續答對 3 次，獲得 ⭐"><i style="background:var(--green)"></i>精通 <b id="n-mast" class="tnum">0</b></span>
           </div>
           <div class="legend-row legend-row-stats">
-            <span title="單字掌握率：已答對字數占全體 2055 字的百分比">答對 <b id="n-correct" class="tnum">0</b> 字<span style="color:var(--ink3);margin:0 2px;">/</span>共 <b id="n-total" class="tnum">2055</b> 字（掌握率 <b id="n-rate" class="tnum">0%</b>）</span>
-            <span class="stat-sep" style="margin:0 -2px;">/</span>
+            <span title="單字掌握率：已答對字數占全體 2055 字的百分比">答對 <b id="n-correct" class="tnum">0</b> 字，共 <b id="n-total" class="tnum">2055</b> 字，掌握率 <b id="n-rate" class="tnum">0%</b></span>
+            <span class="stat-sep">/</span>
             <span title="目前獲得累積總分">獲得 <b id="n-score" class="tnum">0</b> 分</span>
           </div>
         </div>
@@ -14669,14 +14669,13 @@ function renderStudentSummary(resp) {
   const elNumT = document.getElementById("n-total") || document.getElementById("stNumTotal");
   if (elNumT) elNumT.innerText = totalVocab.toLocaleString();
 
-  let distinctCorrect = 0;
-  if (agent && agent.stat) {
-    distinctCorrect = Math.max(
-      Object.values(agent.stat).filter(s => s.c > 0).length,
-      agent.box ? Object.values(agent.box).filter(b => b >= 2).length : 0
-    );
-  } else if (agent && agent.box) {
-    distinctCorrect = Object.values(agent.box).filter(b => b >= 2).length;
+  let distinctCorrect = (learn + prac + mast);
+  if (distinctCorrect === 0) {
+    if (agent && agent.stat) {
+      distinctCorrect = Object.values(agent.stat).filter(s => s.c > 0).length;
+    } else if (agent && agent.box) {
+      distinctCorrect = Object.values(agent.box).filter(b => b >= 1).length;
+    }
   }
   const pts = (agent && agent.points !== undefined) ? agent.points : (parseInt(rawRow[4]) || 0);
   const attTotal = (agent && agent.attempts !== undefined) ? agent.attempts : (parseInt(rawRow[6]) || 0);

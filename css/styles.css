@@ -1167,27 +1167,27 @@ body[data-theme="dark"],
 
 
 .stat-sep {
-  color: #0284c7;
-  font-weight: 700;
-  margin: 0 5px;
+  color: var(--ink3, #94A3B8) !important;
+  font-weight: 600;
+  margin: 0 4px;
   display: inline-block;
-  opacity: 0.85;
+  opacity: 0.9;
 }
 [data-theme="dark"] .stat-sep {
-  color: #38bdf8;
+  color: #64748B !important;
   opacity: 0.95;
 }
 .legend .stat-sep {
-  color: #0284c7;
-  font-weight: 800;
-  margin: 0 -2px;
+  color: var(--ink3, #94A3B8) !important;
+  font-weight: 600;
+  margin: 0 4px;
   display: inline-flex;
   align-items: center;
   opacity: 0.9;
   user-select: none;
 }
 [data-theme="dark"] .legend .stat-sep {
-  color: #38bdf8;
+  color: #64748B !important;
   opacity: 1;
 }
 
