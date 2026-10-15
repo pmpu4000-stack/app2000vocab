@@ -1107,30 +1107,121 @@ body[data-theme="dark"],
   width: 100%;
   border-collapse: collapse;
   font-size: 12.5px;
+  table-layout: auto;
+  box-shadow: none;
+  border-radius: 0;
+  overflow: visible;
+  margin-top: 4px;
+  margin-bottom: 8px;
+  background: transparent;
+  background-color: transparent;
+}
+.sumtable tr {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--line);
+}
+.sumtable tr:last-child {
+  border-bottom: none;
 }
 .sumtable td {
-  padding: 6px 4px;
-  border-bottom: 1px solid var(--line);
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
+  padding: 0;
   color: var(--ink2);
   font-weight: 650;
+  line-height: 1.5;
 }
-.sumtable td:last-child,
-.sumtable tr td:last-child,
-.sumtable tr:last-child td:last-child {
+.sumtable td.st-level-name,
+.sumtable td:first-child {
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-weight: 750;
+  color: var(--ink);
+}
+.sumtable td.st-level-stats,
+.sumtable td:last-child {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
   text-align: right;
   color: var(--ink);
-  font-weight: 800;
+}
+.level-stats-grid {
+  display: grid;
+  grid-template-columns: 66px 14px 66px 14px 80px 14px 80px 14px 64px 14px 58px;
+  align-items: center;
+  white-space: nowrap;
+  font-size: 12.5px;
+  font-feature-settings: "tnum";
   font-variant-numeric: tabular-nums;
 }
-[data-theme="dark"] .sumtable td {
-  color: #A5B0CF;
+.level-stats-grid .st-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  color: var(--ink);
+  font-weight: 650;
+  white-space: nowrap;
+}
+.level-stats-grid .st-item b,
+.level-stats-grid .st-item .tnum {
+  font-weight: 800;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  margin: 0 1px;
+}
+.level-stats-grid .st-sep {
+  text-align: center;
+  color: var(--sky, #0284c7);
+  font-weight: 700;
+  display: inline-block;
+  user-select: none;
+}
+[data-theme="dark"] .sumtable td.st-level-name,
+[data-theme="dark"] .sumtable td:first-child,
+[data-theme="dark"] .level-stats-grid .st-item,
+[data-theme="dark"] .level-stats-grid .st-item b,
+[data-theme="dark"] .level-stats-grid .st-item .tnum {
+  color: #F0F3FA;
+}
+[data-theme="dark"] .sumtable tr {
   border-bottom-color: #262C42;
 }
-[data-theme="dark"] .sumtable td:last-child,
-[data-theme="dark"] .sumtable tr td:last-child,
-[data-theme="dark"] .sumtable tr:last-child td:last-child {
-  color: #F0F3FA !important;
+[data-theme="dark"] .level-stats-grid .st-sep {
+  color: var(--sky, #38bdf8);
 }
+
+@media (max-width: 660px) {
+  .sumtable tr {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 7px 0;
+    gap: 4px;
+  }
+  .sumtable td.st-level-name,
+  .sumtable td:first-child {
+    width: 100%;
+    white-space: nowrap;
+  }
+  .sumtable td.st-level-stats,
+  .sumtable td:last-child {
+    width: 100%;
+    justify-content: flex-start;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .sumtable td.st-level-stats::-webkit-scrollbar,
+  .sumtable td:last-child::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 
 .stat-sep {
   color: #0284c7;

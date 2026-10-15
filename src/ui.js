@@ -1229,7 +1229,7 @@ export function renderSummary(d) {
   const currentUser = localStorage.getItem("current_user") || "";
   const userTagHtml = currentUser ? `<span style="font-size:13px;font-weight:700;color:var(--sky);background:rgba(56,189,248,0.12);padding:2px 8px;border-radius:999px;margin-left:8px;border:1px solid rgba(56,189,248,0.25);">👤 ${currentUser}</span>` : "";
   const lvRows = d.levels
-    .map((L) => `<tr><td><span style="color:${levelColor(L.level)}">●</span> Level ${L.level}「${levelName(L.level)}」</td><td>${L.correct}/${L.testedCount} (${L.rate}%)<span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span>學習中 ${L.learn || 0}<span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span>練習中 ${L.prac || 0}<span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span>精通 ${L.mast}<span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span>共 ${L.total}</td></tr>`)
+    .map((L) => `<tr><td class="st-level-name"><span style="color:${levelColor(L.level)}">●</span> Level ${L.level}「${levelName(L.level)}」</td><td class="st-level-stats"><div class="level-stats-grid"><span class="st-item st-corr">答對 <b class="tnum">${L.correct}</b> 字</span><span class="st-sep">/</span><span class="st-item st-test">施測 <b class="tnum">${L.testedCount}</b> 字</span><span class="st-sep">/</span><span class="st-item st-learn">學習中 <b class="tnum">${L.learn || 0}</b> 字</span><span class="st-sep">/</span><span class="st-item st-prac">練習中 <b class="tnum">${L.prac || 0}</b> 字</span><span class="st-sep">/</span><span class="st-item st-mast">精通 <b class="tnum">${L.mast}</b> 字</span><span class="st-sep">/</span><span class="st-item st-total">共 <b class="tnum">${L.total}</b> 字</span></div></td></tr>`)
     .join("");
 
   const historyList = getCombinedTaskHistory();
@@ -2239,7 +2239,7 @@ async function _exportRecordToPdf(payload) {
     <tr>
       <td style="padding:6px 8px; border-bottom:1px solid #E7E9F5; font-weight:700; color:#232A4D;">Level ${L.level}「${esc(L.name)}」</td>
       <td style="padding:6px 8px; border-bottom:1px solid #E7E9F5; text-align:right; font-weight:700; color:#232A4D;">
-        ${L.correct}/${L.tested} (${L.rate}%) / 學習中 ${L.learn} / 練習中 ${L.prac} / 精通 ${L.mast} / 共 ${L.total}
+        答對 ${L.correct} 字 / 施測 ${L.tested} 字 / 學習中 ${L.learn} 字 / 練習中 ${L.prac} 字 / 精通 ${L.mast} 字 / 共 ${L.total} 字
       </td>
     </tr>
   `).join("");

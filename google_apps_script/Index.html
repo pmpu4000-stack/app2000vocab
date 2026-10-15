@@ -128,8 +128,7 @@
     .card,
     #mainControlCard,
     #studentDailyTaskCard,
-    #studentFreePracticeCard,
-    .progress {
+    #studentFreePracticeCard {
       background: var(--card) !important;
       border: 1.5px solid var(--border) !important;
       border-radius: 22px !important;
@@ -2194,14 +2193,16 @@
 
     .bigrate { display: none !important; }
 
+    #studentSummaryCard .progress,
     .progress {
-      margin-top: 18px !important;
+      margin: 0 0 14px !important;
       background: var(--card) !important;
       border: 1.5px solid var(--line) !important;
-      border-radius: 22px !important;
-      padding: 18px 20px !important;
+      border-radius: 20px !important;
+      padding: 16px 18px !important;
       box-shadow: var(--shadow) !important;
     }
+    [data-theme="dark"] #studentSummaryCard .progress,
     [data-theme="dark"] .progress {
       background: #181C2A !important;
       border-color: #262C42 !important;
@@ -2209,7 +2210,7 @@
       color: #F0F3FA !important;
     }
 
-    /* 1. 主標題 (Main Title) - 學習紀錄 Record 與 學習進度 Progress 同步大小 */
+    /* 1. 主標題 (Main Title) - 學習足跡 Record 與 整體進度 Progress 同步大小 */
     .summary-embedded h3, .summary h3, .progress h3 {
       display: flex !important;
       justify-content: space-between !important;
@@ -2226,22 +2227,6 @@
     [data-theme="dark"] .summary h3,
     [data-theme="dark"] .progress h3 {
       color: #F0F3FA !important;
-    }
-    .progress h3 a, #sumBtn {
-      color: var(--sky, #2D9CDB) !important;
-      font-size: 12px !important;
-      cursor: pointer !important;
-      text-decoration: underline !important;
-      font-weight: 700 !important;
-      display: inline-flex !important;
-      align-items: center !important;
-      gap: 4px !important;
-      background: transparent !important;
-      padding: 0 !important;
-    }
-    [data-theme="dark"] .progress h3 a,
-    [data-theme="dark"] #sumBtn {
-      color: var(--sky, #38bdf8) !important;
     }
 
     .bar {
@@ -2421,7 +2406,29 @@
       border-left-color: #8B6BF0 !important;
     }
 
-    /* 各關卡進度表格 (隔離全域 table/td/tr 污染，與 index.html 100% 一致) */
+    /* 2.1 子標題 (Sub-headings / 區塊內次級標題，如指定測驗作答紀錄、自由練習作答紀錄) */
+    .subh-child {
+      font-size: 13px !important;
+      font-weight: 750 !important;
+      color: var(--ink) !important;
+      letter-spacing: 0.2px;
+      margin: 14px 0 8px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      flex-wrap: wrap !important;
+      gap: 8px !important;
+      border-left: 2.5px solid rgba(108, 76, 224, 0.45) !important;
+      padding-left: 7px !important;
+      line-height: 1.4 !important;
+      text-transform: none !important;
+    }
+    [data-theme="dark"] .subh-child {
+      color: #E2E8F0 !important;
+      border-left-color: rgba(139, 107, 240, 0.5) !important;
+    }
+
+    /* 各關卡進度表格排版優化 (Level 不換行、斜線絕對垂直對齊、窄螢幕自適應換行) */
     .sumtable {
       width: 100% !important;
       border-collapse: collapse !important;
@@ -2435,41 +2442,110 @@
       background: transparent !important;
       background-color: transparent !important;
     }
+    .sumtable tr {
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: center !important;
+      padding: 6px 0 !important;
+      border-bottom: 1px solid var(--line) !important;
+    }
+    .sumtable tr:last-child {
+      border-bottom: none !important;
+    }
     .sumtable td {
-      padding: 6px 4px !important;
       border-top: none !important;
       border-left: none !important;
       border-right: none !important;
-      border-bottom: 1px solid var(--line) !important;
+      border-bottom: none !important;
+      padding: 0 !important;
       color: var(--ink2) !important;
       font-weight: 650 !important;
-      text-align: left !important;
-      vertical-align: middle !important;
-      white-space: normal !important;
       line-height: 1.5 !important;
     }
-    .sumtable tr:last-child td {
-      border-bottom: 1px solid var(--line) !important;
+    .sumtable td.st-level-name,
+    .sumtable td:first-child {
+      white-space: nowrap !important;
+      flex-shrink: 0 !important;
+      font-weight: 750 !important;
+      color: var(--ink) !important;
     }
-    .sumtable td:last-child,
-    .sumtable tr td:last-child,
-    .sumtable tr:last-child td:last-child {
+    .sumtable td.st-level-stats,
+    .sumtable td:last-child {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: flex-end !important;
       text-align: right !important;
       color: var(--ink) !important;
-      font-weight: 800 !important;
+    }
+    .level-stats-grid {
+      display: grid !important;
+      grid-template-columns: 66px 14px 66px 14px 80px 14px 80px 14px 64px 14px 58px !important;
+      align-items: center !important;
+      white-space: nowrap !important;
+      font-size: 12.5px !important;
+      font-feature-settings: "tnum" !important;
       font-variant-numeric: tabular-nums !important;
     }
-    [data-theme="dark"] .sumtable td {
-      color: #A5B0CF !important;
-      border-bottom-color: #262C42 !important;
+    .level-stats-grid .st-item {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: flex-end !important;
+      color: var(--ink) !important;
+      font-weight: 650 !important;
+      white-space: nowrap !important;
     }
-    [data-theme="dark"] .sumtable tr:last-child td {
-      border-bottom-color: #262C42 !important;
+    .level-stats-grid .st-item b,
+    .level-stats-grid .st-item .tnum {
+      font-weight: 800 !important;
+      color: var(--ink) !important;
+      font-variant-numeric: tabular-nums !important;
+      margin: 0 1px !important;
     }
-    [data-theme="dark"] .sumtable td:last-child,
-    [data-theme="dark"] .sumtable tr td:last-child,
-    [data-theme="dark"] .sumtable tr:last-child td:last-child {
+    .level-stats-grid .st-sep {
+      text-align: center !important;
+      color: var(--sky, #0284c7) !important;
+      font-weight: 700 !important;
+      display: inline-block !important;
+      user-select: none !important;
+    }
+    [data-theme="dark"] .sumtable td.st-level-name,
+    [data-theme="dark"] .sumtable td:first-child,
+    [data-theme="dark"] .level-stats-grid .st-item,
+    [data-theme="dark"] .level-stats-grid .st-item b,
+    [data-theme="dark"] .level-stats-grid .st-item .tnum {
       color: #F0F3FA !important;
+    }
+    [data-theme="dark"] .sumtable tr {
+      border-bottom-color: #262C42 !important;
+    }
+    [data-theme="dark"] .level-stats-grid .st-sep {
+      color: var(--sky, #38bdf8) !important;
+    }
+
+    @media (max-width: 660px) {
+      .sumtable tr {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        padding: 7px 0 !important;
+        gap: 4px !important;
+      }
+      .sumtable td.st-level-name,
+      .sumtable td:first-child {
+        width: 100% !important;
+        white-space: nowrap !important;
+      }
+      .sumtable td.st-level-stats,
+      .sumtable td:last-child {
+        width: 100% !important;
+        justify-content: flex-start !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        scrollbar-width: none !important;
+      }
+      .sumtable td.st-level-stats::-webkit-scrollbar,
+      .sumtable td:last-child::-webkit-scrollbar {
+        display: none !important;
+      }
     }
 
     .stat-sep {
@@ -3122,20 +3198,36 @@
       margin-bottom: 0 !important;
     }
     .export-records-card h3 a {
-      color: var(--sky, #2D9CDB) !important;
       font-size: 12px !important;
+      color: var(--violet) !important;
       cursor: pointer !important;
       text-decoration: none !important;
       font-weight: 700 !important;
       display: inline-flex !important;
       align-items: center !important;
       gap: 4px !important;
+      padding: 3px 8px !important;
+      border-radius: 6px !important;
+      background: rgba(108, 76, 224, 0.08) !important;
+      border: 1px solid rgba(108, 76, 224, 0.16) !important;
+      transition: all .15s !important;
+    }
+    .export-records-card h3 a:hover {
+      color: var(--violet-d) !important;
+      background: rgba(108, 76, 224, 0.16) !important;
+      opacity: 0.88 !important;
     }
     [data-theme="dark"] .export-records-card h3 {
       color: #F0F3FA !important;
     }
     [data-theme="dark"] .export-records-card h3 a {
+      background: rgba(56, 189, 248, 0.12) !important;
+      border-color: rgba(56, 189, 248, 0.22) !important;
       color: var(--sky, #38bdf8) !important;
+    }
+    [data-theme="dark"] .export-records-card h3 a:hover {
+      background: rgba(56, 189, 248, 0.22) !important;
+      color: #7dd3fc !important;
     }
     .export-sub-hint {
       font-size: 11.5px !important;
@@ -4464,14 +4556,14 @@
       </div>
     </section>
 
-    <!-- 學習紀錄 Records 獨立卡片 -->
+    <!-- 學習足跡 Records 獨立卡片 -->
     <section class="progress learning-record-card is-collapsed" id="studentLearningRecordCard">
       <h3>
         <span style="display:inline-flex; align-items:center; gap:6px;">
-          <span>學習紀錄 Records</span>
+          <span>學習足跡 Records</span>
         </span>
         <span style="display:flex; gap:14px;">
-          <a id="sumBtn" class="sum-toggle-btn" title="展開或收起學習紀錄">🔍 查詢紀錄</a>
+          <a id="sumBtn" class="sum-toggle-btn" title="展開或收合學習足跡">展開</a>
         </span>
       </h3>
       <div id="summary" class="summary-embedded" style="display:none;">
@@ -4488,29 +4580,30 @@
           <div class="mode-stat-card">
             <div class="mode-stat-title">🎧 聽與拼</div>
             <div class="mode-stat-num" id="stModeListenAttempts">0 題</div>
-            <div class="mode-stat-sub" id="stModeListenSub">答對 0 (0%)</div>
+            <div class="mode-stat-sub" id="stModeListenSub">答對 0 題 (0%)</div>
           </div>
           <div class="mode-stat-card">
             <div class="mode-stat-title">✅ 選拼法</div>
             <div class="mode-stat-num" id="stModePickAttempts">0 題</div>
-            <div class="mode-stat-sub" id="stModePickSub">答對 0 (0%)</div>
+            <div class="mode-stat-sub" id="stModePickSub">答對 0 題 (0%)</div>
           </div>
           <div class="mode-stat-card">
             <div class="mode-stat-title">🧩 重組</div>
             <div class="mode-stat-num" id="stModeScrambleAttempts">0 題</div>
-            <div class="mode-stat-sub" id="stModeScrambleSub">答對 0 (0%)</div>
+            <div class="mode-stat-sub" id="stModeScrambleSub">答對 0 題 (0%)</div>
           </div>
           <div class="mode-stat-card">
             <div class="mode-stat-title">🖍️ 填陷阱</div>
             <div class="mode-stat-num" id="stModeTrapAttempts">0 題</div>
-            <div class="mode-stat-sub" id="stModeTrapSub">答對 0 (0%)</div>
+            <div class="mode-stat-sub" id="stModeTrapSub">答對 0 題 (0%)</div>
           </div>
         </div>
 
-        <!-- 📅 指定日期查詢工具列（直覺日曆與快速切換） -->
+        <!-- 📅 查詢指定日期（大區塊標題，同等層級） -->
+        <div class="subh">📅 查詢指定日期</div>
         <div class="date-navigator-card">
           <div class="date-nav-left">
-            <span class="date-nav-title"><span>📅</span> 查詢指定日期：</span>
+            <span class="date-nav-title">選擇日期：</span>
             <input type="date" id="record-date-picker" class="date-picker-input">
             <button type="button" id="btn-date-today" class="date-nav-btn today-btn" title="切換回今日">📍 今日</button>
             <button type="button" id="btn-date-prev" class="date-nav-btn" title="查看前一天">◀ 前一天</button>
@@ -4523,8 +4616,8 @@
           </div>
         </div>
 
-        <!-- 📝 指定測驗作答紀錄（含最近 4 週黃色熱力圖） -->
-        <div class="subh" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <!-- 子標題 1：指定測驗作答紀錄 -->
+        <div class="subh-child">
           <span>📝 指定測驗作答紀錄</span>
         </div>
         <div class="task-history-card">
@@ -4538,8 +4631,8 @@
           </div>
         </div>
 
-        <!-- 🎮 自由練習作答紀錄（併入最近 4 週綠色熱力圖與說明） -->
-        <div class="subh" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-top:20px;">
+        <!-- 子標題 2：自由練習作答紀錄 -->
+        <div class="subh-child" style="margin-top:16px;">
           <span>🎮 自由練習作答紀錄</span>
         </div>
         <div class="task-history-card">
@@ -14452,16 +14545,16 @@ function renderStudentSummary(resp) {
   const sumCard = document.getElementById("studentSummaryCard");
   if (!sumCard) return;
 
-  // 1. 綁定「學習紀錄 Records」與「收起 ✕」切換事件
+  // 1. 綁定「學習足跡 Records」展開/收合切換事件
   const sumBtn = document.getElementById("sumBtn");
   const sumClose = document.getElementById("sumClose");
   const sumPanel = document.getElementById("summary");
-  const sumRecordCard = document.getElementById("studentLearningRecordCard");
+  const sumRecordCard = document.getElementById("studentLearningRecordCard") || document.getElementById("learning-record-section");
   if (sumBtn && sumPanel) {
     sumBtn.onclick = () => {
       const isHidden = (sumPanel.style.display === "none");
       sumPanel.style.display = isHidden ? "block" : "none";
-      sumBtn.innerHTML = isHidden ? "收起 ✕" : "🔍 查詢紀錄";
+      sumBtn.innerHTML = isHidden ? "收合" : "展開";
       if (sumRecordCard) sumRecordCard.classList.toggle("is-collapsed", !isHidden);
       if (isHidden) {
         sumPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -14471,7 +14564,7 @@ function renderStudentSummary(resp) {
   if (sumClose && sumPanel) {
     sumClose.onclick = () => {
       sumPanel.style.display = "none";
-      if (sumBtn) sumBtn.innerHTML = "🔍 查詢紀錄";
+      if (sumBtn) sumBtn.innerHTML = "展開";
       if (sumRecordCard) sumRecordCard.classList.add("is-collapsed");
     };
   }
@@ -14628,7 +14721,7 @@ function renderStudentSummary(resp) {
       const lPrac = levelPracMap[lv] || 0;
       const lLearn = levelLearnMap[lv] || 0;
 
-      lvRowsHtml += `<tr><td><span style="color:${lvColors[lv-1]}">●</span> Level ${lv}「${lvNames[lv-1]}」</td><td>${lCorrWords}/${lTestedWords} (${lRate}%)<span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span>學習中 ${lLearn}<span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span>練習中 ${lPrac}<span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span>精通 ${lMast}<span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span>共 411</td></tr>`;
+      lvRowsHtml += `<tr><td class="st-level-name"><span style="color:${lvColors[lv-1]}">●</span> Level ${lv}「${lvNames[lv-1]}」</td><td class="st-level-stats"><div class="level-stats-grid"><span class="st-item st-corr">答對 <b class="tnum">${lCorrWords}</b> 字</span><span class="st-sep">/</span><span class="st-item st-test">施測 <b class="tnum">${lTestedWords}</b> 字</span><span class="st-sep">/</span><span class="st-item st-learn">學習中 <b class="tnum">${lLearn}</b> 字</span><span class="st-sep">/</span><span class="st-item st-prac">練習中 <b class="tnum">${lPrac}</b> 字</span><span class="st-sep">/</span><span class="st-item st-mast">精通 <b class="tnum">${lMast}</b> 字</span><span class="st-sep">/</span><span class="st-item st-total">共 <b class="tnum">411</b> 字</span></div></td></tr>`;
     }
     lvTbody.innerHTML = lvRowsHtml;
   }
@@ -14666,22 +14759,22 @@ function renderStudentSummary(resp) {
   const elListenAtt = document.getElementById("stModeListenAttempts");
   if (elListenAtt) elListenAtt.innerText = `${mListen.a.toLocaleString()} 題`;
   const elListenSub = document.getElementById("stModeListenSub");
-  if (elListenSub) elListenSub.innerText = `答對 ${mListen.c} (${rListen}%)`;
+  if (elListenSub) elListenSub.innerText = `答對 ${mListen.c} 題 (${rListen}%)`;
 
   const elPickAtt = document.getElementById("stModePickAttempts");
   if (elPickAtt) elPickAtt.innerText = `${mPick.a.toLocaleString()} 題`;
   const elPickSub = document.getElementById("stModePickSub");
-  if (elPickSub) elPickSub.innerText = `答對 ${mPick.c} (${rPick}%)`;
+  if (elPickSub) elPickSub.innerText = `答對 ${mPick.c} 題 (${rPick}%)`;
 
   const elScramAtt = document.getElementById("stModeScrambleAttempts");
   if (elScramAtt) elScramAtt.innerText = `${mScram.a.toLocaleString()} 題`;
   const elScramSub = document.getElementById("stModeScrambleSub");
-  if (elScramSub) elScramSub.innerText = `答對 ${mScram.c} (${rScram}%)`;
+  if (elScramSub) elScramSub.innerText = `答對 ${mScram.c} 題 (${rScram}%)`;
 
   const elTrapAtt = document.getElementById("stModeTrapAttempts");
   if (elTrapAtt) elTrapAtt.innerText = `${mTrap.a.toLocaleString()} 題`;
   const elTrapSub = document.getElementById("stModeTrapSub");
-  if (elTrapSub) elTrapSub.innerText = `答對 ${mTrap.c} (${rTrap}%)`;
+  if (elTrapSub) elTrapSub.innerText = `答對 ${mTrap.c} 題 (${rTrap}%)`;
 
   // 5. 📅 練習紀錄（最近 4 週）熱力圖（指定測驗黃色熱力圖 + 自由練習綠色熱力圖）
   const historyData = (agent && agent.history) ? agent.history : {};

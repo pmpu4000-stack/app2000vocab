@@ -2428,7 +2428,7 @@
       border-left-color: rgba(139, 107, 240, 0.5) !important;
     }
 
-    /* 各關卡進度表格 (隔離全域 table/td/tr 污染，與 index.html 100% 一致) */
+    /* 各關卡進度表格排版優化 (Level 不換行、斜線絕對垂直對齊、窄螢幕自適應換行) */
     .sumtable {
       width: 100% !important;
       border-collapse: collapse !important;
@@ -2442,41 +2442,110 @@
       background: transparent !important;
       background-color: transparent !important;
     }
+    .sumtable tr {
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: center !important;
+      padding: 6px 0 !important;
+      border-bottom: 1px solid var(--line) !important;
+    }
+    .sumtable tr:last-child {
+      border-bottom: none !important;
+    }
     .sumtable td {
-      padding: 6px 4px !important;
       border-top: none !important;
       border-left: none !important;
       border-right: none !important;
-      border-bottom: 1px solid var(--line) !important;
+      border-bottom: none !important;
+      padding: 0 !important;
       color: var(--ink2) !important;
       font-weight: 650 !important;
-      text-align: left !important;
-      vertical-align: middle !important;
-      white-space: normal !important;
       line-height: 1.5 !important;
     }
-    .sumtable tr:last-child td {
-      border-bottom: 1px solid var(--line) !important;
+    .sumtable td.st-level-name,
+    .sumtable td:first-child {
+      white-space: nowrap !important;
+      flex-shrink: 0 !important;
+      font-weight: 750 !important;
+      color: var(--ink) !important;
     }
-    .sumtable td:last-child,
-    .sumtable tr td:last-child,
-    .sumtable tr:last-child td:last-child {
+    .sumtable td.st-level-stats,
+    .sumtable td:last-child {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: flex-end !important;
       text-align: right !important;
       color: var(--ink) !important;
-      font-weight: 800 !important;
+    }
+    .level-stats-grid {
+      display: grid !important;
+      grid-template-columns: 66px 14px 66px 14px 80px 14px 80px 14px 64px 14px 58px !important;
+      align-items: center !important;
+      white-space: nowrap !important;
+      font-size: 12.5px !important;
+      font-feature-settings: "tnum" !important;
       font-variant-numeric: tabular-nums !important;
     }
-    [data-theme="dark"] .sumtable td {
-      color: #A5B0CF !important;
-      border-bottom-color: #262C42 !important;
+    .level-stats-grid .st-item {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: flex-end !important;
+      color: var(--ink) !important;
+      font-weight: 650 !important;
+      white-space: nowrap !important;
     }
-    [data-theme="dark"] .sumtable tr:last-child td {
-      border-bottom-color: #262C42 !important;
+    .level-stats-grid .st-item b,
+    .level-stats-grid .st-item .tnum {
+      font-weight: 800 !important;
+      color: var(--ink) !important;
+      font-variant-numeric: tabular-nums !important;
+      margin: 0 1px !important;
     }
-    [data-theme="dark"] .sumtable td:last-child,
-    [data-theme="dark"] .sumtable tr td:last-child,
-    [data-theme="dark"] .sumtable tr:last-child td:last-child {
+    .level-stats-grid .st-sep {
+      text-align: center !important;
+      color: var(--sky, #0284c7) !important;
+      font-weight: 700 !important;
+      display: inline-block !important;
+      user-select: none !important;
+    }
+    [data-theme="dark"] .sumtable td.st-level-name,
+    [data-theme="dark"] .sumtable td:first-child,
+    [data-theme="dark"] .level-stats-grid .st-item,
+    [data-theme="dark"] .level-stats-grid .st-item b,
+    [data-theme="dark"] .level-stats-grid .st-item .tnum {
       color: #F0F3FA !important;
+    }
+    [data-theme="dark"] .sumtable tr {
+      border-bottom-color: #262C42 !important;
+    }
+    [data-theme="dark"] .level-stats-grid .st-sep {
+      color: var(--sky, #38bdf8) !important;
+    }
+
+    @media (max-width: 660px) {
+      .sumtable tr {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        padding: 7px 0 !important;
+        gap: 4px !important;
+      }
+      .sumtable td.st-level-name,
+      .sumtable td:first-child {
+        width: 100% !important;
+        white-space: nowrap !important;
+      }
+      .sumtable td.st-level-stats,
+      .sumtable td:last-child {
+        width: 100% !important;
+        justify-content: flex-start !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        scrollbar-width: none !important;
+      }
+      .sumtable td.st-level-stats::-webkit-scrollbar,
+      .sumtable td:last-child::-webkit-scrollbar {
+        display: none !important;
+      }
     }
 
     .stat-sep {
@@ -14652,7 +14721,7 @@ function renderStudentSummary(resp) {
       const lPrac = levelPracMap[lv] || 0;
       const lLearn = levelLearnMap[lv] || 0;
 
-      lvRowsHtml += `<tr><td><span style="color:${lvColors[lv-1]}">●</span> Level ${lv}「${lvNames[lv-1]}」</td><td>${lCorrWords}/${lTestedWords} (${lRate}%)<span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span>學習中 ${lLearn}<span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span>練習中 ${lPrac}<span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span>精通 ${lMast}<span class="stat-sep" style="color:var(--sky, #0284c7);font-weight:700;margin:0 5px;">/</span>共 411</td></tr>`;
+      lvRowsHtml += `<tr><td class="st-level-name"><span style="color:${lvColors[lv-1]}">●</span> Level ${lv}「${lvNames[lv-1]}」</td><td class="st-level-stats"><div class="level-stats-grid"><span class="st-item st-corr">答對 <b class="tnum">${lCorrWords}</b> 字</span><span class="st-sep">/</span><span class="st-item st-test">施測 <b class="tnum">${lTestedWords}</b> 字</span><span class="st-sep">/</span><span class="st-item st-learn">學習中 <b class="tnum">${lLearn}</b> 字</span><span class="st-sep">/</span><span class="st-item st-prac">練習中 <b class="tnum">${lPrac}</b> 字</span><span class="st-sep">/</span><span class="st-item st-mast">精通 <b class="tnum">${lMast}</b> 字</span><span class="st-sep">/</span><span class="st-item st-total">共 <b class="tnum">411</b> 字</span></div></td></tr>`;
     }
     lvTbody.innerHTML = lvRowsHtml;
   }
