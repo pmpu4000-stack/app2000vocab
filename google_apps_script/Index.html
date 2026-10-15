@@ -9742,15 +9742,15 @@ function exportAllCsv() {
     showToast("尚無班級資料可匯出"); return;
   }
 
-  const cols = ["班級", "學生帳號", "姓名", "最後備份時間", "等級", "分數", "目前連勝", "最長連勝",
-    "作答題數", "答對題數", "正確率", "答對單字數", "學習中", "練習中", "精通"];
+  const cols = ["班級", "學生帳號", "姓名", "最後備份時間", "分數", "目前連勝", "最長連勝",
+    "受測單字", "共答對單字", "單字掌握率", "學習中", "練習中", "精通"];
 
   let csv = "\uFEFF" + cols.map(safeCsvCell).join(",") + "\n";
 
   teacherOverview.forEach(s => {
     const row = [
-      s.className || "預設班級", s.username, s.realName || "", s.lastBackup, s.level, s.score, s.streak, s.best,
-      s.attempts, s.correct, s.accuracy, s.distWords, s.learning, s.practicing, s.mastered
+      s.className || "預設班級", s.username, s.realName || "", s.lastBackup, s.score, s.streak, s.best,
+      s.attempts, s.correct, s.accuracy, s.learning, s.practicing, s.mastered
     ].map(safeCsvCell);
     csv += row.join(",") + "\n";
   });
@@ -14072,6 +14072,31 @@ function resolveTaskWords(record, selectedDate, agent) {
   wrongList.sort((a, b) => a.localeCompare(b));
 
   return { rawWords: pool, wrongList, correctList };
+function extractRowTaskInfo(row, headers) {
+  if (!row || !Array.isArray(row)) return null;
+  let tNameIdx = -1, scoreIdx = -1, rateIdx = -1, statusIdx = -1, wrongIdx = -1;
+  if (headers && Array.isArray(headers)) {
+    headers.forEach((h, i) => {
+      const s = String(h || "");
+      if (s.includes("任務名稱")) tNameIdx = i;
+      else if (s.includes("指定測驗成績")) scoreIdx = i;
+      else if (s.includes("指定測驗正確率")) rateIdx = i;
+      else if (s.includes("練習狀態")) statusIdx = i;
+      else if (s.includes("錯題")) wrongIdx = i;
+    });
+  }
+  if (tNameIdx === -1) {
+    if (row.length === 25) { tNameIdx = 20; scoreIdx = 21; rateIdx = 22; statusIdx = 23; wrongIdx = 24; }
+    else if (row.length === 26) { tNameIdx = 21; scoreIdx = 22; rateIdx = 23; statusIdx = 24; wrongIdx = 25; }
+    else { tNameIdx = 18; scoreIdx = 19; rateIdx = 20; statusIdx = 21; wrongIdx = 22; }
+  }
+  const taskName = String(row[tNameIdx] || "").trim();
+  const score = String(row[scoreIdx] || "—").trim();
+  const rate = String(row[rateIdx] || "—").trim();
+  const status = String(row[statusIdx] || "").trim();
+  const wrongStr = String(row[wrongIdx] || "").trim();
+  const wrongWords = wrongStr ? wrongStr.split(/[,、\s]+/).filter(Boolean) : [];
+  return { taskName, score, rate, status, wrongWords };
 }
 
 function buildTaskDetailsHtml(record, selectedDate, agent) {
@@ -14512,17 +14537,24 @@ function renderStudentDailyTaskAndFreeSections(resp) {
       }
     }
     if (!matchedTask && resp.data && Array.isArray(resp.data)) {
-      const matchedRow = resp.data.find(r => r && (normalizeDateKey(r[0]) === targetDate || unpadDateKey(r[0]) === shortTarget) && r[18] && r[18] !== "自主練習");
-      if (matchedRow) {
-        matchedTask = {
-          date: targetDate,
-          taskName: matchedRow[18] || "教師指定測驗",
-          score: matchedRow[19] || "—",
-          rate: matchedRow[20] || "—",
-          status: matchedRow[21] || "● 已完成",
-          words: [],
-          wrongWords: matchedRow[22] ? String(matchedRow[22]).split(/[,、\s]+/).filter(Boolean) : []
-        };
+      for (const r of resp.data) {
+        if (!r) continue;
+        const rDate = normalizeDateKey(r[0]);
+        if (rDate === targetDate || unpadDateKey(r[0]) === shortTarget) {
+          const info = extractRowTaskInfo(r, resp.headers);
+          if (info && info.taskName && info.taskName !== "自主練習" && !info.taskName.includes("自由練習")) {
+            matchedTask = {
+              date: targetDate,
+              taskName: info.taskName || "教師指定測驗",
+              score: info.score || "—",
+              rate: info.rate || "—",
+              status: info.status || "● 已完成",
+              words: [],
+              wrongWords: info.wrongWords
+            };
+            break;
+          }
+        }
       }
     }
     taskDetailsContainer.innerHTML = buildTaskDetailsHtml(matchedTask, targetDate, agent);
@@ -14923,17 +14955,23 @@ function renderStudentSummary(resp) {
       }
     }
     if (!matchedTask && resp.data && Array.isArray(resp.data)) {
-      const matchedRow = resp.data.find(r => r && normalizeDayKey(r[0]) === keyDash && r[18] && r[18] !== "自主練習");
-      if (matchedRow) {
-        matchedTask = {
-          date: keyDash,
-          taskName: matchedRow[18] || "教師指定測驗",
-          score: matchedRow[19] || "—",
-          rate: matchedRow[20] || "—",
-          status: matchedRow[21] || "● 已完成",
-          words: [],
-          wrongWords: matchedRow[22] ? String(matchedRow[22]).split(/[,、\s]+/).filter(Boolean) : []
-        };
+      for (const r of resp.data) {
+        if (!r) continue;
+        if (normalizeDayKey(r[0]) === keyDash) {
+          const info = extractRowTaskInfo(r, resp.headers);
+          if (info && info.taskName && info.taskName !== "自主練習" && !info.taskName.includes("自由練習")) {
+            matchedTask = {
+              date: keyDash,
+              taskName: info.taskName || "教師指定測驗",
+              score: info.score || "—",
+              rate: info.rate || "—",
+              status: info.status || "● 已完成",
+              words: [],
+              wrongWords: info.wrongWords
+            };
+            break;
+          }
+        }
       }
     }
     if (!matchedTask) return { a: 0, c: 0, rate: 0 };
@@ -15498,17 +15536,23 @@ function _buildStudentExportPayload(resp, mode, startDate, endDate) {
       };
     }
     if (!matchedTask && effectiveResp && Array.isArray(effectiveResp.data)) {
-      const matchedRow = effectiveResp.data.find(r => r && normKey(r[0]) === dt && r[18] && r[18] !== "自主練習");
-      if (matchedRow) {
-        matchedTask = {
-          date: dt,
-          taskName: matchedRow[18] || "教師指定測驗",
-          score: matchedRow[19] || "—",
-          rate: formatRatePercentage(matchedRow[20], matchedRow[19]),
-          status: matchedRow[21] || "已完成",
-          words: [],
-          wrongWords: matchedRow[22] ? String(matchedRow[22]).split(/[,、\s]+/).filter(Boolean) : []
-        };
+      for (const r of effectiveResp.data) {
+        if (!r) continue;
+        if (normKey(r[0]) === dt) {
+          const info = extractRowTaskInfo(r, effectiveResp.headers);
+          if (info && info.taskName && info.taskName !== "自主練習" && !info.taskName.includes("自由練習")) {
+            matchedTask = {
+              date: dt,
+              taskName: info.taskName || "教師指定測驗",
+              score: info.score || "—",
+              rate: formatRatePercentage(info.rate, info.score),
+              status: info.status || "已完成",
+              words: [],
+              wrongWords: info.wrongWords
+            };
+            break;
+          }
+        }
       }
     }
 

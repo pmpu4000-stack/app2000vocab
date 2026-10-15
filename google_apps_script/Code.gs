@@ -297,7 +297,7 @@ function ensureStudentSheetColumns(sheet) {
   if (!sheet) return;
   try {
     const studentHdr = [
-      "備份時間", "完整JSON", "等級", "分數", "連勝", "最佳連勝",
+      "備份時間", "完整JSON", "分數", "連勝", "最佳連勝",
       "學習中", "練習中", "精通", "共答對單字", "累積受測單字", "單字掌握率",
       "LEVEL 1 入門\n(答對/受測字數)", "LEVEL 2 基礎\n(答對/受測字數)",
       "LEVEL 3 進階\n(答對/受測字數)", "LEVEL 4 挑戰\n(答對/受測字數)", "LEVEL 5 精熟\n(答對/受測字數)",
@@ -308,18 +308,18 @@ function ensureStudentSheetColumns(sheet) {
     const maxCols = sheet.getMaxColumns();
     const lastCol = sheet.getLastColumn();
 
-    // 🚀 極速快取檢查：若表頭已是最新 26 欄且欄位名稱完全相符，立即返回，省去多餘 API 延遲！
-    if (lastCol >= 26) {
-      const firstRowVals = sheet.getRange(1, 1, 1, 26).getValues()[0] || [];
-      if (firstRowVals[6] === "學習中" && firstRowVals[9] === "共答對單字" && String(firstRowVals[17]||"").includes("聽與拼")) {
+    // 🚀 極速快取檢查：若表頭已是最新 25 欄且欄位名稱完全相符，立即返回，省去多餘 API 延遲！
+    if (lastCol >= 25) {
+      const firstRowVals = sheet.getRange(1, 1, 1, 25).getValues()[0] || [];
+      if (firstRowVals[2] === "分數" && firstRowVals[5] === "學習中" && firstRowVals[8] === "共答對單字") {
         return;
       }
     }
 
-    if (maxCols < 26) {
-      sheet.insertColumnsAfter(maxCols, 26 - maxCols);
-    } else if (maxCols > 26 && sheet.getLastRow() <= 1) {
-      sheet.deleteColumns(27, maxCols - 26);
+    if (maxCols < 25) {
+      sheet.insertColumnsAfter(maxCols, 25 - maxCols);
+    } else if (maxCols > 25 && sheet.getLastRow() <= 1) {
+      sheet.deleteColumns(26, maxCols - 25);
     }
 
     sheet.getRange(1, 1, 1, studentHdr.length).setValues([studentHdr]);
@@ -335,17 +335,17 @@ function ensureStudentSheetColumns(sheet) {
     // 3. 管理者高對比、護眼分組色塊美化（對齊遊戲介面各區塊）
     sheet.getRange("A1").setBackground("#f1f5f9").setFontColor("#334155").setFontWeight("bold"); // 紀錄時間
     sheet.getRange("B1").setBackground("#e2e8f0").setFontColor("#64748b").setFontWeight("normal"); // 完整JSON
-    sheet.getRange("C1:F1").setBackground("#dbeafe").setFontColor("#1e40af").setFontWeight("bold"); // 遊戲狀態 (等級、分數、連勝、最佳連勝)
-    sheet.getRange("G1:L1").setBackground("#dcfce7").setFontColor("#065f46").setFontWeight("bold"); // 整體進度 (學習中、練習中、精通、共答對、受測、掌握率)
-    sheet.getRange("M1:Q1").setBackground("#f3e8ff").setFontColor("#6b21a8").setFontWeight("bold"); // 關卡進度 (LEVEL 1~5)
-    sheet.getRange("R1:U1").setBackground("#ccfbf1").setFontColor("#0f766e").setFontWeight("bold"); // 四大練習模式
-    sheet.getRange("V1:Z1").setBackground("#e0e7ff").setFontColor("#3730a3").setFontWeight("bold"); // 任務與錯題
+    sheet.getRange("C1:E1").setBackground("#dbeafe").setFontColor("#1e40af").setFontWeight("bold"); // 遊戲狀態 (分數、連勝、最佳連勝)
+    sheet.getRange("F1:K1").setBackground("#dcfce7").setFontColor("#065f46").setFontWeight("bold"); // 整體進度 (學習中、練習中、精通、共答對、受測、掌握率)
+    sheet.getRange("L1:P1").setBackground("#f3e8ff").setFontColor("#6b21a8").setFontWeight("bold"); // 關卡進度 (LEVEL 1~5)
+    sheet.getRange("Q1:T1").setBackground("#ccfbf1").setFontColor("#0f766e").setFontWeight("bold"); // 四大練習模式
+    sheet.getRange("U1:Y1").setBackground("#e0e7ff").setFontColor("#3730a3").setFontWeight("bold"); // 任務與錯題
 
     sheet.getRange("1:1").setWrap(true).setHorizontalAlignment("center").setVerticalAlignment("middle");
 
     // 4. 精簡最佳化欄寬與設定純文字格式（防止如 6/6 被試算表誤轉為日期 6月6日）
     const widths = [
-      155, 40, 60, 70, 65, 75,
+      155, 40, 70, 65, 75,
       75, 75, 75, 95, 105, 95,
       115, 115, 115, 115, 115,
       115, 115, 115, 115,
@@ -353,8 +353,10 @@ function ensureStudentSheetColumns(sheet) {
     ];
     widths.forEach((w, idx) => sheet.setColumnWidth(idx + 1, w));
     try {
-      sheet.getRange("M:U").setNumberFormat("@");
-      sheet.getRange("L:L").setNumberFormat("0%");
+      sheet.getRange("F:J").setNumberFormat("0");
+      sheet.getRange("K:K").setNumberFormat("0%");
+      sheet.getRange("L:T").setNumberFormat("@");
+      sheet.getRange("V:W").setNumberFormat("@");
     } catch(_) {}
 
     // 5. 效能優化：裁切多餘空白列（保留最多 120 列），大幅提升 Google Sheets 開啟與捲動速度
@@ -373,11 +375,11 @@ function ensureStudentSheetColumns(sheet) {
  */
 function getHeaderIndexMap(headers) {
   const map = {
-    date: 0, json: 1, level: 2, score: 3, streak: 4, best: 5,
-    learning: 6, practicing: 7, mastered: 8, correct: 9, attempts: 10, accuracy: 11,
-    l1: 12, l2: 13, l3: 14, l4: 15, l5: 16,
-    mListen: 17, mPick: 18, mScramble: 19, mTrap: 20,
-    taskName: 21, taskScore: 22, taskRate: 23, status: 24, wrong: 25
+    date: 0, json: 1, score: 2, streak: 3, best: 4,
+    learning: 5, practicing: 6, mastered: 7, correct: 8, attempts: 9, accuracy: 10,
+    l1: 11, l2: 12, l3: 13, l4: 14, l5: 15,
+    mListen: 16, mPick: 17, mScramble: 18, mTrap: 19,
+    taskName: 20, taskScore: 21, taskRate: 22, status: 23, wrong: 24
   };
   (headers || []).forEach((h, idx) => {
     const s = String(h || "").trim();
@@ -392,6 +394,11 @@ function getHeaderIndexMap(headers) {
     else if (s.includes("精通")) map.mastered = idx;
     else if (s.includes("練習中")) map.practicing = idx;
     else if (s.includes("學習中")) map.learning = idx;
+    else if (s.includes("最佳連勝")) map.best = idx;
+    else if (s.includes("連勝")) map.streak = idx;
+    else if (s.includes("分數")) map.score = idx;
+    else if (s.includes("備份時間") || s.includes("紀錄時間") || s.includes("日期")) map.date = idx;
+    else if (s.includes("完整JSON")) map.json = idx;
   });
   return map;
 }
@@ -759,13 +766,15 @@ function getActiveTaskForClass(ss, studentClass, username) {
     if (uSheet && uSheet.getLastRow() >= 2) {
       const lastCol = uSheet.getLastColumn();
       if (lastCol >= 1) {
+        const headers = uSheet.getRange(1, 1, 1, lastCol).getValues()[0] || [];
+        const hMap = getHeaderIndexMap(headers);
         const maxRows = Math.min(uSheet.getLastRow() - 1, 15);
         const vals = uSheet.getRange(2, 1, maxRows, lastCol).getValues();
         for (let i = 0; i < vals.length; i++) {
           const dStr = formatStandardDateYMD(vals[i][0]);
-          const status = String(vals[i][21] || "").trim();
-          const taskScore = String(vals[i][19] || "").trim();
-          const tName = String(vals[i][18] || "").trim();
+          const status = String(vals[i][hMap.status] || "").trim();
+          const taskScore = String(vals[i][hMap.taskScore] || "").trim();
+          const tName = String(vals[i][hMap.taskName] || "").trim();
           if (dStr === todayStrDash && status.includes("已完成") && taskScore !== "—" && taskScore !== "") {
             hasAnyCompletedToday = true;
             if (tName) completedTasksToday.add(tName.toLowerCase());
@@ -902,15 +911,17 @@ function getWeekendRemediationTask(ss, cleanClass, username, completedTasksToday
     const uSheet = getStudentSheet(ss, username);
     if (uSheet && uSheet.getLastRow() >= 2) {
       const lastCol = uSheet.getLastColumn();
+      const headers = uSheet.getRange(1, 1, 1, lastCol).getValues()[0] || [];
+      const hMap = getHeaderIndexMap(headers);
       const maxRows = Math.min(uSheet.getLastRow() - 1, 60);
       const uVals = uSheet.getRange(2, 1, maxRows, lastCol).getValues();
       for (let r = 0; r < uVals.length; r++) {
         const rowD = formatStandardDateYMD(uVals[r][0]);
         if (rowD >= monStr && rowD <= friStr) {
-          const tName = String(uVals[r][18] || "").trim().toLowerCase();
-          const score = String(uVals[r][19] || "").trim();
-          const status = String(uVals[r][21] || "").trim();
-          const wrongStr = String(uVals[r][22] || "").trim();
+          const tName = String(uVals[r][hMap.taskName] || "").trim().toLowerCase();
+          const score = String(uVals[r][hMap.taskScore] || "").trim();
+          const status = String(uVals[r][hMap.status] || "").trim();
+          const wrongStr = String(uVals[r][hMap.wrong] || "").trim();
           const wrongList = wrongStr ? wrongStr.split(/[\s,;\n\r]+/).map(w => w.trim().toLowerCase()).filter(Boolean) : [];
           if (tName && (status.includes("已完成") || (score !== "—" && score !== ""))) {
             studentDoneMap[tName] = { completed: true, wrongWords: wrongList };
@@ -2502,9 +2513,42 @@ function doPost(e) {
 }
 
 function doGet(e) {
-  // 支援單字數基準試算表自動升級
-  if (e && e.parameter && e.parameter.action === "migrateToVocabBased" && e.parameter.key === "migrate_vocab_2026_ok") {
-    return jsonResponse(migrateAllSheetsToVocabBased());
+  // 檢驗試算表完整欄位與數值結構
+  if (e && e.parameter && e.parameter.action === "inspectSpreadsheetSchema" && e.parameter.key === "inspect_2026_ok") {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheets = ss.getSheets();
+    const result = {
+      spreadsheetId: ss.getId(),
+      spreadsheetName: ss.getName(),
+      sheets: []
+    };
+    sheets.forEach(sh => {
+      const name = sh.getName();
+      const lastRow = sh.getLastRow();
+      const lastCol = sh.getLastColumn();
+      const maxRow = sh.getMaxRows();
+      const maxCol = sh.getMaxColumns();
+      let headers = [];
+      let sampleRow = [];
+      if (lastRow >= 1 && lastCol >= 1) {
+        headers = sh.getRange(1, 1, 1, Math.min(lastCol, 35)).getDisplayValues()[0];
+      }
+      if (lastRow >= 2 && lastCol >= 1) {
+        sampleRow = sh.getRange(2, 1, 1, Math.min(lastCol, 35)).getDisplayValues()[0].map((v, idx) => {
+          if (idx === 1 && String(v).length > 30) return String(v).substring(0, 30) + "...";
+          return v;
+        });
+      }
+      result.sheets.push({
+        name, lastRow, lastCol, maxRow, maxCol, headers, sampleRow
+      });
+    });
+    return jsonResponse(result);
+  }
+
+  // 支援單字數基準試算表自動升級與深度清理最佳化
+  if (e && e.parameter && (e.parameter.action === "runCleanup" || e.parameter.action === "migrateToVocabBased") && (e.parameter.key === "inspect_2026_ok" || e.parameter.key === "migrate_vocab_2026_ok")) {
+    return jsonResponse(cleanupAndOptimizeSpreadsheet());
   }
 
   // 資通安全與個資法防護：阻絕任何未授權之維護指令探測
@@ -2771,13 +2815,13 @@ function handleSaveRecord(ss, params, auth) {
     // 跨日的新一天，若今天尚未完成測驗，絕不繼承昨天的測驗名稱與成績！
   }
 
-  // Google Sheets 原生公式：共答對單字由 G+H+I 動態加總，單字掌握率由 J/K 動態計算
-  const formulaCorrect = `=SUM(G2:I2)`;
-  const formulaRate    = `=IF(K2>0, J2/K2, 0)`;
+  // Google Sheets 原生公式：共答對單字由 F+G+H 動態加總，單字掌握率由 I/J 動態計算
+  const formulaCorrect = `=SUM(F2:H2)`;
+  const formulaRate    = `=IF(J2>0, I2/J2, 0)`;
 
   const rowData = [
     ts, stored,
-    (agentData.level||{}).current || 1, agentData.points || 0,
+    agentData.points || 0,
     agentData.streak || 0, agentData.best || 0,
     learning, practicing, mastered,
     formulaCorrect, testedWordsCount, formulaRate,
@@ -2799,8 +2843,10 @@ function handleSaveRecord(ss, params, auth) {
     .setValues([rowData]).setHorizontalAlignment("center").setVerticalAlignment("middle");
 
   try {
-    uSheet.getRange(2, 12).setNumberFormat("0%");
-    uSheet.getRange(2, 13, 1, 9).setNumberFormat("@");
+    uSheet.getRange(2, 6, 1, 5).setNumberFormat("0");
+    uSheet.getRange(2, 11).setNumberFormat("0%");
+    uSheet.getRange(2, 12, 1, 9).setNumberFormat("@");
+    uSheet.getRange(2, 22, 1, 2).setNumberFormat("@");
   } catch(_) {}
 
   // 【自動清理防護】：僅清理同日且「完全相同任務名稱」的多餘重複暫存列，絕不誤刪已完成的指定測驗列
@@ -3899,7 +3945,7 @@ function _getStudentData(ss, username) {
     return {
       status: "success",
       username: cleanU,
-      headers: ["備份時間","完整JSON","等級","分數","連勝","最佳連勝","作答題數","答對題數","正確率","LEVEL1入門\n答對題數/作答題數","LEVEL2基礎\n答對題數/作答題數","LEVEL3進階\n答對題數/作答題數","LEVEL4挑戰\n答對題數/作答題數","LEVEL5精熟\n答對題數/作答題數","答對單字數","學習中","練習中","精通","任務名稱","指定測驗成績","指定測驗正確率","練習狀態","測驗錯題單字"],
+      headers: ["備份時間","完整JSON","分數","連勝","最佳連勝","學習中","練習中","精通","共答對單字","累積受測單字","單字掌握率","LEVEL 1 入門\n(答對/受測字數)","LEVEL 2 基礎\n(答對/受測字數)","LEVEL 3 進階\n(答對/受測字數)","LEVEL 4 挑戰\n(答對/受測字數)","LEVEL 5 精熟\n(答對/受測字數)","🎧 聽與拼\n(答對/受測字數)","✅ 選拼法\n(答對/受測字數)","🧩 字母重組\n(答對/受測字數)","🖍️ 填空陷阱\n(答對/受測字數)","任務名稱","指定測驗成績","指定測驗正確率","練習狀態","測驗錯題單字"],
       data: [],
       wordList: [],
       agentData: null,
@@ -4632,18 +4678,37 @@ function generateClassDashboardSheet() {
 
     const n = k=>parseInt(String(row[k]||"0").replace(/,/g,""))||0;
     let mCount=0, pCount=0, lCount=0, cCount=0, aCount=0, accStr="0%", l1="0/0", l2="0/0", l3="0/0", l4="0/0", l5="0/0", mList="0/0", mPick="0/0", mScram="0/0", mTrap="0/0";
+    let curStreak=0, bestStreak=0;
     if (hasData) {
-      if (row.length <= 26) {
-        // 新版 26 欄格式
-        lCount = n(6); pCount = n(7); mCount = n(8); cCount = n(9) || (lCount + pCount + mCount);
+      if (row.length === 25) {
+        // 最新精簡 25 欄格式 (已移除等級贅欄)
+        curStreak = n(3); bestStreak = n(4);
+        lCount = n(5); pCount = n(6); mCount = n(7);
+        cCount = lCount + pCount + mCount;
+        aCount = n(9); accStr = String(row[10] || "0%");
+        l1 = String(row[11] || "0/0"); l2 = String(row[12] || "0/0"); l3 = String(row[13] || "0/0"); l4 = String(row[14] || "0/0"); l5 = String(row[15] || "0/0");
+        mList = String(row[16] || "0/0"); mPick = String(row[17] || "0/0"); mScram = String(row[18] || "0/0"); mTrap = String(row[19] || "0/0");
+      } else if (row.length === 26) {
+        // 舊版 26 欄格式 (含等級贅欄)
+        curStreak = n(4); bestStreak = n(5);
+        lCount = n(6); pCount = n(7); mCount = n(8);
+        cCount = lCount + pCount + mCount;
         aCount = n(10); accStr = String(row[11] || "0%");
         l1 = String(row[12] || "0/0"); l2 = String(row[13] || "0/0"); l3 = String(row[14] || "0/0"); l4 = String(row[15] || "0/0"); l5 = String(row[16] || "0/0");
         mList = String(row[17] || "0/0"); mPick = String(row[18] || "0/0"); mScram = String(row[19] || "0/0"); mTrap = String(row[20] || "0/0");
       } else {
         // 舊版 27 欄備援格式
-        mCount = n(14); pCount = n(15); lCount = n(16); cCount = n(7); aCount = n(6); accStr = String(row[8] || "0%");
+        curStreak = n(4); bestStreak = n(5);
+        mCount = n(14); pCount = n(15); lCount = n(16);
+        cCount = lCount + pCount + mCount;
+        aCount = n(6); accStr = String(row[8] || "0%");
         l1 = String(row[9] || "0/0"); l2 = String(row[10] || "0/0"); l3 = String(row[11] || "0/0"); l4 = String(row[12] || "0/0"); l5 = String(row[13] || "0/0");
         mList = String(row[23] || "0/0"); mPick = String(row[24] || "0/0"); mScram = String(row[25] || "0/0"); mTrap = String(row[26] || "0/0");
+      }
+
+      // 百分比格式誤判防護：若 mCount 異常偏高 (如 300) 且剛好為整百倍數，且與學習中+練習中相符，自動校正
+      if (mCount >= 100 && (mCount % 100 === 0) && (lCount + pCount + Math.round(mCount / 100) === cCount)) {
+        mCount = Math.round(mCount / 100);
       }
     }
 
@@ -4651,7 +4716,7 @@ function generateClassDashboardSheet() {
       meta.className, name, meta.realName||"—", todayTaskText, dateStr, active,
       mCount, pCount, lCount, cCount, "",
       aCount, accStr,
-      hasData ? n(4) : 0, hasData ? n(5) : 0,
+      curStreak, bestStreak,
       l1, l2, l3, l4, l5,
       mList, mPick, mScram, mTrap
     ]);
@@ -4680,19 +4745,34 @@ function generateClassDashboardSheet() {
     [100,120,100,140,110,125,100,85,85,100,180,100,95,85,105,110,110,110,110,110, 110,110,110,110]
       .forEach((w,i)=>dash.setColumnWidth(i+1,w));
   }
+
+  // 最佳化裁切全班學習總覽空白欄與列
+  if (dash.getMaxColumns() > 24) {
+    dash.deleteColumns(25, dash.getMaxColumns() - 24);
+  }
+  const maxDashRows = dash.getMaxRows();
+  const lastDashRow = Math.max(dash.getLastRow(), 1);
+  if (maxDashRows > Math.max(lastDashRow + 5, 20)) {
+    dash.deleteRows(Math.max(lastDashRow + 5, 20) + 1, maxDashRows - Math.max(lastDashRow + 5, 20));
+  }
+
   ss.toast(`✅ 已彙整 ${sorted.length} 位學生數據至「全班學習總覽」！`,"學習歷程管理中心",5);
 }
 
 /**
  * 🚀 全面遷移現有 Google Sheet 所有學生分頁與全班學習總覽至「單字數」基準
  */
-function migrateAllSheetsToVocabBased() {
+function cleanupAndOptimizeSpreadsheet() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheets = ss.getSheets();
-  const updatedSheets = [];
+  const report = {
+    systemSheetsOptimized: [],
+    studentSheetsCleaned: [],
+    errors: []
+  };
 
-  const studentHdr = [
-    "備份時間", "完整JSON", "等級", "分數", "連勝", "最佳連勝",
+  const studentHdr25 = [
+    "備份時間", "完整JSON", "分數", "連勝", "最佳連勝",
     "學習中", "練習中", "精通", "共答對單字", "累積受測單字", "單字掌握率",
     "LEVEL 1 入門\n(答對/受測字數)", "LEVEL 2 基礎\n(答對/受測字數)",
     "LEVEL 3 進階\n(答對/受測字數)", "LEVEL 4 挑戰\n(答對/受測字數)", "LEVEL 5 精熟\n(答對/受測字數)",
@@ -4700,58 +4780,69 @@ function migrateAllSheetsToVocabBased() {
     "任務名稱", "指定測驗成績", "指定測驗正確率", "練習狀態", "測驗錯題單字"
   ];
 
+  const widths25 = [
+    155, 40, 70, 65, 75,
+    75, 75, 75, 95, 105, 95,
+    115, 115, 115, 115, 115,
+    115, 115, 115, 115,
+    130, 95, 95, 110, 220
+  ];
+
+  // 1. 系統工作表最適化設定（刪除多餘空白欄列）
+  const systemConfigs = {
+    "全班學習總覽": { keepCols: 24, keepRowsBuffer: 5 },
+    "使用者清單": { keepCols: 5, keepRowsBuffer: 10 },
+    "指定單字任務": { keepCols: 7, keepRowsBuffer: 10 },
+    "錯誤日誌": { keepCols: 5, keepRowsBuffer: 20 },
+    "時間限制設定": { keepCols: 12, keepRowsBuffer: 10 }
+  };
+
   sheets.forEach(sheet => {
     const sName = sheet.getName();
-    if (isSystemSheet(sName)) return;
-
     try {
-      const lastRow = sheet.getLastRow();
-      const lastCol = sheet.getLastColumn();
-
-      if (sheet.getMaxColumns() < 26) {
-        sheet.insertColumnsAfter(sheet.getMaxColumns(), 26 - sheet.getMaxColumns());
-      } else if (sheet.getMaxColumns() > 26) {
-        sheet.deleteColumns(27, sheet.getMaxColumns() - 26);
+      if (isSystemSheet(sName)) {
+        if (sName !== "全班學習總覽") {
+          const cfg = systemConfigs[sName];
+          if (cfg) {
+            const maxCols = sheet.getMaxColumns();
+            if (maxCols > cfg.keepCols) {
+              sheet.deleteColumns(cfg.keepCols + 1, maxCols - cfg.keepCols);
+            }
+            const maxRows = sheet.getMaxRows();
+            const lastRow = Math.max(sheet.getLastRow(), 1);
+            const targetRows = Math.max(lastRow + cfg.keepRowsBuffer, 25);
+            if (maxRows > targetRows) {
+              sheet.deleteRows(targetRows + 1, maxRows - targetRows);
+            }
+            report.systemSheetsOptimized.push(sName);
+          }
+        }
+        return;
       }
 
-      sheet.getRange(1, 1, 1, studentHdr.length).setValues([studentHdr]);
-      sheet.getRange("1:1").setWrap(true).setHorizontalAlignment("center").setVerticalAlignment("middle");
-      sheet.setRowHeight(1, 45);
-      if (sheet.getFrozenRows() < 1) sheet.setFrozenRows(1);
-      if (sheet.getFrozenColumns() < 1) sheet.setFrozenColumns(1);
-      sheet.hideColumns(2);
+      // --- 學生個人工作表 ---
+      const lastRow = sheet.getLastRow();
+      const lastCol = sheet.getLastColumn();
+      const maxCols = sheet.getMaxColumns();
 
-      sheet.getRange("A1").setBackground("#f1f5f9").setFontColor("#334155").setFontWeight("bold");
-      sheet.getRange("B1").setBackground("#e2e8f0").setFontColor("#64748b").setFontWeight("normal");
-      sheet.getRange("C1:F1").setBackground("#dbeafe").setFontColor("#1e40af").setFontWeight("bold");
-      sheet.getRange("G1:L1").setBackground("#dcfce7").setFontColor("#065f46").setFontWeight("bold");
-      sheet.getRange("M1:Q1").setBackground("#f3e8ff").setFontColor("#6b21a8").setFontWeight("bold");
-      sheet.getRange("R1:U1").setBackground("#ccfbf1").setFontColor("#0f766e").setFontWeight("bold");
-      sheet.getRange("V1:Z1").setBackground("#e0e7ff").setFontColor("#3730a3").setFontWeight("bold");
+      if (maxCols < 25) {
+        sheet.insertColumnsAfter(maxCols, 25 - maxCols);
+      }
 
-      const widths = [
-        155, 40, 60, 70, 65, 75,
-        75, 75, 75, 95, 105, 95,
-        115, 115, 115, 115, 115,
-        115, 115, 115, 115,
-        130, 95, 95, 110, 220
-      ];
-      widths.forEach((w, idx) => sheet.setColumnWidth(idx + 1, w));
-      try {
-        sheet.getRange("M:U").setNumberFormat("@");
-        sheet.getRange("L:L").setNumberFormat("0%");
-      } catch(_) {}
+      let oldHeaders = [];
+      if (lastRow >= 1 && lastCol >= 1) {
+        oldHeaders = sheet.getRange(1, 1, 1, Math.min(lastCol, 35)).getValues()[0] || [];
+      }
+      const hMap = getHeaderIndexMap(oldHeaders);
 
       if (lastRow >= 2) {
-        const rowsToUpdate = Math.min(lastRow - 1, 60);
-        const oldVals = sheet.getRange(2, 1, rowsToUpdate, lastCol).getValues();
-        const oldHeaders = sheet.getRange(1, 1, 1, lastCol).getValues()[0] || [];
-        const hMap = getHeaderIndexMap(oldHeaders);
-
+        const rowsCount = lastRow - 1;
+        const oldVals = sheet.getRange(2, 1, rowsCount, lastCol).getValues();
         const newRows = [];
+
         for (let r = 0; r < oldVals.length; r++) {
           const row = oldVals[r];
-          const storedJson = row[1];
+          const storedJson = row[1]; // Column B
           const rowIdx = r + 2;
 
           let agentData = null;
@@ -4765,51 +4856,123 @@ function migrateAllSheetsToVocabBased() {
           }
 
           const sumData = calculateSummaryFromAgentData(agentData, null);
-          const formulaCorrect = `=SUM(G${rowIdx}:I${rowIdx})`;
-          const formulaRate    = `=IF(K${rowIdx}>0, J${rowIdx}/K${rowIdx}, 0)`;
+
+          const oldScore = (agentData && agentData.points !== undefined) ? agentData.points : (row[hMap.score] || 0);
+          const oldStreak = (agentData && agentData.streak !== undefined) ? agentData.streak : (row[hMap.streak] || 0);
+          const oldBest = (agentData && agentData.best !== undefined) ? agentData.best : (row[hMap.best] || 0);
+
+          const formulaCorrect = `=SUM(F${rowIdx}:H${rowIdx})`;
+          const formulaRate    = `=IF(J${rowIdx}>0, I${rowIdx}/J${rowIdx}, 0)`;
+
+          const rawTask = String(row[hMap.taskName] || "").trim();
+          const rawScore = String(row[hMap.taskScore] || "").trim();
+          const rawRate = String(row[hMap.taskRate] || "").trim();
+          const rawStatus = String(row[hMap.status] || "").trim();
+          const rawWrong = String(row[hMap.wrong] || "").trim();
+
+          let taskName = "⚪ 自由練習中";
+          let taskScore = "—";
+          let taskRate = "—";
+          let status = "⚪ 自由練習中";
+          let wrong = "";
+
+          const isRealTask = rawTask && !rawTask.includes("自由") && !rawTask.includes("自主") && rawTask !== "—";
+          if (isRealTask) {
+            taskName = rawTask;
+            taskScore = (rawScore && rawScore !== "—") ? rawScore : "—";
+            if (rawRate.includes("/")) {
+              taskRate = "—";
+            } else {
+              taskRate = rawRate || "—";
+            }
+            status = rawStatus || "🟢 已完成";
+            if (rawWrong && !rawWrong.includes("/")) {
+              wrong = rawWrong;
+            } else {
+              wrong = "";
+            }
+          }
 
           const newRow = [
-            row[0], // A: 備份時間
-            row[1], // B: 完整JSON
-            (agentData && agentData.level && agentData.level.current) || row[2] || 1, // C: 等級
-            (agentData && agentData.points !== undefined) ? agentData.points : (row[3] || 0), // D: 分數
-            (agentData && agentData.streak !== undefined) ? agentData.streak : (row[4] || 0), // E: 連勝
-            (agentData && agentData.best !== undefined) ? agentData.best : (row[5] || 0),     // F: 最佳連勝
-            sumData.learning,    // G: 學習中
-            sumData.practicing,  // H: 練習中
-            sumData.mastered,    // I: 精通
-            formulaCorrect,      // J: 共答對單字
-            sumData.testedVocab, // K: 累積受測單字
-            formulaRate,         // L: 單字掌握率
-            sumData.l1, sumData.l2, sumData.l3, sumData.l4, sumData.l5, // M~Q: 關卡進度
-            sumData.mListen, sumData.mPick, sumData.mScramble, sumData.mTrap, // R~U: 四大模式
-            String(row[hMap.taskName] || "自主練習"),  // V: 任務名稱
-            String(row[hMap.taskScore] || "—"),       // W: 指定測驗成績
-            String(row[hMap.taskRate] || "—"),        // X: 指定測驗正確率
-            String(row[hMap.status] || "⚪ 自由練習中"), // Y: 練習狀態
-            String(row[hMap.wrong] || "")             // Z: 測驗錯題單字
+            row[0],              // 1: 備份時間
+            row[1],              // 2: 完整JSON
+            oldScore,            // 3: 分數
+            oldStreak,           // 4: 連勝
+            oldBest,             // 5: 最佳連勝
+            sumData.learning,    // 6: 學習中
+            sumData.practicing,  // 7: 練習中
+            sumData.mastered,    // 8: 精通 (純整數格式)
+            formulaCorrect,      // 9: 共答對單字
+            sumData.testedVocab, // 10: 累積受測單字
+            formulaRate,         // 11: 單字掌握率
+            sumData.l1, sumData.l2, sumData.l3, sumData.l4, sumData.l5, // 12~16: LEVEL 1~5
+            sumData.mListen, sumData.mPick, sumData.mScramble, sumData.mTrap, // 17~20: 四大模式
+            taskName,            // 21: 任務名稱
+            taskScore,           // 22: 指定測驗成績
+            taskRate,            // 23: 指定測驗正確率
+            status,              // 24: 練習狀態
+            wrong                // 25: 測驗錯題單字
           ];
           newRows.push(newRow);
         }
-        sheet.getRange(2, 1, newRows.length, 26).setValues(newRows);
-        sheet.getRange(2, 12, newRows.length, 1).setNumberFormat("0%");
-        sheet.getRange(2, 13, newRows.length, 9).setNumberFormat("@");
+
+        sheet.getRange(2, 1, newRows.length, 25).setValues(newRows)
+          .setHorizontalAlignment("center").setVerticalAlignment("middle");
+
+        sheet.getRange(2, 6, newRows.length, 5).setNumberFormat("0");
+        sheet.getRange(2, 11, newRows.length, 1).setNumberFormat("0%");
+        sheet.getRange(2, 12, newRows.length, 9).setNumberFormat("@");
+        sheet.getRange(2, 22, newRows.length, 2).setNumberFormat("@");
       }
-      updatedSheets.push(sName);
+
+      // 覆寫表頭與美化樣式
+      sheet.getRange(1, 1, 1, studentHdr25.length).setValues([studentHdr25]);
+      sheet.getRange("1:1").setWrap(true).setHorizontalAlignment("center").setVerticalAlignment("middle");
+      sheet.setRowHeight(1, 45);
+      if (sheet.getFrozenRows() < 1) sheet.setFrozenRows(1);
+      if (sheet.getFrozenColumns() < 1) sheet.setFrozenColumns(1);
+      sheet.hideColumns(2);
+
+      sheet.getRange("A1").setBackground("#f1f5f9").setFontColor("#334155").setFontWeight("bold");
+      sheet.getRange("B1").setBackground("#e2e8f0").setFontColor("#64748b").setFontWeight("normal");
+      sheet.getRange("C1:E1").setBackground("#dbeafe").setFontColor("#1e40af").setFontWeight("bold");
+      sheet.getRange("F1:K1").setBackground("#dcfce7").setFontColor("#065f46").setFontWeight("bold");
+      sheet.getRange("L1:P1").setBackground("#f3e8ff").setFontColor("#6b21a8").setFontWeight("bold");
+      sheet.getRange("Q1:T1").setBackground("#ccfbf1").setFontColor("#0f766e").setFontWeight("bold");
+      sheet.getRange("U1:Y1").setBackground("#e0e7ff").setFontColor("#3730a3").setFontWeight("bold");
+
+      widths25.forEach((w, idx) => sheet.setColumnWidth(idx + 1, w));
+
+      if (sheet.getMaxColumns() > 25) {
+        sheet.deleteColumns(26, sheet.getMaxColumns() - 25);
+      }
+
+      const curMaxRows = sheet.getMaxRows();
+      const targetRows = Math.max(lastRow + 10, 25);
+      if (curMaxRows > targetRows) {
+        sheet.deleteRows(targetRows + 1, curMaxRows - targetRows);
+      }
+
+      report.studentSheetsCleaned.push(sName);
     } catch(err) {
-      Logger.log("Migrate error in " + sName + ": " + err.message);
+      report.errors.push({ sheet: sName, error: err.message });
+      Logger.log("Error in sheet " + sName + ": " + err.message);
     }
   });
 
   try {
     generateClassDashboardSheet();
-    updatedSheets.push("全班學習總覽");
+    report.dashboardRegenerated = true;
   } catch(e) {
-    Logger.log("Dashboard update error: " + e.message);
+    report.dashboardError = e.message;
   }
 
   clearOverviewCache();
-  return { status: "success", updatedSheetsCount: updatedSheets.length, updatedSheets: updatedSheets };
+  return { status: "success", report };
+}
+
+function migrateAllSheetsToVocabBased() {
+  return cleanupAndOptimizeSpreadsheet();
 }
 
 function initStudentPasswordSheet() {
