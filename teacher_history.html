@@ -4182,7 +4182,7 @@
           <button class="filter-chip active" id="achip-all" onclick="setAnalyticsFilter('all')">全部 (<span id="acount-all">0</span>)</button>
           <button class="filter-chip" id="achip-done" onclick="setAnalyticsFilter('done')">已完成 (<span id="acount-done">0</span>)</button>
           <button class="filter-chip" id="achip-progress" onclick="setAnalyticsFilter('progress')">作答中 (<span id="acount-progress">0</span>)</button>
-          <button class="filter-chip" id="achip-notyet" onclick="setAnalyticsFilter('notyet')">未測驗 (<span id="acount-notyet">0</span>)</button>
+          <button class="filter-chip" id="achip-notyet" onclick="setAnalyticsFilter('notyet')">未受測/未指派 (<span id="acount-notyet">0</span>)</button>
           <button class="filter-chip need-attention" id="achip-fail" onclick="setAnalyticsFilter('fail')">⚠️ 不及格 (<span id="acount-fail">0</span>)</button>
         </div>
 
@@ -4197,7 +4197,8 @@
             <div>• <strong style="color:var(--text);">測驗狀態標籤</strong>：
               <span style="color:#10b981; font-weight:700;">🟢 已完成</span>（全數作答完畢並已結算成績）·
               <span style="color:#f59e0b; font-weight:700;">🟡 作答中</span>（正在測驗中，每題即時自動存檔，尚未完成全部題數）·
-              <span style="color:var(--text-muted); font-weight:700;">⚪ 未測驗</span>（今日尚未點擊開始測驗）。
+              <span style="color:#ef4444; font-weight:700;">⚪ 未受測</span>（當天有指派指定測驗但尚未完成）·
+              <span style="color:var(--text-muted); font-weight:700;">⚪ 未指派</span>（當天無指派指定測驗）。
             </div>
             <div>• <strong style="color:var(--text);">得分 (正確率) 數值</strong>：格式為「答對題數 / 總出題數 (答對百分比)」，例如 <code>4/5 (80%)</code>。綠底代表精熟（≥80%）、黃底代表平穩（60%~79%）、紅底代表不及格需關注（&lt;60%）。</div>
             <div>• <strong style="color:var(--text);">本次答錯單字診斷 (紅標)</strong>：標記該學生在本次測驗中具體拼錯的所有單字與釋義；全對者標記為「✨ 全對滿分」。紅標單字皆已即時同步至該學生的週末複習錯題庫。</div>
@@ -6787,7 +6788,7 @@ function getFilteredAndSortedOverview() {
 // ── 格式化今日指定測驗成果標籤 (高對比、一眼看懂學生成績) ──
 function renderTodayTaskBadge(t) {
   if (!t) {
-    return `<span class="badge" style="background:#f1f5f9; color:#94a3b8; padding:3px 9px; border-radius:14px; font-size:12px; font-weight:600; border:1px solid #e2e8f0; display:inline-flex; align-items:center; gap:4px;"><span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#94a3b8;"></span>未測驗</span>`;
+    return `<span class="badge" style="background:#f1f5f9; color:#94a3b8; padding:3px 9px; border-radius:14px; font-size:12px; font-weight:600; border:1px solid #e2e8f0; display:inline-flex; align-items:center; gap:4px;"><span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#94a3b8;"></span>⚪ 未指派</span>`;
   }
 
   const statusStr = String(t.status || "");
@@ -6836,9 +6837,13 @@ function renderTodayTaskBadge(t) {
     return `<span class="badge" style="background:#fef3c7; color:#b45309; padding:4px 9px; border-radius:14px; font-size:12px; font-weight:700; border:1px solid #fcd34d; display:inline-flex; align-items:center; gap:5px;"><span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#f59e0b;"></span>作答中${curHint}</span>`;
   }
 
-  // 4. 若無有效作答成績
+  // 4. 若無有效作答成績（未受測 vs 未指派）
   if (correct === null && pct === null) {
-    return `<span class="badge" style="background:#f1f5f9; color:#94a3b8; padding:3px 9px; border-radius:14px; font-size:12px; font-weight:600; border:1px solid #e2e8f0; display:inline-flex; align-items:center; gap:4px;"><span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#94a3b8;"></span>未測驗</span>`;
+    const isUntested = statusStr.includes("未受測") || (t.taskName && !t.taskName.includes("未指派") && !t.taskName.includes("自由") && !t.taskName.includes("自主"));
+    if (isUntested) {
+      return `<span class="badge" style="background:#fee2e2; color:#ef4444; padding:3px 9px; border-radius:14px; font-size:12px; font-weight:700; border:1px solid #fca5a5; display:inline-flex; align-items:center; gap:4px;"><span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#ef4444;"></span>⚪ 未受測</span>`;
+    }
+    return `<span class="badge" style="background:#f1f5f9; color:#94a3b8; padding:3px 9px; border-radius:14px; font-size:12px; font-weight:600; border:1px solid #e2e8f0; display:inline-flex; align-items:center; gap:4px;"><span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#94a3b8;"></span>⚪ 未指派</span>`;
   }
 
   // 5. 格式化明確清晰的成績顯示 (一眼看懂學生成績！)
@@ -8687,7 +8692,7 @@ function renderAnalyticsTable() {
   } else if (analyticsFilter === "progress") {
     list = list.filter(s => s.status.includes("作答中") || s.status.includes("進行中"));
   } else if (analyticsFilter === "notyet") {
-    list = list.filter(s => s.status.includes("未測驗"));
+    list = list.filter(s => s.status.includes("未受測") || s.status.includes("未指派") || s.status.includes("未測驗"));
   } else if (analyticsFilter === "fail") {
     list = list.filter(s => {
       if (!s.status.includes("已完成")) return false;
@@ -8735,8 +8740,10 @@ function renderAnalyticsTable() {
       statusPill = `<span class="analytics-status-pill analytics-status-done">🟢 已完成</span>`;
     } else if (s.status.includes("作答中") || s.status.includes("進行中")) {
       statusPill = `<span class="analytics-status-pill analytics-status-progress">🟡 作答中</span>`;
+    } else if (s.status.includes("未受測")) {
+      statusPill = `<span class="analytics-status-pill" style="background:rgba(239, 68, 68, 0.12); color:#ef4444; border:1px solid rgba(239, 68, 68, 0.25);">⚪ 未受測</span>`;
     } else {
-      statusPill = `<span class="analytics-status-pill analytics-status-notyet">⚪ 未測驗</span>`;
+      statusPill = `<span class="analytics-status-pill analytics-status-notyet">⚪ 未指派</span>`;
     }
 
     let scoreBadge = `<span style="color:var(--text-muted);">—</span>`;
@@ -14100,11 +14107,18 @@ function extractRowTaskInfo(row, headers) {
 }
 
 function buildTaskDetailsHtml(record, selectedDate, agent) {
-  if (!record) {
+  const taskDict = (window.cachedTaskWordsMap || {});
+  const sDateNorm = normalizeDateKey(selectedDate);
+  const sDateShort = unpadDateKey(selectedDate);
+  const isAssignedOnDate = !!(taskDict[sDateNorm] || taskDict[sDateShort] || Object.keys(taskDict).some(k => k.startsWith(sDateNorm) || k.startsWith(sDateShort)));
+
+  if (!record || (!record.taskName || record.taskName === "自主練習" || record.taskName.includes("自由練習") || record.taskName.includes("未指派"))) {
+    const isUntested = isAssignedOnDate || (record && record.status && record.status.includes("未受測"));
+    const statusNotice = isUntested ? "⚪ 該日有指派測驗，但學生未受測" : "⚪ 該日未指派指定測驗";
     return `
       <div style="text-align:center; padding:18px 14px; color:var(--ink3);">
-        <div style="font-size:26px; margin-bottom:6px;">📅</div>
-        <div style="font-size:13.5px; font-weight:700; color:var(--ink2);">該指定日期（${selectedDate}）尚無教師指派之測驗作答紀錄</div>
+        <div style="font-size:26px; margin-bottom:6px;">⚪</div>
+        <div style="font-size:13.5px; font-weight:700; color:var(--ink2);">${statusNotice}（${selectedDate}）</div>
         <div style="font-size:12px; margin-top:4px; color:var(--ink3);">可從上方下拉選單切換至其他日期查看詳細作答紀錄</div>
       </div>
     `;
@@ -14115,9 +14129,9 @@ function buildTaskDetailsHtml(record, selectedDate, agent) {
   const scoreVal = record.score || "—";
   const rateVal = formatRatePercentage(record.rate, record.score);
   const statusStr = record.status || "🟢 已完成";
-  const statusColor = statusStr.includes("已完成") ? "#047857" : statusStr.includes("作答中") ? "#d97706" : "#64748b";
-  const statusBg = statusStr.includes("已完成") ? "rgba(16,185,129,0.15)" : statusStr.includes("作答中") ? "rgba(234,179,8,0.15)" : "rgba(148,163,184,0.15)";
-  const isFinished = statusStr.includes("已完成") || (scoreVal !== "—" && scoreVal !== "尚未開始");
+  const statusColor = statusStr.includes("已完成") ? "#047857" : statusStr.includes("未受測") ? "#ef4444" : statusStr.includes("作答中") ? "#d97706" : "#64748b";
+  const statusBg = statusStr.includes("已完成") ? "rgba(16,185,129,0.15)" : statusStr.includes("未受測") ? "rgba(239,68,68,0.15)" : statusStr.includes("作答中") ? "rgba(234,179,8,0.15)" : "rgba(148,163,184,0.15)";
+  const isFinished = statusStr.includes("已完成") || (scoreVal !== "—" && scoreVal !== "尚未開始" && !statusStr.includes("未受測"));
 
   let taskCorrWords = correctList.length;
   let taskTotWords = (correctList.length + wrongList.length) > 0 ? (correctList.length + wrongList.length) : (rawWords.length || 0);
@@ -17011,11 +17025,22 @@ function renderStudentDailyTask(todayTaskResult, dailyTaskHistory, assignedTask)
       `;
     }
   } else {
-    if (statusBadge) {
-      statusBadge.className = "analytics-status-pill analytics-status-none";
-      statusBadge.innerText = "💤 今日尚未測驗";
-    }
     const hasAssigned = currentTask && currentTask.hasTask;
+    if (statusBadge) {
+      if (hasAssigned) {
+        statusBadge.className = "analytics-status-pill";
+        statusBadge.style.background = "rgba(239, 68, 68, 0.1)";
+        statusBadge.style.color = "#ef4444";
+        statusBadge.style.borderColor = "rgba(239, 68, 68, 0.25)";
+        statusBadge.innerText = "⚪ 未受測";
+      } else {
+        statusBadge.className = "analytics-status-pill analytics-status-none";
+        statusBadge.style.background = "";
+        statusBadge.style.color = "";
+        statusBadge.style.borderColor = "";
+        statusBadge.innerText = "⚪ 未指派";
+      }
+    }
     const taskTitle = hasAssigned ? (currentTask.taskName || '每日指定單字測驗') : '每日指定單字隨堂測驗';
     const totalWords = hasAssigned ? (currentTask.total || (currentTask.words && currentTask.words.length) || 0) : 0;
     const modeLabel = hasAssigned ? (currentTask.mode === 'ALL' ? '全數測驗' : `抽測 ${currentTask.count} 題`) : '';
@@ -17031,7 +17056,7 @@ function renderStudentDailyTask(todayTaskResult, dailyTaskHistory, assignedTask)
             <div>
               <div style="font-size:15.5px; font-weight:800; color:var(--text); margin-bottom:5px; display:flex; align-items:center; gap:8px;">
                 <span>📌 今日指派測驗：${escapeHtml(taskTitle)}</span>
-                <span style="font-size:11.5px; font-weight:700; color:#ef4444; background:rgba(239,68,68,0.12); padding:2px 8px; border-radius:12px;">尚未作答</span>
+                <span style="font-size:11.5px; font-weight:700; color:#ef4444; background:rgba(239,68,68,0.12); padding:2px 8px; border-radius:12px;">⚪ 未受測</span>
               </div>
               <div style="font-size:13px; color:var(--text-muted); line-height:1.6;">
                 出題清單：共 <strong>${totalWords}</strong> 個單字（${modeLabel}）｜
@@ -17047,11 +17072,12 @@ function renderStudentDailyTask(todayTaskResult, dailyTaskHistory, assignedTask)
         banner.innerHTML = `
           <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px;">
             <div>
-              <div style="font-size:15px; font-weight:800; color:var(--text); margin-bottom:4px;">
-                📌 今日尚未進行每日單字測驗
+              <div style="font-size:15px; font-weight:800; color:var(--text); margin-bottom:4px; display:flex; align-items:center; gap:8px;">
+                <span>☕ 今日未指派指定測驗</span>
+                <span style="font-size:11.5px; font-weight:700; color:var(--text-muted); background:rgba(148,163,184,0.15); padding:2px 8px; border-radius:12px;">⚪ 未指派</span>
               </div>
               <div style="font-size:13px; color:var(--text-muted); line-height:1.6;">
-                請前往測驗挑戰區進行自主聽拼練習。每天堅持 5~10 分鐘，字彙力即刻穩步提升！
+                老師今日未指派全班指定測驗，可自由前往測驗區進行自主單字練習！每天堅持 5~10 分鐘，字彙力即刻穩步提升！
               </div>
             </div>
             <a href="https://pmpu4000-stack.github.io/app2000vocab/" target="_blank" rel="noopener noreferrer" style="text-decoration:none; padding:8px 16px; border-radius:8px; font-weight:800; font-size:13.5px; background:linear-gradient(135deg, #10b981 0%, #059669 100%); color:#fff; display:inline-flex; align-items:center; gap:6px; box-shadow:0 3px 10px rgba(16,185,129,0.3); transition:all 0.15s ease;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">

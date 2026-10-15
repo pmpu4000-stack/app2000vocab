@@ -2563,6 +2563,30 @@ function doGet(e) {
     return jsonResponse(result);
   }
 
+  // 診斷學生 JSON 細部結構
+  if (e && e.parameter && e.parameter.action === "inspectStudentJson" && e.parameter.key === "inspect_2026_ok") {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const targetUser = e.parameter.user || "ys02";
+    const sh = ss.getSheetByName(targetUser);
+    if (!sh || sh.getLastRow() < 2) return jsonResponse({ error: "No data" });
+    const rowVals = sh.getRange(2, 1, 1, 26).getValues()[0];
+    const storedJson = rowVals[1];
+    let decomp = storedJson;
+    try { decomp = decompressData(storedJson); } catch(_) {}
+    let parsed = null;
+    try { parsed = JSON.parse(decomp); } catch(_) {}
+    return jsonResponse({
+      user: targetUser,
+      row2: rowVals,
+      keys: parsed ? Object.keys(parsed) : null,
+      spellAgentKeys: (parsed && parsed["spellAgent.v2"]) ? Object.keys(parsed["spellAgent.v2"]) : null,
+      history: (parsed && parsed["spellAgent.v2"] && parsed["spellAgent.v2"].history) || null,
+      dailyPractice: (parsed && parsed["spellAgent.v2"] && parsed["spellAgent.v2"].dailyPractice) || null,
+      todayTaskSummary: parsed ? (parsed.todayTaskSummary || parsed.today_task_summary || null) : null,
+      studentTaskHistory: parsed ? (parsed.student_task_history || parsed.taskHistory || null) : null
+    });
+  }
+
   // 支援單字數基準試算表自動升級與深度清理最佳化
   if (e && e.parameter && (e.parameter.action === "runCleanup" || e.parameter.action === "migrateToVocabBased") && (e.parameter.key === "inspect_2026_ok" || e.parameter.key === "migrate_vocab_2026_ok")) {
     return jsonResponse(cleanupAndOptimizeSpreadsheet());
@@ -2739,7 +2763,12 @@ function handleSaveRecord(ss, params, auth) {
   }
 
   const isCompleted = !!(sum && (sum.completed === true || (sum.score !== undefined && sum.total !== undefined && sum.score > 0 && !sum.inProgress)));
-  let taskName      = (sum && sum.taskName) ? sum.taskName : "自主練習";
+  // 檢查今日該班是否有指派任務（判斷未指派 vs 未受測）
+  const studentClass = getStudentClass(username, "");
+  const activeTaskObj = getActiveTaskForClass(ss, studentClass, username);
+  const hasTaskAssignedToday = activeTaskObj && activeTaskObj.hasTask;
+
+  let taskName      = (sum && sum.taskName) ? sum.taskName : (hasTaskAssignedToday ? (activeTaskObj.taskName || "指定測驗") : "⚪ 未指派");
   let taskScore     = (isCompleted && sum.score !== undefined && sum.total !== undefined) ? `'${sum.score}/${sum.total}` : "—";
   let taskRate      = "—";
   if (isCompleted) {
@@ -2750,12 +2779,16 @@ function handleSaveRecord(ss, params, auth) {
     }
   }
 
-  let status = "⚪ 自由練習中";
+  let status = "⚪ 未指派";
   if (isCompleted) {
     status = "🟢 已完成";
   } else if (sum && sum.inProgress) {
     const cur = (sum.score !== undefined && sum.total !== undefined) ? `(${sum.score}/${sum.total})` : "";
     status = `🟡 測驗作答中${cur}`;
+  } else if (hasTaskAssignedToday) {
+    status = "⚪ 未受測";
+  } else {
+    status = "⚪ 未指派";
   }
 
   let wrongWordsStr = (sum && sum.wrongWords && Array.isArray(sum.wrongWords))
@@ -3014,6 +3047,19 @@ function getDailyTaskAnalytics(formData) {
     const todayStr = Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy-MM-dd");
     let selectedDate = formData.targetDate ? formatStandardDateYMD(formData.targetDate) : (dates.includes(todayStr) ? todayStr : (dates[0] || todayStr));
 
+    // 檢查 selectedDate 當日各班級指派任務（判斷未受測 vs 未指派）
+    const allTeacherTasks = getTeacherTasksCached_(ss);
+    const classTaskAssignedOnDate = new Map();
+    (allTeacherTasks || []).forEach(t => {
+      if (t.enabled && t.taskName && t.rawWords) {
+        if (!t.taskDate || formatStandardDateYMD(t.taskDate) === selectedDate) {
+          const c = String(t.taskClass || "").replace(/班$/, "").trim().toLowerCase();
+          classTaskAssignedOnDate.set(c, t.taskName);
+        }
+      }
+    });
+    const schoolWideTaskName = classTaskAssignedOnDate.get("all") || classTaskAssignedOnDate.get("全校") || null;
+
     // 3. 篩選當日測驗紀錄
     const dayRecordsMap = {};
     for (let r = 1; r < recData.length; r++) {
@@ -3095,12 +3141,28 @@ function getDailyTaskAnalytics(formData) {
           inProgressCount++;
         }
 
+        const cClean = String(st.className || "").replace(/班$/, "").trim().toLowerCase();
+        const matchedTask = classTaskAssignedOnDate.get(cClean) || schoolWideTaskName;
+        let finalStatus = rec.status;
+        let finalTaskName = rec.taskName;
+        if (isCompleted) {
+          finalStatus = "🟢 已完成";
+        } else if (isInProgress) {
+          finalStatus = "🟡 作答中";
+        } else if (matchedTask) {
+          finalStatus = "⚪ 未受測";
+          finalTaskName = matchedTask;
+        } else {
+          finalStatus = "⚪ 未指派";
+          finalTaskName = "⚪ 未指派";
+        }
+
         studentRecords.push({
           username   : st.username,
           realName   : st.realName || st.username,
           className  : st.className,
-          taskName   : rec.taskName,
-          status     : isCompleted ? "🟢 已完成" : (isInProgress ? "🟡 作答中" : rec.status),
+          taskName   : finalTaskName,
+          status     : finalStatus,
           score      : rec.score,
           rate       : rec.rate,
           points     : pctNum !== null ? pctNum : null,
@@ -3108,13 +3170,14 @@ function getDailyTaskAnalytics(formData) {
           updatedAt  : rec.updatedAt
         });
       } else {
-        // 未測驗
+        const cClean = String(st.className || "").replace(/班$/, "").trim().toLowerCase();
+        const matchedTask = classTaskAssignedOnDate.get(cClean) || schoolWideTaskName;
         studentRecords.push({
           username   : st.username,
           realName   : st.realName || st.username,
           className  : st.className,
-          taskName   : "—",
-          status     : "⚪ 未測驗",
+          taskName   : matchedTask || "⚪ 未指派",
+          status     : matchedTask ? "⚪ 未受測" : "⚪ 未指派",
           score      : "—",
           rate       : "—",
           points     : null,
@@ -3803,9 +3866,27 @@ function getTodayTaskMap(ss, todayStr) {
   const uSheet = ss.getSheetByName("使用者清單");
   if (!uSheet || uSheet.getLastRow() < 2) return map;
   const uData = uSheet.getDataRange().getValues();
+
+  // 取得全班今日指派任務
+  const allTeacherTasks = getTeacherTasksCached_(ss);
+  const classTaskAssignedToday = new Map();
+  (allTeacherTasks || []).forEach(t => {
+    if (t.enabled && t.taskName && t.rawWords) {
+      if (!t.taskDate || formatStandardDateYMD(t.taskDate) === targetDateStr) {
+        const c = String(t.taskClass || "").replace(/班$/, "").trim().toLowerCase();
+        classTaskAssignedToday.set(c, t.taskName);
+      }
+    }
+  });
+  const schoolWideTaskName = classTaskAssignedToday.get("all") || classTaskAssignedToday.get("全校") || null;
+
   for (let i = 1; i < uData.length; i++) {
     const u = String(uData[i][0] || "").trim();
     if (!u) continue;
+    const userClass = String(uData[i][2] || "").replace(/班$/, "").trim().toLowerCase();
+    const assignedTaskName = classTaskAssignedToday.get(userClass) || schoolWideTaskName;
+    const isClassAssignedToday = !!assignedTaskName;
+
     const sSheet = ss.getSheetByName(u);
     if (sSheet && sSheet.getLastRow() >= 2) {
       const maxRows = Math.min(sSheet.getLastRow() - 1, 10);
@@ -3817,11 +3898,18 @@ function getTodayTaskMap(ss, todayStr) {
         for (let r = 0; r < rows.length; r++) {
           const row = rows[r];
           if (formatStandardDateYMD(row[0]) === targetDateStr) {
-            const status = String(row[hMap.status] || "");
+            let status = String(row[hMap.status] || "");
             const score  = String(row[hMap.taskScore] || "—");
+            let tName = String(row[hMap.taskName] || "");
+            if (!status || status === "—") {
+              status = isClassAssignedToday ? "⚪ 未受測" : "⚪ 未指派";
+            }
+            if (!tName || tName === "—") {
+              tName = isClassAssignedToday ? assignedTaskName : "⚪ 未指派";
+            }
             if (!map[u] || (status.includes("已完成") && score !== "—")) {
               map[u] = {
-                taskName : String(row[hMap.taskName] || ""),
+                taskName : tName,
                 score    : score,
                 rate     : String(row[hMap.taskRate] || "—"),
                 status   : status
@@ -3830,6 +3918,24 @@ function getTodayTaskMap(ss, todayStr) {
             }
           }
         }
+      }
+    }
+
+    if (!map[u]) {
+      if (isClassAssignedToday) {
+        map[u] = {
+          taskName : assignedTaskName,
+          score    : "—",
+          rate     : "—",
+          status   : "⚪ 未受測"
+        };
+      } else {
+        map[u] = {
+          taskName : "⚪ 未指派",
+          score    : "—",
+          rate     : "—",
+          status   : "⚪ 未指派"
+        };
       }
     }
   }
@@ -4644,6 +4750,19 @@ function generateClassDashboardSheet() {
   const todayStr = Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy-MM-dd");
   const todayMap = getTodayTaskMap(ss, todayStr);
 
+  // 取得今日各班級之指派任務清單（精確判斷「未指派」vs「未受測」）
+  const allTeacherTasks = getTeacherTasksCached_(ss);
+  const classTaskAssignedToday = new Map();
+  allTeacherTasks.forEach(t => {
+    if (t.enabled && t.taskName && t.rawWords) {
+      if (!t.taskDate || formatStandardDateYMD(t.taskDate) === todayStr) {
+        const c = String(t.taskClass || "").replace(/班$/, "").trim().toLowerCase();
+        classTaskAssignedToday.set(c, t.taskName);
+      }
+    }
+  });
+  const schoolWideTaskName = classTaskAssignedToday.get("all") || classTaskAssignedToday.get("全校") || null;
+
   const headers = ["班級","學生帳號","姓名","今日指定任務成績","最後練習日期","學習活躍度",
     "累積精通單字","練習中","學習中","共答對單字","單字熟練度分佈",
     "累積受測單字","單字掌握率","目前連勝","歷史最佳連勝",
@@ -4692,7 +4811,20 @@ function generateClassDashboardSheet() {
     }
 
     const tItem = todayMap[name];
-    const todayTaskText = tItem ? `${tItem.score} (${tItem.rate})` : "⚪ 今日未測驗";
+    const cleanCls = String(meta.className || "").replace(/班$/, "").trim().toLowerCase();
+    const assignedTaskName = classTaskAssignedToday.get(cleanCls) || schoolWideTaskName;
+    const isClassAssignedToday = !!assignedTaskName;
+
+    let todayTaskText = "⚪ 未指派";
+    if (tItem && tItem.status && tItem.status.includes("已完成") && tItem.score !== "—") {
+      todayTaskText = `${tItem.score} (${tItem.rate})`;
+    } else if (tItem && tItem.status && tItem.status.includes("作答中")) {
+      todayTaskText = tItem.status;
+    } else if (isClassAssignedToday) {
+      todayTaskText = "⚪ 未受測";
+    } else {
+      todayTaskText = "⚪ 未指派";
+    }
 
     const n = k=>parseInt(String(row[k]||"0").replace(/,/g,""))||0;
     let mCount=0, pCount=0, lCount=0, cCount=0, aCount=0, accStr="0%", l1="0/0", l2="0/0", l3="0/0", l4="0/0", l5="0/0", mList="0/0", mPick="0/0", mScram="0/0", mTrap="0/0";
@@ -4788,6 +4920,8 @@ function cleanupAndOptimizeSpreadsheet() {
     studentSheetsCleaned: [],
     errors: []
   };
+
+  const allTeacherTasks = getTeacherTasksCached_(ss);
 
   const studentHdr26 = [
     "備份時間", "完整JSON", "等級", "分數", "連勝", "最佳連勝",
@@ -4889,26 +5023,49 @@ function cleanupAndOptimizeSpreadsheet() {
           const rawStatus = String(row[hMap.status] || "").trim();
           const rawWrong = String(row[hMap.wrong] || "").trim();
 
-          let taskName = "⚪ 自由練習中";
+          let taskName = "⚪ 未指派";
           let taskScore = "—";
           let taskRate = "—";
-          let status = "⚪ 自由練習中";
+          let status = "⚪ 未指派";
           let wrong = "";
 
-          const isRealTask = rawTask && !rawTask.includes("自由") && !rawTask.includes("自主") && rawTask !== "—";
-          if (isRealTask) {
+          const isRealCompletedTask = rawTask && !rawTask.includes("自由") && !rawTask.includes("自主") && !rawTask.includes("未指派") && rawTask !== "—" && (rawStatus.includes("已完成") || (rawScore !== "—" && rawScore.includes("/")));
+          const isInProgressTask = rawStatus.includes("作答中");
+
+          if (isRealCompletedTask) {
             taskName = rawTask;
             taskScore = (rawScore && rawScore !== "—") ? rawScore : "—";
-            if (rawRate.includes("/")) {
-              taskRate = "—";
+            taskRate = (rawRate && !rawRate.includes("/")) ? rawRate : "—";
+            status = "🟢 已完成";
+            wrong = (rawWrong && !rawWrong.includes("/")) ? rawWrong : "";
+          } else if (isInProgressTask) {
+            taskName = rawTask;
+            taskScore = rawScore || "—";
+            taskRate = "—";
+            status = rawStatus;
+            wrong = rawWrong || "";
+          } else {
+            // 檢查該日該學生之班級是否有指派指定測驗
+            const rowDateYMD = formatStandardDateYMD(row[0]);
+            const sClass = getStudentClass(sheet.getName(), "");
+            const cleanCls = String(sClass || "").replace(/班$/, "").trim().toLowerCase();
+            let matchedTaskName = "";
+            (allTeacherTasks || []).forEach(t => {
+              if (!t.enabled || !t.taskName || !t.rawWords) return;
+              const tDate = t.taskDate ? formatStandardDateYMD(t.taskDate) : "";
+              if (tDate && tDate !== rowDateYMD) return;
+              const tc = String(t.taskClass || "").replace(/班$/, "").trim().toLowerCase();
+              if (tc === cleanCls || tc === "all" || tc === "全校") {
+                matchedTaskName = t.taskName;
+              }
+            });
+
+            if (matchedTaskName) {
+              taskName = matchedTaskName;
+              status = "⚪ 未受測";
             } else {
-              taskRate = rawRate || "—";
-            }
-            status = rawStatus || "🟢 已完成";
-            if (rawWrong && !rawWrong.includes("/")) {
-              wrong = rawWrong;
-            } else {
-              wrong = "";
+              taskName = "⚪ 未指派";
+              status = "⚪ 未指派";
             }
           }
 
