@@ -1410,29 +1410,30 @@ export function renderSummary(d) {
       <div class="mode-stat-card">
         <div class="mode-stat-title">🎧 聽與拼</div>
         <div class="mode-stat-num">${(d.modeStats?.listen?.a || 0)} 題</div>
-        <div class="mode-stat-sub">答對 ${d.modeStats?.listen?.c || 0} (${d.modeStats?.listen?.a ? Math.round((d.modeStats.listen.c / d.modeStats.listen.a)*100) : 0}%)</div>
+        <div class="mode-stat-sub">答對 ${(d.modeStats?.listen?.c || 0)} 題 (${d.modeStats?.listen?.a ? Math.round((d.modeStats.listen.c / d.modeStats.listen.a)*100) : 0}%)</div>
       </div>
       <div class="mode-stat-card">
         <div class="mode-stat-title">✅ 選拼法</div>
         <div class="mode-stat-num">${(d.modeStats?.pick?.a || 0)} 題</div>
-        <div class="mode-stat-sub">答對 ${d.modeStats?.pick?.c || 0} (${d.modeStats?.pick?.a ? Math.round((d.modeStats.pick.c / d.modeStats.pick.a)*100) : 0}%)</div>
+        <div class="mode-stat-sub">答對 ${(d.modeStats?.pick?.c || 0)} 題 (${d.modeStats?.pick?.a ? Math.round((d.modeStats.pick.c / d.modeStats.pick.a)*100) : 0}%)</div>
       </div>
       <div class="mode-stat-card">
         <div class="mode-stat-title">🧩 重組</div>
         <div class="mode-stat-num">${(d.modeStats?.scramble?.a || 0)} 題</div>
-        <div class="mode-stat-sub">答對 ${d.modeStats?.scramble?.c || 0} (${d.modeStats?.scramble?.a ? Math.round((d.modeStats.scramble.c / d.modeStats.scramble.a)*100) : 0}%)</div>
+        <div class="mode-stat-sub">答對 ${(d.modeStats?.scramble?.c || 0)} 題 (${d.modeStats?.scramble?.a ? Math.round((d.modeStats.scramble.c / d.modeStats.scramble.a)*100) : 0}%)</div>
       </div>
       <div class="mode-stat-card">
         <div class="mode-stat-title">🖍️ 填陷阱</div>
         <div class="mode-stat-num">${(d.modeStats?.trap?.a || 0)} 題</div>
-        <div class="mode-stat-sub">答對 ${d.modeStats?.trap?.c || 0} (${d.modeStats?.trap?.a ? Math.round((d.modeStats.trap.c / d.modeStats.trap.a)*100) : 0}%)</div>
+        <div class="mode-stat-sub">答對 ${(d.modeStats?.trap?.c || 0)} 題 (${d.modeStats?.trap?.a ? Math.round((d.modeStats.trap.c / d.modeStats.trap.a)*100) : 0}%)</div>
       </div>
     </div>
 
-    <!-- 📅 指定日期查詢工具列（直覺日曆與快速切換） -->
+    <!-- 📅 查詢指定日期（大區塊標題，同等層級） -->
+    <div class="subh">📅 查詢指定日期</div>
     <div class="date-navigator-card">
       <div class="date-nav-left">
-        <span class="date-nav-title"><span>📅</span> 查詢指定日期：</span>
+        <span class="date-nav-title">選擇日期：</span>
         <input type="date" id="record-date-picker" class="date-picker-input" value="${defaultSelectedDate}" max="${todayDash}">
         <button type="button" id="btn-date-today" class="date-nav-btn today-btn" title="切換回今日">📍 今日</button>
         <button type="button" id="btn-date-prev" class="date-nav-btn" title="查看前一天">◀ 前一天</button>
@@ -1446,8 +1447,8 @@ export function renderSummary(d) {
       </div>
     </div>
 
-    <!-- 指定測驗作答紀錄（含最近 4 週黃色熱力圖） -->
-    <div class="subh" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+    <!-- 子標題 1：指定測驗作答紀錄 -->
+    <div class="subh-child">
       <span>📝 指定測驗作答紀錄</span>
     </div>
     <div class="task-history-card">
@@ -1464,8 +1465,8 @@ export function renderSummary(d) {
       </div>
     </div>
 
-    <!-- 自由練習作答紀錄（併入最近 4 週綠色熱力圖與說明） -->
-    <div class="subh" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-top:20px;">
+    <!-- 子標題 2：自由練習作答紀錄 -->
+    <div class="subh-child" style="margin-top:16px;">
       <span>🎮 自由練習作答紀錄</span>
     </div>
     <div class="task-history-card">

@@ -2406,6 +2406,28 @@
       border-left-color: #8B6BF0 !important;
     }
 
+    /* 2.1 子標題 (Sub-headings / 區塊內次級標題，如指定測驗作答紀錄、自由練習作答紀錄) */
+    .subh-child {
+      font-size: 13px !important;
+      font-weight: 750 !important;
+      color: var(--ink) !important;
+      letter-spacing: 0.2px;
+      margin: 14px 0 8px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      flex-wrap: wrap !important;
+      gap: 8px !important;
+      border-left: 2.5px solid rgba(108, 76, 224, 0.45) !important;
+      padding-left: 7px !important;
+      line-height: 1.4 !important;
+      text-transform: none !important;
+    }
+    [data-theme="dark"] .subh-child {
+      color: #E2E8F0 !important;
+      border-left-color: rgba(139, 107, 240, 0.5) !important;
+    }
+
     /* 各關卡進度表格 (隔離全域 table/td/tr 污染，與 index.html 100% 一致) */
     .sumtable {
       width: 100% !important;
@@ -4489,29 +4511,30 @@
           <div class="mode-stat-card">
             <div class="mode-stat-title">🎧 聽與拼</div>
             <div class="mode-stat-num" id="stModeListenAttempts">0 題</div>
-            <div class="mode-stat-sub" id="stModeListenSub">答對 0 (0%)</div>
+            <div class="mode-stat-sub" id="stModeListenSub">答對 0 題 (0%)</div>
           </div>
           <div class="mode-stat-card">
             <div class="mode-stat-title">✅ 選拼法</div>
             <div class="mode-stat-num" id="stModePickAttempts">0 題</div>
-            <div class="mode-stat-sub" id="stModePickSub">答對 0 (0%)</div>
+            <div class="mode-stat-sub" id="stModePickSub">答對 0 題 (0%)</div>
           </div>
           <div class="mode-stat-card">
             <div class="mode-stat-title">🧩 重組</div>
             <div class="mode-stat-num" id="stModeScrambleAttempts">0 題</div>
-            <div class="mode-stat-sub" id="stModeScrambleSub">答對 0 (0%)</div>
+            <div class="mode-stat-sub" id="stModeScrambleSub">答對 0 題 (0%)</div>
           </div>
           <div class="mode-stat-card">
             <div class="mode-stat-title">🖍️ 填陷阱</div>
             <div class="mode-stat-num" id="stModeTrapAttempts">0 題</div>
-            <div class="mode-stat-sub" id="stModeTrapSub">答對 0 (0%)</div>
+            <div class="mode-stat-sub" id="stModeTrapSub">答對 0 題 (0%)</div>
           </div>
         </div>
 
-        <!-- 📅 指定日期查詢工具列（直覺日曆與快速切換） -->
+        <!-- 📅 查詢指定日期（大區塊標題，同等層級） -->
+        <div class="subh">📅 查詢指定日期</div>
         <div class="date-navigator-card">
           <div class="date-nav-left">
-            <span class="date-nav-title"><span>📅</span> 查詢指定日期：</span>
+            <span class="date-nav-title">選擇日期：</span>
             <input type="date" id="record-date-picker" class="date-picker-input">
             <button type="button" id="btn-date-today" class="date-nav-btn today-btn" title="切換回今日">📍 今日</button>
             <button type="button" id="btn-date-prev" class="date-nav-btn" title="查看前一天">◀ 前一天</button>
@@ -4524,8 +4547,8 @@
           </div>
         </div>
 
-        <!-- 📝 指定測驗作答紀錄（含最近 4 週黃色熱力圖） -->
-        <div class="subh" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <!-- 子標題 1：指定測驗作答紀錄 -->
+        <div class="subh-child">
           <span>📝 指定測驗作答紀錄</span>
         </div>
         <div class="task-history-card">
@@ -4539,8 +4562,8 @@
           </div>
         </div>
 
-        <!-- 🎮 自由練習作答紀錄（併入最近 4 週綠色熱力圖與說明） -->
-        <div class="subh" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-top:20px;">
+        <!-- 子標題 2：自由練習作答紀錄 -->
+        <div class="subh-child" style="margin-top:16px;">
           <span>🎮 自由練習作答紀錄</span>
         </div>
         <div class="task-history-card">
@@ -14667,22 +14690,22 @@ function renderStudentSummary(resp) {
   const elListenAtt = document.getElementById("stModeListenAttempts");
   if (elListenAtt) elListenAtt.innerText = `${mListen.a.toLocaleString()} 題`;
   const elListenSub = document.getElementById("stModeListenSub");
-  if (elListenSub) elListenSub.innerText = `答對 ${mListen.c} (${rListen}%)`;
+  if (elListenSub) elListenSub.innerText = `答對 ${mListen.c} 題 (${rListen}%)`;
 
   const elPickAtt = document.getElementById("stModePickAttempts");
   if (elPickAtt) elPickAtt.innerText = `${mPick.a.toLocaleString()} 題`;
   const elPickSub = document.getElementById("stModePickSub");
-  if (elPickSub) elPickSub.innerText = `答對 ${mPick.c} (${rPick}%)`;
+  if (elPickSub) elPickSub.innerText = `答對 ${mPick.c} 題 (${rPick}%)`;
 
   const elScramAtt = document.getElementById("stModeScrambleAttempts");
   if (elScramAtt) elScramAtt.innerText = `${mScram.a.toLocaleString()} 題`;
   const elScramSub = document.getElementById("stModeScrambleSub");
-  if (elScramSub) elScramSub.innerText = `答對 ${mScram.c} (${rScram}%)`;
+  if (elScramSub) elScramSub.innerText = `答對 ${mScram.c} 題 (${rScram}%)`;
 
   const elTrapAtt = document.getElementById("stModeTrapAttempts");
   if (elTrapAtt) elTrapAtt.innerText = `${mTrap.a.toLocaleString()} 題`;
   const elTrapSub = document.getElementById("stModeTrapSub");
-  if (elTrapSub) elTrapSub.innerText = `答對 ${mTrap.c} (${rTrap}%)`;
+  if (elTrapSub) elTrapSub.innerText = `答對 ${mTrap.c} 題 (${rTrap}%)`;
 
   // 5. 📅 練習紀錄（最近 4 週）熱力圖（指定測驗黃色熱力圖 + 自由練習綠色熱力圖）
   const historyData = (agent && agent.history) ? agent.history : {};

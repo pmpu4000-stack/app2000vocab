@@ -967,6 +967,28 @@ body[data-theme="dark"],
   border-left-color: #8B6BF0 !important;
 }
 
+/* 2.1 子標題 (Sub-headings / 區塊內次級標題，如指定測驗作答紀錄、自由練習作答紀錄) */
+.subh-child {
+  font-size: 13px !important;
+  font-weight: 750 !important;
+  color: var(--ink) !important;
+  letter-spacing: 0.2px;
+  margin: 14px 0 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  border-left: 2.5px solid rgba(108, 76, 224, 0.45) !important;
+  padding-left: 7px !important;
+  line-height: 1.4 !important;
+  text-transform: none !important;
+}
+[data-theme="dark"] .subh-child {
+  color: #E2E8F0 !important;
+  border-left-color: rgba(139, 107, 240, 0.5) !important;
+}
+
 /* 3. 模塊小標題 (Subsection Titles / Card Headers) */
 .task-card-title {
   font-size: 14.5px;
