@@ -475,6 +475,11 @@ export function getDailyPractice(dateStr) {
       };
     }
   }
+  if (dp && dp.words && Object.keys(dp.words).length > 0) {
+    const wList = Object.values(dp.words).filter(Boolean);
+    dp.distinctAttempts = wList.length;
+    dp.distinctCorrect = wList.filter(w => (w.correct > 0 || w.passed)).length;
+  }
   return dp;
 }
 

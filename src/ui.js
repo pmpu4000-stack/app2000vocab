@@ -1021,12 +1021,21 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
     const wName = resolveWordStr(rawW, d).toLowerCase();
     if (!wName || /^w\d+$/i.test(wName)) return;
     const hasWrong = (info && info.wrong > 0);
-    const hasCorrect = (info && info.correct > 0);
+    const hasCorrect = (info && (info.correct > 0 || info.passed));
 
     if (hasWrong) {
-      wrongList.push({ word: wName, attempts: info.attempts || 1, wrong: info.wrong, correct: info.correct || 0 });
+      wrongList.push({
+        word: wName,
+        attempts: (typeof info === "object" && info.attempts) ? info.attempts : 1,
+        wrong: (typeof info === "object" && info.wrong) ? info.wrong : 1,
+        correct: (typeof info === "object" && info.correct) ? info.correct : (info && info.passed ? 1 : 0)
+      });
     } else if (hasCorrect) {
-      correctList.push({ word: wName, attempts: info.attempts || 1, correct: info.correct });
+      correctList.push({
+        word: wName,
+        attempts: (typeof info === "object" && info.attempts) ? info.attempts : 1,
+        correct: (typeof info === "object" && info.correct) ? info.correct : 1
+      });
     } else {
       correctList.push({ word: wName, attempts: (info && info.attempts) || 1, correct: 1 });
     }
@@ -1077,12 +1086,18 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
   correctList.sort((a, b) => a.word.localeCompare(b.word));
   wrongList.sort((a, b) => a.word.localeCompare(b.word));
 
+  // 依使用者規範：
+  // 1. 施測單字數：忽略多次重複施測，每個相異單字僅計 1 個（忽略多次答對或多次答錯）
   const totalWords = (correctList.length + wrongList.length) > 0
     ? (correctList.length + wrongList.length)
     : attempts;
+
+  // 2. 答對單字數：忽略多次答對，只要有答對就是紀錄 1 個；若曾答錯但在第二次以上有答對 (已訂正)，亦計入答對數
+  const correctedCount = wrongList.filter(w => w.correct > 0).length;
   const correctWords = (correctList.length + wrongList.length) > 0
-    ? correctList.length
+    ? (correctList.length + correctedCount)
     : correct;
+
   const wordRate = totalWords > 0 ? Math.round((correctWords / totalWords) * 100) : 0;
 
   let correctContentHtml = "";
@@ -1166,8 +1181,16 @@ function resolveDailyPracticeRecord(dateStr, d, historyList) {
   const dpMap = (d && d.dailyPractice) || {};
   let rec = dpMap[normYMD] || dpMap[unpadYMD] || dpMap[slashYMD] || dpMap[dateStr] || null;
   if (rec && (rec.attempts > 0 || (rec.words && Object.keys(rec.words).length > 0))) {
-    const att = rec.attempts || Object.keys(rec.words || {}).length;
-    const cor = rec.correct || 0;
+    let att = 0;
+    let cor = 0;
+    if (rec.words && Object.keys(rec.words).length > 0) {
+      const wList = Object.values(rec.words).filter(Boolean);
+      att = wList.length;
+      cor = wList.filter(w => (w.correct > 0 || w.passed)).length;
+    } else {
+      att = rec.attempts || 0;
+      cor = rec.correct || 0;
+    }
     return {
       date: normYMD,
       attempts: att,

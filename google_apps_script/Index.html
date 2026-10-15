@@ -14233,12 +14233,21 @@ function buildFreeDetailsHtml(record, selectedDate, agent) {
     const wName = resolveWord(rawW).toLowerCase();
     if (!wName || /^w\d+$/i.test(wName)) return;
     const hasWrong = (typeof info === "object" && info.wrong > 0);
-    const hasCorrect = (typeof info === "object" && info.correct > 0);
+    const hasCorrect = (typeof info === "object" && (info.correct > 0 || info.passed));
 
     if (hasWrong) {
-      wrongList.push({ word: wName, attempts: info.attempts || 1, wrong: info.wrong, correct: info.correct || 0 });
+      wrongList.push({
+        word: wName,
+        attempts: (typeof info === "object" && info.attempts) ? info.attempts : 1,
+        wrong: (typeof info === "object" && info.wrong) ? info.wrong : 1,
+        correct: (typeof info === "object" && info.correct) ? info.correct : (info && info.passed ? 1 : 0)
+      });
     } else if (hasCorrect) {
-      correctList.push({ word: wName, attempts: info.attempts || 1, correct: info.correct });
+      correctList.push({
+        word: wName,
+        attempts: (typeof info === "object" && info.attempts) ? info.attempts : 1,
+        correct: (typeof info === "object" && info.correct) ? info.correct : 1
+      });
     } else {
       correctList.push({ word: wName, attempts: 1, correct: 1 });
     }
@@ -14297,12 +14306,18 @@ function buildFreeDetailsHtml(record, selectedDate, agent) {
   correctList.sort((a, b) => a.word.localeCompare(b.word));
   wrongList.sort((a, b) => a.word.localeCompare(b.word));
 
+  // 依使用者規範：
+  // 1. 施測單字數：忽略多次重複施測，每個相異單字僅計 1 個（忽略多次答對或多次答錯）
   const totalWords = (correctList.length + wrongList.length) > 0
     ? (correctList.length + wrongList.length)
     : attempts;
+
+  // 2. 答對單字數：忽略多次答對，只要有答對就是紀錄 1 個；若曾答錯但在第二次以上有答對 (已訂正)，亦計入答對數
+  const correctedCount = wrongList.filter(w => w.correct > 0).length;
   const correctWords = (correctList.length + wrongList.length) > 0
-    ? correctList.length
+    ? (correctList.length + correctedCount)
     : correct;
+
   const wordRate = totalWords > 0 ? Math.round((correctWords / totalWords) * 100) : 0;
 
   let correctContentHtml = "";
@@ -14578,11 +14593,21 @@ function renderStudentDailyTaskAndFreeSections(resp) {
     let hFree = historyData[targetDate] || historyData[shortTarget] || historyData[slashTarget] || null;
     let matchedFree = null;
     if (dpFree && (dpFree.attempts > 0 || (dpFree.words && Object.keys(dpFree.words).length > 0))) {
+      let att = 0;
+      let cor = 0;
+      if (dpFree.words && Object.keys(dpFree.words).length > 0) {
+        const wList = Object.values(dpFree.words).filter(Boolean);
+        att = wList.length;
+        cor = wList.filter(w => (w.correct > 0 || w.passed)).length;
+      } else {
+        att = dpFree.attempts || 0;
+        cor = dpFree.correct || 0;
+      }
       matchedFree = {
         date: targetDate,
-        attempts: dpFree.attempts || 0,
-        correct: dpFree.correct || 0,
-        wrong: (dpFree.wrong !== undefined) ? dpFree.wrong : Math.max(0, (dpFree.attempts || 0) - (dpFree.correct || 0)),
+        attempts: att,
+        correct: cor,
+        wrong: (dpFree.wrong !== undefined) ? dpFree.wrong : Math.max(0, att - cor),
         words: dpFree.words || {}
       };
     } else if (hFree && (hFree.a || hFree.c || hFree.words)) {
