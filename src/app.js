@@ -1,22 +1,22 @@
 // =====================================================================
-// app.js — the controller. Boots the word bank, runs the placement test,
+// app.js ??the controller. Boots the word bank, runs the placement test,
 // drives level-based practice, gates progression behind challenges,
 // and manages teacher-assigned tasks & weekend mistake remediation.
 // =====================================================================
-import { loadWordBank } from "./wordbank.js?v=20261015_1336";
-import * as store from "./store.js?v=20261015_1336";
-import { nextWord } from "./srs.js?v=20261015_1336";
-import * as ui from "./ui.js?v=20261015_1336";
-import { burst } from "./confetti.js?v=20261015_1336";
+import { loadWordBank } from "./wordbank.js?v=20261015_2028";
+import * as store from "./store.js?v=20261015_2028";
+import { nextWord } from "./srs.js?v=20261015_2028";
+import * as ui from "./ui.js?v=20261015_2028";
+import { burst } from "./confetti.js?v=20261015_2028";
 import {
   LEVELS, levelColor, levelName, sample,
   PASS_RATE, GATE_MIN_ATTEMPTS, CHALLENGE_LEN, PLACEMENT_PER_LEVEL, DAILY_GOAL,
-} from "./levels.js?v=20261015_1336";
+} from "./levels.js?v=20261015_2028";
 
 let WORDS = [];
 const state = { mode: "listen", word: null, answered: false, round: null };
 
-// ── 今日指定任務與週末錯題狀態 ──
+// ?�?� 今日?��?任�??�週末?��??�???�?�
 const taskState = {
   active       : false,
   pending      : false,
@@ -28,7 +28,7 @@ const taskState = {
   wrongWords   : []
 };
 
-// ── 隨時保存任務中途進度（中途存檔或強制關閉防護） ──
+// ?�?� ?��?保�?任�?中途進度（中?��?檔�?強制?��??�護�??�?�
 function persistTaskProgress() {
   if (!taskState.task || !taskState.pool || taskState.pool.length === 0) return;
   try {
@@ -56,7 +56,7 @@ function persistTaskProgress() {
       localStorage.setItem("task_words_" + todaySlash, JSON.stringify(poolWords));
     }
 
-    // 標記有新進度待同步（由 5 分鐘定時器、離開頁面、或完成指定測驗時統一同步）
+    // 標�??�新?�度待�?步�???5 ?��?定�??�、離?��??�、�?完�??��?測�??�統一?�步�?
     window.hasUnsavedChanges = true;
   } catch(e) {
     console.error("persistTaskProgress error:", e);
@@ -86,7 +86,7 @@ function getWeekFridayDate() {
   return friday.getFullYear() + "-" + String(friday.getMonth() + 1).padStart(2, "0") + "-" + String(friday.getDate()).padStart(2, "0");
 }
 
-// ── 錯題記錄：只記錄「今日指定練習」中答錯的單字 ──
+// ?�?� ?��?記�?：只記�??��??��?定練習」中答錯?�單�??�?�
 function recordTaskMistake(word) {
   try {
     const raw = localStorage.getItem("weekTaskMistakes");
@@ -101,13 +101,13 @@ function recordTaskMistake(word) {
   } catch(_) {}
 }
 
-// ── 取得學生於星期一到星期五沒有答對（包含沒有作答/缺考）的所有單字 ──
+// ?�?� ?��?學�??��??��??��??��?沒�?答�?（�??��??��?�?缺考�??��??�單�??�?�
 function getMonToFriUnfinishedWords() {
   const unfinishedWords = new Set();
   const mondayStr = getWeekMondayDate();
   const fridayStr = getWeekFridayDate();
 
-  // 1. 從 student_task_history（由雲端試算表歷程同步）讀取本週一至週五任務
+  // 1. �?student_task_history（由?�端試�?表歷程�?步�?讀?�本?��??�週�?任�?
   try {
     const rawHist = localStorage.getItem("student_task_history");
     if (rawHist) {
@@ -117,17 +117,17 @@ function getMonToFriUnfinishedWords() {
           if (!item || !item.date) return;
           const iDate = String(item.date).trim().replace(/\//g, "-");
           if (iDate >= mondayStr && iDate <= fridayStr) {
-            // (a) 該測驗中答錯的單字
+            // (a) 該測驗中答錯?�單�?
             if (Array.isArray(item.wrongWords)) {
               item.wrongWords.forEach(w => {
                 const cw = String(w).trim().toLowerCase();
                 if (cw) unfinishedWords.add(cw);
               });
             }
-            // (b) 若該任務狀態未完成、缺考或沒有作答（例如尚未開始或 score 為 "—"）
+            // (b) ?�該任�??�?�未完�??�缺?��?沒�?作�?（�?如�??��?始�? score ??"??�?
             const status = String(item.status || "");
             const score = String(item.score || "");
-            const isUnattempted = !status.includes("已完成") || score === "—" || score === "尚未開始";
+            const isUnattempted = !status.includes("已�???) || score === "?? || score === "尚未?��?";
             if (isUnattempted && Array.isArray(item.words)) {
               item.words.forEach(w => {
                 const cw = String(w).trim().toLowerCase();
@@ -140,7 +140,7 @@ function getMonToFriUnfinishedWords() {
     }
   } catch(_) {}
 
-  // 2. 從 weekTaskMistakes（本機即時記錄）讀取本週一至週五的錯題
+  // 2. �?weekTaskMistakes（本機即?��??��?讀?�本?��??�週�??�錯�?
   try {
     const rawMistakes = localStorage.getItem("weekTaskMistakes");
     if (rawMistakes) {
@@ -200,10 +200,10 @@ function refreshChrome() {
       incorrect: incorrCount,
       rate: rRate
     };
-    sessionTitle = `今日指定測驗 <span>【${taskState.task.taskName}】目標 ${taskGoal} 字</span>`;
+    sessionTitle = `今日?��?測�? <span>??{taskState.task.taskName}?�目�?${taskGoal} �?/span>`;
   } else if (taskState.pending && taskState.task) {
     sessionGoal = taskGoal;
-    sessionTitle = `今日指定測驗 <span>【${taskState.task.taskName}】目標 ${taskGoal} 字</span>`;
+    sessionTitle = `今日?��?測�? <span>??{taskState.task.taskName}?�目�?${taskGoal} �?/span>`;
   }
 
   ui.renderSession(sessionS, sessionGoal, onSessionStart, onSessionEnd, sessionTitle);
@@ -213,16 +213,16 @@ function refreshChrome() {
   const ls = store.levelStats(cur, WORDS);
   const ready = ls.attempts >= GATE_MIN_ATTEMPTS && ls.rate >= PASS_RATE;
   let hint;
-  if (ready) hint = "🎉 已達標！挑戰成功就能升級到下一關。";
-  else if (ls.attempts < GATE_MIN_ATTEMPTS) hint = `再練習 ${GATE_MIN_ATTEMPTS - ls.attempts} 字（正確率保持 ≥80%）就能挑戰。`;
-  else hint = "單字正確率再高一點（需 ≥80%）就能挑戰本關。";
+  if (ready) hint = "?? 已�?標�??�戰?��?就能?��??��?一?��?;
+  else if (ls.attempts < GATE_MIN_ATTEMPTS) hint = `?�練�?${GATE_MIN_ATTEMPTS - ls.attempts} 字�?�?��?��?????0%）就?��??�。`;
+  else hint = "?��?�?��?��?高�?點�??� ??0%）就?��??�本?��?;
   ui.renderBanner(cur, ls, ready, hint, startChallenge);
   if (typeof ui.initExportRecordsCard === "function") {
     ui.initExportRecordsCard(() => store.summary(WORDS));
   }
   if (!ui.summaryHidden()) ui.renderSummary(store.summary(WORDS));
 
-  // ⚠️ 今日指定測驗進行中或待開始：強制隱藏模式列、關卡列與等級挑戰橫幅
+  // ?��? 今日?��?測�??��?中�?待�?始�?強制?��?模�??�、�??��??��?級�??�橫�?
   if (taskState.active || taskState.pending) {
     const modesEl = document.getElementById("modes");
     if (modesEl) modesEl.style.display = "none";
@@ -232,7 +232,7 @@ function refreshChrome() {
     if (bannerEl) bannerEl.style.display = "none";
   }
 
-  // ⚠️ 今日練習時間已結束：一併隱藏模式列、關卡列與等級挑戰橫幅，留下乾淨清爽畫面
+  // ?��? 今日練�??��?已�??��?一併隱?�模式�??��??��??��?級�??�橫幅�??��?乾淨清爽?�面
   if (window.__dailyUsageTimeIsUp || (window.dailyUsageState && window.dailyUsageState.isLockedDown) || document.body.classList.contains("daily-limit-reached")) {
     const modesEl = document.getElementById("modes");
     if (modesEl) modesEl.style.display = "none";
@@ -251,17 +251,17 @@ function renderCurrent() {
     disablePeek: true 
   });
   
-  // ── 若為今日任務模式：嚴格鎖定純聽拼、隱藏模式與關卡 ──
+  // ?�?� ?�為今日任�?模�?：嚴?��?定�??�拼?�隱?�模式�??�卡 ?�?�
   if (isTask && taskState.task) {
     const catLabel = document.getElementById("catlabel");
     const modeHint = document.getElementById("modehint");
     if (catLabel) {
-      catLabel.textContent = `🎯 今日任務 (${taskState.index + 1}/${taskState.pool.length})`;
+      catLabel.textContent = `?�� 今日任�? (${taskState.index + 1}/${taskState.pool.length})`;
       catLabel.style.background = "linear-gradient(135deg, #6366f1, #8b5cf6)";
     }
-    if (modeHint) modeHint.textContent = `【${taskState.task.taskName}】純聽拼測驗中`;
+    if (modeHint) modeHint.textContent = `??{taskState.task.taskName}?��??�拼測�?中`;
 
-    // 嚴格強制隱藏關卡/模式列與挑戰橫幅
+    // ?�格強制?��??�卡/模�??��??�戰橫�?
     const modesEl = document.getElementById("modes");
     if (modesEl) modesEl.style.display = "none";
     const levelBar = document.getElementById("levelbar");
@@ -271,7 +271,7 @@ function renderCurrent() {
   }
 }
 
-// ── 學生使用時間管制 (支援全校預設與個別學生設定) ──
+// ?�?� 學�?使用?��?管制 (?�援?�校?�設?�個別學�?設�?) ?�?�
 function isCurfewActive() {
   const role = localStorage.getItem("user_role") || "student";
   if (role === "teacher" || role === "admin") return false;
@@ -289,7 +289,7 @@ function isCurfewActive() {
 }
 
 
-// ── 自動 3 秒進入下一題計時器 ──
+// ?�?� ?��? 3 秒進入下�?題�??�器 ?�?�
 let autoNextTimer = null;
 let autoNextInterval = null;
 
@@ -337,7 +337,7 @@ function newRound() {
     return;
   }
 
-  // ── 如果今日任務進行中 ──
+  // ?�?� 如�?今日任�??��?�??�?�
   if (taskState.active) {
     if (taskState.pool && taskState.pool.length > 0 && taskState.index < taskState.pool.length) {
       state.word = taskState.pool[taskState.index];
@@ -345,13 +345,13 @@ function newRound() {
       renderCurrent();
       return;
     } else {
-      // 任務所有題目作答完畢！
+      // 任�??�?��??��?答�??��?
       finishTaskMode();
       return;
     }
   }
 
-  // ── 一般自由闖關 ──
+  // ?�?� 一?�自?��????�?�
   state.word = nextWord(WORDS, store.progress().current, state.word?.id);
   state.answered = false;
   renderCurrent();
@@ -362,7 +362,7 @@ function check() {
   const getGuess = state.round.getGuess;
   if (!getGuess) return;
   const guess = getGuess();
-  if (!guess) { ui.note("先拼拼看再檢查喔 ✏️"); return; }
+  if (!guess) { ui.note("?�拼?��??�檢?��? ?��?"); return; }
   const correct = guess.trim().toLowerCase() === state.word.word.toLowerCase();
   state.round.applyTypedResult(correct);
   answer(correct, guess);
@@ -372,7 +372,7 @@ function answer(correct, guessVal) {
   if (state.answered) return;
   state.answered = true;
 
-  // ── 若在指定任務中 ──
+  // ?�?� ?�在?��?任�?�??�?�
   if (taskState.active) {
     if (correct) {
       taskState.correct++;
@@ -381,22 +381,22 @@ function answer(correct, guessVal) {
       if (!taskState.correctWords.includes(cw)) {
         taskState.correctWords.push(cw);
       }
-      // 依需求取消答對單字灑花特效
+      // 依�?求�?消�?對單字�??�特??
     } else {
       const w = String(state.word.word).trim().toLowerCase();
       taskState.wrongWords = taskState.wrongWords || [];
       if (!taskState.wrongWords.includes(w)) {
         taskState.wrongWords.push(w);
       }
-      // ⚠️ 僅在指定任務中答錯，才收錄進週末錯題補救庫！
+      // ?��? ?�在?��?任�?中�??��??�收?�進週末?��?補�?庫�?
       recordTaskMistake(w);
     }
     
-    // 依然更新背單字進度 (指定任務模式 isFree=false)
+    // 依然?�新?�單字進度 (?��?任�?模�? isFree=false)
     const info = store.grade(state.word.id, correct, store.progress().current, state.mode, state.word.word, false);
     ui.showResult(correct, state.word, info);
     taskState.index++;
-    // 每作答完一題立即更新持久化進度並同步雲端！
+    // 每�?答�?一題�??�更?��?久�??�度並�?步雲端�?
     persistTaskProgress();
     refreshChrome();
 
@@ -405,13 +405,13 @@ function answer(correct, guessVal) {
     return;
   }
 
-  // ── 自由闖關中答錯：正常升降級，同步收錄至每日自由練習作答歷程 ──
+  // ?�?� ?�由?��?中�??��?�?��?��?級�??�步?��??��??�自?�練習�?答歷�??�?�
   const info = store.grade(state.word.id, correct, store.progress().current, state.mode, state.word.word, true);
   ui.showResult(correct, state.word, info);
-  // 依需求取消答對單字灑花特效
+  // 依�?求�?消�?對單字�??�特??
   refreshChrome();
 
-  // 標記有自由練習進度待同步（由 5 分鐘定時器、離開頁面、或手動按鈕統一同步）
+  // 標�??�自?�練習進度待�?步�???5 ?��?定�??�、離?��??�、�??��??��?統�??�步�?
   window.hasUnsavedChanges = true;
 
   ui.setActionNext();
@@ -421,7 +421,7 @@ function answer(correct, guessVal) {
 function pickLevel(n) {
   clearAutoNextTimer(); 
   if (taskState.active || taskState.pending) {
-    alert("請先完成今日指定測驗，完成後即可自由選擇關卡！");
+    alert("請�?完�?今日?��?測�?，�??��??�可?�由?��??�卡�?);
     return;
   }
   store.setCurrentLevel(n); 
@@ -432,13 +432,13 @@ function pickLevel(n) {
 function onSessionStart() {
   store.sessionStart();
 
-  // ★ 核心修復：如果今日有指派任務待開始（或中途進度）：點擊「開始今天的練習」立即啟動純聽拼測驗！
+  // ???��?修復：�??��??��??�派任�?待�?始�??�中?�進度）�?點�??��?始�?天�?練�??��??��??��??�拼測�?�?
   if (taskState.pending || (taskState.task && !taskState.active)) {
     startTaskExecution();
     return;
   }
 
-  // ★ 檢查 storage 中是否有未初始化的指派任務或中途進度
+  // ??檢查 storage 中是?��??��?始�??��?派任?��?中途進度
   const rawAssigned = sessionStorage.getItem("assigned_task") || 
                       localStorage.getItem("assigned_task_active") ||
                       localStorage.getItem("assigned_task_backup");
@@ -451,7 +451,7 @@ function onSessionStart() {
     }
   }
 
-  // ★ 一般自由練習
+  // ??一?�自?�練�?
   refreshChrome();
   newRound();
 }
@@ -460,17 +460,17 @@ function onSessionEnd() { showSessionSummary(store.sessionEnd()); }
 function showSessionSummary(sum) {
   ui.setScreen("quiz");
   ui.quizResult({
-    emoji: sum.answered ? "🌟" : "⏳",
+    emoji: sum.answered ? "??" : "??,
     color: "var(--violet)",
-    headline: sum.answered ? "今日訓練完了！" : "今天還沒有練習",
+    headline: sum.answered ? "今日訓練完�?�? : "今天?��??�練�?,
     sub: sum.answered
-      ? `作答 ${sum.answered} 題 · 對 ${sum.correct} · 錯 ${sum.incorrect} · 正確率 ${sum.rate}%`
-      : "下次按「開始今天訓練」再來計分",
+      ? `作�? ${sum.answered} �?· �?${sum.correct} · ??${sum.incorrect} · �?��??${sum.rate}%`
+      : "下次?�「�?始�?天�?練」�?來�???,
     extraHtml: sum.answered
-      ? `<div class="sub">接觸 ${sum.distinct} 個單字${sum.mastered ? ` · 新精通 ${sum.mastered} 字 ⭐` : ""}</div>
-         <div class="sub" style="color:var(--catD)">連續修練 ${store.historyData().streak} 天</div>`
+      ? `<div class="sub">?�觸 ${sum.distinct} ?�單�?{sum.mastered ? ` · ?�精??${sum.mastered} �?⭐` : ""}</div>
+         <div class="sub" style="color:var(--catD)">???修練 ${store.historyData().streak} �?/div>`
       : "",
-    btnLabel: "完成",
+    btnLabel: "完�?",
   }, () => { ui.setScreen("play"); refreshChrome(); newRound(); });
 }
 
@@ -483,7 +483,7 @@ async function startPlacement() {
     let got = 0;
     for (let i = 0; i < qs.length; i++) {
       const index = (lv - 1) * PLACEMENT_PER_LEVEL + i + 1;
-      const ok = await ui.askPick(qs[i], { title: `程度測驗 · Level ${lv}`, color: levelColor(lv), index, total });
+      const ok = await ui.askPick(qs[i], { title: `程度測�? · Level ${lv}`, color: levelColor(lv), index, total });
       if (ok) got++;
     }
     if (got < 2) { start = lv; break; }
@@ -492,11 +492,11 @@ async function startPlacement() {
   store.completePlacement(start);
   const color = levelColor(start);
   ui.quizResult({
-    emoji: "🎯", color,
-    headline: `你的程度：Level ${start}`,
-    sub: `「${levelName(start)}」— 就從這一關開始練習吧！`,
+    emoji: "?��", color,
+    headline: `你�?程度：Level ${start}`,
+    sub: `??{levelName(start)}?��?就�??��??��?始練習吧！`,
     extraHtml: `<div class="lvpill" style="background:${color}">LEVEL ${start} · ${levelName(start)}</div>`,
-    btnLabel: "開始練習 →",
+    btnLabel: "?��?練�? ??,
   }, () => { 
     ui.setScreen("play"); 
     refreshChrome(); 
@@ -506,7 +506,7 @@ async function startPlacement() {
 
 async function startChallenge() {
   if (taskState.active || taskState.pending) {
-    alert("請先完成今日指定測驗再進行等級挑戰！");
+    alert("請�?完�?今日?��?測�??�進�?等�??�戰�?);
     return;
   }
   const lv = store.progress().current;
@@ -514,7 +514,7 @@ async function startChallenge() {
   ui.setScreen("quiz");
   let got = 0;
   for (let i = 0; i < qs.length; i++) {
-    const ok = await ui.askPick(qs[i], { title: `Level ${lv} 挑戰`, color: levelColor(lv), index: i + 1, total: qs.length });
+    const ok = await ui.askPick(qs[i], { title: `Level ${lv} ?�戰`, color: levelColor(lv), index: i + 1, total: qs.length });
     if (ok) got++;
   }
   const rate = got / qs.length;
@@ -526,25 +526,25 @@ async function startChallenge() {
     burst();
     const color = levelColor(next);
     ui.quizResult({
-      emoji: "🏆", color,
-      headline: promoted ? `過關！升級到 Level ${next}` : "太強了！你已在最高關",
-      sub: `答對 ${got}／${qs.length}（${Math.round(rate * 100)}%）`,
+      emoji: "??", color,
+      headline: promoted ? `?��?！�?級到 Level ${next}` : "太強了�?你已?��?高�?",
+      sub: `答�? ${got}�?{qs.length}�?{Math.round(rate * 100)}%）`,
       extraHtml: promoted ? `<div class="lvpill" style="background:${color}">LEVEL ${next} · ${levelName(next)}</div>` : "",
-      btnLabel: "繼續 →",
+      btnLabel: "繼�? ??,
     }, backToPlay);
   } else {
     ui.quizResult({
-      emoji: "💪", color: levelColor(lv),
-      headline: "差一點！再練一下",
-      sub: `答對 ${got}／${qs.length}（${Math.round(rate * 100)}%）· 需要 80% 才能升級`,
-      btnLabel: "回去練習 →",
+      emoji: "?��", color: levelColor(lv),
+      headline: "差�?點�??�練一�?,
+      sub: `答�? ${got}�?{qs.length}�?{Math.round(rate * 100)}%）�??��?80% ?�能?��?`,
+      btnLabel: "?�去練�? ??,
     }, backToPlay);
   }
 }
 
-// ════════════════════════════════════════════════════════════════════
-// 核心：今日任務與週末錯題補救測驗流程
-// ════════════════════════════════════════════════════════════════════
+// ?��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��?
+// ?��?：�??�任?��??�末?��?補�?測�?流�?
+// ?��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��?
 
 function checkAndStartDailyTask() {
   if (isCurfewActive()) {
@@ -556,11 +556,11 @@ function checkAndStartDailyTask() {
   const todayDash = todayDateStr(); // yyyy-mm-dd
   const todaySlash = todayDash.replace(/-/g, "/");
 
-  // 1. 本地完成標記檢查
+  // 1. ?�地完�?標�?檢查
   const isDoneLocal = (localStorage.getItem("task_done_" + todayDash) === "true") ||
                       (localStorage.getItem("task_done_" + todaySlash) === "true");
 
-  // 2. 雲端試算表回傳之「今日已完成」標記檢查
+  // 2. ?�端試�?表�??��??��??�已完�??��?記檢??
   const rawAssigned = sessionStorage.getItem("assigned_task") || 
                       localStorage.getItem("assigned_task_active") ||
                       localStorage.getItem("assigned_task_backup");
@@ -582,8 +582,8 @@ function checkAndStartDailyTask() {
     } catch(_) { return false; }
   })();
 
-  // 【核心規則 1】：當日一旦完成，當日即不再開放使用該功能，直接進入自由闖關！
-  // ⚠️ 關鍵保護：若老師明確指派了尚未完成之任務或有中途進行中進度，不應被舊的本地殘留旗標誤鎖定
+  // ?�核心�???1?��??�日一?��??��??�日?��??��??�使?�該?�能，直?�進入?�由?��?�?
+  // ?��? ?�鍵保護：若?�師?�確?�派了�??��??��?任�??��?中途進�?中進度，�??�被?��??�地殘�??��?誤�?�?
   if (isDoneRemote || (isDoneLocal && !hasActiveAssignedTask && !hasInProgressTask)) {
     localStorage.setItem("task_done_" + todayDash, "true");
     localStorage.setItem("task_done_" + todaySlash, "true");
@@ -592,7 +592,7 @@ function checkAndStartDailyTask() {
     taskState.active = false;
     taskState.pending = false;
 
-    // 確保按鈕恢復自由模式（若每日時間已到則維持隱藏）
+    // 確�??��??�復?�由模�?（若每日?��?已到?�維?�隱?��?
     const isTimeUp = window.__dailyUsageTimeIsUp || (window.dailyUsageState && window.dailyUsageState.isLockedDown) || document.body.classList.contains("daily-limit-reached");
     const checkBtn = document.getElementById("checkBtn");
     if (checkBtn) checkBtn.style.display = isTimeUp ? "none" : "";
@@ -604,9 +604,9 @@ function checkAndStartDailyTask() {
     if (bannerEl) bannerEl.style.display = isTimeUp ? "none" : "";
 
     const catLabel = document.getElementById("catlabel");
-    if (catLabel) catLabel.textContent = "✅ 今日指定練習已完成，明天再繼續！已開放自由升級闖關";
+    if (catLabel) catLabel.textContent = "??今日?��?練�?已�??��??�天?�繼續�?已�??�自?��?級�???;
 
-    console.log("今日指定練習已完成，當日不再開放重複使用，進入自由闖關模式。");
+    console.log("今日?��?練�?已�??��??�日不�??�放?��?使用，進入?�由?��?模�???);
     newRound();
     return;
   }
@@ -617,7 +617,7 @@ function checkAndStartDailyTask() {
 
   let taskToRun = null;
 
-  // 週末自動檢核：學生於星期一到星期五沒有答對（包含沒有作答/缺考）的單字一律自動變成六日的指派單字測驗
+  // ?�末?��?檢核：學?�於?��?一?��??��?沒�?答�?（�??��??��?�?缺考�??�單字�?律自?��??�六?��??�派?��?測�?
   if (isWeekend) {
     if (assignedTaskObj && assignedTaskObj.hasTask && assignedTaskObj.isWeekend && Array.isArray(assignedTaskObj.words) && assignedTaskObj.words.length > 0) {
       taskToRun = assignedTaskObj;
@@ -625,7 +625,7 @@ function checkAndStartDailyTask() {
       const unfinished = getMonToFriUnfinishedWords();
       if (unfinished.length > 0) {
         taskToRun = {
-          taskName  : "週末指定單字消滅戰",
+          taskName  : "?�末?��??��?消�???,
           words     : unfinished,
           count     : "ALL",
           isWeekend : true
@@ -634,12 +634,12 @@ function checkAndStartDailyTask() {
     }
   }
 
-  // 若平日（或週末有老師當日特別指派之非補強任務），檢查是否有老師指定的單字任務
+  // ?�平?��??�週末?�老師?�日?�別?�派之�?補強任�?）�?檢查?�否?�老師?��??�單字任??
   if (!taskToRun && assignedTaskObj && assignedTaskObj.hasTask && assignedTaskObj.words && assignedTaskObj.words.length > 0) {
     taskToRun = assignedTaskObj;
   }
 
-  // 若 sessionStorage 遺失（如重新開啟分頁），優先從今日未完成進度恢復 taskToRun
+  // ??sessionStorage ?�失（�??�新?��??��?）�??��?從�??�未完�??�度?�復 taskToRun
   if (!taskToRun) {
     const rawSaved = localStorage.getItem("today_task_in_progress");
     if (rawSaved) {
@@ -655,7 +655,7 @@ function checkAndStartDailyTask() {
     }
   }
 
-  // 若今日完全無任務，直接進入一般自由闖關
+  // ?��??��??�無任�?，直?�進入一?�自?��???
   if (!taskToRun) {
     taskState.active = false;
     taskState.pending = false;
@@ -670,18 +670,18 @@ function checkAndStartDailyTask() {
     if (bannerEl) bannerEl.style.display = isTimeUp ? "none" : "";
     const catLabel = document.getElementById("catlabel");
     if (catLabel) {
-      catLabel.textContent = "💡 今日尚無指派任務，已開放自由闖關升級";
+      catLabel.textContent = "?�� 今日尚無?�派任�?，已?�放?�由?��??��?";
     }
     newRound();
     return;
   }
 
-  // 【核心規則 2】：今日有任務！必須點選「開始今天的練習」才開始（支援中斷接續）
+  // ?�核心�???2?��?今日?�任?��?必�?點選?��?始�?天�?練�??��??��?（支?�中?�接續�?
   showTaskIntroScreen(taskToRun);
 }
 
 function showTaskIntroScreen(task) {
-  // 檢查是否有中途儲存的未完成進度
+  // 檢查?�否?�中?�儲存�??��??�進度
   let savedProgress = null;
   const rawSaved = localStorage.getItem("today_task_in_progress");
   const currentUser = String(localStorage.getItem("current_user") || "").trim().toLowerCase();
@@ -719,7 +719,7 @@ function showTaskIntroScreen(task) {
       return;
     }
   } else {
-    // 首次準備字庫：100% 完整對應老師勾選之單字清單
+    // 首次準�?字庫�?00% 完整對�??�師?�選之單字�???
     const targetWordsLower = task.words.map(w => String(w).trim().toLowerCase());
     let matched = targetWordsLower.map(tw => {
       const found = WORDS.find(w => w.word.toLowerCase() === tw);
@@ -729,7 +729,7 @@ function showTaskIntroScreen(task) {
         word: tw,
         display: tw,
         level: 1,
-        zh: "指定測驗單字",
+        zh: "?��?測�??��?",
         sent: `Spell the word "${tw}".`,
         mask: new Array(tw.length).fill(false)
       };
@@ -737,12 +737,12 @@ function showTaskIntroScreen(task) {
     if (task.mode !== "ALL" && task.count !== "ALL" && Number(task.count) > 0 && Number(task.count) < matched.length) {
       pool = sample(matched, Number(task.count));
     } else {
-      // 全考或未抽測：100% 依教師指派之單字順序直接出題
+      // ?�考�??�抽測�?100% 依�?師�?派�??��??��??�接?��?
       pool = [...matched];
     }
   }
 
-  // 設定待開始狀態
+  // 設�?待�?始�???
   taskState.active       = false;
   taskState.pending      = true;
   taskState.task         = task;
@@ -752,7 +752,7 @@ function showTaskIntroScreen(task) {
   taskState.correctWords = (savedProgress && Array.isArray(savedProgress.correctWords)) ? savedProgress.correctWords : [];
   taskState.wrongWords   = (savedProgress && Array.isArray(savedProgress.wrongWords)) ? savedProgress.wrongWords : [];
 
-  // 隱藏自由模式按鈕
+  // ?��??�由模�??��?
   const checkBtn = document.getElementById("checkBtn");
   if (checkBtn) checkBtn.style.display = "none";
   const modesEl = document.getElementById("modes");
@@ -761,9 +761,9 @@ function showTaskIntroScreen(task) {
   if (levelBar) levelBar.style.display = "none";
 
   const catLabel = document.getElementById("catlabel");
-  if (catLabel) catLabel.textContent = "🎯 今日任務待開始";
+  if (catLabel) catLabel.textContent = "?�� 今日任�?待�?�?;
   const modeHint = document.getElementById("modehint");
-  if (modeHint) modeHint.textContent = `【${task.taskName}】`;
+  if (modeHint) modeHint.textContent = `??{task.taskName}?�`;
 
   const zhEl = document.getElementById("zh");
   if (zhEl) zhEl.innerHTML = "";
@@ -775,44 +775,44 @@ function showTaskIntroScreen(task) {
   const isResumed = savedProgress !== null;
   const resumeHtml = isResumed ? `
     <div style="background:rgba(245, 158, 11, 0.15); border:1.5px solid #f59e0b; border-radius:10px; padding:10px 14px; margin-bottom:16px; text-align:left; color:#fbbf24; font-size:13.5px; line-height:1.5;">
-      ⚡ <b>偵測到上次未完成進度</b><br>
-      已作答至第 <b>${resumeIndex + 1}</b> 題 / 共 ${pool.length} 題（目前已答對 ${resumeCorrect} 題）。<br>
-      <span style="font-size:12px; color:#fde68a;">※ 途中存檔或強制關閉不代表作答結束，點擊下方按鈕即可接續測驗！</span>
+      ??<b>?�測?��?次未完�??�度</b><br>
+      已�?答至�?<b>${resumeIndex + 1}</b> �?/ ??${pool.length} 題�??��?已�?�?${resumeCorrect} 題�???br>
+      <span style="font-size:12px; color:#fde68a;">???�中存�??�強?��??��?�?��作�?結�?，�??��??��??�即?�接續測驗�?</span>
     </div>
   ` : "";
 
   const btnText = isResumed 
-    ? `▶️ 開始今天的練習（繼續第 ${resumeIndex + 1} 題）`
-    : `🎯 開始今天的練習`;
+    ? `?��? ?��?今天?�練習�?繼�?�?${resumeIndex + 1} 題�?`
+    : `?�� ?��?今天?�練習`;
 
   const stageEl = document.getElementById("stage");
   if (stageEl) {
     stageEl.innerHTML = `
       <div style="width:100%; max-width:440px; margin:0 auto; text-align:center; padding:18px 16px; background:rgba(30, 41, 59, 0.6); border:1.5px solid #6366f1; border-radius:16px; box-shadow:0 8px 24px rgba(0,0,0,0.25);">
-        <div style="font-size:44px; margin-bottom:8px;">🎯</div>
+        <div style="font-size:44px; margin-bottom:8px;">?��</div>
         <div style="font-size:11px; font-weight:800; letter-spacing:1px; text-transform:uppercase; color:#a5b4fc; margin-bottom:4px;">TODAY'S MISSION</div>
-        <h2 style="font-size:20px; font-weight:800; color:#fff; margin:0 0 8px;">今日指定單字練習</h2>
+        <h2 style="font-size:20px; font-weight:800; color:#fff; margin:0 0 8px;">今日?��??��?練�?</h2>
         <div style="font-size:16px; font-weight:700; color:#38bdf8; margin-bottom:14px;">
-          【${task.taskName}】
+          ??{task.taskName}??
         </div>
 
         ${resumeHtml}
 
         <div style="text-align:left; background:rgba(15, 23, 42, 0.65); border-radius:10px; padding:12px 14px; margin-bottom:18px; font-size:13.5px; line-height:1.7; color:#cbd5e1; border:1px solid rgba(255,255,255,0.06);">
           <div style="display:flex; justify-content:space-between; margin-bottom:3px;">
-            <span>📝 測驗題數：</span>
-            <b style="color:#fff;">共 ${pool.length} 題</b>
+            <span>?? 測�?題數�?/span>
+            <b style="color:#fff;">??${pool.length} �?/b>
           </div>
           <div style="display:flex; justify-content:space-between; margin-bottom:3px;">
-            <span>🎧 測驗模式：</span>
-            <b style="color:#6366f1;">純聽音拼字</b>
+            <span>?�� 測�?模�?�?/span>
+            <b style="color:#6366f1;">純聽?�拼�?/b>
           </div>
           <div style="display:flex; justify-content:space-between;">
-            <span>💾 隨時存檔防護：</span>
-            <b style="color:#10b981;">自動記憶中途進度</b>
+            <span>?�� ?��?存�??�護�?/span>
+            <b style="color:#10b981;">?��?記憶中途進度</b>
           </div>
           <div style="font-size:12px; color:#94a3b8; margin-top:8px; border-top:1px dashed #334155; padding-top:6px;">
-            ※ 途中存檔或強制結束不代表結束；全數作答完成後立即開放自由闖關！
+            ???�中存�??�強?��??��?�?��結�?；全?��?答�??��?立即?�放?�由?��?�?
           </div>
         </div>
 
@@ -835,9 +835,9 @@ function startTaskExecution() {
   store.sessionStart();
   taskState.pending = false;
   taskState.active  = true;
-  state.mode        = "listen"; // 強制純聽音拼字
+  state.mode        = "listen"; // 強制純聽?�拼�?
 
-  // 還原檢查按鈕
+  // ?��?檢查?��?
   const checkBtn = document.getElementById("checkBtn");
   if (checkBtn) checkBtn.style.display = "";
   const modesEl = document.getElementById("modes");
@@ -860,10 +860,10 @@ function finishTaskMode() {
   const correct = taskState.correct;
   const rate = total > 0 ? Math.round((correct / total) * 100) : 0;
 
-  // 1. 清除中途進度暫存
+  // 1. 清除中途進度?��?
   localStorage.removeItem("today_task_in_progress");
 
-  // 2. 標記今日任務已完成（當日即不再開放使用該功能）
+  // 2. 標�?今日任�?已�??��??�日?��??��??�使?�該?�能�?
   const todayDash = todayDateStr();
   const todaySlash = todayDash.replace(/-/g, "/");
   localStorage.setItem("task_done_" + todayDash, "true");
@@ -899,7 +899,7 @@ function finishTaskMode() {
     localStorage.setItem("task_words_" + todaySlash, JSON.stringify(allTaskWords));
   }
 
-  // 3. 儲存今日任務成績摘要（標記 completed: true）
+  // 3. ?��?今日任�??�績?��?（�?�?completed: true�?
   const nowTs = new Date().toLocaleString("zh-TW", { hour12: false });
   const summaryObj = {
     taskName     : task.taskName,
@@ -925,7 +925,7 @@ function finishTaskMode() {
       taskName: task.taskName,
       score: `${correct}/${total}`,
       rate: rate + "%",
-      status: "🟢 已完成",
+      status: "?�� 已�???,
       updatedAt: nowTs,
       wrongWords: cleanWrongWords,
       correctWords: cleanCorrectWords,
@@ -934,7 +934,7 @@ function finishTaskMode() {
     localStorage.setItem("student_task_history", JSON.stringify(filtered));
   } catch(_) {}
 
-  // 4. 還原自由模式按鈕（若每日時間已到則維持隱藏）
+  // 4. ?��??�由模�??��?（若每日?��?已到?�維?�隱?��?
   const isTimeUp = window.__dailyUsageTimeIsUp || (window.dailyUsageState && window.dailyUsageState.isLockedDown) || document.body.classList.contains("daily-limit-reached");
   const checkBtn = document.getElementById("checkBtn");
   if (checkBtn) checkBtn.style.display = isTimeUp ? "none" : "";
@@ -947,30 +947,30 @@ function finishTaskMode() {
 
   burst();
 
-  // 5. 顯示結算視窗並自動同步上傳試算表
+  // 5. 顯示結�?視�?並自?��?步�??�試算表
   ui.setScreen("quiz");
   ui.quizResult({
-    emoji: rate >= 80 ? "🏆" : "💪",
+    emoji: rate >= 80 ? "??" : "?��",
     color: rate >= 80 ? "var(--green)" : "var(--coral)",
-    headline: `恭喜完成「${task.taskName}」！`,
-    sub: `本次測驗答對 ${correct}／${total} 題（正確率 ${rate}%）`,
+    headline: `?��?完�???{task.taskName}?��?`,
+    sub: `?�次測�?答�? ${correct}�?{total} 題�?�?��??${rate}%）`,
     extraHtml: `
       <div style="margin:16px 0; font-size:14px; color:#475569; line-height:1.6;">
-        ${task.isWeekend ? "✨ 週末錯題消滅成功！弱點單字已補強。" : "✨ 今日指定進度已達標！"}<br>
-        今日測驗已鎖定，現在為您解鎖<b>「自由闖關模式」</b>，快去賺取更多星號吧！
+        ${task.isWeekend ? "???�末?��?消�??��?！弱點單字已補強?? : "??今日?��??�度已�?標�?"}<br>
+        今日測�?已�?定�??�在?�您�??<b>?�自?��??�模式�?/b>，快?�賺?�更多�??�吧�?
       </div>
-      <div style="font-size:12px; color:#64748b;">（成績已自動同步寫入雲端每日任務紀錄）</div>
+      <div style="font-size:12px; color:#64748b;">（�?績已?��??�步寫入?�端每日任�?紀?��?</div>
     `,
-    btnLabel: "開始自由闖關 →",
+    btnLabel: "?��??�由?��? ??,
   }, () => {
     ui.setScreen("play");
     refreshChrome();
     const catLabel = document.getElementById("catlabel");
-    if (catLabel) catLabel.textContent = "✅ 今日指定練習已完成，明天再繼續！已開放自由升級闖關";
+    if (catLabel) catLabel.textContent = "??今日?��?練�?已�??��??�天?�繼續�?已�??�自?��?級�???;
     newRound();
   });
 
-  // 自動觸發背景靜默同步上傳（交卷最高優先級立即送出）
+  // ?��?觸發?�景?��??�步上傳（交?��?高優?��?立即?�出�?
   if (typeof window.uploadLocalStorageData === "function") {
     window.uploadLocalStorageData(true, true);
   }
@@ -979,7 +979,7 @@ function finishTaskMode() {
 // ---- wiring ----
 ui.initModes(state.mode, (mode) => {
   if (taskState.active || taskState.pending) {
-    alert("今日指定練習進行中，不可更換模式！");
+    alert("今日?��?練�??��?中�?不可?��?模�?�?);
     return;
   }
   state.mode = mode; 
@@ -993,21 +993,21 @@ ui.initProgressCard();
 
 // ---- boot ----
 (async function boot() {
-  // 1. 優先完整載入單字庫，確保各關卡、答對率與學習進度正確計算
+  // 1. ?��?完整載入?��?庫�?確�??��??�、�?對�??�學習進度�?��計�?
   try {
     WORDS = await loadWordBank();
     window.__WORDS = WORDS;
     window.__store = store;
   } catch (e) {
     document.querySelector("#stage").innerHTML =
-      `<p style="color:var(--coral);font-weight:700">載入單字失敗：${e.message}<br>請用伺服器開啟（見 README）。</p>`;
+      `<p style="color:var(--coral);font-weight:700">載入?��?失�?�?{e.message}<br>請用伺�??��??��?�?README）�?/p>`;
     return;
   }
 
-  // 2. 確保存檔模組與 LocalStorage 最新同步
+  // 2. 確�?存�?模�???LocalStorage ?�?��?�?
   if (typeof store.reload === "function") store.reload();
 
-  // 3. ── 若今日練習時間已用盡，直接鎖定作答並正常呈現學習進度與紀錄 ──
+  // 3. ?�?� ?��??�練習�??�已?�盡，直?��?定�?答並�?��?�現學�??�度?��????�?�
   const isTimeLocked = () => {
     if (typeof window !== "undefined" && window.__dailyUsageTimeIsUp === true) return true;
     const u = localStorage.getItem("current_user");
@@ -1028,10 +1028,10 @@ ui.initProgressCard();
     if (typeof window !== "undefined" && typeof window.ensureLockdownVisuals === "function") {
       window.ensureLockdownVisuals();
     }
-    console.log("⏰ 帳號今日練習時間已達上限，已略過出題與錄音播放，正常顯示學習進度與紀錄");
+    console.log("??帳�?今日練�??��?已�?上�?，已?��??��??��??�播?��?�?��顯示學�??�度?��???);
     return;
   }
-  // 優先檢查是否有今日指定任務或進行中進度
+  // ?��?檢查?�否?��??��?定任?��??��?中進度
   const rawAssigned = sessionStorage.getItem("assigned_task") || 
                       localStorage.getItem("assigned_task_active") ||
                       localStorage.getItem("assigned_task_backup");
@@ -1041,13 +1041,13 @@ ui.initProgressCard();
   }
   const hasInProgress = !!localStorage.getItem("today_task_in_progress");
 
-  // ── 當天每日測驗自動啟動核心判定 ──
-  // 1. 若有中途斷線未完成之進度：直接無縫接續作答
-  // 2. 若當天尚未開始測驗且有指派任務：一登入就直接開始每日測驗，直接顯示當天指派單字，絕不受自由練習出題影響！
+  // ?�?� ?�天每日測�??��??��??��??��? ?�?�
+  // 1. ?��?中途斷線未完�?之進度：直?�無縫接續�?�?
+  // 2. ?�當天�??��?始測驗�??��?派任?��?一?�入就直?��?始�??�測驗�??�接顯示?�天?�派?��?，�?不�??�由練�??��?影響�?
   if (hasInProgress) {
     ui.setScreen("play"); 
     checkAndStartDailyTask(); 
-    // 斷線或關閉後重新登入，直接自動無縫接續未完進度！
+    // ?��??��??��??�新?�入，直?�自?�無縫接續未完進度�?
     startTaskExecution();
   } else if (assignedTaskObj && assignedTaskObj.hasTask && !assignedTaskObj.alreadyCompleted) {
     const todayDash = todayDateStr();
@@ -1056,7 +1056,7 @@ ui.initProgressCard();
     if (!isDone) {
       ui.setScreen("play"); 
       checkAndStartDailyTask(); 
-      // ★ 核心修復：當天還沒開始每日測驗，一登入就立即開始每日測驗，直接顯示當天指派單字（第 1 題），絕不受到自由練習出題影響！
+      // ???��?修復：當天�?沒�?始�??�測驗�?一?�入就�??��?始�??�測驗�??�接顯示?�天?�派?��?（第 1 題�?，�?不�??�自?�練習出題影?��?
       startTaskExecution();
     } else {
       ui.setScreen("play"); 
@@ -1070,7 +1070,7 @@ ui.initProgressCard();
   }
 })();
 
-// 暴露全域給老師出題預覽施測直接呼叫（一鍵直接開始測驗展示）
+// ?�露?��?給老師?��??�覽?�測?�接?�叫（�??�直?��?始測驗�?示�?
 window.triggerDailyTaskIntro = (task) => {
   ui.setScreen("play");
   showTaskIntroScreen(task);

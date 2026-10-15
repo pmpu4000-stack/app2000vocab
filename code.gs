@@ -92,18 +92,34 @@ function calculateSummaryFromAgentData(agentData, sumObj) {
 
   let mList = "0/0", mPk = "0/0", mSc = "0/0", mTr = "0/0";
   const moObj = (sumObj && sumObj.modes) || {};
+
+  let hasValidMwords = false;
+  ["listen", "pick", "scramble", "trap"].forEach(mod => {
+    if (mwords[mod] && Object.values(mwords[mod]).some(e => e && e.a > 0)) {
+      hasValidMwords = true;
+    }
+  });
+
+  const activeModesWithTrials = ["listen", "pick", "scramble", "trap"].filter(mod => mstat[mod] && mstat[mod].a > 0);
+
   ["listen", "pick", "scramble", "trap"].forEach(mod => {
     let a = 0, c = 0;
-    if (mwords[mod]) {
+    if (mwords[mod] && Object.keys(mwords[mod]).length > 0) {
+      // 依使用者規範：只記錄施測單字數和答對單字數，不論施測次數和答對次數
       a = Object.values(mwords[mod]).filter(e => e && e.a > 0).length;
       c = Object.values(mwords[mod]).filter(e => e && e.c > 0).length;
-    }
-    if (a === 0 && moObj[mod] && moObj[mod] !== "0/0") {
+    } else if (!hasValidMwords && activeModesWithTrials.length === 1 && activeModesWithTrials[0] === mod) {
+      // 歷史相容：若僅在此單一模式施測，施測單字數與答對單字數即為 stat 不重複單字總數
+      a = testedVocab;
+      c = distinctC;
+    } else if (moObj[mod] && moObj[mod] !== "0/0") {
       const sp = String(moObj[mod]).split("/");
-      c = parseInt(sp[0]) || 0; a = parseInt(sp[1]) || 0;
-    }
-    if (a === 0 && mstat[mod]) {
-      a = mstat[mod].a || 0; c = mstat[mod].c || 0;
+      c = Math.min(distinctC, parseInt(sp[0]) || 0);
+      a = Math.min(testedVocab, parseInt(sp[1]) || 0);
+    } else if (mstat[mod]) {
+      // 若無 mwords 細項，確保單字數不超過總單字數
+      a = Math.min(testedVocab, mstat[mod].a || 0);
+      c = Math.min(distinctC, mstat[mod].c || 0);
     }
     const str = `${c}/${a}`;
     if (mod === "listen") mList = str;

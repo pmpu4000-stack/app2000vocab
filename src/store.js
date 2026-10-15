@@ -111,15 +111,7 @@ function load() {
         }
       }
     }
-    // 歷史版本數據自動對齊：若早期未記錄 mstat，自動對齊至預設 listen 模式
-    const mSumA = (merged.mstat.listen?.a || 0) + (merged.mstat.pick?.a || 0) + (merged.mstat.scramble?.a || 0) + (merged.mstat.trap?.a || 0);
-    if ((merged.attempts || 0) > mSumA) {
-      const diffA = (merged.attempts || 0) - mSumA;
-      const mSumC = (merged.mstat.listen?.c || 0) + (merged.mstat.pick?.c || 0) + (merged.mstat.scramble?.c || 0) + (merged.mstat.trap?.c || 0);
-      const diffC = Math.max(0, (merged.correct || 0) - mSumC);
-      merged.mstat.listen.a = (merged.mstat.listen.a || 0) + diffA;
-      merged.mstat.listen.c = (merged.mstat.listen.c || 0) + diffC;
-    }
+
     // a session left open from a previous day is over
     if (merged.session.active && merged.session.date !== todayStr()) merged.session.active = false;
     return merged;
@@ -542,15 +534,29 @@ export function summary(words) {
     trap: { a: 0, c: 0 }
   };
   const mwords = DB.mwords || {};
+  let hasValidMwords = false;
   ["listen", "pick", "scramble", "trap"].forEach(m => {
-    if (mwords[m]) {
+    if (mwords[m] && Object.values(mwords[m]).some(e => e && e.a > 0)) {
+      hasValidMwords = true;
+    }
+  });
+
+  const totTestedWords = Object.values(DB.stat || {}).filter(s => s && s.a > 0).length;
+  const totCorrWords = Object.values(DB.stat || {}).filter(s => s && s.c > 0).length;
+  const activeModes = ["listen", "pick", "scramble", "trap"].filter(m => DB.mstat && DB.mstat[m] && DB.mstat[m].a > 0);
+
+  ["listen", "pick", "scramble", "trap"].forEach(m => {
+    if (mwords[m] && Object.keys(mwords[m]).length > 0) {
+      // 依使用者規範：只記錄施測單字數和答對單字數，不論施測次數和答對次數
       const entries = Object.values(mwords[m]);
       modeStats[m].a = entries.filter(e => e && e.a > 0).length;
       modeStats[m].c = entries.filter(e => e && e.c > 0).length;
-    }
-    if (modeStats[m].a === 0 && DB.mstat && DB.mstat[m]) {
-      modeStats[m].a = DB.mstat[m].a || 0;
-      modeStats[m].c = DB.mstat[m].c || 0;
+    } else if (!hasValidMwords && activeModes.length === 1 && activeModes[0] === m) {
+      modeStats[m].a = totTestedWords;
+      modeStats[m].c = totCorrWords;
+    } else if (DB.mstat && DB.mstat[m]) {
+      modeStats[m].a = Math.min(totTestedWords, DB.mstat[m].a || 0);
+      modeStats[m].c = Math.min(totCorrWords, DB.mstat[m].c || 0);
     }
   });
 
@@ -697,24 +703,12 @@ export function summary(words) {
  */
 export function getPrecomputedSummary(words) {
   const s = stats(words);
-  const mwords = DB.mwords || {};
-  const modeStats = {
+  const modeStats = s.modes || {
     listen: { a: 0, c: 0 },
     pick: { a: 0, c: 0 },
     scramble: { a: 0, c: 0 },
     trap: { a: 0, c: 0 }
   };
-  ["listen", "pick", "scramble", "trap"].forEach(m => {
-    if (mwords[m]) {
-      const entries = Object.values(mwords[m]);
-      modeStats[m].a = entries.filter(e => e && e.a > 0).length;
-      modeStats[m].c = entries.filter(e => e && e.c > 0).length;
-    }
-    if (modeStats[m].a === 0 && DB.mstat && DB.mstat[m]) {
-      modeStats[m].a = DB.mstat[m].a || 0;
-      modeStats[m].c = DB.mstat[m].c || 0;
-    }
-  });
 
   const levels = {};
   if (Array.isArray(words) && words.length > 0) {

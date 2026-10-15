@@ -14834,9 +14834,16 @@ function renderStudentSummary(resp) {
   const mwords = (agent && agent.mwords) ? agent.mwords : null;
   const mstat = (agent && agent.mstat) ? agent.mstat : null;
 
+  const parseModeCell = (cell) => {
+    const parts = String(cell || "").split("/");
+    return { c: parseInt(parts[0]) || 0, a: parseInt(parts[1]) || 0 };
+  };
+
+  let hasMwordsData = false;
   if (mwords) {
     ["listen", "pick", "scramble", "trap"].forEach(m => {
-      if (mwords[m]) {
+      if (mwords[m] && Object.values(mwords[m]).some(e => e && e.a > 0)) {
+        hasMwordsData = true;
         const entries = Object.values(mwords[m]);
         const a = entries.filter(e => e && e.a > 0).length;
         const c = entries.filter(e => e && e.c > 0).length;
@@ -14846,38 +14853,33 @@ function renderStudentSummary(resp) {
         else if (m === "trap") mTrap = { a, c };
       }
     });
-  } else if (rawRow.length >= 27 && (String(rawRow[23]).includes("/") || String(rawRow[24]).includes("/"))) {
-    const parseModeCell = (cell) => {
-      const parts = String(cell || "").split("/");
-      return { c: parseInt(parts[0]) || 0, a: parseInt(parts[1]) || 0 };
-    };
-    mListen = parseModeCell(rawRow[23]);
-    mPick   = parseModeCell(rawRow[24]);
-    mScram  = parseModeCell(rawRow[25]);
-    mTrap   = parseModeCell(rawRow[26]);
-  } else if (mstat) {
-    mListen = mstat.listen ? { a: mstat.listen.a || 0, c: mstat.listen.c || 0 } : { a: 0, c: 0 };
-    mPick   = mstat.pick   ? { a: mstat.pick.a   || 0, c: mstat.pick.c   || 0 } : { a: 0, c: 0 };
-    mScram  = mstat.scramble ? { a: mstat.scramble.a || 0, c: mstat.scramble.c || 0 } : { a: 0, c: 0 };
-    mTrap   = mstat.trap   ? { a: mstat.trap.a   || 0, c: mstat.trap.c   || 0 } : { a: 0, c: 0 };
   }
 
-  let attempts = 0, correct = 0;
-  if (rawRow.length > 7 && parseInt(rawRow[6])) {
-    attempts = parseInt(rawRow[6]) || 0;
-    correct  = parseInt(rawRow[7]) || 0;
-  } else if (agent && agent.attempts !== undefined) {
-    attempts = agent.attempts || 0;
-    correct  = agent.correct || 0;
-  }
-
-  const mTotalA = mListen.a + mPick.a + mScram.a + mTrap.a;
-  if (attempts > mTotalA && !mwords && rawRow.length < 27) {
-    const diffA = attempts - mTotalA;
-    const mTotalC = mListen.c + mPick.c + mScram.c + mTrap.c;
-    const diffC = Math.max(0, correct - mTotalC);
-    mListen.a += diffA;
-    mListen.c += diffC;
+  // 試算表 26 欄標準架構中，四大模式固定在 index 17~20 (第 18~21 欄：聽與拼、選拼法、字母重組、填空陷阱)
+  if (!hasMwordsData) {
+    if (rawRow && rawRow.length >= 21 && (String(rawRow[17]).includes("/") || String(rawRow[19]).includes("/"))) {
+      mListen = parseModeCell(rawRow[17]);
+      mPick   = parseModeCell(rawRow[18]);
+      mScram  = parseModeCell(rawRow[19]);
+      mTrap   = parseModeCell(rawRow[20]);
+    } else if (mstat) {
+      const totTestedWords = (agent && agent.stat ? Object.values(agent.stat).filter(s => s && s.a > 0).length : (testedVocab || 0));
+      const totCorrWords = (agent && agent.stat ? Object.values(agent.stat).filter(s => s && s.c > 0).length : (totalCorrect || 0));
+      const activeModes = ["listen", "pick", "scramble", "trap"].filter(m => mstat[m] && mstat[m].a > 0);
+      if (activeModes.length === 1) {
+        const singleM = activeModes[0];
+        const mObj = { a: totTestedWords, c: totCorrWords };
+        if (singleM === "listen") mListen = mObj;
+        else if (singleM === "pick") mPick = mObj;
+        else if (singleM === "scramble") mScram = mObj;
+        else if (singleM === "trap") mTrap = mObj;
+      } else {
+        mListen = mstat.listen ? { a: Math.min(totTestedWords, mstat.listen.a || 0), c: Math.min(totCorrWords, mstat.listen.c || 0) } : { a: 0, c: 0 };
+        mPick   = mstat.pick   ? { a: Math.min(totTestedWords, mstat.pick.a   || 0), c: Math.min(totCorrWords, mstat.pick.c   || 0) } : { a: 0, c: 0 };
+        mScram  = mstat.scramble ? { a: Math.min(totTestedWords, mstat.scramble.a || 0), c: Math.min(totCorrWords, mstat.scramble.c || 0) } : { a: 0, c: 0 };
+        mTrap   = mstat.trap   ? { a: Math.min(totTestedWords, mstat.trap.a   || 0), c: Math.min(totCorrWords, mstat.trap.c   || 0) } : { a: 0, c: 0 };
+      }
+    }
   }
 
   const rListen = mListen.a > 0 ? Math.round((mListen.c / mListen.a) * 100) : 0;
