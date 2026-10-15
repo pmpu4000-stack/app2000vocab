@@ -101,6 +101,7 @@ function load() {
           delete merged.dailyPractice[dpKey];
         }
       });
+    }
     // 嚴格校準：若單字從未答對過 (st.c === 0)，將 box 設為 0，避免被誤計為學習中
     if (merged.box && merged.stat) {
       for (const id in merged.box) {
