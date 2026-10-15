@@ -1229,7 +1229,10 @@ export function renderSummary(d) {
   const currentUser = localStorage.getItem("current_user") || "";
   const userTagHtml = currentUser ? `<span style="font-size:13px;font-weight:700;color:var(--sky);background:rgba(56,189,248,0.12);padding:2px 8px;border-radius:999px;margin-left:8px;border:1px solid rgba(56,189,248,0.25);">👤 ${currentUser}</span>` : "";
   const lvRows = d.levels
-    .map((L) => `<tr><td class="st-level-name"><span style="color:${levelColor(L.level)}">●</span> Level ${L.level}「${levelName(L.level)}」</td><td class="st-level-stats"><div class="level-stats-grid"><span class="st-item st-learn"><span class="st-lbl">學習中</span><b class="tnum st-num st-num-learn">${L.learn || 0}</b>字</span><span class="st-sep">/</span><span class="st-item st-prac"><span class="st-lbl">練習中</span><b class="tnum st-num st-num-prac">${L.prac || 0}</b>字</span><span class="st-sep">/</span><span class="st-item st-mast"><span class="st-lbl">精通</span><b class="tnum st-num st-num-mast">${L.mast}</b>字</span></div></td></tr>`)
+    .map((L) => {
+      const totCorr = (L.learn || 0) + (L.prac || 0) + (L.mast || 0);
+      return `<tr><td class="st-level-name"><span style="color:${levelColor(L.level)}">●</span> Level ${L.level}「${levelName(L.level)}」</td><td class="st-level-stats"><div class="level-stats-grid"><span class="st-item st-learn"><span class="st-lbl">學習中</span><b class="tnum st-num st-num-learn">${L.learn || 0}</b>字</span><span class="st-sep">/</span><span class="st-item st-prac"><span class="st-lbl">練習中</span><b class="tnum st-num st-num-prac">${L.prac || 0}</b>字</span><span class="st-sep">/</span><span class="st-item st-mast"><span class="st-lbl">精通</span><b class="tnum st-num st-num-mast">${L.mast}</b>字</span><span class="st-sep">/</span><span class="st-item st-total"><span class="st-lbl">共答對</span><b class="tnum st-num st-num-total">${totCorr}</b>字</span></div></td></tr>`;
+    })
     .join("");
 
   const historyList = getCombinedTaskHistory();
@@ -1402,27 +1405,27 @@ export function renderSummary(d) {
     </div>
     <div class="subh">各關卡進度</div>
     <table class="sumtable">${lvRows}</table>
-    <div class="subh">🎮 4 大練習模式答題數</div>
+    <div class="subh">🎮 4 大練習模式答對數</div>
     <div class="mode-stat-grid">
       <div class="mode-stat-card">
         <div class="mode-stat-title">🎧 聽與拼</div>
-        <div class="mode-stat-num">${(d.modeStats?.listen?.a || 0)} 題</div>
-        <div class="mode-stat-sub">答對 ${(d.modeStats?.listen?.c || 0)} 題 (${d.modeStats?.listen?.a ? Math.round((d.modeStats.listen.c / d.modeStats.listen.a)*100) : 0}%)</div>
+        <div class="mode-stat-num">${(d.modeStats?.listen?.c || 0)} 題</div>
+        <div class="mode-stat-sub">共作答 ${(d.modeStats?.listen?.a || 0)} 題 (${d.modeStats?.listen?.a ? Math.round((d.modeStats.listen.c / d.modeStats.listen.a)*100) : 0}%)</div>
       </div>
       <div class="mode-stat-card">
         <div class="mode-stat-title">✅ 選拼法</div>
-        <div class="mode-stat-num">${(d.modeStats?.pick?.a || 0)} 題</div>
-        <div class="mode-stat-sub">答對 ${(d.modeStats?.pick?.c || 0)} 題 (${d.modeStats?.pick?.a ? Math.round((d.modeStats.pick.c / d.modeStats.pick.a)*100) : 0}%)</div>
+        <div class="mode-stat-num">${(d.modeStats?.pick?.c || 0)} 題</div>
+        <div class="mode-stat-sub">共作答 ${(d.modeStats?.pick?.a || 0)} 題 (${d.modeStats?.pick?.a ? Math.round((d.modeStats.pick.c / d.modeStats.pick.a)*100) : 0}%)</div>
       </div>
       <div class="mode-stat-card">
         <div class="mode-stat-title">🧩 重組</div>
-        <div class="mode-stat-num">${(d.modeStats?.scramble?.a || 0)} 題</div>
-        <div class="mode-stat-sub">答對 ${(d.modeStats?.scramble?.c || 0)} 題 (${d.modeStats?.scramble?.a ? Math.round((d.modeStats.scramble.c / d.modeStats.scramble.a)*100) : 0}%)</div>
+        <div class="mode-stat-num">${(d.modeStats?.scramble?.c || 0)} 題</div>
+        <div class="mode-stat-sub">共作答 ${(d.modeStats?.scramble?.a || 0)} 題 (${d.modeStats?.scramble?.a ? Math.round((d.modeStats.scramble.c / d.modeStats.scramble.a)*100) : 0}%)</div>
       </div>
       <div class="mode-stat-card">
         <div class="mode-stat-title">🖍️ 填陷阱</div>
-        <div class="mode-stat-num">${(d.modeStats?.trap?.a || 0)} 題</div>
-        <div class="mode-stat-sub">答對 ${(d.modeStats?.trap?.c || 0)} 題 (${d.modeStats?.trap?.a ? Math.round((d.modeStats.trap.c / d.modeStats.trap.a)*100) : 0}%)</div>
+        <div class="mode-stat-num">${(d.modeStats?.trap?.c || 0)} 題</div>
+        <div class="mode-stat-sub">共作答 ${(d.modeStats?.trap?.a || 0)} 題 (${d.modeStats?.trap?.a ? Math.round((d.modeStats.trap.c / d.modeStats.trap.a)*100) : 0}%)</div>
       </div>
     </div>
 
@@ -2236,7 +2239,7 @@ async function _exportRecordToPdf(payload) {
     <tr>
       <td style="padding:6px 8px; border-bottom:1px solid #E7E9F5; font-weight:700; color:#232A4D;">Level ${L.level}「${esc(L.name)}」</td>
       <td style="padding:6px 8px; border-bottom:1px solid #E7E9F5; text-align:right; font-weight:700; color:#232A4D;">
-        學習中 ${L.learn} 字 / 練習中 ${L.prac} 字 / 精通 ${L.mast} 字
+        學習中 ${L.learn} 字 / 練習中 ${L.prac} 字 / 精通 ${L.mast} 字 / 共答對 ${(L.learn || 0) + (L.prac || 0) + (L.mast || 0)} 字
       </td>
     </tr>
   `).join("");

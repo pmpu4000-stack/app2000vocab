@@ -2517,6 +2517,10 @@
     .level-stats-grid .st-item.st-mast .st-num {
       color: var(--bar-mast-text, #047857) !important;
     }
+    .level-stats-grid .st-num-total,
+    .level-stats-grid .st-item.st-total .st-num {
+      color: #D97706 !important;
+    }
     .level-stats-grid .st-sep {
       text-align: center !important;
       color: var(--ink3, #94A3B8) !important;
@@ -2541,6 +2545,10 @@
     [data-theme="dark"] .level-stats-grid .st-num-mast,
     [data-theme="dark"] .level-stats-grid .st-item.st-mast .st-num {
       color: var(--bar-mast-text, #6EE7B7) !important;
+    }
+    [data-theme="dark"] .level-stats-grid .st-num-total,
+    [data-theme="dark"] .level-stats-grid .st-item.st-total .st-num {
+      color: #FBBF24 !important;
     }
     [data-theme="dark"] .sumtable tr {
       border-bottom-color: #262C42 !important;
@@ -4602,7 +4610,7 @@
           <tbody id="stLevelProgressTbody"></tbody>
         </table>
 
-        <div class="subh">🎮 4 大練習模式答題數</div>
+        <div class="subh">🎮 4 大練習模式答對數</div>
         <div class="mode-stat-grid">
           <div class="mode-stat-card">
             <div class="mode-stat-title">🎧 聽與拼</div>
@@ -14748,12 +14756,13 @@ function renderStudentSummary(resp) {
       const lPrac = levelPracMap[lv] || 0;
       const lLearn = levelLearnMap[lv] || 0;
 
-      lvRowsHtml += `<tr><td class="st-level-name"><span style="color:${lvColors[lv-1]}">●</span> Level ${lv}「${lvNames[lv-1]}」</td><td class="st-level-stats"><div class="level-stats-grid"><span class="st-item st-learn"><span class="st-lbl">學習中</span><b class="tnum st-num st-num-learn">${lLearn}</b>字</span><span class="st-sep">/</span><span class="st-item st-prac"><span class="st-lbl">練習中</span><b class="tnum st-num st-num-prac">${lPrac}</b>字</span><span class="st-sep">/</span><span class="st-item st-mast"><span class="st-lbl">精通</span><b class="tnum st-num st-num-mast">${lMast}</b>字</span></div></td></tr>`;
+      const lTotCorr = (lLearn || 0) + (lPrac || 0) + (lMast || 0);
+      lvRowsHtml += `<tr><td class="st-level-name"><span style="color:${lvColors[lv-1]}">●</span> Level ${lv}「${lvNames[lv-1]}」</td><td class="st-level-stats"><div class="level-stats-grid"><span class="st-item st-learn"><span class="st-lbl">學習中</span><b class="tnum st-num st-num-learn">${lLearn}</b>字</span><span class="st-sep">/</span><span class="st-item st-prac"><span class="st-lbl">練習中</span><b class="tnum st-num st-num-prac">${lPrac}</b>字</span><span class="st-sep">/</span><span class="st-item st-mast"><span class="st-lbl">精通</span><b class="tnum st-num st-num-mast">${lMast}</b>字</span><span class="st-sep">/</span><span class="st-item st-total"><span class="st-lbl">共答對</span><b class="tnum st-num st-num-total">${lTotCorr}</b>字</span></div></td></tr>`;
     }
     lvTbody.innerHTML = lvRowsHtml;
   }
 
-  // 4. 🎮 4 大練習模式答題數 (比照截圖：🎧 聽音辨字、✍️ 單字拼寫、🧩 拼圖、✏️ 填空格)
+  // 4. 🎮 4 大練習模式答對數 (以答對數為主視覺，輔以總作答數與率)
   const mstat = (agent && agent.mstat) ? agent.mstat : {};
   let mListen = mstat.listen ? { a: mstat.listen.a || 0, c: mstat.listen.c || 0 } : { a: 0, c: 0 };
   let mPick   = mstat.pick   ? { a: mstat.pick.a   || 0, c: mstat.pick.c   || 0 } : { a: 0, c: 0 };
@@ -14784,24 +14793,24 @@ function renderStudentSummary(resp) {
   const rTrap   = mTrap.a   > 0 ? Math.round((mTrap.c   / mTrap.a)   * 100) : 0;
 
   const elListenAtt = document.getElementById("stModeListenAttempts");
-  if (elListenAtt) elListenAtt.innerText = `${mListen.a.toLocaleString()} 題`;
+  if (elListenAtt) elListenAtt.innerText = `${mListen.c.toLocaleString()} 題`;
   const elListenSub = document.getElementById("stModeListenSub");
-  if (elListenSub) elListenSub.innerText = `答對 ${mListen.c} 題 (${rListen}%)`;
+  if (elListenSub) elListenSub.innerText = `共作答 ${mListen.a} 題 (${rListen}%)`;
 
   const elPickAtt = document.getElementById("stModePickAttempts");
-  if (elPickAtt) elPickAtt.innerText = `${mPick.a.toLocaleString()} 題`;
+  if (elPickAtt) elPickAtt.innerText = `${mPick.c.toLocaleString()} 題`;
   const elPickSub = document.getElementById("stModePickSub");
-  if (elPickSub) elPickSub.innerText = `答對 ${mPick.c} 題 (${rPick}%)`;
+  if (elPickSub) elPickSub.innerText = `共作答 ${mPick.a} 題 (${rPick}%)`;
 
   const elScramAtt = document.getElementById("stModeScrambleAttempts");
-  if (elScramAtt) elScramAtt.innerText = `${mScram.a.toLocaleString()} 題`;
+  if (elScramAtt) elScramAtt.innerText = `${mScram.c.toLocaleString()} 題`;
   const elScramSub = document.getElementById("stModeScrambleSub");
-  if (elScramSub) elScramSub.innerText = `答對 ${mScram.c} 題 (${rScram}%)`;
+  if (elScramSub) elScramSub.innerText = `共作答 ${mScram.a} 題 (${rScram}%)`;
 
   const elTrapAtt = document.getElementById("stModeTrapAttempts");
-  if (elTrapAtt) elTrapAtt.innerText = `${mTrap.a.toLocaleString()} 題`;
+  if (elTrapAtt) elTrapAtt.innerText = `${mTrap.c.toLocaleString()} 題`;
   const elTrapSub = document.getElementById("stModeTrapSub");
-  if (elTrapSub) elTrapSub.innerText = `答對 ${mTrap.c} 題 (${rTrap}%)`;
+  if (elTrapSub) elTrapSub.innerText = `共作答 ${mTrap.a} 題 (${rTrap}%)`;
 
   // 5. 📅 練習紀錄（最近 4 週）熱力圖（指定測驗黃色熱力圖 + 自由練習綠色熱力圖）
   const historyData = (agent && agent.history) ? agent.history : {};
