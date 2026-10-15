@@ -1402,8 +1402,16 @@ export function renderSummary(d) {
     </div>
     <div class="subh">各關卡進度</div>
     <table class="sumtable">${lvRows}</table>
-    <div class="formula-note-box" style="font-size:12.5px; padding:6px 12px; margin-top:8px;">
-      💡 說明：數值均是單字數量
+    <div class="formula-note-box" style="font-size:12px; padding:10px 14px; margin-top:10px; line-height:1.6;">
+      <div style="font-weight:800; margin-bottom:6px; color:var(--ink);">💡 指標說明（數值均為單字數量，非作答題次）：</div>
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:5px 12px; font-size:12px;">
+        <div>● <b>答對</b>：曾答對至少 1 次的單字</div>
+        <div>● <b>施測</b>：已出題作答過的單字</div>
+        <div>● <b>學習中</b>：剛練習或曾答錯，待加強</div>
+        <div>● <b>練習中</b>：連續答對 2 次，熟練中</div>
+        <div>● <b>精通</b>：連續答對 3 次以上，已熟記 ⭐</div>
+        <div>● <b>共</b>：該關卡收錄的單字總數</div>
+      </div>
     </div>
     <div class="subh">🎮 4 大練習模式答題數</div>
     <div class="mode-stat-grid">
