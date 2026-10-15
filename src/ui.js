@@ -1229,7 +1229,7 @@ export function renderSummary(d) {
   const currentUser = localStorage.getItem("current_user") || "";
   const userTagHtml = currentUser ? `<span style="font-size:13px;font-weight:700;color:var(--sky);background:rgba(56,189,248,0.12);padding:2px 8px;border-radius:999px;margin-left:8px;border:1px solid rgba(56,189,248,0.25);">👤 ${currentUser}</span>` : "";
   const lvRows = d.levels
-    .map((L) => `<tr><td class="st-level-name"><span style="color:${levelColor(L.level)}">●</span> Level ${L.level}「${levelName(L.level)}」</td><td class="st-level-stats"><div class="level-stats-grid"><span class="st-item st-corr">答對 <b class="tnum">${L.correct}</b> 字</span><span class="st-sep">/</span><span class="st-item st-test">施測 <b class="tnum">${L.testedCount}</b> 字</span><span class="st-sep">/</span><span class="st-item st-learn">學習中 <b class="tnum">${L.learn || 0}</b> 字</span><span class="st-sep">/</span><span class="st-item st-prac">練習中 <b class="tnum">${L.prac || 0}</b> 字</span><span class="st-sep">/</span><span class="st-item st-mast">精通 <b class="tnum">${L.mast}</b> 字</span><span class="st-sep">/</span><span class="st-item st-total">共 <b class="tnum">${L.total}</b> 字</span></div></td></tr>`)
+    .map((L) => `<tr><td class="st-level-name"><span style="color:${levelColor(L.level)}">●</span> Level ${L.level}「${levelName(L.level)}」</td><td class="st-level-stats"><div class="level-stats-grid"><span class="st-item st-learn">學習中 <b class="tnum">${L.learn || 0}</b> 字</span><span class="st-sep">/</span><span class="st-item st-prac">練習中 <b class="tnum">${L.prac || 0}</b> 字</span><span class="st-sep st-sep-mid">/</span><span class="st-item st-mast">精通 <b class="tnum">${L.mast}</b> 字</span><span class="st-sep">/</span><span class="st-item st-total">共 <b class="tnum">${L.total}</b> 字</span></div></td></tr>`)
     .join("");
 
   const historyList = getCombinedTaskHistory();
@@ -1402,17 +1402,6 @@ export function renderSummary(d) {
     </div>
     <div class="subh">各關卡進度</div>
     <table class="sumtable">${lvRows}</table>
-    <div class="formula-note-box" style="font-size:12px; padding:10px 14px; margin-top:10px; line-height:1.6;">
-      <div style="font-weight:800; margin-bottom:6px; color:var(--ink);">💡 指標說明（數值均為單字數量，非作答題次）：</div>
-      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:5px 12px; font-size:12px;">
-        <div>● <b>答對</b>：曾答對至少 1 次的單字</div>
-        <div>● <b>施測</b>：已出題作答過的單字</div>
-        <div>● <b>學習中</b>：剛練習或曾答錯，待加強</div>
-        <div>● <b>練習中</b>：連續答對 2 次，熟練中</div>
-        <div>● <b>精通</b>：連續答對 3 次以上，已熟記 ⭐</div>
-        <div>● <b>共</b>：該關卡收錄的單字總數</div>
-      </div>
-    </div>
     <div class="subh">🎮 4 大練習模式答題數</div>
     <div class="mode-stat-grid">
       <div class="mode-stat-card">
@@ -2247,7 +2236,7 @@ async function _exportRecordToPdf(payload) {
     <tr>
       <td style="padding:6px 8px; border-bottom:1px solid #E7E9F5; font-weight:700; color:#232A4D;">Level ${L.level}「${esc(L.name)}」</td>
       <td style="padding:6px 8px; border-bottom:1px solid #E7E9F5; text-align:right; font-weight:700; color:#232A4D;">
-        答對 ${L.correct} 字 / 施測 ${L.tested} 字 / 學習中 ${L.learn} 字 / 練習中 ${L.prac} 字 / 精通 ${L.mast} 字 / 共 ${L.total} 字
+        學習中 ${L.learn} 字 / 練習中 ${L.prac} 字 / 精通 ${L.mast} 字 / 共 ${L.total} 字
       </td>
     </tr>
   `).join("");

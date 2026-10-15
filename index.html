@@ -1155,7 +1155,7 @@ body[data-theme="dark"],
 }
 .level-stats-grid {
   display: grid;
-  grid-template-columns: 66px 14px 66px 14px 80px 14px 80px 14px 64px 14px 58px;
+  grid-template-columns: 80px 14px 80px 14px 66px 14px 58px;
   align-items: center;
   white-space: nowrap;
   font-size: 12.5px;
@@ -1202,8 +1202,8 @@ body[data-theme="dark"],
   .sumtable tr {
     flex-direction: column;
     align-items: flex-start;
-    padding: 7px 0;
-    gap: 4px;
+    padding: 6px 0;
+    gap: 3px;
   }
   .sumtable td.st-level-name,
   .sumtable td:first-child {
@@ -1214,13 +1214,33 @@ body[data-theme="dark"],
   .sumtable td:last-child {
     width: 100%;
     justify-content: flex-start;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
+    overflow-x: visible;
   }
-  .sumtable td.st-level-stats::-webkit-scrollbar,
-  .sumtable td:last-child::-webkit-scrollbar {
-    display: none;
+}
+
+@media (max-width: 440px) {
+  .level-stats-grid {
+    grid-template-columns: 80px 14px 80px;
+    row-gap: 3px;
+    font-size: 12px;
+  }
+  .level-stats-grid .st-sep-mid {
+    display: none !important;
+  }
+  .level-stats-grid .st-item.st-mast {
+    grid-column: 1;
+  }
+}
+
+@media (max-width: 320px) {
+  .level-stats-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px 6px;
+    font-size: 11.5px;
+  }
+  .level-stats-grid .st-sep {
+    display: none !important;
   }
 }
 
