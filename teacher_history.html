@@ -2503,28 +2503,50 @@
       width: 25px !important;
       text-align: right !important;
       font-weight: 800 !important;
-      color: var(--ink) !important;
       margin-right: 1px !important;
+    }
+    .level-stats-grid .st-num-learn,
+    .level-stats-grid .st-item.st-learn .st-num {
+      color: var(--bar-learn-text, #4F46E5) !important;
+    }
+    .level-stats-grid .st-num-prac,
+    .level-stats-grid .st-item.st-prac .st-num {
+      color: var(--bar-prac-text, #0369A1) !important;
+    }
+    .level-stats-grid .st-num-mast,
+    .level-stats-grid .st-item.st-mast .st-num {
+      color: var(--bar-mast-text, #047857) !important;
     }
     .level-stats-grid .st-sep {
       text-align: center !important;
-      color: var(--sky, #0284c7) !important;
-      font-weight: 700 !important;
+      color: var(--ink3, #94A3B8) !important;
+      font-weight: 600 !important;
       display: inline-block !important;
       margin: 0 4px !important;
       user-select: none !important;
     }
     [data-theme="dark"] .sumtable td.st-level-name,
     [data-theme="dark"] .sumtable td:first-child,
-    [data-theme="dark"] .level-stats-grid .st-item,
-    [data-theme="dark"] .level-stats-grid .st-item .st-num {
+    [data-theme="dark"] .level-stats-grid .st-item {
       color: #F0F3FA !important;
+    }
+    [data-theme="dark"] .level-stats-grid .st-num-learn,
+    [data-theme="dark"] .level-stats-grid .st-item.st-learn .st-num {
+      color: var(--bar-learn-text, #A5B4FC) !important;
+    }
+    [data-theme="dark"] .level-stats-grid .st-num-prac,
+    [data-theme="dark"] .level-stats-grid .st-item.st-prac .st-num {
+      color: var(--bar-prac-text, #7DD3FC) !important;
+    }
+    [data-theme="dark"] .level-stats-grid .st-num-mast,
+    [data-theme="dark"] .level-stats-grid .st-item.st-mast .st-num {
+      color: var(--bar-mast-text, #6EE7B7) !important;
     }
     [data-theme="dark"] .sumtable tr {
       border-bottom-color: #262C42 !important;
     }
     [data-theme="dark"] .level-stats-grid .st-sep {
-      color: var(--sky, #38bdf8) !important;
+      color: #64748B !important;
     }
 
     @media (max-width: 660px) {
@@ -14726,7 +14748,7 @@ function renderStudentSummary(resp) {
       const lPrac = levelPracMap[lv] || 0;
       const lLearn = levelLearnMap[lv] || 0;
 
-      lvRowsHtml += `<tr><td class="st-level-name"><span style="color:${lvColors[lv-1]}">●</span> Level ${lv}「${lvNames[lv-1]}」</td><td class="st-level-stats"><div class="level-stats-grid"><span class="st-item"><span class="st-lbl">學習中</span><b class="tnum st-num">${lLearn}</b>字</span><span class="st-sep">/</span><span class="st-item"><span class="st-lbl">練習中</span><b class="tnum st-num">${lPrac}</b>字</span><span class="st-sep">/</span><span class="st-item"><span class="st-lbl">精通</span><b class="tnum st-num">${lMast}</b>字</span></div></td></tr>`;
+      lvRowsHtml += `<tr><td class="st-level-name"><span style="color:${lvColors[lv-1]}">●</span> Level ${lv}「${lvNames[lv-1]}」</td><td class="st-level-stats"><div class="level-stats-grid"><span class="st-item st-learn"><span class="st-lbl">學習中</span><b class="tnum st-num st-num-learn">${lLearn}</b>字</span><span class="st-sep">/</span><span class="st-item st-prac"><span class="st-lbl">練習中</span><b class="tnum st-num st-num-prac">${lPrac}</b>字</span><span class="st-sep">/</span><span class="st-item st-mast"><span class="st-lbl">精通</span><b class="tnum st-num st-num-mast">${lMast}</b>字</span></div></td></tr>`;
     }
     lvTbody.innerHTML = lvRowsHtml;
   }

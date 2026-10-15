@@ -1229,7 +1229,7 @@ export function renderSummary(d) {
   const currentUser = localStorage.getItem("current_user") || "";
   const userTagHtml = currentUser ? `<span style="font-size:13px;font-weight:700;color:var(--sky);background:rgba(56,189,248,0.12);padding:2px 8px;border-radius:999px;margin-left:8px;border:1px solid rgba(56,189,248,0.25);">👤 ${currentUser}</span>` : "";
   const lvRows = d.levels
-    .map((L) => `<tr><td class="st-level-name"><span style="color:${levelColor(L.level)}">●</span> Level ${L.level}「${levelName(L.level)}」</td><td class="st-level-stats"><div class="level-stats-grid"><span class="st-item"><span class="st-lbl">學習中</span><b class="tnum st-num">${L.learn || 0}</b>字</span><span class="st-sep">/</span><span class="st-item"><span class="st-lbl">練習中</span><b class="tnum st-num">${L.prac || 0}</b>字</span><span class="st-sep">/</span><span class="st-item"><span class="st-lbl">精通</span><b class="tnum st-num">${L.mast}</b>字</span></div></td></tr>`)
+    .map((L) => `<tr><td class="st-level-name"><span style="color:${levelColor(L.level)}">●</span> Level ${L.level}「${levelName(L.level)}」</td><td class="st-level-stats"><div class="level-stats-grid"><span class="st-item st-learn"><span class="st-lbl">學習中</span><b class="tnum st-num st-num-learn">${L.learn || 0}</b>字</span><span class="st-sep">/</span><span class="st-item st-prac"><span class="st-lbl">練習中</span><b class="tnum st-num st-num-prac">${L.prac || 0}</b>字</span><span class="st-sep">/</span><span class="st-item st-mast"><span class="st-lbl">精通</span><b class="tnum st-num st-num-mast">${L.mast}</b>字</span></div></td></tr>`)
     .join("");
 
   const historyList = getCombinedTaskHistory();
