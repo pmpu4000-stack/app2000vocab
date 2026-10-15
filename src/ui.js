@@ -1107,11 +1107,11 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
 
       <div class="task-score-grid">
         <div class="task-score-item">
-          <div class="task-score-label">🎯 答對題數 / 總題數</div>
-          <div class="task-score-val" style="color:#0284c7;">${correctWords}/${totalWords} 題</div>
+          <div class="task-score-label">🎯 答對單字 / 受測單字</div>
+          <div class="task-score-val" style="color:#0284c7;">${correctWords}/${totalWords} 字</div>
         </div>
         <div class="task-score-item">
-          <div class="task-score-label">📊 正確率</div>
+          <div class="task-score-label">📊 單字掌握率</div>
           <div class="task-score-val" style="color:${wordRate >= 80 ? '#16a34a' : '#ea580c'};">${wordRate}%</div>
         </div>
       </div>

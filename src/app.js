@@ -996,6 +996,8 @@ ui.initProgressCard();
   // 1. 優先完整載入單字庫，確保各關卡、答對率與學習進度正確計算
   try {
     WORDS = await loadWordBank();
+    window.__WORDS = WORDS;
+    window.__store = store;
   } catch (e) {
     document.querySelector("#stage").innerHTML =
       `<p style="color:var(--coral);font-weight:700">載入單字失敗：${e.message}<br>請用伺服器開啟（見 README）。</p>`;

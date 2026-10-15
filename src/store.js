@@ -101,6 +101,13 @@ function load() {
           delete merged.dailyPractice[dpKey];
         }
       });
+    // 嚴格校準：若單字從未答對過 (st.c === 0)，將 box 設為 0，避免被誤計為學習中
+    if (merged.box && merged.stat) {
+      for (const id in merged.box) {
+        if (!merged.stat[id] || !merged.stat[id].c || merged.stat[id].c <= 0) {
+          merged.box[id] = 0;
+        }
+      }
     }
     // 歷史版本數據自動對齊：若早期未記錄 mstat，自動對齊至預設 listen 模式
     const mSumA = (merged.mstat.listen?.a || 0) + (merged.mstat.pick?.a || 0) + (merged.mstat.scramble?.a || 0) + (merged.mstat.trap?.a || 0);
@@ -137,14 +144,15 @@ export function grade(id, correct, level, mode, wordStr = null, isFree = true) {
   let gain = 0, newlyMastered = false;
   if (correct) {
     st.c++; DB.correct++;
-    DB.box[id] = Math.min(3, before + 1);
+    DB.box[id] = Math.min(3, Math.max(1, before + 1));
     DB.streak++; DB.best = Math.max(DB.best, DB.streak);
     gain = 8 + Math.min(12, DB.streak * 2);
     DB.points += gain;
     if (DB.box[id] === 3 && before < 3) newlyMastered = true;
   } else {
     st.ew = true;
-    DB.box[id] = 1;
+    // 若該單字曾答對過，降回 Box 1 學習中；若從未答對過，維持 Box 0 生字狀態（不虛增學習成果）
+    DB.box[id] = (st.c > 0) ? 1 : 0;
     DB.streak = 0;
   }
   if (level) {
@@ -155,6 +163,12 @@ export function grade(id, correct, level, mode, wordStr = null, isFree = true) {
   if (!DB.mstat) DB.mstat = { listen: { a: 0, c: 0 }, pick: { a: 0, c: 0 }, scramble: { a: 0, c: 0 }, trap: { a: 0, c: 0 } };
   const ms = DB.mstat[targetMode] || (DB.mstat[targetMode] = { a: 0, c: 0 });
   ms.a++; if (correct) ms.c++;
+
+  // 四大模式不重複單字統計（記錄每個模式受測與答對之單字）
+  if (!DB.mwords) DB.mwords = { listen: {}, pick: {}, scramble: {}, trap: {} };
+  const mw = DB.mwords[targetMode] || (DB.mwords[targetMode] = {});
+  const mwEntry = mw[id] || (mw[id] = { a: 0, c: 0 });
+  mwEntry.a++; if (correct) mwEntry.c++;
 
   // 自由練習每日紀錄 (包含當日受測單字與作答成果)
   if (isFree) {
@@ -393,22 +407,30 @@ export function stats(words) {
   let learn = 0, prac = 0, mast = 0;
   for (const w of wList) {
     const b = box(w.id);
-    if (b >= 3) mast++; else if (b === 2) prac++; else if (b === 1) learn++;
-  }
-  // 若單字庫尚未完全載入完成，直接由 DB.box 智能統計
-  if (wList.length === 0 && DB && DB.box) {
-    for (const b of Object.values(DB.box)) {
-      if (b >= 3) mast++; else if (b === 2) prac++; else if (b === 1) learn++;
+    const st = DB.stat[w.id];
+    // 嚴格準則：單字必須實際曾答對過 (st && st.c > 0)，方能計入學習成果
+    if (st && st.c > 0) {
+      if (b >= 3) mast++;
+      else if (b === 2) prac++;
+      else learn++;
     }
   }
-  const distinctCorrect = (learn + prac + mast) > 0
-    ? (learn + prac + mast)
-    : Math.max(
-        Object.values(DB.stat || {}).filter((s) => s.c > 0).length,
-        Object.values(DB.box || {}).filter((b) => b >= 1).length
-      );
+  // 若單字庫尚未完全載入完成，直接由 DB.stat 與 DB.box 統計
+  if (wList.length === 0 && DB && DB.stat) {
+    for (const [id, st] of Object.entries(DB.stat)) {
+      if (st && st.c > 0) {
+        const b = box(id);
+        if (b >= 3) mast++;
+        else if (b === 2) prac++;
+        else learn++;
+      }
+    }
+  }
+  const distinctCorrect = mast + prac + learn;
+  // 累積受測單字數：凡有作答受測過 (stat.a > 0 或曾列入 box) 的不重複單字
   const testedVocab = Math.max(
     distinctCorrect,
+    Object.values(DB.stat || {}).filter((s) => s && s.a > 0).length,
     Object.keys(DB.stat || {}).length,
     Object.keys(DB.box || {}).length
   );
@@ -461,23 +483,24 @@ export function getPracticeDates() {
 // Everything the summary panel needs, as plain data.
 export function summary(words) {
   const s = stats(words);
-  const mastered = words.filter((w) => box(w.id) >= 3);
-  const fixed = words.filter((w) => box(w.id) >= 3 && everWrong(w.id));
+  const mastered = words.filter((w) => box(w.id) >= 3 && DB.stat[w.id]?.c > 0);
+  const fixed = words.filter((w) => box(w.id) >= 3 && everWrong(w.id) && DB.stat[w.id]?.c > 0);
   const levels = [1, 2, 3, 4, 5].map((lv) => {
     const ws = words.filter((w) => w.level === lv);
     const ls = levelStats(lv);
-    const testedWords = ws.filter((w) => (DB.stat[w.id] && DB.stat[w.id].a > 0));
-    const testedCorrectWords = ws.filter((w) => (DB.stat[w.id] && DB.stat[w.id].c > 0));
-    const testedCount = testedWords.length;
-    const correctWordCount = testedCorrectWords.length;
-    const wordRate = testedCount > 0 ? Math.round((correctWordCount / testedCount) * 100) : 0;
-    let learn = 0, prac = 0, mast = 0;
+    let learn = 0, prac = 0, mast = 0, testedCount = 0;
     for (const w of ws) {
-      const b = box(w.id);
-      if (b >= 3) mast++;
-      else if (b === 2) prac++;
-      else if (b === 1) learn++;
+      const st = DB.stat[w.id];
+      if (st && st.a > 0) testedCount++;
+      if (st && st.c > 0) {
+        const b = box(w.id);
+        if (b >= 3) mast++;
+        else if (b === 2) prac++;
+        else learn++;
+      }
     }
+    const correctWordCount = learn + prac + mast;
+    const wordRate = testedCount > 0 ? Math.round((correctWordCount / testedCount) * 100) : 0;
     return {
       level: lv, total: ws.length,
       mast, prac, learn,
@@ -488,9 +511,27 @@ export function summary(words) {
   });
   const catCounts = Object.keys(CATS).map((k) => {
     const ws = words.filter((w) => w.cat === k);
-    return { name: CATS[k].name, color: CATS[k].color, total: ws.length, mast: ws.filter((w) => box(w.id) >= 3).length };
+    return { name: CATS[k].name, color: CATS[k].color, total: ws.length, mast: ws.filter((w) => box(w.id) >= 3 && DB.stat[w.id]?.c > 0).length };
   });
-  const modeStats = DB.mstat || { listen: { a: 0, c: 0 }, pick: { a: 0, c: 0 }, scramble: { a: 0, c: 0 }, trap: { a: 0, c: 0 } };
+
+  const modeStats = {
+    listen: { a: 0, c: 0 },
+    pick: { a: 0, c: 0 },
+    scramble: { a: 0, c: 0 },
+    trap: { a: 0, c: 0 }
+  };
+  const mwords = DB.mwords || {};
+  ["listen", "pick", "scramble", "trap"].forEach(m => {
+    if (mwords[m]) {
+      const entries = Object.values(mwords[m]);
+      modeStats[m].a = entries.filter(e => e && e.a > 0).length;
+      modeStats[m].c = entries.filter(e => e && e.c > 0).length;
+    }
+    if (modeStats[m].a === 0 && DB.mstat && DB.mstat[m]) {
+      modeStats[m].a = DB.mstat[m].a || 0;
+      modeStats[m].c = DB.mstat[m].c || 0;
+    }
+  });
 
   // 1. 整理 DB.stat 中所有曾作答過之單字成果
   const allPracticedWords = [];
@@ -627,5 +668,66 @@ export function summary(words) {
     rawHistory: DB.history || {},
     allPracticedWords,
     words,
+  };
+}
+
+/**
+ * 🚀 輕量快取摘要：提供登入與上傳時直接存取，零延遲免重新計算
+ */
+export function getPrecomputedSummary(words) {
+  const s = stats(words);
+  const mwords = DB.mwords || {};
+  const modeStats = {
+    listen: { a: 0, c: 0 },
+    pick: { a: 0, c: 0 },
+    scramble: { a: 0, c: 0 },
+    trap: { a: 0, c: 0 }
+  };
+  ["listen", "pick", "scramble", "trap"].forEach(m => {
+    if (mwords[m]) {
+      const entries = Object.values(mwords[m]);
+      modeStats[m].a = entries.filter(e => e && e.a > 0).length;
+      modeStats[m].c = entries.filter(e => e && e.c > 0).length;
+    }
+    if (modeStats[m].a === 0 && DB.mstat && DB.mstat[m]) {
+      modeStats[m].a = DB.mstat[m].a || 0;
+      modeStats[m].c = DB.mstat[m].c || 0;
+    }
+  });
+
+  const levels = {};
+  if (Array.isArray(words) && words.length > 0) {
+    for (let lv = 1; lv <= 5; lv++) {
+      const ws = words.filter(w => w.level === lv);
+      let c = 0, a = 0;
+      for (const w of ws) {
+        const st = DB.stat[w.id];
+        if (st && st.a > 0) a++;
+        if (st && st.c > 0) c++;
+      }
+      levels[lv] = `${c}/${a}`;
+    }
+  } else if (DB.lstat) {
+    for (let lv = 1; lv <= 5; lv++) {
+      const ls = DB.lstat[lv] || DB.lstat[String(lv)] || { a: 0, c: 0 };
+      levels[lv] = `${ls.c || 0}/${ls.a || 0}`;
+    }
+  }
+
+  return {
+    testedVocab: s.testedVocab,
+    distinctCorrect: s.distinctCorrect,
+    passRate: s.passRate + "%",
+    mastered: s.mast,
+    practicing: s.prac,
+    learning: s.learn,
+    progressStr: `${s.distinctCorrect}/2055字`,
+    levels,
+    modes: {
+      listen: `${modeStats.listen.c}/${modeStats.listen.a}`,
+      pick: `${modeStats.pick.c}/${modeStats.pick.a}`,
+      scramble: `${modeStats.scramble.c}/${modeStats.scramble.a}`,
+      trap: `${modeStats.trap.c}/${modeStats.trap.a}`
+    }
   };
 }

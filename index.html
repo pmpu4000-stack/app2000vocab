@@ -2070,14 +2070,19 @@ body[data-theme="dark"],
         if (np) np.textContent = pts;
 
         let distinctCorrect = 0;
-        if (sa.box) {
-          const lCnt = Object.values(sa.box).filter(b => b === 1).length;
-          const pCnt = Object.values(sa.box).filter(b => b === 2).length;
-          const mCnt = Object.values(sa.box).filter(b => b >= 3).length;
-          distinctCorrect = lCnt + pCnt + mCnt;
-        }
-        if (distinctCorrect === 0 && sa.stat) {
-          distinctCorrect = Object.values(sa.stat).filter(s => s.c > 0).length;
+        try {
+          const cachedSum = JSON.parse(localStorage.getItem("cached_summary") || "null");
+          if (cachedSum && typeof cachedSum.distinctCorrect === "number") {
+            distinctCorrect = cachedSum.distinctCorrect;
+          }
+        } catch(_) {}
+
+        if (distinctCorrect === 0) {
+          if (sa.stat) {
+            distinctCorrect = Object.values(sa.stat).filter(s => s && s.c > 0).length;
+          } else if (sa.box) {
+            distinctCorrect = Object.values(sa.box).filter(b => b >= 1).length;
+          }
         }
         if (sc) sc.textContent = String(distinctCorrect);
         if (nc) nc.textContent = String(distinctCorrect);
@@ -2222,6 +2227,12 @@ body[data-theme="dark"],
           localStorage.setItem("user_role", result.role || "student");
           if (result.realName) localStorage.setItem("user_real_name", result.realName);
           if (result.className) localStorage.setItem("user_class_name", result.className);
+          if (result.cachedSummary) {
+            try {
+              localStorage.setItem("cached_summary", JSON.stringify(result.cachedSummary));
+              window.__CACHED_SUMMARY = result.cachedSummary;
+            } catch(_) {}
+          }
           window.__CURRENT_USER = user;
           window.__USER_ROLE = result.role || "student";
           updateAccountDisplay(user, result.role || "student");
@@ -2532,13 +2543,21 @@ body[data-theme="dark"],
         } catch(_) {}
       }
 
+      let precomputedSummary = null;
+      try {
+        if (window.__store && typeof window.__store.getPrecomputedSummary === "function") {
+          precomputedSummary = window.__store.getPrecomputedSummary(window.__WORDS || []);
+        }
+      } catch(_) {}
+
       try {
         const payloadStr = JSON.stringify({ 
           action           : "saveRecord", 
           username         : currentUser, 
           password         : currentPass, 
           records          : localData,
-          todayTaskSummary : todayTaskSummary
+          todayTaskSummary : todayTaskSummary,
+          summary          : precomputedSummary
         });
         const fetchOpts = {
           method: "POST",

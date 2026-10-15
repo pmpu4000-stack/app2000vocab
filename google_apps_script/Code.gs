@@ -23,6 +23,133 @@ const SYS = {
   ])
 };
 
+// 2055 單字關卡等級對應表 (Index 0 ~ 2054)
+const WORD_LEVELS = "145453333454155534514335334335341133115444533351433335435355533413333435311355554453321433451345513313541453145335314415114524411431155335112412112153431411133553342331235425125141424224322221121313114433142134411411222242232244222341241312155531454114551152141313333141115534441141224551354534225245222222252534244413455224442351355552223532234231221441314435315345454445545455554445551313134142324342233131232552324215511544235113343514511111125535541133554553434314351455115555155455353554515543413512443113525144433531323424314112134331313124113311541354333555413555314543543435553344513553345553355335535333554431115112245135113515513532515111445314333213511331521514115532235121314411415155335113334141214442324425411221214551134314355335551321141342111111311352521555423123222213443341113154125154153413441351411142412133354141113141113512141411514135155453115251143125515133335433134141153131555554155143455551333445555555555353533413133153525211111512231151514111255151424143333533313131144521433431313131222113134144351111135143111131434451313411131141323415351413133153431213344513312145121114415531435534333354531541133343413353334215511451355542215351113351131134555551351413554351135511514152315414123131121115433513214333511443111311133355133531151443355513114114241531323333154243352224421125221353444335134323512133415224222324422442442322355345222154552555541423342254455422525552452544545444424332434342214425222224234424432213223244353555153353553233354525444442223223213233552222221122331212424335224245542142252544221424245455122444435252555424135552322221222222225222242242212253354445424244214114324135242124422223233222242431244553355422455512254222225252442232442222222222245522222344522422452434252222243434444524342414435442245542422242445524524253522231245242555354142255242252142225225222222224442244422423444313323133123135445251224413324332122554252254422422442242213124442424212435335555555455314344114355545254325345435525222452234212222355211224452444432132222423213212223124324422241235522224422423343223415112224524331";
+
+function getWordLevel(wKey) {
+  if (!wKey) return 1;
+  const m = String(wKey).trim().match(/^w?(\d+)$/i);
+  if (m) {
+    const idx = parseInt(m[1], 10);
+    if (idx >= 0 && idx < WORD_LEVELS.length) {
+      return parseInt(WORD_LEVELS.charAt(idx), 10) || 1;
+    }
+  }
+  return 1;
+}
+
+function calculateSummaryFromAgentData(agentData, sumObj) {
+  if (sumObj) {
+    const tv = sumObj.testedVocab || 0;
+    const dc = sumObj.distinctCorrect || 0;
+    const rate = sumObj.passRate || (tv > 0 ? Math.round(dc / tv * 100) + "%" : "0%");
+    const lvObj = sumObj.levels || {};
+    const moObj = sumObj.modes || {};
+    return {
+      testedVocab: tv,
+      distinctCorrect: dc,
+      passRate: rate,
+      l1: lvObj[1] || lvObj["1"] || "0/0",
+      l2: lvObj[2] || lvObj["2"] || "0/0",
+      l3: lvObj[3] || lvObj["3"] || "0/0",
+      l4: lvObj[4] || lvObj["4"] || "0/0",
+      l5: lvObj[5] || lvObj["5"] || "0/0",
+      mastered: sumObj.mastered || 0,
+      practicing: sumObj.practicing || 0,
+      learning: sumObj.learning || 0,
+      progressStr: `${dc}/2055字`,
+      mListen: moObj.listen || "0/0",
+      mPick: moObj.pick || "0/0",
+      mScramble: moObj.scramble || "0/0",
+      mTrap: moObj.trap || "0/0"
+    };
+  }
+
+  const stat = (agentData && agentData.stat) || {};
+  const box = (agentData && agentData.box) || {};
+  const lstat = (agentData && agentData.lstat) || {};
+  const mwords = (agentData && agentData.mwords) || {};
+  const mstat = (agentData && agentData.mstat) || {};
+
+  let m = 0, p = 0, l = 0, distinctC = 0;
+  const levelTested = [0, 0, 0, 0, 0, 0];
+  const levelCorr   = [0, 0, 0, 0, 0, 0];
+
+  for (const w in stat) {
+    const st = stat[w];
+    if (!st) continue;
+    const lv = getWordLevel(w);
+    if (st.a > 0) levelTested[lv]++;
+    if (st.c > 0) {
+      distinctC++;
+      levelCorr[lv]++;
+      const b = box[w] || 0;
+      if (b >= 3) m++;
+      else if (b === 2) p++;
+      else l++;
+    }
+  }
+
+  if (distinctC === 0 && Object.keys(box).length > 0) {
+    for (const w in box) {
+      const b = box[w] || 0;
+      const lv = getWordLevel(w);
+      if (b > 0) {
+        levelTested[lv]++;
+        levelCorr[lv]++;
+        if (b >= 3) m++;
+        else if (b === 2) p++;
+        else if (b === 1) l++;
+      }
+    }
+    distinctC = m + p + l;
+  }
+
+  const testedVocab = Math.max(
+    distinctC,
+    Object.values(stat).filter(s => s && s.a > 0).length,
+    Object.keys(stat).length,
+    Object.keys(box).length
+  );
+  const passRate = testedVocab > 0 ? Math.round(distinctC / testedVocab * 100) + "%" : "0%";
+
+  let mList = "0/0", mPk = "0/0", mSc = "0/0", mTr = "0/0";
+  ["listen", "pick", "scramble", "trap"].forEach(mod => {
+    let a = 0, c = 0;
+    if (mwords[mod]) {
+      a = Object.values(mwords[mod]).filter(e => e && e.a > 0).length;
+      c = Object.values(mwords[mod]).filter(e => e && e.c > 0).length;
+    }
+    if (a === 0 && mstat[mod]) {
+      a = mstat[mod].a || 0; c = mstat[mod].c || 0;
+    }
+    const str = `${c}/${a}`;
+    if (mod === "listen") mList = str;
+    else if (mod === "pick") mPk = str;
+    else if (mod === "scramble") mSc = str;
+    else if (mod === "trap") mTr = str;
+  });
+
+  return {
+    testedVocab,
+    distinctCorrect: distinctC,
+    passRate,
+    l1: `${levelCorr[1]}/${levelTested[1]}`,
+    l2: `${levelCorr[2]}/${levelTested[2]}`,
+    l3: `${levelCorr[3]}/${levelTested[3]}`,
+    l4: `${levelCorr[4]}/${levelTested[4]}`,
+    l5: `${levelCorr[5]}/${levelTested[5]}`,
+    mastered: m,
+    practicing: p,
+    learning: l,
+    progressStr: `${distinctC}/2055字`,
+    mListen: mList,
+    mPick: mPk,
+    mScramble: mSc,
+    mTrap: mTr
+  };
+}
+
 // ════════════════════════════════════════════════════════════════════
 // 0. 密碼雜湊與資安防護
 // ════════════════════════════════════════════════════════════════════
@@ -182,7 +309,7 @@ function getStudentSheet(ss, username) {
 }
 
 /**
- * 確保學生分頁具備 23 欄每日任務欄位（全面以單字數為核心），並將表頭與欄寬美化為高可讀性、清楚簡潔之分組色彩
+ * 確保學生分頁具備 27 欄每日任務與四大模式欄位（全面以單字數為核心），並將表頭與欄寬美化為高可讀性、清楚簡潔之分組色彩
  */
 function ensureStudentSheetColumns(sheet) {
   if (!sheet) return;
@@ -195,18 +322,19 @@ function ensureStudentSheetColumns(sheet) {
       "LEVEL1入門\n答對/受測字數","LEVEL2基礎\n答對/受測字數",
       "LEVEL3進階\n答對/受測字數","LEVEL4挑戰\n答對/受測字數","LEVEL5精熟\n答對/受測字數",
       "精通單字數","練習中","學習中","總單字庫進度",
-      "任務名稱","指定測驗成績","指定測驗正確率","練習狀態","測驗錯題單字"
+      "任務名稱","指定測驗成績","指定測驗正確率","練習狀態","測驗錯題單字",
+      "🎧聽與拼\n答對/受測字數","✅選拼法\n答對/受測字數","🧩重組\n答對/受測字數","🖍️填陷阱\n答對/受測字數"
     ];
 
-    if (maxCols < 23) {
-      sheet.insertColumnsAfter(maxCols, 23 - maxCols);
+    if (maxCols < 27) {
+      sheet.insertColumnsAfter(maxCols, 27 - maxCols);
     }
     
-    // 檢查第一列表頭，若為舊版題目數或未更新，立即自動替換為單字數基準表頭
-    const firstRowVals = sheet.getRange(1, 1, 1, Math.min(sheet.getLastColumn(), 23)).getValues()[0] || [];
-    if (firstRowVals.length < 23 || firstRowVals[6] !== "受測單字數") {
+    // 檢查第一列表頭，若為舊版題目數或未更新至 27 欄，立即自動替換為最新單字數與四大模式表頭
+    const firstRowVals = sheet.getRange(1, 1, 1, Math.min(sheet.getLastColumn(), 27)).getValues()[0] || [];
+    if (firstRowVals.length < 27 || firstRowVals[6] !== "受測單字數" || !String(firstRowVals[23]||"").includes("聽與拼")) {
       sheet.getRange(1, 1, 1, studentHdr.length).setValues([studentHdr]);
-    } else if (maxCols >= 23 && lastCol >= 23) {
+    } else if (maxCols >= 27 && lastCol >= 27) {
       return;
     }
 
@@ -226,18 +354,24 @@ function ensureStudentSheetColumns(sheet) {
     sheet.getRange("J1:N1").setBackground("#f3e8ff").setFontColor("#6b21a8").setFontWeight("bold"); // 關卡進度
     sheet.getRange("O1:R1").setBackground("#fef3c7").setFontColor("#92400e").setFontWeight("bold"); // 單字掌握度
     sheet.getRange("S1:W1").setBackground("#e0e7ff").setFontColor("#3730a3").setFontWeight("bold"); // 任務與錯題
+    sheet.getRange("X1:AA1").setBackground("#ccfbf1").setFontColor("#0f766e").setFontWeight("bold"); // 4 大模式答對字數
 
     sheet.getRange("1:1").setWrap(true).setHorizontalAlignment("center").setVerticalAlignment("middle");
 
-    // 4. 精簡最佳化欄寬（簡潔、緊湊、不截斷）
+    // 4. 精簡最佳化欄寬與防止比率文字被試算表誤轉為日期 (例如 6/6 被當作 6月6日)
     const widths = [
       155, 40, 65, 70, 65, 75,
       90, 95, 95,
       115, 115, 115, 115, 115,
       85, 75, 75, 105,
-      140, 95, 95, 110, 220
+      140, 95, 95, 110, 220,
+      115, 115, 115, 115
     ];
     widths.forEach((w, idx) => sheet.setColumnWidth(idx + 1, w));
+    try {
+      sheet.getRange("J:N").setNumberFormat("@");
+      sheet.getRange("X:AA").setNumberFormat("@");
+    } catch(_) {}
 
     // 5. 效能優化：裁切多餘空白列（保留最多 120 列），大幅提升 Google Sheets 開啟與捲動速度
     const maxR = sheet.getMaxRows();
@@ -2130,6 +2264,43 @@ function doPost(e) {
         } catch(_) {}
       }
 
+      let cachedSummary = null;
+      if (uSheet && uSheet.getLastRow() >= 2) {
+        try {
+          const rowVals = uSheet.getRange(2, 1, 1, Math.min(uSheet.getLastColumn(), 27)).getDisplayValues()[0];
+          const fmtRatio = (val) => {
+            const s = String(val || "").trim();
+            if (s.includes("GMT") || s.includes("T00:00") || s.includes("台北標準時間")) {
+              const d = new Date(s);
+              if (!isNaN(d.getTime())) return (d.getMonth() + 1) + "/" + d.getDate();
+            }
+            return s || "0/0";
+          };
+          cachedSummary = {
+            testedVocab: parseInt(rowVals[6]) || 0,
+            distinctCorrect: parseInt(rowVals[7]) || 0,
+            passRate: String(rowVals[8] || "0%"),
+            levels: {
+              1: fmtRatio(rowVals[9]),
+              2: fmtRatio(rowVals[10]),
+              3: fmtRatio(rowVals[11]),
+              4: fmtRatio(rowVals[12]),
+              5: fmtRatio(rowVals[13])
+            },
+            mastered: parseInt(rowVals[14]) || 0,
+            practicing: parseInt(rowVals[15]) || 0,
+            learning: parseInt(rowVals[16]) || 0,
+            progressStr: String(rowVals[17] || "0/2055字"),
+            modes: {
+              listen: fmtRatio(rowVals[23]),
+              pick: fmtRatio(rowVals[24]),
+              scramble: fmtRatio(rowVals[25]),
+              trap: fmtRatio(rowVals[26])
+            }
+          };
+        } catch(_) {}
+      }
+
       const assignedTask = getActiveTaskForClass(ss, auth.className, auth.username);
       let dailyTaskHistory = [];
       try { dailyTaskHistory = getStudentDailyTaskHistory(ss, auth.username); } catch(_) {}
@@ -2141,7 +2312,8 @@ function doPost(e) {
         assignedTask: assignedTask,
         dailyTaskHistory: dailyTaskHistory,
         timeRestriction: timeAllowance,
-        dailyUsage: getDailyUsageSettings(ss, auth.username, true)
+        dailyUsage: getDailyUsageSettings(ss, auth.username, true),
+        cachedSummary: cachedSummary
       });
     }
 
@@ -2454,39 +2626,13 @@ function handleSaveRecord(ss, params, auth) {
     agentData = (typeof raw==="string") ? JSON.parse(raw) : (raw || {});
   } catch(_) {}
 
-  const lstat = agentData.lstat || {}, stat = agentData.stat || {}, box = agentData.box || {};
-  let distinctC = 0, learning = 0, practicing = 0, mastered = 0;
-  for (const w in box) {
-    const b = box[w] || 0;
-    if (b >= 3) mastered++;
-    else if (b === 2) practicing++;
-    else if (b === 1) learning++;
-  }
-  distinctC = learning + practicing + mastered;
-  if (distinctC === 0) {
-    for (const w in stat) {
-      const c = stat[w].c || 0;
-      if (c > 0) distinctC++;
-      if (c === 1) learning++;
-      else if (c === 2) practicing++;
-      else if (c >= 3) mastered++;
-    }
-  }
-
-  // 累積受測過的不重複單字數
-  const testedWordsCount = Math.max(
-    distinctC,
-    Object.keys(stat).length,
-    Object.keys(box).length
-  );
-  // 單字掌握率
-  const vocabAccStr = testedWordsCount > 0 ? Math.round(distinctC / testedWordsCount * 100) + "%" : "0%";
-  const L = (k, f) => (lstat[k]?.[f] || 0);
-  const getLevelWordStat = (k) => {
-    const c = L(k, "c");
-    const a = L(k, "a");
-    return `${c}/${a}`;
-  };
+  const sumData = calculateSummaryFromAgentData(agentData, params.summary);
+  const testedWordsCount = sumData.testedVocab;
+  const distinctC = sumData.distinctCorrect;
+  const vocabAccStr = sumData.passRate;
+  const l1Str = sumData.l1, l2Str = sumData.l2, l3Str = sumData.l3, l4Str = sumData.l4, l5Str = sumData.l5;
+  const mastered = sumData.mastered, practicing = sumData.practicing, learning = sumData.learning;
+  const mListenStr = sumData.mListen, mPickStr = sumData.mPick, mScrambleStr = sumData.mScramble, mTrapStr = sumData.mTrap;
 
   // 解析今日指定任務資訊（優先從 params.todayTaskSummary 提取，亦支援從 records 中自動解析備援）
   let sum = params.todayTaskSummary || null;
@@ -2619,11 +2765,10 @@ function handleSaveRecord(ss, params, auth) {
     (agentData.level||{}).current||"", agentData.points||0,
     agentData.streak||0, agentData.best||0,
     testedWordsCount, distinctC, vocabAccStr,
-    getLevelWordStat("1"), getLevelWordStat("2"),
-    getLevelWordStat("3"), getLevelWordStat("4"),
-    getLevelWordStat("5"),
+    l1Str, l2Str, l3Str, l4Str, l5Str,
     mastered, practicing, learning, `${distinctC}/2055字`,
-    taskName, taskScore, taskRate, status, wrongWordsStr
+    taskName, taskScore, taskRate, status, wrongWordsStr,
+    mListenStr, mPickStr, mScrambleStr, mTrapStr
   ];
 
   if (shouldInsertNewRow && uSheet.getLastRow() >= 2) {
@@ -4376,7 +4521,8 @@ function generateClassDashboardSheet() {
   const headers = ["班級","學生帳號","姓名","今日指定任務成績","最後練習日期","學習活躍度",
     "累積精通單字","練習中","學習中","共答對單字","單字熟練度分佈",
     "累積受測單字","單字掌握率","目前連勝","歷史最佳連勝",
-    "LEVEL 1","LEVEL 2","LEVEL 3","LEVEL 4","LEVEL 5"];
+    "LEVEL 1","LEVEL 2","LEVEL 3","LEVEL 4","LEVEL 5",
+    "🎧聽與拼","✅選拼法","🧩重組","🖍️填陷阱"];
   dash.appendRow(headers);
   dash.getRange("1:1").setBackground("#1e3a8a").setFontColor("#ffffff").setFontWeight("bold")
     .setHorizontalAlignment("center").setVerticalAlignment("middle").setWrap(true);
@@ -4388,7 +4534,7 @@ function generateClassDashboardSheet() {
 
   try {
     const resp = Sheets.Spreadsheets.Values.batchGet(ss.getId(), {
-      ranges            : sheetNames.map(n=>`'${n}'!A2:R2`),
+      ranges            : sheetNames.map(n=>`'${n}'!A2:AA2`),
       valueRenderOption : "FORMATTED_VALUE",
       majorDimension    : "ROWS"
     });
@@ -4397,7 +4543,7 @@ function generateClassDashboardSheet() {
     });
   } catch(_) {
     sheets.forEach(s=>{
-      rowsMap[s.getName()] = s.getLastRow()>=2 ? s.getRange(2,1,1,18).getDisplayValues()[0] : [];
+      rowsMap[s.getName()] = s.getLastRow()>=2 ? s.getRange(2,1,1,27).getDisplayValues()[0] : [];
     });
   }
 
@@ -4430,7 +4576,9 @@ function generateClassDashboardSheet() {
       hasData?n(4):0,  hasData?n(5):0,
       hasData?String(row[9]||"0/0"):"0/0", hasData?String(row[10]||"0/0"):"0/0",
       hasData?String(row[11]||"0/0"):"0/0", hasData?String(row[12]||"0/0"):"0/0",
-      hasData?String(row[13]||"0/0"):"0/0"
+      hasData?String(row[13]||"0/0"):"0/0",
+      hasData?String(row[23]||"0/0"):"0/0", hasData?String(row[24]||"0/0"):"0/0",
+      hasData?String(row[25]||"0/0"):"0/0", hasData?String(row[26]||"0/0"):"0/0"
     ]);
     rows.push({name,className:meta.className,mastered:hasData?n(14):0});
   });
@@ -4454,7 +4602,7 @@ function generateClassDashboardSheet() {
     dash.getRange(2,1,sorted.length,headers.length).setBackgrounds(bgs);
     dash.setRowHeights(2,sorted.length,32);
 
-    [100,120,100,140,110,125,100,85,85,100,180,100,95,85,105,110,110,110,110,110]
+    [100,120,100,140,110,125,100,85,85,100,180,100,95,85,105,110,110,110,110,110, 110,110,110,110]
       .forEach((w,i)=>dash.setColumnWidth(i+1,w));
   }
   ss.toast(`✅ 已彙整 ${sorted.length} 位學生數據至「全班學習總覽」！`,"學習歷程管理中心",5);
@@ -4474,7 +4622,8 @@ function migrateAllSheetsToVocabBased() {
     "LEVEL1入門\n答對/受測字數","LEVEL2基礎\n答對/受測字數",
     "LEVEL3進階\n答對/受測字數","LEVEL4挑戰\n答對/受測字數","LEVEL5精熟\n答對/受測字數",
     "精通單字數","練習中","學習中","總單字庫進度",
-    "任務名稱","指定測驗成績","指定測驗正確率","練習狀態","測驗錯題單字"
+    "任務名稱","指定測驗成績","指定測驗正確率","練習狀態","測驗錯題單字",
+    "🎧聽與拼\n答對/受測字數","✅選拼法\n答對/受測字數","🧩重組\n答對/受測字數","🖍️填陷阱\n答對/受測字數"
   ];
 
   sheets.forEach(sheet => {
@@ -4482,8 +4631,8 @@ function migrateAllSheetsToVocabBased() {
     if (isSystemSheet(sName)) return;
 
     try {
-      if (sheet.getMaxColumns() < 23) {
-        sheet.insertColumnsAfter(sheet.getMaxColumns(), 23 - sheet.getMaxColumns());
+      if (sheet.getMaxColumns() < 27) {
+        sheet.insertColumnsAfter(sheet.getMaxColumns(), 27 - sheet.getMaxColumns());
       }
 
       sheet.getRange(1, 1, 1, studentHdr.length).setValues([studentHdr]);
@@ -4500,11 +4649,26 @@ function migrateAllSheetsToVocabBased() {
       sheet.getRange("J1:N1").setBackground("#f3e8ff").setFontColor("#6b21a8").setFontWeight("bold");
       sheet.getRange("O1:R1").setBackground("#fef3c7").setFontColor("#92400e").setFontWeight("bold");
       sheet.getRange("S1:W1").setBackground("#e0e7ff").setFontColor("#3730a3").setFontWeight("bold");
+      sheet.getRange("X1:AA1").setBackground("#ccfbf1").setFontColor("#0f766e").setFontWeight("bold");
+
+      const widths = [
+        155, 40, 65, 70, 65, 75,
+        90, 95, 95,
+        115, 115, 115, 115, 115,
+        85, 75, 75, 105,
+        140, 95, 95, 110, 220,
+        115, 115, 115, 115
+      ];
+      widths.forEach((w, idx) => sheet.setColumnWidth(idx + 1, w));
+      try {
+        sheet.getRange("J:N").setNumberFormat("@");
+        sheet.getRange("X:AA").setNumberFormat("@");
+      } catch(_) {}
 
       const lastRow = sheet.getLastRow();
       if (lastRow >= 2) {
         const rowsToUpdate = Math.min(lastRow - 1, 60);
-        const dataRange = sheet.getRange(2, 1, rowsToUpdate, 23);
+        const dataRange = sheet.getRange(2, 1, rowsToUpdate, 27);
         const values = dataRange.getValues();
 
         for (let r = 0; r < values.length; r++) {
@@ -4521,44 +4685,27 @@ function migrateAllSheetsToVocabBased() {
           } catch(_) {}
 
           if (agentData) {
-            const box = agentData.box || {};
-            const stat = agentData.stat || {};
-            const lstat = agentData.lstat || {};
+            const sumData = calculateSummaryFromAgentData(agentData, null);
 
-            let m = 0, p = 0, l = 0;
-            for (const w in box) {
-              const b = box[w] || 0;
-              if (b >= 3) m++;
-              else if (b === 2) p++;
-              else if (b === 1) l++;
-            }
-            let distC = m + p + l;
-            if (distC === 0) {
-              for (const w in stat) {
-                const c = stat[w].c || 0;
-                if (c > 0) distC++;
-                if (c === 1) l++;
-                else if (c === 2) p++;
-                else if (c >= 3) m++;
-              }
-            }
-            const testedVocab = Math.max(distC, Object.keys(stat).length, Object.keys(box).length);
-            const vocabRateStr = testedVocab > 0 ? Math.round(distC / testedVocab * 100) + "%" : "0%";
+            row[6] = sumData.testedVocab;
+            row[7] = sumData.distinctCorrect;
+            row[8] = sumData.passRate;
 
-            row[6] = testedVocab;
-            row[7] = distC;
-            row[8] = vocabRateStr;
+            row[9]  = sumData.l1;
+            row[10] = sumData.l2;
+            row[11] = sumData.l3;
+            row[12] = sumData.l4;
+            row[13] = sumData.l5;
 
-            for (let lv = 1; lv <= 5; lv++) {
-              const c = (lstat[lv] && lstat[lv].c) || 0;
-              const a = (lstat[lv] && lstat[lv].a) || 0;
-              row[8 + lv] = `${c}/${a}`;
-            }
+            row[14] = sumData.mastered;
+            row[15] = sumData.practicing;
+            row[16] = sumData.learning;
+            row[17] = sumData.progressStr;
 
-            row[14] = m;
-            row[15] = p;
-            row[16] = l;
-            row[17] = `${distC}/2055字`;
+            row[23] = sumData.mListen;
+            row[24] = sumData.mPick;
+            row[25] = sumData.mScramble;
+            row[26] = sumData.mTrap;
           }
         }
         dataRange.setValues(values);

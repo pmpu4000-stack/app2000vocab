@@ -10079,19 +10079,19 @@ function processHistoryWithDiffs(originalHeaders, originalRows) {
   const rawJsonColIdx = originalHeaders.indexOf("完整JSON");
 
   const dateCol     = 0;
-  const attemptsCol = displayHeaders.indexOf("作答題數");
-  const correctCol  = displayHeaders.indexOf("答對題數");
-  const accCol      = displayHeaders.indexOf("正確率");
-  const masteredCol = displayHeaders.indexOf("精通");
-  const scoreCol    = displayHeaders.indexOf("分數");
-  const distWordCol = displayHeaders.indexOf("答對單字數");
-  const learningCol = displayHeaders.indexOf("學習中");
-  const practicingCol = displayHeaders.indexOf("練習中");
-  const l1Col = displayHeaders.indexOf("LEVEL1入門\n答對題數/作答題數");
-  const l2Col = displayHeaders.indexOf("LEVEL2基礎\n答對題數/作答題數");
-  const l3Col = displayHeaders.indexOf("LEVEL3進階\n答對題數/作答題數");
-  const l4Col = displayHeaders.indexOf("LEVEL4挑戰\n答對題數/作答題數");
-  const l5Col = displayHeaders.indexOf("LEVEL5精熟\n答對題數/作答題數");
+  const attemptsCol = displayHeaders.findIndex(h => h.includes("受測單字") || h.includes("作答題數"));
+  const correctCol  = displayHeaders.findIndex(h => h.includes("共答對單字") || h.includes("答對單字") || h.includes("答對題數"));
+  const accCol      = displayHeaders.findIndex(h => h.includes("單字掌握率") || h.includes("正確率"));
+  const masteredCol = displayHeaders.findIndex(h => h.includes("精通"));
+  const scoreCol    = displayHeaders.findIndex(h => h.includes("分數"));
+  const distWordCol = displayHeaders.findIndex(h => h.includes("共答對單字") || h.includes("答對單字"));
+  const learningCol = displayHeaders.findIndex(h => h.includes("學習中"));
+  const practicingCol = displayHeaders.findIndex(h => h.includes("練習中"));
+  const l1Col = displayHeaders.findIndex(h => h.includes("LEVEL1") || h.includes("LEVEL 1"));
+  const l2Col = displayHeaders.findIndex(h => h.includes("LEVEL2") || h.includes("LEVEL 2"));
+  const l3Col = displayHeaders.findIndex(h => h.includes("LEVEL3") || h.includes("LEVEL 3"));
+  const l4Col = displayHeaders.findIndex(h => h.includes("LEVEL4") || h.includes("LEVEL 4"));
+  const l5Col = displayHeaders.findIndex(h => h.includes("LEVEL5") || h.includes("LEVEL 5"));
 
   fullProcessedData = [];
 
@@ -14638,14 +14638,21 @@ function renderStudentSummary(resp) {
   if (agent && agent.box) {
     for (const id in agent.box) {
       const b = agent.box[id];
-      if (b >= 3) mast++;
-      else if (b === 2) prac++;
-      else if (b === 1) learn++;
+      const st = (agent.stat && agent.stat[id]) || null;
+      if (st && st.c > 0) {
+        if (b >= 3) mast++;
+        else if (b === 2) prac++;
+        else learn++;
+      } else if (!agent.stat && b > 0) {
+        if (b >= 3) mast++;
+        else if (b === 2) prac++;
+        else if (b === 1) learn++;
+      }
     }
   } else if (rawRow.length > 17) {
-    learn = parseInt(rawRow[15]) || 0;
-    prac  = parseInt(rawRow[16]) || 0;
-    mast  = parseInt(rawRow[17]) || 0;
+    mast  = parseInt(rawRow[14]) || 0;
+    prac  = parseInt(rawRow[15]) || 0;
+    learn = parseInt(rawRow[16]) || 0;
   }
   const totalVocab = 2055;
   const pctLearn = Math.min(100, Math.max(0, (learn / totalVocab) * 100)).toFixed(1);
@@ -14671,14 +14678,16 @@ function renderStudentSummary(resp) {
   let distinctCorrect = (learn + prac + mast);
   if (distinctCorrect === 0) {
     if (agent && agent.stat) {
-      distinctCorrect = Object.values(agent.stat).filter(s => s.c > 0).length;
+      distinctCorrect = Object.values(agent.stat).filter(s => s && s.c > 0).length;
+    } else if (rawRow.length > 7) {
+      distinctCorrect = parseInt(rawRow[7]) || 0;
     } else if (agent && agent.box) {
       distinctCorrect = Object.values(agent.box).filter(b => b >= 1).length;
     }
   }
-  const pts = (agent && agent.points !== undefined) ? agent.points : (parseInt(rawRow[4]) || 0);
-  const attTotal = (agent && agent.attempts !== undefined) ? agent.attempts : (parseInt(rawRow[6]) || 0);
-  const corrTotal = (agent && agent.correct !== undefined) ? agent.correct : (parseInt(rawRow[7]) || 0);
+  const pts = (agent && agent.points !== undefined) ? agent.points : (parseInt(rawRow[3]) || 0);
+  const attTotal = (rawRow.length > 6 && parseInt(rawRow[6])) ? parseInt(rawRow[6]) : ((agent && agent.attempts !== undefined) ? agent.attempts : 0);
+  const corrTotal = (rawRow.length > 7 && parseInt(rawRow[7])) ? parseInt(rawRow[7]) : ((agent && agent.correct !== undefined) ? agent.correct : distinctCorrect);
   const ovRate = attTotal > 0 ? Math.round((corrTotal / attTotal) * 100) : 0;
   const vocabRate = totalVocab > 0 ? Math.round((distinctCorrect / totalVocab) * 100) : 0;
 
@@ -14715,10 +14724,17 @@ function renderStudentSummary(resp) {
         for (const [w, bVal] of Object.entries(agent.box)) {
           const realW = resolveWord(w).toLowerCase();
           const lv = bMap.get(realW);
+          const st = (agent.stat && agent.stat[w]) || null;
           if (lv >= 1 && lv <= 5) {
-            if (bVal >= 3) levelMastMap[lv]++;
-            else if (bVal === 2) levelPracMap[lv]++;
-            else if (bVal === 1) levelLearnMap[lv]++;
+            if (st && st.c > 0) {
+              if (bVal >= 3) levelMastMap[lv]++;
+              else if (bVal === 2) levelPracMap[lv]++;
+              else levelLearnMap[lv]++;
+            } else if (!agent.stat && bVal > 0) {
+              if (bVal >= 3) levelMastMap[lv]++;
+              else if (bVal === 2) levelPracMap[lv]++;
+              else if (bVal === 1) levelLearnMap[lv]++;
+            }
           }
         }
       }
@@ -14754,30 +14770,57 @@ function renderStudentSummary(resp) {
       const lPrac = levelPracMap[lv] || 0;
       const lLearn = levelLearnMap[lv] || 0;
 
-      const lTotCorr = (lLearn || 0) + (lPrac || 0) + (lMast || 0);
+      let lTotCorr = (lLearn || 0) + (lPrac || 0) + (lMast || 0);
+      if (lTotCorr === 0 && lCorrWords > 0) lTotCorr = lCorrWords;
       lvRowsHtml += `<tr><td class="st-level-name"><span style="color:${lvColors[lv-1]}">●</span> Level ${lv}「${lvNames[lv-1]}」</td><td class="st-level-stats"><div class="level-stats-grid"><span class="st-item st-learn"><span class="st-lbl">學習中</span><b class="tnum st-num st-num-learn">${lLearn}</b>字</span><span class="st-sep">/</span><span class="st-item st-prac"><span class="st-lbl">練習中</span><b class="tnum st-num st-num-prac">${lPrac}</b>字</span><span class="st-sep">/</span><span class="st-item st-mast"><span class="st-lbl">精通</span><b class="tnum st-num st-num-mast">${lMast}</b>字</span><span class="st-sep">/</span><span class="st-item st-total"><span class="st-lbl">共答對</span><b class="tnum st-num st-num-total">${lTotCorr}</b>字</span></div></td></tr>`;
     }
     lvTbody.innerHTML = lvRowsHtml;
   }
 
   // 4. 🎮 4 大練習模式答對數 (以答對數為主視覺，輔以總作答數與率)
-  const mstat = (agent && agent.mstat) ? agent.mstat : {};
-  let mListen = mstat.listen ? { a: mstat.listen.a || 0, c: mstat.listen.c || 0 } : { a: 0, c: 0 };
-  let mPick   = mstat.pick   ? { a: mstat.pick.a   || 0, c: mstat.pick.c   || 0 } : { a: 0, c: 0 };
-  let mScram  = mstat.scramble ? { a: mstat.scramble.a || 0, c: mstat.scramble.c || 0 } : { a: 0, c: 0 };
-  let mTrap   = mstat.trap   ? { a: mstat.trap.a   || 0, c: mstat.trap.c   || 0 } : { a: 0, c: 0 };
+  let mListen = { a: 0, c: 0 }, mPick = { a: 0, c: 0 }, mScram = { a: 0, c: 0 }, mTrap = { a: 0, c: 0 };
+  const mwords = (agent && agent.mwords) ? agent.mwords : null;
+  const mstat = (agent && agent.mstat) ? agent.mstat : null;
+
+  if (mwords) {
+    ["listen", "pick", "scramble", "trap"].forEach(m => {
+      if (mwords[m]) {
+        const entries = Object.values(mwords[m]);
+        const a = entries.filter(e => e && e.a > 0).length;
+        const c = entries.filter(e => e && e.c > 0).length;
+        if (m === "listen") mListen = { a, c };
+        else if (m === "pick") mPick = { a, c };
+        else if (m === "scramble") mScram = { a, c };
+        else if (m === "trap") mTrap = { a, c };
+      }
+    });
+  } else if (rawRow.length >= 27 && (String(rawRow[23]).includes("/") || String(rawRow[24]).includes("/"))) {
+    const parseModeCell = (cell) => {
+      const parts = String(cell || "").split("/");
+      return { c: parseInt(parts[0]) || 0, a: parseInt(parts[1]) || 0 };
+    };
+    mListen = parseModeCell(rawRow[23]);
+    mPick   = parseModeCell(rawRow[24]);
+    mScram  = parseModeCell(rawRow[25]);
+    mTrap   = parseModeCell(rawRow[26]);
+  } else if (mstat) {
+    mListen = mstat.listen ? { a: mstat.listen.a || 0, c: mstat.listen.c || 0 } : { a: 0, c: 0 };
+    mPick   = mstat.pick   ? { a: mstat.pick.a   || 0, c: mstat.pick.c   || 0 } : { a: 0, c: 0 };
+    mScram  = mstat.scramble ? { a: mstat.scramble.a || 0, c: mstat.scramble.c || 0 } : { a: 0, c: 0 };
+    mTrap   = mstat.trap   ? { a: mstat.trap.a   || 0, c: mstat.trap.c   || 0 } : { a: 0, c: 0 };
+  }
 
   let attempts = 0, correct = 0;
-  if (agent && agent.attempts !== undefined) {
-    attempts = agent.attempts || 0;
-    correct  = agent.correct || 0;
-  } else if (rawRow.length > 7) {
+  if (rawRow.length > 7 && parseInt(rawRow[6])) {
     attempts = parseInt(rawRow[6]) || 0;
     correct  = parseInt(rawRow[7]) || 0;
+  } else if (agent && agent.attempts !== undefined) {
+    attempts = agent.attempts || 0;
+    correct  = agent.correct || 0;
   }
 
   const mTotalA = mListen.a + mPick.a + mScram.a + mTrap.a;
-  if (attempts > mTotalA) {
+  if (attempts > mTotalA && !mwords && rawRow.length < 27) {
     const diffA = attempts - mTotalA;
     const mTotalC = mListen.c + mPick.c + mScram.c + mTrap.c;
     const diffC = Math.max(0, correct - mTotalC);
