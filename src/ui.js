@@ -1399,10 +1399,10 @@ export function renderSummary(d) {
   el.summary.innerHTML = `
     <div class="bigrate" style="margin-top:2px;">
       <b class="tnum">${d.passRate}%</b>
-      <span>總答對率<br><small>${d.correct} 題對 / 共作答 ${d.attempts} 題</small></span>
+      <span>受測單字掌握率<br><small>答對 ${d.distinctCorrect} 字 / 受測 ${d.testedVocab || d.attempts} 字</small></span>
       <span style="margin-left:auto;text-align:right">
         <b class="tnum" style="font-size:30px;color:var(--violet)">${d.distinctCorrect}</b><br>
-        <small>答對過的字（不重複）／ 共 ${d.total} 字</small></span>
+        <small>共答對單字 ／ 全書 ${d.total} 字</small></span>
     </div>
     <div class="subh">各關卡進度</div>
     <table class="sumtable">${lvRows}</table>
@@ -2171,7 +2171,7 @@ async function _exportRecordToExcel(payload) {
       ["學生帳號", payload.studentId, "匯出時間", payload.exportTime],
       [],
       ["【一、整體學習進度指標】"],
-      ["累積總作答題數", `${ov.attempts} 題`, "累積總答對題數", `${ov.correct} 題`, "累積總答對率", `${ov.passRate}%`],
+      ["累積受測單字數", `${ov.testedVocab || ov.attempts} 字`, "累積答對單字數", `${ov.distinctCorrect || ov.correct} 字`, "單字掌握率", `${ov.passRate}%`],
       ["答對過單字(不重複)", `${ov.distinctCorrect} / ${ov.totalVocab} 字`, "連續練習天數", `${ov.streak} 天`, "最佳連續 / 累計天數", `最佳 ${ov.best} 天 / 累計 ${ov.totalDays} 天`],
       ["學習中單字數", `${ov.learn} 字`, "練習中單字數", `${ov.prac} 字`, "已精通單字數 ⭐", `${ov.mast} 字`],
       [],

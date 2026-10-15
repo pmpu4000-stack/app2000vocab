@@ -407,12 +407,17 @@ export function stats(words) {
         Object.values(DB.stat || {}).filter((s) => s.c > 0).length,
         Object.values(DB.box || {}).filter((b) => b >= 1).length
       );
-  const passRate = DB.attempts ? Math.round((DB.correct / DB.attempts) * 100) : 0;
-  const total = wList.length || 2000;
+  const testedVocab = Math.max(
+    distinctCorrect,
+    Object.keys(DB.stat || {}).length,
+    Object.keys(DB.box || {}).length
+  );
+  const passRate = testedVocab > 0 ? Math.round((distinctCorrect / testedVocab) * 100) : 0;
+  const total = wList.length || 2055;
   return {
     learn, prac, mast, total,
     currentLevel: (DB.level && DB.level.current) || 1, streak: DB.streak || 0,
-    distinctCorrect, passRate, attempts: DB.attempts || 0, correct: DB.correct || 0,
+    distinctCorrect, testedVocab, passRate, attempts: testedVocab, correct: distinctCorrect,
     points: DB.points || 0,
   };
 }

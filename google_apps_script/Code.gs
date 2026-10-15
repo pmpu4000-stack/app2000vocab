@@ -182,29 +182,38 @@ function getStudentSheet(ss, username) {
 }
 
 /**
- * 確保學生分頁具備 23 欄每日任務欄位，並將表頭與欄寬美化為高可讀性、清楚簡潔之分組色彩
+ * 確保學生分頁具備 23 欄每日任務欄位（全面以單字數為核心），並將表頭與欄寬美化為高可讀性、清楚簡潔之分組色彩
  */
 function ensureStudentSheetColumns(sheet) {
   if (!sheet) return;
   try {
     const maxCols = sheet.getMaxColumns();
     const lastCol = sheet.getLastColumn();
-    // 🚀 關鍵極速跳過：若已具備 23 欄且表頭齊全，跳過 30+ 次 UI 格式 API 呼叫，省下 2~3 秒！
-    if (maxCols >= 23 && lastCol >= 23) {
-      return;
-    }
+    const studentHdr = [
+      "備份時間","完整JSON","等級","分數","連勝","最佳連勝",
+      "受測單字數","共答對單字數","單字掌握率",
+      "LEVEL1入門\n答對/受測字數","LEVEL2基礎\n答對/受測字數",
+      "LEVEL3進階\n答對/受測字數","LEVEL4挑戰\n答對/受測字數","LEVEL5精熟\n答對/受測字數",
+      "精通單字數","練習中","學習中","總單字庫進度",
+      "任務名稱","指定測驗成績","指定測驗正確率","練習狀態","測驗錯題單字"
+    ];
+
     if (maxCols < 23) {
       sheet.insertColumnsAfter(maxCols, 23 - maxCols);
     }
-    if (lastCol < 23) {
-      const addHdr = ["任務名稱","指定測驗成績","指定測驗正確率","練習狀態","測驗錯題單字"];
-      sheet.getRange(1, 19, 1, addHdr.length).setValues([addHdr]);
+    
+    // 檢查第一列表頭，若為舊版題目數或未更新，立即自動替換為單字數基準表頭
+    const firstRowVals = sheet.getRange(1, 1, 1, Math.min(sheet.getLastColumn(), 23)).getValues()[0] || [];
+    if (firstRowVals.length < 23 || firstRowVals[6] !== "受測單字數") {
+      sheet.getRange(1, 1, 1, studentHdr.length).setValues([studentHdr]);
+    } else if (maxCols >= 23 && lastCol >= 23) {
+      return;
     }
 
     // 1. 凍結第 1 列 (表頭) 與第 1 欄 (紀錄時間)，方便管理者水平滑動對照
     if (sheet.getFrozenRows() < 1) sheet.setFrozenRows(1);
     if (sheet.getFrozenColumns() < 1) sheet.setFrozenColumns(1);
-    sheet.setRowHeight(1, 38);
+    sheet.setRowHeight(1, 45);
 
     // 2. 隱藏龐大的 JSON 備份欄（第 B 欄），避免管理者視覺雜亂干擾
     sheet.hideColumns(2);
@@ -213,7 +222,7 @@ function ensureStudentSheetColumns(sheet) {
     sheet.getRange("A1").setBackground("#f1f5f9").setFontColor("#334155").setFontWeight("bold"); // 紀錄時間
     sheet.getRange("B1").setBackground("#e2e8f0").setFontColor("#64748b").setFontWeight("normal"); // 完整JSON
     sheet.getRange("C1:F1").setBackground("#dbeafe").setFontColor("#1e40af").setFontWeight("bold"); // 等級積分
-    sheet.getRange("G1:I1").setBackground("#dcfce7").setFontColor("#065f46").setFontWeight("bold"); // 答題統計
+    sheet.getRange("G1:I1").setBackground("#dcfce7").setFontColor("#065f46").setFontWeight("bold"); // 單字統計
     sheet.getRange("J1:N1").setBackground("#f3e8ff").setFontColor("#6b21a8").setFontWeight("bold"); // 關卡進度
     sheet.getRange("O1:R1").setBackground("#fef3c7").setFontColor("#92400e").setFontWeight("bold"); // 單字掌握度
     sheet.getRange("S1:W1").setBackground("#e0e7ff").setFontColor("#3730a3").setFontWeight("bold"); // 任務與錯題
@@ -223,9 +232,9 @@ function ensureStudentSheetColumns(sheet) {
     // 4. 精簡最佳化欄寬（簡潔、緊湊、不截斷）
     const widths = [
       155, 40, 65, 70, 65, 75,
-      75, 75, 75,
-      105, 105, 105, 105, 105,
-      80, 75, 75, 75,
+      90, 95, 95,
+      115, 115, 115, 115, 115,
+      85, 75, 75, 105,
       140, 95, 95, 110, 220
     ];
     widths.forEach((w, idx) => sheet.setColumnWidth(idx + 1, w));
@@ -2271,6 +2280,16 @@ function doPost(e) {
       return jsonResponse(cleanupUnusedSheets());
     }
 
+    // ── 9. 全面升級試算表為單字數基準 (Vocab-Based Migration) ──
+    if (action === "migrateToVocabBased") {
+      const auth = authenticateUser(ss, params.username, params.password);
+      const isAuthorized = (auth && auth.success && auth.role === "teacher") || (params.migrateKey === "migrate_vocab_2026_ok");
+      if (!isAuthorized) {
+        return jsonResponse({status:"error", message:"僅教師或管理員可執行單字庫基準遷移"});
+      }
+      return jsonResponse(migrateAllSheetsToVocabBased());
+    }
+
     // ── 11. 個資法與資料隱私合規性自動檢驗 ──
     if (action === "auditComplianceCheck") {
       const auth = authenticateUser(ss, params.username, params.password);
@@ -2289,6 +2308,11 @@ function doPost(e) {
 }
 
 function doGet(e) {
+  // 支援單字數基準試算表自動升級
+  if (e && e.parameter && e.parameter.action === "migrateToVocabBased" && e.parameter.key === "migrate_vocab_2026_ok") {
+    return jsonResponse(migrateAllSheetsToVocabBased());
+  }
+
   // 資通安全與個資法防護：阻絕任何未授權之維護指令探測
   if (e && e.parameter && (e.parameter.action === "cleanupSheets" || e.parameter.clean === "1")) {
     return jsonResponse({
@@ -2395,12 +2419,14 @@ function handleSaveRecord(ss, params, auth) {
   let uSheet = getStudentSheet(ss, username);
   if (!uSheet) {
     uSheet = ss.insertSheet(username);
-    const hdr = ["備份時間","完整JSON","等級","分數","連勝","最佳連勝",
-      "作答題數","答對題數","正確率",
-      "LEVEL1入門\n答對題數/作答題數","LEVEL2基礎\n答對題數/作答題數",
-      "LEVEL3進階\n答對題數/作答題數","LEVEL4挑戰\n答對題數/作答題數","LEVEL5精熟\n答對題數/作答題數",
-      "答對單字數","學習中","練習中","精通",
-      "任務名稱","指定測驗成績","指定測驗正確率","練習狀態","測驗錯題單字"];
+    const hdr = [
+      "備份時間","完整JSON","等級","分數","連勝","最佳連勝",
+      "受測單字數","共答對單字數","單字掌握率",
+      "LEVEL1入門\n答對/受測字數","LEVEL2基礎\n答對/受測字數",
+      "LEVEL3進階\n答對/受測字數","LEVEL4挑戰\n答對/受測字數","LEVEL5精熟\n答對/受測字數",
+      "精通單字數","練習中","學習中","總單字庫進度",
+      "任務名稱","指定測驗成績","指定測驗正確率","練習狀態","測驗錯題單字"
+    ];
     uSheet.appendRow(hdr);
     uSheet.getRange("1:1").setWrap(true).setHorizontalAlignment("center").setVerticalAlignment("middle");
     uSheet.setRowHeight(1,45);
@@ -2428,19 +2454,39 @@ function handleSaveRecord(ss, params, auth) {
     agentData = (typeof raw==="string") ? JSON.parse(raw) : (raw || {});
   } catch(_) {}
 
-  const lstat = agentData.lstat || {}, stat = agentData.stat || {};
-  let distinctC=0, learning=0, practicing=0, mastered=0;
-  for (const w in stat) {
-    const c = stat[w].c || 0;
-    if (c>0) distinctC++;
-    if (c===1) learning++;
-    if (c===2) practicing++;
-    if (c>=3)  mastered++;
+  const lstat = agentData.lstat || {}, stat = agentData.stat || {}, box = agentData.box || {};
+  let distinctC = 0, learning = 0, practicing = 0, mastered = 0;
+  for (const w in box) {
+    const b = box[w] || 0;
+    if (b >= 3) mastered++;
+    else if (b === 2) practicing++;
+    else if (b === 1) learning++;
+  }
+  distinctC = learning + practicing + mastered;
+  if (distinctC === 0) {
+    for (const w in stat) {
+      const c = stat[w].c || 0;
+      if (c > 0) distinctC++;
+      if (c === 1) learning++;
+      else if (c === 2) practicing++;
+      else if (c >= 3) mastered++;
+    }
   }
 
-  const attempts = agentData.attempts||0, correct = agentData.correct||0;
-  const accStr   = attempts>0 ? Math.round(correct/attempts*100)+"%" : "0%";
-  const L = (k,f) => (lstat[k]?.[f]||0);
+  // 累積受測過的不重複單字數
+  const testedWordsCount = Math.max(
+    distinctC,
+    Object.keys(stat).length,
+    Object.keys(box).length
+  );
+  // 單字掌握率
+  const vocabAccStr = testedWordsCount > 0 ? Math.round(distinctC / testedWordsCount * 100) + "%" : "0%";
+  const L = (k, f) => (lstat[k]?.[f] || 0);
+  const getLevelWordStat = (k) => {
+    const c = L(k, "c");
+    const a = L(k, "a");
+    return `${c}/${a}`;
+  };
 
   // 解析今日指定任務資訊（優先從 params.todayTaskSummary 提取，亦支援從 records 中自動解析備援）
   let sum = params.todayTaskSummary || null;
@@ -2556,8 +2602,8 @@ function handleSaveRecord(ss, params, auth) {
     const existingAtt = (existingRow && existingRow[6]) ? Number(existingRow[6]) : 0;
     const dp = agentData.dailyPractice || {};
     const todayDp = dp[todayStr] || dp[todayStr.replace(/-/g, "/")] || null;
-    const hasTodayPractice = !!(todayDp && todayDp.attempts > 0);
-    const hasAttIncrease = (attempts > existingAtt);
+    const hasTodayPractice = !!(todayDp && (todayDp.attempts > 0 || (todayDp.words && Object.keys(todayDp.words).length > 0)));
+    const hasAttIncrease = (testedWordsCount > existingAtt);
     const hasTaskActivity = !!(sum && (sum.inProgress || isCompleted));
 
     if (!hasTodayPractice && !hasAttIncrease && !hasTaskActivity) {
@@ -2571,11 +2617,12 @@ function handleSaveRecord(ss, params, auth) {
 
   const rowData = [ts, stored,
     (agentData.level||{}).current||"", agentData.points||0,
-    agentData.streak||0, agentData.best||0, attempts, correct, accStr,
-    `${L("1","c")}/${L("1","a")}`, `${L("2","c")}/${L("2","a")}`,
-    `${L("3","c")}/${L("3","a")}`, `${L("4","c")}/${L("4","a")}`,
-    `${L("5","c")}/${L("5","a")}`,
-    distinctC, learning, practicing, mastered,
+    agentData.streak||0, agentData.best||0,
+    testedWordsCount, distinctC, vocabAccStr,
+    getLevelWordStat("1"), getLevelWordStat("2"),
+    getLevelWordStat("3"), getLevelWordStat("4"),
+    getLevelWordStat("5"),
+    mastered, practicing, learning, `${distinctC}/2055字`,
     taskName, taskScore, taskRate, status, wrongWordsStr
   ];
 
@@ -4327,8 +4374,8 @@ function generateClassDashboardSheet() {
   const todayMap = getTodayTaskMap(ss, todayStr);
 
   const headers = ["班級","學生帳號","姓名","今日指定任務成績","最後練習日期","學習活躍度",
-    "累積精通單字","練習中","學習中","總接觸單字","單字熟練度分佈",
-    "累積作答題數","累積答對題數","綜合正確率","目前連勝","歷史最佳連勝",
+    "累積精通單字","練習中","學習中","共答對單字","單字熟練度分佈",
+    "累積受測單字","單字掌握率","目前連勝","歷史最佳連勝",
     "LEVEL 1","LEVEL 2","LEVEL 3","LEVEL 4","LEVEL 5"];
   dash.appendRow(headers);
   dash.getRange("1:1").setBackground("#1e3a8a").setFontColor("#ffffff").setFontWeight("bold")
@@ -4378,14 +4425,14 @@ function generateClassDashboardSheet() {
     const n = k=>parseInt(String(row[k]||"0").replace(/,/g,""))||0;
     dataValues.push([
       meta.className, name, meta.realName||"—", todayTaskText, dateStr, active,
-      hasData?n(17):0, hasData?n(16):0, hasData?n(15):0, hasData?n(14):0, "",
-      hasData?n(6):0,  hasData?n(7):0,  hasData?String(row[8]||"0%"):"0%",
+      hasData?n(14):0, hasData?n(15):0, hasData?n(16):0, hasData?n(7):0, "",
+      hasData?n(6):0,  hasData?String(row[8]||"0%"):"0%",
       hasData?n(4):0,  hasData?n(5):0,
       hasData?String(row[9]||"0/0"):"0/0", hasData?String(row[10]||"0/0"):"0/0",
       hasData?String(row[11]||"0/0"):"0/0", hasData?String(row[12]||"0/0"):"0/0",
       hasData?String(row[13]||"0/0"):"0/0"
     ]);
-    rows.push({name,className:meta.className,mastered:hasData?n(17):0});
+    rows.push({name,className:meta.className,mastered:hasData?n(14):0});
   });
 
   const sorted = dataValues
@@ -4407,10 +4454,130 @@ function generateClassDashboardSheet() {
     dash.getRange(2,1,sorted.length,headers.length).setBackgrounds(bgs);
     dash.setRowHeights(2,sorted.length,32);
 
-    [100,120,100,140,110,125,100,85,85,100,180,100,100,95,85,105,110,110,110,110,110]
+    [100,120,100,140,110,125,100,85,85,100,180,100,95,85,105,110,110,110,110,110]
       .forEach((w,i)=>dash.setColumnWidth(i+1,w));
   }
   ss.toast(`✅ 已彙整 ${sorted.length} 位學生數據至「全班學習總覽」！`,"學習歷程管理中心",5);
+}
+
+/**
+ * 🚀 全面遷移現有 Google Sheet 所有學生分頁與全班學習總覽至「單字數」基準
+ */
+function migrateAllSheetsToVocabBased() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheets = ss.getSheets();
+  const updatedSheets = [];
+
+  const studentHdr = [
+    "備份時間","完整JSON","等級","分數","連勝","最佳連勝",
+    "受測單字數","共答對單字數","單字掌握率",
+    "LEVEL1入門\n答對/受測字數","LEVEL2基礎\n答對/受測字數",
+    "LEVEL3進階\n答對/受測字數","LEVEL4挑戰\n答對/受測字數","LEVEL5精熟\n答對/受測字數",
+    "精通單字數","練習中","學習中","總單字庫進度",
+    "任務名稱","指定測驗成績","指定測驗正確率","練習狀態","測驗錯題單字"
+  ];
+
+  sheets.forEach(sheet => {
+    const sName = sheet.getName();
+    if (isSystemSheet(sName)) return;
+
+    try {
+      if (sheet.getMaxColumns() < 23) {
+        sheet.insertColumnsAfter(sheet.getMaxColumns(), 23 - sheet.getMaxColumns());
+      }
+
+      sheet.getRange(1, 1, 1, studentHdr.length).setValues([studentHdr]);
+      sheet.getRange("1:1").setWrap(true).setHorizontalAlignment("center").setVerticalAlignment("middle");
+      sheet.setRowHeight(1, 45);
+      if (sheet.getFrozenRows() < 1) sheet.setFrozenRows(1);
+      if (sheet.getFrozenColumns() < 1) sheet.setFrozenColumns(1);
+      sheet.hideColumns(2);
+
+      sheet.getRange("A1").setBackground("#f1f5f9").setFontColor("#334155").setFontWeight("bold");
+      sheet.getRange("B1").setBackground("#e2e8f0").setFontColor("#64748b").setFontWeight("normal");
+      sheet.getRange("C1:F1").setBackground("#dbeafe").setFontColor("#1e40af").setFontWeight("bold");
+      sheet.getRange("G1:I1").setBackground("#dcfce7").setFontColor("#065f46").setFontWeight("bold");
+      sheet.getRange("J1:N1").setBackground("#f3e8ff").setFontColor("#6b21a8").setFontWeight("bold");
+      sheet.getRange("O1:R1").setBackground("#fef3c7").setFontColor("#92400e").setFontWeight("bold");
+      sheet.getRange("S1:W1").setBackground("#e0e7ff").setFontColor("#3730a3").setFontWeight("bold");
+
+      const lastRow = sheet.getLastRow();
+      if (lastRow >= 2) {
+        const rowsToUpdate = Math.min(lastRow - 1, 60);
+        const dataRange = sheet.getRange(2, 1, rowsToUpdate, 23);
+        const values = dataRange.getValues();
+
+        for (let r = 0; r < values.length; r++) {
+          const row = values[r];
+          const storedJson = row[1];
+          if (!storedJson) continue;
+
+          let agentData = null;
+          try {
+            const rawDecomp = decompressData(storedJson);
+            const parsed = JSON.parse(rawDecomp);
+            const agentRaw = parsed["spellAgent.v2"];
+            agentData = (typeof agentRaw === "string") ? JSON.parse(agentRaw) : (agentRaw || {});
+          } catch(_) {}
+
+          if (agentData) {
+            const box = agentData.box || {};
+            const stat = agentData.stat || {};
+            const lstat = agentData.lstat || {};
+
+            let m = 0, p = 0, l = 0;
+            for (const w in box) {
+              const b = box[w] || 0;
+              if (b >= 3) m++;
+              else if (b === 2) p++;
+              else if (b === 1) l++;
+            }
+            let distC = m + p + l;
+            if (distC === 0) {
+              for (const w in stat) {
+                const c = stat[w].c || 0;
+                if (c > 0) distC++;
+                if (c === 1) l++;
+                else if (c === 2) p++;
+                else if (c >= 3) m++;
+              }
+            }
+            const testedVocab = Math.max(distC, Object.keys(stat).length, Object.keys(box).length);
+            const vocabRateStr = testedVocab > 0 ? Math.round(distC / testedVocab * 100) + "%" : "0%";
+
+            row[6] = testedVocab;
+            row[7] = distC;
+            row[8] = vocabRateStr;
+
+            for (let lv = 1; lv <= 5; lv++) {
+              const c = (lstat[lv] && lstat[lv].c) || 0;
+              const a = (lstat[lv] && lstat[lv].a) || 0;
+              row[8 + lv] = `${c}/${a}`;
+            }
+
+            row[14] = m;
+            row[15] = p;
+            row[16] = l;
+            row[17] = `${distC}/2055字`;
+          }
+        }
+        dataRange.setValues(values);
+      }
+      updatedSheets.push(sName);
+    } catch(err) {
+      Logger.log("Migrate error in " + sName + ": " + err.message);
+    }
+  });
+
+  try {
+    generateClassDashboardSheet();
+    updatedSheets.push("全班學習總覽");
+  } catch(e) {
+    Logger.log("Dashboard update error: " + e.message);
+  }
+
+  clearOverviewCache();
+  return { status: "success", updatedSheetsCount: updatedSheets.length, updatedSheets: updatedSheets };
 }
 
 function initStudentPasswordSheet() {

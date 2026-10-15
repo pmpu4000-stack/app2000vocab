@@ -2480,8 +2480,7 @@
       color: var(--ink) !important;
     }
     .level-stats-grid {
-      display: grid !important;
-      grid-template-columns: 66px 14px 66px 14px 80px 14px 80px 14px 64px 14px 58px !important;
+      display: inline-flex !important;
       align-items: center !important;
       white-space: nowrap !important;
       font-size: 12.5px !important;
@@ -2491,45 +2490,79 @@
     .level-stats-grid .st-item {
       display: inline-flex !important;
       align-items: center !important;
-      justify-content: flex-end !important;
       color: var(--ink) !important;
       font-weight: 650 !important;
       white-space: nowrap !important;
     }
-    .level-stats-grid .st-item b,
-    .level-stats-grid .st-item .tnum {
+    .level-stats-grid .st-item .st-lbl {
+      display: inline-block !important;
+      white-space: nowrap !important;
+    }
+    .level-stats-grid .st-item .st-num {
+      display: inline-block !important;
+      width: 25px !important;
+      text-align: right !important;
       font-weight: 800 !important;
-      color: var(--ink) !important;
-      font-variant-numeric: tabular-nums !important;
-      margin: 0 1px !important;
+      margin-right: 1px !important;
+    }
+    .level-stats-grid .st-num-learn,
+    .level-stats-grid .st-item.st-learn .st-num {
+      color: var(--bar-learn-text, #4F46E5) !important;
+    }
+    .level-stats-grid .st-num-prac,
+    .level-stats-grid .st-item.st-prac .st-num {
+      color: var(--bar-prac-text, #0369A1) !important;
+    }
+    .level-stats-grid .st-num-mast,
+    .level-stats-grid .st-item.st-mast .st-num {
+      color: var(--bar-mast-text, #047857) !important;
+    }
+    .level-stats-grid .st-num-total,
+    .level-stats-grid .st-item.st-total .st-num {
+      color: #D97706 !important;
     }
     .level-stats-grid .st-sep {
       text-align: center !important;
-      color: var(--sky, #0284c7) !important;
-      font-weight: 700 !important;
+      color: var(--ink3, #94A3B8) !important;
+      font-weight: 600 !important;
       display: inline-block !important;
+      margin: 0 4px !important;
       user-select: none !important;
     }
     [data-theme="dark"] .sumtable td.st-level-name,
     [data-theme="dark"] .sumtable td:first-child,
-    [data-theme="dark"] .level-stats-grid .st-item,
-    [data-theme="dark"] .level-stats-grid .st-item b,
-    [data-theme="dark"] .level-stats-grid .st-item .tnum {
+    [data-theme="dark"] .level-stats-grid .st-item {
       color: #F0F3FA !important;
+    }
+    [data-theme="dark"] .level-stats-grid .st-num-learn,
+    [data-theme="dark"] .level-stats-grid .st-item.st-learn .st-num {
+      color: var(--bar-learn-text, #A5B4FC) !important;
+    }
+    [data-theme="dark"] .level-stats-grid .st-num-prac,
+    [data-theme="dark"] .level-stats-grid .st-item.st-prac .st-num {
+      color: var(--bar-prac-text, #7DD3FC) !important;
+    }
+    [data-theme="dark"] .level-stats-grid .st-num-mast,
+    [data-theme="dark"] .level-stats-grid .st-item.st-mast .st-num {
+      color: var(--bar-mast-text, #6EE7B7) !important;
+    }
+    [data-theme="dark"] .level-stats-grid .st-num-total,
+    [data-theme="dark"] .level-stats-grid .st-item.st-total .st-num {
+      color: #FBBF24 !important;
     }
     [data-theme="dark"] .sumtable tr {
       border-bottom-color: #262C42 !important;
     }
     [data-theme="dark"] .level-stats-grid .st-sep {
-      color: var(--sky, #38bdf8) !important;
+      color: #64748B !important;
     }
 
     @media (max-width: 660px) {
       .sumtable tr {
         flex-direction: column !important;
         align-items: flex-start !important;
-        padding: 7px 0 !important;
-        gap: 4px !important;
+        padding: 6px 0 !important;
+        gap: 3px !important;
       }
       .sumtable td.st-level-name,
       .sumtable td:first-child {
@@ -2540,38 +2573,39 @@
       .sumtable td:last-child {
         width: 100% !important;
         justify-content: flex-start !important;
-        overflow-x: auto !important;
-        -webkit-overflow-scrolling: touch !important;
-        scrollbar-width: none !important;
+        overflow-x: visible !important;
       }
-      .sumtable td.st-level-stats::-webkit-scrollbar,
-      .sumtable td:last-child::-webkit-scrollbar {
-        display: none !important;
+    }
+
+    @media (max-width: 280px) {
+      .level-stats-grid {
+        flex-wrap: wrap !important;
+        row-gap: 3px !important;
       }
     }
 
     .stat-sep {
-      color: var(--sky, #0284c7) !important;
-      font-weight: 700 !important;
-      margin: 0 5px !important;
+      color: var(--ink3, #94A3B8) !important;
+      font-weight: 600 !important;
+      margin: 0 4px !important;
       display: inline-block !important;
-      opacity: 0.85 !important;
+      opacity: 0.9 !important;
     }
     [data-theme="dark"] .stat-sep {
-      color: #38bdf8 !important;
+      color: #64748B !important;
       opacity: 0.95 !important;
     }
     .legend .stat-sep {
-      color: var(--sky, #0284c7) !important;
-      font-weight: 800 !important;
-      margin: 0 -2px !important;
+      color: var(--ink3, #94A3B8) !important;
+      font-weight: 600 !important;
+      margin: 0 4px !important;
       display: inline-flex !important;
       align-items: center !important;
       opacity: 0.9 !important;
       user-select: none !important;
     }
     [data-theme="dark"] .legend .stat-sep {
-      color: #38bdf8 !important;
+      color: #64748B !important;
       opacity: 1 !important;
     }
 
@@ -4037,9 +4071,8 @@
           <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:10px; font-size:12px; color:var(--text-muted); line-height:1.65;">
             <div>• <strong style="color:var(--text);">學號 / 姓名</strong>：學生登入系統帳號與真實姓名。</div>
             <div>• <strong style="color:var(--text);">班級代碼</strong>：學生所屬之班級代碼或標籤。</div>
-            <div>• <strong style="color:var(--text);">精通單字數</strong>：在 2000 單字庫中連續答對 3 次已精通牢記的單字數量及佔比（精通率）。</div>
-            <div>• <strong style="color:var(--text);">累積作答題數</strong>：歷史累積的所有作答題目總次數（練習投入度指標）。</div>
-            <div>• <strong style="color:var(--text);">歷史總正確率</strong>：累積答對題數 ÷ 累積作答總題數之百分比。</div>
+            <div>• <strong style="color:var(--text);">累積受測單字數</strong>：歷史累積已練習過的所有不重複單字數量。</div>
+            <div>• <strong style="color:var(--text);">單字掌握率</strong>：已答對單字數 ÷ 累積受測單字數之百分比。</div>
             <div>• <strong style="color:var(--text);">最高連勝 (Streak)</strong>：學生維持連續答對未中斷的最高題數紀錄。</div>
             <div>• <strong style="color:var(--text);">挑戰等級 (LV)</strong>：系統依學生答題表現推估之適性挑戰難度關卡（LV 1~5）。</div>
             <div>• <strong style="color:var(--text);">狀態指示燈</strong>：🟢 穩定前進（正確率 ≥ 80%）· 🟡 正常學習中 · 🔴 需關注（正確率低於 60%）。</div>
@@ -4551,8 +4584,8 @@
             <span title="連續答對 3 次，獲得 ⭐"><i style="background:var(--green)"></i>精通 <b id="n-mast" class="tnum">0</b></span>
           </div>
           <div class="legend-row legend-row-stats">
-            <span title="單字掌握率：已答對字數占全體 2055 字的百分比">答對 <b id="n-correct" class="tnum">0</b> 字<span style="color:var(--ink3);margin:0 2px;">/</span>共 <b id="n-total" class="tnum">2055</b> 字（掌握率 <b id="n-rate" class="tnum">0%</b>）</span>
-            <span class="stat-sep" style="margin:0 -2px;">/</span>
+            <span title="單字掌握率：已答對字數占全體 2055 字的百分比">答對 <b id="n-correct" class="tnum">0</b> 字，共 <b id="n-total" class="tnum">2055</b> 字，掌握率 <b id="n-rate" class="tnum">0%</b></span>
+            <span class="stat-sep">/</span>
             <span title="目前獲得累積總分">獲得 <b id="n-score" class="tnum">0</b> 分</span>
           </div>
         </div>
@@ -4575,39 +4608,28 @@
         <table class="sumtable">
           <tbody id="stLevelProgressTbody"></tbody>
         </table>
-        <div class="formula-note-box" style="font-size:12px; padding:10px 14px; margin-top:10px; line-height:1.6;">
-          <div style="font-weight:800; margin-bottom:6px; color:var(--ink);">💡 指標說明（數值均為單字數量，非作答題次）：</div>
-          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:5px 12px; font-size:12px;">
-            <div>● <b>答對</b>：曾答對至少 1 次的單字</div>
-            <div>● <b>施測</b>：已出題作答過的單字</div>
-            <div>● <b>學習中</b>：剛練習或曾答錯，待加強</div>
-            <div>● <b>練習中</b>：連續答對 2 次，熟練中</div>
-            <div>● <b>精通</b>：連續答對 3 次以上，已熟記 ⭐</div>
-            <div>● <b>共</b>：該關卡收錄的單字總數</div>
-          </div>
-        </div>
 
-        <div class="subh">🎮 4 大練習模式答題數</div>
+        <div class="subh">🎮 4 大練習模式答對單字數</div>
         <div class="mode-stat-grid">
           <div class="mode-stat-card">
             <div class="mode-stat-title">🎧 聽與拼</div>
-            <div class="mode-stat-num" id="stModeListenAttempts">0 題</div>
-            <div class="mode-stat-sub" id="stModeListenSub">答對 0 題 (0%)</div>
+            <div class="mode-stat-num" id="stModeListenAttempts">0 字</div>
+            <div class="mode-stat-sub" id="stModeListenSub">受測 0 字 (0%)</div>
           </div>
           <div class="mode-stat-card">
             <div class="mode-stat-title">✅ 選拼法</div>
-            <div class="mode-stat-num" id="stModePickAttempts">0 題</div>
-            <div class="mode-stat-sub" id="stModePickSub">答對 0 題 (0%)</div>
+            <div class="mode-stat-num" id="stModePickAttempts">0 字</div>
+            <div class="mode-stat-sub" id="stModePickSub">受測 0 字 (0%)</div>
           </div>
           <div class="mode-stat-card">
             <div class="mode-stat-title">🧩 重組</div>
-            <div class="mode-stat-num" id="stModeScrambleAttempts">0 題</div>
-            <div class="mode-stat-sub" id="stModeScrambleSub">答對 0 題 (0%)</div>
+            <div class="mode-stat-num" id="stModeScrambleAttempts">0 字</div>
+            <div class="mode-stat-sub" id="stModeScrambleSub">受測 0 字 (0%)</div>
           </div>
           <div class="mode-stat-card">
             <div class="mode-stat-title">🖍️ 填陷阱</div>
-            <div class="mode-stat-num" id="stModeTrapAttempts">0 題</div>
-            <div class="mode-stat-sub" id="stModeTrapSub">答對 0 題 (0%)</div>
+            <div class="mode-stat-num" id="stModeTrapAttempts">0 字</div>
+            <div class="mode-stat-sub" id="stModeTrapSub">受測 0 字 (0%)</div>
           </div>
         </div>
 
@@ -6894,9 +6916,9 @@ function renderClassOverviewTable() {
           ${thSort("score", "分數")}
           ${thSort("streak", "目前連勝")}
           ${thSort("best", "最長連勝")}
-          ${thSort("attempts", "作答題數")}
-          ${thSort("correct", "答對題數")}
-          ${thSort("accuracy", "正確率")}
+          ${thSort("attempts", "受測單字數")}
+          ${thSort("correct", "共答對單字數")}
+          ${thSort("accuracy", "單字掌握率")}
           ${thSort("mastered", "精通")}
           ${thSort("practicing", "練習中")}
           ${thSort("learning", "學習中")}
@@ -7006,8 +7028,8 @@ function renderClassOverviewTable() {
             <strong style="color:#ea580c;">${s.hasData ? `${s.streak} / ${s.best} 次` : "—"}</strong>
           </div>
           <div class="mobile-item">
-            <span class="mobile-label">累積作答 / 答對</span>
-            <strong>${s.hasData ? `${s.attempts} 題 / ${s.correct} 題` : "—"}</strong>
+            <span class="mobile-label">累積受測 / 答對</span>
+            <strong>${s.hasData ? `${s.attempts} 字 / ${s.correct} 字` : "—"}</strong>
           </div>
           <div class="mobile-item">
             <span class="mobile-label">最後練習時間</span>
@@ -14646,14 +14668,13 @@ function renderStudentSummary(resp) {
   const elNumT = document.getElementById("n-total") || document.getElementById("stNumTotal");
   if (elNumT) elNumT.innerText = totalVocab.toLocaleString();
 
-  let distinctCorrect = 0;
-  if (agent && agent.stat) {
-    distinctCorrect = Math.max(
-      Object.values(agent.stat).filter(s => s.c > 0).length,
-      agent.box ? Object.values(agent.box).filter(b => b >= 2).length : 0
-    );
-  } else if (agent && agent.box) {
-    distinctCorrect = Object.values(agent.box).filter(b => b >= 2).length;
+  let distinctCorrect = (learn + prac + mast);
+  if (distinctCorrect === 0) {
+    if (agent && agent.stat) {
+      distinctCorrect = Object.values(agent.stat).filter(s => s.c > 0).length;
+    } else if (agent && agent.box) {
+      distinctCorrect = Object.values(agent.box).filter(b => b >= 1).length;
+    }
   }
   const pts = (agent && agent.points !== undefined) ? agent.points : (parseInt(rawRow[4]) || 0);
   const attTotal = (agent && agent.attempts !== undefined) ? agent.attempts : (parseInt(rawRow[6]) || 0);
@@ -14733,12 +14754,13 @@ function renderStudentSummary(resp) {
       const lPrac = levelPracMap[lv] || 0;
       const lLearn = levelLearnMap[lv] || 0;
 
-      lvRowsHtml += `<tr><td class="st-level-name"><span style="color:${lvColors[lv-1]}">●</span> Level ${lv}「${lvNames[lv-1]}」</td><td class="st-level-stats"><div class="level-stats-grid"><span class="st-item st-corr">答對 <b class="tnum">${lCorrWords}</b> 字</span><span class="st-sep">/</span><span class="st-item st-test">施測 <b class="tnum">${lTestedWords}</b> 字</span><span class="st-sep">/</span><span class="st-item st-learn">學習中 <b class="tnum">${lLearn}</b> 字</span><span class="st-sep">/</span><span class="st-item st-prac">練習中 <b class="tnum">${lPrac}</b> 字</span><span class="st-sep">/</span><span class="st-item st-mast">精通 <b class="tnum">${lMast}</b> 字</span><span class="st-sep">/</span><span class="st-item st-total">共 <b class="tnum">411</b> 字</span></div></td></tr>`;
+      const lTotCorr = (lLearn || 0) + (lPrac || 0) + (lMast || 0);
+      lvRowsHtml += `<tr><td class="st-level-name"><span style="color:${lvColors[lv-1]}">●</span> Level ${lv}「${lvNames[lv-1]}」</td><td class="st-level-stats"><div class="level-stats-grid"><span class="st-item st-learn"><span class="st-lbl">學習中</span><b class="tnum st-num st-num-learn">${lLearn}</b>字</span><span class="st-sep">/</span><span class="st-item st-prac"><span class="st-lbl">練習中</span><b class="tnum st-num st-num-prac">${lPrac}</b>字</span><span class="st-sep">/</span><span class="st-item st-mast"><span class="st-lbl">精通</span><b class="tnum st-num st-num-mast">${lMast}</b>字</span><span class="st-sep">/</span><span class="st-item st-total"><span class="st-lbl">共答對</span><b class="tnum st-num st-num-total">${lTotCorr}</b>字</span></div></td></tr>`;
     }
     lvTbody.innerHTML = lvRowsHtml;
   }
 
-  // 4. 🎮 4 大練習模式答題數 (比照截圖：🎧 聽音辨字、✍️ 單字拼寫、🧩 拼圖、✏️ 填空格)
+  // 4. 🎮 4 大練習模式答對數 (以答對數為主視覺，輔以總作答數與率)
   const mstat = (agent && agent.mstat) ? agent.mstat : {};
   let mListen = mstat.listen ? { a: mstat.listen.a || 0, c: mstat.listen.c || 0 } : { a: 0, c: 0 };
   let mPick   = mstat.pick   ? { a: mstat.pick.a   || 0, c: mstat.pick.c   || 0 } : { a: 0, c: 0 };
@@ -14769,24 +14791,24 @@ function renderStudentSummary(resp) {
   const rTrap   = mTrap.a   > 0 ? Math.round((mTrap.c   / mTrap.a)   * 100) : 0;
 
   const elListenAtt = document.getElementById("stModeListenAttempts");
-  if (elListenAtt) elListenAtt.innerText = `${mListen.a.toLocaleString()} 題`;
+  if (elListenAtt) elListenAtt.innerText = `${mListen.c.toLocaleString()} 字`;
   const elListenSub = document.getElementById("stModeListenSub");
-  if (elListenSub) elListenSub.innerText = `答對 ${mListen.c} 題 (${rListen}%)`;
+  if (elListenSub) elListenSub.innerText = `受測 ${mListen.a} 字 (${rListen}%)`;
 
   const elPickAtt = document.getElementById("stModePickAttempts");
-  if (elPickAtt) elPickAtt.innerText = `${mPick.a.toLocaleString()} 題`;
+  if (elPickAtt) elPickAtt.innerText = `${mPick.c.toLocaleString()} 字`;
   const elPickSub = document.getElementById("stModePickSub");
-  if (elPickSub) elPickSub.innerText = `答對 ${mPick.c} 題 (${rPick}%)`;
+  if (elPickSub) elPickSub.innerText = `受測 ${mPick.a} 字 (${rPick}%)`;
 
   const elScramAtt = document.getElementById("stModeScrambleAttempts");
-  if (elScramAtt) elScramAtt.innerText = `${mScram.a.toLocaleString()} 題`;
+  if (elScramAtt) elScramAtt.innerText = `${mScram.c.toLocaleString()} 字`;
   const elScramSub = document.getElementById("stModeScrambleSub");
-  if (elScramSub) elScramSub.innerText = `答對 ${mScram.c} 題 (${rScram}%)`;
+  if (elScramSub) elScramSub.innerText = `受測 ${mScram.a} 字 (${rScram}%)`;
 
   const elTrapAtt = document.getElementById("stModeTrapAttempts");
-  if (elTrapAtt) elTrapAtt.innerText = `${mTrap.a.toLocaleString()} 題`;
+  if (elTrapAtt) elTrapAtt.innerText = `${mTrap.c.toLocaleString()} 字`;
   const elTrapSub = document.getElementById("stModeTrapSub");
-  if (elTrapSub) elTrapSub.innerText = `答對 ${mTrap.c} 題 (${rTrap}%)`;
+  if (elTrapSub) elTrapSub.innerText = `受測 ${mTrap.a} 字 (${rTrap}%)`;
 
   // 5. 📅 練習紀錄（最近 4 週）熱力圖（指定測驗黃色熱力圖 + 自由練習綠色熱力圖）
   const historyData = (agent && agent.history) ? agent.history : {};
@@ -15690,12 +15712,12 @@ async function _exportStudentRecordToExcel(payload) {
       ["連續練習天數", `${ov.streak} 天`, "最佳連續天數", `${ov.best} 天`, "累計練習天數", `${ov.totalDays} 天`],
       ["學習中單字數", `${ov.learn} 字`, "練習中單字數", `${ov.prac} 字`, "已精通單字數 ⭐", `${ov.mast} 字`],
       [],
-      ["【二、4 大練習模式統計】"],
-      ["練習模式", "作答題數", "答對題數", "正確率"],
-      ["🎧 聽與拼", (ms.listen && ms.listen.a) || 0, (ms.listen && ms.listen.c) || 0, mRate(ms.listen)],
-      ["✅ 選拼法", (ms.pick && ms.pick.a) || 0, (ms.pick && ms.pick.c) || 0, mRate(ms.pick)],
-      ["🧩 重組", (ms.scramble && ms.scramble.a) || 0, (ms.scramble && ms.scramble.c) || 0, mRate(ms.scramble)],
-      ["🖍️ 填陷阱", (ms.trap && ms.trap.a) || 0, (ms.trap && ms.trap.c) || 0, mRate(ms.trap)],
+      ["【二、4 大練習模式答對單字數】"],
+      ["練習模式", "受測單字數", "答對單字數", "正確率"],
+      ["🎧 聽與拼", `${(ms.listen && ms.listen.a) || 0} 字`, `${(ms.listen && ms.listen.c) || 0} 字`, mRate(ms.listen)],
+      ["✅ 選拼法", `${(ms.pick && ms.pick.a) || 0} 字`, `${(ms.pick && ms.pick.c) || 0} 字`, mRate(ms.pick)],
+      ["🧩 重組", `${(ms.scramble && ms.scramble.a) || 0} 字`, `${(ms.scramble && ms.scramble.c) || 0} 字`, mRate(ms.scramble)],
+      ["🖍️ 填陷阱", `${(ms.trap && ms.trap.a) || 0} 字`, `${(ms.trap && ms.trap.c) || 0} 字`, mRate(ms.trap)],
       [],
       ["【三、各關卡進度 (Level 1 ~ Level 5)】"],
       ["關卡名稱", "進度明細"]

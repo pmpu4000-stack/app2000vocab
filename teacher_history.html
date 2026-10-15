@@ -4071,9 +4071,8 @@
           <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:10px; font-size:12px; color:var(--text-muted); line-height:1.65;">
             <div>• <strong style="color:var(--text);">學號 / 姓名</strong>：學生登入系統帳號與真實姓名。</div>
             <div>• <strong style="color:var(--text);">班級代碼</strong>：學生所屬之班級代碼或標籤。</div>
-            <div>• <strong style="color:var(--text);">精通單字數</strong>：在 2000 單字庫中連續答對 3 次已精通牢記的單字數量及佔比（精通率）。</div>
-            <div>• <strong style="color:var(--text);">累積作答題數</strong>：歷史累積的所有作答題目總次數（練習投入度指標）。</div>
-            <div>• <strong style="color:var(--text);">歷史總正確率</strong>：累積答對題數 ÷ 累積作答總題數之百分比。</div>
+            <div>• <strong style="color:var(--text);">累積受測單字數</strong>：歷史累積已練習過的所有不重複單字數量。</div>
+            <div>• <strong style="color:var(--text);">單字掌握率</strong>：已答對單字數 ÷ 累積受測單字數之百分比。</div>
             <div>• <strong style="color:var(--text);">最高連勝 (Streak)</strong>：學生維持連續答對未中斷的最高題數紀錄。</div>
             <div>• <strong style="color:var(--text);">挑戰等級 (LV)</strong>：系統依學生答題表現推估之適性挑戰難度關卡（LV 1~5）。</div>
             <div>• <strong style="color:var(--text);">狀態指示燈</strong>：🟢 穩定前進（正確率 ≥ 80%）· 🟡 正常學習中 · 🔴 需關注（正確率低於 60%）。</div>
@@ -6917,9 +6916,9 @@ function renderClassOverviewTable() {
           ${thSort("score", "分數")}
           ${thSort("streak", "目前連勝")}
           ${thSort("best", "最長連勝")}
-          ${thSort("attempts", "作答題數")}
-          ${thSort("correct", "答對題數")}
-          ${thSort("accuracy", "正確率")}
+          ${thSort("attempts", "受測單字數")}
+          ${thSort("correct", "共答對單字數")}
+          ${thSort("accuracy", "單字掌握率")}
           ${thSort("mastered", "精通")}
           ${thSort("practicing", "練習中")}
           ${thSort("learning", "學習中")}
@@ -7029,8 +7028,8 @@ function renderClassOverviewTable() {
             <strong style="color:#ea580c;">${s.hasData ? `${s.streak} / ${s.best} 次` : "—"}</strong>
           </div>
           <div class="mobile-item">
-            <span class="mobile-label">累積作答 / 答對</span>
-            <strong>${s.hasData ? `${s.attempts} 題 / ${s.correct} 題` : "—"}</strong>
+            <span class="mobile-label">累積受測 / 答對</span>
+            <strong>${s.hasData ? `${s.attempts} 字 / ${s.correct} 字` : "—"}</strong>
           </div>
           <div class="mobile-item">
             <span class="mobile-label">最後練習時間</span>
