@@ -1771,7 +1771,7 @@ export function toggleSummary(data) {
   if (el.summary.hidden) {
     el.summary.hidden = false;
     if (sec) sec.classList.remove("is-collapsed");
-    if (sumBtn) sumBtn.innerHTML = "收起 ✕";
+    if (sumBtn) sumBtn.innerHTML = "收合";
     try {
       renderSummary(data);
       if (sec) sec.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -1788,7 +1788,7 @@ export function toggleSummary(data) {
   } else {
     el.summary.hidden = true;
     if (sec) sec.classList.add("is-collapsed");
-    if (sumBtn) sumBtn.innerHTML = "🔍 查詢紀錄";
+    if (sumBtn) sumBtn.innerHTML = "展開";
   }
 }
 

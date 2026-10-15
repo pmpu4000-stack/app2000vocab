@@ -128,8 +128,7 @@
     .card,
     #mainControlCard,
     #studentDailyTaskCard,
-    #studentFreePracticeCard,
-    .progress {
+    #studentFreePracticeCard {
       background: var(--card) !important;
       border: 1.5px solid var(--border) !important;
       border-radius: 22px !important;
@@ -2194,14 +2193,16 @@
 
     .bigrate { display: none !important; }
 
+    #studentSummaryCard .progress,
     .progress {
-      margin-top: 18px !important;
+      margin: 0 0 14px !important;
       background: var(--card) !important;
       border: 1.5px solid var(--line) !important;
-      border-radius: 22px !important;
-      padding: 18px 20px !important;
+      border-radius: 20px !important;
+      padding: 16px 18px !important;
       box-shadow: var(--shadow) !important;
     }
+    [data-theme="dark"] #studentSummaryCard .progress,
     [data-theme="dark"] .progress {
       background: #181C2A !important;
       border-color: #262C42 !important;
@@ -2209,7 +2210,7 @@
       color: #F0F3FA !important;
     }
 
-    /* 1. 主標題 (Main Title) - 學習紀錄 Record 與 學習進度 Progress 同步大小 */
+    /* 1. 主標題 (Main Title) - 學習足跡 Record 與 整體進度 Progress 同步大小 */
     .summary-embedded h3, .summary h3, .progress h3 {
       display: flex !important;
       justify-content: space-between !important;
@@ -2226,22 +2227,6 @@
     [data-theme="dark"] .summary h3,
     [data-theme="dark"] .progress h3 {
       color: #F0F3FA !important;
-    }
-    .progress h3 a, #sumBtn {
-      color: var(--sky, #2D9CDB) !important;
-      font-size: 12px !important;
-      cursor: pointer !important;
-      text-decoration: underline !important;
-      font-weight: 700 !important;
-      display: inline-flex !important;
-      align-items: center !important;
-      gap: 4px !important;
-      background: transparent !important;
-      padding: 0 !important;
-    }
-    [data-theme="dark"] .progress h3 a,
-    [data-theme="dark"] #sumBtn {
-      color: var(--sky, #38bdf8) !important;
     }
 
     .bar {
@@ -3122,20 +3107,36 @@
       margin-bottom: 0 !important;
     }
     .export-records-card h3 a {
-      color: var(--sky, #2D9CDB) !important;
       font-size: 12px !important;
+      color: var(--violet) !important;
       cursor: pointer !important;
       text-decoration: none !important;
       font-weight: 700 !important;
       display: inline-flex !important;
       align-items: center !important;
       gap: 4px !important;
+      padding: 3px 8px !important;
+      border-radius: 6px !important;
+      background: rgba(108, 76, 224, 0.08) !important;
+      border: 1px solid rgba(108, 76, 224, 0.16) !important;
+      transition: all .15s !important;
+    }
+    .export-records-card h3 a:hover {
+      color: var(--violet-d) !important;
+      background: rgba(108, 76, 224, 0.16) !important;
+      opacity: 0.88 !important;
     }
     [data-theme="dark"] .export-records-card h3 {
       color: #F0F3FA !important;
     }
     [data-theme="dark"] .export-records-card h3 a {
+      background: rgba(56, 189, 248, 0.12) !important;
+      border-color: rgba(56, 189, 248, 0.22) !important;
       color: var(--sky, #38bdf8) !important;
+    }
+    [data-theme="dark"] .export-records-card h3 a:hover {
+      background: rgba(56, 189, 248, 0.22) !important;
+      color: #7dd3fc !important;
     }
     .export-sub-hint {
       font-size: 11.5px !important;
@@ -4464,14 +4465,14 @@
       </div>
     </section>
 
-    <!-- 學習紀錄 Records 獨立卡片 -->
+    <!-- 學習足跡 Records 獨立卡片 -->
     <section class="progress learning-record-card is-collapsed" id="studentLearningRecordCard">
       <h3>
         <span style="display:inline-flex; align-items:center; gap:6px;">
-          <span>學習紀錄 Records</span>
+          <span>學習足跡 Records</span>
         </span>
         <span style="display:flex; gap:14px;">
-          <a id="sumBtn" class="sum-toggle-btn" title="展開或收起學習紀錄">🔍 查詢紀錄</a>
+          <a id="sumBtn" class="sum-toggle-btn" title="展開或收合學習足跡">展開</a>
         </span>
       </h3>
       <div id="summary" class="summary-embedded" style="display:none;">
@@ -14452,16 +14453,16 @@ function renderStudentSummary(resp) {
   const sumCard = document.getElementById("studentSummaryCard");
   if (!sumCard) return;
 
-  // 1. 綁定「學習紀錄 Records」與「收起 ✕」切換事件
+  // 1. 綁定「學習足跡 Records」展開/收合切換事件
   const sumBtn = document.getElementById("sumBtn");
   const sumClose = document.getElementById("sumClose");
   const sumPanel = document.getElementById("summary");
-  const sumRecordCard = document.getElementById("studentLearningRecordCard");
+  const sumRecordCard = document.getElementById("studentLearningRecordCard") || document.getElementById("learning-record-section");
   if (sumBtn && sumPanel) {
     sumBtn.onclick = () => {
       const isHidden = (sumPanel.style.display === "none");
       sumPanel.style.display = isHidden ? "block" : "none";
-      sumBtn.innerHTML = isHidden ? "收起 ✕" : "🔍 查詢紀錄";
+      sumBtn.innerHTML = isHidden ? "收合" : "展開";
       if (sumRecordCard) sumRecordCard.classList.toggle("is-collapsed", !isHidden);
       if (isHidden) {
         sumPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -14471,7 +14472,7 @@ function renderStudentSummary(resp) {
   if (sumClose && sumPanel) {
     sumClose.onclick = () => {
       sumPanel.style.display = "none";
-      if (sumBtn) sumBtn.innerHTML = "🔍 查詢紀錄";
+      if (sumBtn) sumBtn.innerHTML = "展開";
       if (sumRecordCard) sumRecordCard.classList.add("is-collapsed");
     };
   }
