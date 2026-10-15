@@ -200,22 +200,22 @@ function refreshChrome() {
       incorrect: incorrCount,
       rate: rRate
     };
-    sessionTitle = `今日指定測驗 <span>【${taskState.task.taskName}】目標 ${taskGoal} 題</span>`;
+    sessionTitle = `今日指定測驗 <span>【${taskState.task.taskName}】目標 ${taskGoal} 字</span>`;
   } else if (taskState.pending && taskState.task) {
     sessionGoal = taskGoal;
-    sessionTitle = `今日指定測驗 <span>【${taskState.task.taskName}】目標 ${taskGoal} 題</span>`;
+    sessionTitle = `今日指定測驗 <span>【${taskState.task.taskName}】目標 ${taskGoal} 字</span>`;
   }
 
   ui.renderSession(sessionS, sessionGoal, onSessionStart, onSessionEnd, sessionTitle);
   ui.renderProgress(store.stats(WORDS));
   ui.renderLevelBar(levelInfo(), pickLevel);
   const cur = store.progress().current;
-  const ls = store.levelStats(cur);
+  const ls = store.levelStats(cur, WORDS);
   const ready = ls.attempts >= GATE_MIN_ATTEMPTS && ls.rate >= PASS_RATE;
   let hint;
   if (ready) hint = "🎉 已達標！挑戰成功就能升級到下一關。";
-  else if (ls.attempts < GATE_MIN_ATTEMPTS) hint = `再練習 ${GATE_MIN_ATTEMPTS - ls.attempts} 題（正確率保持 ≥80%）就能挑戰。`;
-  else hint = "正確率再高一點（需 ≥80%）就能挑戰本關。";
+  else if (ls.attempts < GATE_MIN_ATTEMPTS) hint = `再練習 ${GATE_MIN_ATTEMPTS - ls.attempts} 字（正確率保持 ≥80%）就能挑戰。`;
+  else hint = "單字正確率再高一點（需 ≥80%）就能挑戰本關。";
   ui.renderBanner(cur, ls, ready, hint, startChallenge);
   if (typeof ui.initExportRecordsCard === "function") {
     ui.initExportRecordsCard(() => store.summary(WORDS));

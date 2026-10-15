@@ -39,35 +39,8 @@ function getWordLevel(wKey) {
 }
 
 function calculateSummaryFromAgentData(agentData, sumObj) {
-  if (sumObj) {
-    const tv = sumObj.testedVocab || 0;
-    const dc = sumObj.distinctCorrect || 0;
-    const rate = sumObj.passRate || (tv > 0 ? Math.round(dc / tv * 100) + "%" : "0%");
-    const lvObj = sumObj.levels || {};
-    const moObj = sumObj.modes || {};
-    return {
-      testedVocab: tv,
-      distinctCorrect: dc,
-      passRate: rate,
-      l1: lvObj[1] || lvObj["1"] || "0/0",
-      l2: lvObj[2] || lvObj["2"] || "0/0",
-      l3: lvObj[3] || lvObj["3"] || "0/0",
-      l4: lvObj[4] || lvObj["4"] || "0/0",
-      l5: lvObj[5] || lvObj["5"] || "0/0",
-      mastered: sumObj.mastered || 0,
-      practicing: sumObj.practicing || 0,
-      learning: sumObj.learning || 0,
-      progressStr: `${dc}/2055字`,
-      mListen: moObj.listen || "0/0",
-      mPick: moObj.pick || "0/0",
-      mScramble: moObj.scramble || "0/0",
-      mTrap: moObj.trap || "0/0"
-    };
-  }
-
   const stat = (agentData && agentData.stat) || {};
   const box = (agentData && agentData.box) || {};
-  const lstat = (agentData && agentData.lstat) || {};
   const mwords = (agentData && agentData.mwords) || {};
   const mstat = (agentData && agentData.mstat) || {};
 
@@ -109,16 +82,25 @@ function calculateSummaryFromAgentData(agentData, sumObj) {
     distinctC,
     Object.values(stat).filter(s => s && s.a > 0).length,
     Object.keys(stat).length,
-    Object.keys(box).length
+    Object.keys(box).length,
+    (sumObj && sumObj.testedVocab) || 0
   );
+  if (sumObj && sumObj.distinctCorrect && sumObj.distinctCorrect > distinctC) {
+    distinctC = sumObj.distinctCorrect;
+  }
   const passRate = testedVocab > 0 ? Math.round(distinctC / testedVocab * 100) + "%" : "0%";
 
   let mList = "0/0", mPk = "0/0", mSc = "0/0", mTr = "0/0";
+  const moObj = (sumObj && sumObj.modes) || {};
   ["listen", "pick", "scramble", "trap"].forEach(mod => {
     let a = 0, c = 0;
     if (mwords[mod]) {
       a = Object.values(mwords[mod]).filter(e => e && e.a > 0).length;
       c = Object.values(mwords[mod]).filter(e => e && e.c > 0).length;
+    }
+    if (a === 0 && moObj[mod] && moObj[mod] !== "0/0") {
+      const sp = String(moObj[mod]).split("/");
+      c = parseInt(sp[0]) || 0; a = parseInt(sp[1]) || 0;
     }
     if (a === 0 && mstat[mod]) {
       a = mstat[mod].a || 0; c = mstat[mod].c || 0;
@@ -139,9 +121,9 @@ function calculateSummaryFromAgentData(agentData, sumObj) {
     l3: `${levelCorr[3]}/${levelTested[3]}`,
     l4: `${levelCorr[4]}/${levelTested[4]}`,
     l5: `${levelCorr[5]}/${levelTested[5]}`,
-    mastered: m,
-    practicing: p,
-    learning: l,
+    mastered: (sumObj && sumObj.mastered !== undefined) ? sumObj.mastered : m,
+    practicing: (sumObj && sumObj.practicing !== undefined) ? sumObj.practicing : p,
+    learning: (sumObj && sumObj.learning !== undefined) ? sumObj.learning : l,
     progressStr: `${distinctC}/2055字`,
     mListen: mList,
     mPick: mPk,
@@ -2591,22 +2573,8 @@ function handleSaveRecord(ss, params, auth) {
   let uSheet = getStudentSheet(ss, username);
   if (!uSheet) {
     uSheet = ss.insertSheet(username);
-    const hdr = [
-      "備份時間","完整JSON","等級","分數","連勝","最佳連勝",
-      "受測單字數","共答對單字數","單字掌握率",
-      "LEVEL1入門\n答對/受測字數","LEVEL2基礎\n答對/受測字數",
-      "LEVEL3進階\n答對/受測字數","LEVEL4挑戰\n答對/受測字數","LEVEL5精熟\n答對/受測字數",
-      "精通單字數","練習中","學習中","總單字庫進度",
-      "任務名稱","指定測驗成績","指定測驗正確率","練習狀態","測驗錯題單字"
-    ];
-    uSheet.appendRow(hdr);
-    uSheet.getRange("1:1").setWrap(true).setHorizontalAlignment("center").setVerticalAlignment("middle");
-    uSheet.setRowHeight(1,45);
-    uSheet.hideColumn(uSheet.getRange("B:B"));
-    [160,80,70,70,70,80,80,80,80,120,120,120,120,120,80,80,80,80,150,110,110,110,220]
-      .forEach((w,i) => uSheet.setColumnWidth(i+1,w));
+    ensureStudentSheetColumns(uSheet);
   } else {
-    // 確保學生分頁具備 23 欄每日任務欄位
     ensureStudentSheetColumns(uSheet);
   }
 
@@ -4396,16 +4364,42 @@ function onOpen(e) {
   try {
     SpreadsheetApp.getUi()
       .createMenu("🎯 系統維護")
-      .addItem("⚖️ 執行【個資隱私合規性自動檢驗】","auditComplianceDataUi")
-      .addItem("🧹 一鍵清理無用分頁","cleanupUnusedSheetsUi")
+      .addItem("📊 一鍵整理所有學生分頁欄位與數值 (單字數)","migrateAllSheetsToVocabBasedUi")
+      .addItem("📋 重新產生全班學習總覽","generateClassDashboardSheetUi")
+      .addItem("🎨 美化所有學生分頁格式與欄寬","formatAllStudentSheetsUi")
+      .addSeparator()
       .addItem("🔄 一鍵清理學生重複歷史列","cleanDuplicateStudentRecordsUi")
+      .addItem("🧹 一鍵清理無用分頁","cleanupUnusedSheetsUi")
       .addItem("🔐 密碼全面轉 SHA-256 加密","migrateAllPasswordsToHash")
+      .addItem("⚖️ 執行【個資隱私合規性自動檢驗】","auditComplianceDataUi")
       .addItem("💾 備份試算表至 Google Drive","backupSpreadsheetToDrive")
       .addToUi();
   } catch(_) {}
 }
 
+function migrateAllSheetsToVocabBasedUi() {
+  const ui = SpreadsheetApp.getUi();
+  const res = migrateAllSheetsToVocabBased();
+  ui.alert("📊 單字數基準整理完成",
+    `✅ 已成功整理 ${res.updatedSheetsCount} 個工作表！\n\n所有學生分頁欄位與數值已全面轉為「答對單字數 / 受測單字數」，並同步更新【全班學習總覽】。`,
+    ui.ButtonSet.OK);
+}
 
+function generateClassDashboardSheetUi() {
+  const ui = SpreadsheetApp.getUi();
+  generateClassDashboardSheet();
+  ui.alert("📋 全班學習總覽更新完成",
+    "✅ 已根據各學生最新單字數紀錄重新產生【全班學習總覽】！",
+    ui.ButtonSet.OK);
+}
+
+function formatAllStudentSheetsUi() {
+  const res = formatAllStudentSheets();
+  const ui = SpreadsheetApp.getUi();
+  ui.alert("🎨 格式美化完成",
+    `✅ 已美化整理 ${res.count} 張學生工作表！`,
+    ui.ButtonSet.OK);
+}
 
 function cleanDuplicateStudentRecordsUi() {
   const ui = SpreadsheetApp.getUi();
@@ -4796,15 +4790,10 @@ function formatAllStudentSheets() {
   ss.getSheets().forEach(s=>{
     const name=s.getName().trim();
     if (isSystemSheet(name)) return;
-    if (s.getLastRow()>=1) {
-      s.getRange("1:1").setWrap(true).setHorizontalAlignment("center").setVerticalAlignment("middle").setFontWeight("bold");
-      s.setRowHeight(1,45); s.hideColumn(s.getRange("B:B"));
-      [160,80,70,70,70,80,80,80,80,120,120,120,120,120,80,80,80,80]
-        .forEach((w,i)=>s.setColumnWidth(i+1,w));
-      s.setFrozenRows(1); count++;
-    }
+    ensureStudentSheetColumns(s);
+    count++;
   });
-  ss.toast(`✅ 美化修復 ${count} 張學生工作表！`,"學習歷程管理中心",5);
+  ss.toast(`✅ 已完成美化與整理 ${count} 張學生工作表！`,"學習歷程管理中心",5);
 }
 
 function setupDailyTriggers() {

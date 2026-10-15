@@ -519,7 +519,7 @@ export function renderBanner(level, ls, ready, hint, onChallenge) {
   el.banner.innerHTML = `
     <div class="gate">
       <div>
-        <div class="info">Level ${level}「${levelName(level)}」· 正確率 <b>${pct}%</b>（本關練習 ${ls.attempts} 題）</div>
+        <div class="info">Level ${level}「${levelName(level)}」· 正確率 <b>${pct}%</b>（本關練習 ${ls.attempts} 字）</div>
         <div class="meter"><i style="width:${Math.min(100, pct)}%"></i></div>
         <div class="info" style="margin-top:6px;color:var(--ink3)">${hint}</div>
       </div>

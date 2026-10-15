@@ -3,6 +3,7 @@
 // per-level accounting, and derived statistics. No DOM in here.
 // =====================================================================
 import { CATS } from "./data.js";
+import { getWordLevel } from "./levels.js";
 
 const LS_KEY = "spellAgent.v2"; // bumped: added level progression
 
@@ -375,9 +376,28 @@ export function sessionState() {
 // ---- level progression ----
 export function progress() { return { ...DB.level }; }
 
-export function levelStats(level) {
-  const s = DB.lstat[level] || { a: 0, c: 0 };
-  return { attempts: s.a, correct: s.c, rate: s.a ? s.c / s.a : 0 };
+export function levelStats(level, words) {
+  let a = 0, c = 0;
+  if (Array.isArray(words) && words.length > 0) {
+    const ws = words.filter(w => w.level === level);
+    for (const w of ws) {
+      const st = DB.stat[w.id];
+      if (st && st.a > 0) a++;
+      if (st && st.c > 0) c++;
+    }
+  } else if (DB && DB.stat) {
+    for (const [id, st] of Object.entries(DB.stat)) {
+      if (!st) continue;
+      if (getWordLevel(id) === level) {
+        if (st.a > 0) a++;
+        if (st.c > 0) c++;
+      }
+    }
+  }
+  if (a > 0) {
+    return { attempts: a, correct: c, rate: c / a };
+  }
+  return { attempts: 0, correct: 0, rate: 0 };
 }
 
 export function setCurrentLevel(n) {
@@ -708,10 +728,17 @@ export function getPrecomputedSummary(words) {
       }
       levels[lv] = `${c}/${a}`;
     }
-  } else if (DB.lstat) {
+  } else if (DB && DB.stat) {
+    const levelTested = [0, 0, 0, 0, 0, 0];
+    const levelCorr = [0, 0, 0, 0, 0, 0];
+    for (const [id, st] of Object.entries(DB.stat)) {
+      if (!st) continue;
+      const lv = getWordLevel(id);
+      if (st.a > 0) levelTested[lv]++;
+      if (st.c > 0) levelCorr[lv]++;
+    }
     for (let lv = 1; lv <= 5; lv++) {
-      const ls = DB.lstat[lv] || DB.lstat[String(lv)] || { a: 0, c: 0 };
-      levels[lv] = `${ls.c || 0}/${ls.a || 0}`;
+      levels[lv] = `${levelCorr[lv]}/${levelTested[lv]}`;
     }
   }
 
