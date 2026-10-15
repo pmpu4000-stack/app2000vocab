@@ -4328,10 +4328,10 @@
           </div>
           <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:14px; font-size:12.5px; color:var(--text-muted); line-height:1.7;">
             <div>• <strong style="color:var(--text);">👥 班級參與率</strong>：在所選起訖日期範圍內，至少完成過 1 天測驗的學生人數比例。低於 80% 代表該班有較多學生持續缺測，需加強提醒。</div>
-            <div>• <strong style="color:var(--text);">📝 期間作答與答對題數</strong>：全班或個別學生在所選日期區間內的累計作答總題數與答對題數加總。</div>
-            <div>• <strong style="color:var(--text);">🎯 期間總正確率</strong>：累計答對題數 ÷ 累計作答題數。綠色代表表現優異（≥80%）、黃色代表及格平穩（60%~79%）、紅色代表基礎薄弱需輔導（&lt;60%）。</div>
-            <div>• <strong style="color:var(--text);">🏫 首行【全班平均基準】</strong>：以紫色/藍色高亮標記的基準行，提供全班在該區間的平均作答題數、平均正確率以及每日班級平均分，便於直接比對學生是否超越班級平均。</div>
-            <div>• <strong style="color:var(--text);">📅 每日作答格子 (Matrix Cell)</strong>：顯示該生當日出題測驗的「答對/總題數 (正確率)」，滑鼠懸停或點擊可顯示當日具體拼錯的所有單字與中文釋義。</div>
+            <div>• <strong style="color:var(--text);">📝 期間作答與答對單字數</strong>：全班或個別學生在所選日期區間內的累計施測總單字數與答對單字數加總。</div>
+            <div>• <strong style="color:var(--text);">🎯 期間總正確率</strong>：累計答對單字數 ÷ 累計施測單字數。綠色代表表現優異（≥80%）、黃色代表及格平穩（60%~79%）、紅色代表基礎薄弱需輔導（&lt;60%）。</div>
+            <div>• <strong style="color:var(--text);">🏫 首行【全班平均基準】</strong>：以紫色/藍色高亮標記的基準行，提供全班在該區間的平均施測單字數、平均正確率以及每日班級平均分，便於直接比對學生是否超越班級平均。</div>
+            <div>• <strong style="color:var(--text);">📅 每日作答格子 (Matrix Cell)</strong>：顯示該生當日出題測驗的「答對/施測單字數 (正確率)」，滑鼠懸停或點擊可顯示當日具體拼錯的所有單字與中文釋義。</div>
             <div>• <strong style="color:var(--text);">🔤 期間累計易錯單字</strong>：將該名學生在整個日期區間內所有測驗曾答錯過的單字去重彙整，老師可一眼看出該生近期的主要學習痛點。</div>
           </div>
         </div>
@@ -9184,13 +9184,13 @@ function renderRangeClassKpis(sm) {
       <div class="kpi-sub" style="font-size:12px;">實測 <strong>${sm.activeStudents || 0}</strong> / 應測 <strong>${sm.totalStudents || 0}</strong> 人</div>
     </div>
 
-    <div class="kpi-card" style="border-top:3px solid #6366f1;" title="期間全班學生在測驗中累積作答的總題數">
+    <div class="kpi-card" style="border-top:3px solid #6366f1;" title="期間全班學生在測驗中累積作答的總單字數">
       <div class="kpi-title">📝 期間全班總作答</div>
-      <div class="kpi-value" style="color:var(--text); font-size:1.75rem;">${(sm.totalAttempts || 0).toLocaleString()} <span style="font-size:14px; font-weight:normal; color:var(--text-muted);">題</span></div>
-      <div class="kpi-sub" style="font-size:12px;">累計答對 <strong>${(sm.totalCorrect || 0).toLocaleString()}</strong> 題</div>
+      <div class="kpi-value" style="color:var(--text); font-size:1.75rem;">${(sm.totalAttempts || 0).toLocaleString()} <span style="font-size:14px; font-weight:normal; color:var(--text-muted);">字</span></div>
+      <div class="kpi-sub" style="font-size:12px;">累計答對 <strong>${(sm.totalCorrect || 0).toLocaleString()}</strong> 字</div>
     </div>
 
-    <div class="kpi-card" style="border-top:3px solid ${accColor};" title="全班期間累計答對題數 ÷ 累計總作答題數">
+    <div class="kpi-card" style="border-top:3px solid ${accColor};" title="全班期間累計答對單字數 ÷ 累計總施測單字數">
       <div class="kpi-title">🎯 期間班級平均正確率</div>
       <div class="kpi-value" style="color:${accColor}; font-size:1.75rem;">${escapeHtml(sm.classAvgAccuracy || '0%')}</div>
       <div class="kpi-sub" style="font-size:12px;">${avgAcc >= 80 ? '🟢 整體表現精熟穩定' : (avgAcc >= 60 ? '🟡 基礎尚可需鞏固' : '🔴 基礎偏弱需關注')}</div>
@@ -9387,7 +9387,7 @@ function renderRangeTableOnly() {
           🏫 全班常模基準
         </td>
         <td style="text-align:center; padding:10px 8px; color:var(--text);">${escapeHtml(sm.participationRate || '0%')}</td>
-        <td style="text-align:center; padding:10px 8px; color:var(--text);">${(sm.totalAttempts || 0).toLocaleString()} 題</td>
+        <td style="text-align:center; padding:10px 8px; color:var(--text);">${(sm.totalAttempts || 0).toLocaleString()} 字</td>
         <td style="text-align:center; padding:10px 8px;">
           <span style="display:inline-block; padding:3px 8px; border-radius:6px; background:rgba(99,102,241,0.2); color:#6366f1; font-weight:800; font-size:12px;">
             ${escapeHtml(sm.classAvgAccuracy || '0%')}
@@ -9480,8 +9480,8 @@ function renderRangeTableOnly() {
           <div style="font-size:10.5px; color:var(--text-muted);">${st.participationRate}</div>
         </td>
         <td style="text-align:center; padding:9px 8px; font-size:12px;">
-          <strong>${(st.totalAttempts || 0).toLocaleString()}</strong> 題
-          <div style="font-size:10.5px; color:var(--text-muted);">對 ${st.totalCorrect || 0}</div>
+          <strong>${(st.totalAttempts || 0).toLocaleString()}</strong> 字
+          <div style="font-size:10.5px; color:var(--text-muted);">對 ${st.totalCorrect || 0} 字</div>
         </td>
         <td style="text-align:center; padding:9px 8px;">
           <span style="display:inline-block; padding:3px 8px; border-radius:6px; font-weight:700; font-size:12px; background:${accBg}; color:${accColor};">
@@ -14094,6 +14094,15 @@ function buildTaskDetailsHtml(record, selectedDate, agent) {
   const statusBg = statusStr.includes("已完成") ? "rgba(16,185,129,0.15)" : statusStr.includes("作答中") ? "rgba(234,179,8,0.15)" : "rgba(148,163,184,0.15)";
   const isFinished = statusStr.includes("已完成") || (scoreVal !== "—" && scoreVal !== "尚未開始");
 
+  let taskCorrWords = correctList.length;
+  let taskTotWords = (correctList.length + wrongList.length) > 0 ? (correctList.length + wrongList.length) : (rawWords.length || 0);
+  if (taskTotWords === 0 && scoreVal && String(scoreVal).includes("/")) {
+    const parts = String(scoreVal).split("/");
+    taskCorrWords = parseInt(parts[0]) || 0;
+    taskTotWords = parseInt(parts[1]) || 0;
+  }
+  const taskRate = taskTotWords > 0 ? Math.round((taskCorrWords / taskTotWords) * 100) : (parseInt(rateVal) || 0);
+
   let correctContentHtml = "";
   if (correctList.length > 0) {
     correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); speakMasteredWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
@@ -14103,7 +14112,7 @@ function buildTaskDetailsHtml(record, selectedDate, agent) {
     } else {
       correctContentHtml = (wrongList.length === 0)
         ? `<span class="perfect-score-msg">🎉 太棒了！本次測驗全數答對！</span>`
-        : `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（本次測驗作答 ${scoreVal}）</span>`;
+        : `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（本次測驗答對 ${taskCorrWords}/${taskTotWords} 字）</span>`;
     }
   } else {
     correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（測驗待完成，尚未作答）</span>`;
@@ -14129,12 +14138,12 @@ function buildTaskDetailsHtml(record, selectedDate, agent) {
 
       <div class="task-score-grid">
         <div class="task-score-item">
-          <div class="task-score-label">🎯 答對題數 / 總題數</div>
-          <div class="task-score-val" style="color:#0284c7;">${scoreVal} 題</div>
+          <div class="task-score-label">🎯 答對單字數 / 施測單字數</div>
+          <div class="task-score-val" style="color:#0284c7;">${taskCorrWords}/${taskTotWords} 字</div>
         </div>
         <div class="task-score-item">
           <div class="task-score-label">📊 正確率</div>
-          <div class="task-score-val" style="color:${parseInt(rateVal) >= 80 ? '#16a34a' : '#ea580c'};">${rateVal}</div>
+          <div class="task-score-val" style="color:${taskRate >= 80 ? '#16a34a' : '#ea580c'};">${taskRate}%</div>
         </div>
       </div>
 
@@ -14288,8 +14297,8 @@ function buildFreeDetailsHtml(record, selectedDate, agent) {
 
       <div class="task-score-grid">
         <div class="task-score-item">
-          <div class="task-score-label">🎯 答對題數 / 總題數</div>
-          <div class="task-score-val" style="color:#0284c7;">${correctWords}/${totalWords} 題</div>
+          <div class="task-score-label">🎯 答對單字數 / 施測單字數</div>
+          <div class="task-score-val" style="color:#0284c7;">${correctWords}/${totalWords} 字</div>
         </div>
         <div class="task-score-item">
           <div class="task-score-label">📊 正確率</div>
@@ -14434,12 +14443,23 @@ function renderStudentDailyTaskAndFreeSections(resp) {
                      (todayTask && (normalizeDateKey(todayTask.date) === norm || unpadDateKey(todayTask.date) === shortD) && todayTask.hasDone && todayTask.taskName !== "自主練習" ? todayTask : null);
     const dpF = dpMap[norm] || dpMap[shortD] || dpMap[slashD] || null;
     const hFree = historyData[norm] || historyData[shortD] || historyData[slashD] || null;
-    const freeAtt = (dpF && dpF.attempts) ? dpF.attempts : (hFree ? (hFree.a || 0) : 0);
+
+    let freeTestedWords = 0, freeCorrWords = 0;
+    if (dpF && dpF.words && Object.keys(dpF.words).length > 0) {
+      freeTestedWords = Object.keys(dpF.words).length;
+      freeCorrWords = Object.values(dpF.words).filter(w => w && (w.correct > 0 || w.passed)).length;
+    } else if (dpF) {
+      freeTestedWords = dpF.attempts || 0;
+      freeCorrWords = dpF.correct || 0;
+    } else if (hFree) {
+      freeTestedWords = hFree.a || 0;
+      freeCorrWords = hFree.c || 0;
+    }
 
     let tag = "";
-    if (matchedH && freeAtt > 0) tag = ` [指派: ${matchedH.taskName || "任務"}] [自由: ${freeAtt}題]`;
+    if (matchedH && freeTestedWords > 0) tag = ` [指派: ${matchedH.taskName || "任務"}] [自由: ${freeCorrWords}/${freeTestedWords}字]`;
     else if (matchedH) tag = ` [指派: ${matchedH.taskName || "任務"}]`;
-    else if (freeAtt > 0) tag = ` [自由練習: ${freeAtt}題]`;
+    else if (freeTestedWords > 0) tag = ` [自由練習: ${freeCorrWords}/${freeTestedWords}字]`;
     else tag = " (尚無紀錄)";
     return `${norm}${isToday ? " (今日)" : ""}${tag}`;
   };
@@ -15678,22 +15698,22 @@ async function _exportStudentRecordToExcel(payload) {
     const ws1Data = [
       ["學生學習歷程 · 使用與作答紀錄明細表"],
       ["學生帳號", payload.studentId, "匯出範圍", payload.scopeTitle, "匯出時間", payload.exportTime],
-      ["區間練習天數", `${payload.periodSummary.activeDaysCount} 天`, "區間總作答", `${payload.periodSummary.totalAttempts} 題`, "區間總答對", `${payload.periodSummary.totalCorrect} 題`, "區間平均正確率", `${payload.periodSummary.avgRate}%`],
+      ["區間練習天數", `${payload.periodSummary.activeDaysCount} 天`, "區間施測單字數", `${payload.periodSummary.totalAttempts} 字`, "區間答對單字數", `${payload.periodSummary.totalCorrect} 字`, "區間平均正確率", `${payload.periodSummary.avgRate}%`],
       [],
       [
         "日期",
-        "當日總作答(題)",
-        "當日總答對(題)",
+        "當日施測單字數",
+        "當日答對單字數",
         "當日正確率(%)",
         "指定測驗名稱",
         "指定測驗狀態",
-        "指定測驗得分",
+        "指定測驗得分(字)",
         "指定測驗正確率",
         "指定測驗-答對單字",
         "指定測驗-答錯單字",
-        "自由練習-總題數",
-        "自由練習-答對數",
-        "自由練習-答錯數",
+        "自由練習-施測單字數",
+        "自由練習-答對單字數",
+        "自由練習-答錯單字數",
         "自由練習-正確率(%)",
         "自由練習-答對單字",
         "自由練習-答錯單字"
@@ -15708,7 +15728,7 @@ async function _exportStudentRecordToExcel(payload) {
         `${r.totalRate}%`,
         r.hasTask ? r.taskName : "無指派測驗",
         r.hasTask ? r.taskStatus : "無紀錄",
-        r.hasTask ? `${r.taskScore} 題` : "—",
+        r.hasTask ? `${r.taskScore} 字` : "—",
         r.hasTask ? r.taskRate : "—",
         r.taskCorrectWords.length > 0 ? r.taskCorrectWords.join(", ") : "—",
         r.taskWrongWords.length > 0 ? r.taskWrongWords.join(", ") : (r.hasTask ? "全對無錯題" : "—"),
@@ -15751,7 +15771,7 @@ async function _exportStudentRecordToExcel(payload) {
       ["學生帳號", payload.studentId, "匯出時間", payload.exportTime],
       [],
       ["【一、整體學習進度指標】"],
-      ["累積總作答題數", `${ov.attempts} 題`, "累積總答對題數", `${ov.correct} 題`, "累積總答對率", `${ov.passRate}%`],
+      ["累積受測單字數", `${ov.attempts} 字`, "累積答對單字數", `${ov.correct} 字`, "累積單字掌握率", `${ov.passRate}%`],
       ["連續練習天數", `${ov.streak} 天`, "最佳連續天數", `${ov.best} 天`, "累計練習天數", `${ov.totalDays} 天`],
       ["學習中單字數", `${ov.learn} 字`, "練習中單字數", `${ov.prac} 字`, "已精通單字數 ⭐", `${ov.mast} 字`],
       [],
@@ -15836,14 +15856,14 @@ async function _exportStudentRecordToPdf(payload) {
         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #E7E9F5; padding-bottom:8px; margin-bottom:10px;">
           <div style="font-size:14px; font-weight:800; color:#232A4D;">📅 日期：${esc(r.date)}</div>
           <div style="padding:3px 10px; border-radius:8px; font-size:12px; font-weight:800; background:${badgeBg}; color:${badgeColor}; border:1px solid ${badgeColor};">
-            當日作答 ${r.totalAttempts} 題 · 答對 ${r.totalCorrect} 題 · 正確率 ${r.totalRate}%
+            當日施測 ${r.totalAttempts} 字 · 答對 ${r.totalCorrect} 字 · 正確率 ${r.totalRate}%
           </div>
         </div>
 
         <div style="margin-bottom:8px; background:#FFFFFF; border:1px solid #E7E9F5; border-radius:10px; padding:9px 11px;">
           <div style="font-size:12.5px; font-weight:800; color:#232A4D; margin-bottom:6px; display:flex; justify-content:space-between;">
             <span>📝 指定測驗：${esc(r.hasTask ? r.taskName : "當日無指派測驗紀錄")}</span>
-            <span style="color:#0284C7;">${r.hasTask ? `狀態：${esc(r.taskStatus)} ｜ 得分：${esc(r.taskScore)} 題 (${esc(r.taskRate)})` : "未施測"}</span>
+            <span style="color:#0284C7;">${r.hasTask ? `狀態：${esc(r.taskStatus)} ｜ 得分：${esc(r.taskScore)} 字 (${esc(r.taskRate)})` : "未施測"}</span>
           </div>
           ${r.hasTask ? `
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
@@ -15862,7 +15882,7 @@ async function _exportStudentRecordToPdf(payload) {
         <div style="background:#FFFFFF; border:1px solid #E7E9F5; border-radius:10px; padding:9px 11px;">
           <div style="font-size:12.5px; font-weight:800; color:#232A4D; margin-bottom:6px; display:flex; justify-content:space-between;">
             <span>🎮 自由練習成果</span>
-            <span style="color:#0284C7;">${r.hasFree ? `答對 ${r.freeCorrect}/${r.freeAttempts} 題 (${r.freeRate}%)` : "當日無自由練習紀錄"}</span>
+            <span style="color:#0284C7;">${r.hasFree ? `答對 ${r.freeCorrect}/${r.freeAttempts} 字 (${r.freeRate}%)` : "當日無自由練習紀錄"}</span>
           </div>
           ${r.hasFree ? `
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
@@ -15900,12 +15920,12 @@ async function _exportStudentRecordToPdf(payload) {
           <div style="font-size:18px; font-weight:900; color:#6C4CE0;">${ps.activeDaysCount} 天</div>
         </div>
         <div style="background:#F8F9FD; border:1px solid #E7E9F5; border-radius:10px; padding:8px 10px; text-align:center;">
-          <div style="font-size:11px; color:#5A6183; font-weight:700;">✍️ 區間總作答題數</div>
-          <div style="font-size:18px; font-weight:900; color:#0284C7;">${ps.totalAttempts} 題</div>
+          <div style="font-size:11px; color:#5A6183; font-weight:700;">✍️ 區間施測單字數</div>
+          <div style="font-size:18px; font-weight:900; color:#0284C7;">${ps.totalAttempts} 字</div>
         </div>
         <div style="background:#F8F9FD; border:1px solid #E7E9F5; border-radius:10px; padding:8px 10px; text-align:center;">
-          <div style="font-size:11px; color:#5A6183; font-weight:700;">✅ 區間總答對題數</div>
-          <div style="font-size:18px; font-weight:900; color:#2FB47C;">${ps.totalCorrect} 題</div>
+          <div style="font-size:11px; color:#5A6183; font-weight:700;">✅ 區間答對單字數</div>
+          <div style="font-size:18px; font-weight:900; color:#2FB47C;">${ps.totalCorrect} 字</div>
         </div>
         <div style="background:#F8F9FD; border:1px solid #E7E9F5; border-radius:10px; padding:8px 10px; text-align:center;">
           <div style="font-size:11px; color:#5A6183; font-weight:700;">📊 區間平均正確率</div>
@@ -17279,7 +17299,7 @@ function applyStudentDailyFilterAndRender() {
         }
 
         const compactTime = formatCompactDailyTime(item.updatedAt);
-        const scoreDisplay = item.score && item.score.includes('/') ? `${escapeHtml(item.score)} 題` : escapeHtml(item.score || '—');
+        const scoreDisplay = item.score && item.score.includes('/') ? `${escapeHtml(item.score)} 字` : escapeHtml(item.score || '—');
 
         return `
           <tr style="border-bottom:1px solid var(--border);">
@@ -17302,7 +17322,7 @@ function applyStudentDailyFilterAndRender() {
             <tr style="background:var(--table-header-bg); border-bottom:2px solid var(--border); text-align:left;">
               <th style="padding:10px 12px; font-weight:700; white-space:nowrap;">📅 測驗日期</th>
               <th style="padding:10px 12px; font-weight:700; white-space:nowrap;">📝 測驗任務</th>
-              <th style="padding:10px 12px; font-weight:700; text-align:center; white-space:nowrap;" title="測驗答對題數 / 測驗總題數">🎯 測驗答對 / 題數</th>
+              <th style="padding:10px 12px; font-weight:700; text-align:center; white-space:nowrap;" title="測驗答對單字數 / 施測單字數">🎯 答對 / 施測單字數</th>
               <th style="padding:10px 12px; font-weight:700; text-align:center; white-space:nowrap;">正確率</th>
               <th style="padding:10px 12px; font-weight:700; text-align:center; white-space:nowrap;">作答狀態</th>
               <th style="padding:10px 12px; font-weight:700; white-space:nowrap;" title="測驗答錯之單字自動列入弱點紅標，並同步收錄至個人錯題庫與週末錯題消滅清單">💡 答錯單字診斷 (紅標弱點)</th>
