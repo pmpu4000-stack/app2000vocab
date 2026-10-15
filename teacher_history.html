@@ -14091,16 +14091,17 @@ function extractRowTaskInfo(row, headers) {
   if (headers && Array.isArray(headers)) {
     headers.forEach((h, i) => {
       const s = String(h || "");
-      if (s.includes("任務名稱")) tNameIdx = i;
+      if (s.includes("任務名稱") || s.includes("指定測驗名稱")) tNameIdx = i;
       else if (s.includes("指定測驗成績")) scoreIdx = i;
       else if (s.includes("指定測驗正確率")) rateIdx = i;
       else if (s.includes("練習狀態")) statusIdx = i;
-      else if (s.includes("錯題")) wrongIdx = i;
+      else if (s.includes("測驗錯題") || (s.includes("錯題") && !s.includes("自由"))) wrongIdx = i;
     });
   }
   if (tNameIdx === -1) {
-    if (row.length === 25) { tNameIdx = 20; scoreIdx = 21; rateIdx = 22; statusIdx = 23; wrongIdx = 24; }
+    if (row.length >= 30) { tNameIdx = 21; scoreIdx = 22; rateIdx = 23; statusIdx = 24; wrongIdx = 25; }
     else if (row.length === 26) { tNameIdx = 21; scoreIdx = 22; rateIdx = 23; statusIdx = 24; wrongIdx = 25; }
+    else if (row.length === 25) { tNameIdx = 20; scoreIdx = 21; rateIdx = 22; statusIdx = 23; wrongIdx = 24; }
     else { tNameIdx = 18; scoreIdx = 19; rateIdx = 20; statusIdx = 21; wrongIdx = 22; }
   }
   const taskName = String(row[tNameIdx] || "").trim();
@@ -14110,6 +14111,32 @@ function extractRowTaskInfo(row, headers) {
   const wrongStr = String(row[wrongIdx] || "").trim();
   const wrongWords = wrongStr ? wrongStr.split(/[,、\s]+/).filter(Boolean) : [];
   return { taskName, score, rate, status, wrongWords };
+}
+
+function extractRowFreeInfo(row, headers) {
+  if (!row || !Array.isArray(row)) return null;
+  let testIdx = -1, corrIdx = -1, rateIdx = -1, wrongIdx = -1;
+  if (headers && Array.isArray(headers)) {
+    headers.forEach((h, i) => {
+      const s = String(h || "");
+      if (s.includes("自由練習受測") || s.includes("自由練習題數")) testIdx = i;
+      else if (s.includes("自由練習答對")) corrIdx = i;
+      else if (s.includes("自由練習正確率")) rateIdx = i;
+      else if (s.includes("自由練習錯題")) wrongIdx = i;
+    });
+  }
+  if (testIdx === -1 && row.length >= 30) {
+    testIdx = 26; corrIdx = 27; rateIdx = 28; wrongIdx = 29;
+  }
+  if (testIdx === -1) return null;
+  const attempts = parseInt(row[testIdx], 10) || 0;
+  const correct = parseInt(row[corrIdx], 10) || 0;
+  const rate = String(row[rateIdx] || "—").trim();
+  const wrongStr = String(row[wrongIdx] || "").trim();
+  const wrongWords = wrongStr ? wrongStr.split(/[,、\s]+/).filter(Boolean) : [];
+  const wordsMap = {};
+  wrongWords.forEach(w => { wordsMap[w] = { word: w, correct: 0, wrong: 1, attempts: 1 }; });
+  return { attempts, correct, wrong: Math.max(0, attempts - correct), rate, wrongWords, wordsMap };
 }
 
 function buildTaskDetailsHtml(record, selectedDate, agent) {
@@ -14571,9 +14598,10 @@ function renderStudentDailyTaskAndFreeSections(resp) {
     // A. 匹配教師指定測驗紀錄 (相容 2026-10-05 與 2026-10-5 與 2026/10/05)
     let matchedTask = dailyTaskHistory.find(h => {
       const hdNorm = normalizeDateKey(h.date);
-      return (hdNorm === targetDate || unpadDateKey(h.date) === shortTarget) && (!h.taskName || h.taskName !== "自主練習");
+      const isUnassigned = !h.taskName || h.taskName === "自主練習" || h.taskName.includes("自由練習") || h.taskName.includes("未指派");
+      return (hdNorm === targetDate || unpadDateKey(h.date) === shortTarget) && !isUnassigned;
     }) || null;
-    if (!matchedTask && todayTask && todayTask.date && todayTask.hasDone && todayTask.taskName !== "自主練習") {
+    if (!matchedTask && todayTask && todayTask.date && todayTask.hasDone && todayTask.taskName !== "自主練習" && !todayTask.taskName.includes("未指派")) {
       const tdNorm = normalizeDateKey(todayTask.date);
       if (tdNorm === targetDate || unpadDateKey(todayTask.date) === shortTarget) {
         matchedTask = {
@@ -14594,23 +14622,39 @@ function renderStudentDailyTaskAndFreeSections(resp) {
         if (rDate === targetDate || unpadDateKey(r[0]) === shortTarget) {
           const info = extractRowTaskInfo(r, resp.headers);
           if (info && info.taskName && info.taskName !== "自主練習" && !info.taskName.includes("自由練習")) {
-            matchedTask = {
-              date: targetDate,
-              taskName: info.taskName || "教師指定測驗",
-              score: info.score || "—",
-              rate: info.rate || "—",
-              status: info.status || "● 已完成",
-              words: [],
-              wrongWords: info.wrongWords
-            };
-            break;
+            if (info.taskName.includes("未指派") || info.status.includes("未指派")) {
+              matchedTask = null;
+              break;
+            } else if (info.status.includes("未受測")) {
+              matchedTask = {
+                date: targetDate,
+                taskName: info.taskName || "指定測驗",
+                score: "—",
+                rate: "—",
+                status: "⚪ 未受測",
+                words: [],
+                wrongWords: []
+              };
+              break;
+            } else if ((info.score && info.score !== "—" && info.score.includes("/")) || info.status.includes("已完成") || info.status.includes("作答中")) {
+              matchedTask = {
+                date: targetDate,
+                taskName: info.taskName || "教師指定測驗",
+                score: info.score || "—",
+                rate: info.rate || "—",
+                status: info.status || "● 已完成",
+                words: [],
+                wrongWords: info.wrongWords
+              };
+              break;
+            }
           }
         }
       }
     }
     taskDetailsContainer.innerHTML = buildTaskDetailsHtml(matchedTask, targetDate, agent);
 
-    // B. 匹配自由練習紀錄 (相容 padded, unpadded, slash 鍵名)
+    // B. 匹配自由練習紀錄 (相容 padded, unpadded, slash 鍵名，並支援從 Sheet 專屬欄位讀取)
     let dpFree = dpMap[targetDate] || dpMap[shortTarget] || dpMap[slashTarget] || null;
     let hFree = historyData[targetDate] || historyData[shortTarget] || historyData[slashTarget] || null;
     let matchedFree = null;
@@ -14640,6 +14684,26 @@ function renderStudentDailyTaskAndFreeSections(resp) {
         wrong: (hFree.a && hFree.c) ? Math.max(0, hFree.a - hFree.c) : 0,
         words: hFree.words || {}
       };
+    }
+    // 備援：若 JSON 無該日自由練習，直接從試算表該列自由練習欄位提取
+    if (!matchedFree && resp.data && Array.isArray(resp.data)) {
+      for (const r of resp.data) {
+        if (!r) continue;
+        const rDate = normalizeDateKey(r[0]);
+        if (rDate === targetDate || unpadDateKey(r[0]) === shortTarget) {
+          const fInfo = extractRowFreeInfo(r, resp.headers);
+          if (fInfo && fInfo.attempts > 0) {
+            matchedFree = {
+              date: targetDate,
+              attempts: fInfo.attempts,
+              correct: fInfo.correct,
+              wrong: fInfo.wrong,
+              words: fInfo.wordsMap
+            };
+            break;
+          }
+        }
+      }
     }
     freeDetailsContainer.innerHTML = buildFreeDetailsHtml(matchedFree, targetDate, agent);
 
@@ -15110,7 +15174,7 @@ function renderStudentSummary(resp) {
         if (!r) continue;
         if (normalizeDayKey(r[0]) === keyDash) {
           const info = extractRowTaskInfo(r, resp.headers);
-          if (info && info.taskName && info.taskName !== "自主練習" && !info.taskName.includes("自由練習")) {
+          if (info && info.taskName && info.taskName !== "自主練習" && !info.taskName.includes("自由練習") && !info.taskName.includes("未指派") && !info.status.includes("未受測") && ((info.score && info.score !== "—") || info.status.includes("已完成"))) {
             matchedTask = {
               date: keyDash,
               taskName: info.taskName || "教師指定測驗",
@@ -15159,21 +15223,24 @@ function renderStudentSummary(resp) {
   const allTaskActiveDates = new Set();
   if (Array.isArray(dailyTaskHistory)) {
     dailyTaskHistory.forEach(th => {
-      if (th && th.date && (!th.taskName || th.taskName !== "自主練習")) {
+      if (th && th.date && (!th.taskName || (th.taskName !== "自主練習" && !th.taskName.includes("未指派")))) {
         const nk = normalizeDayKey(th.date);
         if (nk && getTaskDayStatForHeat(nk, nk).a > 0) allTaskActiveDates.add(nk);
       }
     });
   }
-  if (todayTask && todayTask.date && todayTask.hasDone && todayTask.taskName !== "自主練習") {
+  if (todayTask && todayTask.date && todayTask.hasDone && todayTask.taskName !== "自主練習" && !todayTask.taskName.includes("未指派")) {
     const nk = normalizeDayKey(todayTask.date);
     if (nk && getTaskDayStatForHeat(nk, nk).a > 0) allTaskActiveDates.add(nk);
   }
   if (resp.data && Array.isArray(resp.data)) {
     resp.data.forEach(r => {
-      if (r && r[0] && r[18] && r[18] !== "自主練習") {
-        const nk = normalizeDayKey(r[0]);
-        if (nk && getTaskDayStatForHeat(nk, nk).a > 0) allTaskActiveDates.add(nk);
+      if (r && r[0]) {
+        const info = extractRowTaskInfo(r, resp.headers);
+        if (info && info.taskName && info.taskName !== "自主練習" && !info.taskName.includes("未指派") && !info.status.includes("未受測") && ((info.score && info.score !== "—") || info.status.includes("已完成"))) {
+          const nk = normalizeDayKey(r[0]);
+          if (nk && getTaskDayStatForHeat(nk, nk).a > 0) allTaskActiveDates.add(nk);
+        }
       }
     });
   }

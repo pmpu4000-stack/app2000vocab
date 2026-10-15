@@ -900,11 +900,13 @@ function resolveTaskWords(record, selectedDate, d) {
 }
 
 function buildTaskDetailsHtml(record, selectedDate, d) {
-  if (!record) {
+  if (!record || !record.taskName || record.taskName === "自主練習" || record.taskName.includes("自由練習") || record.taskName.includes("未指派")) {
+    const isUntested = (record && record.status && record.status.includes("未受測"));
+    const statusNotice = isUntested ? "⚪ 該日有指派測驗，但學生未受測" : "⚪ 該日未指派指定測驗";
     return `
       <div style="text-align:center; padding:18px 14px; color:var(--ink3);">
-        <div style="font-size:26px; margin-bottom:6px;">📅</div>
-        <div style="font-size:13.5px; font-weight:700; color:var(--ink2);">該指定日期（${selectedDate}）尚無教師指派之測驗作答紀錄</div>
+        <div style="font-size:26px; margin-bottom:6px;">⚪</div>
+        <div style="font-size:13.5px; font-weight:700; color:var(--ink2);">${statusNotice}（${selectedDate}）</div>
         <div style="font-size:12px; margin-top:4px; color:var(--ink3);">可從上方下拉選單切換至其他日期查看詳細作答紀錄</div>
       </div>
     `;
@@ -1677,22 +1679,10 @@ export function renderSummary(d) {
       updateHeatDayBadge(foundIdx);
       return;
     }
-    // 若指定日期不在最近 28 天內，仍計算該日作答狀況並固定顯示於右側框框
-    const tRec = historyList.find(item => normalizeDateStr(item.date) === normDate && (!item.taskName || item.taskName !== "自主練習")) || null;
+    // 若指定日期不在最近 28 天內，仍計算該日自由練習作答狀況並固定顯示於右側框框
     const fRec = resolveDailyPracticeRecord(normDate, d, historyList);
-    let att = fRec ? (fRec.attempts || 0) : 0;
-    let cor = fRec ? (fRec.correct || 0) : 0;
-    if (tRec) {
-      let tAtt = parseInt(tRec.attempts) || 0;
-      let tCor = parseInt(tRec.correct) || 0;
-      if (!tAtt && tRec.score && String(tRec.score).includes("/")) {
-        const sp = String(tRec.score).split("/");
-        tCor = parseInt(sp[0]) || 0;
-        tAtt = parseInt(sp[1]) || 0;
-      }
-      att = Math.max(att, tAtt);
-      cor = Math.max(cor, tCor);
-    }
+    const att = fRec ? (fRec.attempts || 0) : 0;
+    const cor = fRec ? (fRec.correct || 0) : 0;
     const rate = att > 0 ? Math.round((cor / att) * 100) : 0;
     renderHeatBadgeContent(normDate, att, rate, -1);
   };
