@@ -2458,12 +2458,12 @@ export function initExportRecordsCard(getSummaryFn) {
       if (isHidden) {
         navCard.style.display = "flex";
         sec.classList.remove("is-collapsed");
-        toggleBtn.innerHTML = "收起 ✕";
+        toggleBtn.innerHTML = "收合";
         navCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
       } else {
         navCard.style.display = "none";
         sec.classList.add("is-collapsed");
-        toggleBtn.innerHTML = "📥 下載歷程";
+        toggleBtn.innerHTML = "展開";
       }
     };
   }
@@ -2648,11 +2648,11 @@ export function initProgressCard() {
     if (isHidden) {
       if (body) body.style.display = "block";
       sec.classList.remove("is-collapsed");
-      toggleBtn.innerHTML = "收起 ✕";
+      toggleBtn.innerHTML = "收合";
     } else {
       if (body) body.style.display = "none";
       sec.classList.add("is-collapsed");
-      toggleBtn.innerHTML = "🔍 查詢進度";
+      toggleBtn.innerHTML = "展開";
     }
   };
 }

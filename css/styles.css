@@ -814,23 +814,24 @@ body[data-theme="dark"],
 }
 .summary-embedded h3 a, .summary h3 a, #sumClose, #btn-toggle-export-card, #btn-toggle-progress-card, #sumBtn, .sum-toggle-btn {
   font-size: 12px;
-  color: var(--violet);
+  color: #065F46;
   cursor: pointer;
   text-decoration: none !important;
-  font-weight: 700;
+  font-weight: 750;
   display: inline-flex;
   align-items: center;
   gap: 4px;
   padding: 3px 8px;
   border-radius: 6px;
-  background: rgba(108, 76, 224, 0.08);
-  border: 1px solid rgba(108, 76, 224, 0.16);
+  background: #ECFDF5;
+  border: 1px solid #10B981;
   transition: all .15s;
 }
 .summary-embedded h3 a:hover, .summary h3 a:hover, #sumClose:hover, #btn-toggle-export-card:hover, #btn-toggle-progress-card:hover, #sumBtn:hover, .sum-toggle-btn:hover {
-  color: var(--violet-d);
-  background: rgba(108, 76, 224, 0.16);
-  opacity: 0.88;
+  color: #047857;
+  background: #D1FAE5;
+  border-color: #059669;
+  opacity: 0.95;
 }
 [data-theme="dark"] .summary-embedded h3 a,
 [data-theme="dark"] .summary h3 a,
@@ -839,9 +840,9 @@ body[data-theme="dark"],
 [data-theme="dark"] #btn-toggle-progress-card,
 [data-theme="dark"] #sumBtn,
 [data-theme="dark"] .sum-toggle-btn {
-  background: rgba(56, 189, 248, 0.12) !important;
-  border-color: rgba(56, 189, 248, 0.22) !important;
-  color: var(--sky, #38bdf8) !important;
+  background: rgba(16, 185, 129, 0.16) !important;
+  border: 1px solid rgba(52, 211, 153, 0.45) !important;
+  color: #34D399 !important;
 }
 [data-theme="dark"] .summary-embedded h3 a:hover,
 [data-theme="dark"] .summary h3 a:hover,
@@ -850,8 +851,9 @@ body[data-theme="dark"],
 [data-theme="dark"] #btn-toggle-progress-card:hover,
 [data-theme="dark"] #sumBtn:hover,
 [data-theme="dark"] .sum-toggle-btn:hover {
-  background: rgba(56, 189, 248, 0.22) !important;
-  color: #7dd3fc !important;
+  background: rgba(16, 185, 129, 0.28) !important;
+  border-color: rgba(52, 211, 153, 0.75) !important;
+  color: #6EE7B7 !important;
 }
 
 /* 2. 區塊副標題 (Section Sub-headings / 大區塊標題) */
@@ -1255,24 +1257,38 @@ body[data-theme="dark"],
   margin-bottom: 0 !important;
 }
 .export-records-card h3 a {
-  color: var(--violet);
   font-size: 12px;
+  color: #065F46;
   cursor: pointer;
-  text-decoration: underline;
-  font-weight: 700;
+  text-decoration: none !important;
+  font-weight: 750;
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: #ECFDF5;
+  border: 1px solid #10B981;
+  transition: all .15s;
 }
 .export-records-card h3 a:hover {
-  color: var(--violet-d);
-  opacity: 0.88;
+  color: #047857;
+  background: #D1FAE5;
+  border-color: #059669;
+  opacity: 0.95;
 }
 [data-theme="dark"] .export-records-card h3 {
   color: #F0F3FA !important;
 }
 [data-theme="dark"] .export-records-card h3 a {
-  color: var(--sky, #38bdf8) !important;
+  background: rgba(16, 185, 129, 0.16) !important;
+  border: 1px solid rgba(52, 211, 153, 0.45) !important;
+  color: #34D399 !important;
+}
+[data-theme="dark"] .export-records-card h3 a:hover {
+  background: rgba(16, 185, 129, 0.28) !important;
+  border-color: rgba(52, 211, 153, 0.75) !important;
+  color: #6EE7B7 !important;
 }
 .export-sub-hint {
   font-size: 11.5px;

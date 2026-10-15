@@ -2346,23 +2346,24 @@
     }
     .summary-embedded h3 a, .summary h3 a, #sumClose, #btn-toggle-export-card, #btn-toggle-progress-card, #sumBtn, .sum-toggle-btn {
       font-size: 12px !important;
-      color: var(--violet) !important;
+      color: #065F46 !important;
       cursor: pointer !important;
       text-decoration: none !important;
-      font-weight: 700 !important;
+      font-weight: 750 !important;
       display: inline-flex !important;
       align-items: center !important;
       gap: 4px !important;
       padding: 3px 8px !important;
       border-radius: 6px !important;
-      background: rgba(108, 76, 224, 0.08) !important;
-      border: 1px solid rgba(108, 76, 224, 0.16) !important;
+      background: #ECFDF5 !important;
+      border: 1px solid #10B981 !important;
       transition: all .15s !important;
     }
     .summary-embedded h3 a:hover, .summary h3 a:hover, #sumClose:hover, #btn-toggle-export-card:hover, #btn-toggle-progress-card:hover, #sumBtn:hover, .sum-toggle-btn:hover {
-      color: var(--violet-d) !important;
-      background: rgba(108, 76, 224, 0.16) !important;
-      opacity: 0.88 !important;
+      color: #047857 !important;
+      background: #D1FAE5 !important;
+      border-color: #059669 !important;
+      opacity: 0.95 !important;
     }
     [data-theme="dark"] .summary-embedded h3 a,
     [data-theme="dark"] .summary h3 a,
@@ -2371,9 +2372,9 @@
     [data-theme="dark"] #btn-toggle-progress-card,
     [data-theme="dark"] #sumBtn,
     [data-theme="dark"] .sum-toggle-btn {
-      background: rgba(56, 189, 248, 0.12) !important;
-      border-color: rgba(56, 189, 248, 0.22) !important;
-      color: var(--sky, #38bdf8) !important;
+      background: rgba(16, 185, 129, 0.16) !important;
+      border: 1px solid rgba(52, 211, 153, 0.45) !important;
+      color: #34D399 !important;
     }
     [data-theme="dark"] .summary-embedded h3 a:hover,
     [data-theme="dark"] .summary h3 a:hover,
@@ -2382,8 +2383,9 @@
     [data-theme="dark"] #btn-toggle-progress-card:hover,
     [data-theme="dark"] #sumBtn:hover,
     [data-theme="dark"] .sum-toggle-btn:hover {
-      background: rgba(56, 189, 248, 0.22) !important;
-      color: #7dd3fc !important;
+      background: rgba(16, 185, 129, 0.28) !important;
+      border-color: rgba(52, 211, 153, 0.75) !important;
+      color: #6EE7B7 !important;
     }
 
     /* 2. 區塊副標題 (Section Sub-headings / 大區塊標題) */
@@ -3199,35 +3201,37 @@
     }
     .export-records-card h3 a {
       font-size: 12px !important;
-      color: var(--violet) !important;
+      color: #065F46 !important;
       cursor: pointer !important;
       text-decoration: none !important;
-      font-weight: 700 !important;
+      font-weight: 750 !important;
       display: inline-flex !important;
       align-items: center !important;
       gap: 4px !important;
       padding: 3px 8px !important;
       border-radius: 6px !important;
-      background: rgba(108, 76, 224, 0.08) !important;
-      border: 1px solid rgba(108, 76, 224, 0.16) !important;
+      background: #ECFDF5 !important;
+      border: 1px solid #10B981 !important;
       transition: all .15s !important;
     }
     .export-records-card h3 a:hover {
-      color: var(--violet-d) !important;
-      background: rgba(108, 76, 224, 0.16) !important;
-      opacity: 0.88 !important;
+      color: #047857 !important;
+      background: #D1FAE5 !important;
+      border-color: #059669 !important;
+      opacity: 0.95 !important;
     }
     [data-theme="dark"] .export-records-card h3 {
       color: #F0F3FA !important;
     }
     [data-theme="dark"] .export-records-card h3 a {
-      background: rgba(56, 189, 248, 0.12) !important;
-      border-color: rgba(56, 189, 248, 0.22) !important;
-      color: var(--sky, #38bdf8) !important;
+      background: rgba(16, 185, 129, 0.16) !important;
+      border: 1px solid rgba(52, 211, 153, 0.45) !important;
+      color: #34D399 !important;
     }
     [data-theme="dark"] .export-records-card h3 a:hover {
-      background: rgba(56, 189, 248, 0.22) !important;
-      color: #7dd3fc !important;
+      background: rgba(16, 185, 129, 0.28) !important;
+      border-color: rgba(52, 211, 153, 0.75) !important;
+      color: #6EE7B7 !important;
     }
     .export-sub-hint {
       font-size: 11.5px !important;
@@ -4531,7 +4535,7 @@
       <h3>
         <span>整體進度 Progress</span>
         <span style="display:flex; gap:14px;">
-          <a id="btn-toggle-progress-card" class="sum-toggle-btn" title="展開或收起整體進度">🔍 查詢進度</a>
+          <a id="btn-toggle-progress-card" class="sum-toggle-btn" title="展開或收合整體進度">展開</a>
         </span>
       </h3>
       <div class="progress-collapsible-body" id="progress-collapsible-body" style="display:none;">
@@ -4571,8 +4575,16 @@
         <table class="sumtable">
           <tbody id="stLevelProgressTbody"></tbody>
         </table>
-        <div class="formula-note-box" style="font-size:12.5px; padding:6px 12px; margin-top:8px;">
-          💡 說明：數值均是單字數量
+        <div class="formula-note-box" style="font-size:12px; padding:10px 14px; margin-top:10px; line-height:1.6;">
+          <div style="font-weight:800; margin-bottom:6px; color:var(--ink);">💡 指標說明（數值均為單字數量，非作答題次）：</div>
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:5px 12px; font-size:12px;">
+            <div>● <b>答對</b>：曾答對至少 1 次的單字</div>
+            <div>● <b>施測</b>：已出題作答過的單字</div>
+            <div>● <b>學習中</b>：剛練習或曾答錯，待加強</div>
+            <div>● <b>練習中</b>：連續答對 2 次，熟練中</div>
+            <div>● <b>精通</b>：連續答對 3 次以上，已熟記 ⭐</div>
+            <div>● <b>共</b>：該關卡收錄的單字總數</div>
+          </div>
         </div>
 
         <div class="subh">🎮 4 大練習模式答題數</div>
@@ -4654,7 +4666,7 @@
       <h3>
         <span>歷程檔案 History</span>
         <span style="display:flex;gap:14px">
-          <a id="btn-toggle-export-card" title="展開或收合歷程檔案下載">📥 下載歷程</a>
+          <a id="btn-toggle-export-card" class="sum-toggle-btn" title="展開或收合歷程檔案下載">展開</a>
         </span>
       </h3>
       <div class="date-navigator-card export-navigator-card" id="export-navigator-card" style="display:none;">
@@ -14580,11 +14592,11 @@ function renderStudentSummary(resp) {
       if (isHidden) {
         progBody.style.display = "block";
         progSec.classList.remove("is-collapsed");
-        progToggleBtn.innerHTML = "收起 ✕";
+        progToggleBtn.innerHTML = "收合";
       } else {
         progBody.style.display = "none";
         progSec.classList.add("is-collapsed");
-        progToggleBtn.innerHTML = "🔍 查詢進度";
+        progToggleBtn.innerHTML = "展開";
       }
     };
   }
@@ -15951,12 +15963,12 @@ function initStudentExportRecordsCard(resp) {
       if (isHidden) {
         navCard.style.display = "flex";
         sec.classList.remove("is-collapsed");
-        toggleBtn.innerHTML = "收起 ✕";
+        toggleBtn.innerHTML = "收合";
         navCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
       } else {
         navCard.style.display = "none";
         sec.classList.add("is-collapsed");
-        toggleBtn.innerHTML = "📥 下載歷程";
+        toggleBtn.innerHTML = "展開";
       }
     };
   }
