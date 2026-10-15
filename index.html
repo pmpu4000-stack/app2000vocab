@@ -2400,7 +2400,13 @@ body[data-theme="dark"],
         }
       } catch (err) {
         console.error(err);
-        msgEl.textContent = "連線失敗，請檢查網路或稍後再試。";
+        let extra = "";
+        if (window.location.protocol === "file:") {
+          extra = "（本機 file:// 模式被瀏覽器禁止跨域連線，請使用 GitHub Pages 或 Web Server 開啟）";
+        } else if (err && err.message) {
+          extra = `（${err.message}）`;
+        }
+        msgEl.textContent = "連線失敗，請檢查網路或稍後再試。" + extra;
       }
     });
 
@@ -2527,18 +2533,24 @@ body[data-theme="dark"],
       }
 
       try {
-        let response = await fetch(scriptUrl, {
+        const payloadStr = JSON.stringify({ 
+          action           : "saveRecord", 
+          username         : currentUser, 
+          password         : currentPass, 
+          records          : localData,
+          todayTaskSummary : todayTaskSummary
+        });
+        const fetchOpts = {
           method: "POST",
           headers: { "Content-Type": "text/plain;charset=utf-8" },
-          keepalive: true,
-          body: JSON.stringify({ 
-            action           : "saveRecord", 
-            username         : currentUser, 
-            password         : currentPass, 
-            records          : localData,
-            todayTaskSummary : todayTaskSummary
-          })
-        });
+          body: payloadStr
+        };
+        // 僅在封包小於 60KB 時才啟用 keepalive，避免超出瀏覽器 64KB 限制拋錯
+        if (payloadStr.length < 60000) {
+          fetchOpts.keepalive = true;
+        }
+
+        let response = await fetch(scriptUrl, fetchOpts);
         let result = await response.json();
         
         if (result.status === "success") {
@@ -2566,7 +2578,15 @@ body[data-theme="dark"],
         console.error("上傳失敗：", err);
         if (iconEl && !isSilent) iconEl.textContent = "❌";
         setTimeout(() => { if (iconEl) iconEl.textContent = "🌱"; }, 2500);
-        if (!isSilent) alert("連線失敗，請檢查網路。");
+        if (!isSilent) {
+          let extra = "";
+          if (window.location.protocol === "file:") {
+            extra = "\n\n⚠️ 提示：您目前正在以本機檔案 (file://) 開啟，瀏覽器安全機制會封鎖跨網域連線。請改用 GitHub Pages 線上網址或透過本機 Web Server 開啟！";
+          } else if (err && err.message) {
+            extra = "\n(" + err.message + ")";
+          }
+          alert("連線失敗，請檢查網路。" + extra);
+        }
       } finally {
         isUploading = false;
         if (hasPendingUpload) {
