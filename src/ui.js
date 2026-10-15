@@ -1406,27 +1406,27 @@ export function renderSummary(d) {
     </div>
     <div class="subh">各關卡進度</div>
     <table class="sumtable">${lvRows}</table>
-    <div class="subh">🎮 4 大練習模式答對數</div>
+    <div class="subh">🎮 4 大練習模式答對單字數</div>
     <div class="mode-stat-grid">
       <div class="mode-stat-card">
         <div class="mode-stat-title">🎧 聽與拼</div>
-        <div class="mode-stat-num">${(d.modeStats?.listen?.c || 0)} 題</div>
-        <div class="mode-stat-sub">共作答 ${(d.modeStats?.listen?.a || 0)} 題 (${d.modeStats?.listen?.a ? Math.round((d.modeStats.listen.c / d.modeStats.listen.a)*100) : 0}%)</div>
+        <div class="mode-stat-num">${(d.modeStats?.listen?.c || 0)} 字</div>
+        <div class="mode-stat-sub">受測 ${(d.modeStats?.listen?.a || 0)} 字 (${d.modeStats?.listen?.a ? Math.round((d.modeStats.listen.c / d.modeStats.listen.a)*100) : 0}%)</div>
       </div>
       <div class="mode-stat-card">
         <div class="mode-stat-title">✅ 選拼法</div>
-        <div class="mode-stat-num">${(d.modeStats?.pick?.c || 0)} 題</div>
-        <div class="mode-stat-sub">共作答 ${(d.modeStats?.pick?.a || 0)} 題 (${d.modeStats?.pick?.a ? Math.round((d.modeStats.pick.c / d.modeStats.pick.a)*100) : 0}%)</div>
+        <div class="mode-stat-num">${(d.modeStats?.pick?.c || 0)} 字</div>
+        <div class="mode-stat-sub">受測 ${(d.modeStats?.pick?.a || 0)} 字 (${d.modeStats?.pick?.a ? Math.round((d.modeStats.pick.c / d.modeStats.pick.a)*100) : 0}%)</div>
       </div>
       <div class="mode-stat-card">
         <div class="mode-stat-title">🧩 重組</div>
-        <div class="mode-stat-num">${(d.modeStats?.scramble?.c || 0)} 題</div>
-        <div class="mode-stat-sub">共作答 ${(d.modeStats?.scramble?.a || 0)} 題 (${d.modeStats?.scramble?.a ? Math.round((d.modeStats.scramble.c / d.modeStats.scramble.a)*100) : 0}%)</div>
+        <div class="mode-stat-num">${(d.modeStats?.scramble?.c || 0)} 字</div>
+        <div class="mode-stat-sub">受測 ${(d.modeStats?.scramble?.a || 0)} 字 (${d.modeStats?.scramble?.a ? Math.round((d.modeStats.scramble.c / d.modeStats.scramble.a)*100) : 0}%)</div>
       </div>
       <div class="mode-stat-card">
         <div class="mode-stat-title">🖍️ 填陷阱</div>
-        <div class="mode-stat-num">${(d.modeStats?.trap?.c || 0)} 題</div>
-        <div class="mode-stat-sub">共作答 ${(d.modeStats?.trap?.a || 0)} 題 (${d.modeStats?.trap?.a ? Math.round((d.modeStats.trap.c / d.modeStats.trap.a)*100) : 0}%)</div>
+        <div class="mode-stat-num">${(d.modeStats?.trap?.c || 0)} 字</div>
+        <div class="mode-stat-sub">受測 ${(d.modeStats?.trap?.a || 0)} 字 (${d.modeStats?.trap?.a ? Math.round((d.modeStats.trap.c / d.modeStats.trap.a)*100) : 0}%)</div>
       </div>
     </div>
 
@@ -2175,12 +2175,12 @@ async function _exportRecordToExcel(payload) {
       ["答對過單字(不重複)", `${ov.distinctCorrect} / ${ov.totalVocab} 字`, "連續練習天數", `${ov.streak} 天`, "最佳連續 / 累計天數", `最佳 ${ov.best} 天 / 累計 ${ov.totalDays} 天`],
       ["學習中單字數", `${ov.learn} 字`, "練習中單字數", `${ov.prac} 字`, "已精通單字數 ⭐", `${ov.mast} 字`],
       [],
-      ["【二、4 大練習模式統計】"],
-      ["練習模式", "作答題數", "答對題數", "正確率"],
-      ["🎧 聽與拼", (ms.listen && ms.listen.a) || 0, (ms.listen && ms.listen.c) || 0, mRate(ms.listen)],
-      ["✅ 選拼法", (ms.pick && ms.pick.a) || 0, (ms.pick && ms.pick.c) || 0, mRate(ms.pick)],
-      ["🧩 重組", (ms.scramble && ms.scramble.a) || 0, (ms.scramble && ms.scramble.c) || 0, mRate(ms.scramble)],
-      ["🖍️ 填陷阱", (ms.trap && ms.trap.a) || 0, (ms.trap && ms.trap.c) || 0, mRate(ms.trap)],
+      ["【二、4 大練習模式答對單字數】"],
+      ["練習模式", "受測單字數", "答對單字數", "正確率"],
+      ["🎧 聽與拼", `${(ms.listen && ms.listen.a) || 0} 字`, `${(ms.listen && ms.listen.c) || 0} 字`, mRate(ms.listen)],
+      ["✅ 選拼法", `${(ms.pick && ms.pick.a) || 0} 字`, `${(ms.pick && ms.pick.c) || 0} 字`, mRate(ms.pick)],
+      ["🧩 重組", `${(ms.scramble && ms.scramble.a) || 0} 字`, `${(ms.scramble && ms.scramble.c) || 0} 字`, mRate(ms.scramble)],
+      ["🖍️ 填陷阱", `${(ms.trap && ms.trap.a) || 0} 字`, `${(ms.trap && ms.trap.c) || 0} 字`, mRate(ms.trap)],
       [],
       ["【三、各關卡進度 (Level 1 ~ Level 5)】"],
       ["關卡名稱", "答對單字 / 已測單字", "關卡正確率", "學習中(字)", "練習中(字)", "精通⭐(字)", "該關總單字數"]
