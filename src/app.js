@@ -25,7 +25,8 @@ const taskState = {
   correct      : 0,
   task         : null,
   correctWords : [],
-  wrongWords   : []
+  wrongWords   : [],
+  hadCorrectThenWrong: []
 };
 
 // ── 隨時保存任務中途進度（中途存檔或強制關閉防護） ──
@@ -40,15 +41,16 @@ function persistTaskProgress() {
     }).filter(Boolean);
 
     const saveObj = {
-      date         : todayDash,
-      username     : localStorage.getItem("current_user") || "",
-      task         : taskState.task,
-      pool         : taskState.pool,
-      words        : poolWords,
-      index        : taskState.index,
-      correct      : taskState.correct,
-      correctWords : taskState.correctWords || [],
-      wrongWords   : taskState.wrongWords || []
+      date                : todayDash,
+      username            : localStorage.getItem("current_user") || "",
+      task                : taskState.task,
+      pool                : taskState.pool,
+      words               : poolWords,
+      index               : taskState.index,
+      correct             : taskState.correct,
+      correctWords        : taskState.correctWords || [],
+      wrongWords          : taskState.wrongWords || [],
+      hadCorrectThenWrong : taskState.hadCorrectThenWrong || []
     };
     localStorage.setItem("today_task_in_progress", JSON.stringify(saveObj));
     if (poolWords.length > 0) {
@@ -374,19 +376,23 @@ function answer(correct, guessVal) {
 
   // ── 若在指定任務中 ──
   if (taskState.active) {
+    const w = String(state.word.word).trim().toLowerCase();
+    taskState.correctWords = taskState.correctWords || [];
+    taskState.wrongWords = taskState.wrongWords || [];
+    taskState.hadCorrectThenWrong = taskState.hadCorrectThenWrong || [];
+
     if (correct) {
       taskState.correct++;
-      const cw = String(state.word.word).trim().toLowerCase();
-      taskState.correctWords = taskState.correctWords || [];
-      if (!taskState.correctWords.includes(cw)) {
-        taskState.correctWords.push(cw);
+      if (!taskState.correctWords.includes(w)) {
+        taskState.correctWords.push(w);
       }
       // 依需求取消答對單字灑花特效
     } else {
-      const w = String(state.word.word).trim().toLowerCase();
-      taskState.wrongWords = taskState.wrongWords || [];
       if (!taskState.wrongWords.includes(w)) {
         taskState.wrongWords.push(w);
+      }
+      if (taskState.correctWords.includes(w) && !taskState.hadCorrectThenWrong.includes(w)) {
+        taskState.hadCorrectThenWrong.push(w);
       }
       // ⚠️ 僅在指定任務中答錯，才收錄進週末錯題補救庫！
       recordTaskMistake(w);
@@ -715,6 +721,7 @@ function showTaskIntroScreen(task) {
       taskState.correct = resumeCorrect;
       taskState.correctWords = (savedProgress && Array.isArray(savedProgress.correctWords)) ? savedProgress.correctWords : [];
       taskState.wrongWords = (savedProgress && Array.isArray(savedProgress.wrongWords)) ? savedProgress.wrongWords : [];
+      taskState.hadCorrectThenWrong = (savedProgress && Array.isArray(savedProgress.hadCorrectThenWrong)) ? savedProgress.hadCorrectThenWrong : [];
       finishTaskMode();
       return;
     }
@@ -743,14 +750,15 @@ function showTaskIntroScreen(task) {
   }
 
   // 設定待開始狀態
-  taskState.active       = false;
-  taskState.pending      = true;
-  taskState.task         = task;
-  taskState.pool         = pool;
-  taskState.index        = resumeIndex;
-  taskState.correct      = resumeCorrect;
-  taskState.correctWords = (savedProgress && Array.isArray(savedProgress.correctWords)) ? savedProgress.correctWords : [];
-  taskState.wrongWords   = (savedProgress && Array.isArray(savedProgress.wrongWords)) ? savedProgress.wrongWords : [];
+  taskState.active              = false;
+  taskState.pending             = true;
+  taskState.task                = task;
+  taskState.pool                = pool;
+  taskState.index               = resumeIndex;
+  taskState.correct             = resumeCorrect;
+  taskState.correctWords        = (savedProgress && Array.isArray(savedProgress.correctWords)) ? savedProgress.correctWords : [];
+  taskState.wrongWords          = (savedProgress && Array.isArray(savedProgress.wrongWords)) ? savedProgress.wrongWords : [];
+  taskState.hadCorrectThenWrong = (savedProgress && Array.isArray(savedProgress.hadCorrectThenWrong)) ? savedProgress.hadCorrectThenWrong : [];
 
   // 隱藏自由模式按鈕
   const checkBtn = document.getElementById("checkBtn");
@@ -879,17 +887,21 @@ function finishTaskMode() {
   const cleanCorrectWords = Array.from(new Set(
     (taskState.correctWords || []).map(w => String(w).trim().toLowerCase()).filter(Boolean)
   ));
+  const cleanHadCorrectThenWrong = Array.from(new Set(
+    (taskState.hadCorrectThenWrong || []).map(w => String(w).trim().toLowerCase()).filter(Boolean)
+  ));
 
   const finishedTaskPayload = {
-    hasTask: false,
-    alreadyCompleted: true,
-    taskName: task.taskName,
-    words: allTaskWords,
-    wrongWords: cleanWrongWords,
-    correctWords: cleanCorrectWords,
-    score: `${correct}/${total}`,
-    rate: rate + "%",
-    date: todayDash
+    hasTask             : false,
+    alreadyCompleted    : true,
+    taskName            : task.taskName,
+    words               : allTaskWords,
+    wrongWords          : cleanWrongWords,
+    correctWords        : cleanCorrectWords,
+    hadCorrectThenWrong : cleanHadCorrectThenWrong,
+    score               : `${correct}/${total}`,
+    rate                : rate + "%",
+    date                : todayDash
   };
   sessionStorage.setItem("assigned_task", JSON.stringify(finishedTaskPayload));
   localStorage.setItem("assigned_task_active", JSON.stringify(finishedTaskPayload));
@@ -902,17 +914,18 @@ function finishTaskMode() {
   // 3. 儲存今日任務成績摘要（標記 completed: true）
   const nowTs = new Date().toLocaleString("zh-TW", { hour12: false });
   const summaryObj = {
-    taskName     : task.taskName,
-    score        : correct,
-    total        : total,
-    rate         : rate + "%",
-    completed    : true,
-    isWeekend    : !!task.isWeekend,
-    date         : todayDash,
-    wrongWords   : cleanWrongWords,
-    correctWords : cleanCorrectWords,
-    words        : allTaskWords,
-    updatedAt    : nowTs
+    taskName            : task.taskName,
+    score               : correct,
+    total               : total,
+    rate                : rate + "%",
+    completed           : true,
+    isWeekend           : !!task.isWeekend,
+    date                : todayDash,
+    wrongWords          : cleanWrongWords,
+    correctWords        : cleanCorrectWords,
+    hadCorrectThenWrong : cleanHadCorrectThenWrong,
+    words               : allTaskWords,
+    updatedAt           : nowTs
   };
   localStorage.setItem("today_task_summary", JSON.stringify(summaryObj));
 
@@ -921,15 +934,16 @@ function finishTaskMode() {
     const histList = rawHist ? JSON.parse(rawHist) : [];
     const filtered = histList.filter(item => !(normalizeDateStr(item.date) === todayDash && item.taskName === task.taskName));
     filtered.unshift({
-      date: todayDash,
-      taskName: task.taskName,
-      score: `${correct}/${total}`,
-      rate: rate + "%",
-      status: "🟢 已完成",
-      updatedAt: nowTs,
-      wrongWords: cleanWrongWords,
-      correctWords: cleanCorrectWords,
-      words: allTaskWords
+      date                : todayDash,
+      taskName            : task.taskName,
+      score               : `${correct}/${total}`,
+      rate                : rate + "%",
+      status              : "🟢 已完成",
+      updatedAt           : nowTs,
+      wrongWords          : cleanWrongWords,
+      correctWords        : cleanCorrectWords,
+      hadCorrectThenWrong : cleanHadCorrectThenWrong,
+      words               : allTaskWords
     });
     localStorage.setItem("student_task_history", JSON.stringify(filtered));
   } catch(_) {}

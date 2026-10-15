@@ -14078,7 +14078,13 @@ function resolveTaskWords(record, selectedDate, agent) {
   correctList.sort((a, b) => a.localeCompare(b));
   wrongList.sort((a, b) => a.localeCompare(b));
 
-  return { rawWords: pool, wrongList, correctList };
+  const hadCorrectThenWrongList = (Array.isArray(record.hadCorrectThenWrong) ? record.hadCorrectThenWrong : [])
+    .map(w => resolveWord(String(w).trim()).toLowerCase())
+    .filter(Boolean);
+
+  return { rawWords: pool, wrongList, correctList, hadCorrectThenWrongList };
+}
+
 function extractRowTaskInfo(row, headers) {
   if (!row || !Array.isArray(row)) return null;
   let tNameIdx = -1, scoreIdx = -1, rateIdx = -1, statusIdx = -1, wrongIdx = -1;
@@ -14124,7 +14130,7 @@ function buildTaskDetailsHtml(record, selectedDate, agent) {
     `;
   }
 
-  const { rawWords, wrongList, correctList } = resolveTaskWords(record, selectedDate, agent);
+  const { rawWords, wrongList, correctList, hadCorrectThenWrongList } = resolveTaskWords(record, selectedDate, agent);
 
   const scoreVal = record.score || "—";
   const rateVal = formatRatePercentage(record.rate, record.score);
@@ -14159,7 +14165,19 @@ function buildTaskDetailsHtml(record, selectedDate, agent) {
 
   let wrongContentHtml = "";
   if (wrongList.length > 0) {
-    wrongContentHtml = wrongList.map(w => `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); speakMasteredWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
+    const sDateNorm = normalizeDateKey(selectedDate);
+    const sDateShort = unpadDateKey(selectedDate);
+    const dpMap = (agent && agent.dailyPractice) ? agent.dailyPractice : {};
+    const dpDay = dpMap[sDateNorm] || dpMap[sDateShort] || dpMap[selectedDate] || null;
+    wrongContentHtml = wrongList.map(w => {
+      const isHadCW = (hadCorrectThenWrongList && hadCorrectThenWrongList.includes(w)) ||
+                      (record.hadCorrectThenWrong && record.hadCorrectThenWrong.includes(w)) ||
+                      (dpDay && dpDay.words && dpDay.words[w] && (dpDay.words[w].hadCorrectThenWrong || (dpDay.words[w].lastResult === "wrong" && dpDay.words[w].correct > 0)));
+      if (isHadCW) {
+        return `<span class="word-pill-tag warning" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); speakMasteredWord('${w.replace(/'/g, "\\'")}')" style="border:1.5px dashed #f59e0b; background:rgba(245,158,11,0.1); color:#b45309; cursor:pointer;" title="當日曾答對，但後續作答時答錯 (點擊聆聽發音)">${w} <small style="font-size:10px; font-weight:700;">(曾對後錯⚠️)</small></span>`;
+      }
+      return `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); speakMasteredWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`;
+    }).join("");
   } else if (isFinished) {
     wrongContentHtml = `<span class="perfect-score-msg">🎉 太棒了！本次測驗全數答對，無任何答錯單字！</span>`;
   } else {
@@ -14240,7 +14258,9 @@ function buildFreeDetailsHtml(record, selectedDate, agent) {
         word: wName,
         attempts: (typeof info === "object" && info.attempts) ? info.attempts : 1,
         wrong: (typeof info === "object" && info.wrong) ? info.wrong : 1,
-        correct: (typeof info === "object" && info.correct) ? info.correct : (info && info.passed ? 1 : 0)
+        correct: (typeof info === "object" && info.correct) ? info.correct : (info && info.passed ? 1 : 0),
+        hadCorrectThenWrong: !!(typeof info === "object" && (info.hadCorrectThenWrong || (info.lastResult === "wrong" && info.correct > 0))),
+        lastResult: (typeof info === "object" && info.lastResult) ? info.lastResult : ""
       });
     } else if (hasCorrect) {
       correctList.push({
@@ -14330,7 +14350,9 @@ function buildFreeDetailsHtml(record, selectedDate, agent) {
   let wrongContentHtml = "";
   if (wrongList.length > 0) {
     wrongContentHtml = wrongList.map(w => {
-      if (w.correct > 0) {
+      if (w.hadCorrectThenWrong || (w.lastResult === "wrong" && w.correct > 0)) {
+        return `<span class="word-pill-tag warning" data-word="${w.word.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); speakMasteredWord('${w.word.replace(/'/g, "\\'")}')" style="border:1.5px dashed #f59e0b; background:rgba(245,158,11,0.1); color:#b45309; cursor:pointer;" title="當日曾答對，但後續作答時答錯 (點擊聆聽發音)">${w.word} <small style="font-size:10px; font-weight:700;">(曾對後錯⚠️)</small></span>`;
+      } else if (w.correct > 0) {
         return `<span class="word-pill-tag correct" data-word="${w.word.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); speakMasteredWord('${w.word.replace(/'/g, "\\'")}')" style="border:1.5px dashed var(--green, #10B981); cursor:pointer;" title="當日曾答錯，已訂正答對 (點擊聆聽發音)">${w.word} <small style="font-size:10px; opacity:0.85;">(已訂正)</small></span>`;
       } else {
         return `<span class="word-pill-tag wrong" data-word="${w.word.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); speakMasteredWord('${w.word.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w.word}</span>`;
@@ -14724,27 +14746,156 @@ function renderStudentSummary(resp) {
     userTagEl.innerHTML = "";
   }
 
-  // 2. 學習進度 Progress (共 2055 字)
-  let learn = 0, prac = 0, mast = 0;
+  // 2. 建立相異單字綜合彙整庫 (Unified Word Map)：將指定測驗與自由練習的所有相異單字完整加總聯集
+  const unifiedWords = new Map(); // key: lowercase word -> { word, box, tested, correct, modes: { listen: {a,c}, pick: {a,c}, scramble: {a,c}, trap: {a,c} } }
+
+  const getOrCreateWord = (rawW) => {
+    const w = resolveWord(rawW).trim().toLowerCase();
+    if (!w || /^w\d+$/i.test(w)) return null;
+    let entry = unifiedWords.get(w);
+    if (!entry) {
+      entry = {
+        word: w,
+        box: 0,
+        tested: false,
+        correct: false,
+        modes: {
+          listen: { a: 0, c: 0 },
+          pick: { a: 0, c: 0 },
+          scramble: { a: 0, c: 0 },
+          trap: { a: 0, c: 0 }
+        }
+      };
+      unifiedWords.set(w, entry);
+    }
+    return entry;
+  };
+
+  // 2-1. 匯入 agent.box
   if (agent && agent.box) {
-    for (const id in agent.box) {
-      const b = agent.box[id];
-      const st = (agent.stat && agent.stat[id]) || null;
-      if (st && st.c > 0) {
-        if (b >= 3) mast++;
-        else if (b === 2) prac++;
-        else learn++;
-      } else if (!agent.stat && b > 0) {
-        if (b >= 3) mast++;
-        else if (b === 2) prac++;
-        else if (b === 1) learn++;
+    for (const [k, bVal] of Object.entries(agent.box)) {
+      const e = getOrCreateWord(k);
+      if (e) {
+        e.box = Math.max(e.box, Number(bVal) || 0);
+        if (bVal > 0) {
+          e.tested = true;
+          e.correct = true;
+        }
       }
     }
-  } else if (rawRow.length > 17) {
-    mast  = parseInt(rawRow[14]) || 0;
-    prac  = parseInt(rawRow[15]) || 0;
-    learn = parseInt(rawRow[16]) || 0;
   }
+
+  // 2-2. 匯入 agent.stat
+  if (agent && agent.stat) {
+    for (const [k, s] of Object.entries(agent.stat)) {
+      const e = getOrCreateWord(k);
+      if (e && s) {
+        if (s.a > 0) e.tested = true;
+        if (s.c > 0) {
+          e.correct = true;
+          if (e.box <= 0) e.box = 1;
+        }
+      }
+    }
+  }
+
+  // 2-3. 匯入 agent.dailyPractice (自由練習各日明細)
+  if (agent && agent.dailyPractice) {
+    for (const day of Object.values(agent.dailyPractice)) {
+      if (day && day.words) {
+        for (const [k, info] of Object.entries(day.words)) {
+          const rawW = (info && info.word) ? info.word : k;
+          const e = getOrCreateWord(rawW);
+          if (e) {
+            e.tested = true;
+            if (info && (info.correct > 0 || info.passed)) {
+              e.correct = true;
+              if (e.box <= 0) e.box = 1;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // 2-4. 匯入 agent.mwords (四大模式不重複單字)
+  if (agent && agent.mwords) {
+    ["listen", "pick", "scramble", "trap"].forEach(m => {
+      const mw = agent.mwords[m];
+      if (mw) {
+        for (const [k, obj] of Object.entries(mw)) {
+          const e = getOrCreateWord(k);
+          if (e && obj) {
+            if (obj.a > 0) {
+              e.tested = true;
+              e.modes[m].a = Math.max(e.modes[m].a, 1);
+            }
+            if (obj.c > 0) {
+              e.correct = true;
+              if (e.box <= 0) e.box = 1;
+              e.modes[m].c = Math.max(e.modes[m].c, 1);
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // 2-5. 匯入所有指定測驗 (Task Records)：加總至整體進度與聽拼模式！
+  const allTasks = [];
+  if (Array.isArray(resp.dailyTaskHistory)) allTasks.push(...resp.dailyTaskHistory);
+  if (resp.todayTaskResult) allTasks.push(resp.todayTaskResult);
+  if (Array.isArray(window.cachedStudentDailyHistory)) allTasks.push(...window.cachedStudentDailyHistory);
+  if (Array.isArray(window.cachedBackupTaskHistory)) allTasks.push(...window.cachedBackupTaskHistory);
+
+  allTasks.forEach(task => {
+    if (!task) return;
+    const taskWords = Array.isArray(task.words) ? task.words : [];
+    const taskCorr = Array.isArray(task.correctWords) ? task.correctWords : [];
+
+    taskWords.forEach(w => {
+      const e = getOrCreateWord(w);
+      if (e) {
+        e.tested = true;
+        // 指定測驗為聽音拼字，記入 listen 模式
+        e.modes.listen.a = Math.max(e.modes.listen.a, 1);
+      }
+    });
+
+    taskCorr.forEach(w => {
+      const e = getOrCreateWord(w);
+      if (e) {
+        e.tested = true;
+        e.correct = true;
+        if (e.box <= 0) e.box = 1;
+        e.modes.listen.c = Math.max(e.modes.listen.c, 1);
+        e.modes.listen.a = Math.max(e.modes.listen.a, 1);
+      }
+    });
+  });
+
+  // 3. 學習進度 Progress (共 2055 字)：精通、練習中、學習中
+  let learn = 0, prac = 0, mast = 0;
+  unifiedWords.forEach(e => {
+    if (e.correct) {
+      if (e.box >= 3) mast++;
+      else if (e.box === 2) prac++;
+      else learn++; // e.box === 1
+    }
+  });
+
+  // 若 unifiedWords 仍無數據（如無 JSON 舊帳號），降級採用正確 header 索引解析試算表 row
+  if (learn === 0 && prac === 0 && mast === 0 && rawRow && rawRow.length > 7) {
+    const headers = resp.headers || [];
+    const getIdx = (keywords, def) => {
+      const i = headers.findIndex(h => keywords.some(k => String(h).includes(k)));
+      return i >= 0 ? i : def;
+    };
+    learn = parseInt(rawRow[getIdx(["學習中"], 5)]) || 0;
+    prac  = parseInt(rawRow[getIdx(["練習中"], 6)]) || 0;
+    mast  = parseInt(rawRow[getIdx(["精通"], 7)]) || 0;
+  }
+
   const totalVocab = 2055;
   const pctLearn = Math.min(100, Math.max(0, (learn / totalVocab) * 100)).toFixed(1);
   const pctPrac  = Math.min(100, Math.max(0, (prac / totalVocab) * 100)).toFixed(1);
@@ -14766,21 +14917,15 @@ function renderStudentSummary(resp) {
   const elNumT = document.getElementById("n-total") || document.getElementById("stNumTotal");
   if (elNumT) elNumT.innerText = totalVocab.toLocaleString();
 
-  let distinctCorrect = (learn + prac + mast);
-  if (distinctCorrect === 0) {
-    if (agent && agent.stat) {
-      distinctCorrect = Object.values(agent.stat).filter(s => s && s.c > 0).length;
-    } else if (rawRow.length > 7) {
-      distinctCorrect = parseInt(rawRow[7]) || 0;
-    } else if (agent && agent.box) {
-      distinctCorrect = Object.values(agent.box).filter(b => b >= 1).length;
-    }
-  }
-  const pts = (agent && agent.points !== undefined) ? agent.points : (parseInt(rawRow[3]) || 0);
-  const attTotal = (rawRow.length > 6 && parseInt(rawRow[6])) ? parseInt(rawRow[6]) : ((agent && agent.attempts !== undefined) ? agent.attempts : 0);
-  const corrTotal = (rawRow.length > 7 && parseInt(rawRow[7])) ? parseInt(rawRow[7]) : ((agent && agent.correct !== undefined) ? agent.correct : distinctCorrect);
-  const ovRate = attTotal > 0 ? Math.round((corrTotal / attTotal) * 100) : 0;
+  // 數值嚴密相符：共答對單字 ≡ 學習中 + 練習中 + 精通
+  const distinctCorrect = (learn + prac + mast);
   const vocabRate = totalVocab > 0 ? Math.round((distinctCorrect / totalVocab) * 100) : 0;
+  const headers = resp.headers || [];
+  const getIdx = (keywords, def) => {
+    const i = headers.findIndex(h => keywords.some(k => String(h).includes(k)));
+    return i >= 0 ? i : def;
+  };
+  const pts = (agent && agent.points !== undefined) ? agent.points : (parseInt(rawRow[getIdx(["分數"], 2)]) || 0);
 
   const elNumC = document.getElementById("n-correct");
   if (elNumC) elNumC.innerText = distinctCorrect.toLocaleString();
@@ -14789,7 +14934,7 @@ function renderStudentSummary(resp) {
   const elNumS = document.getElementById("n-score");
   if (elNumS) elNumS.innerText = pts.toLocaleString();
 
-  // 3. 各關卡進度 (Level 1 ~ 5) - 1:1 比照遊戲計算 (testedCorrect / testedCount)
+  // 4. 各關卡進度 (Level 1 ~ 5) - 由 unifiedWords 相異單字綜合庫計算
   const lvTbody = document.getElementById("stLevelProgressTbody");
   if (lvTbody) {
     let lvRowsHtml = "";
@@ -14811,113 +14956,78 @@ function renderStudentSummary(resp) {
     const levelTestedCorrMap = [0, 0, 0, 0, 0, 0];
 
     if (bMap) {
-      if (agent && agent.box) {
-        for (const [w, bVal] of Object.entries(agent.box)) {
-          const realW = resolveWord(w).toLowerCase();
-          const lv = bMap.get(realW);
-          const st = (agent.stat && agent.stat[w]) || null;
-          if (lv >= 1 && lv <= 5) {
-            if (st && st.c > 0) {
-              if (bVal >= 3) levelMastMap[lv]++;
-              else if (bVal === 2) levelPracMap[lv]++;
-              else levelLearnMap[lv]++;
-            } else if (!agent.stat && bVal > 0) {
-              if (bVal >= 3) levelMastMap[lv]++;
-              else if (bVal === 2) levelPracMap[lv]++;
-              else if (bVal === 1) levelLearnMap[lv]++;
-            }
+      unifiedWords.forEach(e => {
+        const lv = bMap.get(e.word);
+        if (lv >= 1 && lv <= 5) {
+          if (e.tested) levelTestedMap[lv]++;
+          if (e.correct) {
+            levelTestedCorrMap[lv]++;
+            if (e.box >= 3) levelMastMap[lv]++;
+            else if (e.box === 2) levelPracMap[lv]++;
+            else levelLearnMap[lv]++;
           }
         }
-      }
-      if (agent && agent.stat) {
-        for (const [w, s] of Object.entries(agent.stat)) {
-          const realW = resolveWord(w).toLowerCase();
-          const lv = bMap.get(realW);
-          if (lv >= 1 && lv <= 5 && s) {
-            if (s.a > 0) levelTestedMap[lv]++;
-            if (s.c > 0) levelTestedCorrMap[lv]++;
-          }
-        }
-      }
+      });
     }
 
     for (let lv = 1; lv <= 5; lv++) {
-      let lCorrWords = levelTestedCorrMap[lv];
-      let lTestedWords = levelTestedMap[lv];
+      let lMast = levelMastMap[lv] || 0;
+      let lPrac = levelPracMap[lv] || 0;
+      let lLearn = levelLearnMap[lv] || 0;
+      let lTotCorr = lLearn + lPrac + lMast;
+      let lTestedWords = levelTestedMap[lv] || 0;
 
-      // 若 stat 無細項，降級採用 lstat 或 rawRow
+      // 備援：若無單字細項，降級採用 lstat 或 rawRow
       if (lTestedWords === 0 && agent && agent.lstat && (agent.lstat[lv] || agent.lstat[String(lv)])) {
         const ls = agent.lstat[lv] || agent.lstat[String(lv)];
-        lCorrWords = ls.c || 0;
+        lTotCorr = ls.c || 0;
         lTestedWords = ls.a || 0;
-      } else if (lTestedWords === 0 && rawRow.length > 8 + lv) {
-        const parts = String(rawRow[8 + lv] || "").split("/");
-        lCorrWords = parseInt(parts[0]) || 0;
+      } else if (lTestedWords === 0 && rawRow && rawRow.length > 10 + lv) {
+        const parts = String(rawRow[10 + lv] || "").split("/");
+        lTotCorr = parseInt(parts[0]) || 0;
         lTestedWords = parseInt(parts[1]) || 0;
       }
 
-      const lRate = lTestedWords > 0 ? Math.round((lCorrWords / lTestedWords) * 100) : 0;
-      const lMast = levelMastMap[lv] || 0;
-      const lPrac = levelPracMap[lv] || 0;
-      const lLearn = levelLearnMap[lv] || 0;
-
-      let lTotCorr = (lLearn || 0) + (lPrac || 0) + (lMast || 0);
-      if (lTotCorr === 0 && lCorrWords > 0) lTotCorr = lCorrWords;
       lvRowsHtml += `<tr><td class="st-level-name"><span style="color:${lvColors[lv-1]}">●</span> Level ${lv}「${lvNames[lv-1]}」</td><td class="st-level-stats"><div class="level-stats-grid"><span class="st-item st-learn"><span class="st-lbl">學習中</span><b class="tnum st-num st-num-learn">${lLearn}</b>字</span><span class="st-sep">/</span><span class="st-item st-prac"><span class="st-lbl">練習中</span><b class="tnum st-num st-num-prac">${lPrac}</b>字</span><span class="st-sep">/</span><span class="st-item st-mast"><span class="st-lbl">精通</span><b class="tnum st-num st-num-mast">${lMast}</b>字</span><span class="st-sep">/</span><span class="st-item st-total"><span class="st-lbl">共答對</span><b class="tnum st-num st-num-total">${lTotCorr}</b>字</span></div></td></tr>`;
     }
     lvTbody.innerHTML = lvRowsHtml;
   }
 
-  // 4. 🎮 4 大練習模式答對數 (以答對數為主視覺，輔以總作答數與率)
+  // 5. 🎮 4 大練習模式答對數 (以答對數為主視覺，輔以總受測單字數與率)
   let mListen = { a: 0, c: 0 }, mPick = { a: 0, c: 0 }, mScram = { a: 0, c: 0 }, mTrap = { a: 0, c: 0 };
-  const mwords = (agent && agent.mwords) ? agent.mwords : null;
-  const mstat = (agent && agent.mstat) ? agent.mstat : null;
+  unifiedWords.forEach(e => {
+    if (e.modes.listen.a > 0) mListen.a++;
+    if (e.modes.listen.c > 0) mListen.c++;
+    if (e.modes.pick.a > 0) mPick.a++;
+    if (e.modes.pick.c > 0) mPick.c++;
+    if (e.modes.scramble.a > 0) mScram.a++;
+    if (e.modes.scramble.c > 0) mScram.c++;
+    if (e.modes.trap.a > 0) mTrap.a++;
+    if (e.modes.trap.c > 0) mTrap.c++;
+  });
 
   const parseModeCell = (cell) => {
     const parts = String(cell || "").split("/");
     return { c: parseInt(parts[0]) || 0, a: parseInt(parts[1]) || 0 };
   };
 
-  let hasMwordsData = false;
-  if (mwords) {
-    ["listen", "pick", "scramble", "trap"].forEach(m => {
-      if (mwords[m] && Object.values(mwords[m]).some(e => e && e.a > 0)) {
-        hasMwordsData = true;
-        const entries = Object.values(mwords[m]);
-        const a = entries.filter(e => e && e.a > 0).length;
-        const c = entries.filter(e => e && e.c > 0).length;
-        if (m === "listen") mListen = { a, c };
-        else if (m === "pick") mPick = { a, c };
-        else if (m === "scramble") mScram = { a, c };
-        else if (m === "trap") mTrap = { a, c };
-      }
-    });
-  }
-
-  // 試算表 26 欄標準架構中，四大模式固定在 index 17~20 (第 18~21 欄：聽與拼、選拼法、字母重組、填空陷阱)
-  if (!hasMwordsData) {
-    if (rawRow && rawRow.length >= 21 && (String(rawRow[17]).includes("/") || String(rawRow[19]).includes("/"))) {
-      mListen = parseModeCell(rawRow[17]);
-      mPick   = parseModeCell(rawRow[18]);
-      mScram  = parseModeCell(rawRow[19]);
-      mTrap   = parseModeCell(rawRow[20]);
-    } else if (mstat) {
-      const totTestedWords = (agent && agent.stat ? Object.values(agent.stat).filter(s => s && s.a > 0).length : (testedVocab || 0));
-      const totCorrWords = (agent && agent.stat ? Object.values(agent.stat).filter(s => s && s.c > 0).length : (totalCorrect || 0));
-      const activeModes = ["listen", "pick", "scramble", "trap"].filter(m => mstat[m] && mstat[m].a > 0);
-      if (activeModes.length === 1) {
-        const singleM = activeModes[0];
-        const mObj = { a: totTestedWords, c: totCorrWords };
-        if (singleM === "listen") mListen = mObj;
-        else if (singleM === "pick") mPick = mObj;
-        else if (singleM === "scramble") mScram = mObj;
-        else if (singleM === "trap") mTrap = mObj;
-      } else {
-        mListen = mstat.listen ? { a: Math.min(totTestedWords, mstat.listen.a || 0), c: Math.min(totCorrWords, mstat.listen.c || 0) } : { a: 0, c: 0 };
-        mPick   = mstat.pick   ? { a: Math.min(totTestedWords, mstat.pick.a   || 0), c: Math.min(totCorrWords, mstat.pick.c   || 0) } : { a: 0, c: 0 };
-        mScram  = mstat.scramble ? { a: Math.min(totTestedWords, mstat.scramble.a || 0), c: Math.min(totCorrWords, mstat.scramble.c || 0) } : { a: 0, c: 0 };
-        mTrap   = mstat.trap   ? { a: Math.min(totTestedWords, mstat.trap.a   || 0), c: Math.min(totCorrWords, mstat.trap.c   || 0) } : { a: 0, c: 0 };
-      }
+  // 備援：若無單字級模式細項，從試算表 row 或 mstat 取得
+  if (mListen.a === 0 && mPick.a === 0 && mScram.a === 0 && mTrap.a === 0) {
+    if (rawRow && rawRow.length >= 20) {
+      const getModeIdx = (name, def) => {
+        const i = headers.findIndex(h => String(h).includes(name));
+        return i >= 0 ? i : def;
+      };
+      mListen = parseModeCell(rawRow[getModeIdx("聽與拼", 16)]);
+      mPick   = parseModeCell(rawRow[getModeIdx("選拼法", 17)]);
+      mScram  = parseModeCell(rawRow[getModeIdx("重組", 18)]);
+      mTrap   = parseModeCell(rawRow[getModeIdx("填空", 19)]);
+    } else if (agent && agent.mstat) {
+      const mstat = agent.mstat;
+      mListen = mstat.listen ? { a: mstat.listen.a || 0, c: mstat.listen.c || 0 } : { a: 0, c: 0 };
+      mPick   = mstat.pick   ? { a: mstat.pick.a   || 0, c: mstat.pick.c   || 0 } : { a: 0, c: 0 };
+      mScram  = mstat.scramble ? { a: mstat.scramble.a || 0, c: mstat.scramble.c || 0 } : { a: 0, c: 0 };
+      mTrap   = mstat.trap   ? { a: mstat.trap.a   || 0, c: mstat.trap.c   || 0 } : { a: 0, c: 0 };
     }
   }
 

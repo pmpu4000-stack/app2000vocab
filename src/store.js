@@ -180,13 +180,26 @@ export function grade(id, correct, level, mode, wordStr = null, isFree = true) {
 
     if (wordStr) {
       const wKey = String(wordStr).trim().toLowerCase();
-      const we = dp.words[wKey] || (dp.words[wKey] = { word: wKey, attempts: 0, correct: 0, wrong: 0, passed: false });
+      const we = dp.words[wKey] || (dp.words[wKey] = {
+        word: wKey,
+        attempts: 0,
+        correct: 0,
+        wrong: 0,
+        passed: false,
+        hadCorrectThenWrong: false,
+        lastResult: ''
+      });
       we.attempts++;
       if (correct) {
         we.correct++;
         we.passed = true;
+        we.lastResult = 'correct';
       } else {
         we.wrong++;
+        if (we.correct > 0) {
+          we.hadCorrectThenWrong = true;
+        }
+        we.lastResult = 'wrong';
       }
     }
 

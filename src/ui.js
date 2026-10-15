@@ -883,6 +883,10 @@ function resolveTaskWords(record, selectedDate, d) {
   wrongList.sort((a, b) => a.localeCompare(b));
   correctList.sort((a, b) => a.localeCompare(b));
 
+  const hadCorrectThenWrongList = (Array.isArray(record.hadCorrectThenWrong) ? record.hadCorrectThenWrong : [])
+    .map(w => resolveWordStr(w, d).toLowerCase())
+    .filter(Boolean);
+
   // 回寫快取防止刷新遺失
   if (rawWords.length > 0) {
     record.words = rawWords;
@@ -892,7 +896,7 @@ function resolveTaskWords(record, selectedDate, d) {
     } catch(_) {}
   }
 
-  return { rawWords, wrongList, correctList };
+  return { rawWords, wrongList, correctList, hadCorrectThenWrongList };
 }
 
 function buildTaskDetailsHtml(record, selectedDate, d) {
@@ -906,7 +910,7 @@ function buildTaskDetailsHtml(record, selectedDate, d) {
     `;
   }
 
-  const { rawWords, wrongList, correctList } = resolveTaskWords(record, selectedDate, d);
+  const { rawWords, wrongList, correctList, hadCorrectThenWrongList } = resolveTaskWords(record, selectedDate, d);
 
   const scoreVal = record.score || "—";
   const rateVal = formatRatePercentage(record.rate, record.score);
@@ -941,7 +945,18 @@ function buildTaskDetailsHtml(record, selectedDate, d) {
 
   let wrongContentHtml = "";
   if (wrongList.length > 0) {
-    wrongContentHtml = wrongList.map(w => `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); window.__sayWord && window.__sayWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
+    const normDate = normalizeDateStr(selectedDate);
+    const slashDate = normDate.replace(/-/g, "/");
+    const dpDay = d && d.dailyPractice && (d.dailyPractice[normDate] || d.dailyPractice[slashDate] || d.dailyPractice[selectedDate]);
+    wrongContentHtml = wrongList.map(w => {
+      const isHadCW = (hadCorrectThenWrongList && hadCorrectThenWrongList.includes(w)) ||
+                      (record.hadCorrectThenWrong && record.hadCorrectThenWrong.includes(w)) ||
+                      (dpDay && dpDay.words && dpDay.words[w] && (dpDay.words[w].hadCorrectThenWrong || (dpDay.words[w].lastResult === "wrong" && dpDay.words[w].correct > 0)));
+      if (isHadCW) {
+        return `<span class="word-pill-tag warning" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); window.__sayWord && window.__sayWord('${w.replace(/'/g, "\\'")}')" style="border:1.5px dashed #f59e0b; background:rgba(245,158,11,0.1); color:#b45309; cursor:pointer;" title="當日曾答對，但後續作答時答錯 (點擊聆聽發音)">${w} <small style="font-size:10px; font-weight:700;">(曾對後錯⚠️)</small></span>`;
+      }
+      return `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); window.__sayWord && window.__sayWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`;
+    }).join("");
   } else if (isFinished) {
     wrongContentHtml = `<span class="perfect-score-msg">🎉 太棒了！本次測驗全數答對，無任何答錯單字！</span>`;
   } else {
@@ -1028,7 +1043,9 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
         word: wName,
         attempts: (typeof info === "object" && info.attempts) ? info.attempts : 1,
         wrong: (typeof info === "object" && info.wrong) ? info.wrong : 1,
-        correct: (typeof info === "object" && info.correct) ? info.correct : (info && info.passed ? 1 : 0)
+        correct: (typeof info === "object" && info.correct) ? info.correct : (info && info.passed ? 1 : 0),
+        hadCorrectThenWrong: !!(typeof info === "object" && (info.hadCorrectThenWrong || (info.lastResult === "wrong" && info.correct > 0))),
+        lastResult: (typeof info === "object" && info.lastResult) ? info.lastResult : ""
       });
     } else if (hasCorrect) {
       correctList.push({
@@ -1110,7 +1127,9 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
   let wrongContentHtml = "";
   if (wrongList.length > 0) {
     wrongContentHtml = wrongList.map(w => {
-      if (w.correct > 0) {
+      if (w.hadCorrectThenWrong || (w.lastResult === "wrong" && w.correct > 0)) {
+        return `<span class="word-pill-tag warning" data-word="${w.word.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); window.__sayWord && window.__sayWord('${w.word.replace(/'/g, "\\'")}')" style="border:1.5px dashed #f59e0b; background:rgba(245,158,11,0.1); color:#b45309; cursor:pointer;" title="當日曾答對，但後續作答時答錯 (點擊聆聽發音)">${w.word} <small style="font-size:10px; font-weight:700;">(曾對後錯⚠️)</small></span>`;
+      } else if (w.correct > 0) {
         return `<span class="word-pill-tag correct" data-word="${w.word.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); window.__sayWord && window.__sayWord('${w.word.replace(/'/g, "\\'")}')" style="border:1.5px dashed var(--green, #10B981); cursor:pointer;" title="當日曾答錯，已訂正答對 (點擊聆聽發音)">${w.word} <small style="font-size:10px; opacity:0.85;">(已訂正)</small></span>`;
       } else {
         return `<span class="word-pill-tag wrong" data-word="${w.word.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); window.__sayWord && window.__sayWord('${w.word.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w.word}</span>`;
