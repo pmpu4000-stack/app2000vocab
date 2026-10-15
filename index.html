@@ -2070,10 +2070,16 @@ body[data-theme="dark"],
         if (np) np.textContent = pts;
 
         let distinctCorrect = 0;
+        let learning = 0, practicing = 0, mastered = 0, passRate = "0%", testedVocab = 0;
         try {
           const cachedSum = JSON.parse(localStorage.getItem("cached_summary") || "null");
-          if (cachedSum && typeof cachedSum.distinctCorrect === "number") {
-            distinctCorrect = cachedSum.distinctCorrect;
+          if (cachedSum) {
+            if (typeof cachedSum.distinctCorrect === "number") distinctCorrect = cachedSum.distinctCorrect;
+            if (typeof cachedSum.learning === "number") learning = cachedSum.learning;
+            if (typeof cachedSum.practicing === "number") practicing = cachedSum.practicing;
+            if (typeof cachedSum.mastered === "number") mastered = cachedSum.mastered;
+            if (cachedSum.passRate) passRate = cachedSum.passRate;
+            if (typeof cachedSum.testedVocab === "number") testedVocab = cachedSum.testedVocab;
           }
         } catch(_) {}
 
@@ -2087,10 +2093,24 @@ body[data-theme="dark"],
         if (sc) sc.textContent = String(distinctCorrect);
         if (nc) nc.textContent = String(distinctCorrect);
 
+        // 🚀 極速秒開：直接以 cached_summary 更新整體進度條與數值，免除額外等待計算
+        const nLearn = document.getElementById("n-learn");
+        const nPrac = document.getElementById("n-prac");
+        const nMast = document.getElementById("n-mast");
+        const bLearn = document.getElementById("b-learn");
+        const bPrac = document.getElementById("b-prac");
+        const bMast = document.getElementById("b-mast");
+        const totalWords = 2055;
+        if (nLearn && learning) nLearn.textContent = learning;
+        if (nPrac && practicing) nPrac.textContent = practicing;
+        if (nMast && mastered) nMast.textContent = mastered;
+        if (bLearn && learning) bLearn.style.width = Math.min(100, (learning / totalWords * 100)) + "%";
+        if (bPrac && practicing) bPrac.style.width = Math.min(100, (practicing / totalWords * 100)) + "%";
+        if (bMast && mastered) bMast.style.width = Math.min(100, (mastered / totalWords * 100)) + "%";
+
         if (ss) ss.textContent = String(sa.streak !== undefined ? sa.streak : 0);
-        const rateStr = (sa.attempts ? Math.round((sa.correct / sa.attempts) * 100) : 0) + "%";
-        const vocabRateStr = Math.round((distinctCorrect / 2055) * 100) + "%";
-        if (sr) sr.textContent = rateStr;
+        const vocabRateStr = Math.round((distinctCorrect / totalWords) * 100) + "%";
+        if (sr) sr.textContent = passRate;
         if (nr) nr.textContent = vocabRateStr;
       } else {
         if (sp) sp.textContent = "0";

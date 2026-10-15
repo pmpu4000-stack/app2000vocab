@@ -749,7 +749,6 @@ export function getPrecomputedSummary(words) {
     mastered: s.mast,
     practicing: s.prac,
     learning: s.learn,
-    progressStr: `${s.distinctCorrect}/2055字`,
     levels,
     modes: {
       listen: `${modeStats.listen.c}/${modeStats.listen.a}`,
