@@ -928,6 +928,7 @@ function finishTaskMode() {
     updatedAt           : nowTs
   };
   localStorage.setItem("today_task_summary", JSON.stringify(summaryObj));
+  localStorage.setItem("task_summary_" + todayDash, JSON.stringify(summaryObj));
 
   try {
     const rawHist = localStorage.getItem("student_task_history");

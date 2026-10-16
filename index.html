@@ -2771,7 +2771,7 @@ body[data-theme="dark"],
       const iconEl = document.getElementById("s-upload");
       if (iconEl && !isSilent) iconEl.textContent = "⏳";
 
-      const allowedPrefixes = ["spellAgent", "today_task", "task_done", "task_words", "student_task_history", "current_user", "user_role"];
+      const allowedPrefixes = ["spellAgent", "today_task", "task_done", "task_words", "task_summary", "student_task_history", "current_user", "user_role"];
       const localData = {};
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
@@ -2815,15 +2815,14 @@ body[data-theme="dark"],
             const now = new Date();
             const todayDash = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0") + "-" + String(now.getDate()).padStart(2, "0");
             const todaySlash = todayDash.replace(/-/g, "/");
-            if (parsedSum && (parsedSum.date === todayDash || parsedSum.date === todaySlash)) {
-              if (!Array.isArray(parsedSum.words) || parsedSum.words.length === 0) {
-                try {
-                  const cached = localStorage.getItem("task_words_" + todayDash) || localStorage.getItem("task_words_" + todaySlash);
-                  if (cached) parsedSum.words = JSON.parse(cached);
-                } catch(_) {}
-              }
-              todayTaskSummary = parsedSum;
+            const sumDate = parsedSum.date ? String(parsedSum.date).replace(/\//g, "-") : todayDash;
+            if (!Array.isArray(parsedSum.words) || parsedSum.words.length === 0) {
+              try {
+                const cached = localStorage.getItem("task_words_" + sumDate) || localStorage.getItem("task_words_" + todayDash) || localStorage.getItem("task_words_" + todaySlash);
+                if (cached) parsedSum.words = JSON.parse(cached);
+              } catch(_) {}
             }
+            todayTaskSummary = parsedSum;
           }
         } catch(_) {}
       }
