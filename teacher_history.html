@@ -2838,11 +2838,13 @@
       width: 100% !important;
     }
     .date-nav-stepper-wrap .date-picker-input {
-      flex: 1 1 125px !important;
+      flex: 0 0 135px !important;
+      width: 135px !important;
       min-width: 110px !important;
       max-width: 145px !important;
       height: 34px !important;
       min-height: 34px !important;
+      max-height: 34px !important;
       background: #FFFFFF !important;
       border: 1.5px solid var(--sky, #2D9CDB) !important;
       color: var(--ink, #232A4D) !important;
@@ -2868,6 +2870,30 @@
     [data-theme="dark"] .date-nav-divider {
       background: rgba(255, 255, 255, 0.1) !important;
     }
+    .date-navigator-card:not(.export-navigator-card) input[type="date"],
+    .date-nav-stepper-wrap input[type="date"].date-picker-input {
+      background: #FFFFFF !important;
+      border: 1.5px solid var(--sky, #2D9CDB) !important;
+      color: var(--ink, #232A4D) !important;
+      padding: 0 8px !important;
+      height: 34px !important;
+      min-height: 34px !important;
+      max-height: 34px !important;
+      border-radius: 8px !important;
+      font-size: 12.5px !important;
+      font-weight: 700 !important;
+      outline: none !important;
+      cursor: pointer !important;
+      line-height: 1.2 !important;
+      font-family: ui-rounded, "SF Pro Rounded", "Hiragino Maru Gothic ProN", "Nunito", "PingFang TC", system-ui, sans-serif !important;
+      box-sizing: border-box !important;
+    }
+    [data-theme="dark"] .date-navigator-card:not(.export-navigator-card) input[type="date"],
+    [data-theme="dark"] .date-nav-stepper-wrap input[type="date"].date-picker-input {
+      background: #131624 !important;
+      border-color: #2D354E !important;
+      color: #F0F3FA !important;
+    }
     @media (max-width: 820px) {
       .date-navigator-card:not(.export-navigator-card) {
         grid-template-columns: 1fr !important;
@@ -2886,6 +2912,7 @@
       .date-nav-control-wrap select.task-date-selector {
         height: 38px !important;
         min-height: 38px !important;
+        max-height: 38px !important;
         font-size: 13px !important;
       }
       .date-nav-stepper-wrap {
@@ -2895,11 +2922,14 @@
       }
       .date-nav-stepper-wrap .date-picker-input,
       .date-navigator-card:not(.export-navigator-card) input[type="date"].date-picker-input {
+        flex: none !important;
         width: 100% !important;
         max-width: 100% !important;
         height: 38px !important;
         min-height: 38px !important;
+        max-height: 38px !important;
         font-size: 13.5px !important;
+        box-sizing: border-box !important;
       }
       .date-nav-btn-group {
         display: grid !important;
@@ -2910,33 +2940,11 @@
       .date-nav-stepper-wrap .date-nav-btn {
         height: 38px !important;
         min-height: 38px !important;
+        max-height: 38px !important;
         font-size: 13px !important;
         width: 100% !important;
         padding: 0 4px !important;
       }
-    }
-    .date-navigator-card:not(.export-navigator-card) input[type="date"],
-    .date-nav-stepper-wrap input[type="date"].date-picker-input {
-      background: #FFFFFF !important;
-      border: 1.5px solid var(--sky, #2D9CDB) !important;
-      color: var(--ink, #232A4D) !important;
-      padding: 0 8px !important;
-      height: 34px !important;
-      min-height: 34px !important;
-      border-radius: 8px !important;
-      font-size: 12.5px !important;
-      font-weight: 700 !important;
-      outline: none !important;
-      cursor: pointer !important;
-      line-height: 1.2 !important;
-      font-family: ui-rounded, "SF Pro Rounded", "Hiragino Maru Gothic ProN", "Nunito", "PingFang TC", system-ui, sans-serif !important;
-      box-sizing: border-box !important;
-    }
-    [data-theme="dark"] .date-navigator-card:not(.export-navigator-card) input[type="date"],
-    [data-theme="dark"] .date-nav-stepper-wrap input[type="date"].date-picker-input {
-      background: #131624 !important;
-      border-color: #2D354E !important;
-      color: #F0F3FA !important;
     }
     .date-navigator-card:not(.export-navigator-card) .date-nav-btn,
     .date-nav-stepper-wrap .date-nav-btn {
