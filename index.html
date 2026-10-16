@@ -302,6 +302,32 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 [data-theme="dark"] .heatmap-yellow .hc.h2{background:#CA8A04 !important;border-color:#EAB308 !important}
 [data-theme="dark"] .heatmap-yellow .hc.h3{background:#FACC15 !important;border-color:#FDE047 !important}
 [data-theme="dark"] .heatmap-yellow .hc.hc-active{outline:2.5px solid #FDE047 !important;outline-offset:1px}
+
+/* 熱力圖 3 大特殊狀態方格顏色 (登入未受測=黃色, 缺席未受測=紅色, 登入有受測但未完成全部=藍色) */
+.hc.h-status-yellow { background: #FDE047 !important; border-color: #EAB308 !important; box-shadow: 0 1px 3px rgba(234,179,8,.35) !important; }
+.hc.h-status-red    { background: #F87171 !important; border-color: #EF4444 !important; box-shadow: 0 1px 3px rgba(239,68,68,.35) !important; }
+.hc.h-status-blue   { background: #38BDF8 !important; border-color: #0284C7 !important; box-shadow: 0 1px 3px rgba(2,132,199,.35) !important; }
+
+[data-theme="dark"] .hc.h-status-yellow { background: #CA8A04 !important; border-color: #FACC15 !important; }
+[data-theme="dark"] .hc.h-status-red    { background: #DC2626 !important; border-color: #F87171 !important; }
+[data-theme="dark"] .hc.h-status-blue   { background: #0284C7 !important; border-color: #38BDF8 !important; }
+
+/* 右邊框框對應狀態樣式 */
+.heat-day-info.tier-status-yellow { background: #FEFCE8 !important; color: #B45309 !important; border: 2px solid #EAB308 !important; box-shadow: 0 2px 6px rgba(234,179,8,.22) !important; }
+.heat-day-info.tier-status-yellow b { color: #92400E !important; }
+[data-theme="dark"] .heat-day-info.tier-status-yellow { background: rgba(250,204,21,.18) !important; color: #FDE047 !important; border-color: #FACC15 !important; }
+[data-theme="dark"] .heat-day-info.tier-status-yellow b { color: #FEF08A !important; }
+
+.heat-day-info.tier-status-red { background: #FEF2F2 !important; color: #DC2626 !important; border: 2px solid #EF4444 !important; box-shadow: 0 2px 6px rgba(239,68,68,.22) !important; }
+.heat-day-info.tier-status-red b { color: #B91C1C !important; }
+[data-theme="dark"] .heat-day-info.tier-status-red { background: rgba(239,68,68,.22) !important; color: #FCA5A5 !important; border-color: #F87171 !important; }
+[data-theme="dark"] .heat-day-info.tier-status-red b { color: #FECACA !important; }
+
+.heat-day-info.tier-status-blue { background: #F0F9FF !important; color: #0284C7 !important; border: 2px solid #38BDF8 !important; box-shadow: 0 2px 6px rgba(2,132,199,.22) !important; }
+.heat-day-info.tier-status-blue b { color: #0369A1 !important; }
+[data-theme="dark"] .heat-day-info.tier-status-blue { background: rgba(56,189,248,.18) !important; color: #7DD3FC !important; border-color: #38BDF8 !important; }
+[data-theme="dark"] .heat-day-info.tier-status-blue b { color: #BAE6FD !important; }
+
 .embedded-heatmap-sec{margin-top:14px;padding-top:12px;border-top:1px dashed var(--line)}
 [data-theme="dark"] .embedded-heatmap-sec{border-top-color:#2B334E !important}
 .defs{font-size:11.5px;color:var(--ink3);margin-top:8px;font-weight:600;line-height:1.6}
@@ -451,16 +477,16 @@ body.daily-limit-reached #btn-upload {
 .word-split-title.correct-title{color:#065F46}
 .word-split-title.wrong-title{color:#D64545}
 .word-split-content,
-.word-split-box > div:not(.word-split-title){display:flex;flex-wrap:wrap;align-items:flex-start;align-content:flex-start;gap:5px;height:160px;min-height:160px;max-height:160px;overflow-y:auto;overscroll-behavior:contain;padding-right:4px;scrollbar-width:thin;scrollbar-color:rgba(100,116,139,0.35) transparent}
+.word-split-box > div:not(.word-split-title){display:flex;flex-wrap:wrap;align-items:flex-start;align-content:flex-start;gap:6px;max-height:138px;min-height:75px;overflow-y:auto !important;overscroll-behavior:contain;padding-right:6px;scrollbar-width:thin;scrollbar-color:rgba(100,116,139,0.45) transparent}
 .task-empty-notice-box{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:330px;padding:20px 14px;text-align:center;box-sizing:border-box}
 .word-split-content::-webkit-scrollbar,
-.word-split-box > div:not(.word-split-title)::-webkit-scrollbar{width:5px}
+.word-split-box > div:not(.word-split-title)::-webkit-scrollbar{width:6px}
 .word-split-content::-webkit-scrollbar-track,
-.word-split-box > div:not(.word-split-title)::-webkit-scrollbar-track{background:transparent;border-radius:999px}
+.word-split-box > div:not(.word-split-title)::-webkit-scrollbar-track{background:rgba(0,0,0,0.04);border-radius:999px}
 .word-split-content::-webkit-scrollbar-thumb,
-.word-split-box > div:not(.word-split-title)::-webkit-scrollbar-thumb{background:rgba(100,116,139,0.35);border-radius:999px}
+.word-split-box > div:not(.word-split-title)::-webkit-scrollbar-thumb{background:rgba(100,116,139,0.45);border-radius:999px}
 .word-split-content::-webkit-scrollbar-thumb:hover,
-.word-split-box > div:not(.word-split-title)::-webkit-scrollbar-thumb:hover{background:rgba(100,116,139,0.6)}
+.word-split-box > div:not(.word-split-title)::-webkit-scrollbar-thumb:hover{background:rgba(100,116,139,0.75)}
 .perfect-score-msg{display:inline-flex;align-items:center;font-size:12px;font-weight:800;color:#065F46;background:#ECFDF5;border:1px solid #A7F3D0;padding:4px 10px;border-radius:8px;line-height:1.4}
 [data-theme="dark"] .perfect-score-msg{color:#6EE7B7!important;background:rgba(16,185,129,.18)!important;border-color:rgba(52,211,153,.35)!important}
 .word-split-box.untested-box{background:#F8FAFC;border:1px solid #E2E8F0}

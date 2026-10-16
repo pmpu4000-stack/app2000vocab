@@ -1052,16 +1052,19 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
       <div class="task-score-grid">
         <div class="task-score-item">
           <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap;">
-            <span>施測單字數</span>
+            <span style="flex:1; text-align:right;">答對單字數</span>
+            <span style="padding:0 6px; opacity:0.6;">/</span>
+            <span style="flex:1; text-align:left;">施測單字數</span>
           </div>
           <div class="task-score-val" style="color:#0284c7; display:flex; align-items:center; justify-content:center;">
-            <span>${taskTotWords > 0 ? taskTotWords : (rawWords.length || "—")}</span>
-            <span style="font-size:13px; font-weight:700; color:var(--ink3); margin-left:4px;">字</span>
+            <span style="flex:1; text-align:right;">0</span>
+            <span style="padding:0 6px; font-weight:700; color:var(--ink3); opacity:0.6; font-size:18px;">/</span>
+            <span style="flex:1; text-align:left;">${taskTotWords > 0 ? taskTotWords : (rawWords.length || "—")}</span>
           </div>
         </div>
         <div class="task-score-item">
-          <div class="task-score-label">作答狀態</div>
-          <div class="task-score-val" style="color:${statusColor}; font-size:14.5px; font-weight:800; display:flex; align-items:center; justify-content:center;">${statusDesc || displayStatusStr}</div>
+          <div class="task-score-label">📊 正確率</div>
+          <div class="task-score-val" style="color:var(--ink3);">0%</div>
         </div>
       </div>
     `
@@ -1091,7 +1094,6 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
       <div class="task-history-header">
         <div>
           <span class="task-card-title">${formattedTaskName}</span>
-          <span style="margin-left:8px; font-size:11.5px; font-weight:700; color:${statusColor}; background:${statusBg}; padding:2px 8px; border-radius:999px;">${displayStatusStr}</span>
         </div>
       </div>
 
@@ -1102,7 +1104,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
           <div class="word-split-title ${leftTitleClass}">
             <span>${leftTitleText}</span>
           </div>
-          <div class="word-split-content">
+          <div class="word-split-content" style="max-height:138px; overflow-y:auto;">
             ${correctContentHtml}
           </div>
         </div>
@@ -1155,23 +1157,25 @@ function renderUntestedTaskCardHtml(info, d) {
       <div class="task-history-header">
         <div>
           <span class="task-card-title">${formattedTaskName}</span>
-          <span style="margin-left:8px; font-size:11.5px; font-weight:700; color:${statusColor}; background:${statusBg}; padding:2px 8px; border-radius:999px;">${statusLabel}</span>
         </div>
       </div>
 
       <div class="task-score-grid">
         <div class="task-score-item">
           <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap;">
-            <span>施測單字數</span>
+            <span style="flex:1; text-align:right;">答對單字數</span>
+            <span style="padding:0 6px; opacity:0.6;">/</span>
+            <span style="flex:1; text-align:left;">施測單字數</span>
           </div>
           <div class="task-score-val" style="color:#0284c7; display:flex; align-items:center; justify-content:center;">
-            <span>${wordCount}</span>
-            <span style="font-size:13px; font-weight:700; color:var(--ink3); margin-left:4px;">字</span>
+            <span style="flex:1; text-align:right;">0</span>
+            <span style="padding:0 6px; font-weight:700; color:var(--ink3); opacity:0.6; font-size:18px;">/</span>
+            <span style="flex:1; text-align:left;">${wordCount}</span>
           </div>
         </div>
         <div class="task-score-item">
-          <div class="task-score-label">作答狀態</div>
-          <div class="task-score-val" style="color:${statusColor}; font-size:14.5px; font-weight:800; display:flex; align-items:center; justify-content:center;">${statusDesc}</div>
+          <div class="task-score-label">📊 正確率</div>
+          <div class="task-score-val" style="color:var(--ink3);">0%</div>
         </div>
       </div>
 
@@ -1180,7 +1184,7 @@ function renderUntestedTaskCardHtml(info, d) {
           <div class="word-split-title untested-title">
             <span>📋 本次應測單字範圍 ${cleanWords.length > 0 ? `(${cleanWords.length} 字)` : ""}</span>
           </div>
-          <div class="word-split-content">
+          <div class="word-split-content" style="max-height:138px; overflow-y:auto;">
             ${wordsHtml}
           </div>
         </div>
@@ -1408,7 +1412,6 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
       <div class="task-history-header">
         <div>
           <span class="task-card-title">🎮 自由練習成果</span>
-          <span style="margin-left:8px; font-size:11.5px; font-weight:700; color:#0284c7; background:rgba(2,132,199,0.12); padding:2px 8px; border-radius:999px;">自主訓練</span>
         </div>
       </div>
 
@@ -1662,22 +1665,78 @@ export function renderSummary(d) {
   const getTaskDayStat = (dateKey) => {
     const norm = normalizeDateStr(dateKey);
     const tRec = historyList.find(item => item && item.date && normalizeDateStr(item.date) === norm && (!item.taskName || item.taskName !== "自主練習")) || null;
-    if (!tRec) return { a: 0, c: 0, rate: 0 };
+    if (!tRec || !tRec.taskName || tRec.taskName === "⚪ 未指派" || (tRec.status && tRec.status.includes("未指派"))) {
+      return {
+        a: 0, c: 0, rate: 0,
+        statusType: "unassigned",
+        statusLabel: "⚪ 未指派測驗",
+        levelClass: "h0",
+        badgeTier: "tier-gray"
+      };
+    }
+
     let tAtt = parseInt(tRec.attempts) || 0;
     let tCor = parseInt(tRec.correct) || 0;
     if (!tAtt && tRec.score && String(tRec.score).includes("/")) {
       const sp = String(tRec.score).split("/");
-      tCor = parseInt(sp[0]) || 0;
-      tAtt = parseInt(sp[1]) || 0;
+      tCor = parseInt(sp[0], 10) || 0;
+      tAtt = parseInt(sp[1], 10) || 0;
     }
     let tRate = tAtt > 0 ? Math.round((tCor / tAtt) * 100) : (parseInt(tRec.rate) || 0);
-    if (tAtt === 0 && (String(tRec.status || "").includes("已完成") || (tRec.score && tRec.score !== "—" && tRec.score !== "尚未開始"))) {
-      const { rawWords, wrongList, correctList } = resolveTaskWords(tRec, norm, d);
-      tAtt = (correctList.length + wrongList.length) || rawWords.length || 10;
-      tCor = correctList.length;
-      if (tRate === 0 && tAtt > 0) tRate = Math.round((tCor / tAtt) * 100);
+
+    const statusStr = String(tRec.status || "");
+    const wordsCount = (tRec.words && tRec.words.length > 0) ? tRec.words.length : 5;
+
+    // 判定是否完成全數作答
+    const isFinished = statusStr.includes("已完成") || (tAtt > 0 && tAtt >= wordsCount);
+    // 判定是否為登入有受測但未完成全部題目作答
+    const isIncomplete = !isFinished && (
+      (tAtt > 0 && tAtt < wordsCount) ||
+      statusStr.includes("作答中") ||
+      statusStr.includes("中斷")
+    );
+
+    // 當日是否有登入或有自由練習
+    const freeRec = resolveDailyPracticeRecord(norm, d, historyList);
+    const hasLoggedInOrFree = !!(freeRec && freeRec.attempts > 0) || (tRec.freeTested > 0) || statusStr.includes("登入未受測");
+
+    if (isFinished) {
+      const level = tAtt < 10 ? 1 : tAtt < 20 ? 2 : 3;
+      return {
+        a: tAtt, c: tCor, rate: tRate,
+        statusType: "completed",
+        statusLabel: `正確率 ${tRate}%`,
+        levelClass: `h${level}`,
+        badgeTier: tRate >= 80 ? "tier-yellow" : (tRate >= 60 ? "tier-green" : "tier-white")
+      };
+    } else if (isIncomplete) {
+      // 🔵 登入有受測但未完成全部題目作答
+      return {
+        a: tAtt, c: tCor, rate: tRate,
+        statusType: "incomplete",
+        statusLabel: `🔵 登入受測未完成`,
+        levelClass: "h-status-blue",
+        badgeTier: "tier-status-blue"
+      };
+    } else if (hasLoggedInOrFree) {
+      // 🟡 登入未受測
+      return {
+        a: 0, c: 0, rate: 0,
+        statusType: "login_untested",
+        statusLabel: "🟡 登入未受測",
+        levelClass: "h-status-yellow",
+        badgeTier: "tier-status-yellow"
+      };
+    } else {
+      // 🔴 缺席未受測
+      return {
+        a: 0, c: 0, rate: 0,
+        statusType: "absent_untested",
+        statusLabel: "🔴 缺席未受測",
+        levelClass: "h-status-red",
+        badgeTier: "tier-status-red"
+      };
     }
-    return { a: tAtt, c: tCor, rate: tRate };
   };
 
   const nowDt = new Date();
@@ -1686,9 +1745,8 @@ export function renderSummary(d) {
     const dt = new Date(nowDt);
     dt.setDate(dt.getDate() - i);
     const kDash = dt.getFullYear() + "-" + String(dt.getMonth() + 1).padStart(2, "0") + "-" + String(dt.getDate()).padStart(2, "0");
-    const { a, c, rate } = getTaskDayStat(kDash);
-    const level = a === 0 ? 0 : a < 10 ? 1 : a < 20 ? 2 : 3;
-    taskHeatDays.push({ key: kDash, a, c, rate, level });
+    const stat = getTaskDayStat(kDash);
+    taskHeatDays.push({ key: kDash, ...stat });
   }
 
   const activeTaskDateSet = new Set();
@@ -1821,7 +1879,7 @@ export function renderSummary(d) {
           <span id="task-heat-day-info" class="heat-day-info"></span>
         </div>
         <div class="heatmap heatmap-yellow" id="task-heatmap-grid">${taskHeatDays.map((x, idx) =>
-          `<i class="hc h${x.level}" data-idx="${idx}" data-key="${x.key}" data-a="${x.a || 0}" data-rate="${x.rate || 0}"></i>`).join("")}</div>
+          `<i class="hc ${x.levelClass}" data-idx="${idx}" data-key="${x.key}" data-a="${x.a || 0}" data-rate="${x.rate || 0}"></i>`).join("")}</div>
       </div>
     </div>
 
@@ -1862,7 +1920,7 @@ export function renderSummary(d) {
     return "heat-day-info tier-white";
   };
 
-  // 1. 綁定「指定測驗作答紀錄」黃色熱力圖與右側小方塊（配合黃色熱力圖顏色，無紀錄顯示灰色）
+  // 1. 綁定「指定測驗作答紀錄」黃色熱力圖與右側小方塊（配合黃色熱力圖顏色，支援登入未受測/缺席未受測/未完成三色狀態）
   const taskHeatDayInfoEl = $("#task-heat-day-info");
   const taskHeatGridEl = $("#task-heatmap-grid");
   let pinnedTaskIdx = taskHeatDays.length > 0 ? taskHeatDays.length - 1 : 0;
@@ -1875,18 +1933,12 @@ export function renderSummary(d) {
 
   const renderTaskHeatBadgeContent = (dateKey, att, rate, activeCellIdx) => {
     if (!taskHeatDayInfoEl) return;
-    taskHeatDayInfoEl.className = (!att || att <= 0) ? "heat-day-info tier-gray" : "heat-day-info tier-yellow";
-    if (att > 0) {
-      taskHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 正確率 <b>${rate}%</b>`;
+    const stat = getTaskDayStat(dateKey);
+    taskHeatDayInfoEl.className = `heat-day-info ${stat.badgeTier}`;
+    if (stat.statusType === "completed") {
+      taskHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 正確率 <b>${stat.rate}%</b>`;
     } else {
-      const tRec = historyList.find(item => item && item.date && normalizeDateStr(item.date) === dateKey && (!item.taskName || item.taskName !== "自主練習")) || null;
-      let label = "無測驗紀錄";
-      if (tRec && tRec.taskName && !tRec.taskName.includes("未指派")) {
-        label = (tRec.status && tRec.status.includes("尚未開始")) ? "⏳ 尚未測驗" : (tRec.status || "尚未測驗");
-      } else if (tRec && tRec.taskName && tRec.taskName.includes("未指派")) {
-        label = "⚪ 未指派測驗";
-      }
-      taskHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ ${label}`;
+      taskHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ <b>${stat.statusLabel}</b>`;
     }
     if (taskHeatGridEl) {
       taskHeatGridEl.querySelectorAll(".hc").forEach((cell, cIdx) => {
@@ -1910,8 +1962,8 @@ export function renderSummary(d) {
       updateTaskHeatDayBadge(foundIdx);
       return;
     }
-    const { a: att, rate } = getTaskDayStat(normDate);
-    renderTaskHeatBadgeContent(normDate, att, rate, -1);
+    const stat = getTaskDayStat(normDate);
+    renderTaskHeatBadgeContent(normDate, stat.a || 0, stat.rate || 0, -1);
   };
 
   if (taskHeatDayInfoEl && taskHeatDays.length > 0) {
