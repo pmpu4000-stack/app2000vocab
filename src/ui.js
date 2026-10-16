@@ -925,10 +925,10 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     statusDesc = "⏳ 測驗中途作答中斷";
   } else if (isUntested) {
     if (hasLoggedInOrFree) {
-      displayStatusStr = "🌸 登入未受測";
-      statusColor = "#db2777";
-      statusBg = "rgba(219,39,119,0.15)";
-      statusDesc = "🌸 有登入但未測驗";
+      displayStatusStr = "🟡 登入未受測";
+      statusColor = "#d97706";
+      statusBg = "rgba(245,158,11,0.15)";
+      statusDesc = "⚠️ 有登入但未測驗";
     } else {
       displayStatusStr = "🔴 缺席未受測";
       statusColor = "#ef4444";
@@ -977,7 +977,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
 
     rightBoxClass = "advice-box";
     rightTitleClass = "advice-title";
-    rightTitleText = "🌸 補考與學習提醒";
+    rightTitleText = "💡 補考與學習提醒";
     wrongContentHtml = `
       <div style="display:flex; flex-direction:column; justify-content:flex-start; align-items:flex-start; gap:8px; padding:6px 4px; font-size:12.5px; line-height:1.6;">
         <div>${statusDesc ? `<b>${statusDesc}</b>。` : ""}${hasLoggedInOrFree ? "你當日有登入進行自由練習，但尚未完成本次指定測驗。" : "你當日無登入紀錄，尚未進行本次指定測驗。"}</div>
@@ -1165,7 +1165,7 @@ function renderUntestedTaskCardHtml(info, d) {
         </div>
         <div class="word-split-box advice-box">
           <div class="word-split-title advice-title">
-            <span>🌸 補考與學習提醒</span>
+            <span>💡 補考與學習提醒</span>
           </div>
           <div class="word-split-content" style="display:flex; flex-direction:column; justify-content:flex-start; align-items:flex-start; gap:8px; padding:6px 4px; font-size:12.5px; line-height:1.6;">
             <div>${adviceText}</div>
@@ -1705,14 +1705,14 @@ export function renderSummary(d) {
         badgeTier: "tier-status-purple"
       };
     } else if (hasLoggedInOrFree) {
-      // 🌸 登入未受測 (方格柔和粉紅，右側柔粉框)
+      // 🟡 登入未受測 (方格金黃色，右側黃色框)
       return {
         a: 0, c: 0, rate: 0,
         wordsCount: taskWordsCount,
         statusType: "login_untested",
-        statusLabel: "🌸 登入未受測",
-        levelClass: "h-status-pink",
-        badgeTier: "tier-status-pink"
+        statusLabel: "🟡 登入未受測",
+        levelClass: "h-status-yellow",
+        badgeTier: "tier-status-yellow"
       };
     } else {
       // 🔴 缺席未受測 (方格珊瑚玫瑰紅，右側粉紅紅框)
