@@ -2665,36 +2665,104 @@
     }
     .mode-stat-card {
       background: #F8F9FD !important;
-      border: 1px solid var(--line) !important;
-      border-radius: 10px !important;
-      padding: 8px 10px !important;
+      border: 1.5px solid var(--line) !important;
+      border-radius: 13px !important;
+      padding: 10px 10px !important;
       text-align: center !important;
       transition: transform .12s, box-shadow .12s !important;
+      box-shadow: 0 2px 6px rgba(35, 42, 77, 0.03) !important;
     }
+    .mode-stat-card:hover {
+      transform: translateY(-2px) !important;
+      box-shadow: 0 4px 12px rgba(35, 42, 77, 0.08) !important;
+    }
+
+    /* 4 種模式專屬色彩層次（清爽豐富） */
+    .mode-card-listen {
+      background: linear-gradient(145deg, #F5F3FF, #FAF9FF) !important;
+      border-color: #DDD6FE !important;
+    }
+    .mode-card-listen .mode-stat-title { color: #6C4CE0 !important; }
+    .mode-card-listen .mode-stat-num { color: #4C1D95 !important; }
+    .mode-card-listen .mode-stat-sub { color: #7C3AED !important; }
+
+    .mode-card-pick {
+      background: linear-gradient(145deg, #F0F9FF, #F8FAFC) !important;
+      border-color: #BAE6FD !important;
+    }
+    .mode-card-pick .mode-stat-title { color: #0284C7 !important; }
+    .mode-card-pick .mode-stat-num { color: #0369A1 !important; }
+    .mode-card-pick .mode-stat-sub { color: #0284C7 !important; }
+
+    .mode-card-scramble {
+      background: linear-gradient(145deg, #ECFDF5, #F0FDF4) !important;
+      border-color: #A7F3D0 !important;
+    }
+    .mode-card-scramble .mode-stat-title { color: #059669 !important; }
+    .mode-card-scramble .mode-stat-num { color: #065F46 !important; }
+    .mode-card-scramble .mode-stat-sub { color: #047857 !important; }
+
+    .mode-card-trap {
+      background: linear-gradient(145deg, #FFFBEB, #FEF3C7) !important;
+      border-color: #FDE68A !important;
+    }
+    .mode-card-trap .mode-stat-title { color: #D97706 !important; }
+    .mode-card-trap .mode-stat-num { color: #92400E !important; }
+    .mode-card-trap .mode-stat-sub { color: #B45309 !important; }
+
     [data-theme="dark"] .mode-stat-card {
       background: #181C2A !important;
       border-color: #262C42 !important;
+      box-shadow: none !important;
     }
+    [data-theme="dark"] .mode-card-listen {
+      background: rgba(108, 76, 224, 0.16) !important;
+      border-color: rgba(139, 107, 240, 0.4) !important;
+    }
+    [data-theme="dark"] .mode-card-listen .mode-stat-title { color: #DDD6FE !important; }
+    [data-theme="dark"] .mode-card-listen .mode-stat-num { color: #F5F3FF !important; }
+    [data-theme="dark"] .mode-card-listen .mode-stat-sub { color: #A58CF5 !important; }
+
+    [data-theme="dark"] .mode-card-pick {
+      background: rgba(2, 132, 199, 0.16) !important;
+      border-color: rgba(56, 189, 248, 0.4) !important;
+    }
+    [data-theme="dark"] .mode-card-pick .mode-stat-title { color: #BAE6FD !important; }
+    [data-theme="dark"] .mode-card-pick .mode-stat-num { color: #F0F9FF !important; }
+    [data-theme="dark"] .mode-card-pick .mode-stat-sub { color: #38BDF8 !important; }
+
+    [data-theme="dark"] .mode-card-scramble {
+      background: rgba(16, 185, 129, 0.16) !important;
+      border-color: rgba(52, 211, 153, 0.4) !important;
+    }
+    [data-theme="dark"] .mode-card-scramble .mode-stat-title { color: #A7F3D0 !important; }
+    [data-theme="dark"] .mode-card-scramble .mode-stat-num { color: #ECFDF5 !important; }
+    [data-theme="dark"] .mode-card-scramble .mode-stat-sub { color: #34D399 !important; }
+
+    [data-theme="dark"] .mode-card-trap {
+      background: rgba(217, 119, 6, 0.16) !important;
+      border-color: rgba(245, 158, 11, 0.4) !important;
+    }
+    [data-theme="dark"] .mode-card-trap .mode-stat-title { color: #FDE68A !important; }
+    [data-theme="dark"] .mode-card-trap .mode-stat-num { color: #FFFBEB !important; }
+    [data-theme="dark"] .mode-card-trap .mode-stat-sub { color: #FBBF24 !important; }
+
     .mode-stat-title {
-      font-size: 12px !important;
+      font-size: 13px !important;
       color: var(--ink2) !important;
-      font-weight: 750 !important;
-    }
-    [data-theme="dark"] .mode-stat-title {
-      color: #A5B0CF !important;
+      font-weight: 800 !important;
+      letter-spacing: 0.2px !important;
     }
     .mode-stat-num {
-      font-size: 16px !important;
-      font-weight: 800 !important;
+      font-size: 19px !important;
+      font-weight: 900 !important;
       color: var(--ink) !important;
-      margin: 2px 0 !important;
+      margin: 3px 0 2px !important;
       font-variant-numeric: tabular-nums !important;
-    }
-    [data-theme="dark"] .mode-stat-num {
-      color: #F0F3FA !important;
+      line-height: 1.2 !important;
     }
     .mode-stat-sub {
-      font-size: 11px !important;
+      font-size: 11.5px !important;
       font-weight: 700 !important;
       color: var(--green) !important;
     }
@@ -2746,8 +2814,8 @@
     }
     .date-nav-control-wrap select.task-date-selector {
       width: 100% !important;
-      height: 32px !important;
-      min-height: 32px !important;
+      height: 34px !important;
+      min-height: 34px !important;
       background: #FFFFFF !important;
       border: 1.5px solid #D6D0F5 !important;
       border-radius: 8px !important;
@@ -2766,14 +2834,15 @@
     .date-nav-stepper-wrap {
       display: flex !important;
       align-items: center !important;
-      gap: 5px !important;
-      flex-wrap: nowrap !important;
+      gap: 6px !important;
+      width: 100% !important;
     }
     .date-nav-stepper-wrap .date-picker-input {
-      flex: 1 1 auto !important;
-      min-width: 115px !important;
-      height: 32px !important;
-      min-height: 32px !important;
+      flex: 1 1 125px !important;
+      min-width: 110px !important;
+      max-width: 145px !important;
+      height: 34px !important;
+      min-height: 34px !important;
       background: #FFFFFF !important;
       border: 1.5px solid var(--sky, #2D9CDB) !important;
       color: var(--ink, #232A4D) !important;
@@ -2784,6 +2853,12 @@
       outline: none !important;
       cursor: pointer !important;
       box-sizing: border-box !important;
+    }
+    .date-nav-btn-group {
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 5px !important;
+      flex: 1 1 auto !important;
     }
     .date-nav-divider {
       width: 1px !important;
@@ -2797,12 +2872,48 @@
       .date-navigator-card {
         grid-template-columns: 1fr !important;
         gap: 12px !important;
+        padding: 12px 14px !important;
       }
       .date-nav-divider {
         display: none !important;
       }
+    }
+    @media (max-width: 640px) {
+      .date-navigator-card {
+        padding: 10px 12px !important;
+        gap: 10px !important;
+      }
+      .date-nav-control-wrap select.task-date-selector {
+        height: 38px !important;
+        min-height: 38px !important;
+        font-size: 13px !important;
+      }
       .date-nav-stepper-wrap {
-        flex-wrap: wrap !important;
+        flex-direction: column !important;
+        gap: 8px !important;
+        width: 100% !important;
+      }
+      .date-nav-stepper-wrap .date-picker-input,
+      .date-navigator-card input[type="date"].date-picker-input {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: 38px !important;
+        min-height: 38px !important;
+        font-size: 13.5px !important;
+      }
+      .date-nav-btn-group {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr 1fr !important;
+        gap: 6px !important;
+        width: 100% !important;
+      }
+      .date-nav-btn-group .date-nav-btn,
+      .date-navigator-card .date-nav-btn {
+        height: 38px !important;
+        min-height: 38px !important;
+        font-size: 13px !important;
+        width: 100% !important;
+        padding: 0 4px !important;
       }
     }
     .date-navigator-card input[type="date"],
@@ -2812,10 +2923,9 @@
       background: #FFFFFF !important;
       border: 1.5px solid var(--sky, #2D9CDB) !important;
       color: var(--ink, #232A4D) !important;
-      padding: 3px 8px !important;
-      height: 28px !important;
-      min-height: 28px !important;
-      max-height: 28px !important;
+      padding: 0 8px !important;
+      height: 34px !important;
+      min-height: 34px !important;
       border-radius: 8px !important;
       font-size: 12.5px !important;
       font-weight: 700 !important;
@@ -2824,8 +2934,6 @@
       line-height: 1.2 !important;
       font-family: ui-rounded, "SF Pro Rounded", "Hiragino Maru Gothic ProN", "Nunito", "PingFang TC", system-ui, sans-serif !important;
       box-sizing: border-box !important;
-      width: auto !important;
-      max-width: 145px !important;
     }
     [data-theme="dark"] .date-navigator-card input[type="date"],
     [data-theme="dark"] .export-navigator-card input[type="date"],
@@ -2846,11 +2954,10 @@
       border: 1px solid var(--line, #E7E9F5) !important;
       color: var(--ink, #232A4D) !important;
       padding: 0 10px !important;
-      height: 28px !important;
-      min-height: 28px !important;
-      max-height: 28px !important;
+      height: 34px !important;
+      min-height: 34px !important;
       border-radius: 8px !important;
-      font-size: 12px !important;
+      font-size: 12.5px !important;
       font-weight: 700 !important;
       cursor: pointer !important;
       transition: all .15s !important;
@@ -2859,6 +2966,7 @@
       transform: none !important;
       box-sizing: border-box !important;
       white-space: nowrap !important;
+      flex: 1 1 auto !important;
     }
     .date-nav-btn:hover {
       background: #F1F8FC !important;
@@ -2903,9 +3011,8 @@
       border: 1.5px solid var(--line, #E7E9F5) !important;
       color: var(--ink, #232A4D) !important;
       padding: 4px 8px !important;
-      height: 29px !important;
-      min-height: 29px !important;
-      max-height: 29px !important;
+      height: 34px !important;
+      min-height: 34px !important;
       border-radius: 8px !important;
       font-size: 12.5px !important;
       font-weight: 700 !important;
@@ -2960,16 +3067,31 @@
     }
     .task-score-grid {
       display: grid !important;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)) !important;
-      gap: 8px !important;
+      grid-template-columns: repeat(3, 1fr) !important;
+      gap: 10px !important;
       margin-bottom: 12px !important;
+    }
+    @media (max-width: 480px) {
+      .task-score-grid {
+        gap: 6px !important;
+      }
+      .task-score-item {
+        padding: 8px 4px !important;
+      }
+      .task-score-label {
+        font-size: 11px !important;
+      }
+      .task-score-val {
+        font-size: 18px !important;
+      }
     }
     .task-score-item {
       background: #FFFFFF !important;
       border: 1px solid var(--line) !important;
-      border-radius: 10px !important;
+      border-radius: 12px !important;
       padding: 10px !important;
       text-align: center !important;
+      box-shadow: 0 1px 3px rgba(35, 42, 77, 0.03) !important;
     }
     [data-theme="dark"] .task-score-item {
       background: #181C2A !important;
@@ -3024,7 +3146,7 @@
       border-color: rgba(255, 107, 107, 0.35) !important;
     }
     .word-split-title {
-      font-size: 12.5px !important;
+      font-size: 13px !important;
       font-weight: 800 !important;
       margin-bottom: 8px !important;
       display: flex !important;
@@ -3039,12 +3161,12 @@
     .perfect-score-msg {
       display: inline-flex !important;
       align-items: center !important;
-      font-size: 12px !important;
+      font-size: 12.5px !important;
       font-weight: 800 !important;
       color: #065F46 !important;
       background: #ECFDF5 !important;
       border: 1px solid #A7F3D0 !important;
-      padding: 4px 10px !important;
+      padding: 5px 12px !important;
       border-radius: 8px !important;
       line-height: 1.4 !important;
       box-shadow: 0 1px 3px rgba(16, 185, 129, 0.08) !important;
@@ -3059,13 +3181,23 @@
     .word-pill-tag {
       display: inline-flex !important;
       align-items: center !important;
-      gap: 3px !important;
-      padding: 3px 7px !important;
-      border-radius: 5px !important;
-      font-size: 11.5px !important;
+      gap: 4px !important;
+      padding: 5px 10px !important;
+      border-radius: 8px !important;
+      font-size: 12.5px !important;
       font-weight: 700 !important;
-      margin: 2px !important;
-      line-height: 1.5 !important;
+      margin: 3px !important;
+      line-height: 1.4 !important;
+      cursor: pointer !important;
+      transition: transform .12s, box-shadow .12s !important;
+      user-select: none !important;
+    }
+    .word-pill-tag:hover {
+      transform: translateY(-1px) !important;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08) !important;
+    }
+    .word-pill-tag:active {
+      transform: scale(0.96) !important;
     }
     .word-pill-tag.correct {
       background: #ECFDF5 !important;
@@ -3073,10 +3205,16 @@
       border: 1.5px solid #10B981 !important;
       font-weight: 800 !important;
     }
+    .word-pill-tag.warning {
+      background: #FFFBEB !important;
+      color: #B45309 !important;
+      border: 1.5px dashed #F59E0B !important;
+      font-weight: 800 !important;
+    }
     .word-pill-tag.wrong {
       background: #FFE9E9 !important;
       color: #D64545 !important;
-      border: 1px solid rgba(255, 107, 107, 0.4) !important;
+      border: 1.5px solid rgba(255, 107, 107, 0.5) !important;
       font-weight: 700 !important;
     }
     .word-pill-tag.neutral {
@@ -3088,6 +3226,11 @@
       background: rgba(47, 180, 124, 0.22) !important;
       color: #6EE7B7 !important;
       border-color: rgba(47, 180, 124, 0.45) !important;
+    }
+    [data-theme="dark"] .word-pill-tag.warning {
+      background: rgba(245, 158, 11, 0.16) !important;
+      color: #FDE047 !important;
+      border-color: rgba(245, 158, 11, 0.45) !important;
     }
     [data-theme="dark"] .word-pill-tag.wrong {
       background: rgba(255, 107, 107, 0.22) !important;
@@ -4660,22 +4803,22 @@
 
         <div class="subh">🎮 4 大練習模式答對單字數</div>
         <div class="mode-stat-grid">
-          <div class="mode-stat-card">
+          <div class="mode-stat-card mode-card-listen">
             <div class="mode-stat-title">🎧 聽與拼</div>
             <div class="mode-stat-num" id="stModeListenAttempts">0 字</div>
             <div class="mode-stat-sub" id="stModeListenSub">受測 0 字 (0%)</div>
           </div>
-          <div class="mode-stat-card">
+          <div class="mode-stat-card mode-card-pick">
             <div class="mode-stat-title">✅ 選拼法</div>
             <div class="mode-stat-num" id="stModePickAttempts">0 字</div>
             <div class="mode-stat-sub" id="stModePickSub">受測 0 字 (0%)</div>
           </div>
-          <div class="mode-stat-card">
+          <div class="mode-stat-card mode-card-scramble">
             <div class="mode-stat-title">🧩 重組</div>
             <div class="mode-stat-num" id="stModeScrambleAttempts">0 字</div>
             <div class="mode-stat-sub" id="stModeScrambleSub">受測 0 字 (0%)</div>
           </div>
-          <div class="mode-stat-card">
+          <div class="mode-stat-card mode-card-trap">
             <div class="mode-stat-title">🖍️ 填陷阱</div>
             <div class="mode-stat-num" id="stModeTrapAttempts">0 字</div>
             <div class="mode-stat-sub" id="stModeTrapSub">受測 0 字 (0%)</div>
@@ -4685,8 +4828,8 @@
           💡 <b>計算說明</b>：各模式獨立統計該題型測過的單字；同一個單字在不同模式練習並答對時會各自計入，故四項總和會大於上方整體的「共答對單字數」。
         </div>
 
-        <!-- 📅 查詢指定日期（大區塊標題，同等層級） -->
-        <div class="subh">📅 查詢指定日期</div>
+        <!-- 📅 單日作答歷程（大區塊標題，同等層級） -->
+        <div class="subh">📅 單日作答歷程</div>
         <div class="date-navigator-card">
           <!-- 左欄：快速跳轉（歷程紀錄選單） -->
           <div class="date-nav-col date-nav-col-quick">
@@ -4711,9 +4854,11 @@
             </div>
             <div class="date-nav-control-wrap date-nav-stepper-wrap">
               <input type="date" id="record-date-picker" class="date-picker-input">
-              <button type="button" id="btn-date-prev" class="date-nav-btn" title="查看前一天">◀ 前一天</button>
-              <button type="button" id="btn-date-today" class="date-nav-btn today-btn" title="切換回今日">📍 今日</button>
-              <button type="button" id="btn-date-next" class="date-nav-btn" title="查看後一天">後一天 ▶</button>
+              <div class="date-nav-btn-group">
+                <button type="button" id="btn-date-prev" class="date-nav-btn" title="查看前一天">◀ 前一天</button>
+                <button type="button" id="btn-date-today" class="date-nav-btn today-btn" title="切換回今日">📍 今日</button>
+                <button type="button" id="btn-date-next" class="date-nav-btn" title="查看後一天">後一天 ▶</button>
+              </div>
             </div>
           </div>
         </div>

@@ -1475,22 +1475,22 @@ export function renderSummary(d) {
     <table class="sumtable">${lvRows}</table>
     <div class="subh">🎮 4 大練習模式答對單字數</div>
     <div class="mode-stat-grid">
-      <div class="mode-stat-card">
+      <div class="mode-stat-card mode-card-listen">
         <div class="mode-stat-title">🎧 聽與拼</div>
         <div class="mode-stat-num">${(d.modeStats?.listen?.c || 0)} 字</div>
         <div class="mode-stat-sub">受測 ${(d.modeStats?.listen?.a || 0)} 字 (${d.modeStats?.listen?.a ? Math.round((d.modeStats.listen.c / d.modeStats.listen.a)*100) : 0}%)</div>
       </div>
-      <div class="mode-stat-card">
+      <div class="mode-stat-card mode-card-pick">
         <div class="mode-stat-title">✅ 選拼法</div>
         <div class="mode-stat-num">${(d.modeStats?.pick?.c || 0)} 字</div>
         <div class="mode-stat-sub">受測 ${(d.modeStats?.pick?.a || 0)} 字 (${d.modeStats?.pick?.a ? Math.round((d.modeStats.pick.c / d.modeStats.pick.a)*100) : 0}%)</div>
       </div>
-      <div class="mode-stat-card">
+      <div class="mode-stat-card mode-card-scramble">
         <div class="mode-stat-title">🧩 重組</div>
         <div class="mode-stat-num">${(d.modeStats?.scramble?.c || 0)} 字</div>
         <div class="mode-stat-sub">受測 ${(d.modeStats?.scramble?.a || 0)} 字 (${d.modeStats?.scramble?.a ? Math.round((d.modeStats.scramble.c / d.modeStats.scramble.a)*100) : 0}%)</div>
       </div>
-      <div class="mode-stat-card">
+      <div class="mode-stat-card mode-card-trap">
         <div class="mode-stat-title">🖍️ 填陷阱</div>
         <div class="mode-stat-num">${(d.modeStats?.trap?.c || 0)} 字</div>
         <div class="mode-stat-sub">受測 ${(d.modeStats?.trap?.a || 0)} 字 (${d.modeStats?.trap?.a ? Math.round((d.modeStats.trap.c / d.modeStats.trap.a)*100) : 0}%)</div>
@@ -1500,8 +1500,8 @@ export function renderSummary(d) {
       💡 <b>計算說明</b>：各模式獨立統計該題型測過的單字；同一個單字在不同模式練習並答對時會各自計入，故四項總和會大於上方整體的「共答對單字數」。
     </div>
 
-    <!-- 📅 查詢指定日期（大區塊標題，同等層級） -->
-    <div class="subh">📅 查詢指定日期</div>
+    <!-- 📅 單日作答歷程（大區塊標題，同等層級） -->
+    <div class="subh">📅 單日作答歷程</div>
     <div class="date-navigator-card">
       <!-- 左欄：快速跳轉（歷程紀錄選單） -->
       <div class="date-nav-col date-nav-col-quick">
@@ -1527,9 +1527,11 @@ export function renderSummary(d) {
         </div>
         <div class="date-nav-control-wrap date-nav-stepper-wrap">
           <input type="date" id="record-date-picker" class="date-picker-input" value="${defaultSelectedDate}" max="${todayDash}">
-          <button type="button" id="btn-date-prev" class="date-nav-btn" title="查看前一天">◀ 前一天</button>
-          <button type="button" id="btn-date-today" class="date-nav-btn today-btn" title="切換回今日">📍 今日</button>
-          <button type="button" id="btn-date-next" class="date-nav-btn" title="查看後一天">後一天 ▶</button>
+          <div class="date-nav-btn-group">
+            <button type="button" id="btn-date-prev" class="date-nav-btn" title="查看前一天">◀ 前一天</button>
+            <button type="button" id="btn-date-today" class="date-nav-btn today-btn" title="切換回今日">📍 今日</button>
+            <button type="button" id="btn-date-next" class="date-nav-btn" title="查看後一天">後一天 ▶</button>
+          </div>
         </div>
       </div>
     </div>
