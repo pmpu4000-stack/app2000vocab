@@ -1018,8 +1018,8 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     }
   }
 
-  // 名稱前面複製與「📝 指定測驗作答紀錄」相同的 📝 小圖示
   let cleanTaskName = String(record.taskName || "指定測驗").trim().replace(/^[📝\s]+/, "");
+  cleanTaskName = cleanTaskName.replace(/指定單字隨堂測驗/g, "指定單字測驗結果").replace(/隨堂測驗/g, "測驗結果");
   const formattedTaskName = `📝 ${cleanTaskName}`;
 
   // 當一日內有多個測驗（如補考或多個指定測驗），多個紀錄方塊以邊界線清晰隔開
@@ -1103,7 +1103,8 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
 
 function renderUntestedTaskCardHtml(info, d) {
   const { taskName, assignedWords, hasLoggedInOrFree, selectedDate } = info;
-  let cleanTaskName = String(taskName || "指定單字隨堂測驗").trim().replace(/^[📝\s]+/, "");
+  let cleanTaskName = String(taskName || "指定單字測驗結果").trim().replace(/^[📝\s]+/, "");
+  cleanTaskName = cleanTaskName.replace(/指定單字隨堂測驗/g, "指定單字測驗結果").replace(/隨堂測驗/g, "測驗結果");
   const formattedTaskName = `📝 ${cleanTaskName}`;
 
   const cleanWords = (Array.isArray(assignedWords) ? assignedWords : [])
@@ -1229,7 +1230,7 @@ function buildTaskDetailsHtml(records, selectedDate, d) {
   if (list.length === 0) {
     if (isAssigned) {
       return renderUntestedTaskCardHtml({
-        taskName: taskName || (normDate.replace(/-/g, "").slice(4) + "指定單字隨堂測驗"),
+        taskName: taskName || (normDate.replace(/-/g, "").slice(4) + "指定單字測驗結果"),
         assignedWords: assignedWords || [],
         hasLoggedInOrFree,
         selectedDate
@@ -1249,12 +1250,23 @@ function buildTaskDetailsHtml(records, selectedDate, d) {
 }
 
 function buildFreeDetailsHtml(record, selectedDate, d) {
+  const normDate = normalizeDateStr(selectedDate);
+  const dateMMDD = normDate ? normDate.replace(/-/g, "").slice(4) : "";
+  const freeTitleText = dateMMDD ? `🎮 ${dateMMDD}自由練習成果` : "🎮 自由練習成果";
+
   if (!record || !record.attempts) {
     return `
-      <div class="task-empty-notice-box" style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:330px; padding:20px 14px; text-align:center; box-sizing:border-box;">
-        <div style="font-size:26px; margin-bottom:6px;">🎮</div>
-        <div style="font-size:13.5px; font-weight:700; color:var(--ink2);">該指定日期（${selectedDate}）尚無自由練習受測紀錄</div>
-        <div style="font-size:12px; margin-top:4px; color:var(--ink3);">可從上方日曆選擇器或快速按鈕切換至其他日期查看作答狀況</div>
+      <div>
+        <div class="task-history-header">
+          <div>
+            <span class="task-card-title">${freeTitleText}</span>
+          </div>
+        </div>
+        <div class="task-empty-notice-box" style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:280px; padding:20px 14px; text-align:center; box-sizing:border-box;">
+          <div style="font-size:26px; margin-bottom:6px;">🎮</div>
+          <div style="font-size:13.5px; font-weight:700; color:var(--ink2);">該指定日期（${selectedDate}）尚無自由練習受測紀錄</div>
+          <div style="font-size:12px; margin-top:4px; color:var(--ink3);">可從上方日曆選擇器或快速按鈕切換至其他日期查看作答狀況</div>
+        </div>
       </div>
     `;
   }
@@ -1386,7 +1398,7 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
     <div>
       <div class="task-history-header">
         <div>
-          <span class="task-card-title">🎮 自由練習成果</span>
+          <span class="task-card-title">${freeTitleText}</span>
         </div>
       </div>
 
@@ -1817,8 +1829,8 @@ export function renderSummary(d) {
       💡 <b>計算說明</b>：各模式獨立統計該題型測過的單字；同一個單字在不同模式練習並答對時會各自計入，故四項總和會大於上方整體的「共答對單字數」。
     </div>
 
-    <!-- 📅 單日作答歷程（大區塊標題，同等層級） -->
-    <div class="subh">📅 單日作答歷程</div>
+    <!-- 📅 每日作答紀錄（大區塊標題，同等層級） -->
+    <div class="subh">📅 每日作答紀錄</div>
     <div class="date-navigator-card">
       <!-- 左欄：快速跳轉（歷程紀錄選單） -->
       <div class="date-nav-col date-nav-col-quick">
@@ -2689,7 +2701,7 @@ async function _exportRecordToPdf(payload) {
         <!-- 自由練習 -->
         <div style="background:#FFFFFF; border:1px solid #E7E9F5; border-radius:10px; padding:9px 11px;">
           <div style="font-size:12.5px; font-weight:800; color:#232A4D; margin-bottom:6px; display:flex; justify-content:space-between;">
-            <span>🎮 自由練習成果</span>
+            <span>🎮 ${r.date ? normalizeDateStr(r.date).replace(/-/g, "").slice(4) : ""}自由練習成果</span>
             <span style="color:#0284C7;">${r.hasFree ? `答對 ${r.freeCorrect}/${r.freeAttempts} 字 (${r.freeRate}%)` : "當日無自由練習紀錄"}</span>
           </div>
           ${r.hasFree ? `
