@@ -1503,18 +1503,34 @@ export function renderSummary(d) {
     <!-- 📅 查詢指定日期（大區塊標題，同等層級） -->
     <div class="subh">📅 查詢指定日期</div>
     <div class="date-navigator-card">
-      <div class="date-nav-left">
-        <span class="date-nav-title">選擇日期：</span>
-        <input type="date" id="record-date-picker" class="date-picker-input" value="${defaultSelectedDate}" max="${todayDash}">
-        <button type="button" id="btn-date-today" class="date-nav-btn today-btn" title="切換回今日">📍 今日</button>
-        <button type="button" id="btn-date-prev" class="date-nav-btn" title="查看前一天">◀ 前一天</button>
-        <button type="button" id="btn-date-next" class="date-nav-btn" title="查看後一天">後一天 ▶</button>
+      <!-- 左欄：快速跳轉（歷程紀錄選單） -->
+      <div class="date-nav-col date-nav-col-quick">
+        <div class="date-nav-col-header">
+          <span class="date-nav-icon">🎯</span>
+          <span class="date-nav-label">快速跳至有紀錄日期</span>
+        </div>
+        <div class="date-nav-control-wrap">
+          <select id="record-quick-dates" class="task-date-selector" title="選擇有作答紀錄的日期">
+            ${quickDateOptionsHtml}
+          </select>
+        </div>
       </div>
-      <div class="date-nav-right">
-        <label for="record-quick-dates" class="date-quick-label">🎯 快速跳至有紀錄日期：</label>
-        <select id="record-quick-dates" class="task-date-selector" style="width:100%; margin-top:2px;">
-          ${quickDateOptionsHtml}
-        </select>
+
+      <!-- 中間垂直分隔線 -->
+      <div class="date-nav-divider"></div>
+
+      <!-- 右欄：日曆選擇與前後切換 -->
+      <div class="date-nav-col date-nav-col-picker">
+        <div class="date-nav-col-header">
+          <span class="date-nav-icon">📅</span>
+          <span class="date-nav-label">指定日期與步進切換</span>
+        </div>
+        <div class="date-nav-control-wrap date-nav-stepper-wrap">
+          <input type="date" id="record-date-picker" class="date-picker-input" value="${defaultSelectedDate}" max="${todayDash}">
+          <button type="button" id="btn-date-prev" class="date-nav-btn" title="查看前一天">◀ 前一天</button>
+          <button type="button" id="btn-date-today" class="date-nav-btn today-btn" title="切換回今日">📍 今日</button>
+          <button type="button" id="btn-date-next" class="date-nav-btn" title="查看後一天">後一天 ▶</button>
+        </div>
       </div>
     </div>
 
