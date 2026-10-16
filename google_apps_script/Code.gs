@@ -2585,7 +2585,12 @@ function doPost(e) {
       return jsonResponse(saveConversationToDrive(params));
     }
 
-    // ── 13. 未知 action ──
+    // ── 13. 從 Google Drive 讀取最新對話備份 ──
+    if (action === "getLatestConversationBackup") {
+      return jsonResponse(getLatestConversationFromDrive());
+    }
+
+    // ── 14. 未知 action ──
 
     logError("doPost","未知 action: "+action, params.username, "");
     return jsonResponse({status:"error", message:"未知的 action"});
@@ -2596,6 +2601,11 @@ function doPost(e) {
 }
 
 function doGet(e) {
+  // 📥 跨電腦自動下載最新 AI 對話與開發紀錄備份
+  if (e && e.parameter && e.parameter.action === "getLatestConversationBackup" && e.parameter.key === "inspect_2026_ok") {
+    return jsonResponse(getLatestConversationFromDrive());
+  }
+
   // 檢驗試算表完整欄位與數值結構
   if (e && e.parameter && e.parameter.action === "inspectSpreadsheetSchema" && e.parameter.key === "inspect_2026_ok") {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -6110,6 +6120,46 @@ function saveConversationToDrive(params) {
     };
   } catch (err) {
     return { status: "error", message: "備份失敗：" + err.toString() };
+  }
+}
+
+/**
+ * 📥 從 Google Drive 讀取最新 AI 對話與開發紀錄備份
+ */
+function getLatestConversationFromDrive() {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    let parentFolder = DriveApp.getRootFolder();
+    try {
+      const par = DriveApp.getFileById(ss.getId()).getParents();
+      if (par.hasNext()) parentFolder = par.next();
+    } catch(_) {}
+
+    const folderName = "【AI對話與開發歷程備份庫】";
+    const f = parentFolder.getFoldersByName(folderName);
+    if (!f.hasNext()) {
+      return { status: "error", message: "尚未建立對話備份資料夾" };
+    }
+    const folder = f.next();
+    const latestName = "最新對話歷程備份_LATEST.md";
+    const existing = folder.getFilesByName(latestName);
+    if (!existing.hasNext()) {
+      return { status: "error", message: "找不到最新對話備份檔案" };
+    }
+    const file = existing.next();
+    const content = file.getBlob().getDataAsString("UTF-8");
+    const updatedAt = Utilities.formatDate(file.getLastUpdated(), "Asia/Taipei", "yyyy-MM-dd HH:mm:ss");
+    
+    return {
+      status: "success",
+      fileName: latestName,
+      updatedAt: updatedAt,
+      updatedTimestamp: file.getLastUpdated().getTime(),
+      fileUrl: file.getUrl(),
+      content: content
+    };
+  } catch(err) {
+    return { status: "error", message: "讀取失敗：" + err.toString() };
   }
 }
 
