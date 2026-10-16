@@ -1736,25 +1736,26 @@ export function renderSummary(d) {
     const hasLoggedInOrFree = !!(freeRec && freeRec.attempts > 0) || (tRec.freeTested > 0) || statusStr.includes("登入未受測") || statusStr.includes("登入未作答");
 
     if (isFinished) {
-      // 依「單字數量」計算量級：少單字量 (<10字)、中單字量 (10~19字)、大單字量 (>=20字)
-      const level = taskWordsCount < 10 ? 1 : taskWordsCount < 20 ? 2 : 3;
+      // 依「正確率」計算量級：少 (<60%)、中 (60%~79%)、大 (>=80%)
+      const level = tRate < 60 ? 1 : tRate < 80 ? 2 : 3;
+      const badgeTier = tRate < 60 ? "tier-blue-low" : tRate < 80 ? "tier-blue-mid" : "tier-blue-high";
       return {
         a: tAtt, c: tCor, rate: tRate,
         wordsCount: taskWordsCount,
         statusType: "completed",
         statusLabel: `正確率 ${tRate}%`,
         levelClass: `h${level}`,
-        badgeTier: tRate >= 80 ? "tier-yellow" : (tRate >= 60 ? "tier-green" : "tier-white")
+        badgeTier: badgeTier
       };
     } else if (isIncomplete) {
-      // 🔵 登入作答未完成 (方格天藍色，右側藍底藍框)
+      // 🟣 登入作答未完成 (方格莫蘭迪柔紫，右側紫底紫框)
       return {
         a: tAtt, c: tCor, rate: tRate,
         wordsCount: taskWordsCount,
         statusType: "incomplete",
-        statusLabel: "🔵 登入作答未完成",
-        levelClass: "h-status-blue",
-        badgeTier: "tier-status-blue"
+        statusLabel: "🟣 登入作答未完成",
+        levelClass: "h-status-purple",
+        badgeTier: "tier-status-purple"
       };
     } else if (hasLoggedInOrFree) {
       // 🟡 登入未受測 (方格亮金黃色，右側柔黃金黃框)
@@ -1918,9 +1919,9 @@ export function renderSummary(d) {
           <span>連續 <b>${taskStreak}</b> 天 · 最佳 <b>${taskBest}</b> 天 · 累計練習 <b>${taskTotal}</b> 天</span>
           <span id="task-heat-day-info" class="heat-day-info"></span>
         </div>
-        <div class="heatmap heatmap-yellow" id="task-heatmap-grid">${taskHeatDays.map((x, idx) =>
+        <div class="heatmap heatmap-blue" id="task-heatmap-grid">${taskHeatDays.map((x, idx) =>
           `<i class="hc ${x.levelClass}" data-idx="${idx}" data-key="${x.key}" data-a="${x.a || 0}" data-rate="${x.rate || 0}"></i>`).join("")}</div>
-        <div class="heat-legend"><b>連續</b>：從今天往回算，一天都沒中斷受測天數 · <b>累計</b>：已受測總天數。<br><b>黃金色階</b>：已完成測驗（少字量 &lt;10字 · 中字量 10~19字 · 大字量 ≥20字）<br><b>特殊狀態</b>：<span style="color:#B45309;font-weight:700;">🟡 登入未受測</span> · <span style="color:#DC2626;font-weight:700;">🔴 缺席未受測</span> · <span style="color:#0284C7;font-weight:700;">🔵 登入作答未完成</span> · <span style="color:#64748B;font-weight:700;">⚪ 未指派測驗</span></div>
+        <div class="heat-legend"><b>連續</b>：從今天往回算，一天都沒中斷受測天數 · <b>累計</b>：已受測總天數。<br><b>蔚藍色階</b>：已完成測驗（少 &lt;60% · 中 60%~79% · 大 ≥80%）<br><b>特殊狀態</b>：<span style="color:#B45309;font-weight:700;">🟡 登入未受測</span> · <span style="color:#E11D48;font-weight:700;">🔴 缺席未受測</span> · <span style="color:#7E22CE;font-weight:700;">🟣 登入作答未完成</span> · <span style="color:#64748B;font-weight:700;">⚪ 未指派測驗</span></div>
       </div>
     </div>
 
