@@ -2606,6 +2606,28 @@ function doGet(e) {
     return jsonResponse(getLatestConversationFromDrive());
   }
 
+  // 檢驗單一工作表詳細列資料
+  if (e && e.parameter && e.parameter.action === "inspectSheetRows" && e.parameter.key === "inspect_2026_ok") {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheetName = e.parameter.sheetName || "d";
+    const sh = ss.getSheetByName(sheetName);
+    if (!sh) return jsonResponse({ status: "error", message: "找不到工作表 " + sheetName });
+    const lastRow = sh.getLastRow();
+    const lastCol = sh.getLastColumn();
+    const headers = (lastRow >= 1 && lastCol >= 1) ? sh.getRange(1, 1, 1, lastCol).getDisplayValues()[0] : [];
+    const maxRows = Math.min(Math.max(0, lastRow - 1), 15);
+    const rows = (maxRows > 0) ? sh.getRange(2, 1, maxRows, lastCol).getDisplayValues() : [];
+    // 隱藏長度過長的 GZ 壓縮字串以維持傳輸精簡
+    const sanitizedRows = rows.map(r => r.map((c, i) => (i === 1 && String(c).length > 30) ? String(c).substring(0, 25) + "..." : c));
+    return jsonResponse({
+      status: "success",
+      sheetName: sheetName,
+      lastRow: lastRow,
+      headers: headers,
+      rows: sanitizedRows
+    });
+  }
+
   // 檢驗試算表完整欄位與數值結構
   if (e && e.parameter && e.parameter.action === "inspectSpreadsheetSchema" && e.parameter.key === "inspect_2026_ok") {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
