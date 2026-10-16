@@ -2826,6 +2826,10 @@ function handleSaveRecord(ss, params, auth) {
   const existingTask   = (existingRow && existingRow[hMap.taskName]) ? String(existingRow[hMap.taskName]).trim() : "";
   const existingHasCompleted = existingStatus.includes("已完成") && existingScore !== "—" && existingScore !== "";
 
+  const dp = agentData.dailyPractice || {};
+  const todayDp = dp[todayStr] || dp[todayStr.replace(/-/g, "/")] || null;
+  const hasTodayPractice = !!(todayDp && (todayDp.attempts > 0 || (todayDp.words && Object.keys(todayDp.words).length > 0)));
+
   if (uSheet.getLastRow() < 2) {
     // 剛建立的新分頁，直接寫入第 2 列
     shouldInsertNewRow = false;
@@ -2860,9 +2864,6 @@ function handleSaveRecord(ss, params, auth) {
     // 關鍵防護：檢查是否有「今日新作答」或「今日測驗進度」！
     // 若學生今天尚未作答任何題目（attempts 未增加、今日無自主練習、無指定測驗），絕不開闢空白新列！
     const existingAtt = (existingRow && existingRow[hMap.attempts]) ? Number(existingRow[hMap.attempts]) : 0;
-    const dp = agentData.dailyPractice || {};
-    const todayDp = dp[todayStr] || dp[todayStr.replace(/-/g, "/")] || null;
-    const hasTodayPractice = !!(todayDp && (todayDp.attempts > 0 || (todayDp.words && Object.keys(todayDp.words).length > 0)));
     const hasAttIncrease = (testedWordsCount > existingAtt);
     const hasTaskActivity = !!(sum && (sum.inProgress || isCompleted));
 
