@@ -2563,8 +2563,15 @@ export function initExportRecordsCard(getSummaryFn) {
     if (btnModeRange) btnModeRange.classList.toggle("active", currentMode === "range");
     if (leftSingleInput) leftSingleInput.style.display = (currentMode === "single") ? "block" : "none";
     if (leftStartInput) leftStartInput.style.display = (currentMode === "range") ? "block" : "none";
-    if (rightCell) rightCell.style.display = (currentMode === "range") ? "block" : "none";
-    if (presetsRow) presetsRow.style.display = (currentMode === "range") ? "grid" : "none";
+    if (rightCell) {
+      rightCell.style.visibility = (currentMode === "range") ? "visible" : "hidden";
+      rightCell.style.pointerEvents = (currentMode === "range") ? "auto" : "none";
+    }
+    if (presetsRow) {
+      presetsRow.style.visibility = (currentMode === "range") ? "visible" : "hidden";
+      presetsRow.style.opacity = (currentMode === "range") ? "1" : "0";
+      presetsRow.style.pointerEvents = (currentMode === "range") ? "auto" : "none";
+    }
     if (currentMode === "single" && leftSingleInput && leftStartInput && !leftSingleInput.value) {
       leftSingleInput.value = leftStartInput.value || todayDash;
     } else if (currentMode === "range" && leftStartInput && leftSingleInput && !leftStartInput.value) {

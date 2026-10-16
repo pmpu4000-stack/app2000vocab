@@ -1672,6 +1672,8 @@ body[data-theme="dark"],
 .export-presets-row {
   margin-top: 0 !important;
   width: 100% !important;
+  min-height: 30px !important;
+  transition: opacity 0.18s ease, visibility 0.18s ease !important;
 }
 .export-quick-btns {
   display: grid !important;

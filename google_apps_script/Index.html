@@ -3681,6 +3681,8 @@
     .export-presets-row {
       margin-top: 0 !important;
       width: 100% !important;
+      min-height: 30px !important;
+      transition: opacity 0.18s ease, visibility 0.18s ease !important;
     }
     .export-quick-btns {
       display: grid !important;
@@ -4969,13 +4971,13 @@
               <input type="date" id="export-single-date" class="date-picker-input">
               <input type="date" id="export-start-date" class="date-picker-input" style="display:none;">
             </div>
-            <div class="export-date-cell export-date-cell-right" id="export-right-date-cell" style="display:none;">
+            <div class="export-date-cell export-date-cell-right" id="export-right-date-cell" style="visibility:hidden; pointer-events:none;">
               <input type="date" id="export-end-date" class="date-picker-input">
             </div>
           </div>
 
-          <!-- 4. 快捷範圍區間 (僅在自訂範圍區間模式下顯示) -->
-          <div class="export-row export-presets-row" id="export-presets-row" style="display:none;">
+          <!-- 4. 快捷範圍區間 (佔位保留，自訂範圍區間時顯示，單一模式時保留空間防跳動) -->
+          <div class="export-row export-presets-row" id="export-presets-row" style="visibility:hidden; opacity:0; pointer-events:none;">
             <div class="export-quick-btns">
               <button type="button" class="date-nav-btn today-btn" id="btn-export-preset-today" title="設定為今日">📍 今日</button>
               <button type="button" id="btn-export-preset-7d" class="date-nav-btn" title="最近 7 天">近 7 天</button>
@@ -16616,8 +16618,15 @@ function initStudentExportRecordsCard(resp) {
     if (btnModeRange) btnModeRange.classList.toggle("active", currentMode === "range");
     if (leftSingleInput) leftSingleInput.style.display = (currentMode === "single") ? "block" : "none";
     if (leftStartInput) leftStartInput.style.display = (currentMode === "range") ? "block" : "none";
-    if (rightCell) rightCell.style.display = (currentMode === "range") ? "block" : "none";
-    if (presetsRow) presetsRow.style.display = (currentMode === "range") ? "grid" : "none";
+    if (rightCell) {
+      rightCell.style.visibility = (currentMode === "range") ? "visible" : "hidden";
+      rightCell.style.pointerEvents = (currentMode === "range") ? "auto" : "none";
+    }
+    if (presetsRow) {
+      presetsRow.style.visibility = (currentMode === "range") ? "visible" : "hidden";
+      presetsRow.style.opacity = (currentMode === "range") ? "1" : "0";
+      presetsRow.style.pointerEvents = (currentMode === "range") ? "auto" : "none";
+    }
     if (currentMode === "single" && leftSingleInput && leftStartInput && !leftSingleInput.value) {
       leftSingleInput.value = leftStartInput.value || todayDash;
     } else if (currentMode === "range" && leftStartInput && leftSingleInput && !leftStartInput.value) {
