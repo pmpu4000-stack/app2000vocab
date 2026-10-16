@@ -359,7 +359,7 @@ export function historyData(n = 28) {
     const { key, dnum } = dayAgo(i);
     const { a, c } = getDayStat(key);
     const rate = a ? Math.round((c / a) * 100) : 0;
-    const level = a === 0 ? 0 : a < 10 ? 1 : a < 20 ? 2 : 3;
+    const level = a === 0 ? 0 : rate < 60 ? 1 : rate < 80 ? 2 : 3;
     days.push({ key, dnum, a, c, rate, level });
   }
 

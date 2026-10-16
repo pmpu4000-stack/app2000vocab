@@ -1886,7 +1886,7 @@ export function renderSummary(d) {
         </div>
         <div class="heatmap" id="heatmap-grid">${d.history.days.map((x, idx) =>
           `<i class="hc h${x.level}" data-idx="${idx}" data-key="${x.key}" data-a="${x.a || 0}" data-rate="${x.rate || 0}"></i>`).join("")}</div>
-        <div class="heat-legend"><b>連續</b>：從今天往回算，一天都沒中斷、天天有練習的天數。<br><b>最佳</b>：你曾經創下「最長連續天天練習」的紀錄。<br><b>累計</b>：從開始到現在，總共有練習過的天數（中間有休息也算）。<br><b>熱力圖</b>：方格顏色愈深，代表當天練習愈多。</div>
+        <div class="heat-legend"><b>連續</b>：從今天往回算，一天都沒中斷、天天有練習的天數。<br><b>最佳</b>：你曾經創下「最長連續天天練習」的紀錄。<br><b>累計</b>：從開始到現在，總共有練習過的天數（中間有休息也算）。<br><b>熱力圖</b>：方格顏色依當日作答正確率呈現三種深淺綠色（淺綠：未達 60% · 翠綠：60%~79% · 深綠：80% 以上；灰色：無紀錄）。</div>
       </div>
     </div>`;
 
@@ -1902,10 +1902,9 @@ export function renderSummary(d) {
 
   const getHeatBadgeTierClass = (att, rate) => {
     if (!att || att <= 0) return "heat-day-info tier-gray";
-    if (rate >= 100) return "heat-day-info tier-red";
-    if (rate >= 80) return "heat-day-info tier-yellow";
-    if (rate >= 60) return "heat-day-info tier-green";
-    return "heat-day-info tier-white";
+    if (rate >= 80) return "heat-day-info tier-green-high";
+    if (rate >= 60) return "heat-day-info tier-green-mid";
+    return "heat-day-info tier-green-low";
   };
 
   // 1. 綁定「指定測驗作答紀錄」純綠色熱力圖與右側小方塊（支援純綠色正確率階層、登入未受測粉紅、缺席紅、未完成紫）
@@ -1996,11 +1995,13 @@ export function renderSummary(d) {
 
   const renderHeatBadgeContent = (dateKey, att, rate, activeCellIdx) => {
     if (!heatDayInfoEl) return;
-    heatDayInfoEl.className = (!att || att <= 0) ? "heat-day-info tier-gray" : "heat-day-info tier-green";
-    if (att > 0) {
-      heatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 正確率 <b>${rate}%</b>`;
-    } else {
+    if (!att || att <= 0) {
+      heatDayInfoEl.className = "heat-day-info tier-gray";
       heatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 無練習紀錄`;
+    } else {
+      const badgeTier = rate >= 80 ? "tier-green-high" : (rate >= 60 ? "tier-green-mid" : "tier-green-low");
+      heatDayInfoEl.className = `heat-day-info ${badgeTier}`;
+      heatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 正確率 <b>${rate}%</b>`;
     }
     if (heatGridEl) {
       heatGridEl.querySelectorAll(".hc").forEach((cell, cIdx) => {
