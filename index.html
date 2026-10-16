@@ -451,7 +451,8 @@ body.daily-limit-reached #btn-upload {
 .word-split-title.correct-title{color:#065F46}
 .word-split-title.wrong-title{color:#D64545}
 .word-split-content,
-.word-split-box > div:not(.word-split-title){display:flex;flex-wrap:wrap;gap:5px;max-height:168px;overflow-y:auto;overscroll-behavior:contain;padding-right:4px;scrollbar-width:thin;scrollbar-color:rgba(100,116,139,0.35) transparent}
+.word-split-box > div:not(.word-split-title){display:flex;flex-wrap:wrap;align-items:flex-start;align-content:flex-start;gap:5px;height:160px;min-height:160px;max-height:160px;overflow-y:auto;overscroll-behavior:contain;padding-right:4px;scrollbar-width:thin;scrollbar-color:rgba(100,116,139,0.35) transparent}
+.task-empty-notice-box{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:330px;padding:20px 14px;text-align:center;box-sizing:border-box}
 .word-split-content::-webkit-scrollbar,
 .word-split-box > div:not(.word-split-title)::-webkit-scrollbar{width:5px}
 .word-split-content::-webkit-scrollbar-track,

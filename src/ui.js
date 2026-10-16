@@ -1025,7 +1025,7 @@ function buildTaskDetailsHtml(records, selectedDate, d) {
                        (!Array.isArray(records) && records && records.status && records.status.includes("未受測"));
     const statusNotice = isUntested ? "該日有指派測驗，但學生未受測" : "該日未指派指定測驗";
     return `
-      <div style="text-align:center; padding:18px 14px; color:var(--ink3);">
+      <div class="task-empty-notice-box" style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:330px; padding:20px 14px; text-align:center; box-sizing:border-box;">
         <div style="font-size:26px; margin-bottom:6px;">📝</div>
         <div style="font-size:13.5px; font-weight:700; color:var(--ink2);">${statusNotice}（${selectedDate}）</div>
         <div style="font-size:12px; margin-top:4px; color:var(--ink3);">可從上方下拉選單切換至其他日期查看詳細作答紀錄</div>
@@ -1039,7 +1039,7 @@ function buildTaskDetailsHtml(records, selectedDate, d) {
 function buildFreeDetailsHtml(record, selectedDate, d) {
   if (!record || !record.attempts) {
     return `
-      <div style="text-align:center; padding:18px 14px; color:var(--ink3);">
+      <div class="task-empty-notice-box" style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:330px; padding:20px 14px; text-align:center; box-sizing:border-box;">
         <div style="font-size:26px; margin-bottom:6px;">🎮</div>
         <div style="font-size:13.5px; font-weight:700; color:var(--ink2);">該指定日期（${selectedDate}）尚無自由練習受測紀錄</div>
         <div style="font-size:12px; margin-top:4px; color:var(--ink3);">可從上方日曆選擇器或快速按鈕切換至其他日期查看作答狀況</div>
