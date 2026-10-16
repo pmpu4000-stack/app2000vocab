@@ -3565,14 +3565,6 @@
     .learning-progress-card.is-collapsed .progress-collapsible-body {
       display: none !important;
     }
-    .export-navigator-card {
-      margin: 6px 0 0 0 !important;
-      padding: 12px 14px !important;
-      display: flex !important;
-      flex-direction: column !important;
-      align-items: stretch !important;
-      gap: 10px !important;
-    }
     .export-controls-wrap {
       display: flex !important;
       flex-direction: column !important;
@@ -3587,41 +3579,26 @@
       width: 100% !important;
     }
     .export-action-row {
-      display: flex !important;
-      flex-direction: column !important;
-      align-items: stretch !important;
-      gap: 8px !important;
+      justify-content: flex-start !important;
+      gap: 8px 12px !important;
       padding-top: 8px !important;
       border-top: 1px dashed rgba(108, 76, 224, 0.2) !important;
-      width: 100% !important;
-    }
-    .export-action-row .export-format-group {
-      width: 100% !important;
-      display: flex !important;
-      align-items: center !important;
     }
     [data-theme="dark"] .export-action-row {
       border-top-color: #2B334E !important;
     }
     .export-mode-tabs {
-      display: flex !important;
-      align-items: center !important;
-      gap: 8px !important;
-      width: 100% !important;
-    }
-    .export-mode-tabs .export-mode-btn {
-      flex: 1 1 0 !important;
-      min-width: 0 !important;
-      height: 30px !important;
-      min-height: 30px !important;
-      max-height: 30px !important;
-      font-size: 12.5px !important;
-      font-weight: 800 !important;
-      border-radius: 9px !important;
       display: inline-flex !important;
       align-items: center !important;
-      justify-content: center !important;
-      box-sizing: border-box !important;
+      gap: 4px !important;
+    }
+    .export-mode-tabs .export-mode-btn {
+      height: 28px !important;
+      min-height: 28px !important;
+      max-height: 28px !important;
+      font-size: 12px !important;
+      font-weight: 700 !important;
+      padding: 0 10px !important;
     }
     .export-mode-btn.active,
     [data-theme="dark"] .export-mode-btn.active {
@@ -3629,72 +3606,26 @@
       border-color: var(--violet) !important;
       color: #FFFFFF !important;
     }
-    .export-label-row {
-      margin-bottom: -2px !important;
-    }
-    .export-mode-row {
-      margin-bottom: 2px !important;
-      width: 100% !important;
-    }
-    .export-date-row {
-      width: 100% !important;
-    }
     .export-date-inputs {
-      display: flex !important;
-      align-items: stretch !important;
-      gap: 10px !important;
-      width: 100% !important;
-    }
-    .export-range-container {
-      display: flex !important;
-      width: 100% !important;
-      gap: 8px !important;
-    }
-    .export-range-container .export-date-col {
-      flex: 1 1 0 !important;
-      min-width: 0 !important;
-      display: flex !important;
-      flex-direction: column !important;
-      gap: 3px !important;
-    }
-    .export-single-container {
-      display: flex !important;
-      width: 100% !important;
-    }
-    .export-single-container .export-date-col {
-      flex: 1 1 auto !important;
-      max-width: 240px !important;
-      min-width: 160px !important;
-      display: flex !important;
-      flex-direction: column !important;
-      gap: 3px !important;
-    }
-    .export-col-label {
-      font-size: 11.5px !important;
-      font-weight: 700 !important;
-      color: var(--ink2) !important;
-      letter-spacing: 0.2px !important;
-    }
-    [data-theme="dark"] .export-col-label {
-      color: #A0AEC0 !important;
-    }
-    .export-date-col .date-picker-input {
-      width: 100% !important;
-      max-width: 100% !important;
-      min-width: 0 !important;
-      box-sizing: border-box !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      flex-wrap: wrap !important;
+      gap: 5px !important;
     }
     .export-range-sep {
-      display: none !important;
+      font-size: 12px !important;
+      font-weight: 800 !important;
+      color: var(--ink2) !important;
+      padding: 0 2px !important;
     }
     .export-presets-row {
-      margin-top: 2px !important;
+      margin-top: -2px !important;
     }
     .export-quick-btns {
       display: inline-flex !important;
       align-items: center !important;
       flex-wrap: wrap !important;
-      gap: 8px !important;
+      gap: 5px !important;
     }
     .export-format-group {
       display: inline-flex !important;
@@ -3707,21 +3638,21 @@
       min-width: 170px !important;
     }
     .export-btn-group {
-      display: grid !important;
-      grid-template-columns: 1fr 1fr !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      flex-wrap: wrap !important;
       gap: 8px !important;
-      width: 100% !important;
-      box-sizing: border-box !important;
+      margin-left: 0 !important;
     }
     .export-dl-btn {
       display: inline-flex !important;
       align-items: center !important;
       justify-content: center !important;
       gap: 5px !important;
-      height: 32px !important;
-      min-height: 32px !important;
-      max-height: 32px !important;
-      padding: 0 4px !important;
+      height: 30px !important;
+      min-height: 30px !important;
+      max-height: 30px !important;
+      padding: 0 12px !important;
       border-radius: 9px !important;
       font-size: 12.5px !important;
       font-weight: 800 !important;
@@ -3730,8 +3661,6 @@
       transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.15s ease !important;
       white-space: nowrap !important;
       box-sizing: border-box !important;
-      width: 100% !important;
-      min-width: 0 !important;
     }
     .export-dl-btn:hover {
       transform: translateY(-1px) !important;
@@ -3770,28 +3699,14 @@
         margin-top: 0 !important;
         width: 100% !important;
       }
-      .export-date-row {
-        width: 100% !important;
-      }
       .export-date-inputs {
         width: 100% !important;
         margin-top: 2px !important;
       }
-      .export-range-container {
+      .export-date-inputs input[type="date"] {
+        flex: 1 1 auto !important;
         width: 100% !important;
-        gap: 8px !important;
-      }
-      .export-range-container .export-date-col {
-        flex: 1 1 0 !important;
-        min-width: 0 !important;
-      }
-      .export-single-container .export-date-col {
-        max-width: 100% !important;
-        width: 100% !important;
-      }
-      .export-date-col .date-picker-input {
-        width: 100% !important;
-        min-width: 0 !important;
+        min-width: 130px !important;
         box-sizing: border-box !important;
       }
       .export-quick-btns {
@@ -4999,39 +4914,28 @@
       </h3>
       <div class="export-navigator-card" id="export-navigator-card" style="display:none;">
         <div class="export-controls-wrap">
-          <div class="export-row export-label-row">
+          <div class="export-row">
             <span class="date-nav-title"><span>📅</span> 匯出範圍：</span>
-          </div>
-          <div class="export-row export-mode-row">
             <div class="export-mode-tabs" role="group" aria-label="選擇匯出日期模式">
-              <button type="button" id="btn-export-mode-single" class="date-nav-btn export-mode-btn active" data-mode="single">指定日期</button>
-              <button type="button" id="btn-export-mode-range" class="date-nav-btn export-mode-btn" data-mode="range">指定範圍</button>
+              <button type="button" id="btn-export-mode-single" class="date-nav-btn export-mode-btn active" data-mode="single">單一指定日期</button>
+              <button type="button" id="btn-export-mode-range" class="date-nav-btn export-mode-btn" data-mode="range">自訂範圍區間</button>
             </div>
-          </div>
-          <div class="export-row export-date-row">
-            <div id="export-single-wrap" class="export-date-inputs export-single-container">
-              <div class="export-date-col single-col">
-                <label for="export-single-date" class="export-col-label">指定日期</label>
-                <input type="date" id="export-single-date" class="date-picker-input">
-              </div>
+            <div id="export-single-wrap" class="export-date-inputs">
+              <input type="date" id="export-single-date" class="date-picker-input">
             </div>
-            <div id="export-range-wrap" class="export-date-inputs export-range-container" style="display:none;">
-              <div class="export-date-col">
-                <label for="export-start-date" class="export-col-label">起始日期</label>
-                <input type="date" id="export-start-date" class="date-picker-input">
-              </div>
-              <div class="export-date-col">
-                <label for="export-end-date" class="export-col-label">結束日期</label>
-                <input type="date" id="export-end-date" class="date-picker-input">
-              </div>
+            <div id="export-range-wrap" class="export-date-inputs" style="display:none;">
+              <input type="date" id="export-start-date" class="date-picker-input">
+              <span class="export-range-sep">至</span>
+              <input type="date" id="export-end-date" class="date-picker-input">
             </div>
           </div>
           <div class="export-row export-presets-row">
+            <span class="date-nav-title" style="visibility:hidden; opacity:0; pointer-events:none;"><span>📅</span> 匯出範圍：</span>
             <div class="export-quick-btns">
               <button type="button" class="date-nav-btn today-btn" id="btn-export-preset-today" title="匯出今日紀錄">📍 今日</button>
-              <button type="button" class="date-nav-btn" id="btn-export-preset-7d" title="最近 7 天">近 7 天</button>
-              <button type="button" class="date-nav-btn" id="btn-export-preset-30d" title="最近 30 天">近 30 天</button>
-              <button type="button" class="date-nav-btn" id="btn-export-preset-all" title="全部有紀錄日期">全部紀錄</button>
+              <button type="button" id="btn-export-preset-7d" class="date-nav-btn" title="最近 7 天">近 7 天</button>
+              <button type="button" id="btn-export-preset-30d" class="date-nav-btn" title="最近 30 天">近 30 天</button>
+              <button type="button" id="btn-export-preset-all" class="date-nav-btn" title="全部有紀錄日期">全部紀錄</button>
             </div>
           </div>
           <div class="export-row export-action-row">
@@ -16645,8 +16549,8 @@ function initStudentExportRecordsCard(resp) {
     currentMode = (m === "range") ? "range" : "single";
     if (btnModeSingle) btnModeSingle.classList.toggle("active", currentMode === "single");
     if (btnModeRange) btnModeRange.classList.toggle("active", currentMode === "range");
-    if (singleWrap) singleWrap.style.display = (currentMode === "single") ? "flex" : "none";
-    if (rangeWrap) rangeWrap.style.display = (currentMode === "range") ? "flex" : "none";
+    if (singleWrap) singleWrap.style.display = (currentMode === "single") ? "inline-flex" : "none";
+    if (rangeWrap) rangeWrap.style.display = (currentMode === "range") ? "inline-flex" : "none";
   };
 
   if (btnModeSingle) btnModeSingle.onclick = () => setExportMode("single");
