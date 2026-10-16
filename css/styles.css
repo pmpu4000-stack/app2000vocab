@@ -62,6 +62,10 @@ header{display:flex; align-items:center; gap:14px; margin-bottom:14px}
 .mode .ic{font-size:20px;display:block;line-height:1.3;margin-bottom:2px}
 .mode:hover{transform:translateY(-1px)}
 .mode[aria-pressed="true"]{border-color:var(--violet);background:#F1EDFF;color:var(--violet-d)}
+.mode[data-m="listen"][aria-pressed="true"]{border-color:#6C4CE0;background:linear-gradient(145deg,#F5F3FF,#FAF9FF);color:#4C1D95;box-shadow:0 2px 8px rgba(108,76,224,.15)}
+.mode[data-m="pick"][aria-pressed="true"]{border-color:#0284C7;background:linear-gradient(145deg,#F0F9FF,#F8FAFC);color:#0369A1;box-shadow:0 2px 8px rgba(2,132,199,.15)}
+.mode[data-m="scramble"][aria-pressed="true"]{border-color:#059669;background:linear-gradient(145deg,#ECFDF5,#F0FDF4);color:#065F46;box-shadow:0 2px 8px rgba(5,150,105,.15)}
+.mode[data-m="trap"][aria-pressed="true"]{border-color:#D97706;background:linear-gradient(145deg,#FFFBEB,#FEF3C7);color:#92400E;box-shadow:0 2px 8px rgba(217,119,6,.15)}
 
 /* ---------- practice card ---------- */
 .card{background:var(--card);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);
@@ -619,6 +623,30 @@ body[data-theme="dark"],
   background: rgba(108, 76, 224, 0.25) !important;
   border-color: var(--violet) !important;
   color: #C7B5FD !important;
+}
+[data-theme="dark"] .mode[data-m="listen"][aria-pressed="true"] {
+  background: rgba(108, 76, 224, 0.22) !important;
+  border-color: #8B6BF0 !important;
+  color: #DDD6FE !important;
+  box-shadow: 0 0 12px rgba(108, 76, 224, 0.25) !important;
+}
+[data-theme="dark"] .mode[data-m="pick"][aria-pressed="true"] {
+  background: rgba(2, 132, 199, 0.22) !important;
+  border-color: #38BDF8 !important;
+  color: #BAE6FD !important;
+  box-shadow: 0 0 12px rgba(2, 132, 199, 0.25) !important;
+}
+[data-theme="dark"] .mode[data-m="scramble"][aria-pressed="true"] {
+  background: rgba(16, 185, 129, 0.22) !important;
+  border-color: #34D399 !important;
+  color: #A7F3D0 !important;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.25) !important;
+}
+[data-theme="dark"] .mode[data-m="trap"][aria-pressed="true"] {
+  background: rgba(217, 119, 6, 0.22) !important;
+  border-color: #F59E0B !important;
+  color: #FDE68A !important;
+  box-shadow: 0 0 12px rgba(217, 119, 6, 0.25) !important;
 }
 [data-theme="dark"] .lvchip {
   background: #181C2A !important;
