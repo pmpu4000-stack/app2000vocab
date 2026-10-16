@@ -973,8 +973,16 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
 
       <div class="task-score-grid">
         <div class="task-score-item">
-          <div class="task-score-label">🎯 答對單字數 / 施測單字數</div>
-          <div class="task-score-val" style="color:#0284c7;">${taskCorrWords}/${taskTotWords} 字</div>
+          <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap;">
+            <span style="flex:1; text-align:right;">答對單字數</span>
+            <span style="padding:0 6px; opacity:0.6;">/</span>
+            <span style="flex:1; text-align:left;">施測單字數</span>
+          </div>
+          <div class="task-score-val" style="color:#0284c7; display:flex; align-items:center; justify-content:center;">
+            <span style="flex:1; text-align:right;">${taskCorrWords}</span>
+            <span style="padding:0 6px; font-weight:700; color:var(--ink3); opacity:0.6; font-size:18px;">/</span>
+            <span style="flex:1; text-align:left;">${taskTotWords}</span>
+          </div>
         </div>
         <div class="task-score-item">
           <div class="task-score-label">📊 正確率</div>
@@ -1173,8 +1181,16 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
 
       <div class="task-score-grid">
         <div class="task-score-item">
-          <div class="task-score-label">🎯 答對單字數 / 施測單字數</div>
-          <div class="task-score-val" style="color:#0284c7;">${correctWords}/${totalWords} 字</div>
+          <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap;">
+            <span style="flex:1; text-align:right;">答對單字數</span>
+            <span style="padding:0 6px; opacity:0.6;">/</span>
+            <span style="flex:1; text-align:left;">施測單字數</span>
+          </div>
+          <div class="task-score-val" style="color:#0284c7; display:flex; align-items:center; justify-content:center;">
+            <span style="flex:1; text-align:right;">${correctWords}</span>
+            <span style="padding:0 6px; font-weight:700; color:var(--ink3); opacity:0.6; font-size:18px;">/</span>
+            <span style="flex:1; text-align:left;">${totalWords}</span>
+          </div>
         </div>
         <div class="task-score-item">
           <div class="task-score-label">📊 正確率</div>
