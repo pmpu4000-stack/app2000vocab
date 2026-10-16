@@ -2648,6 +2648,16 @@ body[data-theme="dark"],
             localStorage.setItem("student_task_history", JSON.stringify(mergedHist));
           }
 
+          // 儲存任務單字庫對應表至 localStorage 供歷史查詢
+          if (result.taskWordsMap && typeof result.taskWordsMap === "object") {
+            for (const tk in result.taskWordsMap) {
+              const twVal = result.taskWordsMap[tk];
+              if (Array.isArray(twVal) && twVal.length > 0) {
+                localStorage.setItem("task_words_" + tk, JSON.stringify(twVal));
+              }
+            }
+          }
+
           // 若有今日指定任務，存入 sessionStorage 與 localStorage 供 app.js 抓取
           if (result.assignedTask) {
             sessionStorage.setItem("assigned_task", JSON.stringify(result.assignedTask));

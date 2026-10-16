@@ -786,11 +786,23 @@ function getTaskWordsDictCached_(ss) {
   for (let i = 0; i < tasks.length; i++) {
     const tName = tasks[i].taskName.toLowerCase();
     const rawW = tasks[i].rawWords;
-    const tDate = tasks[i].taskDate;
+    const tDate = tasks[i].taskDate ? formatStandardDateYMD(tasks[i].taskDate) : "";
     const words = rawW ? rawW.split(/[\s,;\n\r]+/).filter(w => w.trim().length > 0) : [];
     if (tName) dict[tName] = words;
-    if (tDate) dict[tDate] = words;
-    if (tDate && tName) dict[tDate + "_" + tName] = words;
+    if (tDate) {
+      dict[tDate] = words;
+      dict[tDate.replace(/-/g, "/")] = words;
+      const parts = tDate.split("-");
+      if (parts.length === 3) {
+        const unpadded = `${parts[0]}-${parseInt(parts[1], 10)}-${parseInt(parts[2], 10)}`;
+        dict[unpadded] = words;
+        dict[unpadded.replace(/-/g, "/")] = words;
+      }
+    }
+    if (tDate && tName) {
+      dict[tDate + "_" + tName] = words;
+      dict[tDate.replace(/-/g, "/") + "_" + tName] = words;
+    }
   }
 
   try { cache.put(cacheKey, JSON.stringify(dict), 300); } catch(_) {}
@@ -2391,6 +2403,7 @@ function doPost(e) {
         className:auth.className, realName:auth.realName, records,
         isNewStudent: isNewStudent,
         assignedTask: assignedTask,
+        taskWordsMap: getTaskWordsDictCached_(ss),
         dailyTaskHistory: dailyTaskHistory,
         timeRestriction: timeAllowance,
         dailyUsage: getDailyUsageSettings(ss, auth.username, true),
@@ -2643,6 +2656,28 @@ function doGet(e) {
     });
   }
 
+  // 檢驗試算表整體通用資訊 (使用者清單、指定單字任務、學生 d 列資料)
+  if (e && e.parameter && e.parameter.action === "inspectGeneral" && e.parameter.key === "inspect_2026_ok") {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const uSh = ss.getSheetByName("使用者清單");
+    const uVals = uSh ? uSh.getDataRange().getDisplayValues() : [];
+    const tSh = ss.getSheetByName("指定單字任務");
+    const tVals = tSh ? tSh.getDataRange().getDisplayValues() : [];
+    const dSh = ss.getSheetByName("d");
+    const dVals = dSh ? dSh.getDataRange().getDisplayValues() : [];
+    return jsonResponse({
+      users: uVals,
+      tasks: tVals,
+      dRows: dVals
+    });
+  }
+
+  // 設定測試帳號 d 之指定測驗情境資料 (10-12, 10-14, 10-15)
+  if (e && e.parameter && e.parameter.action === "setupTestAccountDRecords" && (e.parameter.key === "inspect_2026_ok" || e.parameter.key === "setup_test_d_2026")) {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    return jsonResponse(setupTestAccountDRecords(ss));
+  }
+
   // 支援全試算表智慧同步指定測驗成果至日期列
   if (e && e.parameter && (e.parameter.action === "syncAllTaskRecords" || e.parameter.action === "backfillTaskRecords") && (e.parameter.key === "inspect_2026_ok" || e.parameter.key === "sync_tasks_2026_ok")) {
     return jsonResponse(syncAllTaskRecords(SpreadsheetApp.getActiveSpreadsheet()));
@@ -2670,6 +2705,249 @@ function doGet(e) {
 function jsonResponse(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj))
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+// ════════════════════════════════════════════════════════════════════
+// 測試專用：自動寫入帳號 d 指定測驗情境資料 (10-12, 10-14, 10-15)
+// ════════════════════════════════════════════════════════════════════
+
+function setupTestAccountDRecords(ss) {
+  if (!ss) {
+    try { ss = SpreadsheetApp.getActiveSpreadsheet(); } catch(_) {}
+  }
+  if (!ss) {
+    ss = SpreadsheetApp.openById("1qacVs_pguoYbekxtyBOtqUJYmyi1O7pOA7lJMRFFwpE");
+  }
+
+  // 1. 取得學生 d 的班級
+  let dClass = "701";
+  const uSheet = ss.getSheetByName("使用者清單");
+  if (uSheet && uSheet.getLastRow() >= 2) {
+    const uData = uSheet.getDataRange().getValues();
+    for (let i = 1; i < uData.length; i++) {
+      if (String(uData[i][0]).trim().toLowerCase() === "d") {
+        dClass = String(uData[i][3] || "701").replace(/班$/, "").trim();
+        break;
+      }
+    }
+  }
+
+  // 2. 設定「指定單字任務」
+  // 10-12: act, add, age, ago, aim (抽測 5 題, TRUE, 2026-10-12)
+  // 10-14: air, all, and, ant, any (抽測 5 題, TRUE, 2026-10-14)
+  // 10-15: arm, art, ask, bad, bag (抽測 5 題, TRUE, 2026-10-15)
+  let taskSheet = ss.getSheetByName("指定單字任務");
+  if (!taskSheet) {
+    taskSheet = ss.insertSheet("指定單字任務");
+  }
+  if (taskSheet.getLastRow() === 0) {
+    taskSheet.appendRow(["班級","任務名稱","指定單字清單 (逗號或空格分隔)","測驗模式","抽測題數","啟用狀態","指定日期"]);
+  }
+
+  const targetTasks = [
+    {
+      date: "2026-10-12",
+      name: "1012指定單字隨堂測驗",
+      words: "act, add, age, ago, aim",
+      mode: "抽測",
+      count: "5"
+    },
+    {
+      date: "2026-10-14",
+      name: "1014指定單字隨堂測驗",
+      words: "air, all, and, ant, any",
+      mode: "抽測",
+      count: "5"
+    },
+    {
+      date: "2026-10-15",
+      name: "1015指定單字隨堂測驗",
+      words: "arm, art, ask, bad, bag",
+      mode: "抽測",
+      count: "5"
+    }
+  ];
+
+  const tData = taskSheet.getDataRange().getValues();
+  targetTasks.forEach(item => {
+    let found = false;
+    for (let r = 1; r < tData.length; r++) {
+      const rowDate = formatStandardDateYMD(tData[r][6]);
+      const rowName = String(tData[r][1] || "").trim();
+      if (rowDate === item.date || rowName === item.name) {
+        taskSheet.getRange(r + 1, 1, 1, 7).setValues([[
+          dClass, item.name, item.words, item.mode, item.count, true, item.date
+        ]]);
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      taskSheet.appendRow([
+        dClass, item.name, item.words, item.mode, item.count, true, item.date
+      ]);
+    }
+  });
+
+  // 3. 處理學生 d 的分頁與備份 JSON
+  const dSheet = ss.getSheetByName("d");
+  if (!dSheet || dSheet.getLastRow() < 2) {
+    return { status: "error", message: "找不到學生 d 的分頁或無資料" };
+  }
+
+  // 讀取 Row 2 Column B 的完整 JSON
+  let parsed = {};
+  try {
+    const rawB = dSheet.getRange(2, 2).getValue();
+    const decomp = decompressData(rawB);
+    parsed = JSON.parse(decomp) || {};
+  } catch(_) {}
+
+  let agentObj = {};
+  if (parsed["spellAgent.v2"]) {
+    agentObj = (typeof parsed["spellAgent.v2"] === "string") ? JSON.parse(parsed["spellAgent.v2"]) : parsed["spellAgent.v2"];
+  }
+  if (!agentObj.dailyPractice) agentObj.dailyPractice = {};
+  if (!agentObj.history) agentObj.history = {};
+
+  // 3a. 10-14: 使用者完全沒有登入
+  delete agentObj.dailyPractice["2026-10-14"];
+  delete agentObj.dailyPractice["2026/10/14"];
+  delete agentObj.history["2026-10-14"];
+  delete agentObj.history["2026/10/14"];
+
+  // 3b. 10-15: 使用者有登入但未作答指定測驗 (有自由練習紀錄)
+  agentObj.dailyPractice["2026-10-15"] = {
+    attempts: 12,
+    correct: 11,
+    words: { "arm": { a: 2, c: 2 }, "art": { a: 2, c: 2 }, "ask": { a: 2, c: 2 }, "bad": { a: 3, c: 3 }, "bag": { a: 3, c: 2 } }
+  };
+  agentObj.history["2026-10-15"] = {
+    attempts: 12,
+    correct: 11,
+    words: { "arm": { a: 2, c: 2 }, "art": { a: 2, c: 2 }, "ask": { a: 2, c: 2 }, "bad": { a: 3, c: 3 }, "bag": { a: 3, c: 2 } }
+  };
+
+  // 3c. 10-12: 使用者有登入有作答但沒有全部回答完畢 (5題作答中斷，答對2題)
+  agentObj.dailyPractice["2026-10-12"] = {
+    attempts: 6,
+    correct: 6,
+    words: { "act": { a: 3, c: 3 }, "add": { a: 3, c: 3 } }
+  };
+  agentObj.history["2026-10-12"] = {
+    attempts: 6,
+    correct: 6,
+    words: { "act": { a: 3, c: 3 }, "add": { a: 3, c: 3 } }
+  };
+
+  // 整理 student_task_history
+  let taskHist = [];
+  try {
+    if (parsed.student_task_history) {
+      taskHist = (typeof parsed.student_task_history === "string") ? JSON.parse(parsed.student_task_history) : parsed.student_task_history;
+    }
+  } catch(_) {}
+  if (!Array.isArray(taskHist)) taskHist = [];
+
+  // 移除 10-14, 10-15, 10-12 舊紀錄
+  taskHist = taskHist.filter(h => {
+    const d = String(h.date || "").trim().split(/[T\s]/)[0].replace(/\//g, "-");
+    return d !== "2026-10-14" && d !== "2026-10-15" && d !== "2026-10-12";
+  });
+
+  // 加入 10-12 作答中斷紀錄
+  taskHist.push({
+    date: "2026-10-12",
+    taskName: "1012指定單字隨堂測驗",
+    score: "2/5",
+    rate: "100%",
+    status: "🟡 測驗作答中(2/5)",
+    attempts: 2,
+    correct: 2,
+    accuracy: "100%",
+    updatedAt: "2026-10-12 19:25:00",
+    wrongWords: [],
+    words: ["act", "add", "age", "ago", "aim"]
+  });
+
+  // 更新快取單字對應
+  parsed["task_words_2026-10-12"] = ["act", "add", "age", "ago", "aim"];
+  parsed["task_words_2026/10/12"] = ["act", "add", "age", "ago", "aim"];
+  parsed["task_words_2026-10-14"] = ["air", "all", "and", "ant", "any"];
+  parsed["task_words_2026/10/14"] = ["air", "all", "and", "ant", "any"];
+  parsed["task_words_2026-10-15"] = ["arm", "art", "ask", "bad", "bag"];
+  parsed["task_words_2026/10/15"] = ["arm", "art", "ask", "bad", "bag"];
+
+  // 移除 10-14, 10-15, 10-12 的 task_done 標記
+  delete parsed["task_done_2026-10-14"];
+  delete parsed["task_done_2026/10/14"];
+  delete parsed["task_done_2026-10-15"];
+  delete parsed["task_done_2026/10/15"];
+  delete parsed["task_done_2026-10-12"];
+  delete parsed["task_done_2026/10/12"];
+
+  parsed["spellAgent.v2"] = JSON.stringify(agentObj);
+  parsed.student_task_history = JSON.stringify(taskHist);
+
+  // 壓縮並回寫 Row 2 Column B
+  const newComp = compressData(JSON.stringify(parsed));
+  dSheet.getRange(2, 2).setValue(newComp);
+
+  // 4. 更新 Sheet d 上的所有列資料
+  const lastRow = dSheet.getLastRow();
+  const lastCol = Math.max(dSheet.getLastColumn(), 30);
+  const rows = dSheet.getRange(2, 1, lastRow - 1, lastCol).getValues();
+
+  for (let i = 0; i < rows.length; i++) {
+    const dStr = formatStandardDateYMD(rows[i][0]);
+    if (dStr === "2026-10-14") {
+      // 10-14: 使用者完全沒有登入 -> 將該列日期調整為 2026-10-11 21:38:32，使 10-14 在分頁上無登入列
+      dSheet.getRange(i + 2, 1).setValue("2026-10-11 21:38:32");
+    } else if (dStr === "2026-10-15") {
+      // 10-15: 使用者有登入無作答指定測驗
+      // Col 22(V): 任務名稱 -> ⚪ 未受測
+      // Col 23(W): 成績 -> —
+      // Col 24(X): 正確率 -> —
+      // Col 25(Y): 狀態 -> ⚪ 未受測
+      // Col 26(Z): 錯題 -> 空
+      // Col 27(AA): 自由受測 -> 12
+      // Col 28(AB): 自由答對 -> 11
+      // Col 29(AC): 自由正確率 -> 92%
+      // Col 30(AD): 自由錯題 -> bag
+      dSheet.getRange(i + 2, 22, 1, 9).setValues([[
+        "⚪ 未受測", "—", "—", "⚪ 未受測", "", 12, 11, "92%", "bag"
+      ]]);
+    } else if (dStr === "2026-10-12") {
+      // 10-12: 使用者有登入有作答但沒有全部回答完畢 (作答中斷)
+      // Col 22(V): 任務名稱 -> 1012指定單字隨堂測驗
+      // Col 23(W): 成績 -> '2/5
+      // Col 24(X): 正確率 -> 100%
+      // Col 25(Y): 狀態 -> 🟡 測驗作答中(2/5)
+      // Col 26(Z): 錯題 -> 空
+      // Col 27(AA): 自由受測 -> 6
+      // Col 28(AB): 自由答對 -> 6
+      // Col 29(AC): 自由正確率 -> 100%
+      // Col 30(AD): 自由錯題 -> 空
+      dSheet.getRange(i + 2, 22, 1, 9).setValues([[
+        "1012指定單字隨堂測驗", "'2/5", "100%", "🟡 測驗作答中(2/5)", "", 6, 6, "100%", ""
+      ]]);
+    }
+  }
+
+  // 5. 徹底清除快取以即時生效
+  invalidateTeacherTaskCache_();
+  clearOverviewCache();
+
+  return {
+    status: "success",
+    message: "帳號 d 測試資料已成功設定並寫入 Google Sheet！",
+    tasks: targetTasks,
+    summary: {
+      "10-12": "指派 5 字 (act, add, age, ago, aim)，作答 2 題中斷 ('2/5, 100%, 🟡 測驗作答中(2/5))",
+      "10-14": "指派 5 字 (air, all, and, ant, any)，無登入無作答 (缺席未受測)",
+      "10-15": "指派 5 字 (arm, art, ask, bad, bag)，有登入自由練習無作答指定測驗 (登入未受測)"
+    }
+  };
 }
 
 // ════════════════════════════════════════════════════════════════════
@@ -4020,6 +4298,7 @@ function checkAndGetData(formData) {
           result.todayTaskResult = getStudentTodayTaskResult(ss, target, todayStr);
           result.dailyTaskHistory = getStudentDailyTaskHistory(ss, target);
           result.assignedTask = getActiveTaskForClass(ss, result.className, target);
+          result.taskWordsMap = getTaskWordsDictCached_(ss);
           try { result.leaderboard = _getLeaderboard(ss, target, formData.rankingMode||"class"); } catch(_) {}
           try {
             const g = _getGoalsInternal(ss, target);
@@ -4044,6 +4323,7 @@ function checkAndGetData(formData) {
       result.todayTaskResult = getStudentTodayTaskResult(ss, auth.username, todayStr);
       result.dailyTaskHistory = getStudentDailyTaskHistory(ss, auth.username);
       result.assignedTask = getActiveTaskForClass(ss, auth.className, auth.username);
+      result.taskWordsMap = getTaskWordsDictCached_(ss);
       try { result.leaderboard = _getLeaderboard(ss, auth.username, formData.rankingMode||"class"); } catch(_) {}
       try {
         const g = _getGoalsInternal(ss, auth.username);

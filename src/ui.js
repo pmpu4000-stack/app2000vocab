@@ -905,8 +905,9 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
   const scoreVal = record.score || "—";
   const rateVal = formatRatePercentage(record.rate, record.score);
   const statusStr = record.status || "🟢 已完成";
-  const isFinished = statusStr.includes("已完成") || (scoreVal !== "—" && scoreVal !== "尚未開始" && !statusStr.includes("未受測"));
-  const isUntested = statusStr.includes("未受測") || (!isFinished && (scoreVal === "—" || scoreVal === "尚未開始"));
+  const isIncomplete = statusStr.includes("作答中") || statusStr.includes("未完成") || statusStr.includes("中斷") || record.inProgress === true;
+  const isFinished = !isIncomplete && (statusStr.includes("已完成") || (scoreVal !== "—" && scoreVal !== "尚未開始" && !statusStr.includes("未受測")));
+  const isUntested = statusStr.includes("未受測") || (!isFinished && !isIncomplete && (scoreVal === "—" || scoreVal === "尚未開始"));
 
   let displayStatusStr = statusStr;
   let statusColor = "#64748b";
@@ -917,6 +918,11 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     statusColor = "#047857";
     statusBg = "rgba(16,185,129,0.15)";
     displayStatusStr = statusStr.includes("已完成") ? statusStr : "🟢 已完成";
+  } else if (isIncomplete) {
+    displayStatusStr = "🟠 作答中斷";
+    statusColor = "#d97706";
+    statusBg = "rgba(245,158,11,0.15)";
+    statusDesc = "⏳ 測驗中途作答中斷";
   } else if (isUntested) {
     if (hasLoggedInOrFree) {
       displayStatusStr = "🟡 登入未受測";
@@ -929,19 +935,18 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
       statusBg = "rgba(239,68,68,0.15)";
       statusDesc = "📴 當日無登入紀錄 (缺考)";
     }
-  } else if (statusStr.includes("作答中") || statusStr.includes("未完成")) {
-    displayStatusStr = "🟠 作答中斷";
-    statusColor = "#d97706";
-    statusBg = "rgba(234,179,8,0.15)";
-    statusDesc = "⏳ 測驗進行中未完成";
   }
 
   let taskCorrWords = correctList.length;
   let taskTotWords = (correctList.length + wrongList.length) > 0 ? (correctList.length + wrongList.length) : (rawWords.length || 0);
-  if (taskTotWords === 0 && scoreVal && String(scoreVal).includes("/")) {
+  if (scoreVal && String(scoreVal).includes("/")) {
     const parts = String(scoreVal).split("/");
-    taskCorrWords = parseInt(parts[0]) || 0;
-    taskTotWords = parseInt(parts[1]) || 0;
+    const sCorr = parseInt(parts[0], 10);
+    const sTot = parseInt(parts[1], 10);
+    if (!isNaN(sTot) && sTot > 0) {
+      taskTotWords = sTot;
+      if (!isNaN(sCorr)) taskCorrWords = sCorr;
+    }
   }
   const taskRate = taskTotWords > 0 ? Math.round((taskCorrWords / taskTotWords) * 100) : (parseInt(rateVal) || 0);
 
@@ -1006,6 +1011,28 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
       }).join("");
     } else if (isFinished) {
       wrongContentHtml = `<span class="perfect-score-msg">🎉 太棒了！本次測驗全數答對，無任何答錯單字！</span>`;
+    } else if (isIncomplete) {
+      if (wrongList.length === 0) {
+        rightBoxClass = "advice-box";
+        rightTitleClass = "advice-title";
+        rightTitleText = "⏳ 測驗未完成提醒";
+      }
+      const answeredSet = new Set([...correctList, ...wrongList]);
+      const remainingWords = rawWords.filter(w => !answeredSet.has(w));
+      const remainingCount = Math.max(0, taskTotWords - taskCorrWords);
+      const remainingPills = remainingWords.length > 0
+        ? `<div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:4px;">${remainingWords.map(w => `<span class="word-pill-tag neutral" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); window.__sayWord && window.__sayWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("")}</div>`
+        : "";
+      wrongContentHtml = `
+        <div style="display:flex; flex-direction:column; justify-content:flex-start; align-items:flex-start; gap:4px; padding:2px 4px; font-size:12.5px; line-height:1.5;">
+          <div style="color:#d97706; font-weight:700;">⏳ 測驗中途作答中斷</div>
+          <div style="font-size:12px; color:var(--ink3);">你已完成 ${taskCorrWords}/${taskTotWords} 題，尚餘 ${remainingCount} 題未完成：</div>
+          ${remainingPills}
+          <button type="button" onclick="const sc = document.getElementById('btn-summary-close'); if (sc) sc.click();" style="border:none; background:linear-gradient(135deg, #10b981 0%, #059669 100%); color:#fff; padding:6px 14px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:4px; box-shadow:0 2px 6px rgba(16,185,129,0.3); margin-top:4px;">
+            🚀 前往遊戲測驗區繼續作答
+          </button>
+        </div>
+      `;
     } else {
       wrongContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（目前無答錯單字）</span>`;
     }
