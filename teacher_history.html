@@ -7232,6 +7232,12 @@ function renderTodayTaskBadge(t) {
 
   // 4. 若無有效作答成績（未受測 vs 未指派）
   if (correct === null && pct === null) {
+    if (statusStr.includes("缺席") || statusStr.includes("缺考")) {
+      return `<span class="badge" style="background:#fee2e2; color:#dc2626; padding:3px 9px; border-radius:14px; font-size:12px; font-weight:700; border:1px solid #fca5a5; display:inline-flex; align-items:center; gap:4px;"><span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#dc2626;"></span>🔴 缺席未受測</span>`;
+    }
+    if (statusStr.includes("登入未受測")) {
+      return `<span class="badge" style="background:#fef9c3; color:#ca8a04; padding:3px 9px; border-radius:14px; font-size:12px; font-weight:700; border:1px solid #fde047; display:inline-flex; align-items:center; gap:4px;"><span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#ca8a04;"></span>🟡 登入未受測</span>`;
+    }
     const isUntested = statusStr.includes("未受測") || (t.taskName && !t.taskName.includes("未指派") && !t.taskName.includes("自由") && !t.taskName.includes("自主"));
     if (isUntested) {
       return `<span class="badge" style="background:#fee2e2; color:#ef4444; padding:3px 9px; border-radius:14px; font-size:12px; font-weight:700; border:1px solid #fca5a5; display:inline-flex; align-items:center; gap:4px;"><span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#ef4444;"></span>⚪ 未受測</span>`;
@@ -9128,11 +9134,14 @@ function renderAnalyticsTable() {
 
   list.forEach((s, idx) => {
     const rateNum = parseFloat(s.rate);
-    let statusPill = "";
     if (s.status.includes("已完成")) {
       statusPill = `<span class="analytics-status-pill analytics-status-done">🟢 已完成</span>`;
-    } else if (s.status.includes("作答中") || s.status.includes("進行中")) {
-      statusPill = `<span class="analytics-status-pill analytics-status-progress">🟡 作答中</span>`;
+    } else if (s.status.includes("作答中") || s.status.includes("中斷") || s.status.includes("進行中")) {
+      statusPill = `<span class="analytics-status-pill" style="background:rgba(249, 115, 22, 0.15); color:#ea580c; border:1px solid rgba(249, 115, 22, 0.3);">🟠 作答中斷</span>`;
+    } else if (s.status.includes("登入未受測")) {
+      statusPill = `<span class="analytics-status-pill" style="background:rgba(234, 179, 8, 0.15); color:#ca8a04; border:1px solid rgba(234, 179, 8, 0.3);">🟡 登入未受測</span>`;
+    } else if (s.status.includes("缺席未受測") || s.status.includes("缺考")) {
+      statusPill = `<span class="analytics-status-pill" style="background:rgba(239, 68, 68, 0.15); color:#dc2626; border:1px solid rgba(239, 68, 68, 0.3);">🔴 缺席未受測</span>`;
     } else if (s.status.includes("未受測")) {
       statusPill = `<span class="analytics-status-pill" style="background:rgba(239, 68, 68, 0.12); color:#ef4444; border:1px solid rgba(239, 68, 68, 0.25);">⚪ 未受測</span>`;
     } else {

@@ -2893,45 +2893,64 @@ function setupTestAccountDRecords(ss) {
   const newComp = compressData(JSON.stringify(parsed));
   dSheet.getRange(2, 2).setValue(newComp);
 
-  // 4. 更新 Sheet d 上的所有列資料
+  // 4. 更新 Sheet d 上的所有列資料，清楚標記三種狀況供老師查詢
   const lastRow = dSheet.getLastRow();
   const lastCol = Math.max(dSheet.getLastColumn(), 30);
   const rows = dSheet.getRange(2, 1, lastRow - 1, lastCol).getValues();
 
+  let has1014 = false, has1015 = false, has1012 = false;
+
   for (let i = 0; i < rows.length; i++) {
     const dStr = formatStandardDateYMD(rows[i][0]);
+    const rowNum = i + 2;
+
     if (dStr === "2026-10-14") {
-      // 10-14: 使用者完全沒有登入 -> 將該列日期調整為 2026-10-11 21:38:32，使 10-14 在分頁上無登入列
-      dSheet.getRange(i + 2, 1).setValue("2026-10-11 21:38:32");
+      has1014 = true;
+      // 10-14: 使用者完全沒有登入 (缺席未受測 / 缺考)
+      // 任務名稱: 1014指定單字隨堂測驗, 成績: —, 正確率: —, 狀態: 🔴 缺席未受測, 錯題: air, all, and, ant, any (應測單字)
+      // 自由練習: —, —, —, 當日無登入紀錄 (缺考)
+      dSheet.getRange(rowNum, 1).setValue("2026-10-14 23:59:59");
+      dSheet.getRange(rowNum, 22, 1, 9).setValues([[
+        "1014指定單字隨堂測驗", "—", "—", "🔴 缺席未受測", "air, all, and, ant, any (應測單字)", "—", "—", "—", "當日無登入紀錄 (缺考)"
+      ]]);
+      dSheet.getRange(rowNum, 25).setBackground("#fee2e2").setFontColor("#b91c1c").setFontWeight("bold");
     } else if (dStr === "2026-10-15") {
-      // 10-15: 使用者有登入無作答指定測驗
-      // Col 22(V): 任務名稱 -> ⚪ 未受測
-      // Col 23(W): 成績 -> —
-      // Col 24(X): 正確率 -> —
-      // Col 25(Y): 狀態 -> ⚪ 未受測
-      // Col 26(Z): 錯題 -> 空
-      // Col 27(AA): 自由受測 -> 12
-      // Col 28(AB): 自由答對 -> 11
-      // Col 29(AC): 自由正確率 -> 92%
-      // Col 30(AD): 自由錯題 -> bag
-      dSheet.getRange(i + 2, 22, 1, 9).setValues([[
-        "⚪ 未受測", "—", "—", "⚪ 未受測", "", 12, 11, "92%", "bag"
+      has1015 = true;
+      // 10-15: 使用者有登入但未作答指定測驗 (登入未受測)
+      // 任務名稱: 1015指定單字隨堂測驗, 成績: —, 正確率: —, 狀態: 🟡 登入未受測, 錯題: arm, art, ask, bad, bag (應測單字)
+      // 自由練習: 12, 11, 92%, bag
+      dSheet.getRange(rowNum, 22, 1, 9).setValues([[
+        "1015指定單字隨堂測驗", "—", "—", "🟡 登入未受測", "arm, art, ask, bad, bag (應測單字)", 12, 11, "92%", "bag"
       ]]);
+      dSheet.getRange(rowNum, 25).setBackground("#fef9c3").setFontColor("#a16207").setFontWeight("bold");
     } else if (dStr === "2026-10-12") {
+      has1012 = true;
       // 10-12: 使用者有登入有作答但沒有全部回答完畢 (作答中斷)
-      // Col 22(V): 任務名稱 -> 1012指定單字隨堂測驗
-      // Col 23(W): 成績 -> '2/5
-      // Col 24(X): 正確率 -> 100%
-      // Col 25(Y): 狀態 -> 🟡 測驗作答中(2/5)
-      // Col 26(Z): 錯題 -> 空
-      // Col 27(AA): 自由受測 -> 6
-      // Col 28(AB): 自由答對 -> 6
-      // Col 29(AC): 自由正確率 -> 100%
-      // Col 30(AD): 自由錯題 -> 空
-      dSheet.getRange(i + 2, 22, 1, 9).setValues([[
-        "1012指定單字隨堂測驗", "'2/5", "100%", "🟡 測驗作答中(2/5)", "", 6, 6, "100%", ""
+      // 任務名稱: 1012指定單字隨堂測驗, 成績: '2/5, 正確率: 100%, 狀態: 🟠 作答中斷 (2/5), 錯題: age, ago, aim (未完成)
+      // 自由練習: 6, 6, 100%, —
+      dSheet.getRange(rowNum, 22, 1, 9).setValues([[
+        "1012指定單字隨堂測驗", "'2/5", "100%", "🟠 作答中斷 (2/5)", "age, ago, aim (未完成)", 6, 6, "100%", "—"
       ]]);
+      dSheet.getRange(rowNum, 25).setBackground("#ffedd5").setFontColor("#c2410c").setFontWeight("bold");
+    } else if (dStr === "2026-10-13") {
+      dSheet.getRange(rowNum, 25).setBackground("#dcfce7").setFontColor("#15803d").setFontWeight("bold");
     }
+  }
+
+  // 若分頁原本缺少 10-14 列，自動於適當位置補入完整標示列
+  if (!has1014) {
+    // 插入在第 4 列 (介於 10-15 與 10-13 之間)
+    dSheet.insertRowBefore(4);
+    const row1014 = [
+      "2026-10-14 23:59:59", "", 1, 0, 0, 0,
+      0, 0, 0, "=SUM(G4:I4)", 0, "=IF(K4>0, J4/K4, 0)",
+      "0/0", "0/0", "0/0", "0/0", "0/0",
+      "0/0", "0/0", "0/0", "0/0",
+      "1014指定單字隨堂測驗", "—", "—", "🔴 缺席未受測", "air, all, and, ant, any (應測單字)",
+      "—", "—", "—", "當日無登入紀錄 (缺考)"
+    ];
+    dSheet.getRange(4, 1, 1, row1014.length).setValues([row1014]).setHorizontalAlignment("center").setVerticalAlignment("middle");
+    dSheet.getRange(4, 25).setBackground("#fee2e2").setFontColor("#b91c1c").setFontWeight("bold");
   }
 
   // 5. 徹底清除快取以即時生效
@@ -2940,12 +2959,12 @@ function setupTestAccountDRecords(ss) {
 
   return {
     status: "success",
-    message: "帳號 d 測試資料已成功設定並寫入 Google Sheet！",
+    message: "帳號 d 測試資料已成功設定並清楚記錄於 Google Sheet！",
     tasks: targetTasks,
     summary: {
-      "10-12": "指派 5 字 (act, add, age, ago, aim)，作答 2 題中斷 ('2/5, 100%, 🟡 測驗作答中(2/5))",
-      "10-14": "指派 5 字 (air, all, and, ant, any)，無登入無作答 (缺席未受測)",
-      "10-15": "指派 5 字 (arm, art, ask, bad, bag)，有登入自由練習無作答指定測驗 (登入未受測)"
+      "10-12": "指派 5 字 (act, add, age, ago, aim)，作答 2 題中斷 ('2/5, 100%, 🟠 作答中斷 (2/5)，未完成字: age, ago, aim)",
+      "10-14": "指派 5 字 (air, all, and, ant, any)，無登入無作答 (🔴 缺席未受測，應測字: air, all, and, ant, any)",
+      "10-15": "指派 5 字 (arm, art, ask, bad, bag)，有登入自由練習無作答指定測驗 (🟡 登入未受測，自由練習 12題對11題 92%)"
     }
   };
 }
@@ -3123,7 +3142,7 @@ function syncAndBackfillStudentTaskHistory(ss, username, records, uSheet) {
       tRate = Math.round((Number(task.score) / Number(task.total)) * 100) + "%";
     }
 
-    const tStatus = "🟢 已完成";
+    const tStatus = task.status || (task.isComp ? "🟢 已完成" : "🟠 作答中斷");
     let wrongWordsStr = "";
     if (task.wrongWords) {
       wrongWordsStr = Array.isArray(task.wrongWords) ? task.wrongWords.join(", ") : String(task.wrongWords);
@@ -3145,13 +3164,23 @@ function syncAndBackfillStudentTaskHistory(ss, username, records, uSheet) {
       const curScore = String(curRow[hMap.taskScore] || "").trim();
       const curStatus = String(curRow[hMap.status] || "").trim();
 
-      // 若目前是未指派、未受測、無成績或非已完成，立即安全回填！
-      if (!curStatus.includes("已完成") || curScore === "—" || curScore === "" || curTask === "⚪ 未指派") {
+      // 關鍵保護：若當前列已經是「作答中斷」、「登入未受測」或「缺席未受測」，且新紀錄並非「已完成」，切勿將其覆蓋！
+      const isCurSpecial = curStatus.includes("作答中") || curStatus.includes("中斷") || curStatus.includes("登入未受測") || curStatus.includes("缺席");
+      const isNewCompleted = tStatus.includes("已完成");
+
+      if ((curTask === "⚪ 未指派" && isNewCompleted) || (!curStatus.includes("已完成") && isNewCompleted) || (!isCurSpecial && (curScore === "—" || curScore === ""))) {
         const actualRowNum = matchedIdx + 2;
         // 精準更新第 22~26 欄 (任務名稱、指定測驗成績、指定測驗正確率、練習狀態、測驗錯題單字)，絕不更動任何公式欄位
         uSheet.getRange(actualRowNum, hMap.taskName + 1, 1, 5).setValues([[
           tName, tScore, tRate, tStatus, wrongWordsStr
         ]]);
+        try {
+          if (tStatus.includes("已完成")) {
+            uSheet.getRange(actualRowNum, hMap.status + 1).setBackground("#dcfce7").setFontColor("#15803d").setFontWeight("bold");
+          } else if (tStatus.includes("中斷") || tStatus.includes("作答中")) {
+            uSheet.getRange(actualRowNum, hMap.status + 1).setBackground("#ffedd5").setFontColor("#c2410c").setFontWeight("bold");
+          }
+        } catch(_) {}
         try {
           uSheet.getRange(actualRowNum, hMap.taskScore + 1, 1, 2).setNumberFormat("@");
         } catch(_) {}
@@ -3768,9 +3797,15 @@ function getDailyTaskAnalytics(formData) {
         if (isCompleted) {
           finalStatus = "🟢 已完成";
         } else if (isInProgress) {
-          finalStatus = "🟡 作答中";
+          finalStatus = rec.status && (rec.status.includes("中斷") || rec.status.includes("作答中")) ? rec.status : "🟠 作答中斷";
+        } else if (rec.status && (rec.status.includes("缺席") || rec.status.includes("缺考"))) {
+          finalStatus = "🔴 缺席未受測";
+          finalTaskName = matchedTask || rec.taskName;
+        } else if (rec.status && (rec.status.includes("登入未受測") || rec.status.includes("未受測"))) {
+          finalStatus = "🟡 登入未受測";
+          finalTaskName = matchedTask || rec.taskName;
         } else if (matchedTask) {
-          finalStatus = "⚪ 未受測";
+          finalStatus = "🟡 登入未受測";
           finalTaskName = matchedTask;
         } else {
           finalStatus = "⚪ 未指派";
@@ -3797,7 +3832,7 @@ function getDailyTaskAnalytics(formData) {
           realName   : st.realName || st.username,
           className  : st.className,
           taskName   : matchedTask || "⚪ 未指派",
-          status     : matchedTask ? "⚪ 未受測" : "⚪ 未指派",
+          status     : matchedTask ? "🔴 缺席未受測" : "⚪ 未指派",
           score      : "—",
           rate       : "—",
           points     : null,
