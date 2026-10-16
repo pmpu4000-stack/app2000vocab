@@ -925,10 +925,10 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     statusDesc = "⏳ 測驗中途作答中斷";
   } else if (isUntested) {
     if (hasLoggedInOrFree) {
-      displayStatusStr = "🟡 登入未受測";
-      statusColor = "#d97706";
-      statusBg = "rgba(245,158,11,0.15)";
-      statusDesc = "⚠️ 有登入但未測驗";
+      displayStatusStr = "🌸 登入未受測";
+      statusColor = "#db2777";
+      statusBg = "rgba(219,39,119,0.15)";
+      statusDesc = "🌸 有登入但未測驗";
     } else {
       displayStatusStr = "🔴 缺席未受測";
       statusColor = "#ef4444";
@@ -977,7 +977,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
 
     rightBoxClass = "advice-box";
     rightTitleClass = "advice-title";
-    rightTitleText = "💡 補考與學習提醒";
+    rightTitleText = "🌸 補考與學習提醒";
     wrongContentHtml = `
       <div style="display:flex; flex-direction:column; justify-content:flex-start; align-items:flex-start; gap:8px; padding:6px 4px; font-size:12.5px; line-height:1.6;">
         <div>${statusDesc ? `<b>${statusDesc}</b>。` : ""}${hasLoggedInOrFree ? "你當日有登入進行自由練習，但尚未完成本次指定測驗。" : "你當日無登入紀錄，尚未進行本次指定測驗。"}</div>
@@ -1165,7 +1165,7 @@ function renderUntestedTaskCardHtml(info, d) {
         </div>
         <div class="word-split-box advice-box">
           <div class="word-split-title advice-title">
-            <span>💡 補考與學習提醒</span>
+            <span>🌸 補考與學習提醒</span>
           </div>
           <div class="word-split-content" style="display:flex; flex-direction:column; justify-content:flex-start; align-items:flex-start; gap:8px; padding:6px 4px; font-size:12.5px; line-height:1.6;">
             <div>${adviceText}</div>
@@ -1685,7 +1685,7 @@ export function renderSummary(d) {
     if (isFinished) {
       // 依「正確率」計算量級：少 (<60%)、中 (60%~79%)、大 (>=80%)
       const level = tRate < 60 ? 1 : tRate < 80 ? 2 : 3;
-      const badgeTier = tRate < 60 ? "tier-blue-low" : tRate < 80 ? "tier-blue-mid" : "tier-blue-high";
+      const badgeTier = tRate < 60 ? "tier-green-low" : tRate < 80 ? "tier-green-mid" : "tier-green-high";
       return {
         a: tAtt, c: tCor, rate: tRate,
         wordsCount: taskWordsCount,
@@ -1705,14 +1705,14 @@ export function renderSummary(d) {
         badgeTier: "tier-status-purple"
       };
     } else if (hasLoggedInOrFree) {
-      // 🟡 登入未受測 (方格亮金黃色，右側柔黃金黃框)
+      // 🌸 登入未受測 (方格柔和粉紅，右側柔粉框)
       return {
         a: 0, c: 0, rate: 0,
         wordsCount: taskWordsCount,
         statusType: "login_untested",
-        statusLabel: "🟡 登入未受測",
-        levelClass: "h-status-yellow",
-        badgeTier: "tier-status-yellow"
+        statusLabel: "🌸 登入未受測",
+        levelClass: "h-status-pink",
+        badgeTier: "tier-status-pink"
       };
     } else {
       // 🔴 缺席未受測 (方格珊瑚玫瑰紅，右側粉紅紅框)
@@ -1866,7 +1866,7 @@ export function renderSummary(d) {
           <span>連續 <b>${taskStreak}</b> 天 · 最佳 <b>${taskBest}</b> 天 · 累計練習 <b>${taskTotal}</b> 天</span>
           <span id="task-heat-day-info" class="heat-day-info"></span>
         </div>
-        <div class="heatmap heatmap-blue" id="task-heatmap-grid">${taskHeatDays.map((x, idx) =>
+        <div class="heatmap heatmap-task" id="task-heatmap-grid">${taskHeatDays.map((x, idx) =>
           `<i class="hc ${x.levelClass}" data-idx="${idx}" data-key="${x.key}" data-a="${x.a || 0}" data-rate="${x.rate || 0}"></i>`).join("")}</div>
       </div>
     </div>
@@ -1908,7 +1908,7 @@ export function renderSummary(d) {
     return "heat-day-info tier-white";
   };
 
-  // 1. 綁定「指定測驗作答紀錄」黃色熱力圖與右側小方塊（配合黃色熱力圖顏色，支援登入未受測/缺席未受測/未完成三色狀態）
+  // 1. 綁定「指定測驗作答紀錄」純綠色熱力圖與右側小方塊（支援純綠色正確率階層、登入未受測粉紅、缺席紅、未完成紫）
   const taskHeatDayInfoEl = $("#task-heat-day-info");
   const taskHeatGridEl = $("#task-heatmap-grid");
   let pinnedTaskIdx = taskHeatDays.length > 0 ? taskHeatDays.length - 1 : 0;
