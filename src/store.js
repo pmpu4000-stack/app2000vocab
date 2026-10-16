@@ -194,6 +194,7 @@ export function grade(id, correct, level, mode, wordStr = null, isFree = true) {
         we.correct++;
         we.passed = true;
         we.lastResult = 'correct';
+        we.hadCorrectThenWrong = false;
       } else {
         we.wrong++;
         if (we.correct > 0) {
@@ -491,7 +492,10 @@ export function getDailyPractice(dateStr) {
   if (dp && dp.words && Object.keys(dp.words).length > 0) {
     const wList = Object.values(dp.words).filter(Boolean);
     dp.distinctAttempts = wList.length;
-    dp.distinctCorrect = wList.filter(w => (w.correct > 0 || w.passed)).length;
+    dp.distinctCorrect = wList.filter(w => {
+      const isWrong = (w.lastResult === 'wrong') || (w.wrong > 0 && (!w.correct || w.correct === 0));
+      return !isWrong && (w.lastResult === 'correct' || (w.correct > 0 && !w.wrong) || w.passed);
+    }).length;
   }
   return dp;
 }

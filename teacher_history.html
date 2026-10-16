@@ -14359,8 +14359,12 @@ function buildFreeDetailsHtml(record, selectedDate, agent) {
     ? (correctList.length + wrongList.length)
     : attempts;
 
-  // 2. 答對單字數：忽略多次答對，只要有答對就是紀錄 1 個；若曾答錯但在第二次以上有答對 (已訂正)，亦計入答對數
-  const correctedCount = wrongList.filter(w => w.correct > 0).length;
+  // 2. 答對單字數：忽略多次答對，只要有答對就是紀錄 1 個；若曾答錯但最新狀態為答對 (已訂正)，亦計入答對數
+  // 嚴格修正：排除曾對後錯 (即最新狀態仍為錯題者)，唯有真正已訂正者 (非 wrong 狀態) 方計入答對數！
+  const correctedCount = wrongList.filter(w => {
+    const isStillWrong = w.hadCorrectThenWrong || (w.lastResult === "wrong" && w.correct > 0);
+    return !isStillWrong && w.correct > 0;
+  }).length;
   const correctWords = (correctList.length + wrongList.length) > 0
     ? (correctList.length + correctedCount)
     : correct;
@@ -14663,8 +14667,10 @@ function renderStudentDailyTaskAndFreeSections(resp) {
       let cor = 0;
       if (dpFree.words && Object.keys(dpFree.words).length > 0) {
         const wList = Object.values(dpFree.words).filter(Boolean);
+        const isWordCurrentlyWrong = (w) => (w.lastResult === 'wrong') || (w.wrong > 0 && (!w.correct || w.correct === 0));
+        const isWordCurrentlyCorrect = (w) => !isWordCurrentlyWrong(w) && (w.lastResult === 'correct' || (w.correct > 0 && !w.wrong) || w.passed);
         att = wList.length;
-        cor = wList.filter(w => (w.correct > 0 || w.passed)).length;
+        cor = wList.filter(isWordCurrentlyCorrect).length;
       } else {
         att = dpFree.attempts || 0;
         cor = dpFree.correct || 0;

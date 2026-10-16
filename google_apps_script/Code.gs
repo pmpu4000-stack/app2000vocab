@@ -2881,10 +2881,17 @@ function handleSaveRecord(ss, params, auth) {
     if (todayDp.words && Object.keys(todayDp.words).length > 0) {
       const wList = Object.values(todayDp.words).filter(Boolean);
       freeTested = wList.length;
-      freeCorrect = wList.filter(w => (w.correct > 0 || w.passed)).length;
+
+      // 依最終最新作答狀態嚴格判定：
+      // 1. 若最後一次作答為 wrong，或者只有錯過從未對過，視為當前錯題
+      const isWordCurrentlyWrong = (w) => (w.lastResult === 'wrong') || (w.wrong > 0 && (!w.correct || w.correct === 0));
+      // 2. 若當前非 wrong，且有答對過或最後為 correct，視為當前答對
+      const isWordCurrentlyCorrect = (w) => !isWordCurrentlyWrong(w) && (w.lastResult === 'correct' || (w.correct > 0 && !w.wrong) || w.passed);
+
+      freeCorrect = wList.filter(isWordCurrentlyCorrect).length;
       const wrongList = Object.keys(todayDp.words).filter(k => {
         const w = todayDp.words[k];
-        return w && (w.wrong > 0 || w.hadCorrectThenWrong || w.lastResult === 'wrong');
+        return w && isWordCurrentlyWrong(w);
       });
       freeWrongStr = wrongList.join(", ");
     } else {
