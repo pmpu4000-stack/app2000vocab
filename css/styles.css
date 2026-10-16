@@ -20,17 +20,34 @@ body{
 .tnum{font-variant-numeric:tabular-nums}
 
 /* ---------- header ---------- */
-header{display:flex; align-items:center; gap:14px; margin-bottom:14px}
+header{display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px 14px; margin-bottom:14px}
 .logo{width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,var(--violet),#9a7bff);
-  display:grid;place-items:center;color:#fff;font-weight:800;font-size:26px;box-shadow:var(--shadow);flex:none;
+  display:grid;place-items:center;color:#fff;font-weight:800;font-size:26px;box-shadow:var(--shadow);flex:0 0 52px;
   transform:rotate(-4deg)}
-.title h1{font-size:22px;font-weight:800;letter-spacing:.2px;line-height:1.1}
-.title p{font-size:12.5px;color:var(--ink2);font-weight:600}
-.stats{margin-left:auto;display:flex;gap:8px;align-items:stretch}
+.title{flex:0 0 auto;min-width:180px}
+.title h1{font-size:22px;font-weight:800;letter-spacing:.2px;line-height:1.15;white-space:nowrap}
+.title p{font-size:12.5px;color:var(--ink2);font-weight:600;white-space:nowrap}
+.stats{margin-left:auto;display:flex;gap:8px;align-items:stretch;flex-wrap:wrap}
 .stat{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:6px 12px;text-align:center;min-width:58px;width:auto;box-shadow:0 2px 0 var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;box-sizing:border-box;flex:0 0 auto;height:52px}
 .stat b{display:flex;align-items:center;justify-content:center;height:22px;font-size:18px;font-weight:800;line-height:22px;white-space:nowrap}
 .stat span{display:flex;align-items:center;justify-content:center;height:14px;margin-top:2px;font-size:10px;color:var(--ink3);font-weight:700;letter-spacing:.4px;text-transform:uppercase;white-space:nowrap;line-height:14px}
 .stat.upload b{font-size:18px}
+
+/* 字體調整方塊：規格設定比照其他 .stat 方塊 */
+.stat.font-size-btn{min-width:48px;padding:6px 8px;cursor:pointer;transition:transform .12s,background .12s,border-color .12s;user-select:none}
+.stat.font-size-btn b{font-size:15px;font-weight:800;letter-spacing:-0.5px;color:var(--ink)}
+.stat.font-size-btn span{font-size:10px;font-weight:700;color:var(--ink3)}
+.stat.font-size-btn:hover{border-color:var(--violet);background:rgba(108,76,224,0.06);transform:translateY(-1px)}
+.stat.font-size-btn:active{transform:translateY(1px)}
+[data-theme="dark"] .stat.font-size-btn b{color:#F0F3FA !important}
+[data-theme="dark"] .stat.font-size-btn span{color:#94A3B8 !important}
+[data-theme="dark"] .stat.font-size-btn:hover{background:rgba(108,76,224,0.2) !important;border-color:#8B5CF6 !important}
+
+/* 內容區字體縮放 (不影響 header 標題與圖標，確保標題區域永遠不會被擠壓) */
+#screen-play, #screen-quiz{
+  zoom:var(--app-font-scale, 1);
+  transform-origin:top center;
+}
 .stat.ok{width:auto;min-width:58px;padding:6px 12px;flex:0 0 auto}
 .stat.ok b{white-space:nowrap;color:var(--green)}
 .stat.streak b{color:var(--coral)}
@@ -400,29 +417,35 @@ body.daily-limit-reached #btn-upload {
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 @media (max-width:820px){
   header{flex-wrap:wrap;gap:10px}
-  .stats{width:100%;margin:6px 0 0;flex-wrap:wrap;gap:6px;justify-content:stretch}
-  .stat, .stat.user, .stat.upload, .stat.timer, .stat.theme{
-    flex:1 1 calc(25% - 6px);
-    min-width:64px;
+  .stats{width:100%;margin:6px 0 0;flex-wrap:wrap;gap:6px;justify-content:flex-start}
+  .stat, .stat.user, .stat.upload, .stat.timer, .stat.theme, .stat.font-size-btn{
+    flex:1 1 calc(20% - 6px);
+    min-width:48px;
     height:50px;
   }
 }
 @media (max-width:580px){
+  .logo{width:46px;height:46px;font-size:23px;flex:0 0 46px}
+  .title{min-width:0}
+  .title h1{font-size:19px}
+  .title p{font-size:11.5px}
   .stats{width:100%;margin:6px 0 0;flex-wrap:wrap;gap:6px}
-  .stat, .stat.user, .stat.upload, .stat.timer, .stat.theme{
-    flex:1 1 calc(25% - 6px);
-    min-width:56px;
+  .stat, .stat.user, .stat.upload, .stat.timer, .stat.theme, .stat.font-size-btn{
+    flex:1 1 calc(20% - 6px);
+    min-width:44px;
     height:48px;
-    padding:4px 6px;
+    padding:4px 4px;
   }
 }
-@media (max-width:400px){
-  .stat, .stat.user, .stat.upload, .stat.timer, .stat.theme{
-    flex:1 1 calc(50% - 6px);
+@media (max-width:420px){
+  .title h1{font-size:18px}
+  .title p{font-size:11px}
+  .stat, .stat.user, .stat.upload, .stat.timer, .stat.theme, .stat.font-size-btn{
+    flex:1 1 calc(33.333% - 6px);
   }
-  .stat b{font-size:16px}
-  .stat span{font-size:9.5px}
-  .title h1{font-size:20px} .tile{width:40px;height:48px;font-size:22px}
+  .stat b{font-size:15px}
+  .stat span{font-size:9px}
+  .tile{width:40px;height:48px;font-size:22px}
   .modes{gap:8px}
   .mode{flex:1 1 calc(50% - 8px);min-width:115px;padding:10px 6px;font-size:13px}
   .levelbar{gap:8px}

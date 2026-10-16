@@ -1949,6 +1949,14 @@ body[data-theme="dark"],
           <b id="s-theme-icon" class="tnum">🌙</b>
           <span id="s-theme-text">深色</span>
         </div>
+        <div class="stat font-size-btn" id="btn-font-dec" style="cursor:pointer; display:flex;" title="縮小字體 (A-)">
+          <b class="tnum">A-</b>
+          <span>縮小</span>
+        </div>
+        <div class="stat font-size-btn" id="btn-font-inc" style="cursor:pointer; display:flex;" title="放大字體 (A+)">
+          <b class="tnum">A+</b>
+          <span>放大</span>
+        </div>
       </div>
     </header>
 
@@ -2221,6 +2229,78 @@ body[data-theme="dark"],
 
     const loginThemeBtn = document.getElementById("btn-login-theme-toggle");
     if (loginThemeBtn) loginThemeBtn.onclick = toggleTheme;
+
+    // ============ 字體大小縮放控制 ============
+    const FONT_LEVELS = [0.9, 1.0, 1.1, 1.2, 1.3];
+    function applyAppFontScale(scale, showFeedback = false) {
+      scale = parseFloat(scale) || 1.0;
+      scale = Math.max(0.9, Math.min(1.3, Math.round(scale * 10) / 10));
+      localStorage.setItem("app_font_scale", scale.toString());
+      document.documentElement.style.setProperty("--app-font-scale", scale.toString());
+      document.body.setAttribute("data-font-scale", scale.toString());
+
+      const decBtn = document.getElementById("btn-font-dec");
+      const incBtn = document.getElementById("btn-font-inc");
+      if (decBtn) {
+        decBtn.style.opacity = scale <= 0.9 ? "0.45" : "1";
+      }
+      if (incBtn) {
+        incBtn.style.opacity = scale >= 1.3 ? "0.45" : "1";
+      }
+
+      if (showFeedback) {
+        const pct = Math.round(scale * 100);
+        let label = `${pct}%`;
+        if (scale === 1.0) label += " (預設)";
+        else if (scale < 1.0) label += " (小)";
+        else if (scale === 1.3) label += " (最大)";
+        else label += " (大)";
+        showFontScaleToast(`🔍 字體大小：${label}`);
+      }
+    }
+
+    function adjustFontScale(step) {
+      const current = parseFloat(localStorage.getItem("app_font_scale") || "1.0");
+      let idx = FONT_LEVELS.findIndex(v => Math.abs(v - current) < 0.05);
+      if (idx === -1) idx = 1;
+      const nextIdx = idx + step;
+      if (nextIdx < 0) {
+        showFontScaleToast("⚠️ 已是最小字體 (90%)");
+        return;
+      }
+      if (nextIdx >= FONT_LEVELS.length) {
+        showFontScaleToast("⚠️ 已是最大字體 (130%)");
+        return;
+      }
+      applyAppFontScale(FONT_LEVELS[nextIdx], true);
+    }
+
+    function showFontScaleToast(text) {
+      let toast = document.getElementById("font-scale-toast");
+      if (!toast) {
+        toast = document.createElement("div");
+        toast.id = "font-scale-toast";
+        toast.style.cssText = "position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(35,42,77,0.92);color:#FFFFFF;padding:8px 18px;border-radius:999px;font-size:13.5px;font-weight:700;letter-spacing:0.3px;box-shadow:0 6px 20px rgba(0,0,0,0.2);z-index:99999;pointer-events:none;opacity:0;transition:all 0.2s cubic-bezier(0.16, 1, 0.3, 1);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,0.15);";
+        document.body.appendChild(toast);
+      }
+      toast.textContent = text;
+      toast.style.opacity = "1";
+      toast.style.transform = "translateX(-50%) translateY(0)";
+      clearTimeout(window.__fontToastTimer);
+      window.__fontToastTimer = setTimeout(() => {
+        toast.style.opacity = "0";
+        toast.style.transform = "translateX(-50%) translateY(20px)";
+      }, 1300);
+    }
+
+    const savedScale = localStorage.getItem("app_font_scale") || "1.0";
+    applyAppFontScale(parseFloat(savedScale), false);
+
+    const btnFontDec = document.getElementById("btn-font-dec");
+    if (btnFontDec) btnFontDec.onclick = () => adjustFontScale(-1);
+
+    const btnFontInc = document.getElementById("btn-font-inc");
+    if (btnFontInc) btnFontInc.onclick = () => adjustFontScale(1);
 
     // 啟動前優先從本機存檔還原頂端答對字、答對率與連勝數值，防止顯示為 0
     try {

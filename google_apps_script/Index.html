@@ -4075,9 +4075,11 @@
         <h2>📊 學生學習歷程查詢系統</h2>
         <div id="userBadge" style="font-size:12.5px; font-weight:700; color:var(--primary); margin-top:2px; line-height:1.3;"></div>
       </div>
-      <div class="header-controls">
+      <div class="header-controls" style="display:flex; align-items:center; gap:8px;">
         <button class="btn-secondary btn-sm" id="btnStudentDirectLogout" onclick="logout()" style="display:none;">登出</button>
         <button class="btn-secondary btn-sm" id="btnThemeToggle" onclick="toggleTheme()">🌙 深色模式</button>
+        <button class="btn-secondary btn-sm" id="btnFontDec" onclick="adjustHistoryFont(-1)" title="縮小字體 (A-)" style="font-weight:800; min-width:38px; padding:0 8px;">A-</button>
+        <button class="btn-secondary btn-sm" id="btnFontInc" onclick="adjustHistoryFont(1)" title="放大字體 (A+)" style="font-weight:800; min-width:38px; padding:0 8px;">A+</button>
       </div>
     </div>
 
@@ -6423,6 +6425,46 @@ function updateThemeButtonText(theme) {
     if (lTxt) lTxt.textContent = theme === "dark" ? "淺色" : "深色";
   }
 }
+
+// ════════════════════════════════════════
+// 字體大小縮放控制
+// ════════════════════════════════════════
+const HIST_FONT_LEVELS = [0.9, 1.0, 1.1, 1.2, 1.3];
+function applyHistoryFontScale(scale, showFeedback = false) {
+  scale = parseFloat(scale) || 1.0;
+  scale = Math.max(0.9, Math.min(1.3, Math.round(scale * 10) / 10));
+  localStorage.setItem("app_font_scale", scale.toString());
+  localStorage.setItem("history_font_scale", scale.toString());
+  document.documentElement.style.setProperty("--history-font-scale", scale.toString());
+  const mainWrap = document.querySelector(".container") || document.body;
+  if (mainWrap) mainWrap.style.zoom = scale.toString();
+  const decBtn = document.getElementById("btnFontDec");
+  const incBtn = document.getElementById("btnFontInc");
+  if (decBtn) decBtn.style.opacity = scale <= 0.9 ? "0.45" : "1";
+  if (incBtn) incBtn.style.opacity = scale >= 1.3 ? "0.45" : "1";
+  if (showFeedback && typeof showToast === "function") {
+    showToast(`🔍 字體大小：${Math.round(scale * 100)}%`, "info");
+  }
+}
+function adjustHistoryFont(step) {
+  const cur = parseFloat(localStorage.getItem("app_font_scale") || localStorage.getItem("history_font_scale") || "1.0");
+  let idx = HIST_FONT_LEVELS.findIndex(v => Math.abs(v - cur) < 0.05);
+  if (idx === -1) idx = 1;
+  const nextIdx = idx + step;
+  if (nextIdx < 0) {
+    if (typeof showToast === "function") showToast("⚠️ 已是最小字體 (90%)", "warning");
+    return;
+  }
+  if (nextIdx >= HIST_FONT_LEVELS.length) {
+    if (typeof showToast === "function") showToast("⚠️ 已是最大字體 (130%)", "warning");
+    return;
+  }
+  applyHistoryFontScale(HIST_FONT_LEVELS[nextIdx], true);
+}
+try {
+  const savedHistScale = localStorage.getItem("app_font_scale") || localStorage.getItem("history_font_scale") || "1.0";
+  applyHistoryFontScale(parseFloat(savedHistScale), false);
+} catch(_) {}
 
 // ════════════════════════════════════════
 // Toast / Loading
