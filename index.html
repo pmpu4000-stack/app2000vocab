@@ -294,30 +294,53 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 .hc.hc-active{outline:2.5px solid #059669;outline-offset:1px;transform:scale(1.08);z-index:2}
 [data-theme="dark"] .hc{background:#1E293B;border-color:#334155}
 [data-theme="dark"] .hc.hc-active{outline:2.5px solid #34D399;outline-offset:1px}
-.hc.h1{background:#B5E3CB;border-color:#9AD6B8} .hc.h2{background:#6FCBA0;border-color:#55BE8E} .hc.h3{background:var(--green);border-color:#1E9A66}
+.hc.h1{background:#86EFAC !important;border-color:#4ADE80 !important}
+.hc.h2{background:#22C55E !important;border-color:#16A34A !important}
+.hc.h3{background:#15803D !important;border-color:#14532D !important}
+[data-theme="dark"] .hc.h1{background:#14532D !important;border-color:#16A34A !important}
+[data-theme="dark"] .hc.h2{background:#22C55E !important;border-color:#4ADE80 !important}
+[data-theme="dark"] .hc.h3{background:#4ADE80 !important;border-color:#86EFAC !important}
 
-/* 指定測驗專屬：黃金熱力圖三階層（少單字量 <10字 / 中單字量 10~19字 / 大單字量 >=20字） */
-.heatmap-yellow .hc.h1{background:#FEF08A !important;border-color:#FACC15 !important}
-.heatmap-yellow .hc.h2{background:#F59E0B !important;border-color:#D97706 !important}
-.heatmap-yellow .hc.h3{background:#B45309 !important;border-color:#78350F !important}
-.heatmap-yellow .hc.hc-active{outline:2.5px solid #D97706 !important;outline-offset:1px}
-[data-theme="dark"] .heatmap-yellow .hc.h1{background:#713F12 !important;border-color:#A16207 !important}
-[data-theme="dark"] .heatmap-yellow .hc.h2{background:#CA8A04 !important;border-color:#EAB308 !important}
-[data-theme="dark"] .heatmap-yellow .hc.h3{background:#F59E0B !important;border-color:#FBBF24 !important}
-[data-theme="dark"] .heatmap-yellow .hc.hc-active{outline:2.5px solid #FDE047 !important;outline-offset:1px}
+/* 指定測驗專屬：方案 C 蔚藍海浪三階層（依正確率：少 <60% / 中 60%~79% / 大 >=80%） */
+.heatmap-blue .hc.h1, .heatmap-yellow .hc.h1{background:#93C5FD !important;border-color:#60A5FA !important}
+.heatmap-blue .hc.h2, .heatmap-yellow .hc.h2{background:#3B82F6 !important;border-color:#2563EB !important}
+.heatmap-blue .hc.h3, .heatmap-yellow .hc.h3{background:#1D4ED8 !important;border-color:#1E40AF !important}
+.heatmap-blue .hc.hc-active, .heatmap-yellow .hc.hc-active{outline:2.5px solid #1D4ED8 !important;outline-offset:1px}
+[data-theme="dark"] .heatmap-blue .hc.h1, [data-theme="dark"] .heatmap-yellow .hc.h1{background:#1E3A8A !important;border-color:#2563EB !important}
+[data-theme="dark"] .heatmap-blue .hc.h2, [data-theme="dark"] .heatmap-yellow .hc.h2{background:#2563EB !important;border-color:#60A5FA !important}
+[data-theme="dark"] .heatmap-blue .hc.h3, [data-theme="dark"] .heatmap-yellow .hc.h3{background:#60A5FA !important;border-color:#93C5FD !important}
+[data-theme="dark"] .heatmap-blue .hc.hc-active, [data-theme="dark"] .heatmap-yellow .hc.hc-active{outline:2.5px solid #93C5FD !important;outline-offset:1px}
 
-/* 指定測驗 3 大特殊狀態方格 (登入未受測=亮金黃色, 缺席未受測=珊瑚玫瑰紅, 登入作答未完成=天藍色) */
+/* 指定測驗已完成右側框框 (依正確率：低/中/高) */
+.heat-day-info.tier-blue-low{background:#EFF6FF !important;color:#1D4ED8 !important;border:2px solid #93C5FD !important;box-shadow:0 2px 6px rgba(59,130,246,.15) !important}
+.heat-day-info.tier-blue-low b{color:#1E40AF !important}
+[data-theme="dark"] .heat-day-info.tier-blue-low{background:rgba(30,58,138,.35) !important;color:#93C5FD !important;border:2px solid #2563EB !important}
+[data-theme="dark"] .heat-day-info.tier-blue-low b{color:#BFDBFE !important}
+
+.heat-day-info.tier-blue-mid{background:#DBEAFE !important;color:#1E40AF !important;border:2px solid #3B82F6 !important;box-shadow:0 2px 6px rgba(37,99,235,.20) !important}
+.heat-day-info.tier-blue-mid b{color:#1D4ED8 !important}
+[data-theme="dark"] .heat-day-info.tier-blue-mid{background:rgba(37,99,235,.30) !important;color:#BFDBFE !important;border:2px solid #60A5FA !important}
+[data-theme="dark"] .heat-day-info.tier-blue-mid b{color:#DBEAFE !important}
+
+.heat-day-info.tier-blue-high{background:#1E3A8A !important;color:#FFFFFF !important;border:2px solid #60A5FA !important;box-shadow:0 2px 6px rgba(29,78,216,.25) !important}
+.heat-day-info.tier-blue-high b{color:#93C5FD !important}
+[data-theme="dark"] .heat-day-info.tier-blue-high{background:rgba(96,165,250,.25) !important;color:#FFFFFF !important;border:2px solid #93C5FD !important}
+[data-theme="dark"] .heat-day-info.tier-blue-high b{color:#BFDBFE !important}
+
+/* 指定測驗 3 大特殊狀態方格 (登入未受測=亮金黃色, 缺席未受測=珊瑚櫻粉紅, 登入作答未完成=莫蘭迪柔紫) */
 .hc.h-status-yellow,
 .hc.h-status-orange { background: #FDE047 !important; border-color: #EAB308 !important; box-shadow: 0 1px 3px rgba(234,179,8,.35) !important; }
-.hc.h-status-red    { background: #F87171 !important; border-color: #EF4444 !important; box-shadow: 0 1px 3px rgba(239,68,68,.35) !important; }
-.hc.h-status-blue   { background: #38BDF8 !important; border-color: #0284C7 !important; box-shadow: 0 1px 3px rgba(2,132,199,.35) !important; }
+.hc.h-status-red    { background: #FB7185 !important; border-color: #F43F5E !important; box-shadow: 0 1px 3px rgba(244,63,94,.35) !important; }
+.hc.h-status-purple,
+.hc.h-status-blue   { background: #C084FC !important; border-color: #A855F7 !important; box-shadow: 0 1px 3px rgba(168,85,247,.35) !important; }
 
 [data-theme="dark"] .hc.h-status-yellow,
 [data-theme="dark"] .hc.h-status-orange { background: #CA8A04 !important; border-color: #FDE047 !important; }
-[data-theme="dark"] .hc.h-status-red    { background: #DC2626 !important; border-color: #F87171 !important; }
-[data-theme="dark"] .hc.h-status-blue   { background: #0284C7 !important; border-color: #38BDF8 !important; }
+[data-theme="dark"] .hc.h-status-red    { background: #E11D48 !important; border-color: #FB7185 !important; }
+[data-theme="dark"] .hc.h-status-purple,
+[data-theme="dark"] .hc.h-status-blue   { background: #7E22CE !important; border-color: #C084FC !important; }
 
-/* 右邊框框對應狀態樣式 */
+/* 右邊框框對應特殊狀態樣式 */
 .heat-day-info.tier-status-yellow,
 .heat-day-info.tier-status-orange { background: #FEFCE8 !important; color: #B45309 !important; border: 2px solid #EAB308 !important; box-shadow: 0 2px 6px rgba(234,179,8,.20) !important; }
 .heat-day-info.tier-status-yellow b,
@@ -327,15 +350,19 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 [data-theme="dark"] .heat-day-info.tier-status-yellow b,
 [data-theme="dark"] .heat-day-info.tier-status-orange b { color: #FEF08A !important; }
 
-.heat-day-info.tier-status-red { background: #FEF2F2 !important; color: #DC2626 !important; border: 2px solid #EF4444 !important; box-shadow: 0 2px 6px rgba(239,68,68,.22) !important; }
-.heat-day-info.tier-status-red b { color: #B91C1C !important; }
-[data-theme="dark"] .heat-day-info.tier-status-red { background: rgba(239,68,68,.22) !important; color: #FCA5A5 !important; border-color: #F87171 !important; }
-[data-theme="dark"] .heat-day-info.tier-status-red b { color: #FECACA !important; }
+.heat-day-info.tier-status-red { background: #FFF1F2 !important; color: #E11D48 !important; border: 2px solid #FB7185 !important; box-shadow: 0 2px 6px rgba(225,29,72,.20) !important; }
+.heat-day-info.tier-status-red b { color: #9F1239 !important; }
+[data-theme="dark"] .heat-day-info.tier-status-red { background: rgba(225,29,72,.22) !important; color: #FDA4AF !important; border-color: #FB7185 !important; }
+[data-theme="dark"] .heat-day-info.tier-status-red b { color: #FECDD3 !important; }
 
-.heat-day-info.tier-status-blue { background: #F0F9FF !important; color: #0284C7 !important; border: 2px solid #38BDF8 !important; box-shadow: 0 2px 6px rgba(2,132,199,.22) !important; }
-.heat-day-info.tier-status-blue b { color: #0369A1 !important; }
-[data-theme="dark"] .heat-day-info.tier-status-blue { background: rgba(56,189,248,.18) !important; color: #7DD3FC !important; border-color: #38BDF8 !important; }
-[data-theme="dark"] .heat-day-info.tier-status-blue b { color: #BAE6FD !important; }
+.heat-day-info.tier-status-purple,
+.heat-day-info.tier-status-blue { background: #FAF5FF !important; color: #7E22CE !important; border: 2px solid #C084FC !important; box-shadow: 0 2px 6px rgba(168,85,247,.20) !important; }
+.heat-day-info.tier-status-purple b,
+.heat-day-info.tier-status-blue b { color: #581C87 !important; }
+[data-theme="dark"] .heat-day-info.tier-status-purple,
+[data-theme="dark"] .heat-day-info.tier-status-blue { background: rgba(168,85,247,.20) !important; color: #E9D5FF !important; border-color: #C084FC !important; }
+[data-theme="dark"] .heat-day-info.tier-status-purple b,
+[data-theme="dark"] .heat-day-info.tier-status-blue b { color: #F3E8FF !important; }
 
 .embedded-heatmap-sec{margin-top:14px;padding-top:12px;border-top:1px dashed var(--line)}
 [data-theme="dark"] .embedded-heatmap-sec{border-top-color:#2B334E !important}
@@ -473,8 +500,8 @@ body.daily-limit-reached #btn-upload {
   .date-nav-btn-group{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;width:100%}
   .date-nav-stepper-wrap .date-nav-btn{height:38px !important;min-height:38px !important;max-height:38px !important;font-size:13px !important;width:100%;padding:0 4px}
 }
-.word-split-grid{display:grid;grid-template-columns:repeat(3, 1fr);gap:10px;margin-top:12px}
-@media (max-width:860px){
+.word-split-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+@media (max-width:640px){
   .word-split-grid{grid-template-columns:1fr}
 }
 .word-split-grid.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
@@ -851,6 +878,83 @@ body[data-theme="dark"],
   caret-color: #F0F3FA !important;
 }
 
+/* 登入狀態提示條（高清晰、顯眼高質感） */
+#login-msg.login-status-banner {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 14px;
+  padding: 11px 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.45;
+  text-align: center;
+  animation: loginMsgFadeIn 0.25s ease-out;
+  transition: all 0.25s ease;
+}
+@keyframes loginMsgFadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+#login-msg.login-status-banner.active {
+  display: flex !important;
+}
+/* 1. 載入中 (科技青靛) */
+#login-msg.login-status-banner.msg-loading {
+  background: rgba(99, 102, 241, 0.1) !important;
+  color: #4F46E5 !important;
+  border: 1.5px solid rgba(99, 102, 241, 0.35) !important;
+}
+[data-theme="dark"] #login-msg.login-status-banner.msg-loading {
+  background: rgba(99, 102, 241, 0.22) !important;
+  color: #C7D2FE !important;
+  border: 1.5px solid #818CF8 !important;
+  box-shadow: 0 0 14px rgba(99, 102, 241, 0.3) !important;
+}
+/* 2. 登入成功 (翡翠翠綠，高光醒目) */
+#login-msg.login-status-banner.msg-success {
+  background: #ECFDF5 !important;
+  color: #065F46 !important;
+  border: 1.5px solid #10B981 !important;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.18) !important;
+}
+[data-theme="dark"] #login-msg.login-status-banner.msg-success {
+  background: rgba(16, 185, 129, 0.25) !important;
+  color: #6EE7B7 !important;
+  border: 1.5px solid #34D399 !important;
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.35) !important;
+}
+/* 3. 錯誤提示 (鮮明警戒紅) */
+#login-msg.login-status-banner.msg-error {
+  background: #FEF2F2 !important;
+  color: #DC2626 !important;
+  border: 1.5px solid #EF4444 !important;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15) !important;
+}
+[data-theme="dark"] #login-msg.login-status-banner.msg-error {
+  background: rgba(239, 68, 68, 0.22) !important;
+  color: #FCA5A5 !important;
+  border: 1.5px solid #F87171 !important;
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.28) !important;
+}
+/* 4. 宵禁/時段警告 (活力金琥珀) */
+#login-msg.login-status-banner.msg-warning {
+  background: #FEFCE8 !important;
+  color: #B45309 !important;
+  border: 1.5px solid #F59E0B !important;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.18) !important;
+}
+[data-theme="dark"] #login-msg.login-status-banner.msg-warning {
+  background: rgba(245, 158, 11, 0.20) !important;
+  color: #FDE047 !important;
+  border: 1.5px solid #F59E0B !important;
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.30) !important;
+}
+
 /* 錯題與答對單字區塊暗模式調和 (柔和舒適深底) */
 [data-theme="dark"] .word-split-box.correct-box {
   background: rgba(47, 180, 124, 0.12) !important;
@@ -1025,11 +1129,13 @@ body[data-theme="dark"],
 
 /* 熱力圖方格：淺色清爽灰白底、深色深藍灰底 */
 .hc{background:#F1F5F9;border:1px solid #E2E8F0}
-.hc.h1{background:#B5E3CB;border-color:#9AD6B8} .hc.h2{background:#6FCBA0;border-color:#55BE8E} .hc.h3{background:var(--green);border-color:#1E9A66}
+.hc.h1{background:#86EFAC !important;border-color:#4ADE80 !important}
+.hc.h2{background:#22C55E !important;border-color:#16A34A !important}
+.hc.h3{background:#15803D !important;border-color:#14532D !important}
 [data-theme="dark"] .hc{background:#1E293B !important;border:1px solid #334155 !important}
-[data-theme="dark"] .hc.h1{background:#14573F !important;border-color:#1B6B4D !important}
-[data-theme="dark"] .hc.h2{background:#1E8F66 !important;border-color:#27A878 !important}
-[data-theme="dark"] .hc.h3{background:#2FB47C !important;border-color:#4AD49A !important}
+[data-theme="dark"] .hc.h1{background:#14532D !important;border-color:#16A34A !important}
+[data-theme="dark"] .hc.h2{background:#22C55E !important;border-color:#4ADE80 !important}
+[data-theme="dark"] .hc.h3{background:#4ADE80 !important;border-color:#86EFAC !important}
 .heat-legend{font-size:12.5px;line-height:1.7;color:var(--ink2);margin-top:10px;padding:8px 12px;border-radius:10px;background:rgba(108,76,224,.06);border:1px dashed rgba(108,76,224,.25)}
 .heat-legend b{color:var(--ink)}
 [data-theme="dark"] .heat-legend{background:rgba(255,255,255,.04) !important;border-color:rgba(255,255,255,.14) !important;color:#9AA0BD !important}
@@ -1983,7 +2089,7 @@ body[data-theme="dark"],
         確認登入
       </button>
 
-      <p id="login-msg" style="color:#FF6B6B; font-size:13px; margin-top:12px; min-height:18px; line-height:1.5;"></p>
+      <div id="login-msg" class="login-status-banner"></div>
 
       <div class="curfew-note-box">
         ⏰ 每日系統開放作答時間為 07:30 至 22:00，請於開放時段內進行測驗練習。
@@ -2541,12 +2647,29 @@ body[data-theme="dark"],
       const pass = document.getElementById('login-pass').value.trim();
       const msgEl = document.getElementById('login-msg');
 
+      const setLoginStatus = (text, type = "loading") => {
+        if (!msgEl) return;
+        if (!text) {
+          msgEl.className = "login-status-banner";
+          msgEl.innerHTML = "";
+          msgEl.style.display = "none";
+          return;
+        }
+        msgEl.className = `login-status-banner active msg-${type}`;
+        msgEl.style.display = "flex";
+        let icon = "⏳";
+        if (type === "success") icon = "🚀";
+        else if (type === "error") icon = "❌";
+        else if (type === "warning") icon = "⏰";
+        msgEl.innerHTML = `<span style="font-size:16px;">${icon}</span> <span>${text}</span>`;
+      };
+
       if (!user || !pass) {
-        msgEl.textContent = "請輸入帳號與密碼";
+        setLoginStatus("請輸入帳號與密碼", "error");
         return;
       }
 
-      msgEl.textContent = "正在驗證並讀取雲端紀錄...";
+      setLoginStatus("正在驗證並讀取雲端紀錄...", "loading");
 
       try {
         let response = await fetch(scriptUrl, {
@@ -2641,10 +2764,10 @@ body[data-theme="dark"],
               const valToStore = (typeof val === "object" && val !== null) ? JSON.stringify(val) : String(val);
               localStorage.setItem(key, valToStore);
             }
-            msgEl.textContent = "✅ 登入成功，正在啟動學習進度...";
+            setLoginStatus("登入成功，正在啟動學習進度...", "success");
           } else if (!isDifferentUser && localAgentData) {
             // 雲端無紀錄，但本機同帳號已有有效學習進度：保留本機進度（登入時絕不上傳，確保純下載無覆蓋風險）
-            msgEl.textContent = "✅ 登入成功，已復原本機學習進度...";
+            setLoginStatus("登入成功，已復原本機學習進度...", "success");
           } else if (result.isNewStudent === true) {
             // 僅當雲端確認「無分頁」或「分頁完全無任何紀錄」時，才判定為全新帳號初始化
             const freshStore = {
@@ -2657,10 +2780,10 @@ body[data-theme="dark"],
               points: 0, streak: 0, best: 0, attempts: 0, correct: 0
             };
             localStorage.setItem("spellAgent.v2", JSON.stringify(freshStore));
-            msgEl.textContent = "✅ 全新帳號建立成功，正在啟動...";
+            setLoginStatus("全新帳號建立成功，正在啟動...", "success");
           } else {
             // 雲端確認已有分頁且有紀錄：絕不隨意抹除本機紀錄
-            msgEl.textContent = "✅ 登入成功，正在啟動學習進度...";
+            setLoginStatus("登入成功，正在啟動學習進度...", "success");
           }
 
           // 【關鍵順序修正】在還原 result.records 備份之後，才寫入伺服器最新計算的 dailyTaskHistory 與 assignedTask，避免被舊備份覆蓋
@@ -2728,7 +2851,7 @@ body[data-theme="dark"],
           window.__gameModuleLoaded = true;
 
           // 1. 動態載入遊戲核心模組（加上時間戳記防瀏覽器快取，此時 app.js 才會讀取剛剛存好的 LocalStorage）
-          msgEl.textContent = "登入成功，正在啟動遊戲...";
+          setLoginStatus("登入成功，正在啟動遊戲...", "success");
           try {
             // ★ 進入遊戲前先比對今日剩餘時間：已歸零就不啟動單字測驗系統
             if (result.role !== "teacher" && !result.isAdmin && result.dailyUsage) {
@@ -2767,7 +2890,7 @@ body[data-theme="dark"],
           } catch(importErr) {
             console.error("載入遊戲失敗：", importErr);
             alert("載入遊戲模組失敗：" + importErr.message + "\n請按 Ctrl + F5 強制重新整理或稍候再試！");
-            msgEl.textContent = "載入遊戲模組失敗：" + importErr.message;
+            setLoginStatus("載入遊戲模組失敗：" + importErr.message, "error");
             return;
           }
 
@@ -2779,13 +2902,9 @@ body[data-theme="dark"],
           }
         } else {
           if (result.curfew) {
-            msgEl.textContent = "目前非您的開放作答時間，如有需求請洽任課老師調整設定。";
-            msgEl.style.color = "#fbbf24";
-            msgEl.style.fontWeight = "bold";
+            setLoginStatus("目前非您的開放作答時間，如有需求請洽任課老師調整設定。", "warning");
           } else {
-            msgEl.textContent = result.message || "帳號或密碼錯誤";
-            msgEl.style.color = "#f87171";
-            msgEl.style.fontWeight = "normal";
+            setLoginStatus(result.message || "帳號或密碼錯誤", "error");
           }
         }
       } catch (err) {
@@ -2796,7 +2915,7 @@ body[data-theme="dark"],
         } else if (err && err.message) {
           extra = `（${err.message}）`;
         }
-        msgEl.textContent = "連線失敗，請檢查網路或稍後再試。" + extra;
+        setLoginStatus("連線失敗，請檢查網路或稍後再試。" + extra, "error");
       }
     });
 
