@@ -1496,6 +1496,9 @@ export function renderSummary(d) {
         <div class="mode-stat-sub">受測 ${(d.modeStats?.trap?.a || 0)} 字 (${d.modeStats?.trap?.a ? Math.round((d.modeStats.trap.c / d.modeStats.trap.a)*100) : 0}%)</div>
       </div>
     </div>
+    <div class="formula-note-box" style="margin-top:-4px; margin-bottom:14px; font-size:12px;">
+      💡 <b>計算說明</b>：各模式獨立統計該題型測過的單字；同一個單字在不同模式練習並答對時會各自計入，故四項總和會大於上方整體的「共答對單字數」。
+    </div>
 
     <!-- 📅 查詢指定日期（大區塊標題，同等層級） -->
     <div class="subh">📅 查詢指定日期</div>
