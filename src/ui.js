@@ -1757,17 +1757,17 @@ export function renderSummary(d) {
         badgeTier: "tier-status-blue"
       };
     } else if (hasLoggedInOrFree) {
-      // 🟠 登入未作答 (方格活力暖橘色，右側杏橘框)
+      // 🟡 登入未受測 (方格亮金黃色，右側柔黃金黃框)
       return {
         a: 0, c: 0, rate: 0,
         wordsCount: taskWordsCount,
         statusType: "login_untested",
-        statusLabel: "🟠 登入未作答",
-        levelClass: "h-status-orange",
-        badgeTier: "tier-status-orange"
+        statusLabel: "🟡 登入未受測",
+        levelClass: "h-status-yellow",
+        badgeTier: "tier-status-yellow"
       };
     } else {
-      // 🔴 缺席未受測 (方格珊瑚朱紅色，右側粉紅紅框)
+      // 🔴 缺席未受測 (方格珊瑚玫瑰紅，右側粉紅紅框)
       return {
         a: 0, c: 0, rate: 0,
         wordsCount: taskWordsCount,
@@ -1920,6 +1920,7 @@ export function renderSummary(d) {
         </div>
         <div class="heatmap heatmap-yellow" id="task-heatmap-grid">${taskHeatDays.map((x, idx) =>
           `<i class="hc ${x.levelClass}" data-idx="${idx}" data-key="${x.key}" data-a="${x.a || 0}" data-rate="${x.rate || 0}"></i>`).join("")}</div>
+        <div class="heat-legend"><b>連續</b>：從今天往回算，一天都沒中斷受測天數 · <b>累計</b>：已受測總天數。<br><b>黃金色階</b>：已完成測驗（少字量 &lt;10字 · 中字量 10~19字 · 大字量 ≥20字）<br><b>特殊狀態</b>：<span style="color:#B45309;font-weight:700;">🟡 登入未受測</span> · <span style="color:#DC2626;font-weight:700;">🔴 缺席未受測</span> · <span style="color:#0284C7;font-weight:700;">🔵 登入作答未完成</span> · <span style="color:#64748B;font-weight:700;">⚪ 未指派測驗</span></div>
       </div>
     </div>
 
