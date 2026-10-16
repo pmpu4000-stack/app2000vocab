@@ -3017,10 +3017,10 @@
       border: 1.5px solid var(--sky, #2D9CDB) !important;
       color: var(--ink, #232A4D) !important;
       padding: 3px 8px !important;
-      height: 28px !important;
-      min-height: 28px !important;
-      max-height: 28px !important;
-      border-radius: 8px !important;
+      height: 32px !important;
+      min-height: 32px !important;
+      max-height: 32px !important;
+      border-radius: 9px !important;
       font-size: 12.5px !important;
       font-weight: 700 !important;
       outline: none !important;
@@ -3028,8 +3028,9 @@
       line-height: 1.2 !important;
       font-family: ui-rounded, "SF Pro Rounded", "Hiragino Maru Gothic ProN", "Nunito", "PingFang TC", system-ui, sans-serif !important;
       box-sizing: border-box !important;
-      width: auto !important;
-      max-width: 145px !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      text-align: center !important;
     }
     [data-theme="dark"] .export-navigator-card input[type="date"] {
       background: #131624 !important;
@@ -3578,80 +3579,152 @@
       gap: 6px 8px !important;
       width: 100% !important;
     }
+    .export-label-row {
+      margin-bottom: -2px !important;
+    }
+    .export-mode-tabs {
+      display: grid !important;
+      grid-template-columns: 1fr 1fr !important;
+      gap: 8px !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+    }
+    .export-mode-tabs .export-mode-btn {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 5px !important;
+      height: 32px !important;
+      min-height: 32px !important;
+      max-height: 32px !important;
+      padding: 0 12px !important;
+      border-radius: 9px !important;
+      font-size: 12.5px !important;
+      font-weight: 800 !important;
+      cursor: pointer !important;
+      transition: all .15s ease !important;
+      white-space: nowrap !important;
+      box-sizing: border-box !important;
+      width: 100% !important;
+      background: #FFFFFF !important;
+      border: 1.5px solid var(--line, #E7E9F5) !important;
+      color: var(--ink, #232A4D) !important;
+    }
+    .export-mode-tabs .export-mode-btn:hover {
+      background: #F1F8FC !important;
+      border-color: var(--sky) !important;
+      color: var(--sky) !important;
+    }
+    .export-mode-tabs .export-mode-btn.active {
+      background: var(--violet, #6C4CE0) !important;
+      border-color: var(--violet, #6C4CE0) !important;
+      color: #FFFFFF !important;
+      box-shadow: 0 2px 6px rgba(108, 76, 224, 0.25) !important;
+    }
+    [data-theme="dark"] .export-mode-tabs .export-mode-btn {
+      background: #20263A !important;
+      border-color: #2D354E !important;
+      color: #E2E8F0 !important;
+    }
+    [data-theme="dark"] .export-mode-tabs .export-mode-btn:hover {
+      background: #2B334D !important;
+      border-color: var(--sky) !important;
+      color: #38BDF8 !important;
+    }
+    [data-theme="dark"] .export-mode-tabs .export-mode-btn.active {
+      background: var(--violet, #6C4CE0) !important;
+      border-color: var(--violet, #6C4CE0) !important;
+      color: #FFFFFF !important;
+    }
+    .export-date-row-grid {
+      display: grid !important;
+      grid-template-columns: 1fr 1fr !important;
+      gap: 8px !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+    }
+    .export-date-cell {
+      width: 100% !important;
+      box-sizing: border-box !important;
+    }
+    .export-date-cell-left {
+      grid-column: 1 !important;
+    }
+    .export-date-cell-right {
+      grid-column: 2 !important;
+    }
+    .export-date-cell input[type="date"] {
+      width: 100% !important;
+      max-width: 100% !important;
+      min-width: 0 !important;
+      height: 32px !important;
+      min-height: 32px !important;
+      max-height: 32px !important;
+      padding: 3px 8px !important;
+      border-radius: 9px !important;
+      font-size: 12.5px !important;
+      font-weight: 700 !important;
+      text-align: center !important;
+      box-sizing: border-box !important;
+      background: #FFFFFF !important;
+      border: 1.5px solid var(--sky, #2D9CDB) !important;
+      color: var(--ink, #232A4D) !important;
+    }
+    [data-theme="dark"] .export-date-cell input[type="date"] {
+      background: #131624 !important;
+      border-color: #2D354E !important;
+      color: #F0F3FA !important;
+    }
+    .export-presets-row {
+      margin-top: 0 !important;
+      width: 100% !important;
+    }
+    .export-quick-btns {
+      display: grid !important;
+      grid-template-columns: repeat(4, 1fr) !important;
+      gap: 6px !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+    }
+    .export-quick-btns .date-nav-btn {
+      width: 100% !important;
+      height: 30px !important;
+      min-height: 30px !important;
+      max-height: 30px !important;
+      padding: 0 4px !important;
+      font-size: 12px !important;
+      font-weight: 700 !important;
+      border-radius: 8px !important;
+      text-align: center !important;
+      box-sizing: border-box !important;
+    }
     .export-action-row {
-      justify-content: flex-start !important;
-      gap: 8px 12px !important;
       padding-top: 8px !important;
       border-top: 1px dashed rgba(108, 76, 224, 0.2) !important;
+      width: 100% !important;
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 6px !important;
     }
     [data-theme="dark"] .export-action-row {
       border-top-color: #2B334E !important;
     }
-    .export-mode-tabs {
-      display: inline-flex !important;
-      align-items: center !important;
-      gap: 4px !important;
-    }
-    .export-mode-tabs .export-mode-btn {
-      height: 28px !important;
-      min-height: 28px !important;
-      max-height: 28px !important;
-      font-size: 12px !important;
-      font-weight: 700 !important;
-      padding: 0 10px !important;
-    }
-    .export-mode-btn.active,
-    [data-theme="dark"] .export-mode-btn.active {
-      background: var(--violet) !important;
-      border-color: var(--violet) !important;
-      color: #FFFFFF !important;
-    }
-    .export-date-inputs {
-      display: inline-flex !important;
-      align-items: center !important;
-      flex-wrap: wrap !important;
-      gap: 5px !important;
-    }
-    .export-range-sep {
-      font-size: 12px !important;
-      font-weight: 800 !important;
-      color: var(--ink2) !important;
-      padding: 0 2px !important;
-    }
-    .export-presets-row {
-      margin-top: -2px !important;
-    }
-    .export-quick-btns {
-      display: inline-flex !important;
-      align-items: center !important;
-      flex-wrap: wrap !important;
-      gap: 5px !important;
-    }
-    .export-format-group {
-      display: inline-flex !important;
-      align-items: center !important;
-      flex-wrap: wrap !important;
-      gap: 6px !important;
-    }
-    .export-format-select {
-      width: 195px !important;
-      min-width: 170px !important;
-    }
     .export-btn-group {
-      display: inline-flex !important;
-      align-items: center !important;
-      flex-wrap: wrap !important;
+      display: grid !important;
+      grid-template-columns: 1fr 1fr !important;
       gap: 8px !important;
+      width: 100% !important;
       margin-left: 0 !important;
+      box-sizing: border-box !important;
     }
     .export-dl-btn {
       display: inline-flex !important;
       align-items: center !important;
       justify-content: center !important;
       gap: 5px !important;
-      height: 30px !important;
-      min-height: 30px !important;
-      max-height: 30px !important;
+      height: 32px !important;
+      min-height: 32px !important;
+      max-height: 32px !important;
       padding: 0 12px !important;
       border-radius: 9px !important;
       font-size: 12.5px !important;
@@ -3661,6 +3734,7 @@
       transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.15s ease !important;
       white-space: nowrap !important;
       box-sizing: border-box !important;
+      width: 100% !important;
     }
     .export-dl-btn:hover {
       transform: translateY(-1px) !important;
@@ -3685,48 +3759,9 @@
       border: 1px solid #178254 !important;
       box-shadow: 0 3px 8px rgba(47, 180, 124, 0.25) !important;
     }
-    @media (max-width: 720px) {
-      .export-controls-wrap {
-        gap: 8px !important;
-      }
-      .export-row {
-        gap: 8px !important;
-      }
-      .export-presets-row .date-nav-title {
-        display: none !important;
-      }
-      .export-presets-row {
-        margin-top: 0 !important;
-        width: 100% !important;
-      }
-      .export-date-inputs {
-        width: 100% !important;
-        margin-top: 2px !important;
-      }
-      .export-date-inputs input[type="date"] {
-        flex: 1 1 auto !important;
-        width: 100% !important;
-        min-width: 130px !important;
-        box-sizing: border-box !important;
-      }
+    @media (max-width: 640px) {
       .export-quick-btns {
-        width: 100% !important;
-        margin-left: 0 !important;
-        display: flex !important;
-        flex-wrap: wrap !important;
-        gap: 6px !important;
-      }
-      .export-quick-btns .date-nav-btn {
-        flex: 1 1 auto !important;
-        text-align: center !important;
-        padding: 6px 8px !important;
-      }
-      .export-btn-group {
-        margin-left: 0 !important;
-        width: 100% !important;
-      }
-      .export-dl-btn {
-        flex: 1 1 auto !important;
+        grid-template-columns: 1fr 1fr !important;
       }
     }
 
@@ -4914,32 +4949,41 @@
       </h3>
       <div class="export-navigator-card" id="export-navigator-card" style="display:none;">
         <div class="export-controls-wrap">
-          <div class="export-row">
+          <!-- 1. 範圍標籤 -->
+          <div class="export-row export-label-row">
             <span class="date-nav-title"><span>📅</span> 匯出範圍：</span>
-            <div class="export-mode-tabs" role="group" aria-label="選擇匯出日期模式">
-              <button type="button" id="btn-export-mode-single" class="date-nav-btn export-mode-btn active" data-mode="single">單一指定日期</button>
-              <button type="button" id="btn-export-mode-range" class="date-nav-btn export-mode-btn" data-mode="range">自訂範圍區間</button>
-            </div>
-            <div id="export-single-wrap" class="export-date-inputs">
+          </div>
+
+          <!-- 2. 模式選擇 (單一指定日期 / 自訂範圍區間，左右各 50%，對齊下方下載按鈕) -->
+          <div class="export-mode-tabs" role="group" aria-label="選擇匯出日期模式">
+            <button type="button" id="btn-export-mode-single" class="date-nav-btn export-mode-btn active" data-mode="single">單一指定日期</button>
+            <button type="button" id="btn-export-mode-range" class="date-nav-btn export-mode-btn" data-mode="range">自訂範圍區間</button>
+          </div>
+
+          <!-- 3. 日期欄位 (左欄：單一日期/起始日期，右欄：自訂結束日期) -->
+          <div class="export-date-row-grid" id="export-date-row-grid">
+            <div class="export-date-cell export-date-cell-left" id="export-left-date-cell">
               <input type="date" id="export-single-date" class="date-picker-input">
+              <input type="date" id="export-start-date" class="date-picker-input" style="display:none;">
             </div>
-            <div id="export-range-wrap" class="export-date-inputs" style="display:none;">
-              <input type="date" id="export-start-date" class="date-picker-input">
-              <span class="export-range-sep">至</span>
+            <div class="export-date-cell export-date-cell-right" id="export-right-date-cell" style="display:none;">
               <input type="date" id="export-end-date" class="date-picker-input">
             </div>
           </div>
-          <div class="export-row export-presets-row">
-            <span class="date-nav-title" style="visibility:hidden; opacity:0; pointer-events:none;"><span>📅</span> 匯出範圍：</span>
+
+          <!-- 4. 快捷範圍區間 (僅在自訂範圍區間模式下顯示) -->
+          <div class="export-row export-presets-row" id="export-presets-row" style="display:none;">
             <div class="export-quick-btns">
-              <button type="button" class="date-nav-btn today-btn" id="btn-export-preset-today" title="匯出今日紀錄">📍 今日</button>
+              <button type="button" class="date-nav-btn today-btn" id="btn-export-preset-today" title="設定為今日">📍 今日</button>
               <button type="button" id="btn-export-preset-7d" class="date-nav-btn" title="最近 7 天">近 7 天</button>
               <button type="button" id="btn-export-preset-30d" class="date-nav-btn" title="最近 30 天">近 30 天</button>
               <button type="button" id="btn-export-preset-all" class="date-nav-btn" title="全部有紀錄日期">全部紀錄</button>
             </div>
           </div>
+
+          <!-- 5. 輸出格式標題與下載按鈕 (左右各 50%，與第 2 行模式按鈕長寬高相對位置完全一致) -->
           <div class="export-row export-action-row">
-            <div class="export-format-group">
+            <div class="export-label-row" style="width:100%;margin-bottom:2px;">
               <span class="date-nav-title"><span>📄</span> 輸出格式：</span>
             </div>
             <div class="export-btn-group">
@@ -16495,10 +16539,12 @@ function initStudentExportRecordsCard(resp) {
 
   const btnModeSingle = document.getElementById("btn-export-mode-single");
   const btnModeRange = document.getElementById("btn-export-mode-range");
-  const singleWrap = document.getElementById("export-single-wrap");
-  const rangeWrap = document.getElementById("export-range-wrap");
-  const inputSingle = document.getElementById("export-single-date");
-  const inputStart = document.getElementById("export-start-date");
+  const leftSingleInput = document.getElementById("export-single-date");
+  const leftStartInput = document.getElementById("export-start-date");
+  const rightCell = document.getElementById("export-right-date-cell");
+  const presetsRow = document.getElementById("export-presets-row");
+  const inputSingle = leftSingleInput;
+  const inputStart = leftStartInput;
   const inputEnd = document.getElementById("export-end-date");
   const formatSelect = document.getElementById("export-format-select");
   const btnDlPdf = document.getElementById("btn-export-download-pdf");
@@ -16549,9 +16595,18 @@ function initStudentExportRecordsCard(resp) {
     currentMode = (m === "range") ? "range" : "single";
     if (btnModeSingle) btnModeSingle.classList.toggle("active", currentMode === "single");
     if (btnModeRange) btnModeRange.classList.toggle("active", currentMode === "range");
-    if (singleWrap) singleWrap.style.display = (currentMode === "single") ? "inline-flex" : "none";
-    if (rangeWrap) rangeWrap.style.display = (currentMode === "range") ? "inline-flex" : "none";
+    if (leftSingleInput) leftSingleInput.style.display = (currentMode === "single") ? "block" : "none";
+    if (leftStartInput) leftStartInput.style.display = (currentMode === "range") ? "block" : "none";
+    if (rightCell) rightCell.style.display = (currentMode === "range") ? "block" : "none";
+    if (presetsRow) presetsRow.style.display = (currentMode === "range") ? "grid" : "none";
+    if (currentMode === "single" && leftSingleInput && leftStartInput && !leftSingleInput.value) {
+      leftSingleInput.value = leftStartInput.value || todayDash;
+    } else if (currentMode === "range" && leftStartInput && leftSingleInput && !leftStartInput.value) {
+      leftStartInput.value = leftSingleInput.value || sevenDaysAgo;
+    }
   };
+
+  setExportMode("single");
 
   if (btnModeSingle) btnModeSingle.onclick = () => setExportMode("single");
   if (btnModeRange) btnModeRange.onclick = () => setExportMode("range");
@@ -16559,8 +16614,8 @@ function initStudentExportRecordsCard(resp) {
   const btnPresetToday = document.getElementById("btn-export-preset-today");
   if (btnPresetToday) {
     btnPresetToday.onclick = () => {
-      setExportMode("single");
-      if (inputSingle) inputSingle.value = todayDash;
+      if (inputStart) inputStart.value = todayDash;
+      if (inputEnd) inputEnd.value = todayDash;
     };
   }
   const btnPreset7d = document.getElementById("btn-export-preset-7d");
