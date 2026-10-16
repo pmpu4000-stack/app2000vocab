@@ -3,15 +3,15 @@
 // drives level-based practice, gates progression behind challenges,
 // and manages teacher-assigned tasks & weekend mistake remediation.
 // =====================================================================
-import { loadWordBank } from "./wordbank.js?v=20261016_1945";
-import * as store from "./store.js?v=20261016_1945";
-import { nextWord } from "./srs.js?v=20261016_1945";
-import * as ui from "./ui.js?v=20261016_1945";
-import { burst } from "./confetti.js?v=20261016_1945";
+import { loadWordBank } from "./wordbank.js?v=20261016_2015";
+import * as store from "./store.js?v=20261016_2015";
+import { nextWord } from "./srs.js?v=20261016_2015";
+import * as ui from "./ui.js?v=20261016_2015";
+import { burst } from "./confetti.js?v=20261016_2015";
 import {
   LEVELS, levelColor, levelName, sample,
   PASS_RATE, GATE_MIN_ATTEMPTS, CHALLENGE_LEN, PLACEMENT_PER_LEVEL, DAILY_GOAL,
-} from "./levels.js?v=20261016_1945";
+} from "./levels.js?v=20261016_2015";
 
 let WORDS = [];
 const state = { mode: "listen", word: null, answered: false, round: null };

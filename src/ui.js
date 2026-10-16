@@ -950,52 +950,46 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
   }
   const taskRate = taskTotWords > 0 ? Math.round((taskCorrWords / taskTotWords) * 100) : (parseInt(rateVal) || 0);
 
+  const answeredSet = new Set([
+    ...correctList.map(w => String(w).toLowerCase()),
+    ...wrongList.map(w => String(w).toLowerCase())
+  ]);
+  const unansweredList = rawWords.filter(w => !answeredSet.has(String(w).toLowerCase())).sort((a, b) => a.localeCompare(b));
+
   let correctContentHtml = "";
   let wrongContentHtml = "";
-  let leftBoxClass = "correct-box";
-  let leftTitleClass = "correct-title";
-  let leftTitleText = "✅ 答對的單字";
-  let rightBoxClass = "wrong-box";
-  let rightTitleClass = "wrong-title";
-  let rightTitleText = "❌ 答錯的單字";
+  let unansweredContentHtml = "";
+  let reminderBannerHtml = "";
 
   if (isUntested) {
-    leftBoxClass = "untested-box";
-    leftTitleClass = "untested-title";
-    leftTitleText = `📋 本次應測單字範圍 ${taskTotWords > 0 ? `(${taskTotWords} 字)` : (rawWords.length > 0 ? `(${rawWords.length} 字)` : "")}`;
+    correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（尚未受測）</span>`;
+    wrongContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（尚未受測）</span>`;
     if (rawWords.length > 0) {
-      correctContentHtml = rawWords.map(w => `<span class="word-pill-tag neutral" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); window.__sayWord && window.__sayWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
+      unansweredContentHtml = rawWords.map(w => `<span class="word-pill-tag neutral" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); window.__sayWord && window.__sayWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
     } else {
-      correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（指派單字載入中或未指定具體單字清單）</span>`;
+      unansweredContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（未載入具體單字清單）</span>`;
     }
-
-    rightBoxClass = "advice-box";
-    rightTitleClass = "advice-title";
-    rightTitleText = "💡 補考與學習提醒";
-    wrongContentHtml = `
-      <div style="display:flex; flex-direction:column; justify-content:flex-start; align-items:flex-start; gap:8px; padding:6px 4px; font-size:12.5px; line-height:1.6;">
-        <div>${hasLoggedInOrFree ? "你當日有登入進行自由練習，但<strong>尚未完成本次指定測驗</strong>。" : "你當日無登入紀錄，<strong>尚未進行本次指定測驗</strong>。"}</div>
-        <div style="font-size:11.5px; opacity:0.85;">可前往測驗專區進行補考挑戰，完成後將自動記錄成績！</div>
-        <button type="button" onclick="const sc = document.getElementById('btn-summary-close'); if (sc) sc.click();" style="border:none; background:linear-gradient(135deg, #10b981 0%, #059669 100%); color:#fff; padding:6px 14px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:4px; box-shadow:0 2px 6px rgba(16,185,129,0.3); margin-top:4px;">
+    reminderBannerHtml = `
+      <div style="margin-top:10px; padding:10px 14px; background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.28); border-radius:10px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+        <div style="font-size:12.5px; color:#b45309; font-weight:700;">
+          ${hasLoggedInOrFree ? "⚠️ 你當日有登入進行自由練習，但尚未完成本次指定測驗（共 " + rawWords.length + " 字未作答）。" : "📴 你當日無登入紀錄，尚未進行本次指定測驗（共 " + rawWords.length + " 字未作答）。"}
+        </div>
+        <button type="button" onclick="const sc = document.getElementById('btn-summary-close'); if (sc) sc.click();" style="border:none; background:linear-gradient(135deg, #10b981 0%, #059669 100%); color:#fff; padding:6px 14px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:4px; box-shadow:0 2px 6px rgba(16,185,129,0.3);">
           🚀 前往遊戲測驗區補考
         </button>
       </div>
     `;
   } else {
+    // 1. 答對的單字
     if (correctList.length > 0) {
       correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); window.__sayWord && window.__sayWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
     } else if (isFinished) {
-      if (rawWords.length > 0) {
-        correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（本次測驗全數答錯，尚無答對單字）</span>`;
-      } else {
-        correctContentHtml = (wrongList.length === 0)
-          ? `<span class="perfect-score-msg">🎉 太棒了！本次測驗全數答對！</span>`
-          : `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（本次測驗答對 ${taskCorrWords}/${taskTotWords} 字）</span>`;
-      }
+      correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（本次測驗無答對單字）</span>`;
     } else {
-      correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（測驗待完成，尚未作答）</span>`;
+      correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（測驗待完成，尚未答對單字）</span>`;
     }
 
+    // 2. 答錯的單字
     if (wrongList.length > 0) {
       const normDate = normalizeDateStr(selectedDate);
       const slashDate = normDate.replace(/-/g, "/");
@@ -1010,31 +1004,32 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
         return `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); window.__sayWord && window.__sayWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`;
       }).join("");
     } else if (isFinished) {
-      wrongContentHtml = `<span class="perfect-score-msg">🎉 太棒了！本次測驗全數答對，無任何答錯單字！</span>`;
-    } else if (isIncomplete) {
-      if (wrongList.length === 0) {
-        rightBoxClass = "advice-box";
-        rightTitleClass = "advice-title";
-        rightTitleText = "⏳ 測驗未完成提醒";
-      }
-      const answeredSet = new Set([...correctList, ...wrongList]);
-      const remainingWords = rawWords.filter(w => !answeredSet.has(w));
-      const remainingCount = Math.max(0, taskTotWords - taskCorrWords);
-      const remainingPills = remainingWords.length > 0
-        ? `<div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:4px;">${remainingWords.map(w => `<span class="word-pill-tag neutral" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); window.__sayWord && window.__sayWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("")}</div>`
-        : "";
-      wrongContentHtml = `
-        <div style="display:flex; flex-direction:column; justify-content:flex-start; align-items:flex-start; gap:4px; padding:2px 4px; font-size:12.5px; line-height:1.5;">
-          <div style="color:#d97706; font-weight:700;">⏳ 測驗中途作答中斷</div>
-          <div style="font-size:12px; color:var(--ink3);">你已完成 ${taskCorrWords}/${taskTotWords} 題，尚餘 ${remainingCount} 題未完成：</div>
-          ${remainingPills}
-          <button type="button" onclick="const sc = document.getElementById('btn-summary-close'); if (sc) sc.click();" style="border:none; background:linear-gradient(135deg, #10b981 0%, #059669 100%); color:#fff; padding:6px 14px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:4px; box-shadow:0 2px 6px rgba(16,185,129,0.3); margin-top:4px;">
+      wrongContentHtml = `<span class="perfect-score-msg">🎉 全數答對，無答錯單字！</span>`;
+    } else {
+      wrongContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（目前無答錯單字）</span>`;
+    }
+
+    // 3. 沒有作答的單字
+    if (unansweredList.length > 0) {
+      unansweredContentHtml = unansweredList.map(w => `<span class="word-pill-tag neutral" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); window.__sayWord && window.__sayWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
+    } else if (isFinished) {
+      unansweredContentHtml = `<span class="perfect-score-msg">🎉 本次測驗單字已全數作答完畢！</span>`;
+    } else {
+      unansweredContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（無未作答單字）</span>`;
+    }
+
+    // 若為中斷或未完成，增加操作提醒橫幅
+    if (isIncomplete) {
+      reminderBannerHtml = `
+        <div style="margin-top:10px; padding:10px 14px; background:rgba(56,189,248,0.08); border:1px solid rgba(56,189,248,0.28); border-radius:10px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+          <div style="font-size:12.5px; color:#0369a1; font-weight:700;">
+            ⏳ 測驗中途作答中斷（已測 ${taskCorrWords + wrongList.length}/${taskTotWords} 字，尚餘 ${unansweredList.length} 字未作答）
+          </div>
+          <button type="button" onclick="const sc = document.getElementById('btn-summary-close'); if (sc) sc.click();" style="border:none; background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#fff; padding:6px 14px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:4px; box-shadow:0 2px 6px rgba(2,132,199,0.3);">
             🚀 前往遊戲測驗區繼續作答
           </button>
         </div>
       `;
-    } else {
-      wrongContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（目前無答錯單字）</span>`;
     }
   }
 
@@ -1100,23 +1095,38 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
       ${scoreGridHtml}
 
       <div class="word-split-grid">
-        <div class="word-split-box ${leftBoxClass}">
-          <div class="word-split-title ${leftTitleClass}">
-            <span>${leftTitleText}</span>
+        <!-- 1. 答對的單字 -->
+        <div class="word-split-box correct-box">
+          <div class="word-split-title correct-title">
+            <span>✅ 答對的單字 ${!isUntested ? `(${correctList.length} 字)` : "(0 字)"}</span>
           </div>
           <div class="word-split-content" style="max-height:138px; overflow-y:auto;">
             ${correctContentHtml}
           </div>
         </div>
-        <div class="word-split-box ${rightBoxClass}">
-          <div class="word-split-title ${rightTitleClass}">
-            <span>${rightTitleText}</span>
+
+        <!-- 2. 答錯的單字 -->
+        <div class="word-split-box wrong-box">
+          <div class="word-split-title wrong-title">
+            <span>❌ 答錯的單字 ${!isUntested ? `(${wrongList.length} 字)` : "(0 字)"}</span>
           </div>
-          <div class="word-split-content">
+          <div class="word-split-content" style="max-height:138px; overflow-y:auto;">
             ${wrongContentHtml}
           </div>
         </div>
+
+        <!-- 3. 沒有作答的單字 -->
+        <div class="word-split-box unanswered-box">
+          <div class="word-split-title unanswered-title">
+            <span>⚪ 沒有作答的單字 (${isUntested ? (rawWords.length || taskTotWords) : unansweredList.length} 字)</span>
+          </div>
+          <div class="word-split-content" style="max-height:138px; overflow-y:auto;">
+            ${unansweredContentHtml}
+          </div>
+        </div>
       </div>
+
+      ${reminderBannerHtml}
     </div>
   `;
 }
@@ -1180,26 +1190,44 @@ function renderUntestedTaskCardHtml(info, d) {
       </div>
 
       <div class="word-split-grid">
-        <div class="word-split-box untested-box">
-          <div class="word-split-title untested-title">
-            <span>📋 本次應測單字範圍 ${cleanWords.length > 0 ? `(${cleanWords.length} 字)` : ""}</span>
+        <!-- 1. 答對的單字 -->
+        <div class="word-split-box correct-box">
+          <div class="word-split-title correct-title">
+            <span>✅ 答對的單字 (0 字)</span>
+          </div>
+          <div class="word-split-content" style="max-height:138px; overflow-y:auto;">
+            <span style="font-size:12px; color:var(--ink3); font-style:italic;">（尚未受測）</span>
+          </div>
+        </div>
+
+        <!-- 2. 答錯的單字 -->
+        <div class="word-split-box wrong-box">
+          <div class="word-split-title wrong-title">
+            <span>❌ 答錯的單字 (0 字)</span>
+          </div>
+          <div class="word-split-content" style="max-height:138px; overflow-y:auto;">
+            <span style="font-size:12px; color:var(--ink3); font-style:italic;">（尚未受測）</span>
+          </div>
+        </div>
+
+        <!-- 3. 沒有作答的單字 -->
+        <div class="word-split-box unanswered-box">
+          <div class="word-split-title unanswered-title">
+            <span>⚪ 沒有作答的單字 (${cleanWords.length} 字)</span>
           </div>
           <div class="word-split-content" style="max-height:138px; overflow-y:auto;">
             ${wordsHtml}
           </div>
         </div>
-        <div class="word-split-box advice-box">
-          <div class="word-split-title advice-title">
-            <span>💡 補考與學習提醒</span>
-          </div>
-          <div class="word-split-content" style="display:flex; flex-direction:column; justify-content:flex-start; align-items:flex-start; gap:8px; padding:6px 4px; font-size:12.5px; line-height:1.6;">
-            <div>${adviceText}</div>
-            <div style="font-size:11.5px; opacity:0.85;">可前往測驗專區進行補考挑戰，完成後將自動記錄成績！</div>
-            <button type="button" onclick="const sc = document.getElementById('btn-summary-close'); if (sc) sc.click();" style="border:none; background:linear-gradient(135deg, #10b981 0%, #059669 100%); color:#fff; padding:6px 14px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:4px; box-shadow:0 2px 6px rgba(16,185,129,0.3); margin-top:4px;">
-              🚀 前往遊戲測驗區補考
-            </button>
-          </div>
+      </div>
+
+      <div style="margin-top:10px; padding:10px 14px; background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.28); border-radius:10px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+        <div style="font-size:12.5px; color:#b45309; font-weight:700;">
+          ${adviceText}（共 ${cleanWords.length} 字尚未作答）
         </div>
+        <button type="button" onclick="const sc = document.getElementById('btn-summary-close'); if (sc) sc.click();" style="border:none; background:linear-gradient(135deg, #10b981 0%, #059669 100%); color:#fff; padding:6px 14px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:4px; box-shadow:0 2px 6px rgba(16,185,129,0.3);">
+          🚀 前往遊戲測驗區補考
+        </button>
       </div>
     </div>
   `;
@@ -1435,7 +1463,7 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
       </div>
 
       <!-- 將答對的字與答錯的字分成兩個區域（純顯示當日練習狀況，非累積狀況） -->
-      <div class="word-split-grid">
+      <div class="word-split-grid grid-2">
         <!-- 答對的單字區 -->
         <div class="word-split-box correct-box">
           <div class="word-split-title correct-title">
@@ -1685,52 +1713,64 @@ export function renderSummary(d) {
     let tRate = tAtt > 0 ? Math.round((tCor / tAtt) * 100) : (parseInt(tRec.rate) || 0);
 
     const statusStr = String(tRec.status || "");
-    const wordsCount = (tRec.words && tRec.words.length > 0) ? tRec.words.length : 5;
+    // 計算單字數量 (wordsCount)
+    let taskWordsCount = 0;
+    if (Array.isArray(tRec.words) && tRec.words.length > 0) {
+      taskWordsCount = tRec.words.length;
+    } else {
+      const resolved = resolveTaskWords(tRec, norm, d);
+      taskWordsCount = (resolved.rawWords && resolved.rawWords.length) || tAtt || 5;
+    }
 
     // 判定是否完成全數作答
-    const isFinished = statusStr.includes("已完成") || (tAtt > 0 && tAtt >= wordsCount);
-    // 判定是否為登入有受測但未完成全部題目作答
+    const isFinished = statusStr.includes("已完成") || (tAtt > 0 && tAtt >= taskWordsCount);
+    // 判定是否為登入作答未完成
     const isIncomplete = !isFinished && (
-      (tAtt > 0 && tAtt < wordsCount) ||
+      (tAtt > 0 && tAtt < taskWordsCount) ||
       statusStr.includes("作答中") ||
       statusStr.includes("中斷")
     );
 
     // 當日是否有登入或有自由練習
     const freeRec = resolveDailyPracticeRecord(norm, d, historyList);
-    const hasLoggedInOrFree = !!(freeRec && freeRec.attempts > 0) || (tRec.freeTested > 0) || statusStr.includes("登入未受測");
+    const hasLoggedInOrFree = !!(freeRec && freeRec.attempts > 0) || (tRec.freeTested > 0) || statusStr.includes("登入未受測") || statusStr.includes("登入未作答");
 
     if (isFinished) {
-      const level = tAtt < 10 ? 1 : tAtt < 20 ? 2 : 3;
+      // 依「單字數量」計算量級：少單字量 (<10字)、中單字量 (10~19字)、大單字量 (>=20字)
+      const level = taskWordsCount < 10 ? 1 : taskWordsCount < 20 ? 2 : 3;
       return {
         a: tAtt, c: tCor, rate: tRate,
+        wordsCount: taskWordsCount,
         statusType: "completed",
         statusLabel: `正確率 ${tRate}%`,
         levelClass: `h${level}`,
         badgeTier: tRate >= 80 ? "tier-yellow" : (tRate >= 60 ? "tier-green" : "tier-white")
       };
     } else if (isIncomplete) {
-      // 🔵 登入有受測但未完成全部題目作答
+      // 🔵 登入作答未完成 (方格天藍色，右側藍底藍框)
       return {
         a: tAtt, c: tCor, rate: tRate,
+        wordsCount: taskWordsCount,
         statusType: "incomplete",
-        statusLabel: `🔵 登入受測未完成`,
+        statusLabel: "🔵 登入作答未完成",
         levelClass: "h-status-blue",
         badgeTier: "tier-status-blue"
       };
     } else if (hasLoggedInOrFree) {
-      // 🟡 登入未受測
+      // 🟠 登入未作答 (方格活力暖橘色，右側杏橘框)
       return {
         a: 0, c: 0, rate: 0,
+        wordsCount: taskWordsCount,
         statusType: "login_untested",
-        statusLabel: "🟡 登入未受測",
-        levelClass: "h-status-yellow",
-        badgeTier: "tier-status-yellow"
+        statusLabel: "🟠 登入未作答",
+        levelClass: "h-status-orange",
+        badgeTier: "tier-status-orange"
       };
     } else {
-      // 🔴 缺席未受測
+      // 🔴 缺席未受測 (方格珊瑚朱紅色，右側粉紅紅框)
       return {
         a: 0, c: 0, rate: 0,
+        wordsCount: taskWordsCount,
         statusType: "absent_untested",
         statusLabel: "🔴 缺席未受測",
         levelClass: "h-status-red",

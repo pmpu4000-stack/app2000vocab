@@ -294,29 +294,35 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 .hc.hc-active{outline:2.5px solid #059669;outline-offset:1px;transform:scale(1.08);z-index:2}
 [data-theme="dark"] .hc.hc-active{outline:2.5px solid #34D399;outline-offset:1px}
 .hc.h1{background:#B5E3CB;border-color:#9AD6B8} .hc.h2{background:#6FCBA0;border-color:#55BE8E} .hc.h3{background:var(--green);border-color:#1E9A66}
-.heatmap-yellow .hc.h1{background:#FEF08A !important;border-color:#FDE047 !important}
-.heatmap-yellow .hc.h2{background:#FACC15 !important;border-color:#EAB308 !important}
-.heatmap-yellow .hc.h3{background:#EAB308 !important;border-color:#CA8A04 !important}
+.heatmap-yellow .hc.h1{background:#FEF9C3 !important;border-color:#FEF08A !important}
+.heatmap-yellow .hc.h2{background:#FBBF24 !important;border-color:#F59E0B !important}
+.heatmap-yellow .hc.h3{background:#D97706 !important;border-color:#B45309 !important}
 .heatmap-yellow .hc.hc-active{outline:2.5px solid #D97706 !important;outline-offset:1px}
-[data-theme="dark"] .heatmap-yellow .hc.h1{background:#713F12 !important;border-color:#854D0E !important}
-[data-theme="dark"] .heatmap-yellow .hc.h2{background:#CA8A04 !important;border-color:#EAB308 !important}
-[data-theme="dark"] .heatmap-yellow .hc.h3{background:#FACC15 !important;border-color:#FDE047 !important}
+[data-theme="dark"] .heatmap-yellow .hc.h1{background:#422006 !important;border-color:#713F12 !important}
+[data-theme="dark"] .heatmap-yellow .hc.h2{background:#A16207 !important;border-color:#CA8A04 !important}
+[data-theme="dark"] .heatmap-yellow .hc.h3{background:#EAB308 !important;border-color:#FACC15 !important}
 [data-theme="dark"] .heatmap-yellow .hc.hc-active{outline:2.5px solid #FDE047 !important;outline-offset:1px}
 
-/* 熱力圖 3 大特殊狀態方格顏色 (登入未受測=黃色, 缺席未受測=紅色, 登入有受測但未完成全部=藍色) */
-.hc.h-status-yellow { background: #FDE047 !important; border-color: #EAB308 !important; box-shadow: 0 1px 3px rgba(234,179,8,.35) !important; }
+/* 熱力圖 3 大特殊狀態方格顏色 (登入未作答=活力暖橘, 缺席未受測=珊瑚紅, 登入作答未完成=天藍色) */
+.hc.h-status-orange,
+.hc.h-status-yellow { background: #FB923C !important; border-color: #EA580C !important; box-shadow: 0 1px 3px rgba(234,88,12,.35) !important; }
 .hc.h-status-red    { background: #F87171 !important; border-color: #EF4444 !important; box-shadow: 0 1px 3px rgba(239,68,68,.35) !important; }
 .hc.h-status-blue   { background: #38BDF8 !important; border-color: #0284C7 !important; box-shadow: 0 1px 3px rgba(2,132,199,.35) !important; }
 
-[data-theme="dark"] .hc.h-status-yellow { background: #CA8A04 !important; border-color: #FACC15 !important; }
+[data-theme="dark"] .hc.h-status-orange,
+[data-theme="dark"] .hc.h-status-yellow { background: #C2410C !important; border-color: #FB923C !important; }
 [data-theme="dark"] .hc.h-status-red    { background: #DC2626 !important; border-color: #F87171 !important; }
 [data-theme="dark"] .hc.h-status-blue   { background: #0284C7 !important; border-color: #38BDF8 !important; }
 
 /* 右邊框框對應狀態樣式 */
-.heat-day-info.tier-status-yellow { background: #FEFCE8 !important; color: #B45309 !important; border: 2px solid #EAB308 !important; box-shadow: 0 2px 6px rgba(234,179,8,.22) !important; }
-.heat-day-info.tier-status-yellow b { color: #92400E !important; }
-[data-theme="dark"] .heat-day-info.tier-status-yellow { background: rgba(250,204,21,.18) !important; color: #FDE047 !important; border-color: #FACC15 !important; }
-[data-theme="dark"] .heat-day-info.tier-status-yellow b { color: #FEF08A !important; }
+.heat-day-info.tier-status-orange,
+.heat-day-info.tier-status-yellow { background: #FFF7ED !important; color: #C2410C !important; border: 2px solid #F97316 !important; box-shadow: 0 2px 6px rgba(249,115,22,.22) !important; }
+.heat-day-info.tier-status-orange b,
+.heat-day-info.tier-status-yellow b { color: #9A3412 !important; }
+[data-theme="dark"] .heat-day-info.tier-status-orange,
+[data-theme="dark"] .heat-day-info.tier-status-yellow { background: rgba(249,115,22,.18) !important; color: #FB923C !important; border-color: #F97316 !important; }
+[data-theme="dark"] .heat-day-info.tier-status-orange b,
+[data-theme="dark"] .heat-day-info.tier-status-yellow b { color: #FED7AA !important; }
 
 .heat-day-info.tier-status-red { background: #FEF2F2 !important; color: #DC2626 !important; border: 2px solid #EF4444 !important; box-shadow: 0 2px 6px rgba(239,68,68,.22) !important; }
 .heat-day-info.tier-status-red b { color: #B91C1C !important; }
@@ -419,14 +425,14 @@ body.daily-limit-reached #btn-upload {
 .task-history-card{background:#F8F9FD;border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:10px 0 16px}
 .task-history-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px}
 .task-date-selector{background:#FFFFFF;border:1.5px solid var(--line);color:var(--ink);padding:4px 8px;height:32px;min-height:32px;line-height:1.2;border-radius:8px;font-size:12.5px;font-weight:700;outline:none;cursor:pointer;box-sizing:border-box}
-.task-score-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+.task-score-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px;width:100%;box-sizing:border-box}
 @media (max-width:480px){
   .task-score-grid{gap:6px}
   .task-score-item{padding:8px 4px !important}
   .task-score-label{font-size:11px !important}
   .task-score-val{font-size:18px !important}
 }
-.task-score-item{background:#FFFFFF;border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center;box-shadow:0 1px 3px rgba(35,42,77,0.03)}
+.task-score-item{background:#FFFFFF;border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center;box-shadow:0 1px 3px rgba(35,42,77,0.03);width:100%;box-sizing:border-box}
 .task-score-val{font-size:22px;font-weight:900;line-height:1.2;font-variant-numeric:tabular-nums}
 .task-words-container{margin-top:10px}
 .word-pill-tag{display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border-radius:8px;font-size:12.5px;font-weight:700;margin:3px;line-height:1.4;cursor:pointer;transition:transform .12s,box-shadow .12s;user-select:none}
@@ -464,18 +470,24 @@ body.daily-limit-reached #btn-upload {
   .date-nav-btn-group{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;width:100%}
   .date-nav-stepper-wrap .date-nav-btn{height:38px !important;min-height:38px !important;max-height:38px !important;font-size:13px !important;width:100%;padding:0 4px}
 }
-.word-split-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
-@media (max-width:640px){
+.word-split-grid{display:grid;grid-template-columns:repeat(3, 1fr);gap:10px;margin-top:12px}
+@media (max-width:860px){
   .word-split-grid{grid-template-columns:1fr}
-  .opts{grid-template-columns:repeat(2,1fr);gap:10px;max-width:440px}
-  .opt{font-size:18px;padding:11px 6px;min-height:48px}
+}
+.word-split-grid.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+@media (max-width:640px){
+  .word-split-grid.grid-2{grid-template-columns:1fr}
 }
 .word-split-box{border-radius:12px;padding:12px 14px}
 .word-split-box.correct-box{background:#F1FBF6;border:1px solid rgba(47,180,124,.3)}
 .word-split-box.wrong-box{background:#FFF5F5;border:1px solid rgba(255,107,107,.3)}
+.word-split-box.unanswered-box{background:#F8FAFC;border:1px solid #CBD5E1}
+[data-theme="dark"] .word-split-box.unanswered-box{background:rgba(148,163,184,.08)!important;border-color:#334155!important}
 .word-split-title{font-size:12.5px;font-weight:800;margin-bottom:8px;display:flex;align-items:center;gap:6px}
 .word-split-title.correct-title{color:#065F46}
 .word-split-title.wrong-title{color:#D64545}
+.word-split-title.unanswered-title{color:#475569}
+[data-theme="dark"] .word-split-title.unanswered-title{color:#94A3B8!important}
 .word-split-content,
 .word-split-box > div:not(.word-split-title){display:flex;flex-wrap:wrap;align-items:flex-start;align-content:flex-start;gap:6px;max-height:138px;min-height:75px;overflow-y:auto !important;overscroll-behavior:contain;padding-right:6px;scrollbar-width:thin;scrollbar-color:rgba(100,116,139,0.45) transparent}
 .task-empty-notice-box{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:330px;padding:20px 14px;text-align:center;box-sizing:border-box}
