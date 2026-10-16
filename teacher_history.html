@@ -2869,7 +2869,7 @@
       background: rgba(255, 255, 255, 0.1) !important;
     }
     @media (max-width: 820px) {
-      .date-navigator-card {
+      .date-navigator-card:not(.export-navigator-card) {
         grid-template-columns: 1fr !important;
         gap: 12px !important;
         padding: 12px 14px !important;
@@ -2879,7 +2879,7 @@
       }
     }
     @media (max-width: 640px) {
-      .date-navigator-card {
+      .date-navigator-card:not(.export-navigator-card) {
         padding: 10px 12px !important;
         gap: 10px !important;
       }
@@ -2894,7 +2894,7 @@
         width: 100% !important;
       }
       .date-nav-stepper-wrap .date-picker-input,
-      .date-navigator-card input[type="date"].date-picker-input {
+      .date-navigator-card:not(.export-navigator-card) input[type="date"].date-picker-input {
         width: 100% !important;
         max-width: 100% !important;
         height: 38px !important;
@@ -2907,8 +2907,7 @@
         gap: 6px !important;
         width: 100% !important;
       }
-      .date-nav-btn-group .date-nav-btn,
-      .date-navigator-card .date-nav-btn {
+      .date-nav-stepper-wrap .date-nav-btn {
         height: 38px !important;
         min-height: 38px !important;
         font-size: 13px !important;
@@ -2916,10 +2915,8 @@
         padding: 0 4px !important;
       }
     }
-    .date-navigator-card input[type="date"],
-    .export-navigator-card input[type="date"],
-    input[type="date"].date-picker-input,
-    .date-picker-input {
+    .date-navigator-card:not(.export-navigator-card) input[type="date"],
+    .date-nav-stepper-wrap input[type="date"].date-picker-input {
       background: #FFFFFF !important;
       border: 1.5px solid var(--sky, #2D9CDB) !important;
       color: var(--ink, #232A4D) !important;
@@ -2935,17 +2932,14 @@
       font-family: ui-rounded, "SF Pro Rounded", "Hiragino Maru Gothic ProN", "Nunito", "PingFang TC", system-ui, sans-serif !important;
       box-sizing: border-box !important;
     }
-    [data-theme="dark"] .date-navigator-card input[type="date"],
-    [data-theme="dark"] .export-navigator-card input[type="date"],
-    [data-theme="dark"] input[type="date"].date-picker-input,
-    [data-theme="dark"] .date-picker-input {
+    [data-theme="dark"] .date-navigator-card:not(.export-navigator-card) input[type="date"],
+    [data-theme="dark"] .date-nav-stepper-wrap input[type="date"].date-picker-input {
       background: #131624 !important;
       border-color: #2D354E !important;
       color: #F0F3FA !important;
     }
-    .date-navigator-card .date-nav-btn,
-    .export-navigator-card .date-nav-btn,
-    .date-nav-btn {
+    .date-navigator-card:not(.export-navigator-card) .date-nav-btn,
+    .date-nav-stepper-wrap .date-nav-btn {
       display: inline-flex !important;
       align-items: center !important;
       justify-content: center !important;
@@ -2968,32 +2962,131 @@
       white-space: nowrap !important;
       flex: 1 1 auto !important;
     }
-    .date-nav-btn:hover {
+    .date-nav-stepper-wrap .date-nav-btn:hover {
       background: #F1F8FC !important;
       border-color: var(--sky) !important;
       color: var(--sky) !important;
       transform: none !important;
     }
-    .date-nav-btn.today-btn {
+    .date-nav-stepper-wrap .date-nav-btn.today-btn {
       background: #EDF8FD !important;
       border-color: rgba(45, 156, 219, 0.4) !important;
       color: var(--sky) !important;
     }
-    .date-nav-btn.today-btn:hover {
+    .date-nav-stepper-wrap .date-nav-btn.today-btn:hover {
       background: var(--sky) !important;
       color: #FFFFFF !important;
     }
-    [data-theme="dark"] .date-nav-btn {
+    [data-theme="dark"] .date-nav-stepper-wrap .date-nav-btn {
       background: #20263A !important;
       border-color: #2D354E !important;
       color: #E2E8F0 !important;
     }
-    [data-theme="dark"] .date-nav-btn:hover {
+    [data-theme="dark"] .date-nav-stepper-wrap .date-nav-btn:hover {
       background: #2B334D !important;
       border-color: var(--sky) !important;
       color: #38BDF8 !important;
     }
-    [data-theme="dark"] .date-nav-btn.today-btn {
+    [data-theme="dark"] .date-nav-stepper-wrap .date-nav-btn.today-btn {
+      background: rgba(45, 156, 219, 0.18) !important;
+      border-color: rgba(45, 156, 219, 0.4) !important;
+      color: #38BDF8 !important;
+    }
+
+    /* 歷程檔案匯出卡片：完全保留上一版精緻、緊湊、對齊的原始設計 */
+    .export-navigator-card {
+      background: linear-gradient(135deg, #F1EDFF, #F8F9FD) !important;
+      border: 1.5px solid #E4DFFa !important;
+      border-radius: 14px !important;
+      margin: 6px 0 0 0 !important;
+      padding: 12px 14px !important;
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: stretch !important;
+      gap: 10px !important;
+      box-shadow: none !important;
+    }
+    [data-theme="dark"] .export-navigator-card {
+      background: #181C2A !important;
+      border-color: #262C42 !important;
+      color: #F0F3FA !important;
+      box-shadow: none !important;
+    }
+    .export-navigator-card input[type="date"] {
+      background: #FFFFFF !important;
+      border: 1.5px solid var(--sky, #2D9CDB) !important;
+      color: var(--ink, #232A4D) !important;
+      padding: 3px 8px !important;
+      height: 28px !important;
+      min-height: 28px !important;
+      max-height: 28px !important;
+      border-radius: 8px !important;
+      font-size: 12.5px !important;
+      font-weight: 700 !important;
+      outline: none !important;
+      cursor: pointer !important;
+      line-height: 1.2 !important;
+      font-family: ui-rounded, "SF Pro Rounded", "Hiragino Maru Gothic ProN", "Nunito", "PingFang TC", system-ui, sans-serif !important;
+      box-sizing: border-box !important;
+      width: auto !important;
+      max-width: 145px !important;
+    }
+    [data-theme="dark"] .export-navigator-card input[type="date"] {
+      background: #131624 !important;
+      border-color: #2D354E !important;
+      color: #F0F3FA !important;
+    }
+    .export-navigator-card .date-nav-btn {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 2px !important;
+      background: #FFFFFF !important;
+      border: 1px solid var(--line, #E7E9F5) !important;
+      color: var(--ink, #232A4D) !important;
+      padding: 0 10px !important;
+      height: 28px !important;
+      min-height: 28px !important;
+      max-height: 28px !important;
+      border-radius: 8px !important;
+      font-size: 12px !important;
+      font-weight: 700 !important;
+      cursor: pointer !important;
+      transition: all .15s !important;
+      line-height: 1 !important;
+      font-family: ui-rounded, "SF Pro Rounded", "Hiragino Maru Gothic ProN", "Nunito", "PingFang TC", system-ui, sans-serif !important;
+      transform: none !important;
+      box-sizing: border-box !important;
+      white-space: nowrap !important;
+      flex: 0 0 auto !important;
+      width: auto !important;
+    }
+    .export-navigator-card .date-nav-btn:hover {
+      background: #F1F8FC !important;
+      border-color: var(--sky) !important;
+      color: var(--sky) !important;
+      transform: none !important;
+    }
+    .export-navigator-card .date-nav-btn.today-btn {
+      background: #EDF8FD !important;
+      border-color: rgba(45, 156, 219, 0.4) !important;
+      color: var(--sky) !important;
+    }
+    .export-navigator-card .date-nav-btn.today-btn:hover {
+      background: var(--sky) !important;
+      color: #FFFFFF !important;
+    }
+    [data-theme="dark"] .export-navigator-card .date-nav-btn {
+      background: #20263A !important;
+      border-color: #2D354E !important;
+      color: #E2E8F0 !important;
+    }
+    [data-theme="dark"] .export-navigator-card .date-nav-btn:hover {
+      background: #2B334D !important;
+      border-color: var(--sky) !important;
+      color: #38BDF8 !important;
+    }
+    [data-theme="dark"] .export-navigator-card .date-nav-btn.today-btn {
       background: rgba(45, 156, 219, 0.18) !important;
       border-color: rgba(45, 156, 219, 0.4) !important;
       color: #38BDF8 !important;
@@ -4904,7 +4997,7 @@
           <a id="btn-toggle-export-card" class="sum-toggle-btn" title="展開或收合歷程檔案下載">展開</a>
         </span>
       </h3>
-      <div class="date-navigator-card export-navigator-card" id="export-navigator-card" style="display:none;">
+      <div class="export-navigator-card" id="export-navigator-card" style="display:none;">
         <div class="export-controls-wrap">
           <div class="export-row export-label-row">
             <span class="date-nav-title"><span>📅</span> 匯出範圍：</span>
