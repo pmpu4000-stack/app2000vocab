@@ -43,8 +43,8 @@ body{
 .app{width:100%; max-width:740px}
 .tnum{font-variant-numeric:tabular-nums}
 
-/* ---------- header ---------- */
 header{display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px 14px; margin-bottom:14px}
+.brand{display:flex; align-items:center; gap:14px; flex:0 0 auto}
 .logo{width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,var(--violet),#9a7bff);
   display:grid;place-items:center;color:#fff;font-weight:800;font-size:26px;box-shadow:var(--shadow);flex:0 0 52px;
   transform:rotate(-4deg)}
@@ -1936,10 +1936,12 @@ body[data-theme="dark"],
 
   <div class="app">
     <header>
-      <div class="logo">拼</div>
-      <div class="title">
-        <h1>拼字小特工 <span style="font-size:13px;color:var(--ink3)">Spelling Agent</span></h1>
-        <p>破解英文拼字關卡，每天 10 分鐘</p>
+      <div class="brand">
+        <div class="logo">拼</div>
+        <div class="title">
+          <h1>拼字小特工 <span style="font-size:13px;color:var(--ink3)">Spelling Agent</span></h1>
+          <p>破解英文拼字關卡，每天 10 分鐘</p>
+        </div>
       </div>
       <div class="stats">
         <div class="stat" id="btn-teacher-picker" style="cursor:pointer; display:none; background:rgba(108,76,224,0.08); border:1.5px solid rgba(108,76,224,0.3); border-radius:12px;" title="老師/管理員出題（可指定日期出題）">
