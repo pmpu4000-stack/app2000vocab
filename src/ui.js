@@ -1496,39 +1496,44 @@ function resolveDailyPracticeRecord(dateStr, d, historyList) {
   // 2. 從 d.rawHistory 尋找 (早期記錄於 DB.history)
   const hMap = (d && d.rawHistory) || {};
   const h = hMap[normYMD] || hMap[unpadYMD] || hMap[slashYMD] || hMap[dateStr] || null;
-  if (h && h.a > 0) {
-    return {
-      date: normYMD,
-      attempts: h.a,
-      correct: h.c,
-      wrong: (h.w !== undefined) ? h.w : Math.max(0, h.a - h.c),
-      words: (rec && rec.words) || {}
-    };
+  if (h) {
+    let hAtt = (h.a !== undefined) ? h.a : (h.attempts !== undefined ? h.attempts : 0);
+    let hCor = (h.c !== undefined) ? h.c : (h.correct !== undefined ? h.correct : 0);
+    if (!hAtt && h.words && typeof h.words === "object") {
+      const wList = Object.values(h.words).filter(Boolean);
+      hAtt = wList.length;
+      hCor = wList.filter(w => (w.c > 0 || w.correct > 0 || w.passed)).length;
+    }
+    if (hAtt > 0) {
+      return {
+        date: normYMD,
+        attempts: hAtt,
+        correct: hCor,
+        wrong: (h.w !== undefined) ? h.w : (h.wrong !== undefined ? h.wrong : Math.max(0, hAtt - hCor)),
+        words: (rec && rec.words) || (h.words || {})
+      };
+    }
   }
 
-  // 3. 從 student_task_history 尋找標記為「自主練習」的紀錄（絕不誤抓教師指派測驗分數）
+  // 3. 從 student_task_history 或 historyList 尋找自由練習紀錄（包含獨立 freeTested 欄位或標記為自主練習列）
   try {
-    const rawHist = localStorage.getItem("student_task_history");
-    if (rawHist) {
-      const parsedHist = JSON.parse(rawHist);
-      if (Array.isArray(parsedHist)) {
-        const matchedFreeRow = parsedHist.find(item => {
-          if (!item || !item.date) return false;
-          if (item.taskName && item.taskName !== "自主練習") return false;
-          return normalizeDateStr(item.date) === normYMD;
-        });
-        if (matchedFreeRow) {
-          let att = parseInt(matchedFreeRow.attempts) || 0;
-          let corr = parseInt(matchedFreeRow.correct) || 0;
-          if (att > 0) {
-            return {
-              date: normYMD,
-              attempts: att,
-              correct: corr,
-              wrong: Math.max(0, att - corr),
-              words: (rec && rec.words) || {}
-            };
-          }
+    const listToScan = (Array.isArray(historyList) && historyList.length > 0) ? historyList : JSON.parse(localStorage.getItem("student_task_history") || "[]");
+    if (Array.isArray(listToScan)) {
+      const matchedRow = listToScan.find(item => {
+        if (!item || !item.date) return false;
+        return normalizeDateStr(item.date) === normYMD;
+      });
+      if (matchedRow) {
+        let att = parseInt(matchedRow.freeTested || (matchedRow.taskName === "自主練習" ? matchedRow.attempts : 0)) || 0;
+        let corr = parseInt(matchedRow.freeCorrect || (matchedRow.taskName === "自主練習" ? matchedRow.correct : 0)) || 0;
+        if (att > 0) {
+          return {
+            date: normYMD,
+            attempts: att,
+            correct: corr,
+            wrong: Math.max(0, att - corr),
+            words: (rec && rec.words) || {}
+          };
         }
       }
     }
@@ -1874,7 +1879,14 @@ export function renderSummary(d) {
     if (att > 0) {
       taskHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 正確率 <b>${rate}%</b>`;
     } else {
-      taskHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 無作答紀錄`;
+      const tRec = historyList.find(item => item && item.date && normalizeDateStr(item.date) === dateKey && (!item.taskName || item.taskName !== "自主練習")) || null;
+      let label = "無測驗紀錄";
+      if (tRec && tRec.taskName && !tRec.taskName.includes("未指派")) {
+        label = (tRec.status && tRec.status.includes("尚未開始")) ? "⏳ 尚未測驗" : (tRec.status || "尚未測驗");
+      } else if (tRec && tRec.taskName && tRec.taskName.includes("未指派")) {
+        label = "⚪ 未指派測驗";
+      }
+      taskHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ ${label}`;
     }
     if (taskHeatGridEl) {
       taskHeatGridEl.querySelectorAll(".hc").forEach((cell, cIdx) => {
@@ -1948,7 +1960,7 @@ export function renderSummary(d) {
     if (att > 0) {
       heatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 正確率 <b>${rate}%</b>`;
     } else {
-      heatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 無作答紀錄`;
+      heatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 無練習紀錄`;
     }
     if (heatGridEl) {
       heatGridEl.querySelectorAll(".hc").forEach((cell, cIdx) => {

@@ -5,14 +5,17 @@
 * **備份倉庫**：`C:\Users\pmpu4\.gemini\antigravity\scratch\app2000vocab-repo`
 * **部署作業目錄**：`C:\Users\pmpu4\Desktop\0906`
 * **GitHub 遠端**：`https://github.com/pmpu4000-stack/app2000vocab.git` (main 分支)
-* **GAS 部署版本**：**Version 209** (Deployment ID: `AKfycbx1hyCNJxqFMoaJgIxfZqLYIYH00NegI1Yd8NJP6gRjqwOndWGkmr-H9tGvVwK_axM9`)
+* **GAS 部署版本**：**Version 211** (Deployment ID: `AKfycbx1hyCNJxqFMoaJgIxfZqLYIYH00NegI1Yd8NJP6gRjqwOndWGkmr-H9tGvVwK_axM9`)
 
-## 2. 資料庫架構 (Google Sheet 30 欄架構)
+## 2. 資料庫架構 (Google Sheet 30 欄架構) 與熱力圖同步機制
 * **學生工作表**：每位學生獨立分頁 (如 `d`)，具備完整 30 欄分離架構：
   - Col 1~21：基礎備份時間、JSON、等級、累積總受測/答對 (加總區域)
   - Col 22~26：【指定單字測驗專屬欄位】(任務名稱、成績、正確率、狀態、錯題單字)
   - Col 27~30：【自由練習專屬欄位】(自由受測字數、自由答對字數、正確率、自由練習錯題單字)
 * **零幽靈數值保證**：指定測驗與自由練習數值各自獨立，查詢日期區塊之上則呈現全域累計加總。
+* **熱力圖雙軌全面聯動**：
+  - 📝 **指定測驗黃色熱力圖**：精確反映各日指定測驗題數與狀態（若當日未指派顯示「⚪ 未指派測驗」，排定但未測顯示「⏳ 尚未測驗」）。
+  - 🎮 **自由練習綠色熱力圖**：完整整合試算表第 26~27 欄自由受測與答對字數（如 10-15 受測 12 字亮 h2 綠色，10-16 受測 28 字亮 h3 深綠色），不再因欄位格式遺漏。
 * **曾對後錯標記**：當日曾答對但後續作答又答錯的單字，前端顯示橘色虛線 `(曾對後錯⚠️)`；訂正成功顯示 `(已訂正)`。
 
 ## 3. 雲端備份與自動化同步機制

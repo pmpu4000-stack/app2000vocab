@@ -586,10 +586,6 @@ function logError(action, err, username, details) {
  */
 function inspectRequestForAttacks(ss, params, e) {
   if (!params || typeof params !== "object") return null;
-  // 管理員授權之對話紀錄與系統備份操作豁免（因內容包含程式碼與 Markdown）
-  if (params.action === "saveConversationBackup" && params.key === "inspect_2026_ok") {
-    return null;
-  }
 
   // 1. 原型鏈污染 (Prototype Pollution)
   const rawContents = (e && e.postData && e.postData.contents) || "";
@@ -2574,23 +2570,7 @@ function doPost(e) {
       return jsonResponse(auditComplianceData(ss));
     }
 
-    // ── 12. 雲端對話與開發紀錄備份至 Google Drive ──
-    if (action === "saveConversationBackup") {
-      if (params.key !== "inspect_2026_ok") {
-        const auth = authenticateUser(ss, params.username, params.password);
-        if (!auth.success || auth.role !== "teacher") {
-          return jsonResponse({ status: "error", message: "未授權之備份請求" });
-        }
-      }
-      return jsonResponse(saveConversationToDrive(params));
-    }
-
-    // ── 13. 從 Google Drive 讀取最新對話備份 ──
-    if (action === "getLatestConversationBackup") {
-      return jsonResponse(getLatestConversationFromDrive());
-    }
-
-    // ── 14. 未知 action ──
+    // ── 12. 未知 action ──
 
     logError("doPost","未知 action: "+action, params.username, "");
     return jsonResponse({status:"error", message:"未知的 action"});
@@ -2601,33 +2581,6 @@ function doPost(e) {
 }
 
 function doGet(e) {
-  // 📥 跨電腦自動下載最新 AI 對話與開發紀錄備份
-  if (e && e.parameter && e.parameter.action === "getLatestConversationBackup" && e.parameter.key === "inspect_2026_ok") {
-    return jsonResponse(getLatestConversationFromDrive());
-  }
-
-  // 檢驗單一工作表詳細列資料
-  if (e && e.parameter && e.parameter.action === "inspectSheetRows" && e.parameter.key === "inspect_2026_ok") {
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
-    const sheetName = e.parameter.sheetName || "d";
-    const sh = ss.getSheetByName(sheetName);
-    if (!sh) return jsonResponse({ status: "error", message: "找不到工作表 " + sheetName });
-    const lastRow = sh.getLastRow();
-    const lastCol = sh.getLastColumn();
-    const headers = (lastRow >= 1 && lastCol >= 1) ? sh.getRange(1, 1, 1, lastCol).getDisplayValues()[0] : [];
-    const maxRows = Math.min(Math.max(0, lastRow - 1), 15);
-    const rows = (maxRows > 0) ? sh.getRange(2, 1, maxRows, lastCol).getDisplayValues() : [];
-    // 隱藏長度過長的 GZ 壓縮字串以維持傳輸精簡
-    const sanitizedRows = rows.map(r => r.map((c, i) => (i === 1 && String(c).length > 30) ? String(c).substring(0, 25) + "..." : c));
-    return jsonResponse({
-      status: "success",
-      sheetName: sheetName,
-      lastRow: lastRow,
-      headers: headers,
-      rows: sanitizedRows
-    });
-  }
-
   // 檢驗試算表完整欄位與數值結構
   if (e && e.parameter && e.parameter.action === "inspectSpreadsheetSchema" && e.parameter.key === "inspect_2026_ok") {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -4545,12 +4498,20 @@ function getStudentDailyTaskHistory(ss, username) {
     const statusVal = String(vals[i][hMap.status] || "");
     const wrongStr = String(vals[i][hMap.wrong] || "");
     const wrongWords = wrongStr ? wrongStr.split(/[\s,;\n\r]+/).filter(w => w.trim().length > 0) : [];
-    // 嚴格過濾：僅納入真正的「指定測驗」紀錄，排除純自由練習列、未指派列
+    const freeTestedVal = parseInt(String(vals[i][hMap.freeTested] || "").replace(/,/g, ""), 10) || 0;
+    const freeCorrectVal = parseInt(String(vals[i][hMap.freeCorrect] || "").replace(/,/g, ""), 10) || 0;
+    const freeRateVal = String(vals[i][hMap.freeRate] || "");
+    const freeWrongVal = String(vals[i][hMap.freeWrong] || "");
+    const freeWrongWords = freeWrongVal ? freeWrongVal.split(/[\s,;\n\r]+/).filter(w => w.trim().length > 0) : [];
+    const hasFreePractice = freeTestedVal > 0;
+
+    // 嚴格過濾：納入有指定測驗紀錄、已排定任務列、或有自由練習之列
     const isUntestedOrUnassigned = !taskName || taskName === "⚪ 未指派" || taskName === "自主練習" || taskName.includes("自由練習");
     const hasValidQuizScore = scoreVal && scoreVal !== "—" && scoreVal !== "" && scoreVal.includes("/");
     const isQuizCompleted = statusVal.includes("已完成") || statusVal.includes("測驗作答中");
+    const hasTaskAssigned = !isUntestedOrUnassigned && (taskName.length > 0);
     
-    if (dStr && !isUntestedOrUnassigned && (hasValidQuizScore || isQuizCompleted)) {
+    if (dStr && (hasValidQuizScore || isQuizCompleted || hasTaskAssigned || hasFreePractice)) {
       let tAtt = 0, tCor = 0;
       if (hasValidQuizScore) {
         const parts = scoreVal.split("/");
@@ -4561,17 +4522,21 @@ function getStudentDailyTaskHistory(ss, username) {
                            taskWordsDict[taskName.toLowerCase()] ||
                            taskWordsDict[dStr] || [];
       list.push({
-        date      : dStr,
-        taskName  : taskName || "每日指定測驗",
-        score     : scoreVal,
-        rate      : rateVal,
-        status    : statusVal || "🟢 已完成",
-        attempts  : tAtt,
-        correct   : tCor,
-        accuracy  : rateVal,
-        updatedAt : formatStandardDateTime(vals[i][0]),
-        wrongWords: wrongWords,
-        words     : matchedWords
+        date        : dStr,
+        taskName    : taskName || (hasFreePractice ? "自主練習" : "每日指定測驗"),
+        score       : scoreVal || "—",
+        rate        : rateVal || "—",
+        status      : statusVal || (hasValidQuizScore ? "🟢 已完成" : (hasTaskAssigned ? "⏳ 尚未開始" : "⚪ 未指派")),
+        attempts    : tAtt,
+        correct     : tCor,
+        accuracy    : rateVal,
+        updatedAt   : formatStandardDateTime(vals[i][0]),
+        wrongWords  : wrongWords,
+        words       : matchedWords,
+        freeTested  : freeTestedVal,
+        freeCorrect : freeCorrectVal,
+        freeRate    : freeRateVal,
+        freeWrongWords: freeWrongWords
       });
     }
   }
@@ -6089,99 +6054,3 @@ function openBackupFolderUi() {
         <p style="font-size:12px;color:#94a3b8;margin-top:16px">${folder.getName()}</p>
       </div>`).setWidth(360).setHeight(160),"📂 雲端備份庫");
 }
-
-/**
- * 💾 將 AI 開發與對話紀錄備份至 Google Drive
- */
-function saveConversationToDrive(params) {
-  try {
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
-    let parentFolder = DriveApp.getRootFolder();
-    try {
-      const par = DriveApp.getFileById(ss.getId()).getParents();
-      if (par.hasNext()) parentFolder = par.next();
-    } catch(_) {}
-
-    const folderName = "【AI對話與開發歷程備份庫】";
-    const f = parentFolder.getFoldersByName(folderName);
-    const folder = f.hasNext() ? f.next() : parentFolder.createFolder(folderName);
-
-    const now = new Date();
-    const timeStr = Utilities.formatDate(now, "Asia/Taipei", "yyyy-MM-dd_HHmm");
-    const title = params.title || "AI開發對話與修改歷程備份";
-    const fileName = `${title}_${timeStr}.md`;
-    let content = params.content || "";
-    if (params.isBase64 && content) {
-      try {
-        content = Utilities.newBlob(Utilities.base64Decode(content), "text/plain;charset=utf-8").getDataAsString("UTF-8");
-      } catch(_) {}
-    }
-
-    // 建立具時間戳記之備份檔
-    const file = folder.createFile(fileName, content, MimeType.PLAIN_TEXT);
-
-    // 同時更新固定名稱之「最新對話歷程備份_LATEST.md」，方便隨時點閱
-    const latestName = "最新對話歷程備份_LATEST.md";
-    const existing = folder.getFilesByName(latestName);
-    let latestFile = null;
-    if (existing.hasNext()) {
-      latestFile = existing.next();
-      latestFile.setContent(content);
-    } else {
-      latestFile = folder.createFile(latestName, content, MimeType.PLAIN_TEXT);
-    }
-
-    return {
-      status: "success",
-      message: "對話紀錄已成功備份至 Google Drive",
-      folderName: folderName,
-      fileName: fileName,
-      fileUrl: file.getUrl(),
-      latestUrl: latestFile.getUrl(),
-      folderUrl: folder.getUrl()
-    };
-  } catch (err) {
-    return { status: "error", message: "備份失敗：" + err.toString() };
-  }
-}
-
-/**
- * 📥 從 Google Drive 讀取最新 AI 對話與開發紀錄備份
- */
-function getLatestConversationFromDrive() {
-  try {
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
-    let parentFolder = DriveApp.getRootFolder();
-    try {
-      const par = DriveApp.getFileById(ss.getId()).getParents();
-      if (par.hasNext()) parentFolder = par.next();
-    } catch(_) {}
-
-    const folderName = "【AI對話與開發歷程備份庫】";
-    const f = parentFolder.getFoldersByName(folderName);
-    if (!f.hasNext()) {
-      return { status: "error", message: "尚未建立對話備份資料夾" };
-    }
-    const folder = f.next();
-    const latestName = "最新對話歷程備份_LATEST.md";
-    const existing = folder.getFilesByName(latestName);
-    if (!existing.hasNext()) {
-      return { status: "error", message: "找不到最新對話備份檔案" };
-    }
-    const file = existing.next();
-    const content = file.getBlob().getDataAsString("UTF-8");
-    const updatedAt = Utilities.formatDate(file.getLastUpdated(), "Asia/Taipei", "yyyy-MM-dd HH:mm:ss");
-    
-    return {
-      status: "success",
-      fileName: latestName,
-      updatedAt: updatedAt,
-      updatedTimestamp: file.getLastUpdated().getTime(),
-      fileUrl: file.getUrl(),
-      content: content
-    };
-  } catch(err) {
-    return { status: "error", message: "讀取失敗：" + err.toString() };
-  }
-}
-

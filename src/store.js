@@ -92,13 +92,22 @@ function load() {
       dailyPractice: d.dailyPractice || {},
     };
     // 清理過去因累積題數誤回填而產生但無實際當日 history 的幽靈日期紀錄
-    const histKeysWithAtt = Object.keys(merged.history).filter(hk => merged.history[hk] && merged.history[hk].a > 0).map(normalizeDateStr);
+    const hasValidActivity = (item) => {
+      if (!item) return false;
+      if (typeof item.a === "number" && item.a > 0) return true;
+      if (typeof item.attempts === "number" && item.attempts > 0) return true;
+      if (item.words && typeof item.words === "object" && Object.keys(item.words).length > 0) return true;
+      return false;
+    };
+    const histKeysWithAtt = Object.keys(merged.history).filter(hk => hasValidActivity(merged.history[hk])).map(normalizeDateStr);
     if (histKeysWithAtt.length > 0 && merged.dailyPractice) {
       Object.keys(merged.dailyPractice).forEach(dpKey => {
         const normDp = normalizeDateStr(dpKey);
         const hasRealHist = histKeysWithAtt.includes(normDp);
+        const hasRealDp = hasValidActivity(merged.dailyPractice[dpKey]);
         const isSessionToday = (normDp === todayStr() && merged.session && merged.session.date === todayStr() && merged.session.answered > 0);
-        if (!hasRealHist && !isSessionToday) {
+        // 唯有既無 history、又無 dailyPractice 實質內容、且非今日 session 者，才判定為幽靈
+        if (!hasRealHist && !hasRealDp && !isSessionToday) {
           delete merged.dailyPractice[dpKey];
         }
       });
@@ -281,22 +290,40 @@ export function historyData(n = 28) {
     // 1. 檢查 dailyPractice
     if (DB.dailyPractice) {
       const dp = DB.dailyPractice[norm] || DB.dailyPractice[unpad] || DB.dailyPractice[slash] || DB.dailyPractice[dateStr];
-      if (dp && dp.attempts > 0) {
-        a = Math.max(a, dp.attempts);
-        c = Math.max(c, dp.correct);
+      if (dp) {
+        let dpAtt = dp.attempts || 0;
+        let dpCor = (dp.correct !== undefined) ? dp.correct : 0;
+        if (!dpAtt && dp.words && typeof dp.words === "object") {
+          const wVals = Object.values(dp.words).filter(Boolean);
+          dpAtt = wVals.length;
+          dpCor = wVals.filter(w => (w.correct > 0 || w.passed || w.lastResult === "correct")).length;
+        }
+        if (dpAtt > 0) {
+          a = Math.max(a, dpAtt);
+          c = Math.max(c, dpCor);
+        }
       }
     }
 
     // 2. 檢查 DB.history
     if (DB.history) {
       const h = DB.history[norm] || DB.history[unpad] || DB.history[slash] || DB.history[dateStr];
-      if (h && h.a > 0) {
-        a = Math.max(a, h.a);
-        c = Math.max(c, h.c);
+      if (h) {
+        let hAtt = (h.a !== undefined) ? h.a : (h.attempts !== undefined ? h.attempts : 0);
+        let hCor = (h.c !== undefined) ? h.c : (h.correct !== undefined ? h.correct : 0);
+        if (!hAtt && h.words && typeof h.words === "object") {
+          const wVals = Object.values(h.words).filter(Boolean);
+          hAtt = wVals.length;
+          hCor = wVals.filter(w => (w.c > 0 || w.correct > 0 || w.passed)).length;
+        }
+        if (hAtt > 0) {
+          a = Math.max(a, hAtt);
+          c = Math.max(c, hCor);
+        }
       }
     }
 
-    // 3. 檢查 student_task_history (來自試算表雲端同步紀錄)
+    // 3. 檢查 student_task_history (來自試算表雲端同步紀錄，相容自主練習與指定測驗)
     if (Array.isArray(taskHistory)) {
       const th = taskHistory.find(item => {
         if (!item || !item.date) return false;
@@ -304,8 +331,8 @@ export function historyData(n = 28) {
         return idNorm === norm;
       });
       if (th) {
-        let tAtt = parseInt(th.attempts) || 0;
-        let tCorr = parseInt(th.correct) || 0;
+        let tAtt = parseInt(th.attempts || th.freeTested) || 0;
+        let tCorr = parseInt(th.correct || th.freeCorrect) || 0;
         if (!tAtt && th.score && th.score !== "—" && th.score.includes("/")) {
           const parts = th.score.split("/");
           tCorr = parseInt(parts[0]) || 0;
@@ -352,17 +379,19 @@ export function historyData(n = 28) {
   const activeDateSet = new Set();
   if (DB.dailyPractice) {
     Object.keys(DB.dailyPractice).forEach(k => {
-      if (DB.dailyPractice[k] && DB.dailyPractice[k].attempts > 0) activeDateSet.add(normalizeDateStr(k));
+      const dp = DB.dailyPractice[k];
+      if (dp && ((dp.attempts > 0) || (dp.words && Object.keys(dp.words).length > 0))) activeDateSet.add(normalizeDateStr(k));
     });
   }
   if (DB.history) {
     Object.keys(DB.history).forEach(k => {
-      if (DB.history[k] && DB.history[k].a > 0) activeDateSet.add(normalizeDateStr(k));
+      const h = DB.history[k];
+      if (h && ((h.a > 0) || (h.attempts > 0) || (h.words && Object.keys(h.words).length > 0))) activeDateSet.add(normalizeDateStr(k));
     });
   }
   if (Array.isArray(taskHistory)) {
     taskHistory.forEach(th => {
-      if (th && th.date && (th.attempts > 0 || (th.score && th.score !== "—"))) {
+      if (th && th.date && (th.attempts > 0 || th.freeTested > 0 || (th.score && th.score !== "—"))) {
         activeDateSet.add(normalizeDateStr(th.date));
       }
     });
@@ -498,16 +527,20 @@ export function getDailyPractice(dateStr) {
   const unpadded = unpadDateStr(dateStr);
   const slashed = norm.replace(/-/g, "/");
   let dp = (DB.dailyPractice && (DB.dailyPractice[norm] || DB.dailyPractice[unpadded] || DB.dailyPractice[slashed] || DB.dailyPractice[dateStr])) || null;
-  if (!dp || !dp.attempts) {
+  if (!dp || (!dp.attempts && (!dp.words || Object.keys(dp.words).length === 0))) {
     const h = (DB.history && (DB.history[norm] || DB.history[unpadded] || DB.history[slashed] || DB.history[dateStr])) || null;
-    if (h && h.a > 0) {
-      dp = {
-        date: norm,
-        attempts: h.a,
-        correct: h.c,
-        wrong: (h.w !== undefined) ? h.w : Math.max(0, h.a - h.c),
-        words: (dp && dp.words) ? dp.words : {}
-      };
+    if (h) {
+      const hAtt = (h.a !== undefined) ? h.a : (h.attempts !== undefined ? h.attempts : (h.words ? Object.keys(h.words).length : 0));
+      const hCor = (h.c !== undefined) ? h.c : (h.correct !== undefined ? h.correct : 0);
+      if (hAtt > 0) {
+        dp = {
+          date: norm,
+          attempts: hAtt,
+          correct: hCor,
+          wrong: (h.w !== undefined) ? h.w : (h.wrong !== undefined ? h.wrong : Math.max(0, hAtt - hCor)),
+          words: (dp && dp.words) ? dp.words : (h.words || {})
+        };
+      }
     }
   }
   if (dp && dp.words && Object.keys(dp.words).length > 0) {
@@ -525,12 +558,14 @@ export function getPracticeDates() {
   const set = new Set();
   if (DB.dailyPractice) {
     Object.keys(DB.dailyPractice).forEach(k => {
-      if (k && DB.dailyPractice[k] && DB.dailyPractice[k].attempts > 0) set.add(normalizeDateStr(k));
+      const dp = DB.dailyPractice[k];
+      if (k && dp && ((dp.attempts > 0) || (dp.words && Object.keys(dp.words).length > 0))) set.add(normalizeDateStr(k));
     });
   }
   if (DB.history) {
     Object.keys(DB.history).forEach(k => {
-      if (k && DB.history[k] && DB.history[k].a > 0) set.add(normalizeDateStr(k));
+      const h = DB.history[k];
+      if (k && h && ((h.a > 0) || (h.attempts > 0) || (h.words && Object.keys(h.words).length > 0))) set.add(normalizeDateStr(k));
     });
   }
   return Array.from(set);
@@ -640,13 +675,21 @@ export function summary(words) {
   let changed = false;
 
   // 先清理若已有歷史紀錄卻在無當日 history 下誤生成的幽靈日期
-  const histKeysWithAtt = Object.keys(DB.history || {}).filter(hk => DB.history[hk] && DB.history[hk].a > 0).map(normalizeDateStr);
+  const hasValidSummaryActivity = (item) => {
+    if (!item) return false;
+    if (typeof item.a === "number" && item.a > 0) return true;
+    if (typeof item.attempts === "number" && item.attempts > 0) return true;
+    if (item.words && typeof item.words === "object" && Object.keys(item.words).length > 0) return true;
+    return false;
+  };
+  const histKeysWithAtt = Object.keys(DB.history || {}).filter(hk => hasValidSummaryActivity(DB.history[hk])).map(normalizeDateStr);
   if (histKeysWithAtt.length > 0) {
     Object.keys(DB.dailyPractice).forEach(dpKey => {
       const normDp = normalizeDateStr(dpKey);
       const hasRealHist = histKeysWithAtt.includes(normDp);
+      const hasRealDp = hasValidSummaryActivity(DB.dailyPractice[dpKey]);
       const isSessionToday = (normDp === tKey && DB.session && DB.session.date === tKey && DB.session.answered > 0);
-      if (!hasRealHist && !isSessionToday) {
+      if (!hasRealHist && !hasRealDp && !isSessionToday) {
         delete DB.dailyPractice[dpKey];
         changed = true;
       }
@@ -664,8 +707,14 @@ export function summary(words) {
     const h = DB.history && (DB.history[normH] || DB.history[hDate]);
     let dp = DB.dailyPractice[normH] || DB.dailyPractice[hDate];
 
-    const attempts = (dp && dp.attempts) || (h && h.a) || 0;
-    const correct = (dp && dp.correct !== undefined) ? dp.correct : ((h && h.c) || 0);
+    let attempts = (dp && dp.attempts) || (h && (h.a !== undefined ? h.a : h.attempts)) || 0;
+    if (!attempts && dp && dp.words && typeof dp.words === "object") {
+      attempts = Object.keys(dp.words).length;
+    }
+    if (!attempts && h && h.words && typeof h.words === "object") {
+      attempts = Object.keys(h.words).length;
+    }
+    const correct = (dp && dp.correct !== undefined) ? dp.correct : (h && (h.c !== undefined ? h.c : (h.correct !== undefined ? h.correct : 0))) || 0;
     const wrong = (dp && dp.wrong !== undefined) ? dp.wrong : Math.max(0, attempts - correct);
 
     if (attempts > 0) {

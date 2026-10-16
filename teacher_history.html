@@ -10582,13 +10582,26 @@ function processHistoryWithDiffs(originalHeaders, originalRows) {
     }
     rowBest = Math.max(rowBest, rowStreak);
 
+    const rawDatePart = String(curr[dateCol] || "").trim().split(/[T\s]/)[0].replace(/\//g, "-");
+    const dpParts = rawDatePart.split("-");
+    const standardDate = (dpParts.length === 3)
+      ? `${dpParts[0]}-${String(dpParts[1]).padStart(2, "0")}-${String(dpParts[2]).padStart(2, "0")}`
+      : rawDatePart;
+
+    const freeTestedColIdx = displayHeaders.findIndex(h => h.includes("自由練習受測") || h.includes("自由練習"));
+    const freeCorrectColIdx = displayHeaders.findIndex(h => h.includes("自由練習答對"));
+    const rowFreeAtt = freeTestedColIdx >= 0 ? toIntSafe(curr[freeTestedColIdx]) : 0;
+    const rowFreeCor = freeCorrectColIdx >= 0 ? toIntSafe(curr[freeCorrectColIdx]) : 0;
+    const effDailyAtt = Math.max(dAtt, rowFreeAtt);
+    const effDailyCor = Math.max(dCor, rowFreeCor);
+
     fullProcessedData.push({
-      date: String(curr[dateCol] || "").substring(0, 10).replace(/\//g, "-"),
+      date: standardDate,
       rawTimestamp: String(curr[dateCol] || ""),
       rawRow: curr,
       rawJsonText: rawJsonStr,
       cellsHtml,
-      dailyAttempts: dAtt, dailyCorrect: dCor,
+      dailyAttempts: effDailyAtt, dailyCorrect: effDailyCor,
       cumAttempts: currAtt, cumCorrect: currCor,
       streak: rowStreak,
       bestStreak: rowBest,
@@ -16040,25 +16053,43 @@ function renderStudentSummary(resp) {
   const getDayStatForHeat = (keyDash, keyShort, keySlash) => {
     let a = 0, c = 0;
     const dpItem = dpMap[keyDash] || dpMap[keyShort] || dpMap[keySlash] || null;
-    if (dpItem && dpItem.attempts > 0) {
-      a = Math.max(a, dpItem.attempts || 0);
-      c = Math.max(c, dpItem.correct || 0);
+    if (dpItem) {
+      let dpAtt = dpItem.attempts || 0;
+      let dpCor = (dpItem.correct !== undefined) ? dpItem.correct : 0;
+      if (!dpAtt && dpItem.words && typeof dpItem.words === "object") {
+        const wVals = Object.values(dpItem.words).filter(Boolean);
+        dpAtt = wVals.length;
+        dpCor = wVals.filter(w => (w.correct > 0 || w.passed || w.lastResult === "correct")).length;
+      }
+      if (dpAtt > 0) {
+        a = Math.max(a, dpAtt);
+        c = Math.max(c, dpCor);
+      }
     }
     const h = historyData[keyDash] || historyData[keyShort] || historyData[keySlash] || null;
-    if (h && h.a > 0) {
-      a = Math.max(a, h.a || 0);
-      c = Math.max(c, h.c || 0);
+    if (h) {
+      let hAtt = (h.a !== undefined) ? h.a : (h.attempts !== undefined ? h.attempts : 0);
+      let hCor = (h.c !== undefined) ? h.c : (h.correct !== undefined ? h.correct : 0);
+      if (!hAtt && h.words && typeof h.words === "object") {
+        const wVals = Object.values(h.words).filter(Boolean);
+        hAtt = wVals.length;
+        hCor = wVals.filter(w => (w.c > 0 || w.correct > 0 || w.passed)).length;
+      }
+      if (hAtt > 0) {
+        a = Math.max(a, hAtt);
+        c = Math.max(c, hCor);
+      }
     }
     if (Array.isArray(dailyTaskHistory)) {
       const th = dailyTaskHistory.find(item => {
         if (!item || !item.date) return false;
-        const dNorm = String(item.date).trim().split(" ")[0].replace(/\//g, "-");
+        const dNorm = normalizeDayKey(item.date);
         return dNorm === keyDash || dNorm === keyShort;
       });
       if (th) {
-        let tAtt = parseInt(th.attempts) || 0;
-        let tCorr = parseInt(th.correct) || 0;
-        if (!tAtt && th.score && th.score !== "—" && String(th.score).includes("/")) {
+        let tAtt = parseInt(th.freeTested || (th.taskName === "自主練習" ? th.attempts : 0)) || 0;
+        let tCorr = parseInt(th.freeCorrect || (th.taskName === "自主練習" ? th.correct : 0)) || 0;
+        if (!tAtt && th.taskName === "自主練習" && th.score && th.score !== "—" && String(th.score).includes("/")) {
           const p = String(th.score).split("/");
           tCorr = parseInt(p[0]) || 0;
           tAtt = parseInt(p[1]) || 0;
@@ -16066,6 +16097,19 @@ function renderStudentSummary(resp) {
         if (tAtt > 0) {
           a = Math.max(a, tAtt);
           c = Math.max(c, tCorr);
+        }
+      }
+    }
+    if (resp.data && Array.isArray(resp.data) && resp.headers) {
+      for (const r of resp.data) {
+        if (!r || !r[0]) continue;
+        if (normalizeDayKey(r[0]) === keyDash) {
+          const fInfo = extractRowTaskInfo(r, resp.headers);
+          if (fInfo && fInfo.freeTested > 0) {
+            a = Math.max(a, fInfo.freeTested);
+            c = Math.max(c, fInfo.freeCorrect);
+          }
+          break;
         }
       }
     }
@@ -16086,12 +16130,28 @@ function renderStudentSummary(resp) {
   }
 
   const allActiveDates = new Set();
-  Object.keys(historyData).forEach(k => { if (historyData[k] && historyData[k].a > 0) allActiveDates.add(normalizeDayKey(k)); });
-  Object.keys(dpMap).forEach(k => { if (dpMap[k] && dpMap[k].attempts > 0) allActiveDates.add(normalizeDayKey(k)); });
+  Object.keys(historyData).forEach(k => {
+    const h = historyData[k];
+    if (h && ((h.a > 0) || (h.attempts > 0) || (h.words && Object.keys(h.words).length > 0))) allActiveDates.add(normalizeDayKey(k));
+  });
+  Object.keys(dpMap).forEach(k => {
+    const dp = dpMap[k];
+    if (dp && ((dp.attempts > 0) || (dp.words && Object.keys(dp.words).length > 0))) allActiveDates.add(normalizeDayKey(k));
+  });
   if (Array.isArray(dailyTaskHistory)) {
     dailyTaskHistory.forEach(th => {
-      if (th && th.date && (th.attempts > 0 || (th.score && th.score !== "—"))) {
+      if (th && th.date && (th.freeTested > 0 || (th.taskName === "自主練習" && th.attempts > 0))) {
         allActiveDates.add(normalizeDayKey(th.date));
+      }
+    });
+  }
+  if (resp.data && Array.isArray(resp.data) && resp.headers) {
+    resp.data.forEach(r => {
+      if (r && r[0]) {
+        const fInfo = extractRowTaskInfo(r, resp.headers);
+        if (fInfo && fInfo.freeTested > 0) {
+          allActiveDates.add(normalizeDayKey(r[0]));
+        }
       }
     });
   }

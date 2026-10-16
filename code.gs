@@ -4498,12 +4498,20 @@ function getStudentDailyTaskHistory(ss, username) {
     const statusVal = String(vals[i][hMap.status] || "");
     const wrongStr = String(vals[i][hMap.wrong] || "");
     const wrongWords = wrongStr ? wrongStr.split(/[\s,;\n\r]+/).filter(w => w.trim().length > 0) : [];
-    // 嚴格過濾：僅納入真正的「指定測驗」紀錄，排除純自由練習列、未指派列
+    const freeTestedVal = parseInt(String(vals[i][hMap.freeTested] || "").replace(/,/g, ""), 10) || 0;
+    const freeCorrectVal = parseInt(String(vals[i][hMap.freeCorrect] || "").replace(/,/g, ""), 10) || 0;
+    const freeRateVal = String(vals[i][hMap.freeRate] || "");
+    const freeWrongVal = String(vals[i][hMap.freeWrong] || "");
+    const freeWrongWords = freeWrongVal ? freeWrongVal.split(/[\s,;\n\r]+/).filter(w => w.trim().length > 0) : [];
+    const hasFreePractice = freeTestedVal > 0;
+
+    // 嚴格過濾：納入有指定測驗紀錄、已排定任務列、或有自由練習之列
     const isUntestedOrUnassigned = !taskName || taskName === "⚪ 未指派" || taskName === "自主練習" || taskName.includes("自由練習");
     const hasValidQuizScore = scoreVal && scoreVal !== "—" && scoreVal !== "" && scoreVal.includes("/");
     const isQuizCompleted = statusVal.includes("已完成") || statusVal.includes("測驗作答中");
+    const hasTaskAssigned = !isUntestedOrUnassigned && (taskName.length > 0);
     
-    if (dStr && !isUntestedOrUnassigned && (hasValidQuizScore || isQuizCompleted)) {
+    if (dStr && (hasValidQuizScore || isQuizCompleted || hasTaskAssigned || hasFreePractice)) {
       let tAtt = 0, tCor = 0;
       if (hasValidQuizScore) {
         const parts = scoreVal.split("/");
@@ -4514,17 +4522,21 @@ function getStudentDailyTaskHistory(ss, username) {
                            taskWordsDict[taskName.toLowerCase()] ||
                            taskWordsDict[dStr] || [];
       list.push({
-        date      : dStr,
-        taskName  : taskName || "每日指定測驗",
-        score     : scoreVal,
-        rate      : rateVal,
-        status    : statusVal || "🟢 已完成",
-        attempts  : tAtt,
-        correct   : tCor,
-        accuracy  : rateVal,
-        updatedAt : formatStandardDateTime(vals[i][0]),
-        wrongWords: wrongWords,
-        words     : matchedWords
+        date        : dStr,
+        taskName    : taskName || (hasFreePractice ? "自主練習" : "每日指定測驗"),
+        score       : scoreVal || "—",
+        rate        : rateVal || "—",
+        status      : statusVal || (hasValidQuizScore ? "🟢 已完成" : (hasTaskAssigned ? "⏳ 尚未開始" : "⚪ 未指派")),
+        attempts    : tAtt,
+        correct     : tCor,
+        accuracy    : rateVal,
+        updatedAt   : formatStandardDateTime(vals[i][0]),
+        wrongWords  : wrongWords,
+        words       : matchedWords,
+        freeTested  : freeTestedVal,
+        freeCorrect : freeCorrectVal,
+        freeRate    : freeRateVal,
+        freeWrongWords: freeWrongWords
       });
     }
   }
