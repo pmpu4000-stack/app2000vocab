@@ -14947,6 +14947,15 @@ function renderStudentSummary(resp) {
     });
   });
 
+  // 2-6. 歷史相容自動回填：若單字在 stat 或 box 中已受測/答對，但未被記錄在任何特定模式中，
+  // 該單字必定是在預設模式「聽與拼」中作答，自動歸入 listen 模式！
+  unifiedWords.forEach(e => {
+    if (e.tested && e.modes.listen.a === 0 && e.modes.pick.a === 0 && e.modes.scramble.a === 0 && e.modes.trap.a === 0) {
+      e.modes.listen.a = 1;
+      if (e.correct) e.modes.listen.c = 1;
+    }
+  });
+
   // 3. 學習進度 Progress (共 2055 字)：精通、練習中、學習中
   let learn = 0, prac = 0, mast = 0;
   unifiedWords.forEach(e => {

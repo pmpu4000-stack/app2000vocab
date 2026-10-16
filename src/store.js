@@ -112,6 +112,27 @@ function load() {
       }
     }
 
+    // 自動歷史單字相容回填至 mwords.listen：
+    // 若單字庫 stat 中有已作答單字，但在四大模式細項中尚未登錄任何模式，自動歸入預設之「聽與拼」模式
+    if (merged.stat && Object.keys(merged.stat).length > 0) {
+      if (!merged.mwords) merged.mwords = { listen: {}, pick: {}, scramble: {}, trap: {} };
+      if (!merged.mwords.listen) merged.mwords.listen = {};
+      if (!merged.mwords.pick) merged.mwords.pick = {};
+      if (!merged.mwords.scramble) merged.mwords.scramble = {};
+      if (!merged.mwords.trap) merged.mwords.trap = {};
+      const mwOther = new Set([
+        ...Object.keys(merged.mwords.pick),
+        ...Object.keys(merged.mwords.scramble),
+        ...Object.keys(merged.mwords.trap)
+      ]);
+      for (const [id, st] of Object.entries(merged.stat)) {
+        if (!st || st.a <= 0) continue;
+        if (!merged.mwords.listen[id] && !mwOther.has(id)) {
+          merged.mwords.listen[id] = { a: st.a, c: st.c };
+        }
+      }
+    }
+
     // a session left open from a previous day is over
     if (merged.session.active && merged.session.date !== todayStr()) merged.session.active = false;
     return merged;
@@ -556,6 +577,22 @@ export function summary(words) {
     trap: { a: 0, c: 0 }
   };
   const mwords = DB.mwords || {};
+  // 確保歷史單字完整繼承至聽與拼模式
+  if (DB.stat && Object.keys(DB.stat).length > 0) {
+    if (!mwords.listen) mwords.listen = {};
+    const mwOther = new Set([
+      ...Object.keys(mwords.pick || {}),
+      ...Object.keys(mwords.scramble || {}),
+      ...Object.keys(mwords.trap || {})
+    ]);
+    for (const [id, st] of Object.entries(DB.stat)) {
+      if (!st || st.a <= 0) continue;
+      if (!mwords.listen[id] && !mwOther.has(id)) {
+        mwords.listen[id] = { a: st.a, c: st.c };
+      }
+    }
+  }
+
   let hasValidMwords = false;
   ["listen", "pick", "scramble", "trap"].forEach(m => {
     if (mwords[m] && Object.values(mwords[m]).some(e => e && e.a > 0)) {

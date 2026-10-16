@@ -93,6 +93,27 @@ function calculateSummaryFromAgentData(agentData, sumObj) {
   let mList = "0/0", mPk = "0/0", mSc = "0/0", mTr = "0/0";
   const moObj = (sumObj && sumObj.modes) || {};
 
+  // 自動歷史單字相容回填：
+  // 若單字庫 stat 中有已作答單字，但未被記錄在 pick, scramble, trap 任何模式中，
+  // 該單字必定是在預設模式「聽與拼 (listen)」中作答完成，自動補入 mwords.listen！
+  if (stat && Object.keys(stat).length > 0) {
+    if (!mwords.listen) mwords.listen = {};
+    if (!mwords.pick) mwords.pick = {};
+    if (!mwords.scramble) mwords.scramble = {};
+    if (!mwords.trap) mwords.trap = {};
+    const mwOther = new Set([
+      ...Object.keys(mwords.pick),
+      ...Object.keys(mwords.scramble),
+      ...Object.keys(mwords.trap)
+    ]);
+    for (const [wKey, st] of Object.entries(stat)) {
+      if (!st || st.a <= 0) continue;
+      if (!mwords.listen[wKey] && !mwOther.has(wKey)) {
+        mwords.listen[wKey] = { a: st.a, c: st.c };
+      }
+    }
+  }
+
   let hasValidMwords = false;
   ["listen", "pick", "scramble", "trap"].forEach(mod => {
     if (mwords[mod] && Object.values(mwords[mod]).some(e => e && e.a > 0)) {
