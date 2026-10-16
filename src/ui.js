@@ -899,15 +899,42 @@ function resolveTaskWords(record, selectedDate, d) {
   return { rawWords, wrongList, correctList, hadCorrectThenWrongList };
 }
 
-function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount = 1) {
+function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount = 1, hasLoggedInOrFree = false) {
   const { rawWords, wrongList, correctList, hadCorrectThenWrongList } = resolveTaskWords(record, selectedDate, d);
 
   const scoreVal = record.score || "—";
   const rateVal = formatRatePercentage(record.rate, record.score);
   const statusStr = record.status || "🟢 已完成";
-  const statusColor = statusStr.includes("已完成") ? "#047857" : statusStr.includes("作答中") ? "#d97706" : "#64748b";
-  const statusBg = statusStr.includes("已完成") ? "rgba(16,185,129,0.15)" : statusStr.includes("作答中") ? "rgba(234,179,8,0.15)" : "rgba(148,163,184,0.15)";
-  const isFinished = statusStr.includes("已完成") || (scoreVal !== "—" && scoreVal !== "尚未開始");
+  const isFinished = statusStr.includes("已完成") || (scoreVal !== "—" && scoreVal !== "尚未開始" && !statusStr.includes("未受測"));
+  const isUntested = statusStr.includes("未受測") || (!isFinished && (scoreVal === "—" || scoreVal === "尚未開始"));
+
+  let displayStatusStr = statusStr;
+  let statusColor = "#64748b";
+  let statusBg = "rgba(148,163,184,0.15)";
+  let statusDesc = "";
+
+  if (isFinished) {
+    statusColor = "#047857";
+    statusBg = "rgba(16,185,129,0.15)";
+    displayStatusStr = statusStr.includes("已完成") ? statusStr : "🟢 已完成";
+  } else if (isUntested) {
+    if (hasLoggedInOrFree) {
+      displayStatusStr = "🟡 登入未受測";
+      statusColor = "#d97706";
+      statusBg = "rgba(245,158,11,0.15)";
+      statusDesc = "⚠️ 有登入但未測驗";
+    } else {
+      displayStatusStr = "🔴 缺席未受測";
+      statusColor = "#ef4444";
+      statusBg = "rgba(239,68,68,0.15)";
+      statusDesc = "📴 當日無登入紀錄 (缺考)";
+    }
+  } else if (statusStr.includes("作答中") || statusStr.includes("未完成")) {
+    displayStatusStr = "🟠 作答中斷";
+    statusColor = "#d97706";
+    statusBg = "rgba(234,179,8,0.15)";
+    statusDesc = "⏳ 測驗進行中未完成";
+  }
 
   let taskCorrWords = correctList.length;
   let taskTotWords = (correctList.length + wrongList.length) > 0 ? (correctList.length + wrongList.length) : (rawWords.length || 0);
@@ -919,38 +946,69 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
   const taskRate = taskTotWords > 0 ? Math.round((taskCorrWords / taskTotWords) * 100) : (parseInt(rateVal) || 0);
 
   let correctContentHtml = "";
-  if (correctList.length > 0) {
-    correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); window.__sayWord && window.__sayWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
-  } else if (isFinished) {
-    if (rawWords.length > 0) {
-      correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（本次測驗全數答錯，尚無答對單字）</span>`;
-    } else {
-      correctContentHtml = (wrongList.length === 0)
-        ? `<span class="perfect-score-msg">🎉 太棒了！本次測驗全數答對！</span>`
-        : `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（本次測驗答對 ${taskCorrWords}/${taskTotWords} 字）</span>`;
-    }
-  } else {
-    correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（測驗待完成，尚未作答）</span>`;
-  }
-
   let wrongContentHtml = "";
-  if (wrongList.length > 0) {
-    const normDate = normalizeDateStr(selectedDate);
-    const slashDate = normDate.replace(/-/g, "/");
-    const dpDay = d && d.dailyPractice && (d.dailyPractice[normDate] || d.dailyPractice[slashDate] || d.dailyPractice[selectedDate]);
-    wrongContentHtml = wrongList.map(w => {
-      const isHadCW = (hadCorrectThenWrongList && hadCorrectThenWrongList.includes(w)) ||
-                      (record.hadCorrectThenWrong && record.hadCorrectThenWrong.includes(w)) ||
-                      (dpDay && dpDay.words && dpDay.words[w] && (dpDay.words[w].hadCorrectThenWrong || (dpDay.words[w].lastResult === "wrong" && dpDay.words[w].correct > 0)));
-      if (isHadCW) {
-        return `<span class="word-pill-tag warning" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); window.__sayWord && window.__sayWord('${w.replace(/'/g, "\\'")}')" style="border:1.5px dashed #f59e0b; background:rgba(245,158,11,0.1); color:#b45309; cursor:pointer;" title="當日曾答對，但後續作答時答錯 (點擊聆聽發音)">${w} <small style="font-size:10px; font-weight:700;">(曾對後錯⚠️)</small></span>`;
-      }
-      return `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); window.__sayWord && window.__sayWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`;
-    }).join("");
-  } else if (isFinished) {
-    wrongContentHtml = `<span class="perfect-score-msg">🎉 太棒了！本次測驗全數答對，無任何答錯單字！</span>`;
+  let leftBoxClass = "correct-box";
+  let leftTitleClass = "correct-title";
+  let leftTitleText = "✅ 答對的單字";
+  let rightBoxClass = "wrong-box";
+  let rightTitleClass = "wrong-title";
+  let rightTitleText = "❌ 答錯的單字";
+
+  if (isUntested) {
+    leftBoxClass = "untested-box";
+    leftTitleClass = "untested-title";
+    leftTitleText = `📋 本次應測單字範圍 ${taskTotWords > 0 ? `(${taskTotWords} 字)` : (rawWords.length > 0 ? `(${rawWords.length} 字)` : "")}`;
+    if (rawWords.length > 0) {
+      correctContentHtml = rawWords.map(w => `<span class="word-pill-tag neutral" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); window.__sayWord && window.__sayWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
+    } else {
+      correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（指派單字載入中或未指定具體單字清單）</span>`;
+    }
+
+    rightBoxClass = "advice-box";
+    rightTitleClass = "advice-title";
+    rightTitleText = "💡 補考與學習提醒";
+    wrongContentHtml = `
+      <div style="display:flex; flex-direction:column; justify-content:flex-start; align-items:flex-start; gap:8px; padding:6px 4px; font-size:12.5px; line-height:1.6;">
+        <div>${hasLoggedInOrFree ? "你當日有登入進行自由練習，但<strong>尚未完成本次指定測驗</strong>。" : "你當日無登入紀錄，<strong>尚未進行本次指定測驗</strong>。"}</div>
+        <div style="font-size:11.5px; opacity:0.85;">可前往測驗專區進行補考挑戰，完成後將自動記錄成績！</div>
+        <button type="button" onclick="const sc = document.getElementById('btn-summary-close'); if (sc) sc.click();" style="border:none; background:linear-gradient(135deg, #10b981 0%, #059669 100%); color:#fff; padding:6px 14px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:4px; box-shadow:0 2px 6px rgba(16,185,129,0.3); margin-top:4px;">
+          🚀 前往遊戲測驗區補考
+        </button>
+      </div>
+    `;
   } else {
-    wrongContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（目前無答錯單字）</span>`;
+    if (correctList.length > 0) {
+      correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); window.__sayWord && window.__sayWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
+    } else if (isFinished) {
+      if (rawWords.length > 0) {
+        correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（本次測驗全數答錯，尚無答對單字）</span>`;
+      } else {
+        correctContentHtml = (wrongList.length === 0)
+          ? `<span class="perfect-score-msg">🎉 太棒了！本次測驗全數答對！</span>`
+          : `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（本次測驗答對 ${taskCorrWords}/${taskTotWords} 字）</span>`;
+      }
+    } else {
+      correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（測驗待完成，尚未作答）</span>`;
+    }
+
+    if (wrongList.length > 0) {
+      const normDate = normalizeDateStr(selectedDate);
+      const slashDate = normDate.replace(/-/g, "/");
+      const dpDay = d && d.dailyPractice && (d.dailyPractice[normDate] || d.dailyPractice[slashDate] || d.dailyPractice[selectedDate]);
+      wrongContentHtml = wrongList.map(w => {
+        const isHadCW = (hadCorrectThenWrongList && hadCorrectThenWrongList.includes(w)) ||
+                        (record.hadCorrectThenWrong && record.hadCorrectThenWrong.includes(w)) ||
+                        (dpDay && dpDay.words && dpDay.words[w] && (dpDay.words[w].hadCorrectThenWrong || (dpDay.words[w].lastResult === "wrong" && dpDay.words[w].correct > 0)));
+        if (isHadCW) {
+          return `<span class="word-pill-tag warning" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); window.__sayWord && window.__sayWord('${w.replace(/'/g, "\\'")}')" style="border:1.5px dashed #f59e0b; background:rgba(245,158,11,0.1); color:#b45309; cursor:pointer;" title="當日曾答對，但後續作答時答錯 (點擊聆聽發音)">${w} <small style="font-size:10px; font-weight:700;">(曾對後錯⚠️)</small></span>`;
+        }
+        return `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); window.__sayWord && window.__sayWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`;
+      }).join("");
+    } else if (isFinished) {
+      wrongContentHtml = `<span class="perfect-score-msg">🎉 太棒了！本次測驗全數答對，無任何答錯單字！</span>`;
+    } else {
+      wrongContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（目前無答錯單字）</span>`;
+    }
   }
 
   // 名稱前面複製與「📝 指定測驗作答紀錄」相同的 📝 小圖示
@@ -962,15 +1020,25 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     ? "margin-top: 18px; padding-top: 16px; border-top: 1.5px dashed var(--line, #E7E9F5);"
     : "";
 
-  return `
-    <div class="task-single-record-block" style="${blockStyle}">
-      <div class="task-history-header">
-        <div>
-          <span class="task-card-title">${formattedTaskName}</span>
-          <span style="margin-left:8px; font-size:11.5px; font-weight:700; color:${statusColor}; background:${statusBg}; padding:2px 8px; border-radius:999px;">${statusStr}</span>
+  const scoreGridHtml = isUntested
+    ? `
+      <div class="task-score-grid">
+        <div class="task-score-item">
+          <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap;">
+            <span>施測單字數</span>
+          </div>
+          <div class="task-score-val" style="color:#0284c7; display:flex; align-items:center; justify-content:center;">
+            <span>${taskTotWords > 0 ? taskTotWords : (rawWords.length || "—")}</span>
+            <span style="font-size:13px; font-weight:700; color:var(--ink3); margin-left:4px;">字</span>
+          </div>
+        </div>
+        <div class="task-score-item">
+          <div class="task-score-label">作答狀態</div>
+          <div class="task-score-val" style="color:${statusColor}; font-size:14.5px; font-weight:800; display:flex; align-items:center; justify-content:center;">${statusDesc || displayStatusStr}</div>
         </div>
       </div>
-
+    `
+    : `
       <div class="task-score-grid">
         <div class="task-score-item">
           <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap;">
@@ -989,26 +1057,116 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
           <div class="task-score-val" style="color:${taskRate >= 80 ? '#16a34a' : '#ea580c'};">${taskRate}%</div>
         </div>
       </div>
+    `;
 
-      <!-- 將答對的字與答錯的字分成兩個區域（如同自由練習成果，且純顯示當日測驗作答狀況） -->
+  return `
+    <div class="task-single-record-block" style="${blockStyle}">
+      <div class="task-history-header">
+        <div>
+          <span class="task-card-title">${formattedTaskName}</span>
+          <span style="margin-left:8px; font-size:11.5px; font-weight:700; color:${statusColor}; background:${statusBg}; padding:2px 8px; border-radius:999px;">${displayStatusStr}</span>
+        </div>
+      </div>
+
+      ${scoreGridHtml}
+
       <div class="word-split-grid">
-        <!-- 答對的單字區 -->
-        <div class="word-split-box correct-box">
-          <div class="word-split-title correct-title">
-            <span>✅ 答對的單字</span>
+        <div class="word-split-box ${leftBoxClass}">
+          <div class="word-split-title ${leftTitleClass}">
+            <span>${leftTitleText}</span>
           </div>
           <div class="word-split-content">
             ${correctContentHtml}
           </div>
         </div>
-
-        <!-- 答錯的單字區 -->
-        <div class="word-split-box wrong-box">
-          <div class="word-split-title wrong-title">
-            <span>❌ 答錯的單字</span>
+        <div class="word-split-box ${rightBoxClass}">
+          <div class="word-split-title ${rightTitleClass}">
+            <span>${rightTitleText}</span>
           </div>
           <div class="word-split-content">
             ${wrongContentHtml}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderUntestedTaskCardHtml(info, d) {
+  const { taskName, assignedWords, hasLoggedInOrFree, selectedDate } = info;
+  let cleanTaskName = String(taskName || "指定單字隨堂測驗").trim().replace(/^[📝\s]+/, "");
+  const formattedTaskName = `📝 ${cleanTaskName}`;
+
+  const statusLabel = hasLoggedInOrFree ? "🟡 登入未受測" : "🔴 缺席未受測";
+  const statusColor = hasLoggedInOrFree ? "#d97706" : "#ef4444";
+  const statusBg = hasLoggedInOrFree ? "rgba(245, 158, 11, 0.15)" : "rgba(239, 68, 68, 0.15)";
+  const statusDesc = hasLoggedInOrFree ? "⚠️ 有登入但未測驗" : "📴 當日無登入紀錄 (缺考)";
+
+  const cleanWords = (Array.isArray(assignedWords) ? assignedWords : [])
+    .map(w => typeof w === "string" ? w : (w.word || w.display || w.w))
+    .filter(Boolean)
+    .map(w => resolveWord(String(w).trim()).toLowerCase())
+    .filter(Boolean);
+
+  const wordCount = cleanWords.length || "—";
+
+  let wordsHtml = "";
+  if (cleanWords.length > 0) {
+    wordsHtml = cleanWords.map(w =>
+      `<span class="word-pill-tag neutral" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); window.__sayWord && window.__sayWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`
+    ).join("");
+  } else {
+    wordsHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（指派單字載入中或未指定具體單字清單）</span>`;
+  }
+
+  const adviceText = hasLoggedInOrFree
+    ? "你當日有登入進行自由練習，但<strong>尚未完成本次指定測驗</strong>。"
+    : "你當日無登入紀錄，<strong>尚未進行本次指定測驗</strong>。";
+
+  return `
+    <div class="task-single-record-block">
+      <div class="task-history-header">
+        <div>
+          <span class="task-card-title">${formattedTaskName}</span>
+          <span style="margin-left:8px; font-size:11.5px; font-weight:700; color:${statusColor}; background:${statusBg}; padding:2px 8px; border-radius:999px;">${statusLabel}</span>
+        </div>
+      </div>
+
+      <div class="task-score-grid">
+        <div class="task-score-item">
+          <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap;">
+            <span>施測單字數</span>
+          </div>
+          <div class="task-score-val" style="color:#0284c7; display:flex; align-items:center; justify-content:center;">
+            <span>${wordCount}</span>
+            <span style="font-size:13px; font-weight:700; color:var(--ink3); margin-left:4px;">字</span>
+          </div>
+        </div>
+        <div class="task-score-item">
+          <div class="task-score-label">作答狀態</div>
+          <div class="task-score-val" style="color:${statusColor}; font-size:14.5px; font-weight:800; display:flex; align-items:center; justify-content:center;">${statusDesc}</div>
+        </div>
+      </div>
+
+      <div class="word-split-grid">
+        <div class="word-split-box untested-box">
+          <div class="word-split-title untested-title">
+            <span>📋 本次應測單字範圍 ${cleanWords.length > 0 ? `(${cleanWords.length} 字)` : ""}</span>
+          </div>
+          <div class="word-split-content">
+            ${wordsHtml}
+          </div>
+        </div>
+        <div class="word-split-box advice-box">
+          <div class="word-split-title advice-title">
+            <span>💡 補考與學習提醒</span>
+          </div>
+          <div class="word-split-content" style="display:flex; flex-direction:column; justify-content:flex-start; align-items:flex-start; gap:8px; padding:6px 4px; font-size:12.5px; line-height:1.6;">
+            <div>${adviceText}</div>
+            <div style="font-size:11.5px; opacity:0.85;">可前往測驗專區進行補考挑戰，完成後將自動記錄成績！</div>
+            <button type="button" onclick="const sc = document.getElementById('btn-summary-close'); if (sc) sc.click();" style="border:none; background:linear-gradient(135deg, #10b981 0%, #059669 100%); color:#fff; padding:6px 14px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:4px; box-shadow:0 2px 6px rgba(16,185,129,0.3); margin-top:4px;">
+              🚀 前往遊戲測驗區補考
+            </button>
           </div>
         </div>
       </div>
@@ -1020,20 +1178,68 @@ function buildTaskDetailsHtml(records, selectedDate, d) {
   const list = (Array.isArray(records) ? records : (records ? [records] : []))
     .filter(r => r && r.taskName && r.taskName !== "自主練習" && !r.taskName.includes("自由練習") && !r.taskName.includes("未指派"));
 
+  const normDate = normalizeDateStr(selectedDate);
+  const slashDate = normDate.replace(/-/g, "/");
+
+  // 1. 取得當日指派單字與任務名稱
+  let assignedWords = [];
+  let taskName = "";
+
+  try {
+    const rawWords = localStorage.getItem("task_words_" + normDate) || localStorage.getItem("task_words_" + slashDate);
+    if (rawWords) assignedWords = JSON.parse(rawWords);
+  } catch(_) {}
+
+  try {
+    const rawSum = localStorage.getItem("today_task_summary");
+    if (rawSum) {
+      const s = JSON.parse(rawSum);
+      if (s && normalizeDateStr(s.date) === normDate) {
+        taskName = s.taskName || s.name || "";
+        if ((!assignedWords || assignedWords.length === 0) && s.words) assignedWords = s.words;
+      }
+    }
+  } catch(_) {}
+
+  if (Array.isArray(window.cachedBackupTaskHistory)) {
+    const matched = window.cachedBackupTaskHistory.find(h => {
+      const hDate = String(h.date || "").trim().split(" ")[0].replace(/\//g, "-");
+      return hDate === normDate;
+    });
+    if (matched) {
+      if (!taskName) taskName = matched.taskName || matched.name || "";
+      if ((!assignedWords || assignedWords.length === 0) && matched.words) assignedWords = matched.words;
+    }
+  }
+
+  // 2. 判斷學生當天是否有自由練習紀錄
+  const freeRec = resolveDailyPracticeRecord(selectedDate, d, records);
+  const hasLoggedInOrFree = !!(freeRec && (freeRec.attempts > 0 || freeRec.correct > 0));
+
+  const isUntestedRecord = (Array.isArray(records) && records.some(r => r && r.status && r.status.includes("未受測"))) ||
+                           (!Array.isArray(records) && records && records.status && records.status.includes("未受測"));
+  const isAssigned = isUntestedRecord || (assignedWords && assignedWords.length > 0) || !!taskName;
+
   if (list.length === 0) {
-    const isUntested = (Array.isArray(records) && records.some(r => r && r.status && r.status.includes("未受測"))) ||
-                       (!Array.isArray(records) && records && records.status && records.status.includes("未受測"));
-    const statusNotice = isUntested ? "該日有指派測驗，但學生未受測" : "該日未指派指定測驗";
+    if (isAssigned) {
+      return renderUntestedTaskCardHtml({
+        taskName: taskName || (normDate.replace(/-/g, "").slice(4) + "指定單字隨堂測驗"),
+        assignedWords: assignedWords || [],
+        hasLoggedInOrFree,
+        selectedDate
+      }, d);
+    }
+
     return `
       <div class="task-empty-notice-box" style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:330px; padding:20px 14px; text-align:center; box-sizing:border-box;">
-        <div style="font-size:26px; margin-bottom:6px;">📝</div>
-        <div style="font-size:13.5px; font-weight:700; color:var(--ink2);">${statusNotice}（${selectedDate}）</div>
-        <div style="font-size:12px; margin-top:4px; color:var(--ink3);">可從上方下拉選單切換至其他日期查看詳細作答紀錄</div>
+        <div style="font-size:28px; margin-bottom:8px;">☕</div>
+        <div style="font-size:13.5px; font-weight:700; color:var(--ink2);">該日未指派指定測驗（${selectedDate}）</div>
+        <div style="font-size:12px; margin-top:4px; color:var(--ink3);">老師當日未指派指定測驗，可切換至其他日期查看紀錄</div>
       </div>
     `;
   }
 
-  return `<div>${list.map((r, idx) => renderSingleTaskCardHtml(r, selectedDate, d, idx, list.length)).join("")}</div>`;
+  return `<div>${list.map((r, idx) => renderSingleTaskCardHtml(r, selectedDate, d, idx, list.length, hasLoggedInOrFree)).join("")}</div>`;
 }
 
 function buildFreeDetailsHtml(record, selectedDate, d) {
