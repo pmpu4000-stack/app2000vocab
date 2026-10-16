@@ -899,19 +899,7 @@ function resolveTaskWords(record, selectedDate, d) {
   return { rawWords, wrongList, correctList, hadCorrectThenWrongList };
 }
 
-function buildTaskDetailsHtml(record, selectedDate, d) {
-  if (!record || !record.taskName || record.taskName === "自主練習" || record.taskName.includes("自由練習") || record.taskName.includes("未指派")) {
-    const isUntested = (record && record.status && record.status.includes("未受測"));
-    const statusNotice = isUntested ? "⚪ 該日有指派測驗，但學生未受測" : "⚪ 該日未指派指定測驗";
-    return `
-      <div style="text-align:center; padding:18px 14px; color:var(--ink3);">
-        <div style="font-size:26px; margin-bottom:6px;">⚪</div>
-        <div style="font-size:13.5px; font-weight:700; color:var(--ink2);">${statusNotice}（${selectedDate}）</div>
-        <div style="font-size:12px; margin-top:4px; color:var(--ink3);">可從上方下拉選單切換至其他日期查看詳細作答紀錄</div>
-      </div>
-    `;
-  }
-
+function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount = 1) {
   const { rawWords, wrongList, correctList, hadCorrectThenWrongList } = resolveTaskWords(record, selectedDate, d);
 
   const scoreVal = record.score || "—";
@@ -965,11 +953,20 @@ function buildTaskDetailsHtml(record, selectedDate, d) {
     wrongContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（目前無答錯單字）</span>`;
   }
 
+  // 名稱前面複製與「📝 指定測驗作答紀錄」相同的 📝 小圖示
+  let cleanTaskName = String(record.taskName || "指定測驗").trim().replace(/^[📝\s]+/, "");
+  const formattedTaskName = `📝 ${cleanTaskName}`;
+
+  // 當一日內有多個測驗（如補考或多個指定測驗），多個紀錄方塊以邊界線清晰隔開
+  const blockStyle = (totalCount > 1 && index > 0)
+    ? "margin-top: 18px; padding-top: 16px; border-top: 1.5px dashed var(--line, #E7E9F5);"
+    : "";
+
   return `
-    <div>
+    <div class="task-single-record-block" style="${blockStyle}">
       <div class="task-history-header">
         <div>
-          <span class="task-card-title">${record.taskName}</span>
+          <span class="task-card-title">${formattedTaskName}</span>
           <span style="margin-left:8px; font-size:11.5px; font-weight:700; color:${statusColor}; background:${statusBg}; padding:2px 8px; border-radius:999px;">${statusStr}</span>
         </div>
       </div>
@@ -1009,6 +1006,26 @@ function buildTaskDetailsHtml(record, selectedDate, d) {
       </div>
     </div>
   `;
+}
+
+function buildTaskDetailsHtml(records, selectedDate, d) {
+  const list = (Array.isArray(records) ? records : (records ? [records] : []))
+    .filter(r => r && r.taskName && r.taskName !== "自主練習" && !r.taskName.includes("自由練習") && !r.taskName.includes("未指派"));
+
+  if (list.length === 0) {
+    const isUntested = (Array.isArray(records) && records.some(r => r && r.status && r.status.includes("未受測"))) ||
+                       (!Array.isArray(records) && records && records.status && records.status.includes("未受測"));
+    const statusNotice = isUntested ? "⚪ 該日有指派測驗，但學生未受測" : "⚪ 該日未指派指定測驗";
+    return `
+      <div style="text-align:center; padding:18px 14px; color:var(--ink3);">
+        <div style="font-size:26px; margin-bottom:6px;">⚪</div>
+        <div style="font-size:13.5px; font-weight:700; color:var(--ink2);">${statusNotice}（${selectedDate}）</div>
+        <div style="font-size:12px; margin-top:4px; color:var(--ink3);">可從上方下拉選單切換至其他日期查看詳細作答紀錄</div>
+      </div>
+    `;
+  }
+
+  return `<div>${list.map((r, idx) => renderSingleTaskCardHtml(r, selectedDate, d, idx, list.length)).join("")}</div>`;
 }
 
 function buildFreeDetailsHtml(record, selectedDate, d) {
@@ -1381,8 +1398,8 @@ export function renderSummary(d) {
     return `<option value="${dateStr}" ${dateStr === defaultSelectedDate ? "selected" : ""}>${label}</option>`;
   }).join("");
 
-  const initialTaskRecord = historyList.find(item => normalizeDateStr(item.date) === defaultSelectedDate && (!item.taskName || item.taskName !== "自主練習")) || null;
-  const initialTaskDetailsHtml = buildTaskDetailsHtml(initialTaskRecord, defaultSelectedDate, d);
+  const initialTaskRecords = historyList.filter(item => normalizeDateStr(item.date) === defaultSelectedDate && (!item.taskName || item.taskName !== "自主練習"));
+  const initialTaskDetailsHtml = buildTaskDetailsHtml(initialTaskRecords, defaultSelectedDate, d);
 
   const initialFreeRecord = resolveDailyPracticeRecord(defaultSelectedDate, d, historyList);
   const initialFreeDetailsHtml = buildFreeDetailsHtml(initialFreeRecord, defaultSelectedDate, d);
@@ -1778,11 +1795,11 @@ export function renderSummary(d) {
       }
     }
 
-    // 更新指定測驗作答紀錄
-    const targetTaskRecord = historyList.find(item => normalizeDateStr(item.date) === targetDate && (!item.taskName || item.taskName !== "自主練習")) || null;
+    // 更新指定測驗作答紀錄 (支援一日多個測驗/補考)
+    const targetTaskRecords = historyList.filter(item => normalizeDateStr(item.date) === targetDate && (!item.taskName || item.taskName !== "自主練習"));
     const taskDetailsContainer = $("#task-record-details");
     if (taskDetailsContainer) {
-      taskDetailsContainer.innerHTML = buildTaskDetailsHtml(targetTaskRecord, targetDate, d);
+      taskDetailsContainer.innerHTML = buildTaskDetailsHtml(targetTaskRecords, targetDate, d);
     }
 
     // 更新自由練習作答紀錄
