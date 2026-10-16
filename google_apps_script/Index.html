@@ -3263,6 +3263,49 @@
     [data-theme="dark"] .word-split-title.correct-title { color: #38C78B !important; }
     [data-theme="dark"] .word-split-title.wrong-title { color: #FF8E8E !important; }
 
+    .word-split-content,
+    .word-split-box > div:not(.word-split-title) {
+      display: flex !important;
+      flex-wrap: wrap !important;
+      gap: 5px !important;
+      max-height: 168px !important;
+      overflow-y: auto !important;
+      overscroll-behavior: contain !important;
+      padding-right: 4px !important;
+      scrollbar-width: thin !important;
+      scrollbar-color: rgba(100, 116, 139, 0.35) transparent !important;
+    }
+    .word-split-content::-webkit-scrollbar,
+    .word-split-box > div:not(.word-split-title)::-webkit-scrollbar {
+      width: 5px !important;
+    }
+    .word-split-content::-webkit-scrollbar-track,
+    .word-split-box > div:not(.word-split-title)::-webkit-scrollbar-track {
+      background: transparent !important;
+      border-radius: 999px !important;
+    }
+    .word-split-content::-webkit-scrollbar-thumb,
+    .word-split-box > div:not(.word-split-title)::-webkit-scrollbar-thumb {
+      background: rgba(100, 116, 139, 0.35) !important;
+      border-radius: 999px !important;
+    }
+    .word-split-content::-webkit-scrollbar-thumb:hover,
+    .word-split-box > div:not(.word-split-title)::-webkit-scrollbar-thumb:hover {
+      background: rgba(100, 116, 139, 0.6) !important;
+    }
+    [data-theme="dark"] .word-split-content,
+    [data-theme="dark"] .word-split-box > div:not(.word-split-title) {
+      scrollbar-color: rgba(148, 163, 184, 0.4) transparent !important;
+    }
+    [data-theme="dark"] .word-split-content::-webkit-scrollbar-thumb,
+    [data-theme="dark"] .word-split-box > div:not(.word-split-title)::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.35) !important;
+    }
+    [data-theme="dark"] .word-split-content::-webkit-scrollbar-thumb:hover,
+    [data-theme="dark"] .word-split-box > div:not(.word-split-title)::-webkit-scrollbar-thumb:hover {
+      background: rgba(148, 163, 184, 0.6) !important;
+    }
+
     .perfect-score-msg {
       display: inline-flex !important;
       align-items: center !important;
@@ -14544,7 +14587,7 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
           <div class="word-split-title correct-title">
             <span>✅ 答對的單字</span>
           </div>
-          <div style="display:flex; flex-wrap:wrap; gap:5px;">
+          <div class="word-split-content">
             ${correctContentHtml}
           </div>
         </div>
@@ -14552,7 +14595,7 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
           <div class="word-split-title wrong-title">
             <span>❌ 答錯的單字</span>
           </div>
-          <div style="display:flex; flex-wrap:wrap; gap:5px;">
+          <div class="word-split-content">
             ${wrongContentHtml}
           </div>
         </div>
@@ -14758,7 +14801,7 @@ function buildFreeDetailsHtml(record, selectedDate, agent) {
           <div class="word-split-title correct-title">
             <span>✅ 答對的單字</span>
           </div>
-          <div style="display:flex; flex-wrap:wrap; gap:5px;">
+          <div class="word-split-content">
             ${correctContentHtml}
           </div>
         </div>
@@ -14766,7 +14809,7 @@ function buildFreeDetailsHtml(record, selectedDate, agent) {
           <div class="word-split-title wrong-title">
             <span>❌ 答錯的單字</span>
           </div>
-          <div style="display:flex; flex-wrap:wrap; gap:5px;">
+          <div class="word-split-content">
             ${wrongContentHtml}
           </div>
         </div>

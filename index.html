@@ -450,6 +450,16 @@ body.daily-limit-reached #btn-upload {
 .word-split-title{font-size:12.5px;font-weight:800;margin-bottom:8px;display:flex;align-items:center;gap:6px}
 .word-split-title.correct-title{color:#065F46}
 .word-split-title.wrong-title{color:#D64545}
+.word-split-content,
+.word-split-box > div:not(.word-split-title){display:flex;flex-wrap:wrap;gap:5px;max-height:168px;overflow-y:auto;overscroll-behavior:contain;padding-right:4px;scrollbar-width:thin;scrollbar-color:rgba(100,116,139,0.35) transparent}
+.word-split-content::-webkit-scrollbar,
+.word-split-box > div:not(.word-split-title)::-webkit-scrollbar{width:5px}
+.word-split-content::-webkit-scrollbar-track,
+.word-split-box > div:not(.word-split-title)::-webkit-scrollbar-track{background:transparent;border-radius:999px}
+.word-split-content::-webkit-scrollbar-thumb,
+.word-split-box > div:not(.word-split-title)::-webkit-scrollbar-thumb{background:rgba(100,116,139,0.35);border-radius:999px}
+.word-split-content::-webkit-scrollbar-thumb:hover,
+.word-split-box > div:not(.word-split-title)::-webkit-scrollbar-thumb:hover{background:rgba(100,116,139,0.6)}
 .perfect-score-msg{display:inline-flex;align-items:center;font-size:12px;font-weight:800;color:#065F46;background:#ECFDF5;border:1px solid #A7F3D0;padding:4px 10px;border-radius:8px;line-height:1.4}
 [data-theme="dark"] .perfect-score-msg{color:#6EE7B7!important;background:rgba(16,185,129,.18)!important;border-color:rgba(52,211,153,.35)!important}
 
@@ -809,6 +819,18 @@ body[data-theme="dark"],
 }
 [data-theme="dark"] .word-split-title.wrong-title {
   color: #FF8E8E !important;
+}
+[data-theme="dark"] .word-split-content,
+[data-theme="dark"] .word-split-box > div:not(.word-split-title) {
+  scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
+}
+[data-theme="dark"] .word-split-content::-webkit-scrollbar-thumb,
+[data-theme="dark"] .word-split-box > div:not(.word-split-title)::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.35);
+}
+[data-theme="dark"] .word-split-content::-webkit-scrollbar-thumb:hover,
+[data-theme="dark"] .word-split-box > div:not(.word-split-title)::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.6);
 }
 [data-theme="dark"] .word-pill-tag.correct {
   background: rgba(47, 180, 124, 0.22) !important;

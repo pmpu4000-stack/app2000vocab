@@ -997,7 +997,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
           <div class="word-split-title correct-title">
             <span>✅ 答對的單字</span>
           </div>
-          <div style="display:flex; flex-wrap:wrap; gap:5px;">
+          <div class="word-split-content">
             ${correctContentHtml}
           </div>
         </div>
@@ -1007,7 +1007,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
           <div class="word-split-title wrong-title">
             <span>❌ 答錯的單字</span>
           </div>
-          <div style="display:flex; flex-wrap:wrap; gap:5px;">
+          <div class="word-split-content">
             ${wrongContentHtml}
           </div>
         </div>
@@ -1205,7 +1205,7 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
           <div class="word-split-title correct-title">
             <span>✅ 答對的單字</span>
           </div>
-          <div style="display:flex; flex-wrap:wrap; gap:5px;">
+          <div class="word-split-content">
             ${correctContentHtml}
           </div>
         </div>
@@ -1215,7 +1215,7 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
           <div class="word-split-title wrong-title">
             <span>❌ 答錯的單字</span>
           </div>
-          <div style="display:flex; flex-wrap:wrap; gap:5px;">
+          <div class="word-split-content">
             ${wrongContentHtml}
           </div>
         </div>
