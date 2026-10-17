@@ -277,6 +277,13 @@ function markWordLearnedInFreePractice(word) {
         localStorage.setItem("weekend_remedy_" + mondayStr, JSON.stringify(rObj));
       }
     }
+
+    // 5. 即時更新「本週待攻克單字」介面區塊
+    try {
+      if (typeof ui !== "undefined" && typeof ui.updateWeekConquerSection === "function") {
+        ui.updateWeekConquerSection();
+      }
+    } catch(_) {}
   } catch(_) {}
 }
 

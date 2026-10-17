@@ -1591,6 +1591,134 @@ function resolveDailyPracticeRecord(dateStr, d, historyList) {
   return null;
 }
 
+// ── 取得當週（週一至週五）待攻克單字清單（已排除在自由練習中答對學會的單字） ──
+export function getWeekPendingConquerWords() {
+  const unfinishedWords = new Set();
+  const d = new Date();
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+  const monday = new Date(d.getFullYear(), d.getMonth(), diff);
+  const friday = new Date(d.getFullYear(), d.getMonth(), diff + 4);
+
+  const formatD = (dt) => dt.getFullYear() + "-" + String(dt.getMonth() + 1).padStart(2, "0") + "-" + String(dt.getDate()).padStart(2, "0");
+  const mondayStr = formatD(monday);
+  const fridayStr = formatD(friday);
+
+  // 1. 從 student_task_history 讀取本週平日任務中的錯題與未作答題
+  try {
+    const rawHist = localStorage.getItem("student_task_history");
+    if (rawHist) {
+      const historyList = JSON.parse(rawHist);
+      if (Array.isArray(historyList)) {
+        historyList.forEach(item => {
+          if (!item || !item.date) return;
+          const iDate = String(item.date).trim().split(" ")[0].replace(/\//g, "-");
+          if (iDate >= mondayStr && iDate <= fridayStr) {
+            if (Array.isArray(item.wrongWords)) {
+              item.wrongWords.forEach(w => {
+                const cw = String(w).trim().toLowerCase();
+                if (cw) unfinishedWords.add(cw);
+              });
+            }
+            const status = String(item.status || "");
+            const score = String(item.score || "");
+            const isUnattempted = !status.includes("已完成") || score === "—" || score === "尚未開始";
+            if (isUnattempted && Array.isArray(item.words)) {
+              item.words.forEach(w => {
+                const cw = String(w).trim().toLowerCase();
+                if (cw) unfinishedWords.add(cw);
+              });
+            }
+          }
+        });
+      }
+    }
+  } catch(_) {}
+
+  // 2. 從 weekTaskMistakes 讀取本機即時記錄
+  try {
+    const rawMistakes = localStorage.getItem("weekTaskMistakes");
+    if (rawMistakes) {
+      const map = JSON.parse(rawMistakes);
+      for (const dateKey in map) {
+        if (dateKey >= mondayStr && dateKey <= fridayStr) {
+          if (Array.isArray(map[dateKey])) {
+            map[dateKey].forEach(w => {
+              const cw = String(w).trim().toLowerCase();
+              if (cw) unfinishedWords.add(cw);
+            });
+          }
+        }
+      }
+    }
+  } catch(_) {}
+
+  // 3. 排除已在自主自由練習中答對學會的單字 (remedy_learned_words)
+  try {
+    const rawLearned = localStorage.getItem("remedy_learned_words");
+    const learnedList = rawLearned ? JSON.parse(rawLearned) : [];
+    if (Array.isArray(learnedList) && learnedList.length > 0) {
+      const learnedSet = new Set(learnedList.map(w => String(w).trim().toLowerCase()));
+      return Array.from(unfinishedWords).filter(w => !learnedSet.has(w)).sort();
+    }
+  } catch(_) {}
+
+  return Array.from(unfinishedWords).sort();
+}
+
+export function buildWeekPendingConquerHtml(words) {
+  const pendingWords = Array.isArray(words) ? words : getWeekPendingConquerWords();
+  const count = pendingWords.length;
+
+  if (count === 0) {
+    return `
+      <div class="task-empty-notice" style="padding:14px 12px; margin:0; background:rgba(30,154,102,0.06); border:1.5px solid rgba(30,154,102,0.22); border-radius:12px;">
+        <div class="task-empty-notice-title" style="color:#1E9A66; font-size:14px; font-weight:750;">
+          ✨ 太棒了！本週目前無待攻克單字
+        </div>
+        <div class="task-empty-notice-desc" style="color:var(--ink2); font-size:12.5px; margin-top:3px;">
+          本週平日測驗單字皆已掌握或已於自主練習中全數攻克，週末無須進行錯題補強測驗！
+        </div>
+      </div>
+    `;
+  }
+
+  const pillsHtml = pendingWords.map(w => `
+    <span class="word-pill-tag conquer-pill" data-word="${w}" title="點擊聆聽發音">
+      🔊 ${w}
+    </span>
+  `).join("");
+
+  return `
+    <div class="week-conquer-wrap" style="display:flex; flex-direction:column; gap:10px;">
+      <div class="week-conquer-tip" style="display:flex; align-items:flex-start; gap:8px; padding:10px 14px; background:rgba(239, 68, 68, 0.06); border:1px solid rgba(239, 68, 68, 0.2); border-radius:10px; font-size:12.5px; line-height:1.55; color:var(--ink2);">
+        <span style="font-size:15px; flex-shrink:0;">💡</span>
+        <div>
+          本週累積 <b>${count}</b> 個待攻克單字。在<b>自由練習</b>中只要拼對該單字，系統即判定為已學會並自動移除，<b>不滾入週末錯題消滅戰測驗</b>！
+        </div>
+      </div>
+      <div class="conquer-word-list" style="display:flex; flex-wrap:wrap; gap:8px; padding:4px 0;">
+        ${pillsHtml}
+      </div>
+    </div>
+  `;
+}
+
+export function updateWeekConquerSection() {
+  const badgeEl = $("#week-conquer-badge");
+  const detailsEl = $("#week-conquer-details");
+  if (!detailsEl) return;
+  const words = getWeekPendingConquerWords();
+  const count = words.length;
+  if (badgeEl) {
+    badgeEl.textContent = count > 0 ? `待攻克 ${count} 字` : '已全數掌握 ✨';
+    badgeEl.style.cssText = count > 0 
+      ? 'margin-left:auto; font-size:11.5px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(239,68,68,0.12); color:#DC2626; border:1px solid rgba(239,68,68,0.25);'
+      : 'margin-left:auto; font-size:11.5px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(30,154,102,0.12); color:#1E9A66; border:1px solid rgba(30,154,102,0.25);';
+  }
+  detailsEl.innerHTML = buildWeekPendingConquerHtml(words);
+}
+
 // ---------- summary ----------
 let _activeRecordSelectedDate = "";
 export function summaryHidden() { return el.summary.hidden; }
@@ -1828,6 +1956,10 @@ export function renderSummary(d) {
     userTagArea.innerHTML = "";
   }
 
+  const pendingConquerWords = getWeekPendingConquerWords();
+  const conquerCount = pendingConquerWords.length;
+  const initialConquerHtml = buildWeekPendingConquerHtml(pendingConquerWords);
+
   el.summary.innerHTML = `
     <div class="bigrate" style="margin-top:2px;">
       <b class="tnum">${d.passRate}%</b>
@@ -1935,6 +2067,19 @@ export function renderSummary(d) {
         <div class="heatmap" id="heatmap-grid">${d.history.days.map((x, idx) =>
           `<i class="hc h${x.level}" data-idx="${idx}" data-key="${x.key}" data-a="${x.a || 0}" data-rate="${x.rate || 0}"></i>`).join("")}</div>
         <div class="heat-legend"><b>連續</b>：目前不中斷、每天練習的天數。<br><b>最佳</b>：個人最長連續練習紀錄。<br><b>累計</b>：歷來有練習的總天數。<br><b>熱力圖</b>：顏色越濃代表當天正確率越高（灰色為無練習）。</div>
+      </div>
+    </div>
+
+    <!-- 子標題 3：本週待攻克單字 -->
+    <div class="subh-child" style="margin-top:16px;">
+      <span>🎯 本週待攻克單字</span>
+      <span id="week-conquer-badge" class="badge-count" style="margin-left:auto; font-size:11.5px; font-weight:700; padding:2px 8px; border-radius:999px; ${conquerCount > 0 ? 'background:rgba(239,68,68,0.12); color:#DC2626; border:1px solid rgba(239,68,68,0.25);' : 'background:rgba(30,154,102,0.12); color:#1E9A66; border:1px solid rgba(30,154,102,0.25);'}">
+        ${conquerCount > 0 ? `待攻克 ${conquerCount} 字` : '已全數掌握 ✨'}
+      </span>
+    </div>
+    <div class="task-history-card week-conquer-card" style="margin-bottom:0 !important;">
+      <div id="week-conquer-details">
+        ${initialConquerHtml}
       </div>
     </div>`;
 

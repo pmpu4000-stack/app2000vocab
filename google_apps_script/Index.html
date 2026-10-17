@@ -3244,6 +3244,41 @@
       color: #F0F3FA !important;
       box-shadow: none !important;
     }
+
+    /* 🎯 本週待攻克單字 Pill 標籤樣式 */
+    .word-pill-tag.conquer-pill {
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 5px !important;
+      padding: 5px 12px !important;
+      border-radius: 999px !important;
+      font-size: 13px !important;
+      font-weight: 700 !important;
+      background: rgba(239, 68, 68, 0.08) !important;
+      border: 1.5px solid rgba(239, 68, 68, 0.28) !important;
+      color: #DC2626 !important;
+      cursor: pointer !important;
+      user-select: none !important;
+      transition: all .16s ease !important;
+    }
+    .word-pill-tag.conquer-pill:hover {
+      background: rgba(239, 68, 68, 0.16) !important;
+      border-color: #EF4444 !important;
+      transform: translateY(-1.5px) !important;
+      box-shadow: 0 3px 8px rgba(239, 68, 68, 0.18) !important;
+    }
+    [data-theme="dark"] .word-pill-tag.conquer-pill {
+      background: rgba(239, 68, 68, 0.16) !important;
+      border-color: rgba(248, 113, 113, 0.42) !important;
+      color: #FCA5A5 !important;
+    }
+    [data-theme="dark"] .word-pill-tag.conquer-pill:hover {
+      background: rgba(239, 68, 68, 0.28) !important;
+      border-color: #F87171 !important;
+      color: #FFFFFF !important;
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35) !important;
+    }
+
     .task-history-header {
       display: flex !important;
       justify-content: space-between !important;
@@ -5129,6 +5164,15 @@
             <div class="heatmap" id="stHeatmapGrid"></div>
             <div class="heat-legend"><b>連續</b>：目前不中斷、每天練習的天數。<br><b>最佳</b>：該生最長連續練習紀錄。<br><b>累計</b>：歷來有練習的總天數。<br><b>熱力圖</b>：顏色越濃代表當天正確率越高（灰色為無練習）。</div>
           </div>
+        </div>
+
+        <!-- 子標題 3：本週待攻克單字 -->
+        <div class="subh-child" style="margin-top:16px;">
+          <span>🎯 本週待攻克單字</span>
+          <span id="stWeekConquerBadge" class="badge-count" style="margin-left:auto; font-size:11.5px; font-weight:700; padding:2px 8px; border-radius:999px;"></span>
+        </div>
+        <div class="task-history-card week-conquer-card" style="margin-bottom:0 !important;">
+          <div id="st-week-conquer-details"></div>
         </div>
       </div>
     </section>
@@ -15515,6 +15559,105 @@ function renderStudentDailyTaskAndFreeSections(resp) {
   }
 
   switchRecordDate(defaultSelectedDate);
+
+  // 渲染「🎯 本週待攻克單字」區塊
+  const conquerDetailsContainer = document.getElementById("st-week-conquer-details");
+  const conquerBadge = document.getElementById("stWeekConquerBadge");
+  if (conquerDetailsContainer) {
+    const dNow = new Date();
+    const day = dNow.getDay();
+    const diff = dNow.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(dNow.getFullYear(), dNow.getMonth(), diff);
+    const friday = new Date(dNow.getFullYear(), dNow.getMonth(), diff + 4);
+    const formatD = (dt) => dt.getFullYear() + "-" + String(dt.getMonth() + 1).padStart(2, "0") + "-" + String(dt.getDate()).padStart(2, "0");
+    const mondayStr = formatD(monday);
+    const fridayStr = formatD(friday);
+
+    const unfinishedWords = new Set();
+    const allStudentTasks = [];
+    if (Array.isArray(resp.dailyTaskHistory)) allStudentTasks.push(...resp.dailyTaskHistory);
+    if (resp.todayTaskResult) allStudentTasks.push(resp.todayTaskResult);
+    if (Array.isArray(window.cachedStudentDailyHistory)) allStudentTasks.push(...window.cachedStudentDailyHistory);
+    if (Array.isArray(window.cachedBackupTaskHistory)) allStudentTasks.push(...window.cachedBackupTaskHistory);
+
+    allStudentTasks.forEach(item => {
+      if (!item || !item.date) return;
+      const iDate = String(item.date).trim().split(" ")[0].replace(/\//g, "-");
+      if (iDate >= mondayStr && iDate <= fridayStr) {
+        if (Array.isArray(item.wrongWords)) {
+          item.wrongWords.forEach(w => {
+            const cw = String(w).trim().toLowerCase();
+            if (cw) unfinishedWords.add(cw);
+          });
+        }
+        const status = String(item.status || "");
+        const score = String(item.score || "");
+        const isUnattempted = !status.includes("已完成") || score === "—" || score === "尚未開始";
+        if (isUnattempted && Array.isArray(item.words)) {
+          item.words.forEach(w => {
+            const cw = String(w).trim().toLowerCase();
+            if (cw) unfinishedWords.add(cw);
+          });
+        }
+      }
+    });
+
+    // 檢查自主練習是否已答對學會
+    const learnedWords = new Set();
+    if (agent && agent.dailyPractice) {
+      Object.values(agent.dailyPractice).forEach(dp => {
+        if (dp && dp.words) {
+          Object.entries(dp.words).forEach(([wKey, info]) => {
+            if (info && (info.correct > 0 || info.passed)) {
+              learnedWords.add(String(wKey).trim().toLowerCase());
+            }
+          });
+        }
+      });
+    }
+
+    const pendingWords = Array.from(unfinishedWords).filter(w => !learnedWords.has(w)).sort();
+    const count = pendingWords.length;
+
+    if (conquerBadge) {
+      conquerBadge.textContent = count > 0 ? `待攻克 ${count} 字` : '已全數掌握 ✨';
+      conquerBadge.style.cssText = count > 0
+        ? 'margin-left:auto; font-size:11.5px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(239,68,68,0.12); color:#DC2626; border:1px solid rgba(239,68,68,0.25);'
+        : 'margin-left:auto; font-size:11.5px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(30,154,102,0.12); color:#1E9A66; border:1px solid rgba(30,154,102,0.25);';
+    }
+
+    if (count === 0) {
+      conquerDetailsContainer.innerHTML = `
+        <div class="task-empty-notice" style="padding:14px 12px; margin:0; background:rgba(30,154,102,0.06); border:1.5px solid rgba(30,154,102,0.22); border-radius:12px;">
+          <div class="task-empty-notice-title" style="color:#1E9A66; font-size:14px; font-weight:750;">
+            ✨ 太棒了！本週目前無待攻克單字
+          </div>
+          <div class="task-empty-notice-desc" style="color:var(--ink2); font-size:12.5px; margin-top:3px;">
+            本週平日測驗單字皆已掌握或已於自主練習中全數攻克，週末無須進行錯題補強測驗！
+          </div>
+        </div>
+      `;
+    } else {
+      const pills = pendingWords.map(w => `
+        <span class="word-pill-tag conquer-pill" data-word="${w}" title="點擊聆聽發音">
+          🔊 ${w}
+        </span>
+      `).join("");
+      conquerDetailsContainer.innerHTML = `
+        <div class="week-conquer-wrap" style="display:flex; flex-direction:column; gap:10px;">
+          <div class="week-conquer-tip" style="display:flex; align-items:flex-start; gap:8px; padding:10px 14px; background:rgba(239, 68, 68, 0.06); border:1px solid rgba(239, 68, 68, 0.2); border-radius:10px; font-size:12.5px; line-height:1.55; color:var(--ink2);">
+            <span style="font-size:15px; flex-shrink:0;">💡</span>
+            <div>
+              本週累積 <b>${count}</b> 個待攻克單字。在<b>自由練習</b>中只要拼對該單字，系統即判定為已學會並自動移除，<b>不滾入週末錯題消滅戰測驗</b>！
+            </div>
+          </div>
+          <div class="conquer-word-list" style="display:flex; flex-wrap:wrap; gap:8px; padding:4px 0;">
+            ${pills}
+          </div>
+        </div>
+      `;
+    }
+  }
 }
 
 function renderStudentSummary(resp) {

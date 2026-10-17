@@ -2089,4 +2089,39 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   }
 }
 
+/* 🎯 本週待攻克單字 Pill 標籤樣式 */
+.word-pill-tag.conquer-pill {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  padding: 5px 12px !important;
+  border-radius: 999px !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  background: rgba(239, 68, 68, 0.08) !important;
+  border: 1.5px solid rgba(239, 68, 68, 0.28) !important;
+  color: #DC2626 !important;
+  cursor: pointer !important;
+  user-select: none !important;
+  transition: all .16s ease !important;
+}
+.word-pill-tag.conquer-pill:hover {
+  background: rgba(239, 68, 68, 0.16) !important;
+  border-color: #EF4444 !important;
+  transform: translateY(-1.5px) !important;
+  box-shadow: 0 3px 8px rgba(239, 68, 68, 0.18) !important;
+}
+[data-theme="dark"] .word-pill-tag.conquer-pill {
+  background: rgba(239, 68, 68, 0.16) !important;
+  border-color: rgba(248, 113, 113, 0.42) !important;
+  color: #FCA5A5 !important;
+}
+[data-theme="dark"] .word-pill-tag.conquer-pill:hover {
+  background: rgba(239, 68, 68, 0.28) !important;
+  border-color: #F87171 !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35) !important;
+}
+
+
 
