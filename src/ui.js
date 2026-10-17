@@ -1889,7 +1889,7 @@ export function renderSummary(d) {
       </div>
     </div>
     <div class="formula-note-box" style="margin-top:-4px; margin-bottom:14px; font-size:12px;">
-      💡 <b>計算說明</b>：各模式獨立統計該題型測過的單字；同一個單字在不同模式練習並答對時會各自計入，故四項總和會大於上方整體的「共答對單字數」。
+      💡 <b>小提示</b>：同一個單字若在不同玩法答對會各自累計，因此四項加總會大於上方的「共答對單字數」。
     </div>
 
     <!-- 📅 每日作答紀錄（大區塊標題，同等層級） -->
