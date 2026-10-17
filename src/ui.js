@@ -959,37 +959,6 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
   const scoreVal = record.score || "—";
   const rateVal = formatRatePercentage(record.rate, record.score);
   const statusStr = record.status || "🟢 已完成";
-  const isIncomplete = statusStr.includes("作答中") || statusStr.includes("未完成") || statusStr.includes("中斷") || record.inProgress === true;
-  const isFinished = !isIncomplete && (statusStr.includes("已完成") || (scoreVal !== "—" && scoreVal !== "尚未開始" && !statusStr.includes("未受測")));
-  const isUntested = statusStr.includes("未受測") || (!isFinished && !isIncomplete && (scoreVal === "—" || scoreVal === "尚未開始"));
-
-  let displayStatusStr = statusStr;
-  let statusColor = "#64748b";
-  let statusBg = "rgba(148,163,184,0.15)";
-  let statusDesc = "";
-
-  if (isFinished) {
-    statusColor = "#047857";
-    statusBg = "rgba(16,185,129,0.15)";
-    displayStatusStr = statusStr.includes("已完成") ? statusStr : "🟢 已完成";
-  } else if (isIncomplete) {
-    displayStatusStr = "🟠 作答中斷";
-    statusColor = "#d97706";
-    statusBg = "rgba(245,158,11,0.15)";
-    statusDesc = "⏳ 測驗中途作答中斷";
-  } else if (isUntested) {
-    if (hasLoggedInOrFree) {
-      displayStatusStr = "🟡 登入未受測";
-      statusColor = "#d97706";
-      statusBg = "rgba(245,158,11,0.15)";
-      statusDesc = "⚠️ 有登入但未測驗";
-    } else {
-      displayStatusStr = "🔴 缺席未受測";
-      statusColor = "#ef4444";
-      statusBg = "rgba(239,68,68,0.15)";
-      statusDesc = "📴 當日無登入紀錄 (缺考)";
-    }
-  }
 
   let taskCorrWords = correctList.length;
   let taskTotWords = (correctList.length + wrongList.length) > 0 ? (correctList.length + wrongList.length) : (rawWords.length || 0);
@@ -1009,6 +978,41 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     ...wrongList.map(w => String(w).toLowerCase())
   ]);
   const unansweredList = rawWords.filter(w => !answeredSet.has(String(w).toLowerCase())).sort((a, b) => a.localeCompare(b));
+  const totalAnswered = correctList.length + wrongList.length;
+
+  // 核心判定：若有未測單字且實際作答單字小於總單字數（例如 5 題只答 2 題，答錯 0 題），絕對屬於作答中斷！
+  const isPartialAttempt = (taskTotWords > 0 && totalAnswered < taskTotWords && wrongList.length === 0 && unansweredList.length > 0);
+  const isIncomplete = isPartialAttempt || statusStr.includes("作答中") || statusStr.includes("未完成") || statusStr.includes("中斷") || record.inProgress === true;
+  const isFinished = !isIncomplete && (statusStr.includes("已完成") || (scoreVal !== "—" && scoreVal !== "尚未開始" && !statusStr.includes("未受測")));
+  const isUntested = statusStr.includes("未受測") || (!isFinished && !isIncomplete && (scoreVal === "—" || scoreVal === "尚未開始"));
+
+  let displayStatusStr = statusStr;
+  let statusColor = "#64748b";
+  let statusBg = "rgba(148,163,184,0.15)";
+  let statusDesc = "";
+
+  if (isFinished) {
+    statusColor = "#047857";
+    statusBg = "rgba(16,185,129,0.15)";
+    displayStatusStr = statusStr.includes("已完成") ? statusStr : "🟢 已完成";
+  } else if (isIncomplete) {
+    displayStatusStr = `🟠 作答中斷 (${taskCorrWords}/${taskTotWords})`;
+    statusColor = "#d97706";
+    statusBg = "rgba(245,158,11,0.15)";
+    statusDesc = "⏳ 測驗中途作答中斷";
+  } else if (isUntested) {
+    if (hasLoggedInOrFree) {
+      displayStatusStr = "🟡 登入未受測";
+      statusColor = "#d97706";
+      statusBg = "rgba(245,158,11,0.15)";
+      statusDesc = "⚠️ 有登入但未測驗";
+    } else {
+      displayStatusStr = "🔴 缺席未受測";
+      statusColor = "#ef4444";
+      statusBg = "rgba(239,68,68,0.15)";
+      statusDesc = "📴 當日無登入紀錄 (缺考)";
+    }
+  }
 
   let correctContentHtml = "";
   let wrongContentHtml = "";
@@ -1737,22 +1741,24 @@ export function renderSummary(d) {
 
     const statusStr = String(tRec.status || "");
     // 計算單字數量 (wordsCount)
-    let taskWordsCount = 0;
-    if (Array.isArray(tRec.words) && tRec.words.length > 0) {
-      taskWordsCount = tRec.words.length;
-    } else {
-      const resolved = resolveTaskWords(tRec, norm, d);
-      taskWordsCount = (resolved.rawWords && resolved.rawWords.length) || tAtt || 5;
-    }
+    const resolved = resolveTaskWords(tRec, norm, d);
+    const resolvedRaw = resolved.rawWords || [];
+    const resolvedCorr = resolved.correctList || [];
+    const resolvedWrong = resolved.wrongList || [];
+    const resolvedAnsCount = resolvedCorr.length + resolvedWrong.length;
+    taskWordsCount = resolvedRaw.length || (Array.isArray(tRec.words) && tRec.words.length) || tAtt || 5;
+
+    const isUnfinishedAttempt = (taskWordsCount > 0 && resolvedAnsCount < taskWordsCount && resolvedWrong.length === 0);
+
+    // 判定是否為登入作答未完成 (中斷)
+    const isIncomplete = isUnfinishedAttempt ||
+                         statusStr.includes("作答中") ||
+                         statusStr.includes("中斷") ||
+                         statusStr.includes("未完成") ||
+                         tRec.inProgress === true;
 
     // 判定是否完成全數作答
-    const isFinished = statusStr.includes("已完成") || (tAtt > 0 && tAtt >= taskWordsCount);
-    // 判定是否為登入作答未完成
-    const isIncomplete = !isFinished && (
-      (tAtt > 0 && tAtt < taskWordsCount) ||
-      statusStr.includes("作答中") ||
-      statusStr.includes("中斷")
-    );
+    const isFinished = !isIncomplete && (statusStr.includes("已完成") || (tAtt > 0 && tAtt >= taskWordsCount));
 
     // 當日是否有登入或有自由練習
     const freeRec = resolveDailyPracticeRecord(norm, d, historyList);
@@ -1772,11 +1778,13 @@ export function renderSummary(d) {
       };
     } else if (isIncomplete) {
       // 🟣 登入作答未完成 (方格莫蘭迪柔紫，右側紫底紫框)
+      const curCorr = resolvedCorr.length || tCor;
+      const curTot = taskWordsCount || tAtt || 5;
       return {
         a: tAtt, c: tCor, rate: tRate,
         wordsCount: taskWordsCount,
         statusType: "incomplete",
-        statusLabel: "🟣 登入作答未完成",
+        statusLabel: `🟠 作答中斷 (${curCorr}/${curTot})`,
         levelClass: "h-status-purple",
         badgeTier: "tier-status-purple"
       };

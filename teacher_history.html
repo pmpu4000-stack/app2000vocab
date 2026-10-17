@@ -14552,8 +14552,28 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
 
   const scoreVal = record.score || "—";
   const rateVal = formatRatePercentage(record.rate, record.score);
-  const statusStr = record.status || "🟢 已完成";
-  const isIncomplete = statusStr.includes("作答中") || statusStr.includes("未完成") || statusStr.includes("中斷") || record.inProgress === true;
+  let taskCorrWords = correctList.length;
+  let taskTotWords = (correctList.length + wrongList.length) > 0 ? (correctList.length + wrongList.length) : (rawWords.length || 0);
+  if (scoreVal && String(scoreVal).includes("/")) {
+    const parts = String(scoreVal).split("/");
+    const sCorr = parseInt(parts[0], 10);
+    const sTot = parseInt(parts[1], 10);
+    if (!isNaN(sTot) && sTot > 0) {
+      taskTotWords = sTot;
+      if (!isNaN(sCorr)) taskCorrWords = sCorr;
+    }
+  }
+  const taskRate = taskTotWords > 0 ? Math.round((taskCorrWords / taskTotWords) * 100) : (parseInt(rateVal) || 0);
+
+  const answeredSet = new Set([
+    ...correctList.map(w => String(w).toLowerCase()),
+    ...wrongList.map(w => String(w).toLowerCase())
+  ]);
+  const unansweredList = rawWords.filter(w => !answeredSet.has(String(w).toLowerCase())).sort((a, b) => a.localeCompare(b));
+  const totalAnswered = correctList.length + wrongList.length;
+
+  const isPartialAttempt = (taskTotWords > 0 && totalAnswered < taskTotWords && wrongList.length === 0 && unansweredList.length > 0);
+  const isIncomplete = isPartialAttempt || statusStr.includes("作答中") || statusStr.includes("未完成") || statusStr.includes("中斷") || record.inProgress === true;
   const isFinished = !isIncomplete && (statusStr.includes("已完成") || (scoreVal !== "—" && scoreVal !== "尚未開始" && !statusStr.includes("未受測")));
   const isUntested = statusStr.includes("未受測") || (!isFinished && !isIncomplete && (scoreVal === "—" || scoreVal === "尚未開始"));
 
@@ -14567,7 +14587,7 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
     statusBg = "rgba(16,185,129,0.15)";
     displayStatusStr = statusStr.includes("已完成") ? statusStr : "🟢 已完成";
   } else if (isIncomplete) {
-    displayStatusStr = "🟠 作答中斷";
+    displayStatusStr = `🟠 作答中斷 (${taskCorrWords}/${taskTotWords})`;
     statusColor = "#d97706";
     statusBg = "rgba(245,158,11,0.15)";
     statusDesc = "⏳ 測驗中途作答中斷";
@@ -14584,19 +14604,6 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
       statusDesc = "📴 當日無登入紀錄 (缺考)";
     }
   }
-
-  let taskCorrWords = correctList.length;
-  let taskTotWords = (correctList.length + wrongList.length) > 0 ? (correctList.length + wrongList.length) : (rawWords.length || 0);
-  if (scoreVal && String(scoreVal).includes("/")) {
-    const parts = String(scoreVal).split("/");
-    const sCorr = parseInt(parts[0], 10);
-    const sTot = parseInt(parts[1], 10);
-    if (!isNaN(sTot) && sTot > 0) {
-      taskTotWords = sTot;
-      if (!isNaN(sCorr)) taskCorrWords = sCorr;
-    }
-  }
-  const taskRate = taskTotWords > 0 ? Math.round((taskCorrWords / taskTotWords) * 100) : (parseInt(rateVal) || 0);
 
   let correctContentHtml = "";
   let wrongContentHtml = "";
