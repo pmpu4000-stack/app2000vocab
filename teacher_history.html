@@ -3182,7 +3182,6 @@
       color: #F0F3FA !important;
     }
 
-    /* 指定測驗與自由練習卡片 */
     .task-history-card {
       background: #F8F9FD !important;
       border: 1px solid var(--line) !important;
@@ -3190,6 +3189,9 @@
       padding: 14px 16px !important;
       margin: 10px 0 16px !important;
       box-shadow: none !important;
+    }
+    .task-history-card:last-child {
+      margin-bottom: 0 !important;
     }
     [data-theme="dark"] .task-history-card {
       background: #181C2A !important;
@@ -14736,7 +14738,9 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
   }
 
   // 名稱前面複製與「📝 指定測驗作答紀錄」相同的 📝 小圖示
-  let cleanTaskName = String(record.taskName || "指定測驗").trim().replace(/^[📝\s]+/, "");
+  let cleanTaskName = String(record.taskName || "指定測驗").trim().replace(/^[📝📑\s]+/, "");
+  cleanTaskName = cleanTaskName.replace(/指定單字隨堂測驗/g, "指定單字測驗結果").replace(/隨堂測驗/g, "測驗結果");
+  cleanTaskName = cleanTaskName.replace(/週末指定單字消滅戰/g, "指定測驗作答紀錄").replace(/週末錯題接續消滅戰/g, "指定測驗作答紀錄").replace(/週末.*?消滅戰/g, "指定測驗作答紀錄");
   const formattedTaskName = `📝 ${cleanTaskName}`;
 
   // 當一日內有多個測驗（如補考或多個指定測驗），多個紀錄方塊以邊界線清晰隔開
@@ -14818,7 +14822,9 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
 
 function renderUntestedTaskCardHtml(info, agent) {
   const { taskName, assignedWords, hasLoggedInOrFree, selectedDate } = info;
-  let cleanTaskName = String(taskName || "指定單字隨堂測驗").trim().replace(/^[📝\s]+/, "");
+  let cleanTaskName = String(taskName || "指定單字隨堂測驗").trim().replace(/^[📝📑\s]+/, "");
+  cleanTaskName = cleanTaskName.replace(/指定單字隨堂測驗/g, "指定單字測驗結果").replace(/隨堂測驗/g, "測驗結果");
+  cleanTaskName = cleanTaskName.replace(/週末指定單字消滅戰/g, "指定測驗作答紀錄").replace(/週末錯題接續消滅戰/g, "指定測驗作答紀錄").replace(/週末.*?消滅戰/g, "指定測驗作答紀錄");
   const formattedTaskName = `📝 ${cleanTaskName}`;
 
   const statusLabel = hasLoggedInOrFree ? "🟡 登入未受測" : "🔴 缺席未受測";

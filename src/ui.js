@@ -1096,8 +1096,9 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     }
   }
 
-  let cleanTaskName = String(record.taskName || "指定測驗").trim().replace(/^[📝\s]+/, "");
+  let cleanTaskName = String(record.taskName || "指定測驗").trim().replace(/^[📝📑\s]+/, "");
   cleanTaskName = cleanTaskName.replace(/指定單字隨堂測驗/g, "指定單字測驗結果").replace(/隨堂測驗/g, "測驗結果");
+  cleanTaskName = cleanTaskName.replace(/週末指定單字消滅戰/g, "指定測驗作答紀錄").replace(/週末錯題接續消滅戰/g, "指定測驗作答紀錄").replace(/週末.*?消滅戰/g, "指定測驗作答紀錄");
   const formattedTaskName = `📝 ${cleanTaskName}`;
 
   // 當一日內有多個測驗（如補考或多個指定測驗），多個紀錄方塊以邊界線清晰隔開
@@ -1206,8 +1207,9 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
 
 function renderUntestedTaskCardHtml(info, d) {
   const { taskName, assignedWords, hasLoggedInOrFree, selectedDate } = info;
-  let cleanTaskName = String(taskName || "指定單字測驗結果").trim().replace(/^[📝\s]+/, "");
+  let cleanTaskName = String(taskName || "指定單字測驗結果").trim().replace(/^[📝📑\s]+/, "");
   cleanTaskName = cleanTaskName.replace(/指定單字隨堂測驗/g, "指定單字測驗結果").replace(/隨堂測驗/g, "測驗結果");
+  cleanTaskName = cleanTaskName.replace(/週末指定單字消滅戰/g, "指定測驗作答紀錄").replace(/週末錯題接續消滅戰/g, "指定測驗作答紀錄").replace(/週末.*?消滅戰/g, "指定測驗作答紀錄");
   const formattedTaskName = `📝 ${cleanTaskName}`;
 
   const cleanWords = (Array.isArray(assignedWords) ? assignedWords : [])
