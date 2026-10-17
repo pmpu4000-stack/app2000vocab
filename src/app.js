@@ -30,11 +30,23 @@ const taskState = {
 };
 
 // ── 隨時保存任務中途進度（中途存檔或強制關閉防護） ──
+let taskCloudSyncTimer = null;
+function scheduleCloudTaskSync() {
+  if (taskCloudSyncTimer) clearTimeout(taskCloudSyncTimer);
+  taskCloudSyncTimer = setTimeout(() => {
+    taskCloudSyncTimer = null;
+    if (typeof window !== "undefined" && typeof window.uploadLocalStorageData === "function") {
+      window.uploadLocalStorageData(true, true);
+    }
+  }, 1000);
+}
+
 function persistTaskProgress() {
   if (!taskState.task || !taskState.pool || taskState.pool.length === 0) return;
   try {
     const todayDash = todayDateStr();
     const todaySlash = todayDash.replace(/-/g, "/");
+    const currentUser = (localStorage.getItem("current_user") || "").trim();
     const poolWords = taskState.pool.map(w => {
       const str = typeof w === "string" ? w : (w.word || w.display || w.w);
       return String(str || "").trim().toLowerCase();
@@ -42,7 +54,7 @@ function persistTaskProgress() {
 
     const saveObj = {
       date                : todayDash,
-      username            : localStorage.getItem("current_user") || "",
+      username            : currentUser,
       task                : taskState.task,
       pool                : taskState.pool,
       words               : poolWords,
@@ -52,14 +64,19 @@ function persistTaskProgress() {
       wrongWords          : taskState.wrongWords || [],
       hadCorrectThenWrong : taskState.hadCorrectThenWrong || []
     };
-    localStorage.setItem("today_task_in_progress", JSON.stringify(saveObj));
+    const jsonStr = JSON.stringify(saveObj);
+    localStorage.setItem("today_task_in_progress", jsonStr);
+    if (currentUser) {
+      localStorage.setItem("today_task_in_progress_" + currentUser.toLowerCase(), jsonStr);
+    }
     if (poolWords.length > 0) {
       localStorage.setItem("task_words_" + todayDash, JSON.stringify(poolWords));
       localStorage.setItem("task_words_" + todaySlash, JSON.stringify(poolWords));
     }
 
-    // 標記有新進度待同步（由 5 分鐘定時器、離開頁面、或完成指定測驗時統一同步）
+    // 標記有新進度待同步，並排程自動上傳雲端試算表
     window.hasUnsavedChanges = true;
+    scheduleCloudTaskSync();
   } catch(e) {
     console.error("persistTaskProgress error:", e);
   }
@@ -437,8 +454,8 @@ function refreshChrome() {
   const isLocked = (typeof window !== "undefined") && (window.__dailyUsageTimeIsUp || (window.dailyUsageState && window.dailyUsageState.isLockedDown) || document.body.classList.contains("daily-limit-reached"));
   if (!isLocked && !ui.summaryHidden()) ui.renderSummary(store.summary(WORDS));
 
-  // ⚠️ 今日指定測驗進行中或待開始：強制隱藏模式列、關卡列與等級挑戰橫幅
-  if (taskState.active || taskState.pending) {
+  // ⚠️ 今日指定測驗進行中、待開始或尚未結束：強制隱藏模式列、關卡列與等級挑戰橫幅
+  if (taskState.active || taskState.pending || isDesignatedTaskPendingToday()) {
     const modesEl = document.getElementById("modes");
     if (modesEl) modesEl.style.display = "none";
     const levelBar = document.getElementById("levelbar");
@@ -573,7 +590,21 @@ function newRound() {
     }
   }
 
-  // ── 一般自由闖關 ──
+  // ★ 核心守衛：若今日有指定測驗尚未結束（待開始、中途未完成、有登入無作答），絕對禁止產生自由練習題目！
+  if (isDesignatedTaskPendingToday()) {
+    if (taskState.task && taskState.pool && taskState.pool.length > 0) {
+      startTaskExecution();
+      return;
+    } else {
+      checkAndStartDailyTask();
+      if (taskState.task && taskState.pool && taskState.pool.length > 0) {
+        startTaskExecution();
+        return;
+      }
+    }
+  }
+
+  // ── 一般自由闖關（唯有今日指定測驗完全結束後才開放）──
   state.word = nextWord(WORDS, store.progress().current, state.word?.id);
   state.answered = false;
   renderCurrent();
@@ -652,7 +683,7 @@ function answer(correct, guessVal) {
 
 function pickLevel(n) {
   clearAutoNextTimer(); 
-  if (taskState.active || taskState.pending) {
+  if (taskState.active || taskState.pending || isDesignatedTaskPendingToday()) {
     alert("請先完成今日指定測驗，完成後即可自由選擇關卡！");
     return;
   }
@@ -737,7 +768,7 @@ async function startPlacement() {
 }
 
 async function startChallenge() {
-  if (taskState.active || taskState.pending) {
+  if (taskState.active || taskState.pending || isDesignatedTaskPendingToday()) {
     alert("請先完成今日指定測驗再進行等級挑戰！");
     return;
   }
@@ -772,6 +803,83 @@ async function startChallenge() {
       btnLabel: "回去練習 →",
     }, backToPlay);
   }
+}
+
+// ════════════════════════════════════════════════════════════════════
+// 核心：判定今日指定測驗是否尚未完成（嚴格阻擋自由練習出題）
+// ════════════════════════════════════════════════════════════════════
+
+function isDesignatedTaskPendingToday() {
+  const todayDash = todayDateStr();
+  const todaySlash = todayDash.replace(/-/g, "/");
+
+  // 1. 本地已明確標記完成
+  const isDoneLocal = (localStorage.getItem("task_done_" + todayDash) === "true") ||
+                      (localStorage.getItem("task_done_" + todaySlash) === "true");
+  if (isDoneLocal) return false;
+
+  // 2. 雲端已標記完成
+  const rawAssigned = sessionStorage.getItem("assigned_task") || 
+                      localStorage.getItem("assigned_task_active") ||
+                      localStorage.getItem("assigned_task_backup");
+  let assignedTaskObj = null;
+  if (rawAssigned) {
+    try { assignedTaskObj = JSON.parse(rawAssigned); } catch(_) {}
+  }
+  if (assignedTaskObj && assignedTaskObj.alreadyCompleted === true) {
+    return false;
+  }
+
+  // 3. 今日有指派任務未完成
+  if (assignedTaskObj && assignedTaskObj.hasTask && Array.isArray(assignedTaskObj.words) && assignedTaskObj.words.length > 0) {
+    return true;
+  }
+
+  // 4. 今日有進行中未完成進度
+  try {
+    const rawSaved = localStorage.getItem("today_task_in_progress");
+    if (rawSaved) {
+      const parsed = JSON.parse(rawSaved);
+      const parsedDate = String(parsed.date || "").replace(/\//g, "-");
+      const currentUser = String(localStorage.getItem("current_user") || "").trim().toLowerCase();
+      const parsedUser = String(parsed.username || "").trim().toLowerCase();
+      if (parsedDate === todayDash && (!parsedUser || parsedUser === currentUser) && parsed.pool && parsed.index < parsed.pool.length) {
+        return true;
+      }
+    }
+  } catch(_) {}
+
+  // 5. 週末補救測驗判定
+  const d = new Date();
+  const day = d.getDay();
+  if (day === 6) {
+    const unfin = getMonToFriUnfinishedWords();
+    if (unfin && unfin.length > 0) return true;
+  } else if (day === 0) {
+    const satRec = getSaturdayRemedyRecord();
+    if (satRec && satRec.completed) {
+      if (satRec.wrongWords && satRec.wrongWords.length > 0) return true;
+    } else {
+      const unfin = getMonToFriUnfinishedWords();
+      if (unfin && unfin.length > 0) return true;
+    }
+  }
+
+  // 6. 寒暑假平日指派判定
+  if (day >= 1 && day <= 5) {
+    const vacInfo = getVacationInfo(d);
+    if (vacInfo && vacInfo.isVacation) {
+      const vacWords = getVacationDayAssignedWords(day);
+      if (vacWords && vacWords.length > 0) return true;
+    }
+  }
+
+  // 7. 當前 taskState 本身標記進行中或待開始
+  if (taskState.active || (taskState.pending && taskState.task)) {
+    return true;
+  }
+
+  return false;
 }
 
 // ════════════════════════════════════════════════════════════════════
@@ -1483,7 +1591,7 @@ function finishTaskMode() {
 
 // ---- wiring ----
 ui.initModes(state.mode, (mode) => {
-  if (taskState.active || taskState.pending) {
+  if (taskState.active || taskState.pending || isDesignatedTaskPendingToday()) {
     alert("今日指定練習進行中，不可更換模式！");
     return;
   }
@@ -1548,26 +1656,17 @@ ui.initProgressCard();
 
   // ── 當天每日測驗自動啟動核心判定 ──
   // 1. 若有中途斷線未完成之進度：直接無縫接續作答
-  // 2. 若當天尚未開始測驗且有指派任務：一登入就直接開始每日測驗，直接顯示當天指派單字，絕不受自由練習出題影響！
+  // 2. 若當天尚未結束指定測驗（有登入無作答、作答中斷、或有指派任務）：一登入就直接開始每日測驗，直到測驗結束才開放自由練習！
   if (hasInProgress) {
     ui.setScreen("play"); 
     checkAndStartDailyTask(); 
     // 斷線或關閉後重新登入，直接自動無縫接續未完進度！
     startTaskExecution();
-  } else if (assignedTaskObj && assignedTaskObj.hasTask && !assignedTaskObj.alreadyCompleted) {
-    const todayDash = todayDateStr();
-    const isDone = (localStorage.getItem("task_done_" + todayDash) === "true") ||
-                   (localStorage.getItem("task_done_" + todayDash.replace(/-/g, "/")) === "true");
-    if (!isDone) {
-      ui.setScreen("play"); 
-      checkAndStartDailyTask(); 
-      // ★ 核心修復：當天還沒開始每日測驗，一登入就立即開始每日測驗，直接顯示當天指派單字（第 1 題），絕不受到自由練習出題影響！
-      startTaskExecution();
-    } else {
-      ui.setScreen("play"); 
-      refreshChrome(); 
-      checkAndStartDailyTask(); 
-    }
+  } else if (isDesignatedTaskPendingToday()) {
+    ui.setScreen("play"); 
+    checkAndStartDailyTask(); 
+    // ★ 當天有指定測驗未結束，一登入就立即開始每日測驗，直到結束才能進行自由練習！
+    startTaskExecution();
   } else { 
     ui.setScreen("play"); 
     refreshChrome(); 

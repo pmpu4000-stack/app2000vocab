@@ -2521,15 +2521,43 @@ body[data-theme="dark"],
       }
     }
 
-    // ── 開啟網頁時立即清除先前所有學習紀錄，確保乾淨狀態 ──
+    // ── 開啟網頁時檢查與安全維護紀錄 ──
     const rememberedUser = localStorage.getItem("current_user");
+    const todayDashStr = new Date().getFullYear() + "-" + String(new Date().getMonth() + 1).padStart(2, "0") + "-" + String(new Date().getDate()).padStart(2, "0");
 
-    // 清除先前所有本機遊戲、測驗進度快取，保證無舊帳號殘留
+    // 安全清理：僅清除跨日過期的快取或無效殘留，嚴格保留「今日進行中未完之指定測驗進度 (today_task_in_progress)」
     const initialKeysToPurge = [];
     for (let i = 0; i < localStorage.length; i++) {
       const k = localStorage.key(i);
-      if (k && (k.startsWith("spellAgent") || k.startsWith("today_task") || k.startsWith("task_done") || k === "weekTaskMistakes" || k === "assigned_task_active")) {
-        initialKeysToPurge.push(k);
+      if (!k) continue;
+      // 1. 若為指定測驗進行中進度：檢查日期，若非今日才清除，是今日則安全保留！
+      if (k.startsWith("today_task_in_progress")) {
+        try {
+          const p = JSON.parse(localStorage.getItem(k));
+          const pDate = p ? String(p.date || "").replace(/\//g, "-") : "";
+          if (pDate && pDate !== todayDashStr) {
+            initialKeysToPurge.push(k);
+          }
+        } catch(_) {
+          initialKeysToPurge.push(k);
+        }
+        continue;
+      }
+      // 2. 其餘舊版非今日的 task_done 清除
+      if (k.startsWith("task_done_")) {
+        const dPart = k.replace("task_done_", "").replace(/\//g, "-");
+        if (dPart && dPart !== todayDashStr) {
+          initialKeysToPurge.push(k);
+        }
+        continue;
+      }
+      // 3. 跨日的指定任務快取清除
+      if (k.startsWith("task_words_")) {
+        const dPart = k.replace("task_words_", "").replace(/\//g, "-");
+        if (dPart && dPart !== todayDashStr) {
+          initialKeysToPurge.push(k);
+        }
+        continue;
       }
     }
     initialKeysToPurge.forEach(k => localStorage.removeItem(k));
@@ -2777,6 +2805,16 @@ body[data-theme="dark"],
         const cur = localStorage.getItem("current_user") || "尚未登入";
         const role = localStorage.getItem("user_role") === "teacher" ? "教師" : "學生";
         if (confirm(`【帳號資訊】\n目前登入帳號：${cur} (${role})\n\n是否要登出並切換其他帳號？`)) {
+          // 若有進行中進度，確保寫入專屬帳號快取並觸發緊急同步
+          try {
+            const rawProg = localStorage.getItem("today_task_in_progress");
+            if (rawProg && cur) {
+              localStorage.setItem("today_task_in_progress_" + cur.toLowerCase(), rawProg);
+            }
+            if (window.uploadLocalStorageData) {
+              window.uploadLocalStorageData(true, true);
+            }
+          } catch(_) {}
           sessionStorage.removeItem("current_pass");
           sessionStorage.removeItem("assigned_task");
           // 登出時重新載入頁面，徹底銷毀記憶體中的舊帳號作答狀態與定時器
@@ -2908,12 +2946,12 @@ body[data-theme="dark"],
                                   Object.keys(result.records).length > 0 &&
                                   !!result.records["spellAgent.v2"];
 
-          // 僅在「切換不同使用者帳號」或「雲端有明確更新紀錄」時清理暫存；同一帳號且雲端無紀錄時，保留本機作答進度不被覆蓋
-          if (isDifferentUser || hasCloudRecords) {
+          // 僅在「切換不同使用者帳號」時清理暫存；同一帳號保留本機作答進度不被沖刷
+          if (isDifferentUser) {
             const keysToRemove = [];
             for (let i = 0; i < localStorage.length; i++) {
               const k = localStorage.key(i);
-              if (k && (k.startsWith("spellAgent") || k.startsWith("today_task") || k.startsWith("task_done") || k === "weekTaskMistakes")) {
+              if (k && (k.startsWith("spellAgent") || k === "today_task_in_progress" || k.startsWith("task_done") || k === "weekTaskMistakes")) {
                 keysToRemove.push(k);
               }
             }
@@ -3040,6 +3078,45 @@ body[data-theme="dark"],
           } else {
             sessionStorage.removeItem("assigned_task");
             localStorage.removeItem("assigned_task_active");
+          }
+
+          // ── 今日指定測驗進行中進度無縫接續比對（支援斷線、重整、切換電腦） ──
+          const currentTodayDash = new Date().getFullYear() + "-" + String(new Date().getMonth() + 1).padStart(2, "0") + "-" + String(new Date().getDate()).padStart(2, "0");
+          let bestProg = null;
+
+          // 1. 本機進度（本帳號）
+          try {
+            const rawLocal = localStorage.getItem("today_task_in_progress_" + user.toLowerCase()) || localStorage.getItem("today_task_in_progress");
+            if (rawLocal) {
+              const p = JSON.parse(rawLocal);
+              const pDate = p ? String(p.date || "").replace(/\//g, "-") : "";
+              const pUser = p ? String(p.username || "").toLowerCase() : "";
+              if (pDate === currentTodayDash && (!pUser || pUser === user.toLowerCase()) && p.pool && p.pool.length > 0 && p.index < p.pool.length) {
+                bestProg = p;
+              }
+            }
+          } catch(_) {}
+
+          // 2. 雲端進度比對
+          try {
+            if (result.records) {
+              const rawCloud = result.records["today_task_in_progress_" + user.toLowerCase()] || result.records.today_task_in_progress;
+              if (rawCloud) {
+                const p = typeof rawCloud === "string" ? JSON.parse(rawCloud) : rawCloud;
+                const pDate = p ? String(p.date || "").replace(/\//g, "-") : "";
+                if (p && pDate === currentTodayDash && p.pool && p.pool.length > 0 && p.index < p.pool.length) {
+                  if (!bestProg || (Number(p.index) > Number(bestProg.index))) {
+                    bestProg = p;
+                  }
+                }
+              }
+            }
+          } catch(_) {}
+
+          // 若測驗尚未完成，寫入最新進行中進度
+          if (bestProg && (!result.assignedTask || !result.assignedTask.alreadyCompleted)) {
+            localStorage.setItem("today_task_in_progress", JSON.stringify(bestProg));
+            localStorage.setItem("today_task_in_progress_" + user.toLowerCase(), JSON.stringify(bestProg));
           }
 
           // 若先前已載入過遊戲核心模組（例如切換帳號情境），強制重新整理以徹底銷毀記憶體殘留
