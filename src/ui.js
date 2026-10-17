@@ -1961,7 +1961,7 @@ export function renderSummary(d) {
         </div>
         <div class="heatmap" id="heatmap-grid">${d.history.days.map((x, idx) =>
           `<i class="hc h${x.level}" data-idx="${idx}" data-key="${x.key}" data-a="${x.a || 0}" data-rate="${x.rate || 0}"></i>`).join("")}</div>
-        <div class="heat-legend"><b>🔥 連續</b>：目前不中斷、每天練習的天數。<br><b>🏆 最佳</b>：個人最長連續練習紀錄。<br><b>📅 累計</b>：歷來有練習的總天數。<br><b>🟩 熱力圖</b>：綠色越深代表當天正確率越高（灰色為無練習）。</div>
+        <div class="heat-legend"><b>連續</b>：目前不中斷、每天練習的天數。<br><b>最佳</b>：個人最長連續練習紀錄。<br><b>累計</b>：歷來有練習的總天數。<br><b>熱力圖</b>：顏色越濃代表當天正確率越高（灰色為無練習）。</div>
       </div>
     </div>`;
 
