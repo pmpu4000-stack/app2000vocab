@@ -1035,14 +1035,11 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
 
     rightBoxClass = "advice-box";
     rightTitleClass = "advice-title";
-    rightTitleText = "💡 補考與學習提醒";
+    rightTitleText = "💡 學習紀錄提醒";
     wrongContentHtml = `
-      <div style="display:flex; flex-direction:column; justify-content:flex-start; align-items:flex-start; gap:8px; padding:6px 4px; font-size:12.5px; line-height:1.6;">
-        <div>${statusDesc ? `<b>${statusDesc}</b>。` : ""}${hasLoggedInOrFree ? "你當日有登入進行自由練習，但尚未完成本次指定測驗。" : "你當日無登入紀錄，尚未進行本次指定測驗。"}</div>
-        <div style="font-size:11.5px; opacity:0.85;">可前往測驗專區進行補考挑戰，完成後將自動記錄成績！</div>
-        <button type="button" onclick="const sc = document.getElementById('btn-summary-close'); if (sc) sc.click();" style="border:none; background:linear-gradient(135deg, #10b981 0%, #059669 100%); color:#fff; padding:6px 14px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:4px; box-shadow:0 2px 6px rgba(16,185,129,0.3); margin-top:4px;">
-          🚀 前往遊戲測驗區補考
-        </button>
+      <div style="display:flex; flex-direction:column; justify-content:flex-start; align-items:flex-start; gap:6px; padding:6px 4px; font-size:12.5px; line-height:1.6;">
+        <div>${statusDesc ? `<b>${statusDesc}</b>。` : ""}${hasLoggedInOrFree ? "當日有登入進行自由練習，但未完成本次指定測驗。" : "當日無登入紀錄，未進行本次指定測驗。"}</div>
+        <div style="font-size:11.5px; color:var(--ink3);">📌 提醒：未測驗之指定單字將自動排入週末補強測驗。</div>
       </div>
     `;
   } else if (isIncomplete) {
@@ -1063,12 +1060,9 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     let unansPills = unansweredList.map(w => `<span class="word-pill-tag neutral" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); window.__sayWord && window.__sayWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer; opacity:0.85;" title="未測單字 (點擊聆聽發音)">${w}</span>`).join("");
 
     wrongContentHtml = `
-      <div style="display:flex; flex-direction:column; gap:8px; width:100%;">
+      <div style="display:flex; flex-direction:column; gap:6px; width:100%;">
         <div style="display:flex; flex-wrap:wrap; gap:6px;">${wrongPills} ${unansPills}</div>
-        <div style="font-size:11.5px; color:var(--ink3); line-height:1.4; margin-top:4px;">⏳ 本次測驗中途作答中斷，尚有單字未完成！</div>
-        <button type="button" onclick="const sc = document.getElementById('btn-summary-close'); if (sc) sc.click();" style="border:none; background:linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color:#fff; padding:6px 14px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:4px; box-shadow:0 2px 6px rgba(245,158,11,0.3); margin-top:2px; width:fit-content;">
-          ▶️ 前往繼續挑戰
-        </button>
+        <div style="font-size:11.5px; color:var(--ink3); line-height:1.4; margin-top:4px;">⏳ 本次測驗中途作答中斷，未完成之單字將排入週末補強測驗。</div>
       </div>
     `;
   } else {
@@ -1278,14 +1272,11 @@ function renderUntestedTaskCardHtml(info, d) {
         </div>
         <div class="word-split-box advice-box">
           <div class="word-split-title advice-title">
-            <span>💡 補考與學習提醒</span>
+            <span>💡 學習提醒</span>
           </div>
-          <div class="word-split-content" style="display:flex; flex-direction:column; justify-content:flex-start; align-items:flex-start; gap:8px; padding:6px 4px; font-size:12.5px; line-height:1.6;">
+          <div class="word-split-content" style="display:flex; flex-direction:column; justify-content:flex-start; align-items:flex-start; gap:6px; padding:6px 4px; font-size:12.5px; line-height:1.6;">
             <div>${adviceText}</div>
-            <div style="font-size:11.5px; opacity:0.85;">可前往測驗專區進行補考挑戰，完成後將自動記錄成績！</div>
-            <button type="button" onclick="const sc = document.getElementById('btn-summary-close'); if (sc) sc.click();" style="border:none; background:linear-gradient(135deg, #10b981 0%, #059669 100%); color:#fff; padding:6px 14px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:4px; box-shadow:0 2px 6px rgba(16,185,129,0.3); margin-top:4px;">
-              🚀 前往遊戲測驗區補考
-            </button>
+            <div style="font-size:11.5px; color:var(--ink3);">📌 提醒：未完成之指定單字將排入週末補強測驗。</div>
           </div>
         </div>
       </div>
