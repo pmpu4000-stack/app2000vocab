@@ -4209,10 +4209,6 @@ function getStudentTodayTaskResult(ss, username, todayStr) {
   return { hasDone: false, inProgress: false, allTodayTasks: [] };
 }
 
-function getTaskWordsDict(ss) {
-  return getTaskWordsDictCached_(ss);
-}
-
 function getStudentDailyTaskHistory(ss, username) {
   if (!username) return [];
 

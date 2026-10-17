@@ -5,14 +5,22 @@
 * **備份倉庫**：`C:\Users\pmpu4\.gemini\antigravity\scratch\app2000vocab-repo`
 * **部署作業目錄**：`C:\Users\pmpu4\Desktop\0906`
 * **GitHub 遠端**：`https://github.com/pmpu4000-stack/app2000vocab.git` (main 分支)
-* **GAS 部署版本**：**Version 218** (Deployment ID: `AKfycbx1hyCNJxqFMoaJgIxfZqLYIYH00NegI1Yd8NJP6gRjqwOndWGkmr-H9tGvVwK_axM9`)
+* **GAS 部署版本**：**Version 219** (Deployment ID: `AKfycbx1hyCNJxqFMoaJgIxfZqLYIYH00NegI1Yd8NJP6gRjqwOndWGkmr-H9tGvVwK_axM9`)
 
-## 2. 系統全面優化、瘦身與無障礙升級 (v4.2 / Version 218)
-* **資安後門徹底拔除**：徹底清除 GAS 後端 `Code.gs` 中所有未經身分驗證之除錯與測試端點（`inspectSpreadsheetSchema`, `setupTestAccountDRecords` 等死碼全數移除，減少 12 KB 後端程式碼）。
+## 2. 系統全面優化、大減肥與瘦身升級 (v4.3 / Version 219)
+* **HTML/CSS 結構大瘦身（減少 119 KB / -43%）**：
+  - 徹底清除 `index.html` 中重複嵌錄之 2,350 行 `<style id="embedded-vocab-tutor-theme">` 內嵌樣式，將所有最新 CSS 規則完整同步回 `css/styles.css`。
+  - `index.html` 體積由 273.8 KB 銳減至 154.7 KB，大幅加速行動裝置載入速度與消除瀏覽器重複解析雙倍 CSS 之卡頓。
+* **靜態核心資產 JSON 壓縮（減少 569 KB / -23%）**：
+  - `data/meanings.json` 進行安全無損 Minify 壓縮（由 2,369 KB 降至 1,814 KB，淨減 554 KB）。
+  - `data/words2000.json` 進行安全無損 Minify 壓縮（由 79.5 KB 降至 65.2 KB，淨減 14.3 KB）。
+  - 全體資料庫驗證 100% 通過（2,055 個單字零遺漏），大幅減輕學生在校園 Wi-Fi 環境之頻寬負載與記憶體解析開銷。
+* **總體瘦身成效**：專案靜態傳輸體積直接減少 **688 KB (逾 0.68 MB)**。
+* **資安後門徹底拔除**：徹底清除 GAS 後端 `Code.gs` 中所有未經身分驗證之除錯與測試端點（`inspectSpreadsheetSchema`, `setupTestAccountDRecords`, `getTaskWordsDict` 等死碼全數移除）。
 * **共用電腦防污染保證**：實作 `purgeAllStudentSessionAndLocalData()`，登出即刻清除記憶體與 LocalStorage，並在下一位學生登入寫入新紀錄前強制清空前手殘留，杜絕紀錄交叉污染。
-* **運作效能瘦身 (Memoization Cache)**：在前端與歷程查詢端之 `resolveTaskWords` 加入記憶體快取，熱力圖 28 天與懸停統計時將 28+ 次重複 `JSON.parse` 與陣列掃描壓縮為 1 次，大幅減輕主執行緒負載。
-* **無障礙 (WCAG 2.1 AA) 全鍵盤與螢幕報讀**：熱力圖各日期方格補齊 `role="button"`、`tabindex="0"`、`aria-label` 完整資訊，並支援 `Enter` / `Space` 鍵切換選取及鍵盤 `focus` / `blur` 報讀，達成無障礙友善介面。
-* **行動端（手機/平板）響應式觸控優化**：窄螢幕（$\le 540\text{px}$）自動轉為 7 欄週曆佈局（4 週 $\times$ 7 天），方格觸控目標放大至 36~40px，按鈕膠囊內距擴大防誤觸，徹底適配行動裝置。
+* **運作效能瘦身 (Memoization Cache)**：在前端與歷程查詢端之 `resolveTaskWords` 加入記憶體快取，熱力圖 28 天與懸停統計時將 28+ 次重複 `JSON.parse` 與陣列掃描壓縮為 1 次。
+* **無障礙 (WCAG 2.1 AA) 全鍵盤與螢幕報讀**：熱力圖各日期方格補齊 `role="button"`、`tabindex="0"`、`aria-label` 完整資訊，並支援 `Enter` / `Space` 鍵切換選取及鍵盤 `focus` / `blur` 報讀。
+* **行動端（手機/平板）響應式觸控優化**：窄螢幕（$\le 540\text{px}$）自動轉為 7 欄週曆佈局（4 週 $\times$ 7 天），方格觸控目標放大至 36~40px，按鈕膠囊內距擴大防誤觸。
 
 ## 3. 資料庫架構 (Google Sheet 30 欄架構) 與熱力圖同步機制
 * **學生工作表**：每位學生獨立分頁 (如 `d`)，具備完整 30 欄分離架構：
