@@ -605,51 +605,59 @@ function getCombinedTaskHistory() {
     }
   } catch(_) {}
 
+  const currentUser = (localStorage.getItem("current_user") || "").trim();
+  const today = new Date();
+  const todayDash = today.getFullYear() + "-" + String(today.getMonth() + 1).padStart(2, "0") + "-" + String(today.getDate()).padStart(2, "0");
+
   try {
     const rawSum = localStorage.getItem("today_task_summary");
     if (rawSum) {
       const s = JSON.parse(rawSum);
-      if (s && s.date && s.taskName && s.taskName !== "自主練習") {
+      const sUser = s && s.username ? String(s.username).trim() : "";
+      if (s && s.date && (!sUser || !currentUser || sUser === currentUser) && s.taskName && s.taskName !== "自主練習") {
         const sNormDate = normalizeDateStr(s.date);
-        const sCleanName = String(s.taskName).replace(/[\(（][^\)）]*[\)）]/g, "").trim().toLowerCase();
-        const existIdx = list.findIndex(item => {
-          if (!item || !item.date) return false;
-          const iNorm = normalizeDateStr(item.date);
-          if (iNorm !== sNormDate) return false;
-          const iClean = String(item.taskName || "").replace(/[\(（][^\)）]*[\)）]/g, "").trim().toLowerCase();
-          return iClean === sCleanName || iClean.includes(sCleanName) || sCleanName.includes(iClean);
-        });
+        if (sNormDate === todayDash) {
+          const sCleanName = String(s.taskName).replace(/[\(（][^\)）]*[\)）]/g, "").trim().toLowerCase();
+          const existIdx = list.findIndex(item => {
+            if (!item || !item.date) return false;
+            const iNorm = normalizeDateStr(item.date);
+            if (iNorm !== sNormDate) return false;
+            const iClean = String(item.taskName || "").replace(/[\(（][^\)）]*[\)）]/g, "").trim().toLowerCase();
+            return iClean === sCleanName || iClean.includes(sCleanName) || sCleanName.includes(iClean);
+          });
 
-        const sWords = (Array.isArray(s.words) && s.words.length > 0)
-          ? s.words.map(w => typeof w === "string" ? w : (w.word || w.display || w.w)).filter(Boolean)
-          : [];
-        const sWrong = (Array.isArray(s.wrongWords) && s.wrongWords.length > 0)
-          ? s.wrongWords.map(w => String(w).trim().toLowerCase()).filter(Boolean)
-          : [];
+          const sWords = (Array.isArray(s.words) && s.words.length > 0)
+            ? s.words.map(w => typeof w === "string" ? w : (w.word || w.display || w.w)).filter(Boolean)
+            : [];
+          const sWrong = (Array.isArray(s.wrongWords) && s.wrongWords.length > 0)
+            ? s.wrongWords.map(w => String(w).trim().toLowerCase()).filter(w => /^[a-zA-Z]+(?:[-'][a-zA-Z]+)*$/.test(w))
+            : [];
 
-        const item = {
-          date: sNormDate,
-          taskName: s.taskName,
-          score: (s.score !== undefined && s.total !== undefined) ? `${s.score}/${s.total}` : "—",
-          rate: s.rate || "—",
-          status: s.completed ? "🟢 已完成" : "🟡 作答中",
-          updatedAt: s.updatedAt || `${sNormDate} (今日)`,
-          wrongWords: sWrong,
-          words: sWords
-        };
-
-        if (existIdx >= 0) {
-          const old = list[existIdx];
-          const mergedWords = (sWords.length > 0) ? sWords : (Array.isArray(old.words) ? old.words : []);
-          const mergedWrong = (sWrong.length > 0) ? sWrong : (Array.isArray(old.wrongWords) ? old.wrongWords : []);
-          list[existIdx] = {
-            ...old,
-            ...item,
-            words: mergedWords,
-            wrongWords: mergedWrong
+          const item = {
+            date: sNormDate,
+            taskName: s.taskName,
+            score: (s.score !== undefined && s.total !== undefined) ? `${s.score}/${s.total}` : "—",
+            rate: s.rate || "—",
+            status: s.completed ? "🟢 已完成" : "🟡 作答中",
+            updatedAt: s.updatedAt || `${sNormDate} (今日)`,
+            wrongWords: sWrong,
+            words: sWords
           };
-        } else {
-          list.unshift(item);
+
+          if (existIdx >= 0) {
+            const old = list[existIdx];
+            const mergedWords = (sWords.length > 0) ? sWords : (Array.isArray(old.words) ? old.words : []);
+            const mergedWrong = (sWrong.length > 0) ? sWrong : (Array.isArray(old.wrongWords) ? old.wrongWords : []);
+            const keepOldCompleted = old.status && String(old.status).includes("已完成") && !s.completed;
+            list[existIdx] = {
+              ...old,
+              ...(keepOldCompleted ? {} : item),
+              words: mergedWords,
+              wrongWords: mergedWrong
+            };
+          } else {
+            list.unshift(item);
+          }
         }
       }
     }
@@ -661,8 +669,9 @@ function getCombinedTaskHistory() {
                         localStorage.getItem("assigned_task_backup");
     if (rawAssigned) {
       const a = JSON.parse(rawAssigned);
-      if (a && (a.hasTask || a.alreadyCompleted) && a.taskName && a.taskName !== "自主練習") {
-        const dStr = normalizeDateStr(a.date || new Date().toISOString().split("T")[0]);
+      const aUser = a && a.username ? String(a.username).trim() : "";
+      if (a && a.date && (!aUser || !currentUser || aUser === currentUser) && (a.hasTask || a.alreadyCompleted) && a.taskName && a.taskName !== "自主練習") {
+        const dStr = normalizeDateStr(a.date);
         const aClean = String(a.taskName).replace(/[\(（][^\)）]*[\)）]/g, "").trim().toLowerCase();
         const aWords = (Array.isArray(a.words) && a.words.length > 0)
           ? a.words.map(w => typeof w === "string" ? w : (w.word || w.display || w.w)).filter(Boolean)
@@ -679,7 +688,7 @@ function getCombinedTaskHistory() {
           if ((!exist.words || exist.words.length === 0) && aWords.length > 0) {
             exist.words = aWords;
           }
-        } else {
+        } else if (dStr === todayDash) {
           list.unshift({
             date: dStr,
             taskName: a.taskName,
@@ -687,12 +696,31 @@ function getCombinedTaskHistory() {
             rate: a.rate || "—",
             status: a.alreadyCompleted ? "🟢 已完成" : "🟡 待完成",
             updatedAt: "今日指定任務",
-            wrongWords: a.wrongWords || [],
+            wrongWords: (a.wrongWords || []).filter(w => /^[a-zA-Z]+(?:[-'][a-zA-Z]+)*$/.test(String(w).trim())),
             words: aWords
           });
         }
       }
     }
+  } catch(_) {}
+
+  // 清理 localStorage 中不屬於實際指派任務日期的殘留 task_words_* 快取
+  const validTaskDates = new Set(
+    list.filter(r => r && r.date && r.taskName && r.taskName !== "自主練習" && !String(r.taskName).includes("未指派"))
+        .map(r => normalizeDateStr(r.date))
+  );
+  try {
+    const keysToRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith("task_words_")) {
+        const kDate = normalizeDateStr(k.slice("task_words_".length));
+        if (kDate && kDate !== todayDash && validTaskDates.size > 0 && !validTaskDates.has(kDate)) {
+          keysToRemove.push(k);
+        }
+      }
+    }
+    keysToRemove.forEach(k => localStorage.removeItem(k));
   } catch(_) {}
 
   // 遍歷所有歷史紀錄，若某筆的 words 為空，嘗試從專屬快取 task_words_YYYY-MM-DD 自動補齊
@@ -705,7 +733,18 @@ function getCombinedTaskHistory() {
       if (cached) {
         const arr = JSON.parse(cached);
         if (Array.isArray(arr) && arr.length > 0) {
-          rec.words = arr.map(w => typeof w === "string" ? w : (w.word || w.display || w.w)).filter(Boolean);
+          let expTot = 0;
+          if (rec.score && String(rec.score).includes("/")) {
+            expTot = parseInt(String(rec.score).split("/")[1], 10) || 0;
+          } else if (rec.attempts) {
+            expTot = parseInt(rec.attempts, 10) || 0;
+          }
+          // 防止舊版誤將累積數十個單字寫入單日 5 字任務快取
+          if (expTot > 0 && arr.length > expTot * 2 && arr.length > 15) {
+            localStorage.removeItem("task_words_" + nDate);
+          } else {
+            rec.words = arr.map(w => typeof w === "string" ? w : (w.word || w.display || w.w)).filter(Boolean);
+          }
         }
       }
     } catch(_) {}
@@ -737,103 +776,19 @@ export function formatRatePercentage(rawRate, scoreStr) {
   return s;
 }
 
+function isValidEnglishWordStr(w) {
+  if (!w || typeof w !== "string") return false;
+  const s = w.trim();
+  if (!s || /^w\d+$/i.test(s)) return false;
+  return /^[a-zA-Z]+(?:[-'][a-zA-Z]+)*$/.test(s);
+}
+
 function resolveTaskWords(record, selectedDate, d) {
-  if (!record) return { rawWords: [], wrongList: [], correctList: [] };
+  if (!record) return { rawWords: [], wrongList: [], correctList: [], hadCorrectThenWrongList: [] };
 
   const normDate = normalizeDateStr(selectedDate || record.date || "");
   const slashDate = normDate.replace(/-/g, "/");
   let pool = [];
-
-  // 1. 若 record.words 已有單字陣列
-  if (Array.isArray(record.words) && record.words.length > 0) {
-    pool = record.words.map(w => typeof w === "string" ? w : (w.word || w.display || w.w)).filter(Boolean);
-  }
-
-  // 2. 從 localStorage 專用當日任務單字快取提取 (task_words_YYYY-MM-DD)
-  if (pool.length === 0) {
-    try {
-      const raw = localStorage.getItem("task_words_" + normDate) || localStorage.getItem("task_words_" + slashDate);
-      if (raw) {
-        const arr = JSON.parse(raw);
-        if (Array.isArray(arr) && arr.length > 0) {
-          pool = arr.map(w => typeof w === "string" ? w : (w.word || w.display || w.w)).filter(Boolean);
-        }
-      }
-    } catch(_) {}
-  }
-
-  // 3. 從 today_task_summary 提取
-  if (pool.length === 0) {
-    try {
-      const rawSum = localStorage.getItem("today_task_summary");
-      if (rawSum) {
-        const s = JSON.parse(rawSum);
-        if (s && normalizeDateStr(s.date) === normDate && Array.isArray(s.words) && s.words.length > 0) {
-          pool = s.words.map(w => typeof w === "string" ? w : (w.word || w.display || w.w)).filter(Boolean);
-        }
-      }
-    } catch(_) {}
-  }
-
-  // 4. 從 today_task_in_progress 提取
-  if (pool.length === 0) {
-    try {
-      const rawProg = localStorage.getItem("today_task_in_progress");
-      if (rawProg) {
-        const p = JSON.parse(rawProg);
-        if (p && normalizeDateStr(p.date) === normDate && Array.isArray(p.pool) && p.pool.length > 0) {
-          pool = p.pool.map(w => typeof w === "string" ? w : (w.word || w.display || w.w)).filter(Boolean);
-        }
-      }
-    } catch(_) {}
-  }
-
-  // 5. 從 assigned_task / assigned_task_active / assigned_task_backup 提取
-  if (pool.length === 0) {
-    try {
-      const rawAssigned = sessionStorage.getItem("assigned_task") || 
-                          localStorage.getItem("assigned_task_active") || 
-                          localStorage.getItem("assigned_task_backup");
-      if (rawAssigned) {
-        const a = JSON.parse(rawAssigned);
-        if (a && Array.isArray(a.words) && a.words.length > 0) {
-          const aDate = normalizeDateStr(a.date || "");
-          if (!aDate || aDate === normDate) {
-            pool = a.words.map(w => typeof w === "string" ? w : (w.word || w.display || w.w)).filter(Boolean);
-          }
-        }
-      }
-    } catch(_) {}
-  }
-
-  // 6. 從 student_task_history 其它符合該日期的項目提取
-  if (pool.length === 0) {
-    try {
-      const rawHist = localStorage.getItem("student_task_history");
-      if (rawHist) {
-        const hist = JSON.parse(rawHist);
-        if (Array.isArray(hist)) {
-          const matchItem = hist.find(item => item && normalizeDateStr(item.date) === normDate && Array.isArray(item.words) && item.words.length > 0);
-          if (matchItem) {
-            pool = matchItem.words.map(w => typeof w === "string" ? w : (w.word || w.display || w.w)).filter(Boolean);
-          }
-        }
-      }
-    } catch(_) {}
-  }
-
-  // 整理答錯單字並將 w0/w1 代號轉為實際單字
-  let wrongList = Array.from(new Set(
-    (record.wrongWords || [])
-      .map(w => resolveWordStr(w, d).toLowerCase())
-      .filter(w => w && !/^w\d+$/i.test(w))
-  )).sort((a, b) => a.localeCompare(b));
-
-  pool = pool.map(w => resolveWordStr(w, d).toLowerCase()).filter(w => w && !/^w\d+$/i.test(w));
-
-  if (pool.length === 0 && wrongList.length > 0) {
-    pool = [...wrongList];
-  }
 
   // 解析預期答對題數與總題數
   let expectedCorrect = -1;
@@ -852,13 +807,106 @@ function resolveTaskWords(record, selectedDate, d) {
   if (isNaN(expectedCorrect)) expectedCorrect = -1;
   if (isNaN(expectedTotal)) expectedTotal = -1;
 
+  // 1. 若 record.words 已有單字陣列
+  if (Array.isArray(record.words) && record.words.length > 0) {
+    pool = record.words.map(w => typeof w === "string" ? w : (w.word || w.display || w.w)).filter(Boolean);
+  }
+
+  // 2. 從 localStorage 專用當日任務單字快取提取 (task_words_YYYY-MM-DD)
+  if (pool.length === 0 && normDate) {
+    try {
+      const raw = localStorage.getItem("task_words_" + normDate) || localStorage.getItem("task_words_" + slashDate);
+      if (raw) {
+        const arr = JSON.parse(raw);
+        if (Array.isArray(arr) && arr.length > 0) {
+          if (!(expectedTotal > 0 && arr.length > expectedTotal * 2 && arr.length > 15)) {
+            pool = arr.map(w => typeof w === "string" ? w : (w.word || w.display || w.w)).filter(Boolean);
+          }
+        }
+      }
+    } catch(_) {}
+  }
+
+  // 3. 從 today_task_summary 提取 (須日期完全相符)
+  if (pool.length === 0 && normDate) {
+    try {
+      const rawSum = localStorage.getItem("today_task_summary");
+      if (rawSum) {
+        const s = JSON.parse(rawSum);
+        if (s && normalizeDateStr(s.date) === normDate && Array.isArray(s.words) && s.words.length > 0) {
+          pool = s.words.map(w => typeof w === "string" ? w : (w.word || w.display || w.w)).filter(Boolean);
+        }
+      }
+    } catch(_) {}
+  }
+
+  // 4. 從 today_task_in_progress 提取 (須日期完全相符)
+  if (pool.length === 0 && normDate) {
+    try {
+      const rawProg = localStorage.getItem("today_task_in_progress");
+      if (rawProg) {
+        const p = JSON.parse(rawProg);
+        if (p && normalizeDateStr(p.date) === normDate && Array.isArray(p.pool) && p.pool.length > 0) {
+          pool = p.pool.map(w => typeof w === "string" ? w : (w.word || w.display || w.w)).filter(Boolean);
+        }
+      }
+    } catch(_) {}
+  }
+
+  // 5. 從 assigned_task / assigned_task_active / assigned_task_backup 提取 (須明確帶有相同日期)
+  if (pool.length === 0 && normDate) {
+    try {
+      const rawAssigned = sessionStorage.getItem("assigned_task") || 
+                          localStorage.getItem("assigned_task_active") || 
+                          localStorage.getItem("assigned_task_backup");
+      if (rawAssigned) {
+        const a = JSON.parse(rawAssigned);
+        if (a && Array.isArray(a.words) && a.words.length > 0) {
+          const aDate = normalizeDateStr(a.date || "");
+          if (aDate && aDate === normDate) {
+            pool = a.words.map(w => typeof w === "string" ? w : (w.word || w.display || w.w)).filter(Boolean);
+          }
+        }
+      }
+    } catch(_) {}
+  }
+
+  // 6. 從 student_task_history 其它符合該日期的項目提取
+  if (pool.length === 0 && normDate) {
+    try {
+      const rawHist = localStorage.getItem("student_task_history");
+      if (rawHist) {
+        const hist = JSON.parse(rawHist);
+        if (Array.isArray(hist)) {
+          const matchItem = hist.find(item => item && normalizeDateStr(item.date) === normDate && Array.isArray(item.words) && item.words.length > 0);
+          if (matchItem) {
+            pool = matchItem.words.map(w => typeof w === "string" ? w : (w.word || w.display || w.w)).filter(Boolean);
+          }
+        }
+      }
+    } catch(_) {}
+  }
+
+  // 整理答錯單字並過濾非英文單字之狀態註記（如 (應測單字)、(未完成)、—）
+  let wrongList = Array.from(new Set(
+    (record.wrongWords || [])
+      .map(w => resolveWordStr(w, d).toLowerCase())
+      .filter(w => isValidEnglishWordStr(w))
+  )).sort((a, b) => a.localeCompare(b));
+
+  pool = pool.map(w => resolveWordStr(w, d).toLowerCase()).filter(w => isValidEnglishWordStr(w));
+
+  if (pool.length === 0 && wrongList.length > 0) {
+    pool = [...wrongList];
+  }
+
   const wrongSet = new Set(wrongList.map(w => w.toLowerCase()));
   let rawWords = Array.from(new Set(pool.map(w => String(w).trim().toLowerCase()).filter(Boolean)));
   
   // 若 record 本身有明確記錄 correctWords，優先載入
   const explicitCorrect = (Array.isArray(record.correctWords) ? record.correctWords : [])
     .map(w => resolveWordStr(w, d).toLowerCase())
-    .filter(Boolean);
+    .filter(w => isValidEnglishWordStr(w));
 
   let correctList = [];
   explicitCorrect.forEach(w => {
@@ -867,22 +915,6 @@ function resolveTaskWords(record, selectedDate, d) {
   rawWords.forEach(w => {
     if (!wrongSet.has(w) && !correctList.includes(w)) correctList.push(w);
   });
-
-  // 8. 若預期答對題數大於目前已識別的答對單字數，從當日受測紀錄與 DB.stat 智能補齊
-  if (expectedCorrect > 0 && correctList.length < expectedCorrect) {
-    const allWords = (d && d.allPracticedWords) || [];
-    const candidates = allWords.filter(w => {
-      const wordStr = resolveWordStr(w.word || w, d).toLowerCase();
-      return wordStr && !/^w\d+$/i.test(wordStr) && !wrongSet.has(wordStr) && !correctList.includes(wordStr);
-    });
-    candidates.sort((a, b) => (b.correct || 0) - (a.correct || 0));
-    const need = expectedCorrect - correctList.length;
-    const added = candidates.slice(0, need).map(w => resolveWordStr(w.word || w, d).toLowerCase());
-    added.forEach(w => {
-      if (!rawWords.includes(w)) rawWords.push(w);
-      if (!correctList.includes(w)) correctList.push(w);
-    });
-  }
 
   // 嚴格保證：若有明確答對題數 expectedCorrect，答對單字列表長度絕不超過 expectedCorrect！
   if (expectedCorrect >= 0) {
@@ -916,16 +948,7 @@ function resolveTaskWords(record, selectedDate, d) {
 
   const hadCorrectThenWrongList = (Array.isArray(record.hadCorrectThenWrong) ? record.hadCorrectThenWrong : [])
     .map(w => resolveWordStr(w, d).toLowerCase())
-    .filter(Boolean);
-
-  // 回寫快取防止刷新遺失
-  if (rawWords.length > 0) {
-    record.words = rawWords;
-    record.correctWords = correctList;
-    try {
-      localStorage.setItem("task_words_" + normDate, JSON.stringify(rawWords));
-    } catch(_) {}
-  }
+    .filter(w => isValidEnglishWordStr(w));
 
   return { rawWords, wrongList, correctList, hadCorrectThenWrongList };
 }
@@ -1271,36 +1294,19 @@ function buildTaskDetailsHtml(records, selectedDate, d) {
     .filter(r => r && r.taskName && r.taskName !== "自主練習" && !r.taskName.includes("自由練習") && !r.taskName.includes("未指派"));
 
   const normDate = normalizeDateStr(selectedDate);
-  const slashDate = normDate.replace(/-/g, "/");
 
-  // 1. 取得當日指派單字與任務名稱
+  // 1. 僅從明確的備份任務歷程（如學習歷程頁 cachedBackupTaskHistory）檢查是否指派，絕不單憑殘留的 task_words_* 快取誤判為有指派
   let assignedWords = [];
   let taskName = "";
-
-  try {
-    const rawWords = localStorage.getItem("task_words_" + normDate) || localStorage.getItem("task_words_" + slashDate);
-    if (rawWords) assignedWords = JSON.parse(rawWords);
-  } catch(_) {}
-
-  try {
-    const rawSum = localStorage.getItem("today_task_summary");
-    if (rawSum) {
-      const s = JSON.parse(rawSum);
-      if (s && normalizeDateStr(s.date) === normDate) {
-        taskName = s.taskName || s.name || "";
-        if ((!assignedWords || assignedWords.length === 0) && s.words) assignedWords = s.words;
-      }
-    }
-  } catch(_) {}
 
   if (Array.isArray(window.cachedBackupTaskHistory)) {
     const matched = window.cachedBackupTaskHistory.find(h => {
       const hDate = String(h.date || "").trim().split(" ")[0].replace(/\//g, "-");
-      return hDate === normDate;
+      return normalizeDateStr(hDate) === normDate;
     });
-    if (matched) {
-      if (!taskName) taskName = matched.taskName || matched.name || "";
-      if ((!assignedWords || assignedWords.length === 0) && matched.words) assignedWords = matched.words;
+    if (matched && matched.taskName && matched.taskName !== "自主練習" && !String(matched.taskName).includes("未指派")) {
+      taskName = matched.taskName || matched.name || "";
+      if (Array.isArray(matched.words)) assignedWords = matched.words;
     }
   }
 
@@ -1308,9 +1314,9 @@ function buildTaskDetailsHtml(records, selectedDate, d) {
   const freeRec = resolveDailyPracticeRecord(selectedDate, d, records);
   const hasLoggedInOrFree = !!(freeRec && (freeRec.attempts > 0 || freeRec.correct > 0));
 
-  const isUntestedRecord = (Array.isArray(records) && records.some(r => r && r.status && r.status.includes("未受測"))) ||
-                           (!Array.isArray(records) && records && records.status && records.status.includes("未受測"));
-  const isAssigned = isUntestedRecord || (assignedWords && assignedWords.length > 0) || !!taskName;
+  const isUntestedRecord = (Array.isArray(records) && records.some(r => r && r.status && r.status.includes("未受測") && r.taskName && !r.taskName.includes("未指派"))) ||
+                           (!Array.isArray(records) && records && records.status && records.status.includes("未受測") && records.taskName && !records.taskName.includes("未指派"));
+  const isAssigned = isUntestedRecord || !!taskName;
 
   if (list.length === 0) {
     if (isAssigned) {
@@ -1383,7 +1389,7 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
   const wrongCount = (record.wrong !== undefined) ? record.wrong : Math.max(0, attempts - correct);
   const rate = attempts > 0 ? Math.round((correct / attempts) * 100) : 0;
 
-  // 整理當日練習單字清單 (僅呈現該日實際練習狀況，非累積狀況)
+  // 整理當日練習單字清單 (僅呈現該日實際練習狀況，絕不從累積單字跨日偽造)
   const wordsMap = record.words || {};
   let correctList = [];
   let wrongList = [];
@@ -1392,70 +1398,39 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
     const info = wordsMap[k];
     const rawW = (typeof info === "object" && info && info.word) ? info.word : k;
     const wName = resolveWordStr(rawW, d).toLowerCase();
-    if (!wName || /^w\d+$/i.test(wName)) return;
-    const hasWrong = (info && info.wrong > 0);
-    const hasCorrect = (info && (info.correct > 0 || info.passed));
+    if (!isValidEnglishWordStr(wName)) return;
+
+    const wAtt = (typeof info === "object" && info) ? (info.attempts !== undefined ? info.attempts : (info.a !== undefined ? info.a : 1)) : 1;
+    const wCor = (typeof info === "object" && info) ? (info.correct !== undefined ? info.correct : (info.c !== undefined ? info.c : (info.passed ? 1 : 0))) : 1;
+    const wWrg = (typeof info === "object" && info) ? (info.wrong !== undefined ? info.wrong : Math.max(0, wAtt - wCor)) : 0;
+    const hasWrong = wWrg > 0 || (info && info.lastResult === "wrong");
+    const hasCorrect = wCor > 0 || (info && (info.passed || info.lastResult === "correct"));
 
     if (hasWrong) {
       wrongList.push({
         word: wName,
-        attempts: (typeof info === "object" && info.attempts) ? info.attempts : 1,
-        wrong: (typeof info === "object" && info.wrong) ? info.wrong : 1,
-        correct: (typeof info === "object" && info.correct) ? info.correct : (info && info.passed ? 1 : 0),
-        hadCorrectThenWrong: !!(typeof info === "object" && (info.hadCorrectThenWrong || (info.lastResult === "wrong" && info.correct > 0))),
-        lastResult: (typeof info === "object" && info.lastResult) ? info.lastResult : ""
+        attempts: wAtt || 1,
+        wrong: wWrg || 1,
+        correct: wCor || 0,
+        hadCorrectThenWrong: !!(typeof info === "object" && info && (info.hadCorrectThenWrong || (info.lastResult === "wrong" && wCor > 0))),
+        lastResult: (typeof info === "object" && info && info.lastResult) ? info.lastResult : ""
       });
     } else if (hasCorrect) {
       correctList.push({
         word: wName,
-        attempts: (typeof info === "object" && info.attempts) ? info.attempts : 1,
-        correct: (typeof info === "object" && info.correct) ? info.correct : 1
+        attempts: wAtt || 1,
+        correct: wCor || 1
       });
-    } else {
-      correctList.push({ word: wName, attempts: (info && info.attempts) || 1, correct: 1 });
     }
   });
 
-  // 【核心修復】：若該日有作答題數但 words 為空，從 d.allPracticedWords 智能動態還原出受測單字細節！
-  if (correctList.length === 0 && wrongList.length === 0 && attempts > 0) {
-    const allWords = ((d && d.allPracticedWords) || []).map(w => ({
-      ...w,
-      word: resolveWordStr(w.word || w, d).toLowerCase()
-    })).filter(w => w.word && !/^w\d+$/i.test(w.word));
-
-    // 1. 補齊答錯單字
-    if (wrongCount > 0 && allWords.length > 0) {
-      const wrongCands = allWords.filter(w => (w.wrong > 0 || w.ew));
-      wrongCands.sort((a, b) => (b.wrong || 0) - (a.wrong || 0));
-      const pickedWrong = wrongCands.slice(0, wrongCount);
-      pickedWrong.forEach(w => {
-        wrongList.push({ word: w.word, attempts: w.attempts || 1, wrong: w.wrong || 1, correct: w.correct || 0 });
-      });
-
-      if (wrongList.length < wrongCount) {
-        const remaining = allWords.filter(w => !wrongList.some(wl => wl.word === w.word)).slice(0, wrongCount - wrongList.length);
-        remaining.forEach(w => {
-          wrongList.push({ word: w.word, attempts: w.attempts || 1, wrong: 1, correct: w.correct || 0 });
-        });
+  if (wrongList.length === 0 && Array.isArray(record.freeWrongWords) && record.freeWrongWords.length > 0) {
+    record.freeWrongWords.forEach(rawW => {
+      const wName = resolveWordStr(rawW, d).toLowerCase();
+      if (isValidEnglishWordStr(wName) && !wrongList.some(x => x.word === wName) && !correctList.some(x => x.word === wName)) {
+        wrongList.push({ word: wName, attempts: 1, wrong: 1, correct: 0, hadCorrectThenWrong: false, lastResult: "wrong" });
       }
-    }
-
-    // 2. 補齊答對單字
-    if (correct > 0 && allWords.length > 0) {
-      const correctCands = allWords.filter(w => w.correct > 0 && !wrongList.some(wl => wl.word === w.word));
-      correctCands.sort((a, b) => (b.correct || 0) - (a.correct || 0));
-      const pickedCorrect = correctCands.slice(0, correct);
-      pickedCorrect.forEach(w => {
-        correctList.push({ word: w.word, attempts: w.attempts || 1, correct: w.correct || 1 });
-      });
-
-      if (correctList.length < correct) {
-        const remaining = allWords.filter(w => !wrongList.some(wl => wl.word === w.word) && !correctList.some(cl => cl.word === w.word)).slice(0, correct - correctList.length);
-        remaining.forEach(w => {
-          correctList.push({ word: w.word, attempts: w.attempts || 1, correct: 1 });
-        });
-      }
-    }
+    });
   }
 
   correctList.sort((a, b) => a.word.localeCompare(b.word));
@@ -1566,90 +1541,88 @@ function resolveDailyPracticeRecord(dateStr, d, historyList) {
   const unpadYMD = (parts.length === 3) ? `${parts[0]}-${parseInt(parts[1], 10)}-${parseInt(parts[2], 10)}` : normYMD;
   const slashYMD = normYMD.replace(/-/g, "/");
 
-  const today = new Date();
-  const todayDash = today.getFullYear() + "-" + String(today.getMonth() + 1).padStart(2, "0") + "-" + String(today.getDate()).padStart(2, "0");
-  const isToday = (normYMD === todayDash || dateStr === todayDash);
+  // 先查考 student_task_history 是否有該日自由練習欄位
+  let matchedRow = null;
+  let thFreeAtt = 0, thFreeCor = 0;
+  try {
+    const listToScan = JSON.parse(localStorage.getItem("student_task_history") || "[]");
+    const combinedScan = (Array.isArray(listToScan) && listToScan.length > 0) ? listToScan : (Array.isArray(historyList) ? historyList : []);
+    matchedRow = combinedScan.find(item => item && item.date && normalizeDateStr(item.date) === normYMD) || null;
+    if (matchedRow) {
+      const isSelfRow = (matchedRow.taskName === "自主練習");
+      thFreeAtt = parseInt(matchedRow.freeTested !== undefined ? matchedRow.freeTested : (isSelfRow ? matchedRow.attempts : 0)) || 0;
+      thFreeCor = parseInt(matchedRow.freeCorrect !== undefined ? matchedRow.freeCorrect : (isSelfRow ? matchedRow.correct : 0)) || 0;
+    }
+  } catch (_) {}
 
-  // 1. 從 d.dailyPractice 尋找
+  // 1. 從 d.dailyPractice 尋找 (僅採納具有真實當日單字紀錄者，排除舊版從累積單字自動回填的虛擬物件)
   const dpMap = (d && d.dailyPractice) || {};
   let rec = dpMap[normYMD] || dpMap[unpadYMD] || dpMap[slashYMD] || dpMap[dateStr] || null;
-  if (rec && (rec.attempts > 0 || (rec.words && Object.keys(rec.words).length > 0))) {
-    let att = 0;
-    let cor = 0;
-    if (rec.words && Object.keys(rec.words).length > 0) {
-      const wList = Object.values(rec.words).filter(Boolean);
-      const isWordCurrentlyWrong = (w) => (w.lastResult === 'wrong') || (w.wrong > 0 && (!w.correct || w.correct === 0));
-      const isWordCurrentlyCorrect = (w) => !isWordCurrentlyWrong(w) && (w.lastResult === 'correct' || (w.correct > 0 && !w.wrong) || w.passed);
-      att = wList.length;
-      cor = wList.filter(isWordCurrentlyCorrect).length;
-    } else {
-      att = rec.attempts || 0;
-      cor = rec.correct || 0;
-    }
+  let hasRealWords = false;
+  let isFabricatedDp = false;
+  if (rec && rec.words && typeof rec.words === "object" && Object.keys(rec.words).length > 0) {
+    const wVals = Object.values(rec.words).filter(Boolean);
+    hasRealWords = wVals.some(w => (w.lastResult === "correct" || w.lastResult === "wrong" || w.a !== undefined));
+    isFabricatedDp = !hasRealWords;
+  }
+
+  if (rec && hasRealWords) {
+    const wList = Object.values(rec.words).filter(Boolean);
+    const isWordStillWrong = (w) => {
+      const wCor = (w.correct !== undefined) ? w.correct : (w.c || 0);
+      const wWrg = (w.wrong !== undefined) ? w.wrong : Math.max(0, (w.a || 0) - wCor);
+      return w.hadCorrectThenWrong || (w.lastResult === 'wrong' && wCor > 0) || (w.lastResult === 'wrong') || (wWrg > 0 && wCor === 0);
+    };
+    const isWordCurrentlyCorrect = (w) => {
+      const wCor = (w.correct !== undefined) ? w.correct : (w.c || 0);
+      return !isWordStillWrong(w) && (w.lastResult === 'correct' || wCor > 0 || w.passed);
+    };
+    const att = wList.length;
+    const cor = wList.filter(isWordCurrentlyCorrect).length;
     return {
       date: normYMD,
       attempts: att,
       correct: cor,
-      wrong: (rec.wrong !== undefined) ? rec.wrong : Math.max(0, att - cor),
-      words: rec.words || {}
+      wrong: Math.max(0, att - cor),
+      words: rec.words,
+      freeWrongWords: (matchedRow && Array.isArray(matchedRow.freeWrongWords)) ? matchedRow.freeWrongWords : []
     };
   }
 
-  // 2. 從 d.rawHistory 尋找 (早期記錄於 DB.history)
-  const hMap = (d && d.rawHistory) || {};
-  const h = hMap[normYMD] || hMap[unpadYMD] || hMap[slashYMD] || hMap[dateStr] || null;
-  if (h) {
-    let hAtt = (h.a !== undefined) ? h.a : (h.attempts !== undefined ? h.attempts : 0);
-    let hCor = (h.c !== undefined) ? h.c : (h.correct !== undefined ? h.correct : 0);
-    if (!hAtt && h.words && typeof h.words === "object") {
-      const wList = Object.values(h.words).filter(Boolean);
-      hAtt = wList.length;
-      hCor = wList.filter(w => (w.c > 0 || w.correct > 0 || w.passed)).length;
-    }
-    if (hAtt > 0) {
-      return {
-        date: normYMD,
-        attempts: hAtt,
-        correct: hCor,
-        wrong: (h.w !== undefined) ? h.w : (h.wrong !== undefined ? h.wrong : Math.max(0, hAtt - hCor)),
-        words: (rec && rec.words) || (h.words || {})
-      };
-    }
-  }
-
-  // 3. 從 student_task_history 或 historyList 尋找自由練習紀錄（包含獨立 freeTested 欄位或標記為自主練習列）
-  try {
-    const listToScan = (Array.isArray(historyList) && historyList.length > 0) ? historyList : JSON.parse(localStorage.getItem("student_task_history") || "[]");
-    if (Array.isArray(listToScan)) {
-      const matchedRow = listToScan.find(item => {
-        if (!item || !item.date) return false;
-        return normalizeDateStr(item.date) === normYMD;
-      });
-      if (matchedRow) {
-        let att = parseInt(matchedRow.freeTested || (matchedRow.taskName === "自主練習" ? matchedRow.attempts : 0)) || 0;
-        let corr = parseInt(matchedRow.freeCorrect || (matchedRow.taskName === "自主練習" ? matchedRow.correct : 0)) || 0;
-        if (att > 0) {
-          return {
-            date: normYMD,
-            attempts: att,
-            correct: corr,
-            wrong: Math.max(0, att - corr),
-            words: (rec && rec.words) || {}
-          };
-        }
-      }
-    }
-  } catch (_) {}
-
-  // 4. 若為今天且當日 session 有即時作答
-  if (isToday && d && d.session && normalizeDateStr(d.session.date) === todayDash && d.session.answered > 0) {
+  // 2. 若試算表有明確自由練習字數 (thFreeAtt > 0)
+  if (thFreeAtt > 0) {
     return {
       date: normYMD,
-      attempts: d.session.answered,
-      correct: d.session.correct,
-      wrong: Math.max(0, d.session.answered - d.session.correct),
-      words: (rec && rec.words) || {}
+      attempts: thFreeAtt,
+      correct: thFreeCor,
+      wrong: Math.max(0, thFreeAtt - thFreeCor),
+      words: {},
+      freeWrongWords: (matchedRow && Array.isArray(matchedRow.freeWrongWords)) ? matchedRow.freeWrongWords : []
     };
+  }
+
+  // 若試算表已存在該日紀錄且明確記載自由練習字數為 0，代表無自由練習（不退回受指定測驗污染的 rawHistory）
+  if (matchedRow && thFreeAtt === 0) {
+    return null;
+  }
+
+  // 3. 從 d.rawHistory 尋找（僅在非虛擬回填且無試算表 0 字紀錄時採計）
+  if (!isFabricatedDp) {
+    const hMap = (d && d.rawHistory) || {};
+    const h = hMap[normYMD] || hMap[unpadYMD] || hMap[slashYMD] || hMap[dateStr] || null;
+    if (h) {
+      let hAtt = (h.a !== undefined) ? h.a : (h.attempts !== undefined ? h.attempts : 0);
+      let hCor = (h.c !== undefined) ? h.c : (h.correct !== undefined ? h.correct : 0);
+      if (hAtt > 0) {
+        return {
+          date: normYMD,
+          attempts: hAtt,
+          correct: hCor,
+          wrong: (h.w !== undefined) ? h.w : (h.wrong !== undefined ? h.wrong : Math.max(0, hAtt - hCor)),
+          words: (h.words && typeof h.words === "object") ? h.words : {}
+        };
+      }
+    }
   }
 
   return null;
@@ -1678,27 +1651,17 @@ export function renderSummary(d) {
   const dateSet = new Set();
   dateSet.add(todayDash);
   historyList.forEach(item => {
-    if (item && item.date && (!item.taskName || item.taskName !== "自主練習")) {
+    if (item && item.date && (!item.taskName || (item.taskName !== "自主練習" && !String(item.taskName).includes("未指派")))) {
       const nd = normalizeDateStr(item.date);
       if (nd) dateSet.add(nd);
     }
   });
-  Object.keys(dailyPracticeMap).forEach(dateStr => {
-    const dp = dailyPracticeMap[dateStr];
-    if (dp && (dp.attempts > 0 || (dp.words && Object.keys(dp.words).length > 0))) {
-      const nd = normalizeDateStr(dateStr);
-      if (nd) dateSet.add(nd);
-    }
-  });
-  if (d.rawHistory) {
-    Object.keys(d.rawHistory).forEach(dateStr => {
-      if (d.rawHistory[dateStr] && d.rawHistory[dateStr].a > 0) {
-        const nd = normalizeDateStr(dateStr);
-        if (nd) dateSet.add(nd);
-      }
-    });
-  }
-  practiceDates.forEach(dateStr => {
+  const candidateFreeDates = new Set([
+    ...Object.keys(dailyPracticeMap),
+    ...Object.keys(d.rawHistory || {}),
+    ...practiceDates
+  ]);
+  candidateFreeDates.forEach(dateStr => {
     const nd = normalizeDateStr(dateStr);
     if (nd) {
       const recF = resolveDailyPracticeRecord(nd, d, historyList);
@@ -1727,17 +1690,11 @@ export function renderSummary(d) {
 
   const buildOptionLabel = (dateStr) => {
     const isToday = (dateStr === todayDash);
-    const matchedTask = historyList.find(item => normalizeDateStr(item.date) === dateStr && (!item.taskName || item.taskName !== "自主練習"));
+    const matchedTask = historyList.find(item => normalizeDateStr(item.date) === dateStr && (!item.taskName || (item.taskName !== "自主練習" && !String(item.taskName).includes("未指派"))));
     const recFree = resolveDailyPracticeRecord(dateStr, d, historyList);
     
-    let freeTestedWords = 0, freeCorrWords = 0;
-    if (recFree && recFree.words && Object.keys(recFree.words).length > 0) {
-      freeTestedWords = Object.keys(recFree.words).length;
-      freeCorrWords = Object.values(recFree.words).filter(w => w && (w.correct > 0 || w.passed)).length;
-    } else if (recFree) {
-      freeTestedWords = recFree.attempts || 0;
-      freeCorrWords = recFree.correct || 0;
-    }
+    const freeTestedWords = recFree ? (recFree.attempts || 0) : 0;
+    const freeCorrWords = recFree ? (recFree.correct || 0) : 0;
 
     let desc = "";
     if (matchedTask && freeTestedWords > 0) desc = ` [指派: ${matchedTask.taskName}] [自由: ${freeCorrWords}/${freeTestedWords}字]`;
@@ -2207,14 +2164,20 @@ export function renderSummary(d) {
       datePicker.value = targetDate;
     }
 
-    // 更新快速跳轉選單（若切換至未在清單內的日期，動態補入選項，確保選單不空白且能隨時切回有紀錄日期）
+    // 更新快速跳轉選單（若切換至未在清單內的日期，動態顯示當前日期但切換後自動移除臨時無紀錄項）
     const quickSelect = $("#record-quick-dates");
     if (quickSelect) {
+      Array.from(quickSelect.options).forEach(opt => {
+        if (opt.getAttribute("data-temp-unrecorded") === "1" && opt.value !== targetDate) {
+          opt.remove();
+        }
+      });
       let hasOpt = Array.from(quickSelect.options).some(opt => opt.value === targetDate);
       if (!hasOpt) {
         const newOpt = document.createElement("option");
         newOpt.value = targetDate;
         newOpt.textContent = buildOptionLabel(targetDate);
+        newOpt.setAttribute("data-temp-unrecorded", "1");
         quickSelect.appendChild(newOpt);
       }
       if (quickSelect.value !== targetDate) {

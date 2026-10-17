@@ -2206,6 +2206,103 @@ function quickToggleTodayUnlock(param1, param2) {
 // 3. Web API 端點 (doPost / doGet)
 // ════════════════════════════════════════════════════════════════════
 
+/**
+ * 自動清理學生備份 JSON 中可能殘留的舊版污染資料：
+ * 1. 移除 dailyPractice 中無真實當日作答特徵 (無 lastResult 且無 a) 的累積單字偽造紀錄
+ * 2. 對照試算表真實列 (dailyTaskHistory)，若該日明確為 freeTested === 0，清除該日殘留的 dailyPractice 與 history
+ * 3. 移除過長 (>30字) 或非指派任務日的孤兒 task_words_* 快取
+ */
+function sanitizeStudentRecordsObj_(records, dailyTaskHistory) {
+  if (!records || typeof records !== "object") return;
+  try {
+    const zeroFreeDates = new Set();
+    const validTaskDates = new Set();
+    if (Array.isArray(dailyTaskHistory)) {
+      dailyTaskHistory.forEach(item => {
+        if (!item || !item.date) return;
+        const dStr = formatStandardDateYMD(item.date);
+        if (!dStr) return;
+        if (item.freeTested !== undefined && Number(item.freeTested) === 0) {
+          zeroFreeDates.add(dStr);
+          zeroFreeDates.add(dStr.replace(/-/g, "/"));
+        }
+        const tName = String(item.taskName || "");
+        if (tName && tName !== "⚪ 未指派" && tName !== "自主練習" && !tName.includes("自由練習")) {
+          validTaskDates.add(dStr);
+          validTaskDates.add(dStr.replace(/-/g, "/"));
+        }
+      });
+    }
+
+    if (records["spellAgent.v2"]) {
+      let agentObj = (typeof records["spellAgent.v2"] === "string")
+        ? JSON.parse(records["spellAgent.v2"])
+        : records["spellAgent.v2"];
+      if (agentObj && typeof agentObj === "object") {
+        let modified = false;
+        if (agentObj.dailyPractice && typeof agentObj.dailyPractice === "object") {
+          Object.keys(agentObj.dailyPractice).forEach(dk => {
+            const normDk = formatStandardDateYMD(dk) || dk;
+            if (zeroFreeDates.has(normDk) || zeroFreeDates.has(dk)) {
+              delete agentObj.dailyPractice[dk];
+              modified = true;
+              return;
+            }
+            const dpEntry = agentObj.dailyPractice[dk];
+            if (dpEntry && dpEntry.words && typeof dpEntry.words === "object") {
+              const wKeys = Object.keys(dpEntry.words);
+              if (wKeys.length > 0) {
+                const hasReal = wKeys.some(k => {
+                  const w = dpEntry.words[k];
+                  return w && typeof w === "object" && (w.lastResult === "correct" || w.lastResult === "wrong" || w.a !== undefined);
+                });
+                if (!hasReal) {
+                  delete agentObj.dailyPractice[dk];
+                  modified = true;
+                }
+              }
+            }
+          });
+        }
+        if (agentObj.history && typeof agentObj.history === "object" && zeroFreeDates.size > 0) {
+          Object.keys(agentObj.history).forEach(hk => {
+            const normHk = formatStandardDateYMD(hk) || hk;
+            if (zeroFreeDates.has(normHk) || zeroFreeDates.has(hk)) {
+              delete agentObj.history[hk];
+              modified = true;
+            }
+          });
+        }
+        if (modified) {
+          records["spellAgent.v2"] = JSON.stringify(agentObj);
+        }
+      }
+    }
+
+    // 清理污染或孤兒 task_words_*
+    Object.keys(records).forEach(k => {
+      if (k.indexOf("task_words_") === 0) {
+        const dPart = k.substring("task_words_".length).trim();
+        const normD = formatStandardDateYMD(dPart) || dPart;
+        if (validTaskDates.size > 0 && !validTaskDates.has(normD) && !validTaskDates.has(dPart)) {
+          delete records[k];
+          return;
+        }
+        try {
+          const arr = (typeof records[k] === "string") ? JSON.parse(records[k]) : records[k];
+          if (Array.isArray(arr) && arr.length > 30) {
+            delete records[k];
+          }
+        } catch(_) {}
+      }
+    });
+
+    if (Array.isArray(dailyTaskHistory) && dailyTaskHistory.length > 0) {
+      records["student_task_history"] = JSON.stringify(dailyTaskHistory);
+    }
+  } catch(_) {}
+}
+
 function doPost(e) {
   let params = {};
   try {
@@ -2285,6 +2382,10 @@ function doPost(e) {
         }
       }
 
+      const assignedTask = getActiveTaskForClass(ss, auth.className, auth.username);
+      let dailyTaskHistory = [];
+      try { dailyTaskHistory = getStudentDailyTaskHistory(ss, auth.username); } catch(_) {}
+
       if (raw) {
         const decomp = decompressData(raw);
         if (decomp) {
@@ -2299,6 +2400,7 @@ function doPost(e) {
               } else {
                 records = parsed;
               }
+              sanitizeStudentRecordsObj_(records, dailyTaskHistory);
               // 確保 records 內所有屬性值皆為字串型態，防止前端寫入 localStorage 時變為 [object Object]
               for (let k in records) {
                 if (typeof records[k] === "object" && records[k] !== null) {
@@ -2393,10 +2495,6 @@ function doPost(e) {
           };
         } catch(_) {}
       }
-
-      const assignedTask = getActiveTaskForClass(ss, auth.className, auth.username);
-      let dailyTaskHistory = [];
-      try { dailyTaskHistory = getStudentDailyTaskHistory(ss, auth.username); } catch(_) {}
 
       return jsonResponse({
         status:"success", message:"驗證成功", role:"student",
@@ -2820,7 +2918,13 @@ function setupTestAccountDRecords(ss) {
   agentObj.dailyPractice["2026-10-15"] = {
     attempts: 12,
     correct: 11,
-    words: { "arm": { a: 2, c: 2 }, "art": { a: 2, c: 2 }, "ask": { a: 2, c: 2 }, "bad": { a: 3, c: 3 }, "bag": { a: 3, c: 2 } }
+    words: {
+      "arm": { a: 2, c: 2, attempts: 2, correct: 2, wrong: 0, passed: true, lastResult: "correct" },
+      "art": { a: 2, c: 2, attempts: 2, correct: 2, wrong: 0, passed: true, lastResult: "correct" },
+      "ask": { a: 2, c: 2, attempts: 2, correct: 2, wrong: 0, passed: true, lastResult: "correct" },
+      "bad": { a: 3, c: 3, attempts: 3, correct: 3, wrong: 0, passed: true, lastResult: "correct" },
+      "bag": { a: 3, c: 2, attempts: 3, correct: 2, wrong: 1, passed: false, lastResult: "wrong" }
+    }
   };
   agentObj.history["2026-10-15"] = {
     attempts: 12,
@@ -2832,7 +2936,10 @@ function setupTestAccountDRecords(ss) {
   agentObj.dailyPractice["2026-10-12"] = {
     attempts: 6,
     correct: 6,
-    words: { "act": { a: 3, c: 3 }, "add": { a: 3, c: 3 } }
+    words: {
+      "act": { a: 3, c: 3, attempts: 3, correct: 3, wrong: 0, passed: true, lastResult: "correct" },
+      "add": { a: 3, c: 3, attempts: 3, correct: 3, wrong: 0, passed: true, lastResult: "correct" }
+    }
   };
   agentObj.history["2026-10-12"] = {
     attempts: 6,
@@ -2861,13 +2968,19 @@ function setupTestAccountDRecords(ss) {
     taskName: "1012指定單字隨堂測驗",
     score: "2/5",
     rate: "100%",
-    status: "🟡 測驗作答中(2/5)",
+    status: "🟠 作答中斷 (2/5)",
+    inProgress: true,
+    completed: false,
     attempts: 2,
     correct: 2,
     accuracy: "100%",
     updatedAt: "2026-10-12 19:25:00",
     wrongWords: [],
-    words: ["act", "add", "age", "ago", "aim"]
+    words: ["act", "add", "age", "ago", "aim"],
+    freeTested: 2,
+    freeCorrect: 2,
+    freeRate: "100%",
+    freeWrongWords: []
   });
 
   // 更新快取單字對應
@@ -2918,18 +3031,18 @@ function setupTestAccountDRecords(ss) {
       has1015 = true;
       // 10-15: 使用者有登入但未作答指定測驗 (登入未受測)
       // 任務名稱: 1015指定單字隨堂測驗, 成績: —, 正確率: —, 狀態: 🟡 登入未受測, 錯題: arm, art, ask, bad, bag (應測單字)
-      // 自由練習: 12, 11, 92%, bag
+      // 自由練習: 5, 4, 80%, bag
       dSheet.getRange(rowNum, 22, 1, 9).setValues([[
-        "1015指定單字隨堂測驗", "—", "—", "🟡 登入未受測", "arm, art, ask, bad, bag (應測單字)", 12, 11, "92%", "bag"
+        "1015指定單字隨堂測驗", "—", "—", "🟡 登入未受測", "arm, art, ask, bad, bag (應測單字)", 5, 4, "80%", "bag"
       ]]);
       dSheet.getRange(rowNum, 25).setBackground("#fef9c3").setFontColor("#a16207").setFontWeight("bold");
     } else if (dStr === "2026-10-12") {
       has1012 = true;
       // 10-12: 使用者有登入有作答但沒有全部回答完畢 (作答中斷)
       // 任務名稱: 1012指定單字隨堂測驗, 成績: '2/5, 正確率: 100%, 狀態: 🟠 作答中斷 (2/5), 錯題: age, ago, aim (未完成)
-      // 自由練習: 6, 6, 100%, —
+      // 自由練習: 2, 2, 100%, —
       dSheet.getRange(rowNum, 22, 1, 9).setValues([[
-        "1012指定單字隨堂測驗", "'2/5", "100%", "🟠 作答中斷 (2/5)", "age, ago, aim (未完成)", 6, 6, "100%", "—"
+        "1012指定單字隨堂測驗", "'2/5", "100%", "🟠 作答中斷 (2/5)", "age, ago, aim (未完成)", 2, 2, "100%", "—"
       ]]);
       dSheet.getRange(rowNum, 25).setBackground("#ffedd5").setFontColor("#c2410c").setFontWeight("bold");
     } else if (dStr === "2026-10-13") {
@@ -2964,7 +3077,7 @@ function setupTestAccountDRecords(ss) {
     summary: {
       "10-12": "指派 5 字 (act, add, age, ago, aim)，作答 2 題中斷 ('2/5, 100%, 🟠 作答中斷 (2/5)，未完成字: age, ago, aim)",
       "10-14": "指派 5 字 (air, all, and, ant, any)，無登入無作答 (🔴 缺席未受測，應測字: air, all, and, ant, any)",
-      "10-15": "指派 5 字 (arm, art, ask, bad, bag)，有登入自由練習無作答指定測驗 (🟡 登入未受測，自由練習 12題對11題 92%)"
+      "10-15": "指派 5 字 (arm, art, ask, bad, bag)，有登入自由練習無作答指定測驗 (🟡 登入未受測，自由練習 5字對4字 80%)"
     }
   };
 }
@@ -3059,7 +3172,10 @@ function syncAndBackfillStudentTaskHistory(ss, username, records, uSheet) {
     if (!t || !t.date) return;
     const dStr = formatStandardDateYMD(t.date);
     if (!dStr || !/^\d{4}-\d{2}-\d{2}$/.test(dStr)) return;
-    const isComp = !!(t.completed === true || (t.status && String(t.status).includes("已完成")) || (t.score !== undefined && t.score !== "—" && !t.inProgress));
+    const statusStr = String(t.status || "");
+    const isStatusIncomplete = statusStr.includes("作答中") || statusStr.includes("中斷") || statusStr.includes("未完成") || statusStr.includes("未受測") || statusStr.includes("待完成") || statusStr.includes("缺席") || statusStr.includes("未指派");
+    if (isStatusIncomplete || t.inProgress === true || t.completed === false) return;
+    const isComp = !!(t.completed === true || statusStr.includes("已完成") || (t.score !== undefined && t.score !== "—" && !t.inProgress && statusStr === ""));
     if (!isComp) return;
     const tName = String(t.taskName || "指定測驗").trim();
     if (!tName || tName === "⚪ 未指派" || tName.includes("自主練習") || tName.includes("自由練習")) return;
@@ -3407,7 +3523,8 @@ function handleSaveRecord(ss, params, auth) {
 
   const dp = agentData.dailyPractice || {};
   const todayDp = dp[todayStr] || dp[todayStr.replace(/-/g, "/")] || null;
-  const hasTodayPractice = !!(todayDp && (todayDp.attempts > 0 || (todayDp.words && Object.keys(todayDp.words).length > 0)));
+  const hasRealTodayWords = !!(todayDp && todayDp.words && Object.values(todayDp.words).some(w => w && typeof w === "object" && (w.lastResult === "correct" || w.lastResult === "wrong" || w.a !== undefined)));
+  const hasTodayPractice = !!(todayDp && (todayDp.attempts > 0 || hasRealTodayWords));
 
   if (uSheet.getLastRow() < 2) {
     // 剛建立的新分頁，直接寫入第 2 列
@@ -3459,21 +3576,28 @@ function handleSaveRecord(ss, params, auth) {
   let freeTested = 0, freeCorrect = 0, freeRate = "—", freeWrongStr = "";
   if (todayDp) {
     if (todayDp.words && Object.keys(todayDp.words).length > 0) {
-      const wList = Object.values(todayDp.words).filter(Boolean);
-      freeTested = wList.length;
-
-      // 依最終最新作答狀態嚴格判定：
-      // 1. 若最後一次作答為 wrong，或者只有錯過從未對過，視為當前錯題
-      const isWordCurrentlyWrong = (w) => (w.lastResult === 'wrong') || (w.wrong > 0 && (!w.correct || w.correct === 0));
-      // 2. 若當前非 wrong，且有答對過或最後為 correct，視為當前答對
-      const isWordCurrentlyCorrect = (w) => !isWordCurrentlyWrong(w) && (w.lastResult === 'correct' || (w.correct > 0 && !w.wrong) || w.passed);
-
-      freeCorrect = wList.filter(isWordCurrentlyCorrect).length;
-      const wrongList = Object.keys(todayDp.words).filter(k => {
+      const realWKeys = Object.keys(todayDp.words).filter(k => {
         const w = todayDp.words[k];
-        return w && isWordCurrentlyWrong(w);
+        return w && typeof w === "object" && (w.lastResult === "correct" || w.lastResult === "wrong" || w.a !== undefined);
       });
-      freeWrongStr = wrongList.join(", ");
+      if (realWKeys.length > 0) {
+        freeTested = realWKeys.length;
+
+        // 依最終最新作答狀態嚴格判定（相容 {lastResult, correct, wrong} 與 {a, c} 格式）：
+        const isWordCurrentlyWrong = (w) => {
+          const wWrong = w.wrong !== undefined ? w.wrong : ((w.a !== undefined && w.c !== undefined) ? Math.max(0, w.a - w.c) : 0);
+          const wCorr = w.correct !== undefined ? w.correct : (w.c !== undefined ? w.c : 0);
+          return (w.lastResult === 'wrong') || (wWrong > 0 && (!wCorr || wCorr === 0)) || (w.lastResult === undefined && wWrong > 0);
+        };
+        const isWordCurrentlyCorrect = (w) => {
+          const wCorr = w.correct !== undefined ? w.correct : (w.c !== undefined ? w.c : 0);
+          return !isWordCurrentlyWrong(w) && (w.lastResult === 'correct' || wCorr > 0 || w.passed);
+        };
+
+        freeCorrect = realWKeys.filter(k => isWordCurrentlyCorrect(todayDp.words[k])).length;
+        const wrongList = realWKeys.filter(k => isWordCurrentlyWrong(todayDp.words[k]));
+        freeWrongStr = wrongList.join(", ");
+      }
     } else {
       freeTested = todayDp.attempts || 0;
       freeCorrect = todayDp.correct || 0;
@@ -4442,9 +4566,12 @@ function getStudentTodayTaskResult(ss, username, todayStr) {
       const rateVal  = parsedSR.rate;
       const statusVal = String(vals[i][hMap.status] || "");
       const wrongStr = String(vals[i][hMap.wrong] || "");
-      const wrongWords = wrongStr ? wrongStr.split(/[\s,;\n\r]+/).filter(w => w.trim().length > 0) : [];
-      const hasDone = (statusVal.includes("已完成") || (scoreVal !== "—" && scoreVal !== "" && scoreVal.includes("/"))) && !statusVal.includes("作答中");
-      const inProgress = statusVal.includes("作答中") && !hasDone;
+      const isEngWord = w => /^[a-zA-Z]+(?:[-'][a-zA-Z]+)*$/.test(w);
+      const wrongWords = (wrongStr && !wrongStr.includes("應測單字") && !wrongStr.includes("未完成"))
+        ? wrongStr.split(/[\s,;\n\r]+/).map(w => w.trim()).filter(isEngWord)
+        : [];
+      const hasDone = (statusVal.includes("已完成") || (scoreVal !== "—" && scoreVal !== "" && scoreVal.includes("/"))) && !statusVal.includes("作答中") && !statusVal.includes("中斷");
+      const inProgress = (statusVal.includes("作答中") || statusVal.includes("中斷")) && !hasDone;
 
       if (hasDone || inProgress) {
         const item = {
@@ -4489,6 +4616,7 @@ function getStudentDailyTaskHistory(ss, username) {
   const hMap = getHeaderIndexMap(headers);
   const vals = sheet.getRange(2, 1, maxRows, maxCols).getValues();
   const list = [];
+  const isEngWord = w => /^[a-zA-Z]+(?:[-'][a-zA-Z]+)*$/.test(w);
   for (let i = 0; i < vals.length; i++) {
     const dStr = formatStandardDateYMD(vals[i][0]);
     const taskName = String(vals[i][hMap.taskName] || "");
@@ -4497,18 +4625,22 @@ function getStudentDailyTaskHistory(ss, username) {
     const rateVal  = parsedSR.rate;
     const statusVal = String(vals[i][hMap.status] || "");
     const wrongStr = String(vals[i][hMap.wrong] || "");
-    const wrongWords = wrongStr ? wrongStr.split(/[\s,;\n\r]+/).filter(w => w.trim().length > 0) : [];
+    const rawWrongTokens = wrongStr ? wrongStr.split(/[\s,;\n\r]+/).map(w => w.trim()).filter(isEngWord) : [];
+    const isPoolHintInWrongCol = wrongStr.includes("應測單字") || wrongStr.includes("未完成");
+    const wrongWords = isPoolHintInWrongCol ? [] : rawWrongTokens;
     const freeTestedVal = parseInt(String(vals[i][hMap.freeTested] || "").replace(/,/g, ""), 10) || 0;
     const freeCorrectVal = parseInt(String(vals[i][hMap.freeCorrect] || "").replace(/,/g, ""), 10) || 0;
     const freeRateVal = String(vals[i][hMap.freeRate] || "");
     const freeWrongVal = String(vals[i][hMap.freeWrong] || "");
-    const freeWrongWords = freeWrongVal ? freeWrongVal.split(/[\s,;\n\r]+/).filter(w => w.trim().length > 0) : [];
+    const freeWrongWords = (freeWrongVal && !freeWrongVal.includes("無登入") && !freeWrongVal.includes("缺考"))
+      ? freeWrongVal.split(/[\s,;\n\r]+/).map(w => w.trim()).filter(isEngWord)
+      : [];
     const hasFreePractice = freeTestedVal > 0;
 
     // 嚴格過濾：納入有指定測驗紀錄、已排定任務列、或有自由練習之列
     const isUntestedOrUnassigned = !taskName || taskName === "⚪ 未指派" || taskName === "自主練習" || taskName.includes("自由練習");
     const hasValidQuizScore = scoreVal && scoreVal !== "—" && scoreVal !== "" && scoreVal.includes("/");
-    const isQuizCompleted = statusVal.includes("已完成") || statusVal.includes("測驗作答中");
+    const isQuizCompleted = statusVal.includes("已完成") || statusVal.includes("測驗作答中") || statusVal.includes("中斷") || statusVal.includes("未受測") || statusVal.includes("缺席");
     const hasTaskAssigned = !isUntestedOrUnassigned && (taskName.length > 0);
     
     if (dStr && (hasValidQuizScore || isQuizCompleted || hasTaskAssigned || hasFreePractice)) {
@@ -4518,9 +4650,12 @@ function getStudentDailyTaskHistory(ss, username) {
         tCor = parseInt(parts[0], 10) || 0;
         tAtt = parseInt(parts[1], 10) || 0;
       }
-      const matchedWords = taskWordsDict[dStr + "_" + taskName.toLowerCase()] ||
-                           taskWordsDict[taskName.toLowerCase()] ||
-                           taskWordsDict[dStr] || [];
+      let matchedWords = taskWordsDict[dStr + "_" + taskName.toLowerCase()] ||
+                         taskWordsDict[taskName.toLowerCase()] ||
+                         taskWordsDict[dStr] || [];
+      if ((!matchedWords || matchedWords.length === 0) && wrongStr.includes("應測單字") && rawWrongTokens.length > 0) {
+        matchedWords = rawWrongTokens;
+      }
       list.push({
         date        : dStr,
         taskName    : taskName || (hasFreePractice ? "自主練習" : "每日指定測驗"),
@@ -4805,6 +4940,9 @@ function _getStudentData(ss, username) {
       const decomp = decompressData(rawJsonStr);
       if (decomp) {
         const parsed = JSON.parse(decomp);
+        let dHist = [];
+        try { dHist = getStudentDailyTaskHistory(ss, cleanU); } catch(_) {}
+        sanitizeStudentRecordsObj_(parsed, dHist);
         const raw = parsed["spellAgent.v2"] || (parsed.box || parsed.stat || parsed.attempts !== undefined ? parsed : null);
         agentData = (typeof raw === "string") ? JSON.parse(raw) : (raw || {});
         const stat = agentData.stat || {};

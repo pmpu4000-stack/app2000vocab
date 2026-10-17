@@ -14360,23 +14360,30 @@ function resolveTaskWords(record, selectedDate, agent) {
   if (pool.length === 0 && Array.isArray(window.cachedBackupTaskHistory)) {
     const matched = window.cachedBackupTaskHistory.find(h => {
       const hDate = String(h.date || "").trim().split(" ")[0].replace(/\//g, "-");
-      return hDate === padDate || hDate === shortDate || (h.taskName && record.taskName && h.taskName === record.taskName);
+      return hDate === padDate || hDate === shortDate;
     });
     if (matched && Array.isArray(matched.words) && matched.words.length > 0) {
       pool = matched.words.map(w => typeof w === "string" ? w : (w.word || w.display || w.w)).filter(Boolean);
     }
   }
 
-  // 4. 錯題單字與作答題數精準校驗 (確保代號轉為真實單字)
+  const isValidEngWord = (w) => {
+    if (!w || typeof w !== "string") return false;
+    const s = w.trim();
+    if (!s || /^w\d+$/i.test(s)) return false;
+    return /^[a-zA-Z]+(?:[-'][a-zA-Z]+)*$/.test(s);
+  };
+
+  // 4. 錯題單字與作答題數精準校驗 (確保代號轉為真實單字，並過濾非英文狀態註記)
   const wrongWords = (Array.isArray(record.wrongWords) ? record.wrongWords : [])
     .map(w => resolveWord(String(w).trim()).toLowerCase())
-    .filter(Boolean);
+    .filter(w => isValidEngWord(w));
 
   const explicitCorrect = (Array.isArray(record.correctWords) ? record.correctWords : [])
     .map(w => resolveWord(String(w).trim()).toLowerCase())
-    .filter(Boolean);
+    .filter(w => isValidEngWord(w));
 
-  pool = pool.map(w => resolveWord(String(w).trim()).toLowerCase()).filter(Boolean);
+  pool = pool.map(w => resolveWord(String(w).trim()).toLowerCase()).filter(w => isValidEngWord(w));
 
   let wrongList = [];
   let correctList = [];
@@ -14441,26 +14448,7 @@ function resolveTaskWords(record, selectedDate, agent) {
   const dpDay = dpMap[padDate] || dpMap[shortDate] || dpMap[slashPad] || dpMap[slashShort] || dpMap[normDate] || null;
   const dayWords = (dpDay && dpDay.words) ? dpDay.words : {};
 
-  // 若已識別的答對單字少於預期答對題數，從受測紀錄與 DB.stat 智能補齊
-  if (corCnt > 0 && correctList.length < corCnt && agent && agent.stat) {
-    const allPracticed = Object.keys(agent.stat)
-      .filter(k => agent.stat[k] && (agent.stat[k].a > 0 || agent.stat[k].c > 0))
-      .map(k => ({
-        word: resolveWord(k).toLowerCase(),
-        correct: agent.stat[k].c || 0
-      }))
-      .filter(item => item.word && !/^w\d+$/i.test(item.word) && !seen.has(item.word) && !wrongWords.includes(item.word));
-    allPracticed.sort((a, b) => (b.correct || 0) - (a.correct || 0));
-    const need = corCnt - correctList.length;
-    allPracticed.slice(0, need).forEach(item => {
-      if (!seen.has(item.word)) {
-        seen.add(item.word);
-        correctList.push(item.word);
-      }
-    });
-  }
-
-  // 嚴格保證：若有明確答對題數 corCnt，答對單字列表長度絕不超過 corCnt！
+  // 嚴格保證：若有明確答對題數 corCnt，答對單字列表長度絕不超過 corCnt！（絕不從跨日累積 stat 偽造單字）
   if (corCnt >= 0) {
     if (corCnt === 0) {
       correctList = [];
@@ -14495,7 +14483,7 @@ function resolveTaskWords(record, selectedDate, agent) {
 
   const hadCorrectThenWrongList = (Array.isArray(record.hadCorrectThenWrong) ? record.hadCorrectThenWrong : [])
     .map(w => resolveWord(String(w).trim()).toLowerCase())
-    .filter(Boolean);
+    .filter(w => isValidEngWord(w));
 
   return { rawWords: pool, wrongList, correctList, hadCorrectThenWrongList };
 }
@@ -14524,7 +14512,9 @@ function extractRowTaskInfo(row, headers) {
   const rate = String(row[rateIdx] || "—").trim();
   const status = String(row[statusIdx] || "").trim();
   const wrongStr = String(row[wrongIdx] || "").trim();
-  const wrongWords = wrongStr ? wrongStr.split(/[,、\s]+/).filter(Boolean) : [];
+  const wrongWords = wrongStr
+    ? wrongStr.split(/[,、\s]+/).map(w => w.trim()).filter(w => /^[a-zA-Z]+(?:[-'][a-zA-Z]+)*$/.test(w))
+    : [];
   return { taskName, score, rate, status, wrongWords };
 }
 
@@ -14548,9 +14538,11 @@ function extractRowFreeInfo(row, headers) {
   const correct = parseInt(row[corrIdx], 10) || 0;
   const rate = String(row[rateIdx] || "—").trim();
   const wrongStr = String(row[wrongIdx] || "").trim();
-  const wrongWords = wrongStr ? wrongStr.split(/[,、\s]+/).filter(Boolean) : [];
+  const wrongWords = wrongStr
+    ? wrongStr.split(/[,、\s]+/).map(w => w.trim()).filter(w => /^[a-zA-Z]+(?:[-'][a-zA-Z]+)*$/.test(w))
+    : [];
   const wordsMap = {};
-  wrongWords.forEach(w => { wordsMap[w] = { word: w, correct: 0, wrong: 1, attempts: 1 }; });
+  wrongWords.forEach(w => { wordsMap[w] = { word: w, correct: 0, wrong: 1, attempts: 1, lastResult: "wrong" }; });
   return { attempts, correct, wrong: Math.max(0, attempts - correct), rate, wrongWords, wordsMap };
 }
 
@@ -14852,40 +14844,29 @@ function buildTaskDetailsHtml(records, selectedDate, agent) {
   const list = (Array.isArray(records) ? records : (records ? [records] : []))
     .filter(r => r && r.taskName && r.taskName !== "自主練習" && !r.taskName.includes("自由練習") && !r.taskName.includes("未指派"));
 
-  const taskDict = (window.cachedTaskWordsMap || {});
   const sDateNorm = normalizeDateKey(selectedDate);
   const sDateShort = unpadDateKey(selectedDate);
   const slashPad = sDateNorm.replace(/-/g, "/");
   const slashShort = sDateShort.replace(/-/g, "/");
 
-  // 1. 取得當日指派單字與任務名稱
-  let assignedWords = taskDict[sDateNorm] || taskDict[sDateShort] || taskDict[slashPad] || taskDict[slashShort] || null;
+  // 1. 取得當日指派單字與任務名稱（僅依據明確任務歷程，不單憑殘留 taskDict 快取誤判為有指派）
+  let assignedWords = null;
   let taskName = "";
-
-  if (window.cachedBackupTodayTaskSummary) {
-    const bDate = String(window.cachedBackupTodayTaskSummary.date || "").trim().split(" ")[0].replace(/\//g, "-");
-    if (bDate === sDateNorm || bDate === sDateShort) {
-      taskName = window.cachedBackupTodayTaskSummary.taskName || window.cachedBackupTodayTaskSummary.name || "";
-      if ((!assignedWords || assignedWords.length === 0) && window.cachedBackupTodayTaskSummary.words) {
-        assignedWords = window.cachedBackupTodayTaskSummary.words;
-      }
-    }
-  }
 
   if (Array.isArray(window.cachedBackupTaskHistory)) {
     const matched = window.cachedBackupTaskHistory.find(h => {
       const hDate = String(h.date || "").trim().split(" ")[0].replace(/\//g, "-");
       return hDate === sDateNorm || hDate === sDateShort;
     });
-    if (matched) {
-      if (!taskName) taskName = matched.taskName || matched.name || "";
-      if ((!assignedWords || assignedWords.length === 0) && matched.words) {
+    if (matched && matched.taskName && matched.taskName !== "自主練習" && !String(matched.taskName).includes("未指派")) {
+      taskName = matched.taskName || matched.name || "";
+      if (Array.isArray(matched.words) && matched.words.length > 0) {
         assignedWords = matched.words;
       }
     }
   }
 
-  const isAssignedOnDate = !!((assignedWords && assignedWords.length > 0) || taskName || Object.keys(taskDict).some(k => k.startsWith(sDateNorm) || k.startsWith(sDateShort)));
+  const isAssignedOnDate = !!taskName;
 
   // 2. 判斷學生當天是否有登入或自由練習紀錄
   const dpMap = (agent && agent.dailyPractice) ? agent.dailyPractice : {};
@@ -14940,81 +14921,33 @@ function buildFreeDetailsHtml(record, selectedDate, agent) {
 
   Object.keys(wordsMap).forEach(k => {
     const info = wordsMap[k];
-    const rawW = (typeof info === "object" && info.word) ? info.word : k;
+    const rawW = (typeof info === "object" && info && info.word) ? info.word : k;
     const wName = resolveWord(rawW).toLowerCase();
-    if (!wName || /^w\d+$/i.test(wName)) return;
-    const hasWrong = (typeof info === "object" && info.wrong > 0);
-    const hasCorrect = (typeof info === "object" && (info.correct > 0 || info.passed));
+    if (!wName || /^w\d+$/i.test(wName) || !/^[a-zA-Z]+(?:[-'][a-zA-Z]+)*$/.test(wName)) return;
+
+    const wAtt = (typeof info === "object" && info) ? (info.attempts !== undefined ? info.attempts : (info.a !== undefined ? info.a : 1)) : 1;
+    const wCor = (typeof info === "object" && info) ? (info.correct !== undefined ? info.correct : (info.c !== undefined ? info.c : (info.passed ? 1 : 0))) : 1;
+    const wWrg = (typeof info === "object" && info) ? (info.wrong !== undefined ? info.wrong : Math.max(0, wAtt - wCor)) : 0;
+    const hasWrong = wWrg > 0 || (info && info.lastResult === "wrong");
+    const hasCorrect = wCor > 0 || (info && (info.passed || info.lastResult === "correct"));
 
     if (hasWrong) {
       wrongList.push({
         word: wName,
-        attempts: (typeof info === "object" && info.attempts) ? info.attempts : 1,
-        wrong: (typeof info === "object" && info.wrong) ? info.wrong : 1,
-        correct: (typeof info === "object" && info.correct) ? info.correct : (info && info.passed ? 1 : 0),
-        hadCorrectThenWrong: !!(typeof info === "object" && (info.hadCorrectThenWrong || (info.lastResult === "wrong" && info.correct > 0))),
-        lastResult: (typeof info === "object" && info.lastResult) ? info.lastResult : ""
+        attempts: wAtt || 1,
+        wrong: wWrg || 1,
+        correct: wCor || 0,
+        hadCorrectThenWrong: !!(typeof info === "object" && info && (info.hadCorrectThenWrong || (info.lastResult === "wrong" && wCor > 0))),
+        lastResult: (typeof info === "object" && info && info.lastResult) ? info.lastResult : ""
       });
     } else if (hasCorrect) {
       correctList.push({
         word: wName,
-        attempts: (typeof info === "object" && info.attempts) ? info.attempts : 1,
-        correct: (typeof info === "object" && info.correct) ? info.correct : 1
+        attempts: wAtt || 1,
+        correct: wCor || 1
       });
-    } else {
-      correctList.push({ word: wName, attempts: 1, correct: 1 });
     }
   });
-
-  if (correctList.length === 0 && wrongList.length === 0 && attempts > 0) {
-    if (agent && agent.stat) {
-      const allWords = Object.keys(agent.stat)
-        .filter(k => agent.stat[k] && (agent.stat[k].a > 0 || agent.stat[k].c > 0))
-        .map(w => {
-          const st = agent.stat[w] || {};
-          const att = st.a || 0;
-          const cor = st.c || 0;
-          const wrg = (st.w !== undefined) ? st.w : Math.max(0, att - cor);
-          return {
-            word: resolveWord(w).toLowerCase(),
-            attempts: att || 1,
-            correct: cor,
-            wrong: wrg,
-            ew: !!st.ew
-          };
-        })
-        .filter(item => item.word && !/^w\d+$/i.test(item.word));
-
-      if (wrongCount > 0 && allWords.length > 0) {
-        const wrongCands = allWords.filter(w => w.wrong > 0 || w.ew);
-        wrongCands.sort((a, b) => (b.wrong || 0) - (a.wrong || 0));
-        const pickedWrong = wrongCands.slice(0, wrongCount);
-        pickedWrong.forEach(w => {
-          wrongList.push({ word: w.word, attempts: w.attempts || 1, wrong: w.wrong || 1, correct: w.correct || 0 });
-        });
-        if (wrongList.length < wrongCount) {
-          const remaining = allWords.filter(w => !wrongList.some(wl => wl.word === w.word)).slice(0, wrongCount - wrongList.length);
-          remaining.forEach(w => {
-            wrongList.push({ word: w.word, attempts: w.attempts || 1, wrong: 1, correct: w.correct || 0 });
-          });
-        }
-      }
-      if (correct > 0 && allWords.length > 0) {
-        const correctCands = allWords.filter(w => w.correct > 0 && !wrongList.some(wl => wl.word === w.word));
-        correctCands.sort((a, b) => (b.correct || 0) - (a.correct || 0));
-        const pickedCorrect = correctCands.slice(0, correct);
-        pickedCorrect.forEach(w => {
-          correctList.push({ word: w.word, attempts: w.attempts || 1, correct: w.correct || 1 });
-        });
-        if (correctList.length < correct) {
-          const remaining = allWords.filter(w => !wrongList.some(wl => wl.word === w.word) && !correctList.some(cl => cl.word === w.word)).slice(0, correct - correctList.length);
-          remaining.forEach(w => {
-            correctList.push({ word: w.word, attempts: w.attempts || 1, correct: 1 });
-          });
-        }
-      }
-    }
-  }
 
   correctList.sort((a, b) => a.word.localeCompare(b.word));
   wrongList.sort((a, b) => a.word.localeCompare(b.word));
@@ -15127,6 +15060,13 @@ function renderStudentDailyTaskAndFreeSections(resp) {
     : (window.cachedStudentDailyHistory || []);
   const todayTask = resp.todayTaskResult || window.cachedStudentTodayTaskResult || null;
 
+  const isRealWordsObj = (wordsObj) => {
+    if (!wordsObj || typeof wordsObj !== "object") return false;
+    const vals = Object.values(wordsObj).filter(Boolean);
+    if (vals.length === 0) return false;
+    return vals.some(w => (w.lastResult === "correct" || w.lastResult === "wrong" || w.a !== undefined));
+  };
+
   // 1. 整理所有有紀錄日期
   const normalizeDateKey = (ds) => {
     if (!ds) return "";
@@ -15147,32 +15087,129 @@ function renderStudentDailyTaskAndFreeSections(resp) {
     return clean;
   };
 
+  const resolveFreeForDate = (normDate) => {
+    if (!normDate) return null;
+    const shortD = unpadDateKey(normDate);
+    const slashD = normDate.replace(/-/g, "/");
+
+    const thRow = Array.isArray(dailyTaskHistory)
+      ? dailyTaskHistory.find(h => h && h.date && (normalizeDateKey(h.date) === normDate || unpadDateKey(h.date) === shortD))
+      : null;
+    const isSelfRow = thRow && thRow.taskName === "自主練習";
+    const thFreeAtt = thRow ? (parseInt(thRow.freeTested !== undefined ? thRow.freeTested : (isSelfRow ? thRow.attempts : 0)) || 0) : 0;
+    const thFreeCor = thRow ? (parseInt(thRow.freeCorrect !== undefined ? thRow.freeCorrect : (isSelfRow ? thRow.correct : 0)) || 0) : 0;
+
+    const dpF = dpMap[normDate] || dpMap[shortD] || dpMap[slashD] || null;
+    const hasRealDpWords = dpF && isRealWordsObj(dpF.words);
+    const isFabricatedDp = dpF && dpF.words && Object.keys(dpF.words).length > 0 && !hasRealDpWords;
+
+    if (dpF && hasRealDpWords) {
+      const wList = Object.values(dpF.words).filter(Boolean);
+      const isWordStillWrong = (w) => {
+        const wCor = (w.correct !== undefined) ? w.correct : (w.c || 0);
+        const wWrg = (w.wrong !== undefined) ? w.wrong : Math.max(0, (w.a || 0) - wCor);
+        return w.hadCorrectThenWrong || (w.lastResult === 'wrong' && wCor > 0) || (w.lastResult === 'wrong') || (wWrg > 0 && wCor === 0);
+      };
+      const isWordCurrentlyCorrect = (w) => {
+        const wCor = (w.correct !== undefined) ? w.correct : (w.c || 0);
+        return !isWordStillWrong(w) && (w.lastResult === 'correct' || wCor > 0 || w.passed);
+      };
+      const att = wList.length;
+      const cor = wList.filter(isWordCurrentlyCorrect).length;
+      return {
+        date: normDate,
+        attempts: att,
+        correct: cor,
+        wrong: Math.max(0, att - cor),
+        words: dpF.words
+      };
+    }
+
+    if (thFreeAtt > 0) {
+      const wordsMap = {};
+      if (thRow && Array.isArray(thRow.freeWrongWords)) {
+        thRow.freeWrongWords.forEach(w => {
+          const cleanW = String(w || "").trim();
+          if (/^[a-zA-Z]+(?:[-'][a-zA-Z]+)*$/.test(cleanW)) {
+            wordsMap[cleanW] = { word: cleanW, correct: 0, wrong: 1, attempts: 1, lastResult: "wrong" };
+          }
+        });
+      }
+      return {
+        date: normDate,
+        attempts: thFreeAtt,
+        correct: thFreeCor,
+        wrong: Math.max(0, thFreeAtt - thFreeCor),
+        words: wordsMap
+      };
+    }
+
+    if (thRow && thFreeAtt === 0) {
+      return null;
+    }
+
+    if (!isFabricatedDp) {
+      const hFree = historyData[normDate] || historyData[shortD] || historyData[slashD] || null;
+      if (hFree && (hFree.a > 0 || hFree.attempts > 0)) {
+        const hAtt = (hFree.a !== undefined) ? hFree.a : (hFree.attempts || 0);
+        const hCor = (hFree.c !== undefined) ? hFree.c : (hFree.correct || 0);
+        return {
+          date: normDate,
+          attempts: hAtt,
+          correct: hCor,
+          wrong: Math.max(0, hAtt - hCor),
+          words: hFree.words || {}
+        };
+      }
+    }
+
+    if (resp.data && Array.isArray(resp.data)) {
+      for (const r of resp.data) {
+        if (!r) continue;
+        const rDate = normalizeDateKey(r[0]);
+        if (rDate === normDate || unpadDateKey(r[0]) === shortD) {
+          const fInfo = extractRowFreeInfo(r, resp.headers);
+          if (fInfo && fInfo.attempts > 0) {
+            return {
+              date: normDate,
+              attempts: fInfo.attempts,
+              correct: fInfo.correct,
+              wrong: fInfo.wrong,
+              words: fInfo.wordsMap
+            };
+          }
+          break;
+        }
+      }
+    }
+    return null;
+  };
+
   const dateSet = new Set();
   const todayDash = formatDateYMD(new Date());
   dateSet.add(todayDash);
 
   dailyTaskHistory.forEach(h => {
-    if (h && h.date) {
+    if (h && h.date && (!h.taskName || (h.taskName !== "自主練習" && !String(h.taskName).includes("未指派")))) {
       const d = normalizeDateKey(h.date);
       if (d) dateSet.add(d);
     }
   });
-  if (todayTask && todayTask.date) {
+  if (todayTask && todayTask.date && todayTask.taskName && todayTask.taskName !== "自主練習" && !String(todayTask.taskName).includes("未指派")) {
     const d = normalizeDateKey(todayTask.date);
     if (d) dateSet.add(d);
   }
 
-  Object.keys(historyData).forEach(k => {
-    if (historyData[k] && historyData[k].a > 0) {
-      const d = normalizeDateKey(k);
-      if (d) dateSet.add(d);
-    }
-  });
-
-  Object.keys(dpMap).forEach(k => {
-    if (dpMap[k] && (dpMap[k].attempts > 0 || (dpMap[k].words && Object.keys(dpMap[k].words).length > 0))) {
-      const d = normalizeDateKey(k);
-      if (d) dateSet.add(d);
+  const candidateFreeDates = new Set([
+    ...Object.keys(historyData),
+    ...Object.keys(dpMap),
+    ...(Array.isArray(dailyTaskHistory) ? dailyTaskHistory.map(h => h && h.date).filter(Boolean) : [])
+  ]);
+  candidateFreeDates.forEach(k => {
+    const d = normalizeDateKey(k);
+    if (d) {
+      const fRec = resolveFreeForDate(d);
+      if (fRec && fRec.attempts > 0) dateSet.add(d);
     }
   });
 
@@ -15180,7 +15217,13 @@ function renderStudentDailyTaskAndFreeSections(resp) {
     resp.data.forEach(r => {
       if (r && r[0]) {
         const d = normalizeDateKey(r[0]);
-        if (d && d.match(/^\d{4}-\d{2}-\d{2}$/)) dateSet.add(d);
+        if (d && d.match(/^\d{4}-\d{2}-\d{2}$/)) {
+          const tInfo = extractRowTaskInfo(r, resp.headers);
+          const fInfo = extractRowFreeInfo(r, resp.headers);
+          const hasT = tInfo && tInfo.taskName && tInfo.taskName !== "自主練習" && !tInfo.taskName.includes("未指派");
+          const hasF = fInfo && fInfo.attempts > 0;
+          if (hasT || hasF) dateSet.add(d);
+        }
       }
     });
   }
@@ -15192,23 +15235,14 @@ function renderStudentDailyTaskAndFreeSections(resp) {
   let defaultSelectedDate = (window.__activeStSelectedDate && normalizeDateKey(window.__activeStSelectedDate)) || "";
   if (!defaultSelectedDate) {
     defaultSelectedDate = todayDash;
-    const hasTodayTask = dailyTaskHistory.some(h => normalizeDateKey(h.date) === todayDash && ((h.status && h.status.includes("已")) || (h.score && h.score !== "—")));
-    const hasTodayFree = (dpMap[todayDash] && dpMap[todayDash].attempts > 0) ||
-                         (dpMap[todayDash.replace(/-/g, "/")] && dpMap[todayDash.replace(/-/g, "/")].attempts > 0) ||
-                         (historyData[todayDash] && historyData[todayDash].a > 0) || 
-                         (historyData[todayDash.replace(/-/g, "/")] && historyData[todayDash.replace(/-/g, "/")].a > 0);
+    const hasTodayTask = dailyTaskHistory.some(h => normalizeDateKey(h.date) === todayDash && h.taskName && h.taskName !== "自主練習" && !String(h.taskName).includes("未指派"));
+    const todayFreeRec = resolveFreeForDate(todayDash);
+    const hasTodayFree = !!(todayFreeRec && todayFreeRec.attempts > 0);
     if (!hasTodayTask && !hasTodayFree && allDates.length > 0) {
       const latestActive = allDates.find(d => {
-        const hTask = dailyTaskHistory.some(h => normalizeDateKey(h.date) === d && ((h.status && h.status.includes("已")) || (h.score && h.score !== "—")));
-        const shortD = unpadDateKey(d);
-        const slashD = d.replace(/-/g, "/");
-        const hFree = (dpMap[d] && dpMap[d].attempts > 0) ||
-                      (dpMap[shortD] && dpMap[shortD].attempts > 0) ||
-                      (dpMap[slashD] && dpMap[slashD].attempts > 0) ||
-                      (historyData[d] && historyData[d].a > 0) || 
-                      (historyData[shortD] && historyData[shortD].a > 0) || 
-                      (historyData[slashD] && historyData[slashD].a > 0);
-        return hTask || hFree;
+        const hTask = dailyTaskHistory.some(h => normalizeDateKey(h.date) === d && h.taskName && h.taskName !== "自主練習" && !String(h.taskName).includes("未指派"));
+        const fRec = resolveFreeForDate(d);
+        return hTask || (fRec && fRec.attempts > 0);
       });
       if (latestActive) defaultSelectedDate = latestActive;
       else if (allDates[0]) defaultSelectedDate = allDates[0];
@@ -15218,24 +15252,12 @@ function renderStudentDailyTaskAndFreeSections(resp) {
   const buildOptionTag = (dateStr) => {
     const norm = normalizeDateKey(dateStr);
     const shortD = unpadDateKey(dateStr);
-    const slashD = norm.replace(/-/g, "/");
     const isToday = (norm === todayDash);
-    const matchedH = dailyTaskHistory.find(h => (normalizeDateKey(h.date) === norm || unpadDateKey(h.date) === shortD) && (!h.taskName || h.taskName !== "自主練習")) ||
+    const matchedH = dailyTaskHistory.find(h => (normalizeDateKey(h.date) === norm || unpadDateKey(h.date) === shortD) && (!h.taskName || (h.taskName !== "自主練習" && !String(h.taskName).includes("未指派")))) ||
                      (todayTask && (normalizeDateKey(todayTask.date) === norm || unpadDateKey(todayTask.date) === shortD) && todayTask.hasDone && todayTask.taskName !== "自主練習" ? todayTask : null);
-    const dpF = dpMap[norm] || dpMap[shortD] || dpMap[slashD] || null;
-    const hFree = historyData[norm] || historyData[shortD] || historyData[slashD] || null;
-
-    let freeTestedWords = 0, freeCorrWords = 0;
-    if (dpF && dpF.words && Object.keys(dpF.words).length > 0) {
-      freeTestedWords = Object.keys(dpF.words).length;
-      freeCorrWords = Object.values(dpF.words).filter(w => w && (w.correct > 0 || w.passed)).length;
-    } else if (dpF) {
-      freeTestedWords = dpF.attempts || 0;
-      freeCorrWords = dpF.correct || 0;
-    } else if (hFree) {
-      freeTestedWords = hFree.a || 0;
-      freeCorrWords = hFree.c || 0;
-    }
+    const fRec = resolveFreeForDate(norm);
+    const freeTestedWords = fRec ? (fRec.attempts || 0) : 0;
+    const freeCorrWords = fRec ? (fRec.correct || 0) : 0;
 
     let tag = "";
     if (matchedH && freeTestedWords > 0) tag = ` [指派: ${matchedH.taskName || "任務"}] [自由: ${freeCorrWords}/${freeTestedWords}字]`;
@@ -15257,15 +15279,20 @@ function renderStudentDailyTaskAndFreeSections(resp) {
     targetDate = normalizeDateKey(targetDate);
     window.__activeStSelectedDate = targetDate;
     const shortTarget = unpadDateKey(targetDate);
-    const slashTarget = targetDate.replace(/-/g, "/");
 
     if (datePicker && datePicker.value !== targetDate) datePicker.value = targetDate;
     if (quickSelect) {
+      Array.from(quickSelect.options).forEach(opt => {
+        if (opt.getAttribute("data-temp-unrecorded") === "1" && opt.value !== targetDate) {
+          opt.remove();
+        }
+      });
       const hasOpt = Array.from(quickSelect.options).some(opt => opt.value === targetDate);
       if (!hasOpt) {
         const newOpt = document.createElement("option");
         newOpt.value = targetDate;
         newOpt.textContent = buildOptionTag(targetDate);
+        newOpt.setAttribute("data-temp-unrecorded", "1");
         quickSelect.appendChild(newOpt);
       }
       if (quickSelect.value !== targetDate) quickSelect.value = targetDate;
@@ -15332,59 +15359,8 @@ function renderStudentDailyTaskAndFreeSections(resp) {
     }
     taskDetailsContainer.innerHTML = buildTaskDetailsHtml(matchedTasks, targetDate, agent);
 
-    // B. 匹配自由練習紀錄 (相容 padded, unpadded, slash 鍵名，並支援從 Sheet 專屬欄位讀取)
-    let dpFree = dpMap[targetDate] || dpMap[shortTarget] || dpMap[slashTarget] || null;
-    let hFree = historyData[targetDate] || historyData[shortTarget] || historyData[slashTarget] || null;
-    let matchedFree = null;
-    if (dpFree && (dpFree.attempts > 0 || (dpFree.words && Object.keys(dpFree.words).length > 0))) {
-      let att = 0;
-      let cor = 0;
-      if (dpFree.words && Object.keys(dpFree.words).length > 0) {
-        const wList = Object.values(dpFree.words).filter(Boolean);
-        const isWordCurrentlyWrong = (w) => (w.lastResult === 'wrong') || (w.wrong > 0 && (!w.correct || w.correct === 0));
-        const isWordCurrentlyCorrect = (w) => !isWordCurrentlyWrong(w) && (w.lastResult === 'correct' || (w.correct > 0 && !w.wrong) || w.passed);
-        att = wList.length;
-        cor = wList.filter(isWordCurrentlyCorrect).length;
-      } else {
-        att = dpFree.attempts || 0;
-        cor = dpFree.correct || 0;
-      }
-      matchedFree = {
-        date: targetDate,
-        attempts: att,
-        correct: cor,
-        wrong: (dpFree.wrong !== undefined) ? dpFree.wrong : Math.max(0, att - cor),
-        words: dpFree.words || {}
-      };
-    } else if (hFree && (hFree.a || hFree.c || hFree.words)) {
-      matchedFree = {
-        date: targetDate,
-        attempts: hFree.a || 0,
-        correct: hFree.c || 0,
-        wrong: (hFree.a && hFree.c) ? Math.max(0, hFree.a - hFree.c) : 0,
-        words: hFree.words || {}
-      };
-    }
-    // 備援：若 JSON 無該日自由練習，直接從試算表該列自由練習欄位提取
-    if (!matchedFree && resp.data && Array.isArray(resp.data)) {
-      for (const r of resp.data) {
-        if (!r) continue;
-        const rDate = normalizeDateKey(r[0]);
-        if (rDate === targetDate || unpadDateKey(r[0]) === shortTarget) {
-          const fInfo = extractRowFreeInfo(r, resp.headers);
-          if (fInfo && fInfo.attempts > 0) {
-            matchedFree = {
-              date: targetDate,
-              attempts: fInfo.attempts,
-              correct: fInfo.correct,
-              wrong: fInfo.wrong,
-              words: fInfo.wordsMap
-            };
-            break;
-          }
-        }
-      }
-    }
+    // B. 匹配自由練習紀錄 (嚴格排除舊版自動回填的虛擬物件與指定測驗污染)
+    const matchedFree = resolveFreeForDate(targetDate);
     freeDetailsContainer.innerHTML = buildFreeDetailsHtml(matchedFree, targetDate, agent);
 
     if (typeof window.__updateStTaskHeatDayBadgeByDate === "function") {
@@ -16050,64 +16026,80 @@ function renderStudentSummary(resp) {
   }
 
   // --- B. 自由練習作答紀錄（最近 4 週綠色熱力圖） ---
+  const isRealWordsForHeat = (wordsObj) => {
+    if (!wordsObj || typeof wordsObj !== "object") return false;
+    const vals = Object.values(wordsObj).filter(Boolean);
+    if (vals.length === 0) return false;
+    return vals.some(w => (w.lastResult === "correct" || w.lastResult === "wrong" || w.a !== undefined));
+  };
+
   const getDayStatForHeat = (keyDash, keyShort, keySlash) => {
     let a = 0, c = 0;
-    const dpItem = dpMap[keyDash] || dpMap[keyShort] || dpMap[keySlash] || null;
-    if (dpItem) {
-      let dpAtt = dpItem.attempts || 0;
-      let dpCor = (dpItem.correct !== undefined) ? dpItem.correct : 0;
-      if (!dpAtt && dpItem.words && typeof dpItem.words === "object") {
-        const wVals = Object.values(dpItem.words).filter(Boolean);
-        dpAtt = wVals.length;
-        dpCor = wVals.filter(w => (w.correct > 0 || w.passed || w.lastResult === "correct")).length;
+
+    let thRow = null;
+    let thFreeAtt = 0, thFreeCor = 0;
+    if (Array.isArray(dailyTaskHistory)) {
+      thRow = dailyTaskHistory.find(item => {
+        if (!item || !item.date) return false;
+        const dNorm = normalizeDayKey(item.date);
+        return dNorm === keyDash || dNorm === keyShort;
+      }) || null;
+      if (thRow) {
+        const isSelfRow = (thRow.taskName === "自主練習");
+        thFreeAtt = parseInt(thRow.freeTested !== undefined ? thRow.freeTested : (isSelfRow ? thRow.attempts : 0)) || 0;
+        thFreeCor = parseInt(thRow.freeCorrect !== undefined ? thRow.freeCorrect : (isSelfRow ? thRow.correct : 0)) || 0;
       }
+    }
+
+    const dpItem = dpMap[keyDash] || dpMap[keyShort] || dpMap[keySlash] || null;
+    let hasRealDpWords = false;
+    let isFabricatedDp = false;
+    if (dpItem && dpItem.words && typeof dpItem.words === "object" && Object.keys(dpItem.words).length > 0) {
+      hasRealDpWords = isRealWordsForHeat(dpItem.words);
+      isFabricatedDp = !hasRealDpWords;
+    }
+
+    if (dpItem && hasRealDpWords) {
+      const wVals = Object.values(dpItem.words).filter(Boolean);
+      const dpAtt = wVals.length;
+      const dpCor = wVals.filter(w => {
+        const wCor = (w.correct !== undefined) ? w.correct : (w.c || 0);
+        const wWrg = (w.wrong !== undefined) ? w.wrong : Math.max(0, (w.a || 0) - wCor);
+        const isStillWrong = w.hadCorrectThenWrong || (w.lastResult === "wrong" && wCor > 0) || (w.lastResult === "wrong") || (wWrg > 0 && wCor === 0);
+        return !isStillWrong && (w.lastResult === "correct" || wCor > 0 || w.passed);
+      }).length;
       if (dpAtt > 0) {
         a = Math.max(a, dpAtt);
         c = Math.max(c, dpCor);
       }
     }
-    const h = historyData[keyDash] || historyData[keyShort] || historyData[keySlash] || null;
-    if (h) {
-      let hAtt = (h.a !== undefined) ? h.a : (h.attempts !== undefined ? h.attempts : 0);
-      let hCor = (h.c !== undefined) ? h.c : (h.correct !== undefined ? h.correct : 0);
-      if (!hAtt && h.words && typeof h.words === "object") {
-        const wVals = Object.values(h.words).filter(Boolean);
-        hAtt = wVals.length;
-        hCor = wVals.filter(w => (w.c > 0 || w.correct > 0 || w.passed)).length;
-      }
-      if (hAtt > 0) {
-        a = Math.max(a, hAtt);
-        c = Math.max(c, hCor);
-      }
+
+    if (thFreeAtt > 0 && !hasRealDpWords) {
+      a = Math.max(a, thFreeAtt);
+      c = Math.max(c, thFreeCor);
     }
-    if (Array.isArray(dailyTaskHistory)) {
-      const th = dailyTaskHistory.find(item => {
-        if (!item || !item.date) return false;
-        const dNorm = normalizeDayKey(item.date);
-        return dNorm === keyDash || dNorm === keyShort;
-      });
-      if (th) {
-        let tAtt = parseInt(th.freeTested || (th.taskName === "自主練習" ? th.attempts : 0)) || 0;
-        let tCorr = parseInt(th.freeCorrect || (th.taskName === "自主練習" ? th.correct : 0)) || 0;
-        if (!tAtt && th.taskName === "自主練習" && th.score && th.score !== "—" && String(th.score).includes("/")) {
-          const p = String(th.score).split("/");
-          tCorr = parseInt(p[0]) || 0;
-          tAtt = parseInt(p[1]) || 0;
-        }
-        if (tAtt > 0) {
-          a = Math.max(a, tAtt);
-          c = Math.max(c, tCorr);
+
+    const sheetExplicitlyZeroFree = !!(thRow && thFreeAtt === 0 && !hasRealDpWords);
+    if (!sheetExplicitlyZeroFree && !hasRealDpWords && !isFabricatedDp) {
+      const h = historyData[keyDash] || historyData[keyShort] || historyData[keySlash] || null;
+      if (h) {
+        let hAtt = (h.a !== undefined) ? h.a : (h.attempts !== undefined ? h.attempts : 0);
+        let hCor = (h.c !== undefined) ? h.c : (h.correct !== undefined ? h.correct : 0);
+        if (hAtt > 0) {
+          a = Math.max(a, hAtt);
+          c = Math.max(c, hCor);
         }
       }
     }
-    if (resp.data && Array.isArray(resp.data) && resp.headers) {
+
+    if (!a && resp.data && Array.isArray(resp.data) && resp.headers) {
       for (const r of resp.data) {
         if (!r || !r[0]) continue;
         if (normalizeDayKey(r[0]) === keyDash) {
-          const fInfo = extractRowTaskInfo(r, resp.headers);
-          if (fInfo && fInfo.freeTested > 0) {
-            a = Math.max(a, fInfo.freeTested);
-            c = Math.max(c, fInfo.freeCorrect);
+          const fInfo = extractRowFreeInfo(r, resp.headers);
+          if (fInfo && fInfo.attempts > 0) {
+            a = Math.max(a, fInfo.attempts);
+            c = Math.max(c, fInfo.correct);
           }
           break;
         }
@@ -16129,34 +16121,27 @@ function renderStudentSummary(resp) {
     days.push({ key: keyDash, dateNum: d.getDate(), a: att, c: cor, rate: rate, level: lvl });
   }
 
-  const allActiveDates = new Set();
-  Object.keys(historyData).forEach(k => {
-    const h = historyData[k];
-    if (h && ((h.a > 0) || (h.attempts > 0) || (h.words && Object.keys(h.words).length > 0))) allActiveDates.add(normalizeDayKey(k));
-  });
-  Object.keys(dpMap).forEach(k => {
-    const dp = dpMap[k];
-    if (dp && ((dp.attempts > 0) || (dp.words && Object.keys(dp.words).length > 0))) allActiveDates.add(normalizeDayKey(k));
-  });
-  if (Array.isArray(dailyTaskHistory)) {
-    dailyTaskHistory.forEach(th => {
-      if (th && th.date && (th.freeTested > 0 || (th.taskName === "自主練習" && th.attempts > 0))) {
-        allActiveDates.add(normalizeDayKey(th.date));
-      }
-    });
-  }
-  if (resp.data && Array.isArray(resp.data) && resp.headers) {
+  const candidateDates = new Set([
+    ...Object.keys(historyData).map(k => normalizeDayKey(k)),
+    ...Object.keys(dpMap).map(k => normalizeDayKey(k)),
+    ...(Array.isArray(dailyTaskHistory) ? dailyTaskHistory.map(th => th && th.date ? normalizeDayKey(th.date) : "") : [])
+  ]);
+  if (resp.data && Array.isArray(resp.data)) {
     resp.data.forEach(r => {
-      if (r && r[0]) {
-        const fInfo = extractRowTaskInfo(r, resp.headers);
-        if (fInfo && fInfo.freeTested > 0) {
-          allActiveDates.add(normalizeDayKey(r[0]));
-        }
-      }
+      if (r && r[0]) candidateDates.add(normalizeDayKey(r[0]));
     });
   }
+  const allActiveDates = new Set();
+  candidateDates.forEach(dKey => {
+    if (!dKey) return;
+    const parts = dKey.split("-");
+    const shortK = parts.length === 3 ? `${parts[0]}-${parseInt(parts[1], 10)}-${parseInt(parts[2], 10)}` : dKey;
+    const slashK = dKey.replace(/-/g, "/");
+    if (getDayStatForHeat(dKey, shortK, slashK).a > 0) {
+      allActiveDates.add(dKey);
+    }
+  });
   let totalActive = allActiveDates.size;
-  if (totalActive === 0 && attempts > 0) totalActive = 1;
 
   // 計算連續天數 (streak) 與最佳連續天數 (best) - 1:1 對齊 store.js
   let streak = 0;

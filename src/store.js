@@ -194,7 +194,7 @@ export function grade(id, correct, level, mode, wordStr = null, isFree = true) {
   const mwEntry = mw[id] || (mw[id] = { a: 0, c: 0 });
   mwEntry.a++; if (correct) mwEntry.c++;
 
-  // 自由練習每日紀錄 (包含當日受測單字與作答成果)
+  // 自由練習每日紀錄 (包含當日受測單字與作答成果) — 僅限自由練習 (isFree === true) 寫入
   if (isFree) {
     const tKey = todayStr();
     if (!DB.dailyPractice) DB.dailyPractice = {};
@@ -234,20 +234,17 @@ export function grade(id, correct, level, mode, wordStr = null, isFree = true) {
       }
     }
 
-    // 自由練習亦同步記入 history 以支援學習天數熱力圖
+    // 自由練習亦同步記入 history 以支援自由練習熱力圖（不重複計算）
     const h = DB.history[tKey] || (DB.history[tKey] = { a: 0, c: 0, w: 0, m: 0 });
     h.a++; if (correct) h.c++; else h.w++; if (newlyMastered) h.m++;
-  }
 
-  if (DB.session.active) {
-    const s = DB.session;
-    s.answered++;
-    if (correct) s.correct++; else s.incorrect++;
-    s.ids[id] = 1;
-    if (newlyMastered) s.mastered++;
-    // log into today's history (survives even if the session is never explicitly ended)
-    const h = DB.history[todayStr()] || (DB.history[todayStr()] = { a: 0, c: 0, w: 0, m: 0 });
-    h.a++; if (correct) h.c++; else h.w++; if (newlyMastered) h.m++;
+    if (DB.session.active) {
+      const s = DB.session;
+      s.answered++;
+      if (correct) s.correct++; else s.incorrect++;
+      s.ids[id] = 1;
+      if (newlyMastered) s.mastered++;
+    }
   }
   save();
   return { correct, gain, streak: DB.streak, box: DB.box[id], newlyMastered };
@@ -271,6 +268,15 @@ export function sessionEnd() {
   save();
   return summary;
 }
+
+// 判斷單字物件是否為真實當日自由練習紀錄（而非舊版從累積單字自動回填的虛擬物件）
+function isRealDailyWordsMap(wordsObj) {
+  if (!wordsObj || typeof wordsObj !== "object") return false;
+  const vals = Object.values(wordsObj).filter(Boolean);
+  if (vals.length === 0) return false;
+  return vals.some(w => (w.lastResult === "correct" || w.lastResult === "wrong" || w.a !== undefined));
+}
+
 // Practice history for the last `n` days + streaks, for the calendar heatmap.
 export function historyData(n = 28) {
   let taskHistory = [];
@@ -279,7 +285,7 @@ export function historyData(n = 28) {
     if (raw) taskHistory = JSON.parse(raw) || [];
   } catch(_) {}
 
-  // 取得特定日期的作答題數與答對數（融合 dailyPractice, DB.history, student_task_history 與今日即時進度）
+  // 取得特定日期的自由練習作答單字數與答對數（嚴格排除指定測驗紀錄）
   const getDayStat = (dateStr) => {
     const norm = normalizeDateStr(dateStr);
     const unpad = unpadDateStr(dateStr);
@@ -287,68 +293,66 @@ export function historyData(n = 28) {
 
     let a = 0, c = 0;
 
-    // 1. 檢查 dailyPractice
+    // 先檢查雲端同步之 student_task_history 是否有該日自由練習紀錄
+    let thRow = null;
+    let thFreeAtt = 0, thFreeCor = 0;
+    if (Array.isArray(taskHistory)) {
+      thRow = taskHistory.find(item => item && item.date && normalizeDateStr(item.date) === norm) || null;
+      if (thRow) {
+        const isSelfRow = (thRow.taskName === "自主練習");
+        thFreeAtt = parseInt(thRow.freeTested !== undefined ? thRow.freeTested : (isSelfRow ? thRow.attempts : 0)) || 0;
+        thFreeCor = parseInt(thRow.freeCorrect !== undefined ? thRow.freeCorrect : (isSelfRow ? thRow.correct : 0)) || 0;
+      }
+    }
+
+    // 1. 檢查 dailyPractice (僅採納具有真實當日單字紀錄，或與試算表自由練習吻合者)
+    let hasRealDpWords = false;
     if (DB.dailyPractice) {
       const dp = DB.dailyPractice[norm] || DB.dailyPractice[unpad] || DB.dailyPractice[slash] || DB.dailyPractice[dateStr];
       if (dp) {
-        let dpAtt = dp.attempts || 0;
-        let dpCor = (dp.correct !== undefined) ? dp.correct : 0;
-        if (!dpAtt && dp.words && typeof dp.words === "object") {
+        hasRealDpWords = isRealDailyWordsMap(dp.words);
+        if (hasRealDpWords) {
           const wVals = Object.values(dp.words).filter(Boolean);
-          dpAtt = wVals.length;
-          dpCor = wVals.filter(w => (w.correct > 0 || w.passed || w.lastResult === "correct")).length;
-        }
-        if (dpAtt > 0) {
-          a = Math.max(a, dpAtt);
-          c = Math.max(c, dpCor);
+          const dpAtt = wVals.length;
+          const dpCor = wVals.filter(w => {
+            const wCor = (w.correct !== undefined) ? w.correct : (w.c || 0);
+            const wWrg = (w.wrong !== undefined) ? w.wrong : Math.max(0, (w.a || 0) - wCor);
+            const isStillWrong = w.hadCorrectThenWrong || (w.lastResult === "wrong" && wCor > 0) || (w.lastResult === "wrong") || (wWrg > 0 && wCor === 0);
+            return !isStillWrong && (w.lastResult === "correct" || wCor > 0 || w.passed);
+          }).length;
+          if (dpAtt > 0) {
+            a = Math.max(a, dpAtt);
+            c = Math.max(c, dpCor);
+          }
+        } else if ((!dp.words || Object.keys(dp.words).length === 0) && dp.attempts > 0 && (!thRow || thFreeAtt > 0)) {
+          a = Math.max(a, dp.attempts || 0);
+          c = Math.max(c, dp.correct || 0);
         }
       }
     }
 
-    // 2. 檢查 DB.history
-    if (DB.history) {
+    // 2. 檢查 DB.history（若試算表已明確記載該日自由練習為 0 且無真實 dp.words，代表 DB.history 為舊版指定測驗誤記，不予採計）
+    const sheetExplicitlyZeroFree = !!(thRow && thFreeAtt === 0 && !hasRealDpWords);
+    if (DB.history && !sheetExplicitlyZeroFree && !hasRealDpWords) {
       const h = DB.history[norm] || DB.history[unpad] || DB.history[slash] || DB.history[dateStr];
       if (h) {
-        let hAtt = (h.a !== undefined) ? h.a : (h.attempts !== undefined ? h.attempts : 0);
-        let hCor = (h.c !== undefined) ? h.c : (h.correct !== undefined ? h.correct : 0);
-        if (!hAtt && h.words && typeof h.words === "object") {
-          const wVals = Object.values(h.words).filter(Boolean);
-          hAtt = wVals.length;
-          hCor = wVals.filter(w => (w.c > 0 || w.correct > 0 || w.passed)).length;
-        }
-        if (hAtt > 0) {
-          a = Math.max(a, hAtt);
-          c = Math.max(c, hCor);
-        }
-      }
-    }
-
-    // 3. 檢查 student_task_history (來自試算表雲端同步紀錄，相容自主練習與指定測驗)
-    if (Array.isArray(taskHistory)) {
-      const th = taskHistory.find(item => {
-        if (!item || !item.date) return false;
-        const idNorm = normalizeDateStr(item.date);
-        return idNorm === norm;
-      });
-      if (th) {
-        let tAtt = parseInt(th.attempts || th.freeTested) || 0;
-        let tCorr = parseInt(th.correct || th.freeCorrect) || 0;
-        if (!tAtt && th.score && th.score !== "—" && th.score.includes("/")) {
-          const parts = th.score.split("/");
-          tCorr = parseInt(parts[0]) || 0;
-          tAtt = parseInt(parts[1]) || 0;
-        }
-        if (tAtt > 0) {
-          a = Math.max(a, tAtt);
-          c = Math.max(c, tCorr);
+        const dpForCheck = DB.dailyPractice && (DB.dailyPractice[norm] || DB.dailyPractice[unpad] || DB.dailyPractice[slash] || DB.dailyPractice[dateStr]);
+        const isFabricatedOnly = dpForCheck && dpForCheck.words && Object.keys(dpForCheck.words).length > 0 && !isRealDailyWordsMap(dpForCheck.words);
+        if (!isFabricatedOnly) {
+          let hAtt = (h.a !== undefined) ? h.a : (h.attempts !== undefined ? h.attempts : 0);
+          let hCor = (h.c !== undefined) ? h.c : (h.correct !== undefined ? h.correct : 0);
+          if (hAtt > 0) {
+            a = Math.max(a, hAtt);
+            c = Math.max(c, hCor);
+          }
         }
       }
     }
 
-    // 4. 若為今天且當日 session 有作答
-    if (norm === todayStr() && DB.session && DB.session.date === todayStr() && DB.session.answered > 0) {
-      a = Math.max(a, DB.session.answered);
-      c = Math.max(c, DB.session.correct);
+    // 3. 採用雲端同步之自由練習欄位 (freeTested / freeCorrect)
+    if (thFreeAtt > 0 && !hasRealDpWords) {
+      a = Math.max(a, thFreeAtt);
+      c = Math.max(c, thFreeCor);
     }
 
     return { a, c };
@@ -375,30 +379,23 @@ export function historyData(n = 28) {
     while (has(k)) { streak++; k++; }
   }
 
-  // 收集所有曾作答過之不重複日期
-  const activeDateSet = new Set();
+  // 收集所有曾進行自由練習之不重複日期
+  const candidateDates = new Set();
   if (DB.dailyPractice) {
-    Object.keys(DB.dailyPractice).forEach(k => {
-      const dp = DB.dailyPractice[k];
-      if (dp && ((dp.attempts > 0) || (dp.words && Object.keys(dp.words).length > 0))) activeDateSet.add(normalizeDateStr(k));
-    });
+    Object.keys(DB.dailyPractice).forEach(k => candidateDates.add(normalizeDateStr(k)));
   }
   if (DB.history) {
-    Object.keys(DB.history).forEach(k => {
-      const h = DB.history[k];
-      if (h && ((h.a > 0) || (h.attempts > 0) || (h.words && Object.keys(h.words).length > 0))) activeDateSet.add(normalizeDateStr(k));
-    });
+    Object.keys(DB.history).forEach(k => candidateDates.add(normalizeDateStr(k)));
   }
   if (Array.isArray(taskHistory)) {
     taskHistory.forEach(th => {
-      if (th && th.date && (th.attempts > 0 || th.freeTested > 0 || (th.score && th.score !== "—"))) {
-        activeDateSet.add(normalizeDateStr(th.date));
-      }
+      if (th && th.date) candidateDates.add(normalizeDateStr(th.date));
     });
   }
-  if (DB.attempts > 0 && activeDateSet.size === 0) {
-    activeDateSet.add(todayStr());
-  }
+  const activeDateSet = new Set();
+  candidateDates.forEach(dKey => {
+    if (dKey && getDayStat(dKey).a > 0) activeDateSet.add(dKey);
+  });
 
   // 計算最佳連續天數
   const toIdx = (ds) => {
@@ -527,6 +524,9 @@ export function getDailyPractice(dateStr) {
   const unpadded = unpadDateStr(dateStr);
   const slashed = norm.replace(/-/g, "/");
   let dp = (DB.dailyPractice && (DB.dailyPractice[norm] || DB.dailyPractice[unpadded] || DB.dailyPractice[slashed] || DB.dailyPractice[dateStr])) || null;
+  if (dp && dp.words && Object.keys(dp.words).length > 0 && !isRealDailyWordsMap(dp.words)) {
+    dp = null;
+  }
   if (!dp || (!dp.attempts && (!dp.words || Object.keys(dp.words).length === 0))) {
     const h = (DB.history && (DB.history[norm] || DB.history[unpadded] || DB.history[slashed] || DB.history[dateStr])) || null;
     if (h) {
@@ -547,8 +547,10 @@ export function getDailyPractice(dateStr) {
     const wList = Object.values(dp.words).filter(Boolean);
     dp.distinctAttempts = wList.length;
     dp.distinctCorrect = wList.filter(w => {
-      const isWrong = (w.lastResult === 'wrong') || (w.wrong > 0 && (!w.correct || w.correct === 0));
-      return !isWrong && (w.lastResult === 'correct' || (w.correct > 0 && !w.wrong) || w.passed);
+      const wCor = (w.correct !== undefined) ? w.correct : (w.c || 0);
+      const wWrg = (w.wrong !== undefined) ? w.wrong : Math.max(0, (w.a || 0) - wCor);
+      const isWrong = w.hadCorrectThenWrong || (w.lastResult === 'wrong' && wCor > 0) || (w.lastResult === 'wrong') || (wWrg > 0 && wCor === 0);
+      return !isWrong && (w.lastResult === 'correct' || wCor > 0 || w.passed);
     }).length;
   }
   return dp;
@@ -559,7 +561,9 @@ export function getPracticeDates() {
   if (DB.dailyPractice) {
     Object.keys(DB.dailyPractice).forEach(k => {
       const dp = DB.dailyPractice[k];
-      if (k && dp && ((dp.attempts > 0) || (dp.words && Object.keys(dp.words).length > 0))) set.add(normalizeDateStr(k));
+      if (!k || !dp) return;
+      if (dp.words && Object.keys(dp.words).length > 0 && !isRealDailyWordsMap(dp.words)) return;
+      if ((dp.attempts > 0) || (dp.words && Object.keys(dp.words).length > 0)) set.add(normalizeDateStr(k));
     });
   }
   if (DB.history) {
@@ -669,126 +673,70 @@ export function summary(words) {
     }
   }
 
-  // 2. 自動回填與修復 dailyPractice (保證單字清單不落空)
-  const tKey = todayStr();
+  // 2. 自動清理舊版誤由指定測驗或累積單字回填產生的幽靈 dailyPractice / history 紀錄（絕不跨日偽造單字）
   if (!DB.dailyPractice) DB.dailyPractice = {};
+  if (!DB.history) DB.history = {};
   let changed = false;
 
-  // 先清理若已有歷史紀錄卻在無當日 history 下誤生成的幽靈日期
-  const hasValidSummaryActivity = (item) => {
-    if (!item) return false;
-    if (typeof item.a === "number" && item.a > 0) return true;
-    if (typeof item.attempts === "number" && item.attempts > 0) return true;
-    if (item.words && typeof item.words === "object" && Object.keys(item.words).length > 0) return true;
-    return false;
-  };
-  const histKeysWithAtt = Object.keys(DB.history || {}).filter(hk => hasValidSummaryActivity(DB.history[hk])).map(normalizeDateStr);
-  if (histKeysWithAtt.length > 0) {
-    Object.keys(DB.dailyPractice).forEach(dpKey => {
-      const normDp = normalizeDateStr(dpKey);
-      const hasRealHist = histKeysWithAtt.includes(normDp);
-      const hasRealDp = hasValidSummaryActivity(DB.dailyPractice[dpKey]);
-      const isSessionToday = (normDp === tKey && DB.session && DB.session.date === tKey && DB.session.answered > 0);
-      if (!hasRealHist && !hasRealDp && !isSessionToday) {
-        delete DB.dailyPractice[dpKey];
-        changed = true;
-      }
-    });
-  }
+  let taskHistory = [];
+  try {
+    const raw = localStorage.getItem("student_task_history");
+    if (raw) taskHistory = JSON.parse(raw) || [];
+  } catch(_) {}
 
-  // 整理所有歷史日期（含 dailyPractice 與 DB.history）
-  const allHistoryDates = new Set([
-    ...Object.keys(DB.dailyPractice || {}),
-    ...Object.keys(DB.history || {})
-  ]);
-
-  allHistoryDates.forEach(hDate => {
-    const normH = normalizeDateStr(hDate);
-    const h = DB.history && (DB.history[normH] || DB.history[hDate]);
-    let dp = DB.dailyPractice[normH] || DB.dailyPractice[hDate];
-
-    let attempts = (dp && dp.attempts) || (h && (h.a !== undefined ? h.a : h.attempts)) || 0;
-    if (!attempts && dp && dp.words && typeof dp.words === "object") {
-      attempts = Object.keys(dp.words).length;
+  Object.keys(DB.dailyPractice).forEach(dpKey => {
+    const dp = DB.dailyPractice[dpKey];
+    const normDp = normalizeDateStr(dpKey);
+    if (!dp) {
+      delete DB.dailyPractice[dpKey];
+      changed = true;
+      return;
     }
-    if (!attempts && h && h.words && typeof h.words === "object") {
-      attempts = Object.keys(h.words).length;
-    }
-    const correct = (dp && dp.correct !== undefined) ? dp.correct : (h && (h.c !== undefined ? h.c : (h.correct !== undefined ? h.correct : 0))) || 0;
-    const wrong = (dp && dp.wrong !== undefined) ? dp.wrong : Math.max(0, attempts - correct);
-
-    if (attempts > 0) {
-      if (!dp) {
-        dp = DB.dailyPractice[normH] = {
-          date: normH,
-          attempts: attempts,
-          correct: correct,
-          wrong: wrong,
-          words: {}
-        };
-        changed = true;
-      }
-
-      // 若該日有作答題數但缺少詳細單字紀錄 (words 為空)，依據 allPracticedWords 精準回填
-      if (!dp.words || Object.keys(dp.words).length === 0) {
+    const hasWords = dp.words && typeof dp.words === "object" && Object.keys(dp.words).length > 0;
+    const isFabricatedWords = hasWords && !isRealDailyWordsMap(dp.words);
+    if (isFabricatedWords) {
+      const thRow = Array.isArray(taskHistory) ? taskHistory.find(item => item && item.date && normalizeDateStr(item.date) === normDp) : null;
+      const isSelfRow = thRow && thRow.taskName === "自主練習";
+      const thFreeAtt = thRow ? (parseInt(thRow.freeTested !== undefined ? thRow.freeTested : (isSelfRow ? thRow.attempts : 0)) || 0) : 0;
+      if (thFreeAtt > 0) {
+        dp.attempts = thFreeAtt;
+        dp.correct = parseInt(thRow.freeCorrect !== undefined ? thRow.freeCorrect : (isSelfRow ? thRow.correct : 0)) || 0;
+        dp.wrong = Math.max(0, dp.attempts - dp.correct);
         dp.words = {};
-        
-        // 1. 填入答錯單字
-        if (wrong > 0 && allPracticedWords.length > 0) {
-          const wrongCandidates = allPracticedWords.filter(w => w.wrong > 0 || w.ew);
-          wrongCandidates.sort((a, b) => (b.wrong || 0) - (a.wrong || 0));
-          const pickedWrong = wrongCandidates.slice(0, wrong);
-          pickedWrong.forEach(w => {
-            dp.words[w.word] = { word: w.word, attempts: w.attempts || 1, wrong: w.wrong || 1, correct: w.correct || 0, passed: false };
-          });
-
-          // 若候選不足且還有配額，從其餘單字補充
-          if (Object.keys(dp.words).length < wrong) {
-            const remain = allPracticedWords.filter(w => !dp.words[w.word]).slice(0, wrong - Object.keys(dp.words).length);
-            remain.forEach(w => {
-              dp.words[w.word] = { word: w.word, attempts: w.attempts || 1, wrong: 1, correct: w.correct || 0, passed: false };
-            });
-          }
-        }
-
-        // 2. 填入答對單字
-        if (correct > 0 && allPracticedWords.length > 0) {
-          const correctCandidates = allPracticedWords.filter(w => w.correct > 0 && !dp.words[w.word]);
-          correctCandidates.sort((a, b) => (b.correct || 0) - (a.correct || 0));
-          const pickedCorrect = correctCandidates.slice(0, correct);
-          pickedCorrect.forEach(w => {
-            dp.words[w.word] = { word: w.word, attempts: w.attempts || 1, correct: w.correct || 1, wrong: 0, passed: true };
-          });
-
-          // 若候選不足且還有配額，從其餘單字補充
-          const curCount = Object.keys(dp.words).length;
-          if (curCount < (wrong + correct)) {
-            const remain = allPracticedWords.filter(w => !dp.words[w.word]).slice(0, (wrong + correct) - curCount);
-            remain.forEach(w => {
-              dp.words[w.word] = { word: w.word, attempts: w.attempts || 1, correct: 1, wrong: 0, passed: true };
-            });
-          }
-        }
-
-        if (Object.keys(dp.words).length > 0) {
-          changed = true;
+      } else {
+        delete DB.dailyPractice[dpKey];
+        if (DB.history[normDp] || DB.history[dpKey]) {
+          delete DB.history[normDp];
+          delete DB.history[dpKey];
         }
       }
+      changed = true;
+    } else if (!hasWords && (!dp.attempts || dp.attempts <= 0)) {
+      delete DB.dailyPractice[dpKey];
+      changed = true;
     }
   });
 
-  // 僅在完全沒有任何歷史日期紀錄但 DB.attempts > 0 的舊版遷移情境下，才建立今日預設紀錄
-  const hasAnyRecordedDate = Object.keys(DB.dailyPractice || {}).some(k => DB.dailyPractice[k] && DB.dailyPractice[k].attempts > 0)
-    || Object.keys(DB.history || {}).some(k => DB.history[k] && DB.history[k].a > 0);
-  if (s.attempts > 0 && !hasAnyRecordedDate) {
-    DB.dailyPractice[tKey] = {
-      date: tKey,
-      attempts: s.attempts,
-      correct: s.correct,
-      wrong: Math.max(0, s.attempts - s.correct),
-      words: {}
-    };
-    changed = true;
+  if (Array.isArray(taskHistory) && taskHistory.length > 0) {
+    Object.keys(DB.history).forEach(hKey => {
+      const normH = normalizeDateStr(hKey);
+      const dp = DB.dailyPractice[normH] || DB.dailyPractice[hKey];
+      const hasRealDp = dp && isRealDailyWordsMap(dp.words);
+      if (hasRealDp) return;
+      const thRow = taskHistory.find(item => item && item.date && normalizeDateStr(item.date) === normH);
+      if (thRow) {
+        const isSelfRow = (thRow.taskName === "自主練習");
+        const thFreeAtt = parseInt(thRow.freeTested !== undefined ? thRow.freeTested : (isSelfRow ? thRow.attempts : 0)) || 0;
+        if (thFreeAtt === 0) {
+          delete DB.history[hKey];
+          if (DB.dailyPractice[normH] || DB.dailyPractice[hKey]) {
+            delete DB.dailyPractice[normH];
+            delete DB.dailyPractice[hKey];
+          }
+          changed = true;
+        }
+      }
+    });
   }
 
   if (changed) save();
