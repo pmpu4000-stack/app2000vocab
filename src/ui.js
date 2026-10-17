@@ -1237,11 +1237,54 @@ function buildTaskDetailsHtml(records, selectedDate, d) {
       }, d);
     }
 
+    const dateMMDD = normDate ? normDate.replace(/-/g, "").slice(4) : "";
+    const unassignedTitle = dateMMDD ? `📝 ${dateMMDD}指定單字測驗結果 (未指派)` : "📝 指定單字測驗結果 (未指派)";
+
     return `
-      <div class="task-empty-notice-box" style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:335px; min-height:335px; padding:20px 14px; text-align:center; box-sizing:border-box;">
-        <div style="font-size:28px; margin-bottom:8px;">☕</div>
-        <div style="font-size:13.5px; font-weight:700; color:var(--ink2);">該日未指派指定測驗（${selectedDate}）</div>
-        <div style="font-size:12px; margin-top:4px; color:var(--ink3);">老師當日未指派指定測驗，可切換至其他日期查看紀錄</div>
+      <div class="task-single-record-block">
+        <div class="task-history-header">
+          <div>
+            <span class="task-card-title task-title-assigned">${unassignedTitle}</span>
+          </div>
+        </div>
+
+        <div class="task-score-grid">
+          <div class="task-score-item">
+            <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap;">
+              <span style="flex:1; text-align:right;">答對單字數</span>
+              <span style="padding:0 6px; opacity:0.6;">/</span>
+              <span style="flex:1; text-align:left;">施測單字數</span>
+            </div>
+            <div class="task-score-val" style="color:#0284c7; display:flex; align-items:center; justify-content:center;">
+              <span style="flex:1; text-align:right;">0</span>
+              <span style="padding:0 6px; font-weight:700; color:var(--ink3); opacity:0.6; font-size:18px;">/</span>
+              <span style="flex:1; text-align:left;">0</span>
+            </div>
+          </div>
+          <div class="task-score-item">
+            <div class="task-score-label">📊 正確率</div>
+            <div class="task-score-val" style="color:var(--ink3);">0%</div>
+          </div>
+        </div>
+
+        <div class="word-split-grid grid-2">
+          <div class="word-split-box correct-box">
+            <div class="word-split-title correct-title">
+              <span>✅ 答對的單字 (0 字)</span>
+            </div>
+            <div class="word-split-content">
+              <span style="font-size:12px; color:var(--ink3); font-style:italic;">（該日老師未指派測驗）</span>
+            </div>
+          </div>
+          <div class="word-split-box wrong-box">
+            <div class="word-split-title wrong-title">
+              <span>❌ 答錯的單字 (0 字)</span>
+            </div>
+            <div class="word-split-content">
+              <span style="font-size:12px; color:var(--ink3); font-style:italic;">（該日無答錯單字）</span>
+            </div>
+          </div>
+        </div>
       </div>
     `;
   }
@@ -1262,10 +1305,43 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
             <span class="task-card-title task-title-free">${freeTitleText}</span>
           </div>
         </div>
-        <div class="task-empty-notice-box" style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:305px; min-height:305px; padding:20px 14px; text-align:center; box-sizing:border-box;">
-          <div style="font-size:26px; margin-bottom:6px;">🎮</div>
-          <div style="font-size:13.5px; font-weight:700; color:var(--ink2);">該指定日期（${selectedDate}）尚無自由練習受測紀錄</div>
-          <div style="font-size:12px; margin-top:4px; color:var(--ink3);">可從上方日曆選擇器或快速按鈕切換至其他日期查看作答狀況</div>
+
+        <div class="task-score-grid">
+          <div class="task-score-item">
+            <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap;">
+              <span style="flex:1; text-align:right;">答對單字數</span>
+              <span style="padding:0 6px; opacity:0.6;">/</span>
+              <span style="flex:1; text-align:left;">施測單字數</span>
+            </div>
+            <div class="task-score-val" style="color:#0284c7; display:flex; align-items:center; justify-content:center;">
+              <span style="flex:1; text-align:right;">0</span>
+              <span style="padding:0 6px; font-weight:700; color:var(--ink3); opacity:0.6; font-size:18px;">/</span>
+              <span style="flex:1; text-align:left;">0</span>
+            </div>
+          </div>
+          <div class="task-score-item">
+            <div class="task-score-label">📊 正確率</div>
+            <div class="task-score-val" style="color:var(--ink3);">0%</div>
+          </div>
+        </div>
+
+        <div class="word-split-grid grid-2">
+          <div class="word-split-box correct-box">
+            <div class="word-split-title correct-title">
+              <span>✅ 答對的單字 (0 字)</span>
+            </div>
+            <div class="word-split-content">
+              <span style="font-size:12px; color:var(--ink3); font-style:italic;">（當日尚無自由練習紀錄）</span>
+            </div>
+          </div>
+          <div class="word-split-box wrong-box">
+            <div class="word-split-title wrong-title">
+              <span>❌ 答錯的單字 (0 字)</span>
+            </div>
+            <div class="word-split-content">
+              <span style="font-size:12px; color:var(--ink3); font-style:italic;">（當日無答錯單字）</span>
+            </div>
+          </div>
         </div>
       </div>
     `;

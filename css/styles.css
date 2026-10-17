@@ -223,11 +223,11 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 .streakline b{color:var(--catD);font-variant-numeric:tabular-nums}
 .heat-day-info{display:inline-flex !important;align-items:center;justify-content:center;gap:6px;width:215px;min-width:215px;max-width:215px;height:34px;padding:0 12px;box-sizing:border-box;border-radius:9px;font-size:13px;font-weight:800;line-height:1;white-space:nowrap;flex-shrink:0;background:#ECFDF5;color:#065F46;border:2px solid #10B981;box-shadow:0 2px 6px rgba(16,185,129,.14);font-variant-numeric:tabular-nums}
 .heat-day-info b{font-weight:900}
-/* 1. 無作答紀錄：灰色 */
-.heat-day-info.tier-gray,.heat-day-info.empty{background:#F1F5F9 !important;color:#64748B !important;border:2px solid #94A3B8 !important;box-shadow:0 2px 5px rgba(100,116,139,.12) !important}
-.heat-day-info.tier-gray b,.heat-day-info.empty b{color:#475569 !important}
-[data-theme="dark"] .heat-day-info.tier-gray,[data-theme="dark"] .heat-day-info.empty{background:rgba(148,163,184,.12) !important;color:#94A3B8 !important;border:2px solid #64748B !important;box-shadow:0 2px 8px rgba(0,0,0,.35) !important}
-[data-theme="dark"] .heat-day-info.tier-gray b,[data-theme="dark"] .heat-day-info.empty b{color:#CBD5E1 !important}
+/* 1. 無作答紀錄：高對比清晰文字，絕不變淡 */
+.heat-day-info.tier-gray,.heat-day-info.empty{background:#F1F5F9 !important;color:#1E293B !important;border:2px solid #CBD5E1 !important;box-shadow:0 2px 5px rgba(100,116,139,.12) !important}
+.heat-day-info.tier-gray b,.heat-day-info.empty b{color:#0F172A !important}
+[data-theme="dark"] .heat-day-info.tier-gray,[data-theme="dark"] .heat-day-info.empty{background:rgba(148,163,184,.18) !important;color:#F8FAFC !important;border:2px solid #64748B !important;box-shadow:0 2px 8px rgba(0,0,0,.35) !important}
+[data-theme="dark"] .heat-day-info.tier-gray b,[data-theme="dark"] .heat-day-info.empty b{color:#FFFFFF !important}
 /* 2. 答對率 60 以下：白色 (淺色模式配深底使白字與白框高對比易讀；深色模式純白字與純白框) */
 .heat-day-info.tier-white{background:#334155 !important;color:#FFFFFF !important;border:2px solid #CBD5E1 !important;box-shadow:0 2px 6px rgba(15,23,42,.18) !important}
 .heat-day-info.tier-white b{color:#FFFFFF !important}
