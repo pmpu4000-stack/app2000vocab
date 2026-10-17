@@ -1372,7 +1372,7 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
     `;
   }
 
-  const freeTitleText = dateMMDD ? `🎮 ${dateMMDD}自由練習成果` : "🎮 自由練習成果";
+  const freeTitleText = "🎮 自由練習成果";
 
   const attempts = record.attempts || 0;
   const correct = record.correct || 0;
@@ -1961,7 +1961,7 @@ export function renderSummary(d) {
         </div>
         <div class="heatmap" id="heatmap-grid">${d.history.days.map((x, idx) =>
           `<i class="hc h${x.level}" data-idx="${idx}" data-key="${x.key}" data-a="${x.a || 0}" data-rate="${x.rate || 0}"></i>`).join("")}</div>
-        <div class="heat-legend"><b>連續</b>：從今天往回算，一天都沒中斷、天天有練習的天數。<br><b>最佳</b>：你曾經創下「最長連續天天練習」的紀錄。<br><b>累計</b>：從開始到現在，總共有練習過的天數（中間有休息也算）。<br><b>熱力圖</b>：方格顏色依當日作答正確率呈現六階深淺綠色（&lt;60% · 60%~69% · 70%~79% · 80%~89% · 90%~99% · 100%；灰色：無紀錄）。</div>
+        <div class="heat-legend"><b>🔥 連續</b>：目前不中斷、每天練習的天數。<br><b>🏆 最佳</b>：個人最長連續練習紀錄。<br><b>📅 累計</b>：歷來有練習的總天數。<br><b>🟩 熱力圖</b>：綠色越深代表當天正確率越高（灰色為無練習）。</div>
       </div>
     </div>`;
 
