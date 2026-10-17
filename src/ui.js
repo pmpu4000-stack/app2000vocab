@@ -1340,11 +1340,8 @@ function buildTaskDetailsHtml(records, selectedDate, d) {
           <div class="task-empty-notice-icon">☕</div>
           <div class="task-empty-notice-title">本日無指定單字測驗</div>
           <div class="task-empty-notice-desc">
-            老師當天未安排全班指定隨堂測驗。<br>隨時可前往單字庫進行自主練習，累積熟練度！
+            老師當天未安排全班指定隨堂測驗。
           </div>
-          <button type="button" class="task-empty-notice-btn task-btn" onclick="const sc = document.getElementById('btn-summary-close'); if (sc) sc.click();">
-            🎮 前往自主練習挑戰
-          </button>
         </div>
       </div>
     `;
@@ -1376,9 +1373,6 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
           <div class="task-empty-notice-desc">
             尚未進行自由單字練習或複習。<br>每天動動手指挑戰 10~20 個單字，保持語感與連勝紀錄！
           </div>
-          <button type="button" class="task-empty-notice-btn free-btn" onclick="const sc = document.getElementById('btn-summary-close'); if (sc) sc.click();">
-            ⚡ 馬上開始自由練習
-          </button>
         </div>
       </div>
     `;

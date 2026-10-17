@@ -164,6 +164,132 @@ function getSaturdayRemedyRecord() {
   return null;
 }
 
+// ── 寒暑假判定與假日弱點補強題庫管理 ──
+function getVacationInfo(d = new Date()) {
+  const forceMode = localStorage.getItem("is_vacation_mode");
+  if (forceMode === "winter") return { isVacation: true, type: "winter", name: "寒假" };
+  if (forceMode === "summer") return { isVacation: true, type: "summer", name: "暑假" };
+  if (forceMode === "true")   return { isVacation: true, type: "vacation", name: "假期" };
+
+  const m = d.getMonth() + 1; // 1 ~ 12
+  const date = d.getDate();
+
+  // 暑假：7月、8月
+  if (m === 7 || m === 8) {
+    return { isVacation: true, type: "summer", name: "暑假" };
+  }
+  // 寒假：1月中旬 ~ 2月下旬 (約1/15 ~ 2/25)
+  if ((m === 1 && date >= 15) || (m === 2 && date <= 25)) {
+    return { isVacation: true, type: "winter", name: "寒假" };
+  }
+
+  return { isVacation: false, type: "", name: "" };
+}
+
+// 星期日補考測驗仍答錯的單字，存入寒暑假平日補強庫
+function recordSundayRemainingMistakes(words) {
+  if (!Array.isArray(words) || words.length === 0) return;
+  try {
+    const raw = localStorage.getItem("vacation_pending_mistakes");
+    const list = raw ? JSON.parse(raw) : [];
+    const learnedRaw = localStorage.getItem("remedy_learned_words");
+    const learnedList = learnedRaw ? JSON.parse(learnedRaw) : [];
+
+    let addedCount = 0;
+    words.forEach(w => {
+      const cw = String(w).trim().toLowerCase();
+      if (cw && !learnedList.includes(cw) && !list.includes(cw)) {
+        list.push(cw);
+        addedCount++;
+      }
+    });
+    localStorage.setItem("vacation_pending_mistakes", JSON.stringify(list));
+    console.log(`[Remedy] 週日剩餘錯題共 ${words.length} 題，已納入寒暑假平日補強題庫（新增 ${addedCount} 題，現有總數 ${list.length} 題）`);
+  } catch(_) {}
+}
+
+// 若在施測後自主練習答對，則登記為已學會，從假日與寒暑假指派測驗中移除
+function markWordLearnedInFreePractice(word) {
+  const cleanWord = String(word).trim().toLowerCase();
+  if (!cleanWord) return;
+
+  try {
+    // 1. 登記為已學會 (remedy_learned_words)
+    const rawLearned = localStorage.getItem("remedy_learned_words");
+    const learnedList = rawLearned ? JSON.parse(rawLearned) : [];
+    if (!learnedList.includes(cleanWord)) {
+      learnedList.push(cleanWord);
+      localStorage.setItem("remedy_learned_words", JSON.stringify(learnedList));
+    }
+
+    // 2. 從寒暑假待補強題庫 (vacation_pending_mistakes) 中移除
+    const rawVacation = localStorage.getItem("vacation_pending_mistakes");
+    if (rawVacation) {
+      const vList = JSON.parse(rawVacation);
+      if (Array.isArray(vList) && vList.includes(cleanWord)) {
+        const filtered = vList.filter(w => w !== cleanWord);
+        localStorage.setItem("vacation_pending_mistakes", JSON.stringify(filtered));
+        console.log(`[Remedy] 單字 "${cleanWord}" 已在自主練習中答對，登記為已學會，已從寒暑假補強題庫移除！`);
+      }
+    }
+
+    // 3. 從週末錯題庫 (weekTaskMistakes) 中移除，不加入假日指派測驗
+    const rawMistakes = localStorage.getItem("weekTaskMistakes");
+    if (rawMistakes) {
+      const map = JSON.parse(rawMistakes);
+      let changed = false;
+      for (const dKey in map) {
+        if (Array.isArray(map[dKey]) && map[dKey].includes(cleanWord)) {
+          map[dKey] = map[dKey].filter(w => w !== cleanWord);
+          changed = true;
+        }
+      }
+      if (changed) {
+        localStorage.setItem("weekTaskMistakes", JSON.stringify(map));
+        console.log(`[Remedy] 單字 "${cleanWord}" 已從週末錯題庫移除，不加入假日指派測驗！`);
+      }
+    }
+
+    // 4. 從週六補救紀錄 (weekend_remedy_) 中移除，確保週日不指派
+    const mondayStr = getWeekMondayDate();
+    const rawRemedy = localStorage.getItem("weekend_remedy_" + mondayStr);
+    if (rawRemedy) {
+      const rObj = JSON.parse(rawRemedy);
+      if (rObj && Array.isArray(rObj.satWrongWords) && rObj.satWrongWords.includes(cleanWord)) {
+        rObj.satWrongWords = rObj.satWrongWords.filter(w => w !== cleanWord);
+        localStorage.setItem("weekend_remedy_" + mondayStr, JSON.stringify(rObj));
+      }
+    }
+  } catch(_) {}
+}
+
+// 寒假暑假星期一到五：平均分配每日指派測驗內容
+function getVacationDayAssignedWords(dayOfWeek) {
+  // dayOfWeek: 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri
+  if (dayOfWeek < 1 || dayOfWeek > 5) return [];
+
+  try {
+    const raw = localStorage.getItem("vacation_pending_mistakes");
+    if (!raw) return [];
+    const list = JSON.parse(raw);
+    if (!Array.isArray(list) || list.length === 0) return [];
+
+    // 剔除已學會的單字
+    const learnedRaw = localStorage.getItem("remedy_learned_words");
+    const learnedList = learnedRaw ? JSON.parse(learnedRaw) : [];
+    const activeList = list.filter(w => !learnedList.includes(String(w).trim().toLowerCase()));
+
+    if (activeList.length === 0) return [];
+
+    // 平均分配到星期一到五：依索引模 5 分配給週一至週五
+    const slot = dayOfWeek - 1; // 0=Mon, 1=Tue, 2=Wed, 3=Thu, 4=Fri
+    const assigned = activeList.filter((_, idx) => (idx % 5) === slot);
+    return assigned;
+  } catch(_) {
+    return [];
+  }
+}
+
 // ── 錯題記錄：只記錄「今日指定練習」中答錯的單字 ──
 function recordTaskMistake(word) {
   try {
@@ -237,6 +363,16 @@ function getMonToFriUnfinishedWords() {
           }
         }
       }
+    }
+  } catch(_) {}
+
+  // 3. 排除已在自主練習中答對並登記為已學會的單字（不加入假日指派測驗）
+  try {
+    const rawLearned = localStorage.getItem("remedy_learned_words");
+    const learnedList = rawLearned ? JSON.parse(rawLearned) : [];
+    if (Array.isArray(learnedList) && learnedList.length > 0) {
+      const learnedSet = new Set(learnedList.map(w => String(w).trim().toLowerCase()));
+      return Array.from(unfinishedWords).filter(w => !learnedSet.has(w));
     }
   } catch(_) {}
 
@@ -495,9 +631,15 @@ function answer(correct, guessVal) {
     return;
   }
 
-  // ── 自由闖關中答錯：正常升降級，同步收錄至每日自由練習作答歷程 ──
+  // ── 自由闖關中作答：正常升降級，同步收錄至每日自由練習作答歷程 ──
   const info = store.grade(state.word.id, correct, store.progress().current, state.mode, state.word.word, true);
   ui.showResult(correct, state.word, info);
+  
+  // ★ 核心規則：如果在施測後自主練習答對，則登記為已學會，不加入假日與寒暑假指派測驗內容！
+  if (correct && state.word && state.word.word) {
+    markWordLearnedInFreePractice(state.word.word);
+  }
+
   // 依需求取消答對單字灑花特效
   refreshChrome();
 
@@ -780,6 +922,22 @@ function checkAndStartDailyTask() {
   // 若平日（或週末有老師當日特別指派之非補強任務），檢查是否有老師指定的單字任務
   if (!taskToRun && assignedTaskObj && assignedTaskObj.hasTask && assignedTaskObj.words && assignedTaskObj.words.length > 0) {
     taskToRun = assignedTaskObj;
+  }
+
+  // ── 寒假暑假星期一到五：若當日無老師特別指派，平均分配週日補考仍答錯之單字 ──
+  if (!taskToRun && !isWeekend) {
+    const vacInfo = getVacationInfo(d);
+    if (vacInfo.isVacation) {
+      const vacWordsToday = getVacationDayAssignedWords(day);
+      if (vacWordsToday.length > 0) {
+        taskToRun = {
+          taskName  : `${vacInfo.name}每日單字指派測驗`,
+          words     : vacWordsToday,
+          count     : "ALL",
+          isVacation: true
+        };
+      }
+    }
   }
 
   // 若 sessionStorage 遺失（如重新開啟分頁），優先從今日未完成進度恢復 taskToRun
@@ -1152,6 +1310,11 @@ function finishTaskMode() {
         remedyMap.sunRate = rate + "%";
         remedyMap.sunWrongWords = cleanWrongWords;
         remedyMap.sunCorrectWords = cleanCorrectWords;
+
+        // ★ 核心規則：星期日補考測驗仍有答錯的單字，存入寒暑假平日補強庫！
+        if (cleanWrongWords.length > 0) {
+          recordSundayRemainingMistakes(cleanWrongWords);
+        }
       }
       remedyMap.updatedAt = nowTs;
       localStorage.setItem("weekend_remedy_" + mondayStr, JSON.stringify(remedyMap));
@@ -1177,6 +1340,20 @@ function finishTaskMode() {
         }
       } catch(_) {}
     }
+  }
+
+  // 若為寒暑假指派任務，已答對單字從寒暑假補強庫中剔除
+  if (task.isVacation && cleanCorrectWords.length > 0) {
+    try {
+      const rawV = localStorage.getItem("vacation_pending_mistakes");
+      if (rawV) {
+        let vList = JSON.parse(rawV);
+        if (Array.isArray(vList)) {
+          vList = vList.filter(w => !cleanCorrectWords.includes(String(w).trim().toLowerCase()));
+          localStorage.setItem("vacation_pending_mistakes", JSON.stringify(vList));
+        }
+      }
+    } catch(_) {}
   }
 
   burst();
@@ -1238,9 +1415,9 @@ function finishTaskMode() {
       resHtml = `
         <div style="margin:16px 0; font-size:15px; color:var(--ink, #334155); line-height:1.7;">
           週末這兩天的錯題消滅挑戰辛苦了！這次又救回了 <b style="color:var(--green, #10b981);">${correct}</b> 個單字！<br>
-          ${wrongCount > 0 ? `雖然還有 <b style="color:#ef4444;">${wrongCount}</b> 個單字稍微不熟，但多練習就一定有進步！下週課堂繼續加油喔！` : `本週所有弱點單字都已經補強完畢囉！`}<br>
+          ${wrongCount > 0 ? `還有 <b style="color:#ef4444;">${wrongCount}</b> 個單字尚未過關，系統已安排平均分配於<b>寒暑假平日（週一至週五）</b>繼續複習消滅！` : `本週所有弱點單字都已經補強完畢囉！`}<br>
           <span style="font-size:13px; color:var(--ink3, #64748b); display:inline-block; margin-top:8px;">
-            現在已開放<b>「自由闖關模式」</b>，隨時都能上去保持手感！
+            💡 <b>貼心提醒</b>：隨時可以到<b>「自由闖關」</b>自主練習這些單字，只要在自主練習中答對，就會直接登記為已學會，假期就不會再加入指派測驗囉！
           </span>
         </div>
         <div style="font-size:12px; color:var(--ink3, #94a3b8);">（週末成績已自動同步寫入雲端每日任務紀錄）</div>
@@ -1248,6 +1425,24 @@ function finishTaskMode() {
       resBtnLabel = "辛苦了，前往自由闖關 →";
       postCatLabel = "✅ 週末錯題補救測驗已完成，已開放自由闖關！";
     }
+  } else if (task.isVacation) {
+    // 寒暑假平日指定練習
+    resEmoji = rate >= 80 ? "🏆" : "💪";
+    resColor = rate >= 80 ? "var(--green, #10b981)" : "var(--coral, #f59e0b)";
+    resHeadline = `${task.taskName}完成！`;
+    resSub = `本次測驗答對 ${correct}／${total} 題（正確率 ${rate}%）`;
+    resHtml = `
+      <div style="margin:16px 0; font-size:15px; color:var(--ink, #334155); line-height:1.7;">
+        今天假期指派的單字練習已經順利達標囉！🎉<br>
+        ${wrongCount > 0 ? `今天未答對的 <b style="color:#ef4444;">${wrongCount}</b> 個單字，將自動加入本週<b>六日的週末消滅戰</b>繼續補強！` : `今天的弱點單字已經全部消滅學會囉！`}<br>
+        <span style="font-size:13px; color:var(--ink3, #64748b); display:inline-block; margin-top:8px;">
+          今日指派已完成，現在為你解鎖<b>「自由闖關模式」</b>，快去賺取更多星星吧！
+        </span>
+      </div>
+      <div style="font-size:12px; color:var(--ink3, #94a3b8);">（成績已自動同步寫入雲端每日任務紀錄）</div>
+    `;
+    resBtnLabel = "開始自由闖關 →";
+    postCatLabel = "✅ 今日假期指派練習已完成，已開放自由升級闖關！";
   } else {
     // 平日指定練習
     resEmoji = rate >= 80 ? "🏆" : "💪";
