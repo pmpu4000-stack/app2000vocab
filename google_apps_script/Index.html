@@ -14685,9 +14685,9 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
   const scoreVal = record.score || "—";
   const rateVal = formatRatePercentage(record.rate, record.score);
   const statusStr = record.status || "🟢 已完成";
-  const isIncomplete = statusStr.includes("作答中") || statusStr.includes("未完成") || statusStr.includes("中斷") || record.inProgress === true;
-  const isFinished = !isIncomplete && (statusStr.includes("已完成") || (scoreVal !== "—" && scoreVal !== "尚未開始" && !statusStr.includes("未受測")));
-  const isUntested = statusStr.includes("未受測") || (!isFinished && !isIncomplete && (scoreVal === "—" || scoreVal === "尚未開始"));
+  const isFinished = statusStr.includes("已完成") || (!statusStr.includes("未受測") && (scoreVal !== "—" && scoreVal !== "尚未開始") && !statusStr.includes("作答中") && !statusStr.includes("未完成") && !statusStr.includes("中斷") && record.inProgress !== true);
+  const isIncomplete = !isFinished && (statusStr.includes("作答中") || statusStr.includes("未完成") || statusStr.includes("中斷") || record.inProgress === true);
+  const isUntested = !isFinished && !isIncomplete && (statusStr.includes("未受測") || scoreVal === "—" || scoreVal === "尚未開始");
 
   let displayStatusStr = statusStr;
   let statusColor = "#64748b";

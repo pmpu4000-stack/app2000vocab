@@ -954,11 +954,13 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
   const unansweredList = rawWords.filter(w => !answeredSet.has(String(w).toLowerCase())).sort((a, b) => a.localeCompare(b));
   const totalAnswered = correctList.length + wrongList.length;
 
-  // 核心判定：若有未測單字且實際作答單字小於總單字數（例如 5 題只答 2 題，答錯 0 題），絕對屬於作答中斷！
-  const isPartialAttempt = (taskTotWords > 0 && totalAnswered < taskTotWords && wrongList.length === 0 && unansweredList.length > 0);
-  const isIncomplete = isPartialAttempt || statusStr.includes("作答中") || statusStr.includes("未完成") || statusStr.includes("中斷") || record.inProgress === true;
-  const isFinished = !isIncomplete && (statusStr.includes("已完成") || (scoreVal !== "—" && scoreVal !== "尚未開始" && !statusStr.includes("未受測")));
-  const isUntested = statusStr.includes("未受測") || (!isFinished && !isIncomplete && (scoreVal === "—" || scoreVal === "尚未開始"));
+  // 核心完成判定：已完成狀態優先保護
+  const isFinished = statusStr.includes("已完成") || (!statusStr.includes("未受測") && (scoreVal !== "—" && scoreVal !== "尚未開始") && (totalAnswered >= taskTotWords || (taskTotWords > 0 && totalAnswered > 0 && unansweredList.length === 0)));
+
+  // 核心中斷判定：若有未測單字且實際作答單字大於0且小於總單字數（例如 5 題只答 2 題，答錯 0 題），才屬於作答中斷！
+  const isPartialAttempt = !isFinished && (taskTotWords > 0 && totalAnswered > 0 && totalAnswered < taskTotWords && wrongList.length === 0 && unansweredList.length > 0);
+  const isIncomplete = !isFinished && (isPartialAttempt || statusStr.includes("作答中") || statusStr.includes("未完成") || statusStr.includes("中斷") || record.inProgress === true);
+  const isUntested = !isFinished && !isIncomplete && (statusStr.includes("未受測") || scoreVal === "—" || scoreVal === "尚未開始" || totalAnswered === 0);
 
   let displayStatusStr = statusStr;
   let statusColor = "#64748b";
@@ -1864,17 +1866,29 @@ export function renderSummary(d) {
     const resolvedAnsCount = resolvedCorr.length + resolvedWrong.length;
     const taskWordsCount = resolvedRaw.length || (Array.isArray(tRec.words) && tRec.words.length) || tAtt || 5;
 
-    const isUnfinishedAttempt = (taskWordsCount > 0 && resolvedAnsCount < taskWordsCount && resolvedWrong.length === 0);
+    if (!tAtt && resolvedAnsCount > 0) {
+      tAtt = resolvedAnsCount;
+      tCor = resolvedCorr.length;
+      tRate = Math.round((tCor / tAtt) * 100);
+    }
+
+    // 核心完成判定：只要狀態明確為已完成，或已全數作答完畢
+    const isFinished = statusStr.includes("已完成") || (!statusStr.includes("未受測") && !statusStr.includes("尚未開始") && ((tAtt > 0 && tAtt >= taskWordsCount) || (resolvedAnsCount > 0 && resolvedAnsCount >= taskWordsCount)));
+
+    // 核心中斷判定：必須是有實際開始作答 (resolvedAnsCount > 0 或 tAtt > 0)，但未答完總題數且無答錯
+    const isUnfinishedAttempt = !isFinished && (
+      (taskWordsCount > 0 && resolvedAnsCount > 0 && resolvedAnsCount < taskWordsCount && resolvedWrong.length === 0) ||
+      (taskWordsCount > 0 && tAtt > 0 && tAtt < taskWordsCount && resolvedWrong.length === 0)
+    );
 
     // 判定是否為登入作答未完成 (中斷)
-    const isIncomplete = isUnfinishedAttempt ||
-                         statusStr.includes("作答中") ||
-                         statusStr.includes("中斷") ||
-                         statusStr.includes("未完成") ||
-                         tRec.inProgress === true;
-
-    // 判定是否完成全數作答
-    const isFinished = !isIncomplete && (statusStr.includes("已完成") || (tAtt > 0 && tAtt >= taskWordsCount));
+    const isIncomplete = !isFinished && (
+      isUnfinishedAttempt ||
+      statusStr.includes("作答中") ||
+      statusStr.includes("中斷") ||
+      statusStr.includes("未完成") ||
+      tRec.inProgress === true
+    );
 
     // 當日是否有登入或有自由練習
     const freeRec = resolveDailyPracticeRecord(norm, d, historyList);
