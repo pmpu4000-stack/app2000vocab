@@ -559,7 +559,7 @@ body.daily-limit-reached #btn-upload {
 @media (max-width:640px){
   .word-split-grid.grid-2{grid-template-columns:1fr}
 }
-.word-split-box{border-radius:12px;padding:12px 14px}
+.word-split-box{border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;box-sizing:border-box}
 .word-split-box.correct-box{background:#F1FBF6;border:1px solid rgba(47,180,124,.3)}
 .word-split-box.wrong-box{background:#FFF5F5;border:1px solid rgba(255,107,107,.3)}
 .word-split-box.unanswered-box{background:#F8FAFC;border:1px solid #CBD5E1}
@@ -570,7 +570,7 @@ body.daily-limit-reached #btn-upload {
 .word-split-title.unanswered-title{color:#475569}
 [data-theme="dark"] .word-split-title.unanswered-title{color:#94A3B8!important}
 .word-split-content,
-.word-split-box > div:not(.word-split-title){display:flex;flex-wrap:wrap;align-items:flex-start;align-content:flex-start;gap:6px;max-height:170px;min-height:75px;overflow-y:auto !important;overscroll-behavior:contain;padding-right:6px;scrollbar-width:thin;scrollbar-color:rgba(100,116,139,0.45) transparent}
+.word-split-box > div:not(.word-split-title){display:flex;flex-wrap:wrap;align-items:flex-start;align-content:flex-start;gap:6px;height:170px;min-height:170px;max-height:170px;overflow-y:auto !important;overscroll-behavior:contain;padding-right:6px;scrollbar-width:thin;scrollbar-color:rgba(100,116,139,0.45) transparent;box-sizing:border-box}
 .task-empty-notice-box{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:330px;padding:20px 14px;text-align:center;box-sizing:border-box}
 .word-split-content::-webkit-scrollbar,
 .word-split-box > div:not(.word-split-title)::-webkit-scrollbar{width:6px}
@@ -2232,17 +2232,17 @@ body[data-theme="dark"],
       <nav class="levelbar" id="levelbar" aria-label="選擇關卡"></nav>
 
       <!-- 每日練習時間截止提示卡片 (時間到僅顯示 Progress 方塊) -->
-      <div id="daily-limit-reached-card" style="display:none; text-align:center; padding:36px 24px; border-radius:24px; background:var(--card); border:2px solid var(--violet); box-shadow:0 12px 36px -12px rgba(108,76,224,0.25); margin:12px 0 20px;">
-        <div style="font-size:46px; margin-bottom:10px;">⏰</div>
-        <h2 style="font-size:22px; font-weight:800; color:var(--ink); margin:0 0 8px;">今日練習時間已結束</h2>
-        <p style="font-size:14.5px; color:var(--ink2); line-height:1.6; max-width:440px; margin:0 auto 16px;">
-          太棒了！今天已經完成 <span id="limit-minutes-display-text" style="color:var(--violet); font-weight:800;">10</span> 分鐘的專注練習。<br>
-          適度休息眼睛能讓大腦更好記憶單字，明天再繼續挑戰！
+      <div id="daily-limit-reached-card" style="display:none; text-align:center; padding:30px 24px 26px; border-radius:20px; background:var(--card); border:1.5px solid var(--line); box-shadow:0 8px 30px rgba(0,0,0,0.06); margin:12px 0 20px;">
+        <div style="width:52px; height:52px; border-radius:50%; background:rgba(99,102,241,0.12); display:inline-flex; align-items:center; justify-content:center; margin:0 auto 12px; font-size:26px;">⏰</div>
+        <h2 style="font-size:20px; font-weight:800; color:var(--ink); margin:0 0 8px; letter-spacing:0.3px;">今日練習時間已結束</h2>
+        <p style="font-size:14px; color:var(--ink2); line-height:1.6; max-width:440px; margin:0 auto 14px;">
+          今天已完成 <span id="limit-minutes-display-text" style="color:var(--sky); font-weight:800;">10</span> 分鐘的練習，表現很棒！<br>
+          適度讓眼睛休息，明天再繼續挑戰！
         </p>
-        <div style="padding:12px 18px; background:rgba(108,76,224,0.06); border:1.5px dashed rgba(108,76,224,0.35); border-radius:14px; font-size:13.5px; color:var(--violet); max-width:440px; margin:0 auto 14px; line-height:1.5;">
-          📊 <b>下方已保留您的完整學習進度與作答紀錄</b>，歡迎回顧複習掌握的單字！
+        <div style="display:inline-flex; align-items:center; gap:6px; padding:6px 14px; background:rgba(56,189,248,0.08); border:1px solid rgba(56,189,248,0.25); border-radius:999px; font-size:12.5px; font-weight:700; color:var(--sky); margin:0 auto 12px;">
+          <span>📋 完整作答紀錄與進度已保留於下方</span>
         </div>
-        <div style="font-size:12.5px; color:var(--ink3);">
+        <div style="font-size:12px; color:var(--ink3); opacity:0.85;">
           💡 若有補測或特別練習需求，請向任課老師申請延長時間或解除限制。
         </div>
       </div>

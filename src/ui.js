@@ -2163,12 +2163,10 @@ export function renderSummary(d) {
   const quickSelect = $("#record-quick-dates");
   if (quickSelect) {
     quickSelect.onchange = (e) => switchRecordDate(e.target.value);
-    quickSelect.onclick = (e) => {
-      // 若使用者再次點選當前項目，也確保同步顯示
-      if (quickSelect.value && quickSelect.value !== currentSelectedDate) {
-        switchRecordDate(quickSelect.value);
-      }
-    };
+    quickSelect.oninput = (e) => switchRecordDate(e.target.value);
+    // 阻擋點擊事件冒泡至外層容器，避免外層事件監聽器干擾原生下拉選單展開
+    quickSelect.onclick = (e) => { e.stopPropagation(); };
+    quickSelect.onmousedown = (e) => { e.stopPropagation(); };
   }
 
   const sumCloseEl = document.getElementById("sumClose");
