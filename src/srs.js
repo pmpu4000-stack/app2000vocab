@@ -3,18 +3,31 @@
 // (low Leitner box) come up more often than mastered ones.
 // =====================================================================
 import { box } from "./store.js";
+import { wordsAtLevel } from "./wordbank.js";
 
 const WEIGHT = { 0: 5, 1: 6, 2: 3, 3: 1 };
 
 export function nextWord(words, level, currentId) {
-  const pool = words.filter((w) => w.level === level);
-  if (!pool.length) return null;
+  const pool = wordsAtLevel(words, level);
+  const len = pool.length;
+  if (!len) return null;
+  if (len === 1) return pool[0];
 
-  const bag = [];
-  for (const w of pool) {
-    if (currentId && w.id === currentId && pool.length > 1) continue; // avoid immediate repeat
-    const weight = WEIGHT[box(w.id)] ?? 1;
-    for (let k = 0; k < weight; k++) bag.push(w);
+  let totalWeight = 0;
+  for (let i = 0; i < len; i++) {
+    const w = pool[i];
+    if (currentId && w.id === currentId) continue;
+    totalWeight += (WEIGHT[box(w.id)] ?? 1);
   }
-  return bag[Math.floor(Math.random() * bag.length)] || pool[0];
+  if (totalWeight <= 0) return pool[0];
+
+  let r = Math.random() * totalWeight;
+  for (let i = 0; i < len; i++) {
+    const w = pool[i];
+    if (currentId && w.id === currentId) continue;
+    r -= (WEIGHT[box(w.id)] ?? 1);
+    if (r <= 0) return w;
+  }
+  return pool[0];
 }
+

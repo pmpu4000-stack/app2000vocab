@@ -15720,6 +15720,7 @@ function renderStudentDailyTaskAndFreeSections(resp) {
 }
 
 function renderStudentSummary(resp) {
+  if (typeof _resolveWordsCache !== "undefined" && _resolveWordsCache) _resolveWordsCache.clear();
   const sumCard = document.getElementById("studentSummaryCard");
   if (!sumCard) return;
 
@@ -16128,44 +16129,63 @@ function renderStudentSummary(resp) {
     return "heat-day-info tier-white";
   };
 
+  // Pre-index dailyTaskHistory & resp.data for O(1) heatmap lookups
+  const dthTaskMap = new Map();
+  const dthAllMap = new Map();
+  if (Array.isArray(dailyTaskHistory)) {
+    for (let i = 0; i < dailyTaskHistory.length; i++) {
+      const item = dailyTaskHistory[i];
+      if (!item || !item.date) continue;
+      const dNorm = normalizeDayKey(item.date);
+      if (!dNorm) continue;
+      if (!dthAllMap.has(dNorm)) dthAllMap.set(dNorm, item);
+      if ((!item.taskName || item.taskName !== "自主練習") && !dthTaskMap.has(dNorm)) {
+        dthTaskMap.set(dNorm, item);
+      }
+    }
+  }
+
+  const respDataTaskMap = new Map();
+  if (resp.data && Array.isArray(resp.data)) {
+    for (let i = 0; i < resp.data.length; i++) {
+      const r = resp.data[i];
+      if (!r || !r[0]) continue;
+      const nk = normalizeDayKey(r[0]);
+      if (!nk || respDataTaskMap.has(nk)) continue;
+      const info = extractRowTaskInfo(r, resp.headers);
+      if (info && info.taskName && info.taskName !== "自主練習" && !info.taskName.includes("自由練習") && !info.taskName.includes("未指派") && !info.status.includes("未受測") && ((info.score && info.score !== "—") || info.status.includes("已完成"))) {
+        respDataTaskMap.set(nk, {
+          date: nk,
+          taskName: info.taskName || "教師指定測驗",
+          score: info.score || "—",
+          rate: info.rate || "—",
+          status: info.status || "● 已完成",
+          words: [],
+          wrongWords: info.wrongWords
+        });
+      }
+    }
+  }
+
+  const taskHeatStatCache = new Map();
   // --- A. 指定測驗作答紀錄（最近 4 週黃色熱力圖） ---
   const getTaskDayStatForHeat = (keyDash, keyShort) => {
-    let matchedTask = null;
-    if (Array.isArray(dailyTaskHistory)) {
-      matchedTask = dailyTaskHistory.find(item => {
-        if (!item || !item.date) return false;
-        if (item.taskName && item.taskName === "自主練習") return false;
-        const dNorm = normalizeDayKey(item.date);
-        return dNorm === keyDash || dNorm === keyShort;
-      }) || null;
-    }
+    if (taskHeatStatCache.has(keyDash)) return taskHeatStatCache.get(keyDash);
+    let matchedTask = dthTaskMap.get(keyDash) || (keyShort ? dthTaskMap.get(keyShort) : null) || null;
     if (!matchedTask && todayTask && todayTask.date && todayTask.hasDone && todayTask.taskName !== "自主練習") {
       const tNorm = normalizeDayKey(todayTask.date);
       if (tNorm === keyDash || tNorm === keyShort) {
         matchedTask = todayTask;
       }
     }
-    if (!matchedTask && resp.data && Array.isArray(resp.data)) {
-      for (const r of resp.data) {
-        if (!r) continue;
-        if (normalizeDayKey(r[0]) === keyDash) {
-          const info = extractRowTaskInfo(r, resp.headers);
-          if (info && info.taskName && info.taskName !== "自主練習" && !info.taskName.includes("自由練習") && !info.taskName.includes("未指派") && !info.status.includes("未受測") && ((info.score && info.score !== "—") || info.status.includes("已完成"))) {
-            matchedTask = {
-              date: keyDash,
-              taskName: info.taskName || "教師指定測驗",
-              score: info.score || "—",
-              rate: info.rate || "—",
-              status: info.status || "● 已完成",
-              words: [],
-              wrongWords: info.wrongWords
-            };
-            break;
-          }
-        }
-      }
+    if (!matchedTask) {
+      matchedTask = respDataTaskMap.get(keyDash) || null;
     }
-    if (!matchedTask) return { a: 0, c: 0, rate: 0 };
+    if (!matchedTask) {
+      const empty = { a: 0, c: 0, rate: 0 };
+      taskHeatStatCache.set(keyDash, empty);
+      return empty;
+    }
 
     let tAtt = parseInt(matchedTask.attempts) || 0;
     let tCor = parseInt(matchedTask.correct) || 0;
@@ -16181,7 +16201,9 @@ function renderStudentSummary(resp) {
       tCor = correctList.length;
       if (tRate === 0 && tAtt > 0) tRate = Math.round((tCor / tAtt) * 100);
     }
-    return { a: tAtt, c: tCor, rate: tRate };
+    const res = { a: tAtt, c: tCor, rate: tRate };
+    taskHeatStatCache.set(keyDash, res);
+    return res;
   };
 
   const now = new Date();
@@ -16197,28 +16219,17 @@ function renderStudentSummary(resp) {
   }
 
   const allTaskActiveDates = new Set();
-  if (Array.isArray(dailyTaskHistory)) {
-    dailyTaskHistory.forEach(th => {
-      if (th && th.date && (!th.taskName || (th.taskName !== "自主練習" && !th.taskName.includes("未指派")))) {
-        const nk = normalizeDayKey(th.date);
-        if (nk && getTaskDayStatForHeat(nk, nk).a > 0) allTaskActiveDates.add(nk);
-      }
-    });
+  for (const [nk, th] of dthTaskMap.entries()) {
+    if (!th.taskName || !th.taskName.includes("未指派")) {
+      if (getTaskDayStatForHeat(nk, nk).a > 0) allTaskActiveDates.add(nk);
+    }
   }
   if (todayTask && todayTask.date && todayTask.hasDone && todayTask.taskName !== "自主練習" && !todayTask.taskName.includes("未指派")) {
     const nk = normalizeDayKey(todayTask.date);
     if (nk && getTaskDayStatForHeat(nk, nk).a > 0) allTaskActiveDates.add(nk);
   }
-  if (resp.data && Array.isArray(resp.data)) {
-    resp.data.forEach(r => {
-      if (r && r[0]) {
-        const info = extractRowTaskInfo(r, resp.headers);
-        if (info && info.taskName && info.taskName !== "自主練習" && !info.taskName.includes("未指派") && !info.status.includes("未受測") && ((info.score && info.score !== "—") || info.status.includes("已完成"))) {
-          const nk = normalizeDayKey(r[0]);
-          if (nk && getTaskDayStatForHeat(nk, nk).a > 0) allTaskActiveDates.add(nk);
-        }
-      }
-    });
+  for (const nk of respDataTaskMap.keys()) {
+    if (getTaskDayStatForHeat(nk, nk).a > 0) allTaskActiveDates.add(nk);
   }
   const taskTotalActive = allTaskActiveDates.size;
   let taskStreak = 0;
@@ -16337,7 +16348,9 @@ function renderStudentSummary(resp) {
   }
 
   // --- B. 自由練習作答紀錄（最近 4 週綠色熱力圖） ---
+  const freeHeatStatCache = new Map();
   const getDayStatForHeat = (keyDash, keyShort, keySlash) => {
+    if (freeHeatStatCache.has(keyDash)) return freeHeatStatCache.get(keyDash);
     let a = 0, c = 0;
     const dpItem = dpMap[keyDash] || dpMap[keyShort] || dpMap[keySlash] || null;
     if (dpItem && dpItem.attempts > 0) {
@@ -16349,27 +16362,23 @@ function renderStudentSummary(resp) {
       a = Math.max(a, h.a || 0);
       c = Math.max(c, h.c || 0);
     }
-    if (Array.isArray(dailyTaskHistory)) {
-      const th = dailyTaskHistory.find(item => {
-        if (!item || !item.date) return false;
-        const dNorm = String(item.date).trim().split(" ")[0].replace(/\//g, "-");
-        return dNorm === keyDash || dNorm === keyShort;
-      });
-      if (th) {
-        let tAtt = parseInt(th.attempts) || 0;
-        let tCorr = parseInt(th.correct) || 0;
-        if (!tAtt && th.score && th.score !== "—" && String(th.score).includes("/")) {
-          const p = String(th.score).split("/");
-          tCorr = parseInt(p[0]) || 0;
-          tAtt = parseInt(p[1]) || 0;
-        }
-        if (tAtt > 0) {
-          a = Math.max(a, tAtt);
-          c = Math.max(c, tCorr);
-        }
+    const th = dthAllMap.get(keyDash) || (keyShort ? dthAllMap.get(keyShort) : null) || null;
+    if (th) {
+      let tAtt = parseInt(th.attempts) || 0;
+      let tCorr = parseInt(th.correct) || 0;
+      if (!tAtt && th.score && th.score !== "—" && String(th.score).includes("/")) {
+        const p = String(th.score).split("/");
+        tCorr = parseInt(p[0]) || 0;
+        tAtt = parseInt(p[1]) || 0;
+      }
+      if (tAtt > 0) {
+        a = Math.max(a, tAtt);
+        c = Math.max(c, tCorr);
       }
     }
-    return { a, c };
+    const res = { a, c };
+    freeHeatStatCache.set(keyDash, res);
+    return res;
   };
 
   const days = [];

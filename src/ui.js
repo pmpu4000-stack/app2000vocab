@@ -19,6 +19,11 @@ const el = {
   peekBtn: $("#peekBtn") || null, checkBtn: $("#checkBtn"), summary: $("#summary"),
   card: $("#card"), banner: $("#banner"), session: $("#session"),
   quizhead: $("#quizhead"), quizbar: $("#quizprog-bar"), quizstage: $("#quizstage"),
+  sUser: $("#s-user"), statUser: $("#stat-user"), sLevel: $("#s-level"),
+  sScore: $("#s-score"), nScore: $("#n-score"), sCorrect: $("#s-correct"), nCorrect: $("#n-correct"),
+  sStreak: $("#s-streak"), sRate: $("#s-rate"), nRate: $("#n-rate"),
+  bLearn: $("#b-learn"), bPrac: $("#b-prac"), bMast: $("#b-mast"),
+  nLearn: $("#n-learn"), nPrac: $("#n-prac"), nMast: $("#n-mast"), nTotal: $("#n-total"),
 };
 
 const MODES = [
@@ -447,66 +452,57 @@ export function renderProgress(s) {
   initProgressCard();
   if (!s) return;
   const u = localStorage.getItem("current_user");
-  const userEl = $("#s-user");
+  const userEl = el.sUser || (el.sUser = $("#s-user"));
   if (userEl && u) {
     userEl.textContent = u;
     userEl.title = u;
-    const statEl = document.getElementById("stat-user");
+    const statEl = el.statUser || (el.statUser = document.getElementById("stat-user"));
     if (statEl) {
       statEl.title = `目前登入帳號：${u}\n（點擊可查看帳號詳情或切換）`;
     }
-    if (u.length > 16) {
-      userEl.style.fontSize = "13px";
-    } else if (u.length > 12) {
-      userEl.style.fontSize = "14.5px";
-    } else {
-      userEl.style.fontSize = "17px";
-    }
+    userEl.style.fontSize = u.length > 16 ? "13px" : u.length > 12 ? "14.5px" : "17px";
   }
-  const lvlEl = $("#s-level");
+  const lvlEl = el.sLevel || (el.sLevel = $("#s-level"));
   if (lvlEl) lvlEl.textContent = s.currentLevel;
 
-  const sScore = $("#s-score");
-  if (sScore) sScore.textContent = s.points !== undefined ? s.points : 0;
-  const nScore = $("#n-score");
-  if (nScore) nScore.textContent = s.points !== undefined ? s.points : 0;
+  const pts = s.points !== undefined ? s.points : 0;
+  const sScore = el.sScore || (el.sScore = $("#s-score"));
+  if (sScore) sScore.textContent = pts;
+  const nScore = el.nScore || (el.nScore = $("#n-score"));
+  if (nScore) nScore.textContent = pts;
 
   const totCorr = (s.learn || 0) + (s.prac || 0) + (s.mast || 0);
   const distinctCorr = totCorr > 0 ? totCorr : (s.distinctCorrect !== undefined ? s.distinctCorrect : 0);
-  const sCorr = $("#s-correct");
+  const sCorr = el.sCorrect || (el.sCorrect = $("#s-correct"));
   if (sCorr) sCorr.textContent = distinctCorr;
-  const nCorr = $("#n-correct");
+  const nCorr = el.nCorrect || (el.nCorrect = $("#n-correct"));
   if (nCorr) nCorr.textContent = distinctCorr;
 
-  const sStreak = $("#s-streak");
+  const sStreak = el.sStreak || (el.sStreak = $("#s-streak"));
   if (sStreak) sStreak.textContent = s.streak !== undefined ? s.streak : 0;
 
   const total = s.total || 2055;
   const vocabRate = total > 0 ? Math.round((distinctCorr / total) * 100) : 0;
 
-  const sRate = $("#s-rate");
+  const sRate = el.sRate || (el.sRate = $("#s-rate"));
   if (sRate) sRate.textContent = (s.passRate !== undefined ? s.passRate : 0) + "%";
-  const nRate = $("#n-rate");
+  const nRate = el.nRate || (el.nRate = $("#n-rate"));
   if (nRate) nRate.textContent = vocabRate + "%";
-  const bLearn = $("#b-learn");
+
+  const bLearn = el.bLearn || (el.bLearn = $("#b-learn"));
   if (bLearn) bLearn.style.width = Math.min(100, Math.max(0, ((s.learn || 0) / total * 100))) + "%";
-
-  const bPrac = $("#b-prac");
+  const bPrac = el.bPrac || (el.bPrac = $("#b-prac"));
   if (bPrac) bPrac.style.width = Math.min(100, Math.max(0, ((s.prac || 0) / total * 100))) + "%";
-
-  const bMast = $("#b-mast");
+  const bMast = el.bMast || (el.bMast = $("#b-mast"));
   if (bMast) bMast.style.width = Math.min(100, Math.max(0, ((s.mast || 0) / total * 100))) + "%";
 
-  const nLearn = $("#n-learn");
+  const nLearn = el.nLearn || (el.nLearn = $("#n-learn"));
   if (nLearn) nLearn.textContent = s.learn || 0;
-
-  const nPrac = $("#n-prac");
+  const nPrac = el.nPrac || (el.nPrac = $("#n-prac"));
   if (nPrac) nPrac.textContent = s.prac || 0;
-
-  const nMast = $("#n-mast");
+  const nMast = el.nMast || (el.nMast = $("#n-mast"));
   if (nMast) nMast.textContent = s.mast || 0;
-
-  const nTotal = $("#n-total");
+  const nTotal = el.nTotal || (el.nTotal = $("#n-total"));
   if (nTotal) nTotal.textContent = total;
 }
 
@@ -552,9 +548,9 @@ function resolveWordStr(raw, d) {
   if (/^w\d+$/i.test(s)) {
     const idx = parseInt(s.slice(1), 10);
     if (d && Array.isArray(d.words) && d.words.length > 0) {
-      const byId = d.words.find(item => item && item.id === s.toLowerCase());
-      if (byId && byId.word) return String(byId.word).trim();
       if (!isNaN(idx) && d.words[idx] && d.words[idx].word) return String(d.words[idx].word).trim();
+      const byId = (d.words._byId && d.words._byId.get(s.toLowerCase())) || d.words.find(item => item && item.id === s.toLowerCase());
+      if (byId && byId.word) return String(byId.word).trim();
     }
     if (typeof window !== "undefined" && Array.isArray(window.WORD_BANK_2000) && !isNaN(idx) && window.WORD_BANK_2000[idx]) {
       return String(window.WORD_BANK_2000[idx][0] || s).trim();
@@ -758,7 +754,22 @@ function isValidEnglishWordStr(w) {
 }
 
 const _resolveWordsCache = new Map();
-export function clearResolveWordsCache() { _resolveWordsCache.clear(); }
+const _dailyPracticeCache = new Map();
+let _rawStudentTaskHistCache = null;
+
+export function clearResolveWordsCache() {
+  _resolveWordsCache.clear();
+  _dailyPracticeCache.clear();
+  _rawStudentTaskHistCache = null;
+}
+
+function isWeekend(dateStr) {
+  if (!dateStr) return false;
+  const clean = String(dateStr).trim().split(" ")[0].replace(/-/g, "/");
+  const d = new Date(clean);
+  const day = d.getDay();
+  return day === 0 || day === 6;
+}
 
 function resolveTaskWords(record, selectedDate, d) {
   if (!record) return { rawWords: [], wrongList: [], correctList: [], hadCorrectThenWrongList: [] };
@@ -856,14 +867,11 @@ function resolveTaskWords(record, selectedDate, d) {
   // 6. 從 student_task_history 其它符合該日期的項目提取
   if (pool.length === 0 && normDate) {
     try {
-      const rawHist = localStorage.getItem("student_task_history");
-      if (rawHist) {
-        const hist = JSON.parse(rawHist);
-        if (Array.isArray(hist)) {
-          const matchItem = hist.find(item => item && normalizeDateStr(item.date) === normDate && Array.isArray(item.words) && item.words.length > 0);
-          if (matchItem) {
-            pool = matchItem.words.map(w => typeof w === "string" ? w : (w.word || w.display || w.w)).filter(Boolean);
-          }
+      const hist = _getCachedRawStudentTaskHistory();
+      if (Array.isArray(hist)) {
+        const matchItem = hist.find(item => item && normalizeDateStr(item.date) === normDate && Array.isArray(item.words) && item.words.length > 0);
+        if (matchItem) {
+          pool = matchItem.words.map(w => typeof w === "string" ? w : (w.word || w.display || w.w)).filter(Boolean);
         }
       }
     } catch(_) {}
@@ -974,28 +982,23 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
 
   let displayStatusStr = statusStr;
   let statusColor = "#64748b";
-  let statusBg = "rgba(148,163,184,0.15)";
   let statusDesc = "";
 
   if (isFinished) {
     statusColor = "#047857";
-    statusBg = "rgba(16,185,129,0.15)";
     displayStatusStr = statusStr.includes("已完成") ? statusStr : "🟢 已完成";
   } else if (isIncomplete) {
     displayStatusStr = `🟣 作答中斷 (${taskCorrWords}/${taskTotWords})`;
     statusColor = "#a855f7";
-    statusBg = "rgba(168,85,247,0.18)";
     statusDesc = "⏳ 測驗中途作答中斷";
   } else if (isUntested) {
     if (hasLoggedInOrFree) {
       displayStatusStr = "🟡 登入未受測";
       statusColor = "#d97706";
-      statusBg = "rgba(245,158,11,0.15)";
       statusDesc = "⚠️ 有登入但未測驗";
     } else {
       displayStatusStr = "🔴 缺席未受測";
       statusColor = "#ef4444";
-      statusBg = "rgba(239,68,68,0.15)";
       statusDesc = "📴 當日無登入紀錄 (缺考)";
     }
   }
@@ -1014,7 +1017,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     leftTitleClass = "untested-title";
     leftTitleText = `📋 本次應測單字範圍 ${taskTotWords > 0 ? `(${taskTotWords} 字)` : (rawWords.length > 0 ? `(${rawWords.length} 字)` : "")}`;
     if (rawWords.length > 0) {
-      correctContentHtml = rawWords.map(w => `<span class="word-pill-tag neutral" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); window.__sayWord && window.__sayWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
+      correctContentHtml = rawWords.map(w => `<span class="word-pill-tag neutral" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
     } else {
       correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（指派單字載入中或未指定具體單字清單）</span>`;
     }
@@ -1033,7 +1036,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     leftTitleClass = "correct-title";
     leftTitleText = `✅ 已答對的單字 (${correctList.length} 字)`;
     if (correctList.length > 0) {
-      correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); window.__sayWord && window.__sayWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
+      correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
     } else {
       correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（中途作答中斷，尚未答對單字）</span>`;
     }
@@ -1042,8 +1045,8 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     rightTitleClass = "advice-title";
     rightTitleText = `⚠️ 尚未完成與錯題 (${wrongList.length + unansweredList.length} 字)`;
     
-    let wrongPills = wrongList.map(w => `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); window.__sayWord && window.__sayWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="答錯單字 (點擊聆聽發音)">${w}</span>`).join("");
-    let unansPills = unansweredList.map(w => `<span class="word-pill-tag neutral" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); window.__sayWord && window.__sayWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer; opacity:0.85;" title="未測單字 (點擊聆聽發音)">${w}</span>`).join("");
+    let wrongPills = wrongList.map(w => `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="答錯單字 (點擊聆聽發音)">${w}</span>`).join("");
+    let unansPills = unansweredList.map(w => `<span class="word-pill-tag neutral" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer; opacity:0.85;" title="未測單字 (點擊聆聽發音)">${w}</span>`).join("");
 
     wrongContentHtml = `
       <div style="display:flex; flex-direction:column; gap:6px; width:100%;">
@@ -1054,7 +1057,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
   } else {
     // 1. 答對的單字
     if (correctList.length > 0) {
-      correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); window.__sayWord && window.__sayWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
+      correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
     } else if (isFinished) {
       correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（本次測驗無答對單字）</span>`;
     } else {
@@ -1071,9 +1074,9 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
                         (record.hadCorrectThenWrong && record.hadCorrectThenWrong.includes(w)) ||
                         (dpDay && dpDay.words && dpDay.words[w] && (dpDay.words[w].hadCorrectThenWrong || (dpDay.words[w].lastResult === "wrong" && dpDay.words[w].correct > 0)));
         if (isHadCW) {
-          return `<span class="word-pill-tag warning" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); window.__sayWord && window.__sayWord('${w.replace(/'/g, "\\'")}')" style="border:1.5px dashed #f59e0b; background:rgba(245,158,11,0.1); color:#b45309; cursor:pointer;" title="當日曾答對，但後續作答時答錯 (點擊聆聽發音)">${w} <small style="font-size:10px; font-weight:700;">(曾對後錯⚠️)</small></span>`;
+          return `<span class="word-pill-tag warning" data-word="${w.replace(/"/g, "&quot;")}" style="border:1.5px dashed #f59e0b; background:rgba(245,158,11,0.1); color:#b45309; cursor:pointer;" title="當日曾答對，但後續作答時答錯 (點擊聆聽發音)">${w} <small style="font-size:10px; font-weight:700;">(曾對後錯⚠️)</small></span>`;
         }
-        return `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); window.__sayWord && window.__sayWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`;
+        return `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`;
       }).join("");
     } else if (isFinished) {
       wrongContentHtml = `<span class="perfect-score-msg">🎉 全數答對，無答錯單字！</span>`;
@@ -1081,14 +1084,6 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
       wrongContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（目前無答錯單字）</span>`;
     }
   }
-
-function isWeekend(dateStr) {
-  if (!dateStr) return false;
-  const clean = String(dateStr).trim().split(" ")[0].replace(/-/g, "/");
-  const d = new Date(clean);
-  const day = d.getDay();
-  return day === 0 || day === 6;
-}
 
   const dateStr = record && record.date ? record.date : "";
   const isWeekendTask = isWeekend(dateStr) || String(record.taskName || "").includes("週末") || String(record.taskName || "").includes("消滅戰") || String(record.taskName || "").includes("待攻克");
@@ -1210,6 +1205,7 @@ function isWeekend(dateStr) {
 }
 
 function renderUntestedTaskCardHtml(info, d) {
+  const { taskName = "", assignedWords = [], hasLoggedInOrFree = false, selectedDate = "" } = info || {};
   const isWeekendTask = isWeekend(selectedDate) || String(taskName || "").includes("週末") || String(taskName || "").includes("消滅戰") || String(taskName || "").includes("待攻克");
   let formattedTaskName = "";
   if (isWeekendTask) {
@@ -1227,7 +1223,7 @@ function renderUntestedTaskCardHtml(info, d) {
   const cleanWords = (Array.isArray(assignedWords) ? assignedWords : [])
     .map(w => typeof w === "string" ? w : (w.word || w.display || w.w))
     .filter(Boolean)
-    .map(w => resolveWord(String(w).trim()).toLowerCase())
+    .map(w => resolveWordStr(String(w).trim(), d).toLowerCase())
     .filter(Boolean);
 
   const wordCount = cleanWords.length || 0;
@@ -1235,14 +1231,13 @@ function renderUntestedTaskCardHtml(info, d) {
   let wordsHtml = "";
   if (cleanWords.length > 0) {
     wordsHtml = cleanWords.map(w =>
-      `<span class="word-pill-tag neutral" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); window.__sayWord && window.__sayWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`
+      `<span class="word-pill-tag neutral" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`
     ).join("");
   } else {
     wordsHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（指派單字載入中或未指定具體單字清單）</span>`;
   }
 
   const statusColor = hasLoggedInOrFree ? "#d97706" : "#ef4444";
-  const statusBg = hasLoggedInOrFree ? "rgba(245,158,11,0.15)" : "rgba(239,68,68,0.15)";
   const displayStatusStr = hasLoggedInOrFree ? "🟡 登入未受測" : "🔴 缺席未受測";
 
   const adviceText = hasLoggedInOrFree
@@ -1362,9 +1357,6 @@ function buildTaskDetailsHtml(records, selectedDate, d) {
 }
 
 function buildFreeDetailsHtml(record, selectedDate, d) {
-  const normDate = normalizeDateStr(selectedDate);
-  const dateMMDD = normDate ? normDate.replace(/-/g, "").slice(4) : "";
-
   if (!record || !record.attempts) {
     const emptyFreeTitle = "🎮 自由練習";
     return `
@@ -1390,8 +1382,6 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
 
   const attempts = record.attempts || 0;
   const correct = record.correct || 0;
-  const wrongCount = (record.wrong !== undefined) ? record.wrong : Math.max(0, attempts - correct);
-  const rate = attempts > 0 ? Math.round((correct / attempts) * 100) : 0;
 
   // 整理當日練習單字清單 (僅呈現該日實際練習狀況，絕不從累積單字跨日偽造)
   const wordsMap = record.words || {};
@@ -1460,7 +1450,7 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
 
   let correctContentHtml = "";
   if (correctList.length > 0) {
-    correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" data-word="${w.word.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); window.__sayWord && window.__sayWord('${w.word.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w.word}</span>`).join("");
+    correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" data-word="${w.word.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w.word}</span>`).join("");
   } else {
     correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（當日尚無全對單字）</span>`;
   }
@@ -1469,11 +1459,11 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
   if (wrongList.length > 0) {
     wrongContentHtml = wrongList.map(w => {
       if (w.hadCorrectThenWrong || (w.lastResult === "wrong" && w.correct > 0)) {
-        return `<span class="word-pill-tag warning" data-word="${w.word.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); window.__sayWord && window.__sayWord('${w.word.replace(/'/g, "\\'")}')" style="border:1.5px dashed #f59e0b; background:rgba(245,158,11,0.1); color:#b45309; cursor:pointer;" title="當日曾答對，但後續作答時答錯 (點擊聆聽發音)">${w.word} <small style="font-size:10px; font-weight:700;">(曾對後錯⚠️)</small></span>`;
+        return `<span class="word-pill-tag warning" data-word="${w.word.replace(/"/g, "&quot;")}" style="border:1.5px dashed #f59e0b; background:rgba(245,158,11,0.1); color:#b45309; cursor:pointer;" title="當日曾答對，但後續作答時答錯 (點擊聆聽發音)">${w.word} <small style="font-size:10px; font-weight:700;">(曾對後錯⚠️)</small></span>`;
       } else if (w.correct > 0) {
-        return `<span class="word-pill-tag correct" data-word="${w.word.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); window.__sayWord && window.__sayWord('${w.word.replace(/'/g, "\\'")}')" style="border:1.5px dashed var(--green, #10B981); cursor:pointer;" title="當日曾答錯，已訂正答對 (點擊聆聽發音)">${w.word} <small style="font-size:10px; opacity:0.85;">(已訂正)</small></span>`;
+        return `<span class="word-pill-tag correct" data-word="${w.word.replace(/"/g, "&quot;")}" style="border:1.5px dashed var(--green, #10B981); cursor:pointer;" title="當日曾答錯，已訂正答對 (點擊聆聽發音)">${w.word} <small style="font-size:10px; opacity:0.85;">(已訂正)</small></span>`;
       } else {
-        return `<span class="word-pill-tag wrong" data-word="${w.word.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); window.__sayWord && window.__sayWord('${w.word.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w.word}</span>`;
+        return `<span class="word-pill-tag wrong" data-word="${w.word.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w.word}</span>`;
       }
     }).join("");
   } else {
@@ -1535,9 +1525,24 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
   `;
 }
 
+function _getCachedRawStudentTaskHistory() {
+  if (_rawStudentTaskHistCache !== null) return _rawStudentTaskHistCache;
+  try {
+    const parsed = JSON.parse(localStorage.getItem("student_task_history") || "[]");
+    _rawStudentTaskHistCache = Array.isArray(parsed) ? parsed : [];
+  } catch (_) {
+    _rawStudentTaskHistCache = [];
+  }
+  return _rawStudentTaskHistCache;
+}
+
 function resolveDailyPracticeRecord(dateStr, d, historyList) {
   if (!dateStr) return null;
   const normYMD = normalizeDateStr(dateStr);
+  if (_dailyPracticeCache.has(normYMD)) {
+    return _dailyPracticeCache.get(normYMD);
+  }
+
   const parts = normYMD.split("-");
   const unpadYMD = (parts.length === 3) ? `${parts[0]}-${parseInt(parts[1], 10)}-${parseInt(parts[2], 10)}` : normYMD;
   const slashYMD = normYMD.replace(/-/g, "/");
@@ -1546,9 +1551,15 @@ function resolveDailyPracticeRecord(dateStr, d, historyList) {
   let matchedRow = null;
   let thFreeAtt = 0, thFreeCor = 0;
   try {
-    const listToScan = JSON.parse(localStorage.getItem("student_task_history") || "[]");
-    const combinedScan = (Array.isArray(listToScan) && listToScan.length > 0) ? listToScan : (Array.isArray(historyList) ? historyList : []);
-    matchedRow = combinedScan.find(item => item && item.date && normalizeDateStr(item.date) === normYMD) || null;
+    const listToScan = _getCachedRawStudentTaskHistory();
+    const combinedScan = listToScan.length > 0 ? listToScan : (Array.isArray(historyList) ? historyList : []);
+    for (let i = 0; i < combinedScan.length; i++) {
+      const item = combinedScan[i];
+      if (item && item.date && normalizeDateStr(item.date) === normYMD) {
+        matchedRow = item;
+        break;
+      }
+    }
     if (matchedRow) {
       const isSelfRow = (matchedRow.taskName === "自主練習");
       thFreeAtt = parseInt(matchedRow.freeTested !== undefined ? matchedRow.freeTested : (isSelfRow ? matchedRow.attempts : 0)) || 0;
@@ -1580,7 +1591,7 @@ function resolveDailyPracticeRecord(dateStr, d, historyList) {
     };
     const att = wList.length;
     const cor = wList.filter(isWordCurrentlyCorrect).length;
-    return {
+    const res = {
       date: normYMD,
       attempts: att,
       correct: cor,
@@ -1588,11 +1599,13 @@ function resolveDailyPracticeRecord(dateStr, d, historyList) {
       words: rec.words,
       freeWrongWords: (matchedRow && Array.isArray(matchedRow.freeWrongWords)) ? matchedRow.freeWrongWords : []
     };
+    _dailyPracticeCache.set(normYMD, res);
+    return res;
   }
 
   // 2. 若試算表有明確自由練習字數 (thFreeAtt > 0)
   if (thFreeAtt > 0) {
-    return {
+    const res = {
       date: normYMD,
       attempts: thFreeAtt,
       correct: thFreeCor,
@@ -1600,10 +1613,13 @@ function resolveDailyPracticeRecord(dateStr, d, historyList) {
       words: {},
       freeWrongWords: (matchedRow && Array.isArray(matchedRow.freeWrongWords)) ? matchedRow.freeWrongWords : []
     };
+    _dailyPracticeCache.set(normYMD, res);
+    return res;
   }
 
   // 若試算表已存在該日紀錄且明確記載自由練習字數為 0，代表無自由練習（不退回受指定測驗污染的 rawHistory）
   if (matchedRow && thFreeAtt === 0) {
+    _dailyPracticeCache.set(normYMD, null);
     return null;
   }
 
@@ -1612,20 +1628,23 @@ function resolveDailyPracticeRecord(dateStr, d, historyList) {
     const hMap = (d && d.rawHistory) || {};
     const h = hMap[normYMD] || hMap[unpadYMD] || hMap[slashYMD] || hMap[dateStr] || null;
     if (h) {
-      let hAtt = (h.a !== undefined) ? h.a : (h.attempts !== undefined ? h.attempts : 0);
-      let hCor = (h.c !== undefined) ? h.c : (h.correct !== undefined ? h.correct : 0);
+      const hAtt = (h.a !== undefined) ? h.a : (h.attempts !== undefined ? h.attempts : 0);
+      const hCor = (h.c !== undefined) ? h.c : (h.correct !== undefined ? h.correct : 0);
       if (hAtt > 0) {
-        return {
+        const res = {
           date: normYMD,
           attempts: hAtt,
           correct: hCor,
           wrong: (h.w !== undefined) ? h.w : (h.wrong !== undefined ? h.wrong : Math.max(0, hAtt - hCor)),
           words: (h.words && typeof h.words === "object") ? h.words : {}
         };
+        _dailyPracticeCache.set(normYMD, res);
+        return res;
       }
     }
   }
 
+  _dailyPracticeCache.set(normYMD, null);
   return null;
 }
 
@@ -1644,32 +1663,29 @@ export function getWeekPendingConquerWords() {
 
   // 1. 從 student_task_history 讀取本週平日任務中的錯題與未作答題
   try {
-    const rawHist = localStorage.getItem("student_task_history");
-    if (rawHist) {
-      const historyList = JSON.parse(rawHist);
-      if (Array.isArray(historyList)) {
-        historyList.forEach(item => {
-          if (!item || !item.date) return;
-          const iDate = String(item.date).trim().split(" ")[0].replace(/\//g, "-");
-          if (iDate >= mondayStr && iDate <= fridayStr) {
-            if (Array.isArray(item.wrongWords)) {
-              item.wrongWords.forEach(w => {
-                const cw = String(w).trim().toLowerCase();
-                if (cw) unfinishedWords.add(cw);
-              });
-            }
-            const status = String(item.status || "");
-            const score = String(item.score || "");
-            const isUnattempted = !status.includes("已完成") || score === "—" || score === "尚未開始";
-            if (isUnattempted && Array.isArray(item.words)) {
-              item.words.forEach(w => {
-                const cw = String(w).trim().toLowerCase();
-                if (cw) unfinishedWords.add(cw);
-              });
-            }
+    const historyList = _getCachedRawStudentTaskHistory();
+    if (Array.isArray(historyList)) {
+      historyList.forEach(item => {
+        if (!item || !item.date) return;
+        const iDate = String(item.date).trim().split(" ")[0].replace(/\//g, "-");
+        if (iDate >= mondayStr && iDate <= fridayStr) {
+          if (Array.isArray(item.wrongWords)) {
+            item.wrongWords.forEach(w => {
+              const cw = String(w).trim().toLowerCase();
+              if (cw) unfinishedWords.add(cw);
+            });
           }
-        });
-      }
+          const status = String(item.status || "");
+          const score = String(item.score || "");
+          const isUnattempted = !status.includes("已完成") || score === "—" || score === "尚未開始";
+          if (isUnattempted && Array.isArray(item.words)) {
+            item.words.forEach(w => {
+              const cw = String(w).trim().toLowerCase();
+              if (cw) unfinishedWords.add(cw);
+            });
+          }
+        }
+      });
     }
   } catch(_) {}
 
@@ -1760,8 +1776,6 @@ let _activeRecordSelectedDate = "";
 export function summaryHidden() { return el.summary.hidden; }
 export function renderSummary(d) {
   clearResolveWordsCache();
-  const currentUser = localStorage.getItem("current_user") || "";
-  const userTagHtml = currentUser ? `<span style="font-size:13px;font-weight:700;color:var(--sky);background:rgba(56,189,248,0.12);padding:2px 8px;border-radius:999px;margin-left:8px;border:1px solid rgba(56,189,248,0.25);">👤 ${currentUser}</span>` : "";
   const lvRows = d.levels
     .map((L) => {
       const totCorr = (L.learn || 0) + (L.prac || 0) + (L.mast || 0);
@@ -1773,17 +1787,31 @@ export function renderSummary(d) {
   const dailyPracticeMap = d.dailyPractice || {};
   const practiceDates = Array.isArray(d.practiceDates) ? d.practiceDates : [];
 
-  const todayDash = new Date().getFullYear() + "-" + String(new Date().getMonth() + 1).padStart(2, "0") + "-" + String(new Date().getDate()).padStart(2, "0");
+  // Pre-index historyList by normalized date -> O(1) lookup for dropdowns, heatmaps, and date switches
+  const taskByDateMap = new Map();
+  for (let i = 0; i < historyList.length; i++) {
+    const item = historyList[i];
+    if (item && item.date && (!item.taskName || item.taskName !== "自主練習")) {
+      const nd = normalizeDateStr(item.date);
+      if (nd) {
+        let arr = taskByDateMap.get(nd);
+        if (!arr) { arr = []; taskByDateMap.set(nd, arr); }
+        arr.push(item);
+      }
+    }
+  }
+
+  const todayNow = new Date();
+  const todayDash = todayNow.getFullYear() + "-" + String(todayNow.getMonth() + 1).padStart(2, "0") + "-" + String(todayNow.getDate()).padStart(2, "0");
 
   // 建立有紀錄日期選項集合（1:1 比照學習歷程網站，僅納入有實質作答紀錄之日期與今日）
   const dateSet = new Set();
   dateSet.add(todayDash);
-  historyList.forEach(item => {
-    if (item && item.date && (!item.taskName || (item.taskName !== "自主練習" && !String(item.taskName).includes("未指派")))) {
-      const nd = normalizeDateStr(item.date);
-      if (nd) dateSet.add(nd);
+  for (const [nd, arr] of taskByDateMap.entries()) {
+    if (arr.some(item => !item.taskName || !String(item.taskName).includes("未指派"))) {
+      dateSet.add(nd);
     }
-  });
+  }
   const candidateFreeDates = new Set([
     ...Object.keys(dailyPracticeMap),
     ...Object.keys(d.rawHistory || {}),
@@ -1803,12 +1831,12 @@ export function renderSummary(d) {
   let defaultSelectedDate = (_activeRecordSelectedDate && normalizeDateStr(_activeRecordSelectedDate)) || "";
   if (!defaultSelectedDate) {
     defaultSelectedDate = todayDash;
-    const hasTodayTask = historyList.some(item => normalizeDateStr(item.date) === todayDash);
+    const hasTodayTask = taskByDateMap.has(todayDash);
     const todayFreeRec = resolveDailyPracticeRecord(todayDash, d, historyList);
     const hasTodayFree = !!(todayFreeRec && todayFreeRec.attempts > 0);
     if (!hasTodayTask && !hasTodayFree && sortedDates.length > 0) {
       const latestActive = sortedDates.find(dt => {
-        const hTask = historyList.some(item => normalizeDateStr(item.date) === dt);
+        const hTask = taskByDateMap.has(dt);
         const rFree = resolveDailyPracticeRecord(dt, d, historyList);
         return hTask || (rFree && rFree.attempts > 0);
       });
@@ -1818,7 +1846,8 @@ export function renderSummary(d) {
 
   const buildOptionLabel = (dateStr) => {
     const isToday = (dateStr === todayDash);
-    const matchedTask = historyList.find(item => normalizeDateStr(item.date) === dateStr && (!item.taskName || (item.taskName !== "自主練習" && !String(item.taskName).includes("未指派"))));
+    const tArr = taskByDateMap.get(dateStr);
+    const matchedTask = tArr ? tArr.find(item => !item.taskName || !String(item.taskName).includes("未指派")) : null;
     const recFree = resolveDailyPracticeRecord(dateStr, d, historyList);
     
     const freeTestedWords = recFree ? (recFree.attempts || 0) : 0;
@@ -1839,24 +1868,31 @@ export function renderSummary(d) {
     return `<option value="${dateStr}" ${dateStr === defaultSelectedDate ? "selected" : ""}>${label}</option>`;
   }).join("");
 
-  const initialTaskRecords = historyList.filter(item => normalizeDateStr(item.date) === defaultSelectedDate && (!item.taskName || item.taskName !== "自主練習"));
+  const initialTaskRecords = taskByDateMap.get(defaultSelectedDate) || [];
   const initialTaskDetailsHtml = buildTaskDetailsHtml(initialTaskRecords, defaultSelectedDate, d);
 
   const initialFreeRecord = resolveDailyPracticeRecord(defaultSelectedDate, d, historyList);
   const initialFreeDetailsHtml = buildFreeDetailsHtml(initialFreeRecord, defaultSelectedDate, d);
 
-  // 計算「指定測驗作答紀錄」最近 4 週 (28 天) 黃色熱力圖資料與連續/最佳/累計天數
+  const taskDayStatCache = new Map();
+
+  // 計算「指定測驗作答紀錄」最近 4 週 (28 天) 熱力圖資料與連續/最佳/累計天數 (Memoized O(1))
   const getTaskDayStat = (dateKey) => {
     const norm = normalizeDateStr(dateKey);
-    const tRec = historyList.find(item => item && item.date && normalizeDateStr(item.date) === norm && (!item.taskName || item.taskName !== "自主練習")) || null;
+    if (taskDayStatCache.has(norm)) return taskDayStatCache.get(norm);
+
+    const tArr = taskByDateMap.get(norm);
+    const tRec = (tArr && tArr[0]) || null;
     if (!tRec || !tRec.taskName || tRec.taskName === "⚪ 未指派" || (tRec.status && tRec.status.includes("未指派"))) {
-      return {
+      const res = {
         a: 0, c: 0, rate: 0,
         statusType: "unassigned",
         statusLabel: "⚪ 未指派測驗",
         levelClass: "h0",
         badgeTier: "tier-gray"
       };
+      taskDayStatCache.set(norm, res);
+      return res;
     }
 
     let tAtt = parseInt(tRec.attempts) || 0;
@@ -1905,11 +1941,12 @@ export function renderSummary(d) {
     const freeRec = resolveDailyPracticeRecord(norm, d, historyList);
     const hasLoggedInOrFree = !!(freeRec && freeRec.attempts > 0) || (tRec.freeTested > 0) || statusStr.includes("登入未受測") || statusStr.includes("登入未作答");
 
+    let res;
     if (isFinished) {
       // 依「正確率」計算六階純綠色量級：<60%、60~69%、70~79%、80~89%、90~99%、100%
       const level = tRate < 60 ? 1 : tRate < 70 ? 2 : tRate < 80 ? 3 : tRate < 90 ? 4 : tRate < 100 ? 5 : 6;
       const badgeTier = tRate === 100 ? "tier-green-perfect" : (tRate >= 80 ? "tier-green-high" : (tRate >= 60 ? "tier-green-mid" : "tier-green-low"));
-      return {
+      res = {
         a: tAtt, c: tCor, rate: tRate,
         wordsCount: taskWordsCount,
         statusType: "completed",
@@ -1921,7 +1958,7 @@ export function renderSummary(d) {
       // 🟣 登入作答未完成 (方格莫蘭迪柔紫，右側紫底紫框)
       const curCorr = resolvedCorr.length || tCor;
       const curTot = taskWordsCount || tAtt || 5;
-      return {
+      res = {
         a: tAtt, c: tCor, rate: tRate,
         wordsCount: taskWordsCount,
         statusType: "incomplete",
@@ -1931,7 +1968,7 @@ export function renderSummary(d) {
       };
     } else if (hasLoggedInOrFree) {
       // 🟡 登入未受測 (方格金黃色，右側黃色框)
-      return {
+      res = {
         a: 0, c: 0, rate: 0,
         wordsCount: taskWordsCount,
         statusType: "login_untested",
@@ -1941,7 +1978,7 @@ export function renderSummary(d) {
       };
     } else {
       // 🔴 缺席未受測 (方格珊瑚玫瑰紅，右側粉紅紅框)
-      return {
+      res = {
         a: 0, c: 0, rate: 0,
         wordsCount: taskWordsCount,
         statusType: "absent_untested",
@@ -1950,6 +1987,8 @@ export function renderSummary(d) {
         badgeTier: "tier-status-red"
       };
     }
+    taskDayStatCache.set(norm, res);
+    return res;
   };
 
   const nowDt = new Date();
@@ -1963,16 +2002,9 @@ export function renderSummary(d) {
   }
 
   const activeTaskDateSet = new Set();
-  historyList.forEach(item => {
-    if (!item || !item.date) return;
-    if (item.taskName && item.taskName !== "自主練習") {
-      const norm = normalizeDateStr(item.date);
-      if (norm && getTaskDayStat(norm).a > 0) activeTaskDateSet.add(norm);
-    } else if (!item.taskName) {
-      const norm = normalizeDateStr(item.date);
-      if (norm && getTaskDayStat(norm).a > 0) activeTaskDateSet.add(norm);
-    }
-  });
+  for (const norm of taskByDateMap.keys()) {
+    if (norm && getTaskDayStat(norm).a > 0) activeTaskDateSet.add(norm);
+  }
   const taskTotal = activeTaskDateSet.size;
   let taskStreak = 0;
   const hasTaskDayOff = (off) => {
@@ -2365,7 +2397,7 @@ export function renderSummary(d) {
     if (taskSubhTitle) {
       taskSubhTitle.textContent = isWeekend(targetDate) ? "🎯 週末待攻克單字測驗成果" : "📝 平日指定測驗作答紀錄";
     }
-    const targetTaskRecords = historyList.filter(item => normalizeDateStr(item.date) === targetDate && (!item.taskName || item.taskName !== "自主練習"));
+    const targetTaskRecords = taskByDateMap.get(targetDate) || [];
     const taskDetailsContainer = $("#task-record-details");
     if (taskDetailsContainer) {
       taskDetailsContainer.innerHTML = buildTaskDetailsHtml(targetTaskRecords, targetDate, d);

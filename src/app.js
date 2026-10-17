@@ -3,15 +3,15 @@
 // drives level-based practice, gates progression behind challenges,
 // and manages teacher-assigned tasks & weekend mistake remediation.
 // =====================================================================
-import { loadWordBank } from "./wordbank.js?v=20261016_2015";
-import * as store from "./store.js?v=20261017_1730";
-import { nextWord } from "./srs.js?v=20261016_2015";
-import * as ui from "./ui.js?v=20261017_1944";
-import { burst } from "./confetti.js?v=20261016_2015";
+import { loadWordBank, wordsAtLevel } from "./wordbank.js?v=20261018_v220";
+import * as store from "./store.js?v=20261018_v220";
+import { nextWord } from "./srs.js?v=20261018_v220";
+import * as ui from "./ui.js?v=20261018_v220";
+import { burst } from "./confetti.js?v=20261018_v220";
 import {
   LEVELS, levelColor, levelName, sample,
   PASS_RATE, GATE_MIN_ATTEMPTS, CHALLENGE_LEN, PLACEMENT_PER_LEVEL, DAILY_GOAL,
-} from "./levels.js?v=20261016_2015";
+} from "./levels.js?v=20261018_v220";
 
 let WORDS = [];
 const state = { mode: "listen", word: null, answered: false, round: null };
@@ -82,7 +82,7 @@ function persistTaskProgress() {
   }
 }
 
-const wordsAt = (level) => WORDS.filter((w) => w.level === level);
+const wordsAt = (level) => wordsAtLevel(WORDS, level);
 
 function todayDateStr() {
   const d = new Date();
@@ -1129,7 +1129,7 @@ function showTaskIntroScreen(task) {
     // 首次準備字庫：100% 完整對應老師勾選之單字清單
     const targetWordsLower = task.words.map(w => String(w).trim().toLowerCase());
     let matched = targetWordsLower.map(tw => {
-      const found = WORDS.find(w => w.word.toLowerCase() === tw);
+      const found = (WORDS._byWord && WORDS._byWord.get(tw)) || WORDS.find(w => w.word === tw);
       if (found) return found;
       return {
         id: "task_" + tw,

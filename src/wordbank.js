@@ -64,12 +64,16 @@ export function loadWordBank() {
         fetchWithCache("data/meanings.json", true)
       ]);
 
-      return bank.map((entry, i) => {
+      const byLevel = { 1: [], 2: [], 3: [], 4: [], 5: [] };
+      const byWord = new Map();
+      const byId = new Map();
+
+      const words = bank.map((entry, i) => {
         const display = entry.w;
         const word = display.toLowerCase();
         const feat = FEATURED.get(word);          // hand-verified (mask + zh + sent + cat)
         const m = meanings[display] || meanings[word] || {}; // dictionary meaning + phonetic + sentence
-        return {
+        const obj = {
           id: "w" + i,
           word,
           display,
@@ -84,10 +88,21 @@ export function loadWordBank() {
           ph: m.ph || null,
           cat: feat ? feat.cat : null,
         };
+        if (byLevel[obj.level]) byLevel[obj.level].push(obj);
+        byWord.set(word, obj);
+        byId.set(obj.id, obj);
+        return obj;
       });
+
+      words._byLevel = byLevel;
+      words._byWord = byWord;
+      words._byId = byId;
+      return words;
     })();
   }
   return _wordBankPromise;
 }
 
-export const wordsAtLevel = (words, level) => words.filter((w) => w.level === level);
+export const wordsAtLevel = (words, level) =>
+  (words && words._byLevel && words._byLevel[level]) || (Array.isArray(words) ? words.filter((w) => w.level === level) : []);
+

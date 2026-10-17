@@ -278,31 +278,47 @@ function isRealDailyWordsMap(wordsObj) {
 }
 
 // Practice history for the last `n` days + streaks, for the calendar heatmap.
-export function historyData(n = 28) {
-  let taskHistory = [];
-  try {
-    const raw = localStorage.getItem("student_task_history");
-    if (raw) taskHistory = JSON.parse(raw) || [];
-  } catch(_) {}
+export function historyData(n = 28, preloadedTaskHistory = null) {
+  let taskHistory = preloadedTaskHistory;
+  if (!Array.isArray(taskHistory)) {
+    taskHistory = [];
+    try {
+      const raw = localStorage.getItem("student_task_history");
+      if (raw) taskHistory = JSON.parse(raw) || [];
+    } catch(_) {}
+  }
+
+  // Pre-index taskHistory by normalized date -> O(1) lookup instead of linear .find()
+  const thMap = new Map();
+  if (Array.isArray(taskHistory)) {
+    for (let i = 0; i < taskHistory.length; i++) {
+      const item = taskHistory[i];
+      if (item && item.date) {
+        const nd = normalizeDateStr(item.date);
+        if (nd && !thMap.has(nd)) thMap.set(nd, item);
+      }
+    }
+  }
+
+  const dayStatCache = new Map();
 
   // 取得特定日期的自由練習作答單字數與答對數（嚴格排除指定測驗紀錄）
   const getDayStat = (dateStr) => {
     const norm = normalizeDateStr(dateStr);
+    if (dayStatCache.has(norm)) return dayStatCache.get(norm);
+
     const unpad = unpadDateStr(dateStr);
     const slash = norm.replace(/-/g, "/");
 
     let a = 0, c = 0;
 
     // 先檢查雲端同步之 student_task_history 是否有該日自由練習紀錄
-    let thRow = null;
+    const thRow = thMap.get(norm) || null;
     let thFreeAtt = 0, thFreeCor = 0;
-    if (Array.isArray(taskHistory)) {
-      thRow = taskHistory.find(item => item && item.date && normalizeDateStr(item.date) === norm) || null;
-      if (thRow) {
-        const isSelfRow = (thRow.taskName === "自主練習");
-        thFreeAtt = parseInt(thRow.freeTested !== undefined ? thRow.freeTested : (isSelfRow ? thRow.attempts : 0)) || 0;
-        thFreeCor = parseInt(thRow.freeCorrect !== undefined ? thRow.freeCorrect : (isSelfRow ? thRow.correct : 0)) || 0;
-      }
+    if (thRow) {
+      const isSelfRow = (thRow.taskName === "自主練習");
+      thFreeAtt = parseInt(thRow.freeTested !== undefined ? thRow.freeTested : (isSelfRow ? thRow.attempts : 0)) || 0;
+      thFreeCor = parseInt(thRow.freeCorrect !== undefined ? thRow.freeCorrect : (isSelfRow ? thRow.correct : 0)) || 0;
     }
 
     // 1. 檢查 dailyPractice (僅採納具有真實當日單字紀錄，或與試算表自由練習吻合者)
@@ -312,14 +328,16 @@ export function historyData(n = 28) {
       if (dp) {
         hasRealDpWords = isRealDailyWordsMap(dp.words);
         if (hasRealDpWords) {
-          const wVals = Object.values(dp.words).filter(Boolean);
-          const dpAtt = wVals.length;
-          const dpCor = wVals.filter(w => {
+          let dpAtt = 0, dpCor = 0;
+          for (const k in dp.words) {
+            const w = dp.words[k];
+            if (!w) continue;
+            dpAtt++;
             const wCor = (w.correct !== undefined) ? w.correct : (w.c || 0);
             const wWrg = (w.wrong !== undefined) ? w.wrong : Math.max(0, (w.a || 0) - wCor);
             const isStillWrong = w.hadCorrectThenWrong || (w.lastResult === "wrong" && wCor > 0) || (w.lastResult === "wrong") || (wWrg > 0 && wCor === 0);
-            return !isStillWrong && (w.lastResult === "correct" || wCor > 0 || w.passed);
-          }).length;
+            if (!isStillWrong && (w.lastResult === "correct" || wCor > 0 || w.passed)) dpCor++;
+          }
           if (dpAtt > 0) {
             a = Math.max(a, dpAtt);
             c = Math.max(c, dpCor);
@@ -339,8 +357,8 @@ export function historyData(n = 28) {
         const dpForCheck = DB.dailyPractice && (DB.dailyPractice[norm] || DB.dailyPractice[unpad] || DB.dailyPractice[slash] || DB.dailyPractice[dateStr]);
         const isFabricatedOnly = dpForCheck && dpForCheck.words && Object.keys(dpForCheck.words).length > 0 && !isRealDailyWordsMap(dpForCheck.words);
         if (!isFabricatedOnly) {
-          let hAtt = (h.a !== undefined) ? h.a : (h.attempts !== undefined ? h.attempts : 0);
-          let hCor = (h.c !== undefined) ? h.c : (h.correct !== undefined ? h.correct : 0);
+          const hAtt = (h.a !== undefined) ? h.a : (h.attempts !== undefined ? h.attempts : 0);
+          const hCor = (h.c !== undefined) ? h.c : (h.correct !== undefined ? h.correct : 0);
           if (hAtt > 0) {
             a = Math.max(a, hAtt);
             c = Math.max(c, hCor);
@@ -355,7 +373,9 @@ export function historyData(n = 28) {
       c = Math.max(c, thFreeCor);
     }
 
-    return { a, c };
+    const res = { a, c };
+    dayStatCache.set(norm, res);
+    return res;
   };
 
   const days = [];
@@ -369,11 +389,8 @@ export function historyData(n = 28) {
 
   // 連續天數 (streak)
   let streak = 0;
-  const has = (off) => {
-    const k = dayAgo(off).key;
-    return getDayStat(k).a > 0;
-  };
-  let start = has(0) ? 0 : has(1) ? 1 : null;
+  const has = (off) => getDayStat(dayAgo(off).key).a > 0;
+  const start = has(0) ? 0 : has(1) ? 1 : null;
   if (start !== null) {
     let k = start;
     while (has(k)) { streak++; k++; }
@@ -382,20 +399,18 @@ export function historyData(n = 28) {
   // 收集所有曾進行自由練習之不重複日期
   const candidateDates = new Set();
   if (DB.dailyPractice) {
-    Object.keys(DB.dailyPractice).forEach(k => candidateDates.add(normalizeDateStr(k)));
+    for (const k in DB.dailyPractice) candidateDates.add(normalizeDateStr(k));
   }
   if (DB.history) {
-    Object.keys(DB.history).forEach(k => candidateDates.add(normalizeDateStr(k)));
+    for (const k in DB.history) candidateDates.add(normalizeDateStr(k));
   }
-  if (Array.isArray(taskHistory)) {
-    taskHistory.forEach(th => {
-      if (th && th.date) candidateDates.add(normalizeDateStr(th.date));
-    });
+  for (const nd of thMap.keys()) {
+    candidateDates.add(nd);
   }
   const activeDateSet = new Set();
-  candidateDates.forEach(dKey => {
+  for (const dKey of candidateDates) {
     if (dKey && getDayStat(dKey).a > 0) activeDateSet.add(dKey);
-  });
+  }
 
   // 計算最佳連續天數
   const toIdx = (ds) => {
@@ -432,14 +447,17 @@ export function progress() { return { ...DB.level }; }
 export function levelStats(level, words) {
   let a = 0, c = 0;
   if (Array.isArray(words) && words.length > 0) {
-    const ws = words.filter(w => w.level === level);
-    for (const w of ws) {
-      const st = DB.stat[w.id];
-      if (st && st.a > 0) a++;
-      if (st && st.c > 0) c++;
+    const ws = (words._byLevel && words._byLevel[level]) || words.filter(w => w.level === level);
+    for (let i = 0; i < ws.length; i++) {
+      const st = DB.stat[ws[i].id];
+      if (st) {
+        if (st.a > 0) a++;
+        if (st.c > 0) c++;
+      }
     }
   } else if (DB && DB.stat) {
-    for (const [id, st] of Object.entries(DB.stat)) {
+    for (const id in DB.stat) {
+      const st = DB.stat[id];
       if (!st) continue;
       if (getWordLevel(id) === level) {
         if (st.a > 0) a++;
@@ -479,11 +497,12 @@ export function promote() {
 export function stats(words) {
   const wList = (Array.isArray(words) && words.length > 0) ? words : [];
   let learn = 0, prac = 0, mast = 0;
-  for (const w of wList) {
-    const b = box(w.id);
-    const st = DB.stat[w.id];
+  for (let i = 0; i < wList.length; i++) {
+    const id = wList[i].id;
+    const st = DB.stat[id];
     // 嚴格準則：單字必須實際曾答對過 (st && st.c > 0)，方能計入學習成果
     if (st && st.c > 0) {
+      const b = DB.box[id] || 0;
       if (b >= 3) mast++;
       else if (b === 2) prac++;
       else learn++;
@@ -491,9 +510,10 @@ export function stats(words) {
   }
   // 若單字庫尚未完全載入完成，直接由 DB.stat 與 DB.box 統計
   if (wList.length === 0 && DB && DB.stat) {
-    for (const [id, st] of Object.entries(DB.stat)) {
+    for (const id in DB.stat) {
+      const st = DB.stat[id];
       if (st && st.c > 0) {
-        const b = box(id);
+        const b = DB.box[id] || 0;
         if (b >= 3) mast++;
         else if (b === 2) prac++;
         else learn++;
@@ -501,13 +521,21 @@ export function stats(words) {
     }
   }
   const distinctCorrect = mast + prac + learn;
-  // 累積受測單字數：凡有作答受測過 (stat.a > 0 或曾列入 box) 的不重複單字
-  const testedVocab = Math.max(
-    distinctCorrect,
-    Object.values(DB.stat || {}).filter((s) => s && s.a > 0).length,
-    Object.keys(DB.stat || {}).length,
-    Object.keys(DB.box || {}).length
-  );
+  // 累積受測單字數：凡有作答受測過 (stat.a > 0 或曾列入 box) 的不重複單字（單次迴圈零陣列配置）
+  let statKeysCount = 0;
+  let statActiveCount = 0;
+  if (DB && DB.stat) {
+    for (const id in DB.stat) {
+      statKeysCount++;
+      const s = DB.stat[id];
+      if (s && s.a > 0) statActiveCount++;
+    }
+  }
+  let boxKeysCount = 0;
+  if (DB && DB.box) {
+    for (const _ in DB.box) boxKeysCount++;
+  }
+  const testedVocab = Math.max(distinctCorrect, statActiveCount, statKeysCount, boxKeysCount);
   const passRate = testedVocab > 0 ? Math.round((distinctCorrect / testedVocab) * 100) : 0;
   const total = wList.length || 2055;
   return {
@@ -543,15 +571,21 @@ export function getDailyPractice(dateStr) {
       }
     }
   }
-  if (dp && dp.words && Object.keys(dp.words).length > 0) {
-    const wList = Object.values(dp.words).filter(Boolean);
-    dp.distinctAttempts = wList.length;
-    dp.distinctCorrect = wList.filter(w => {
+  if (dp && dp.words) {
+    let dAtt = 0, dCor = 0;
+    for (const k in dp.words) {
+      const w = dp.words[k];
+      if (!w) continue;
+      dAtt++;
       const wCor = (w.correct !== undefined) ? w.correct : (w.c || 0);
       const wWrg = (w.wrong !== undefined) ? w.wrong : Math.max(0, (w.a || 0) - wCor);
       const isWrong = w.hadCorrectThenWrong || (w.lastResult === 'wrong' && wCor > 0) || (w.lastResult === 'wrong') || (wWrg > 0 && wCor === 0);
-      return !isWrong && (w.lastResult === 'correct' || wCor > 0 || w.passed);
-    }).length;
+      if (!isWrong && (w.lastResult === 'correct' || wCor > 0 || w.passed)) dCor++;
+    }
+    if (dAtt > 0) {
+      dp.distinctAttempts = dAtt;
+      dp.distinctCorrect = dCor;
+    }
   }
   return dp;
 }
@@ -559,55 +593,105 @@ export function getDailyPractice(dateStr) {
 export function getPracticeDates() {
   const set = new Set();
   if (DB.dailyPractice) {
-    Object.keys(DB.dailyPractice).forEach(k => {
+    for (const k in DB.dailyPractice) {
       const dp = DB.dailyPractice[k];
-      if (!k || !dp) return;
-      if (dp.words && Object.keys(dp.words).length > 0 && !isRealDailyWordsMap(dp.words)) return;
-      if ((dp.attempts > 0) || (dp.words && Object.keys(dp.words).length > 0)) set.add(normalizeDateStr(k));
-    });
+      if (!k || !dp) continue;
+      const hasWords = dp.words && Object.keys(dp.words).length > 0;
+      if (hasWords && !isRealDailyWordsMap(dp.words)) continue;
+      if ((dp.attempts > 0) || hasWords) set.add(normalizeDateStr(k));
+    }
   }
   if (DB.history) {
-    Object.keys(DB.history).forEach(k => {
+    for (const k in DB.history) {
       const h = DB.history[k];
       if (k && h && ((h.a > 0) || (h.attempts > 0) || (h.words && Object.keys(h.words).length > 0))) set.add(normalizeDateStr(k));
-    });
+    }
   }
   return Array.from(set);
 }
 
-// Everything the summary panel needs, as plain data.
+// Everything the summary panel needs, as plain data (Single-pass over 2,055 words).
 export function summary(words) {
   const s = stats(words);
-  const mastered = words.filter((w) => box(w.id) >= 3 && DB.stat[w.id]?.c > 0);
-  const fixed = words.filter((w) => box(w.id) >= 3 && everWrong(w.id) && DB.stat[w.id]?.c > 0);
-  const levels = [1, 2, 3, 4, 5].map((lv) => {
-    const ws = words.filter((w) => w.level === lv);
-    const ls = levelStats(lv);
-    let learn = 0, prac = 0, mast = 0, testedCount = 0;
-    for (const w of ws) {
-      const st = DB.stat[w.id];
-      if (st && st.a > 0) testedCount++;
-      if (st && st.c > 0) {
-        const b = box(w.id);
-        if (b >= 3) mast++;
-        else if (b === 2) prac++;
-        else learn++;
+  const mastered = [];
+  const fixed = [];
+  const allPracticedWords = [];
+
+  const lvAcc = {
+    1: { total: 0, mast: 0, prac: 0, learn: 0, testedCount: 0 },
+    2: { total: 0, mast: 0, prac: 0, learn: 0, testedCount: 0 },
+    3: { total: 0, mast: 0, prac: 0, learn: 0, testedCount: 0 },
+    4: { total: 0, mast: 0, prac: 0, learn: 0, testedCount: 0 },
+    5: { total: 0, mast: 0, prac: 0, learn: 0, testedCount: 0 },
+  };
+
+  const catKeys = Object.keys(CATS);
+  const catAcc = {};
+  for (let i = 0; i < catKeys.length; i++) {
+    catAcc[catKeys[i]] = { total: 0, mast: 0 };
+  }
+
+  // 單一迴圈同時完成：mastered、fixed、5 大等級、分類統計、以及 allPracticedWords
+  for (let i = 0; i < words.length; i++) {
+    const w = words[i];
+    const id = w.id;
+    const st = DB.stat[id];
+    const b = DB.box[id] || 0;
+    const hasC = !!(st && st.c > 0);
+    const hasA = !!(st && st.a > 0);
+    const isMast = (b >= 3 && hasC);
+
+    if (isMast) {
+      mastered.push(w);
+      if (st.ew) fixed.push(w);
+    }
+
+    const la = lvAcc[w.level];
+    if (la) {
+      la.total++;
+      if (hasA) la.testedCount++;
+      if (hasC) {
+        if (b >= 3) la.mast++;
+        else if (b === 2) la.prac++;
+        else la.learn++;
       }
     }
-    const correctWordCount = learn + prac + mast;
-    const wordRate = testedCount > 0 ? Math.round((correctWordCount / testedCount) * 100) : 0;
+
+    if (w.cat && catAcc[w.cat]) {
+      catAcc[w.cat].total++;
+      if (isMast) catAcc[w.cat].mast++;
+    }
+
+    if (hasA) {
+      allPracticedWords.push({
+        word: w.word,
+        attempts: st.a,
+        correct: st.c,
+        wrong: Math.max(0, st.a - st.c),
+        ew: !!st.ew
+      });
+    }
+  }
+
+  const levels = [1, 2, 3, 4, 5].map((lv) => {
+    const la = lvAcc[lv];
+    const correctWordCount = la.learn + la.prac + la.mast;
+    const wordRate = la.testedCount > 0 ? Math.round((correctWordCount / la.testedCount) * 100) : 0;
     return {
-      level: lv, total: ws.length,
-      mast, prac, learn,
+      level: lv, total: la.total,
+      mast: la.mast, prac: la.prac, learn: la.learn,
       correct: correctWordCount,
-      testedCount: testedCount,
-      rate: wordRate, attempts: ls.attempts,
+      testedCount: la.testedCount,
+      rate: wordRate, attempts: la.testedCount,
     };
   });
-  const catCounts = Object.keys(CATS).map((k) => {
-    const ws = words.filter((w) => w.cat === k);
-    return { name: CATS[k].name, color: CATS[k].color, total: ws.length, mast: ws.filter((w) => box(w.id) >= 3 && DB.stat[w.id]?.c > 0).length };
-  });
+
+  const catCounts = catKeys.map((k) => ({
+    name: CATS[k].name,
+    color: CATS[k].color,
+    total: catAcc[k].total,
+    mast: catAcc[k].mast
+  }));
 
   const modeStats = {
     listen: { a: 0, c: 0 },
@@ -616,60 +700,63 @@ export function summary(words) {
     trap: { a: 0, c: 0 }
   };
   const mwords = DB.mwords || {};
-  // 確保歷史單字完整繼承至聽與拼模式
-  if (DB.stat && Object.keys(DB.stat).length > 0) {
+  let totTestedWords = 0, totCorrWords = 0;
+
+  // 確保歷史單字完整繼承至聽與拼模式，同時單次計算 totTestedWords / totCorrWords
+  if (DB.stat) {
     if (!mwords.listen) mwords.listen = {};
-    const mwOther = new Set([
-      ...Object.keys(mwords.pick || {}),
-      ...Object.keys(mwords.scramble || {}),
-      ...Object.keys(mwords.trap || {})
-    ]);
-    for (const [id, st] of Object.entries(DB.stat)) {
+    const pMap = mwords.pick || {};
+    const sMap = mwords.scramble || {};
+    const tMap = mwords.trap || {};
+    for (const id in DB.stat) {
+      const st = DB.stat[id];
       if (!st || st.a <= 0) continue;
-      if (!mwords.listen[id] && !mwOther.has(id)) {
+      totTestedWords++;
+      if (st.c > 0) totCorrWords++;
+      if (!mwords.listen[id] && !pMap[id] && !sMap[id] && !tMap[id]) {
         mwords.listen[id] = { a: st.a, c: st.c };
       }
     }
   }
 
   let hasValidMwords = false;
-  ["listen", "pick", "scramble", "trap"].forEach(m => {
-    if (mwords[m] && Object.values(mwords[m]).some(e => e && e.a > 0)) {
-      hasValidMwords = true;
+  const modeKeys = ["listen", "pick", "scramble", "trap"];
+  for (let i = 0; i < modeKeys.length; i++) {
+    const m = modeKeys[i];
+    const mapObj = mwords[m];
+    if (mapObj) {
+      for (const k in mapObj) {
+        if (mapObj[k] && mapObj[k].a > 0) { hasValidMwords = true; break; }
+      }
     }
-  });
+    if (hasValidMwords) break;
+  }
 
-  const totTestedWords = Object.values(DB.stat || {}).filter(s => s && s.a > 0).length;
-  const totCorrWords = Object.values(DB.stat || {}).filter(s => s && s.c > 0).length;
-  const activeModes = ["listen", "pick", "scramble", "trap"].filter(m => DB.mstat && DB.mstat[m] && DB.mstat[m].a > 0);
+  const activeModes = modeKeys.filter(m => DB.mstat && DB.mstat[m] && DB.mstat[m].a > 0);
 
-  ["listen", "pick", "scramble", "trap"].forEach(m => {
-    if (mwords[m] && Object.keys(mwords[m]).length > 0) {
-      // 依使用者規範：只記錄施測單字數和答對單字數，不論施測次數和答對次數
-      const entries = Object.values(mwords[m]);
-      modeStats[m].a = entries.filter(e => e && e.a > 0).length;
-      modeStats[m].c = entries.filter(e => e && e.c > 0).length;
+  for (let i = 0; i < modeKeys.length; i++) {
+    const m = modeKeys[i];
+    const mapObj = mwords[m];
+    let mAtt = 0, mCor = 0, hasEntries = false;
+    if (mapObj) {
+      for (const k in mapObj) {
+        hasEntries = true;
+        const e = mapObj[k];
+        if (e) {
+          if (e.a > 0) mAtt++;
+          if (e.c > 0) mCor++;
+        }
+      }
+    }
+    if (hasEntries) {
+      modeStats[m].a = mAtt;
+      modeStats[m].c = mCor;
     } else if (!hasValidMwords && activeModes.length === 1 && activeModes[0] === m) {
       modeStats[m].a = totTestedWords;
       modeStats[m].c = totCorrWords;
     } else if (DB.mstat && DB.mstat[m]) {
       modeStats[m].a = Math.min(totTestedWords, DB.mstat[m].a || 0);
       modeStats[m].c = Math.min(totCorrWords, DB.mstat[m].c || 0);
-    }
-  });
-
-  // 1. 整理 DB.stat 中所有曾作答過之單字成果
-  const allPracticedWords = [];
-  for (const w of words) {
-    const st = DB.stat[w.id];
-    if (st && st.a > 0) {
-      allPracticedWords.push({
-        word: w.word,
-        attempts: st.a,
-        correct: st.c,
-        wrong: Math.max(0, st.a - st.c),
-        ew: !!st.ew
-      });
     }
   }
 
@@ -684,18 +771,29 @@ export function summary(words) {
     if (raw) taskHistory = JSON.parse(raw) || [];
   } catch(_) {}
 
-  Object.keys(DB.dailyPractice).forEach(dpKey => {
+  const thMap = new Map();
+  if (Array.isArray(taskHistory)) {
+    for (let i = 0; i < taskHistory.length; i++) {
+      const item = taskHistory[i];
+      if (item && item.date) {
+        const nd = normalizeDateStr(item.date);
+        if (nd && !thMap.has(nd)) thMap.set(nd, item);
+      }
+    }
+  }
+
+  for (const dpKey of Object.keys(DB.dailyPractice)) {
     const dp = DB.dailyPractice[dpKey];
     const normDp = normalizeDateStr(dpKey);
     if (!dp) {
       delete DB.dailyPractice[dpKey];
       changed = true;
-      return;
+      continue;
     }
     const hasWords = dp.words && typeof dp.words === "object" && Object.keys(dp.words).length > 0;
     const isFabricatedWords = hasWords && !isRealDailyWordsMap(dp.words);
     if (isFabricatedWords) {
-      const thRow = Array.isArray(taskHistory) ? taskHistory.find(item => item && item.date && normalizeDateStr(item.date) === normDp) : null;
+      const thRow = thMap.get(normDp) || null;
       const isSelfRow = thRow && thRow.taskName === "自主練習";
       const thFreeAtt = thRow ? (parseInt(thRow.freeTested !== undefined ? thRow.freeTested : (isSelfRow ? thRow.attempts : 0)) || 0) : 0;
       if (thFreeAtt > 0) {
@@ -715,15 +813,15 @@ export function summary(words) {
       delete DB.dailyPractice[dpKey];
       changed = true;
     }
-  });
+  }
 
-  if (Array.isArray(taskHistory) && taskHistory.length > 0) {
-    Object.keys(DB.history).forEach(hKey => {
+  if (thMap.size > 0) {
+    for (const hKey of Object.keys(DB.history)) {
       const normH = normalizeDateStr(hKey);
       const dp = DB.dailyPractice[normH] || DB.dailyPractice[hKey];
       const hasRealDp = dp && isRealDailyWordsMap(dp.words);
-      if (hasRealDp) return;
-      const thRow = taskHistory.find(item => item && item.date && normalizeDateStr(item.date) === normH);
+      if (hasRealDp) continue;
+      const thRow = thMap.get(normH);
       if (thRow) {
         const isSelfRow = (thRow.taskName === "自主練習");
         const thFreeAtt = parseInt(thRow.freeTested !== undefined ? thRow.freeTested : (isSelfRow ? thRow.attempts : 0)) || 0;
@@ -736,7 +834,7 @@ export function summary(words) {
           changed = true;
         }
       }
-    });
+    }
   }
 
   if (changed) save();
@@ -744,7 +842,7 @@ export function summary(words) {
   return {
     passRate: s.passRate, distinctCorrect: s.distinctCorrect,
     attempts: s.attempts, correct: s.correct, total: s.total,
-    mastered, fixed, levels, catCounts, history: historyData(),
+    mastered, fixed, levels, catCounts, history: historyData(28, taskHistory),
     modeStats,
     dailyPractice: DB.dailyPractice || {},
     practiceDates: getPracticeDates(),
@@ -767,29 +865,28 @@ export function getPrecomputedSummary(words) {
   };
 
   const levels = {};
+  const levelTested = [0, 0, 0, 0, 0, 0];
+  const levelCorr = [0, 0, 0, 0, 0, 0];
   if (Array.isArray(words) && words.length > 0) {
-    for (let lv = 1; lv <= 5; lv++) {
-      const ws = words.filter(w => w.level === lv);
-      let c = 0, a = 0;
-      for (const w of ws) {
-        const st = DB.stat[w.id];
-        if (st && st.a > 0) a++;
-        if (st && st.c > 0) c++;
+    for (let i = 0; i < words.length; i++) {
+      const w = words[i];
+      const st = DB.stat[w.id];
+      if (st) {
+        if (st.a > 0) levelTested[w.level]++;
+        if (st.c > 0) levelCorr[w.level]++;
       }
-      levels[lv] = `${c}/${a}`;
     }
   } else if (DB && DB.stat) {
-    const levelTested = [0, 0, 0, 0, 0, 0];
-    const levelCorr = [0, 0, 0, 0, 0, 0];
-    for (const [id, st] of Object.entries(DB.stat)) {
+    for (const id in DB.stat) {
+      const st = DB.stat[id];
       if (!st) continue;
       const lv = getWordLevel(id);
       if (st.a > 0) levelTested[lv]++;
       if (st.c > 0) levelCorr[lv]++;
     }
-    for (let lv = 1; lv <= 5; lv++) {
-      levels[lv] = `${levelCorr[lv]}/${levelTested[lv]}`;
-    }
+  }
+  for (let lv = 1; lv <= 5; lv++) {
+    levels[lv] = `${levelCorr[lv]}/${levelTested[lv]}`;
   }
 
   return {
@@ -808,3 +905,4 @@ export function getPrecomputedSummary(words) {
     }
   };
 }
+

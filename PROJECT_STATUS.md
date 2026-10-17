@@ -5,9 +5,20 @@
 * **備份倉庫**：`C:\Users\pmpu4\.gemini\antigravity\scratch\app2000vocab-repo`
 * **部署作業目錄**：`C:\Users\pmpu4\Desktop\0906`
 * **GitHub 遠端**：`https://github.com/pmpu4000-stack/app2000vocab.git` (main 分支)
-* **GAS 部署版本**：**Version 219** (Deployment ID: `AKfycbx1hyCNJxqFMoaJgIxfZqLYIYH00NegI1Yd8NJP6gRjqwOndWGkmr-H9tGvVwK_axM9`)
+* **GAS 部署版本**：**Version 220** (Deployment ID: `AKfycbx1hyCNJxqFMoaJgIxfZqLYIYH00NegI1Yd8NJP6gRjqwOndWGkmr-H9tGvVwK_axM9`)
 
-## 2. 系統全面優化、大減肥與瘦身升級 (v4.3 / Version 219)
+## 2. 系統全面優化、全模組效能大健檢與演算法改寫 (v4.4 / Version 220)
+* **全模組演算法大健檢與 $O(1)$ 高效能改寫（Version 220）**：
+  - **`src/wordbank.js` 預建 $O(1)$ 索引表**：載入 2,055 個單字時單次預建 `_byLevel`（Level 1~5 分組陣列）、`_byWord`（`Map` 小寫單字映射）、`_byId`（`Map` ID 映射），使 `wordsAtLevel()` 與單字查找由每次線性掃描 2,055 筆降至 $O(1)$ 零延遲，並修正 `index.html` 與 `app.js` 模組快取版本號一致，避免重複解析兩份字庫。
+  - **`src/srs.js` 零配置輪盤賭加權抽題（Roulette Wheel Selection）**：移除每題重新 `.filter()` 2,055 字與配置 ~2,000 個元素的 `bag` 陣列，改為直接讀取 `_byLevel` 並以累積權重單次抽樣，達成 $O(1)$ 記憶體零垃圾回收（Zero GC Allocation）。
+  - **`src/store.js` 單次迴圈與預建日期索引**：將 `summary(words)` 原本對 2,055 字重複掃描 20+ 次（逾 41,000 次迭代）整合為**單一迴圈（Single-Pass）**一次算完精通、曾錯修復、5 大等級、分類與累積練習單字；`historyData()` 與 `summary()` 將 `student_task_history` 預建為 `Map(normDate -> record)` 並快取 `getDayStat`，消除 60+ 次線性 `.find()`。
+  - **`src/ui.js` 消除 100+ 次重複 `localStorage` JSON 解析、DOM 快取與潛在 Bug 修復**：
+    1. 為 `resolveDailyPracticeRecord` 與 `_getCachedRawStudentTaskHistory` 加入記憶體快取，並在 `renderSummary` 預建 `taskByDateMap` 與 `taskDayStatCache`，使展開學習足跡、切換日期與滑鼠滑過 28 天熱力圖皆為 $O(1)$ 瞬間反應。
+    2. 快取頁首與進度條 17 個 DOM 節點（`#s-user`、`#s-score`、`#b-learn` 等），每題作答結束直接更新文字與寬度，不再重複執行 17 次 `querySelector`。
+    3. 移除單字膠囊（`.word-pill-tag`）上數百個重複內嵌 `onclick` 字串，統一由外層 `el.summary.onclick` 事件委派（Event Delegation）處理發音，大幅減輕 HTML 字串與 DOM 解析負擔。
+    4. 修復 `renderUntestedTaskCardHtml` 未解構參數（`selectedDate`、`taskName`、`assignedWords`、`hasLoggedInOrFree`）與誤呼叫 `resolveWord` 的潛在 ReferenceError Bug，並將 `isWeekend` 提升至模組頂層。
+  - **`src/confetti.js` 釋放閒置全螢幕 Canvas 顯示記憶體**：因灑花特效已停用，移除無用的全螢幕 `<canvas>` 尺寸配置與 `resize` 監聽器，直接釋放 ~8 MB GPU 畫布緩衝區。
+  - **`teacher_history.html` / `google_apps_script/Index.html` 熱力圖預建索引與快取**：在 `renderStudentSummary` 預建 `dthTaskMap`、`dthAllMap`、`respDataTaskMap` 並快取 `getTaskDayStatForHeat` / `getDayStatForHeat`，切換學生與滑動熱力圖零卡頓。
 * **HTML/CSS 結構大瘦身（減少 119 KB / -43%）**：
   - 徹底清除 `index.html` 中重複嵌錄之 2,350 行 `<style id="embedded-vocab-tutor-theme">` 內嵌樣式，將所有最新 CSS 規則完整同步回 `css/styles.css`。
   - `index.html` 體積由 273.8 KB 銳減至 154.7 KB，大幅加速行動裝置載入速度與消除瀏覽器重複解析雙倍 CSS 之卡頓。
@@ -18,7 +29,6 @@
 * **總體瘦身成效**：專案靜態傳輸體積直接減少 **688 KB (逾 0.68 MB)**。
 * **資安後門徹底拔除**：徹底清除 GAS 後端 `Code.gs` 中所有未經身分驗證之除錯與測試端點（`inspectSpreadsheetSchema`, `setupTestAccountDRecords`, `getTaskWordsDict` 等死碼全數移除）。
 * **共用電腦防污染保證**：實作 `purgeAllStudentSessionAndLocalData()`，登出即刻清除記憶體與 LocalStorage，並在下一位學生登入寫入新紀錄前強制清空前手殘留，杜絕紀錄交叉污染。
-* **運作效能瘦身 (Memoization Cache)**：在前端與歷程查詢端之 `resolveTaskWords` 加入記憶體快取，熱力圖 28 天與懸停統計時將 28+ 次重複 `JSON.parse` 與陣列掃描壓縮為 1 次。
 * **無障礙 (WCAG 2.1 AA) 全鍵盤與螢幕報讀**：熱力圖各日期方格補齊 `role="button"`、`tabindex="0"`、`aria-label` 完整資訊，並支援 `Enter` / `Space` 鍵切換選取及鍵盤 `focus` / `blur` 報讀。
 * **行動端（手機/平板）響應式觸控優化**：窄螢幕（$\le 540\text{px}$）自動轉為 7 欄週曆佈局（4 週 $\times$ 7 天），方格觸控目標放大至 36~40px，按鈕膠囊內距擴大防誤觸。
 
