@@ -1070,10 +1070,28 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     }
   }
 
-  let cleanTaskName = String(record.taskName || "指定測驗").trim().replace(/^[📝📑\s]+/, "");
-  cleanTaskName = cleanTaskName.replace(/指定單字隨堂測驗/g, "指定單字測驗結果").replace(/隨堂測驗/g, "測驗結果");
-  cleanTaskName = cleanTaskName.replace(/週末指定單字消滅戰/g, "指定測驗作答紀錄").replace(/週末錯題接續消滅戰/g, "指定測驗作答紀錄").replace(/週末.*?消滅戰/g, "指定測驗作答紀錄");
-  const formattedTaskName = `📝 ${cleanTaskName}`;
+function isWeekend(dateStr) {
+  if (!dateStr) return false;
+  const clean = String(dateStr).trim().split(" ")[0].replace(/-/g, "/");
+  const d = new Date(clean);
+  const day = d.getDay();
+  return day === 0 || day === 6;
+}
+
+  const dateStr = record && record.date ? record.date : "";
+  const isWeekendTask = isWeekend(dateStr) || String(record.taskName || "").includes("週末") || String(record.taskName || "").includes("消滅戰") || String(record.taskName || "").includes("待攻克");
+  let formattedTaskName = "";
+  if (isWeekendTask) {
+    formattedTaskName = "🎯 週末待攻克單字測驗成果";
+  } else {
+    let cleanTaskName = String(record.taskName || "平日指定測驗").trim().replace(/^[📝📑\s]+/, "");
+    cleanTaskName = cleanTaskName.replace(/指定單字隨堂測驗/g, "平日指定測驗作答紀錄").replace(/隨堂測驗/g, "測驗結果");
+    if (!cleanTaskName || cleanTaskName === "指定測驗" || cleanTaskName === "指定測驗作答紀錄") {
+      formattedTaskName = "📝 平日指定測驗作答紀錄";
+    } else {
+      formattedTaskName = `📝 ${cleanTaskName}`;
+    }
+  }
 
   // 當一日內有多個測驗（如補考或多個指定測驗），多個紀錄方塊以邊界線清晰隔開
   const blockStyle = (totalCount > 1 && index > 0)
@@ -1180,11 +1198,19 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
 }
 
 function renderUntestedTaskCardHtml(info, d) {
-  const { taskName, assignedWords, hasLoggedInOrFree, selectedDate } = info;
-  let cleanTaskName = String(taskName || "指定單字測驗結果").trim().replace(/^[📝📑\s]+/, "");
-  cleanTaskName = cleanTaskName.replace(/指定單字隨堂測驗/g, "指定單字測驗結果").replace(/隨堂測驗/g, "測驗結果");
-  cleanTaskName = cleanTaskName.replace(/週末指定單字消滅戰/g, "指定測驗作答紀錄").replace(/週末錯題接續消滅戰/g, "指定測驗作答紀錄").replace(/週末.*?消滅戰/g, "指定測驗作答紀錄");
-  const formattedTaskName = `📝 ${cleanTaskName}`;
+  const isWeekendTask = isWeekend(selectedDate) || String(taskName || "").includes("週末") || String(taskName || "").includes("消滅戰") || String(taskName || "").includes("待攻克");
+  let formattedTaskName = "";
+  if (isWeekendTask) {
+    formattedTaskName = "🎯 週末待攻克單字測驗成果";
+  } else {
+    let cleanTaskName = String(taskName || "平日指定測驗作答紀錄").trim().replace(/^[📝📑\s]+/, "");
+    cleanTaskName = cleanTaskName.replace(/指定單字隨堂測驗/g, "平日指定測驗作答紀錄").replace(/隨堂測驗/g, "測驗結果");
+    if (!cleanTaskName || cleanTaskName === "指定測驗" || cleanTaskName === "指定測驗作答紀錄") {
+      formattedTaskName = "📝 平日指定測驗作答紀錄";
+    } else {
+      formattedTaskName = `📝 ${cleanTaskName}`;
+    }
+  }
 
   const cleanWords = (Array.isArray(assignedWords) ? assignedWords : [])
     .map(w => typeof w === "string" ? w : (w.word || w.display || w.w))
@@ -1684,9 +1710,7 @@ export function buildWeekPendingConquerHtml(words) {
   }
 
   const pillsHtml = pendingWords.map(w => `
-    <span class="word-pill-tag conquer-pill" data-word="${w}" title="點擊聆聽發音">
-      🔊 ${w}
-    </span>
+    <span class="word-pill-tag conquer-pill" data-word="${w}" title="點擊聆聽發音">${w}</span>
   `).join("");
 
   return `
@@ -2033,9 +2057,9 @@ export function renderSummary(d) {
       </div>
     </div>
 
-    <!-- 子標題 1：指定測驗作答紀錄 -->
+    <!-- 子標題 1：平日指定測驗 / 週末待攻克單字測驗成果 -->
     <div class="subh-child">
-      <span>📝 指定測驗作答紀錄</span>
+      <span id="task-subh-title">${isWeekend(defaultSelectedDate) ? "🎯 週末待攻克單字測驗成果" : "📝 平日指定測驗作答紀錄"}</span>
     </div>
     <div class="task-history-card">
       <div id="task-record-details">
@@ -2297,7 +2321,11 @@ export function renderSummary(d) {
       }
     }
 
-    // 更新指定測驗作答紀錄 (支援一日多個測驗/補考)
+    // 更新指定測驗 / 週末攻克測驗次標題與作答紀錄 (支援一日多個測驗/補考)
+    const taskSubhTitle = $("#task-subh-title");
+    if (taskSubhTitle) {
+      taskSubhTitle.textContent = isWeekend(targetDate) ? "🎯 週末待攻克單字測驗成果" : "📝 平日指定測驗作答紀錄";
+    }
     const targetTaskRecords = historyList.filter(item => normalizeDateStr(item.date) === targetDate && (!item.taskName || item.taskName !== "自主練習"));
     const taskDetailsContainer = $("#task-record-details");
     if (taskDetailsContainer) {

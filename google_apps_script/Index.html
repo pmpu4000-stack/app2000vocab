@@ -5135,9 +5135,9 @@
           </div>
         </div>
 
-        <!-- 子標題 1：指定測驗作答紀錄 -->
+        <!-- 子標題 1：平日指定測驗 / 週末待攻克單字測驗成果 -->
         <div class="subh-child">
-          <span>📝 指定測驗作答紀錄</span>
+          <span id="st-task-subh-title">📝 平日指定測驗作答紀錄</span>
         </div>
         <div class="task-history-card">
           <div id="task-record-details"></div>
@@ -14813,11 +14813,27 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
     }
   }
 
-  // 名稱前面複製與「📝 指定測驗作答紀錄」相同的 📝 小圖示
-  let cleanTaskName = String(record.taskName || "指定測驗").trim().replace(/^[📝📑\s]+/, "");
-  cleanTaskName = cleanTaskName.replace(/指定單字隨堂測驗/g, "指定單字測驗結果").replace(/隨堂測驗/g, "測驗結果");
-  cleanTaskName = cleanTaskName.replace(/週末指定單字消滅戰/g, "指定測驗作答紀錄").replace(/週末錯題接續消滅戰/g, "指定測驗作答紀錄").replace(/週末.*?消滅戰/g, "指定測驗作答紀錄");
-  const formattedTaskName = `📝 ${cleanTaskName}`;
+  const dateStr = record && record.date ? record.date : "";
+  const isWeekendTask = (function(ds) {
+    if (!ds) return false;
+    const clean = String(ds).trim().split(" ")[0].replace(/-/g, "/");
+    const d = new Date(clean);
+    const day = d.getDay();
+    return day === 0 || day === 6;
+  })(dateStr) || String(record.taskName || "").includes("週末") || String(record.taskName || "").includes("消滅戰") || String(record.taskName || "").includes("待攻克");
+
+  let formattedTaskName = "";
+  if (isWeekendTask) {
+    formattedTaskName = "🎯 週末待攻克單字測驗成果";
+  } else {
+    let cleanTaskName = String(record.taskName || "平日指定測驗").trim().replace(/^[📝📑\s]+/, "");
+    cleanTaskName = cleanTaskName.replace(/指定單字隨堂測驗/g, "平日指定測驗作答紀錄").replace(/隨堂測驗/g, "測驗結果");
+    if (!cleanTaskName || cleanTaskName === "指定測驗" || cleanTaskName === "指定測驗作答紀錄") {
+      formattedTaskName = "📝 平日指定測驗作答紀錄";
+    } else {
+      formattedTaskName = `📝 ${cleanTaskName}`;
+    }
+  }
 
   // 當一日內有多個測驗（如補考或多個指定測驗），多個紀錄方塊以邊界線清晰隔開
   const blockStyle = (totalCount > 1 && index > 0)
@@ -14898,10 +14914,26 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
 
 function renderUntestedTaskCardHtml(info, agent) {
   const { taskName, assignedWords, hasLoggedInOrFree, selectedDate } = info;
-  let cleanTaskName = String(taskName || "指定單字隨堂測驗").trim().replace(/^[📝📑\s]+/, "");
-  cleanTaskName = cleanTaskName.replace(/指定單字隨堂測驗/g, "指定單字測驗結果").replace(/隨堂測驗/g, "測驗結果");
-  cleanTaskName = cleanTaskName.replace(/週末指定單字消滅戰/g, "指定測驗作答紀錄").replace(/週末錯題接續消滅戰/g, "指定測驗作答紀錄").replace(/週末.*?消滅戰/g, "指定測驗作答紀錄");
-  const formattedTaskName = `📝 ${cleanTaskName}`;
+  const isWeekendTask = (function(ds) {
+    if (!ds) return false;
+    const clean = String(ds).trim().split(" ")[0].replace(/-/g, "/");
+    const d = new Date(clean);
+    const day = d.getDay();
+    return day === 0 || day === 6;
+  })(selectedDate) || String(taskName || "").includes("週末") || String(taskName || "").includes("消滅戰") || String(taskName || "").includes("待攻克");
+
+  let formattedTaskName = "";
+  if (isWeekendTask) {
+    formattedTaskName = "🎯 週末待攻克單字測驗成果";
+  } else {
+    let cleanTaskName = String(taskName || "平日指定測驗作答紀錄").trim().replace(/^[📝📑\s]+/, "");
+    cleanTaskName = cleanTaskName.replace(/指定單字隨堂測驗/g, "平日指定測驗作答紀錄").replace(/隨堂測驗/g, "測驗結果");
+    if (!cleanTaskName || cleanTaskName === "指定測驗" || cleanTaskName === "指定測驗作答紀錄") {
+      formattedTaskName = "📝 平日指定測驗作答紀錄";
+    } else {
+      formattedTaskName = `📝 ${cleanTaskName}`;
+    }
+  }
 
   const statusLabel = hasLoggedInOrFree ? "🟡 登入未受測" : "🔴 缺席未受測";
   const statusColor = hasLoggedInOrFree ? "#d97706" : "#ef4444";
@@ -15461,6 +15493,18 @@ function renderStudentDailyTaskAndFreeSections(resp) {
     }
     taskDetailsContainer.innerHTML = buildTaskDetailsHtml(matchedTasks, targetDate, agent);
 
+    const isWk = (function(ds) {
+      if (!ds) return false;
+      const clean = String(ds).trim().split(" ")[0].replace(/-/g, "/");
+      const d = new Date(clean);
+      const day = d.getDay();
+      return day === 0 || day === 6;
+    })(targetDate);
+    const subhTitleEl = document.getElementById("st-task-subh-title");
+    if (subhTitleEl) {
+      subhTitleEl.textContent = isWk ? "🎯 週末待攻克單字測驗成果" : "📝 平日指定測驗作答紀錄";
+    }
+
     // B. 匹配自由練習紀錄 (相容 padded, unpadded, slash 鍵名，並支援從 Sheet 專屬欄位讀取)
     let dpFree = dpMap[targetDate] || dpMap[shortTarget] || dpMap[slashTarget] || null;
     let hFree = historyData[targetDate] || historyData[shortTarget] || historyData[slashTarget] || null;
@@ -15639,9 +15683,7 @@ function renderStudentDailyTaskAndFreeSections(resp) {
       `;
     } else {
       const pills = pendingWords.map(w => `
-        <span class="word-pill-tag conquer-pill" data-word="${w}" title="點擊聆聽發音">
-          🔊 ${w}
-        </span>
+        <span class="word-pill-tag conquer-pill" data-word="${w}" title="點擊聆聽發音">${w}</span>
       `).join("");
       conquerDetailsContainer.innerHTML = `
         <div class="week-conquer-wrap" style="display:flex; flex-direction:column; gap:10px;">
