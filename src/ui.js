@@ -429,12 +429,13 @@ export function showResult(correct, word, info) {
 }
 export function setActionNext() {
   el.checkBtn.style.display = ""; el.checkBtn.disabled = false;
-  el.checkBtn.textContent = "下一個 Next → (3s)"; el.checkBtn.className = "btn go";
+  el.checkBtn.textContent = "下一個 Next →"; el.checkBtn.className = "btn go";
   setTimeout(() => { try { el.checkBtn.focus(); } catch(_) {} }, 50);
 }
 export function setNextBtnCountdown(secs) {
+  // 倒數秒數已移除，維持無倒數的「下一個 Next →」
   if (el.checkBtn && el.checkBtn.style.display !== "none") {
-    el.checkBtn.textContent = `下一個 Next → (${secs}s)`;
+    el.checkBtn.textContent = "下一個 Next →";
   }
 }
 export function peek(word) {

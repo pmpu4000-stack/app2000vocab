@@ -544,25 +544,8 @@ function clearAutoNextTimer() {
 }
 
 function scheduleAutoNext() {
+  // 自動倒數跳下一題與秒數倒數已依需求全面移除，作答後由使用者主動點擊按鈕推進下一題
   clearAutoNextTimer();
-  let remainingSeconds = 3;
-  ui.setNextBtnCountdown(remainingSeconds);
-
-  autoNextInterval = setInterval(() => {
-    remainingSeconds--;
-    if (remainingSeconds > 0) {
-      ui.setNextBtnCountdown(remainingSeconds);
-    } else {
-      clearAutoNextTimer();
-    }
-  }, 1000);
-
-  autoNextTimer = setTimeout(() => {
-    clearAutoNextTimer();
-    if (state.answered) {
-      newRound();
-    }
-  }, 3000);
 }
 
 function newRound() {
