@@ -15199,7 +15199,8 @@ function buildFreeDetailsHtml(record, selectedDate, agent) {
 
   // 依使用者規範：
   // 1. 施測單字數：忽略多次重複施測，每個相異單字僅計 1 個（忽略多次答對或多次答錯）
-  const totalWords = (correctList.length + wrongList.length) > 0
+  const hasWordDetails = (correctList.length + wrongList.length) > 0;
+  const totalWords = hasWordDetails
     ? (correctList.length + wrongList.length)
     : attempts;
 
@@ -15209,15 +15210,19 @@ function buildFreeDetailsHtml(record, selectedDate, agent) {
     const isStillWrong = w.hadCorrectThenWrong || (w.lastResult === "wrong" && w.correct > 0);
     return !isStillWrong && w.correct > 0;
   }).length;
-  const correctWords = (correctList.length + wrongList.length) > 0
+  const correctWords = hasWordDetails
     ? (correctList.length + correctedCount)
     : correct;
+  const displayCorrectBoxCount = correctList.length > 0 ? correctList.length : correctWords;
+  const displayWrongBoxCount = wrongList.length > 0 ? wrongList.length : Math.max(0, totalWords - correctWords);
 
   const wordRate = totalWords > 0 ? Math.round((correctWords / totalWords) * 100) : 0;
 
   let correctContentHtml = "";
   if (correctList.length > 0) {
     correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" data-word="${w.word.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); speakMasteredWord('${w.word.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w.word}</span>`).join("");
+  } else if (correctWords > 0) {
+    correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（當日答對 ${correctWords} 字，早期紀錄僅存統計字數、未記錄個別單字明細）</span>`;
   } else {
     correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（當日尚無全對單字）</span>`;
   }
@@ -15233,6 +15238,8 @@ function buildFreeDetailsHtml(record, selectedDate, agent) {
         return `<span class="word-pill-tag wrong" data-word="${w.word.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); speakMasteredWord('${w.word.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w.word}</span>`;
       }
     }).join("");
+  } else if (displayWrongBoxCount > 0) {
+    wrongContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（當日答錯 ${displayWrongBoxCount} 字，早期紀錄僅存統計字數、未記錄個別單字明細）</span>`;
   } else {
     wrongContentHtml = `<span class="perfect-score-msg">🎉 太棒了！當日自由練習全數答對，無任何答錯單字！</span>`;
   }
@@ -15268,7 +15275,7 @@ function buildFreeDetailsHtml(record, selectedDate, agent) {
       <div class="word-split-grid">
         <div class="word-split-box correct-box">
           <div class="word-split-title correct-title">
-            <span>✅ 答對的單字</span>
+            <span>✅ 答對的單字 (${displayCorrectBoxCount} 字)</span>
           </div>
           <div class="word-split-content">
             ${correctContentHtml}
@@ -15276,7 +15283,7 @@ function buildFreeDetailsHtml(record, selectedDate, agent) {
         </div>
         <div class="word-split-box wrong-box">
           <div class="word-split-title wrong-title">
-            <span>❌ 答錯的單字</span>
+            <span>❌ 答錯的單字 (${displayWrongBoxCount} 字)</span>
           </div>
           <div class="word-split-content">
             ${wrongContentHtml}

@@ -274,7 +274,15 @@ function isRealDailyWordsMap(wordsObj) {
   if (!wordsObj || typeof wordsObj !== "object") return false;
   const vals = Object.values(wordsObj).filter(Boolean);
   if (vals.length === 0) return false;
-  return vals.some(w => (w.lastResult === "correct" || w.lastResult === "wrong" || w.a !== undefined));
+  return vals.some(w => (
+    w.lastResult === "correct" ||
+    w.lastResult === "wrong" ||
+    w.a !== undefined ||
+    w.attempts !== undefined ||
+    w.correct !== undefined ||
+    w.wrong !== undefined ||
+    w.passed !== undefined
+  ));
 }
 
 // Practice history for the last `n` days + streaks, for the calendar heatmap.

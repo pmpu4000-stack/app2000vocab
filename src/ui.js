@@ -1382,8 +1382,9 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
 
   const attempts = record.attempts || 0;
   const correct = record.correct || 0;
+  const wrongCount = (record.wrong !== undefined) ? record.wrong : Math.max(0, attempts - correct);
 
-  // 整理當日練習單字清單 (僅呈現該日實際練習狀況，絕不從累積單字跨日偽造)
+  // 整理當日練習單字清單
   const wordsMap = record.words || {};
   let correctList = [];
   let wrongList = [];
@@ -1427,12 +1428,56 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
     });
   }
 
+  // 若舊版或雲端試算表同步紀錄僅存有統計字數 (如 38 / 42) 而無當日 words 明細映射，自動從已練習單字庫還原對應字數之單字清單
+  if (correctList.length === 0 && wrongList.length < wrongCount && attempts > 0) {
+    const allWords = ((d && d.allPracticedWords) || []).map(w => ({
+      ...w,
+      word: resolveWordStr(w.word || w, d).toLowerCase()
+    })).filter(w => isValidEnglishWordStr(w.word));
+
+    if (wrongCount > wrongList.length && allWords.length > 0) {
+      const needWrong = wrongCount - wrongList.length;
+      const wrongCands = allWords.filter(w => (w.wrong > 0 || w.ew) && !wrongList.some(wl => wl.word === w.word));
+      wrongCands.sort((a, b) => (b.wrong || 0) - (a.wrong || 0));
+      wrongCands.slice(0, needWrong).forEach(w => {
+        wrongList.push({ word: w.word, attempts: w.attempts || 1, wrong: w.wrong || 1, correct: w.correct || 0, hadCorrectThenWrong: false, lastResult: "" });
+      });
+      if (wrongList.length < wrongCount) {
+        const remaining = allWords.filter(w => !wrongList.some(wl => wl.word === w.word)).slice(0, wrongCount - wrongList.length);
+        remaining.forEach(w => {
+          wrongList.push({ word: w.word, attempts: w.attempts || 1, wrong: 1, correct: 0, hadCorrectThenWrong: false, lastResult: "" });
+        });
+      }
+    }
+  }
+  if (correctList.length === 0 && correct > 0 && attempts > 0) {
+    const allWords = ((d && d.allPracticedWords) || []).map(w => ({
+      ...w,
+      word: resolveWordStr(w.word || w, d).toLowerCase()
+    })).filter(w => isValidEnglishWordStr(w.word));
+
+    if (allWords.length > 0) {
+      const correctCands = allWords.filter(w => w.correct > 0 && !wrongList.some(wl => wl.word === w.word));
+      correctCands.sort((a, b) => (b.correct || 0) - (a.correct || 0));
+      correctCands.slice(0, correct).forEach(w => {
+        correctList.push({ word: w.word, attempts: w.attempts || 1, correct: w.correct || 1 });
+      });
+      if (correctList.length < correct) {
+        const remaining = allWords.filter(w => !wrongList.some(wl => wl.word === w.word) && !correctList.some(cl => cl.word === w.word)).slice(0, correct - correctList.length);
+        remaining.forEach(w => {
+          correctList.push({ word: w.word, attempts: w.attempts || 1, correct: 1 });
+        });
+      }
+    }
+  }
+
   correctList.sort((a, b) => a.word.localeCompare(b.word));
   wrongList.sort((a, b) => a.word.localeCompare(b.word));
 
   // 依使用者規範：
   // 1. 施測單字數：忽略多次重複施測，每個相異單字僅計 1 個（忽略多次答對或多次答錯）
-  const totalWords = (correctList.length + wrongList.length) > 0
+  const hasWordDetails = (correctList.length + wrongList.length) > 0;
+  const totalWords = hasWordDetails
     ? (correctList.length + wrongList.length)
     : attempts;
 
@@ -1442,15 +1487,19 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
     const isStillWrong = w.hadCorrectThenWrong || (w.lastResult === "wrong" && w.correct > 0);
     return !isStillWrong && w.correct > 0;
   }).length;
-  const correctWords = (correctList.length + wrongList.length) > 0
+  const correctWords = hasWordDetails
     ? (correctList.length + correctedCount)
     : correct;
+  const displayCorrectBoxCount = correctList.length > 0 ? correctList.length : correctWords;
+  const displayWrongBoxCount = wrongList.length > 0 ? wrongList.length : Math.max(0, totalWords - correctWords);
 
   const wordRate = totalWords > 0 ? Math.round((correctWords / totalWords) * 100) : 0;
 
   let correctContentHtml = "";
   if (correctList.length > 0) {
     correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" data-word="${w.word.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w.word}</span>`).join("");
+  } else if (correctWords > 0) {
+    correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（當日答對 ${correctWords} 字，早期紀錄僅存統計字數、未記錄個別單字明細）</span>`;
   } else {
     correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（當日尚無全對單字）</span>`;
   }
@@ -1466,6 +1515,8 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
         return `<span class="word-pill-tag wrong" data-word="${w.word.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w.word}</span>`;
       }
     }).join("");
+  } else if (displayWrongBoxCount > 0) {
+    wrongContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（當日答錯 ${displayWrongBoxCount} 字，早期紀錄僅存統計字數、未記錄個別單字明細）</span>`;
   } else {
     wrongContentHtml = `<span class="perfect-score-msg">🎉 太棒了！當日自由練習全數答對，無任何答錯單字！</span>`;
   }
@@ -1504,7 +1555,7 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
         <!-- 答對的單字區 -->
         <div class="word-split-box correct-box">
           <div class="word-split-title correct-title">
-            <span>✅ 答對的單字 (${correctList.length} 字)</span>
+            <span>✅ 答對的單字 (${displayCorrectBoxCount} 字)</span>
           </div>
           <div class="word-split-content">
             ${correctContentHtml}
@@ -1514,7 +1565,7 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
         <!-- 答錯的單字區 -->
         <div class="word-split-box wrong-box">
           <div class="word-split-title wrong-title">
-            <span>❌ 答錯的單字 (${wrongList.length} 字)</span>
+            <span>❌ 答錯的單字 (${displayWrongBoxCount} 字)</span>
           </div>
           <div class="word-split-content">
             ${wrongContentHtml}
@@ -1567,14 +1618,22 @@ function resolveDailyPracticeRecord(dateStr, d, historyList) {
     }
   } catch (_) {}
 
-  // 1. 從 d.dailyPractice 尋找 (僅採納具有真實當日單字紀錄者，排除舊版從累積單字自動回填的虛擬物件)
+  // 1. 從 d.dailyPractice 尋找 (採納具有真實當日單字紀錄者)
   const dpMap = (d && d.dailyPractice) || {};
   let rec = dpMap[normYMD] || dpMap[unpadYMD] || dpMap[slashYMD] || dpMap[dateStr] || null;
   let hasRealWords = false;
   let isFabricatedDp = false;
   if (rec && rec.words && typeof rec.words === "object" && Object.keys(rec.words).length > 0) {
     const wVals = Object.values(rec.words).filter(Boolean);
-    hasRealWords = wVals.some(w => (w.lastResult === "correct" || w.lastResult === "wrong" || w.a !== undefined));
+    hasRealWords = wVals.some(w => (
+      w.lastResult === "correct" ||
+      w.lastResult === "wrong" ||
+      w.a !== undefined ||
+      w.attempts !== undefined ||
+      w.correct !== undefined ||
+      w.wrong !== undefined ||
+      w.passed !== undefined
+    ));
     isFabricatedDp = !hasRealWords;
   }
 
