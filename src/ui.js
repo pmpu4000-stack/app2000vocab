@@ -987,6 +987,32 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
         </button>
       </div>
     `;
+  } else if (isIncomplete) {
+    leftBoxClass = "correct-box";
+    leftTitleClass = "correct-title";
+    leftTitleText = `✅ 已答對的單字 (${correctList.length} 字)`;
+    if (correctList.length > 0) {
+      correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); window.__sayWord && window.__sayWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
+    } else {
+      correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（中途作答中斷，尚未答對單字）</span>`;
+    }
+
+    rightBoxClass = "advice-box";
+    rightTitleClass = "advice-title";
+    rightTitleText = `⚠️ 尚未完成與錯題 (${wrongList.length + unansweredList.length} 字)`;
+    
+    let wrongPills = wrongList.map(w => `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); window.__sayWord && window.__sayWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="答錯單字 (點擊聆聽發音)">${w}</span>`).join("");
+    let unansPills = unansweredList.map(w => `<span class="word-pill-tag neutral" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); window.__sayWord && window.__sayWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer; opacity:0.85;" title="未測單字 (點擊聆聽發音)">${w}</span>`).join("");
+
+    wrongContentHtml = `
+      <div style="display:flex; flex-direction:column; gap:8px; width:100%;">
+        <div style="display:flex; flex-wrap:wrap; gap:6px;">${wrongPills} ${unansPills}</div>
+        <div style="font-size:11.5px; color:var(--ink3); line-height:1.4; margin-top:4px;">⏳ 本次測驗中途作答中斷，尚有單字未完成！</div>
+        <button type="button" onclick="const sc = document.getElementById('btn-summary-close'); if (sc) sc.click();" style="border:none; background:linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color:#fff; padding:6px 14px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:4px; box-shadow:0 2px 6px rgba(245,158,11,0.3); margin-top:2px; width:fit-content;">
+          ▶️ 前往繼續挑戰
+        </button>
+      </div>
+    `;
   } else {
     // 1. 答對的單字
     if (correctList.length > 0) {
@@ -1027,28 +1053,49 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     ? "margin-top: 18px; padding-top: 16px; border-top: 1.5px dashed var(--line, #E7E9F5);"
     : "";
 
-  const scoreGridHtml = isUntested
-    ? `
+  let scoreGridHtml = "";
+  if (isUntested) {
+    const untestedWordCount = taskTotWords > 0 ? taskTotWords : (rawWords.length || 0);
+    scoreGridHtml = `
       <div class="task-score-grid">
         <div class="task-score-item">
           <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap;">
-            <span style="flex:1; text-align:right;">答對單字數</span>
-            <span style="padding:0 6px; opacity:0.6;">/</span>
-            <span style="flex:1; text-align:left;">施測單字數</span>
+            <span>📋 應測單字數</span>
           </div>
           <div class="task-score-val" style="color:#0284c7; display:flex; align-items:center; justify-content:center;">
-            <span style="flex:1; text-align:right;">0</span>
-            <span style="padding:0 6px; font-weight:700; color:var(--ink3); opacity:0.6; font-size:18px;">/</span>
-            <span style="flex:1; text-align:left;">${taskTotWords > 0 ? taskTotWords : (rawWords.length || "—")}</span>
+            <span>${untestedWordCount} 字</span>
           </div>
         </div>
         <div class="task-score-item">
-          <div class="task-score-label">📊 正確率</div>
-          <div class="task-score-val" style="color:var(--ink3);">0%</div>
+          <div class="task-score-label">📊 測驗狀態</div>
+          <div class="task-score-val" style="color:${statusColor}; font-size:17px; font-weight:800;">${displayStatusStr}</div>
         </div>
       </div>
-    `
-    : `
+    `;
+  } else if (isIncomplete) {
+    scoreGridHtml = `
+      <div class="task-score-grid">
+        <div class="task-score-item">
+          <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap;">
+            <span style="flex:1; text-align:right;">已答對單字</span>
+            <span style="padding:0 6px; opacity:0.6;">/</span>
+            <span style="flex:1; text-align:left;">總施測單字</span>
+          </div>
+          <div class="task-score-val" style="color:#0284c7; display:flex; align-items:center; justify-content:center;">
+            <span style="flex:1; text-align:right;">${taskCorrWords}</span>
+            <span style="padding:0 6px; font-weight:700; color:var(--ink3); opacity:0.6; font-size:18px;">/</span>
+            <span style="flex:1; text-align:left;">${taskTotWords}</span>
+          </div>
+        </div>
+        <div class="task-score-item">
+          <div class="task-score-label">📊 測驗狀態</div>
+          <div class="task-score-val" style="color:#d97706; font-size:17px; font-weight:800;">🟠 作答中斷</div>
+        </div>
+      </div>
+    `;
+  } else {
+    const rateColor = taskRate >= 100 ? "#059669" : (taskRate >= 80 ? "#16a34a" : (taskRate >= 60 ? "#ca8a04" : "#ea580c"));
+    scoreGridHtml = `
       <div class="task-score-grid">
         <div class="task-score-item">
           <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap;">
@@ -1064,16 +1111,20 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
         </div>
         <div class="task-score-item">
           <div class="task-score-label">📊 正確率</div>
-          <div class="task-score-val" style="color:${taskRate >= 80 ? '#16a34a' : '#ea580c'};">${taskRate}%</div>
+          <div class="task-score-val" style="color:${rateColor};">${taskRate}%</div>
         </div>
       </div>
     `;
+  }
 
   return `
     <div class="task-single-record-block" style="${blockStyle}">
       <div class="task-history-header">
         <div>
           <span class="task-card-title task-title-assigned">${formattedTaskName}</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <span style="font-size:12px; font-weight:700; color:${statusColor}; background:${statusBg}; padding:3px 10px; border-radius:999px;">${displayStatusStr}</span>
         </div>
       </div>
 
@@ -1113,7 +1164,7 @@ function renderUntestedTaskCardHtml(info, d) {
     .map(w => resolveWord(String(w).trim()).toLowerCase())
     .filter(Boolean);
 
-  const wordCount = cleanWords.length || "—";
+  const wordCount = cleanWords.length || 0;
 
   let wordsHtml = "";
   if (cleanWords.length > 0) {
@@ -1124,9 +1175,13 @@ function renderUntestedTaskCardHtml(info, d) {
     wordsHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（指派單字載入中或未指定具體單字清單）</span>`;
   }
 
+  const statusColor = hasLoggedInOrFree ? "#d97706" : "#ef4444";
+  const statusBg = hasLoggedInOrFree ? "rgba(245,158,11,0.15)" : "rgba(239,68,68,0.15)";
+  const displayStatusStr = hasLoggedInOrFree ? "🟡 登入未受測" : "🔴 缺席未受測";
+
   const adviceText = hasLoggedInOrFree
-    ? "你當日有登入進行自由練習，但<strong>尚未完成本次指定測驗</strong>。"
-    : "你當日無登入紀錄，<strong>尚未進行本次指定測驗</strong>。";
+    ? "當日有登入系統進行自由練習，但<strong>尚未完成本次指定測驗</strong>。"
+    : "當日無登入紀錄，<strong>尚未進行本次指定測驗</strong>。";
 
   return `
     <div class="task-single-record-block">
@@ -1134,24 +1189,23 @@ function renderUntestedTaskCardHtml(info, d) {
         <div>
           <span class="task-card-title task-title-assigned">${formattedTaskName}</span>
         </div>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <span style="font-size:12px; font-weight:700; color:${statusColor}; background:${statusBg}; padding:3px 10px; border-radius:999px;">${displayStatusStr}</span>
+        </div>
       </div>
 
       <div class="task-score-grid">
         <div class="task-score-item">
           <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap;">
-            <span style="flex:1; text-align:right;">答對單字數</span>
-            <span style="padding:0 6px; opacity:0.6;">/</span>
-            <span style="flex:1; text-align:left;">施測單字數</span>
+            <span>📋 應測單字數</span>
           </div>
           <div class="task-score-val" style="color:#0284c7; display:flex; align-items:center; justify-content:center;">
-            <span style="flex:1; text-align:right;">0</span>
-            <span style="padding:0 6px; font-weight:700; color:var(--ink3); opacity:0.6; font-size:18px;">/</span>
-            <span style="flex:1; text-align:left;">${wordCount}</span>
+            <span>${wordCount} 字</span>
           </div>
         </div>
         <div class="task-score-item">
-          <div class="task-score-label">📊 正確率</div>
-          <div class="task-score-val" style="color:var(--ink3);">0%</div>
+          <div class="task-score-label">📊 測驗狀態</div>
+          <div class="task-score-val" style="color:${statusColor}; font-size:17px; font-weight:800;">${displayStatusStr}</div>
         </div>
       </div>
 
@@ -1238,7 +1292,7 @@ function buildTaskDetailsHtml(records, selectedDate, d) {
     }
 
     const dateMMDD = normDate ? normDate.replace(/-/g, "").slice(4) : "";
-    const unassignedTitle = dateMMDD ? `📝 ${dateMMDD}指定單字測驗結果 (未指派)` : "📝 指定單字測驗結果 (未指派)";
+    const unassignedTitle = dateMMDD ? `📝 ${dateMMDD}指定單字測驗` : "📝 指定單字測驗";
 
     return `
       <div class="task-single-record-block">
@@ -1246,44 +1300,20 @@ function buildTaskDetailsHtml(records, selectedDate, d) {
           <div>
             <span class="task-card-title task-title-assigned">${unassignedTitle}</span>
           </div>
-        </div>
-
-        <div class="task-score-grid">
-          <div class="task-score-item">
-            <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap;">
-              <span style="flex:1; text-align:right;">答對單字數</span>
-              <span style="padding:0 6px; opacity:0.6;">/</span>
-              <span style="flex:1; text-align:left;">施測單字數</span>
-            </div>
-            <div class="task-score-val" style="color:#0284c7; display:flex; align-items:center; justify-content:center;">
-              <span style="flex:1; text-align:right;">0</span>
-              <span style="padding:0 6px; font-weight:700; color:var(--ink3); opacity:0.6; font-size:18px;">/</span>
-              <span style="flex:1; text-align:left;">0</span>
-            </div>
-          </div>
-          <div class="task-score-item">
-            <div class="task-score-label">📊 正確率</div>
-            <div class="task-score-val" style="color:var(--ink3);">0%</div>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span style="font-size:12px; font-weight:700; color:var(--ink3); background:rgba(148,163,184,0.15); padding:3px 10px; border-radius:999px;">⚪ 當日未指派測驗</span>
           </div>
         </div>
 
-        <div class="word-split-grid grid-2">
-          <div class="word-split-box correct-box">
-            <div class="word-split-title correct-title">
-              <span>✅ 答對的單字 (0 字)</span>
-            </div>
-            <div class="word-split-content">
-              <span style="font-size:12px; color:var(--ink3); font-style:italic;">（該日老師未指派測驗）</span>
-            </div>
+        <div class="task-empty-notice-box" style="height: 284px; min-height: 284px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--bg2, #F8FAFC); border: 1.5px dashed var(--line, #CBD5E1); border-radius: 12px; margin-top: 12px; padding: 20px; text-align: center; box-sizing: border-box;">
+          <div style="font-size: 38px; line-height: 1; margin-bottom: 12px; opacity: 0.9;">☕</div>
+          <div style="font-size: 15px; font-weight: 800; color: var(--ink); margin-bottom: 6px;">本日無指定單字測驗</div>
+          <div style="font-size: 13px; color: var(--ink2); line-height: 1.5; max-width: 380px; margin-bottom: 16px;">
+            老師當天未安排全班指定隨堂測驗。<br>隨時可前往單字庫進行自主練習，累積熟練度！
           </div>
-          <div class="word-split-box wrong-box">
-            <div class="word-split-title wrong-title">
-              <span>❌ 答錯的單字 (0 字)</span>
-            </div>
-            <div class="word-split-content">
-              <span style="font-size:12px; color:var(--ink3); font-style:italic;">（該日無答錯單字）</span>
-            </div>
-          </div>
+          <button type="button" onclick="const sc = document.getElementById('btn-summary-close'); if (sc) sc.click();" style="border:none; background:linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%); color:#fff; padding:8px 18px; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 3px 10px rgba(79,70,229,0.25); transition:transform 0.15s ease;">
+            🎮 前往自主練習挑戰
+          </button>
         </div>
       </div>
     `;
@@ -1304,44 +1334,20 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
           <div>
             <span class="task-card-title task-title-free">${freeTitleText}</span>
           </div>
-        </div>
-
-        <div class="task-score-grid">
-          <div class="task-score-item">
-            <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap;">
-              <span style="flex:1; text-align:right;">答對單字數</span>
-              <span style="padding:0 6px; opacity:0.6;">/</span>
-              <span style="flex:1; text-align:left;">施測單字數</span>
-            </div>
-            <div class="task-score-val" style="color:#0284c7; display:flex; align-items:center; justify-content:center;">
-              <span style="flex:1; text-align:right;">0</span>
-              <span style="padding:0 6px; font-weight:700; color:var(--ink3); opacity:0.6; font-size:18px;">/</span>
-              <span style="flex:1; text-align:left;">0</span>
-            </div>
-          </div>
-          <div class="task-score-item">
-            <div class="task-score-label">📊 正確率</div>
-            <div class="task-score-val" style="color:var(--ink3);">0%</div>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span style="font-size:12px; font-weight:700; color:var(--ink3); background:rgba(148,163,184,0.15); padding:3px 10px; border-radius:999px;">⚪ 當日尚無練習</span>
           </div>
         </div>
 
-        <div class="word-split-grid grid-2">
-          <div class="word-split-box correct-box">
-            <div class="word-split-title correct-title">
-              <span>✅ 答對的單字 (0 字)</span>
-            </div>
-            <div class="word-split-content">
-              <span style="font-size:12px; color:var(--ink3); font-style:italic;">（當日尚無自由練習紀錄）</span>
-            </div>
+        <div class="task-empty-notice-box" style="height: 284px; min-height: 284px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--bg2, #F8FAFC); border: 1.5px dashed var(--line, #CBD5E1); border-radius: 12px; margin-top: 12px; padding: 20px; text-align: center; box-sizing: border-box;">
+          <div style="font-size: 38px; line-height: 1; margin-bottom: 12px; opacity: 0.9;">🎮</div>
+          <div style="font-size: 15px; font-weight: 800; color: var(--ink); margin-bottom: 6px;">當日尚無自由練習紀錄</div>
+          <div style="font-size: 13px; color: var(--ink2); line-height: 1.5; max-width: 380px; margin-bottom: 16px;">
+            尚未進行自由單字練習或複習。<br>每天動動手指挑戰 10~20 個單字，保持語感與連勝紀錄！
           </div>
-          <div class="word-split-box wrong-box">
-            <div class="word-split-title wrong-title">
-              <span>❌ 答錯的單字 (0 字)</span>
-            </div>
-            <div class="word-split-content">
-              <span style="font-size:12px; color:var(--ink3); font-style:italic;">（當日無答錯單字）</span>
-            </div>
-          </div>
+          <button type="button" onclick="const sc = document.getElementById('btn-summary-close'); if (sc) sc.click();" style="border:none; background:linear-gradient(135deg, #10b981 0%, #059669 100%); color:#fff; padding:8px 18px; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 3px 10px rgba(16,185,129,0.25); transition:transform 0.15s ease;">
+            ⚡ 馬上開始自由練習
+          </button>
         </div>
       </div>
     `;
@@ -1470,11 +1476,16 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
     wrongContentHtml = `<span class="perfect-score-msg">🎉 太棒了！當日自由練習全數答對，無任何答錯單字！</span>`;
   }
 
+  const freeRateColor = wordRate >= 100 ? "#059669" : (wordRate >= 80 ? "#16a34a" : (wordRate >= 60 ? "#ca8a04" : "#ea580c"));
+
   return `
     <div>
       <div class="task-history-header">
         <div>
           <span class="task-card-title task-title-free">${freeTitleText}</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <span style="font-size:12px; font-weight:700; color:#047857; background:rgba(16,185,129,0.15); padding:3px 10px; border-radius:999px;">🟢 已完成</span>
         </div>
       </div>
 
@@ -1493,7 +1504,7 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
         </div>
         <div class="task-score-item">
           <div class="task-score-label">📊 正確率</div>
-          <div class="task-score-val" style="color:${wordRate >= 80 ? '#16a34a' : '#ea580c'};">${wordRate}%</div>
+          <div class="task-score-val" style="color:${freeRateColor};">${wordRate}%</div>
         </div>
       </div>
 
@@ -1502,7 +1513,7 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
         <!-- 答對的單字區 -->
         <div class="word-split-box correct-box">
           <div class="word-split-title correct-title">
-            <span>✅ 答對的單字</span>
+            <span>✅ 答對的單字 (${correctList.length} 字)</span>
           </div>
           <div class="word-split-content">
             ${correctContentHtml}
@@ -1512,7 +1523,7 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
         <!-- 答錯的單字區 -->
         <div class="word-split-box wrong-box">
           <div class="word-split-title wrong-title">
-            <span>❌ 答錯的單字</span>
+            <span>❌ 答錯的單字 (${wrongList.length} 字)</span>
           </div>
           <div class="word-split-content">
             ${wrongContentHtml}
@@ -1946,7 +1957,7 @@ export function renderSummary(d) {
       <span>📝 指定測驗作答紀錄</span>
     </div>
     <div class="task-history-card">
-      <div id="task-record-details" style="min-height:335px;">
+      <div id="task-record-details">
         ${initialTaskDetailsHtml}
       </div>
       <div class="embedded-heatmap-sec">
@@ -1964,7 +1975,7 @@ export function renderSummary(d) {
       <span>🎮 自由練習作答紀錄</span>
     </div>
     <div class="task-history-card">
-      <div id="free-record-details" style="min-height:335px;">
+      <div id="free-record-details">
         ${initialFreeDetailsHtml}
       </div>
       <div class="embedded-heatmap-sec">
