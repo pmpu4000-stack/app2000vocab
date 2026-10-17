@@ -796,7 +796,10 @@ body[data-theme="dark"],
 }
 
 #login-msg.login-status-banner {
-  display: none;
+  display: flex !important;
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
   align-items: center;
   justify-content: center;
   gap: 8px;
@@ -804,20 +807,20 @@ body[data-theme="dark"],
   box-sizing: border-box;
   margin: 0 !important;
   padding: 11px 16px;
+  min-height: 48px;
   border-radius: 12px;
   font-size: 14px;
   font-weight: 800;
   line-height: 1.45;
   text-align: center;
-  animation: loginMsgFadeIn 0.25s ease-out;
-  transition: all 0.25s ease;
-}
-@keyframes loginMsgFadeIn {
-  from { opacity: 0; transform: translateY(-4px); }
-  to { opacity: 1; transform: translateY(0); }
+  border: 1.5px solid transparent;
+  background: transparent;
+  transition: opacity 0.2s ease, visibility 0.2s ease, background 0.2s, border-color 0.2s;
 }
 #login-msg.login-status-banner.active {
-  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
 }
 
 /* 1. 載入資料 (稍微顯眼一點的橘黃色，淺色深色皆以鮮明顯眼為主) */

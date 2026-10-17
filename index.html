@@ -957,7 +957,10 @@ body[data-theme="dark"],
 }
 
 #login-msg.login-status-banner {
-  display: none;
+  display: flex !important;
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
   align-items: center;
   justify-content: center;
   gap: 8px;
@@ -965,20 +968,20 @@ body[data-theme="dark"],
   box-sizing: border-box;
   margin: 0 !important;
   padding: 11px 16px;
+  min-height: 48px;
   border-radius: 12px;
   font-size: 14px;
   font-weight: 800;
   line-height: 1.45;
   text-align: center;
-  animation: loginMsgFadeIn 0.25s ease-out;
-  transition: all 0.25s ease;
-}
-@keyframes loginMsgFadeIn {
-  from { opacity: 0; transform: translateY(-4px); }
-  to { opacity: 1; transform: translateY(0); }
+  border: 1.5px solid transparent;
+  background: transparent;
+  transition: opacity 0.2s ease, visibility 0.2s ease, background 0.2s, border-color 0.2s;
 }
 #login-msg.login-status-banner.active {
-  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
 }
 
 /* 1. 載入資料 (稍微顯眼一點的橘黃色，淺色深色皆以鮮明顯眼為主) */
@@ -2244,12 +2247,12 @@ body[data-theme="dark"],
         <input type="password" id="login-pass" placeholder="請輸入密碼" 
           style="width:100%; padding:13px 14px; margin:0; border:1.5px solid #E7E9F5; border-radius:12px; box-sizing:border-box; font-size:15px; outline:none; transition:all .2s;">
         
-        <button id="login-btn" 
+        <button type="button" id="login-btn" 
           style="width:100%; padding:13px; margin:0; background:#6C4CE0; color:white; border:none; border-radius:12px; font-weight:700; font-size:15px; cursor:pointer; box-shadow:0 8px 20px -6px rgba(108,76,224,0.45); transition:all 0.2s;">
           確認登入
         </button>
 
-        <div id="login-msg" class="login-status-banner"></div>
+        <div id="login-msg" class="login-status-banner">&nbsp;</div>
 
         <div class="curfew-note-box">
           ⏰ 每日系統開放作答時間為 07:30 至 22:00，請於開放時段內進行測驗練習。
@@ -2803,43 +2806,82 @@ body[data-theme="dark"],
       }
     }
 
-    document.getElementById('login-btn').addEventListener('click', async () => {
+    let isLoggingIn = false;
+    const loginBtn = document.getElementById('login-btn');
+    const msgEl = document.getElementById('login-msg');
+
+    const setLoginStatus = (text, type = "loading-data") => {
+      if (!msgEl) return;
+      if (!text) {
+        msgEl.className = "login-status-banner";
+        msgEl.innerHTML = "&nbsp;";
+        return;
+      }
+      msgEl.className = `login-status-banner active msg-${type}`;
+      let icon = "⚡";
+      if (type === "loading-data" || type === "loading") icon = "📦";
+      else if (type === "loading-game" || type === "success") icon = "🎮";
+      else if (type === "error") icon = "❌";
+      else if (type === "warning") icon = "⏰";
+      msgEl.innerHTML = `<span style="font-size:16px;">${icon}</span> <span>${text}</span>`;
+    };
+
+    loginBtn.addEventListener('click', async () => {
+      if (isLoggingIn) return;
       const user = document.getElementById('login-user').value.trim();
       const pass = document.getElementById('login-pass').value.trim();
-      const msgEl = document.getElementById('login-msg');
-
-      const setLoginStatus = (text, type = "loading-data") => {
-        if (!msgEl) return;
-        if (!text) {
-          msgEl.className = "login-status-banner";
-          msgEl.innerHTML = "";
-          msgEl.style.display = "none";
-          return;
-        }
-        msgEl.className = `login-status-banner active msg-${type}`;
-        msgEl.style.display = "flex";
-        let icon = "⚡";
-        if (type === "loading-data" || type === "loading") icon = "📦";
-        else if (type === "loading-game" || type === "success") icon = "🎮";
-        else if (type === "error") icon = "❌";
-        else if (type === "warning") icon = "⏰";
-        msgEl.innerHTML = `<span style="font-size:16px;">${icon}</span> <span>${text}</span>`;
-      };
 
       if (!user || !pass) {
         setLoginStatus("請輸入學號與密碼", "error");
         return;
       }
 
+      isLoggingIn = true;
+      loginBtn.disabled = true;
+      loginBtn.style.opacity = "0.75";
       setLoginStatus("正在載入個人學習資料...", "loading-data");
 
       try {
-        let response = await fetch(scriptUrl, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({ action: "login", username: user, password: pass })
-        });
-        let result = await response.json();
+        let response = null;
+        let lastError = null;
+
+        // 健全重試機制：處理 GAS 冷啟動或暫時性網路抖動 (最多嘗試 3 次)
+        for (let attempt = 1; attempt <= 3; attempt++) {
+          try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 20000);
+            response = await fetch(scriptUrl, {
+              method: "POST",
+              headers: { "Content-Type": "text/plain;charset=utf-8" },
+              body: JSON.stringify({ action: "login", username: user, password: pass }),
+              signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+            if (response && response.ok) break;
+          } catch (netErr) {
+            lastError = netErr;
+            if (attempt < 3) {
+              setLoginStatus(`伺服器喚醒中，正在進行第 ${attempt} 次連線...`, "loading-data");
+              await new Promise(r => setTimeout(r, 1200));
+            }
+          }
+        }
+
+        if (!response) {
+          throw (lastError || new Error("連線逾時"));
+        }
+
+        const rawText = await response.text();
+        let result = {};
+        try {
+          result = JSON.parse(rawText);
+        } catch (_) {
+          if (rawText.includes("帳號或密碼錯誤")) {
+            result = { status: "error", message: "帳號或密碼錯誤" };
+          } else {
+            throw new Error("伺服器回應格式異常");
+          }
+        }
 
         if (result.status === "success") {
           // ── 帳號資料完全隔離與安全復原 ──
@@ -3065,14 +3107,20 @@ body[data-theme="dark"],
           }
         }
       } catch (err) {
-        console.error(err);
+        console.error("登入請求異常：", err);
         let extra = "";
         if (window.location.protocol === "file:") {
           extra = "（本機 file:// 模式被瀏覽器禁止跨域連線，請使用 GitHub Pages 或 Web Server 開啟）";
         } else if (err && err.message) {
-          extra = `（${err.message}）`;
+          extra = err.name === "AbortError" ? "（連線逾時，請重試）" : `（${err.message}）`;
         }
         setLoginStatus("連線失敗，請檢查網路或稍後再試。" + extra, "error");
+      } finally {
+        isLoggingIn = false;
+        if (loginBtn) {
+          loginBtn.disabled = false;
+          loginBtn.style.opacity = "1";
+        }
       }
     });
 
