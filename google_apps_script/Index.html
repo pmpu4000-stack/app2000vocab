@@ -11573,7 +11573,9 @@ function renderHeatmap() {
       } else {
         const lvlCls = getLvlClass(d.val);
         const accStr = d.attempts > 0 ? ((d.correct / d.attempts) * 100).toFixed(1) + "%" : "0%";
+        const dayLabel = ["週日", "週一", "週二", "週三", "週四", "週五", "週六"][d.dayOfWeek] || "";
         weeksHtml += `<div class="heatmap-cell ${lvlCls}" 
+          role="button" tabindex="0" aria-label="${d.dateStr} ${dayLabel}，作答 ${d.attempts} 題，正確率 ${accStr}"
           data-date="${d.dateStr}" 
           data-dow="${d.dayOfWeek}"
           data-att="${d.attempts}" 
@@ -11645,6 +11647,10 @@ function setupHeatmapTooltips() {
 
     cell.addEventListener("mouseenter", showTip);
     cell.addEventListener("click", showTip);
+    cell.addEventListener("focus", showTip);
+    cell.addEventListener("blur", () => {
+      tooltip.style.display = "none";
+    });
     cell.addEventListener("mouseleave", () => {
       tooltip.style.display = "none";
     });
@@ -14432,8 +14438,16 @@ function resolveStudentTaskWords(record, selectedDate, agent) {
 // ════════════════════════════════════════
 // 📝 單字測驗與自由練習按日期查詢模組 (比照拼字遊戲網頁)
 // ════════════════════════════════════════
+const _resolveWordsCache = new Map();
+function clearResolveWordsCache() { _resolveWordsCache.clear(); }
+
 function resolveTaskWords(record, selectedDate, agent) {
   if (!record) return { rawWords: [], wrongList: [], correctList: [] };
+
+  const cacheKey = String(record.date || "") + "|" + String(selectedDate || "") + "|" + String(record.taskName || "") + "|" + String(record.score || "") + "|" + String(record.attempts || "") + "|" + String(record.status || "");
+  if (_resolveWordsCache.has(cacheKey)) {
+    return _resolveWordsCache.get(cacheKey);
+  }
 
   const normDate = String(selectedDate || record.date || "").trim().split(" ")[0].replace(/\//g, "-");
   const p = normDate.split("-");
@@ -14623,7 +14637,9 @@ function resolveTaskWords(record, selectedDate, agent) {
     .map(w => resolveWord(String(w).trim()).toLowerCase())
     .filter(Boolean);
 
-  return { rawWords: pool, wrongList, correctList, hadCorrectThenWrongList };
+  const result = { rawWords: pool, wrongList, correctList, hadCorrectThenWrongList };
+  _resolveWordsCache.set(cacheKey, result);
+  return result;
 }
 
 function extractRowTaskInfo(row, headers) {

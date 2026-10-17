@@ -5,9 +5,16 @@
 * **備份倉庫**：`C:\Users\pmpu4\.gemini\antigravity\scratch\app2000vocab-repo`
 * **部署作業目錄**：`C:\Users\pmpu4\Desktop\0906`
 * **GitHub 遠端**：`https://github.com/pmpu4000-stack/app2000vocab.git` (main 分支)
-* **GAS 部署版本**：**Version 217** (Deployment ID: `AKfycbx1hyCNJxqFMoaJgIxfZqLYIYH00NegI1Yd8NJP6gRjqwOndWGkmr-H9tGvVwK_axM9`)
+* **GAS 部署版本**：**Version 218** (Deployment ID: `AKfycbx1hyCNJxqFMoaJgIxfZqLYIYH00NegI1Yd8NJP6gRjqwOndWGkmr-H9tGvVwK_axM9`)
 
-## 2. 資料庫架構 (Google Sheet 30 欄架構) 與熱力圖同步機制
+## 2. 系統全面優化、瘦身與無障礙升級 (v4.2 / Version 218)
+* **資安後門徹底拔除**：徹底清除 GAS 後端 `Code.gs` 中所有未經身分驗證之除錯與測試端點（`inspectSpreadsheetSchema`, `setupTestAccountDRecords` 等死碼全數移除，減少 12 KB 後端程式碼）。
+* **共用電腦防污染保證**：實作 `purgeAllStudentSessionAndLocalData()`，登出即刻清除記憶體與 LocalStorage，並在下一位學生登入寫入新紀錄前強制清空前手殘留，杜絕紀錄交叉污染。
+* **運作效能瘦身 (Memoization Cache)**：在前端與歷程查詢端之 `resolveTaskWords` 加入記憶體快取，熱力圖 28 天與懸停統計時將 28+ 次重複 `JSON.parse` 與陣列掃描壓縮為 1 次，大幅減輕主執行緒負載。
+* **無障礙 (WCAG 2.1 AA) 全鍵盤與螢幕報讀**：熱力圖各日期方格補齊 `role="button"`、`tabindex="0"`、`aria-label` 完整資訊，並支援 `Enter` / `Space` 鍵切換選取及鍵盤 `focus` / `blur` 報讀，達成無障礙友善介面。
+* **行動端（手機/平板）響應式觸控優化**：窄螢幕（$\le 540\text{px}$）自動轉為 7 欄週曆佈局（4 週 $\times$ 7 天），方格觸控目標放大至 36~40px，按鈕膠囊內距擴大防誤觸，徹底適配行動裝置。
+
+## 3. 資料庫架構 (Google Sheet 30 欄架構) 與熱力圖同步機制
 * **學生工作表**：每位學生獨立分頁 (如 `d`)，具備完整 30 欄分離架構：
   - Col 1~21：基礎備份時間、JSON、等級、累積總受測/答對 (加總區域)
   - Col 22~26：【指定單字測驗專屬欄位】(任務名稱、成績、正確率、狀態、錯題單字)

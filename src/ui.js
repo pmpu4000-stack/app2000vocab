@@ -757,8 +757,16 @@ function isValidEnglishWordStr(w) {
   return /^[a-zA-Z]+(?:[-'][a-zA-Z]+)*$/.test(s);
 }
 
+const _resolveWordsCache = new Map();
+export function clearResolveWordsCache() { _resolveWordsCache.clear(); }
+
 function resolveTaskWords(record, selectedDate, d) {
   if (!record) return { rawWords: [], wrongList: [], correctList: [], hadCorrectThenWrongList: [] };
+
+  const cacheKey = String(record.date || "") + "|" + String(selectedDate || "") + "|" + String(record.taskName || "") + "|" + String(record.score || "") + "|" + String(record.attempts || "") + "|" + String(record.status || "");
+  if (_resolveWordsCache.has(cacheKey)) {
+    return _resolveWordsCache.get(cacheKey);
+  }
 
   const normDate = normalizeDateStr(selectedDate || record.date || "");
   const slashDate = normDate.replace(/-/g, "/");
@@ -924,7 +932,9 @@ function resolveTaskWords(record, selectedDate, d) {
     .map(w => resolveWordStr(w, d).toLowerCase())
     .filter(w => isValidEnglishWordStr(w));
 
-  return { rawWords, wrongList, correctList, hadCorrectThenWrongList };
+  const result = { rawWords, wrongList, correctList, hadCorrectThenWrongList };
+  _resolveWordsCache.set(cacheKey, result);
+  return result;
 }
 
 function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount = 1, hasLoggedInOrFree = false) {
@@ -1749,6 +1759,7 @@ export function updateWeekConquerSection() {
 let _activeRecordSelectedDate = "";
 export function summaryHidden() { return el.summary.hidden; }
 export function renderSummary(d) {
+  clearResolveWordsCache();
   const currentUser = localStorage.getItem("current_user") || "";
   const userTagHtml = currentUser ? `<span style="font-size:13px;font-weight:700;color:var(--sky);background:rgba(56,189,248,0.12);padding:2px 8px;border-radius:999px;margin-left:8px;border:1px solid rgba(56,189,248,0.25);">👤 ${currentUser}</span>` : "";
   const lvRows = d.levels
@@ -2085,7 +2096,7 @@ export function renderSummary(d) {
           <span id="task-heat-day-info" class="heat-day-info"></span>
         </div>
         <div class="heatmap heatmap-task" id="task-heatmap-grid">${taskHeatDays.map((x, idx) =>
-          `<i class="hc ${x.levelClass}" data-idx="${idx}" data-key="${x.key}" data-a="${x.a || 0}" data-rate="${x.rate || 0}"></i>`).join("")}</div>
+          `<i class="hc ${x.levelClass}" role="button" tabindex="0" aria-label="${x.key}，${x.statusLabel || ''}" data-idx="${idx}" data-key="${x.key}" data-a="${x.a || 0}" data-rate="${x.rate || 0}"></i>`).join("")}</div>
       </div>
     </div>
 
@@ -2103,7 +2114,7 @@ export function renderSummary(d) {
           <span id="heat-day-info" class="heat-day-info"></span>
         </div>
         <div class="heatmap" id="heatmap-grid">${d.history.days.map((x, idx) =>
-          `<i class="hc h${x.level}" data-idx="${idx}" data-key="${x.key}" data-a="${x.a || 0}" data-rate="${x.rate || 0}"></i>`).join("")}</div>
+          `<i class="hc h${x.level}" role="button" tabindex="0" aria-label="${x.key}，正確率 ${x.rate || 0}%" data-idx="${idx}" data-key="${x.key}" data-a="${x.a || 0}" data-rate="${x.rate || 0}"></i>`).join("")}</div>
         <div class="heat-legend"><b>連續</b>：目前不中斷、每天練習的天數。<br><b>最佳</b>：個人最長連續練習紀錄。<br><b>累計</b>：歷來有練習的總天數。<br><b>熱力圖</b>：顏色越濃代表當天正確率越高（灰色為無練習）。</div>
       </div>
     </div>
@@ -2196,13 +2207,20 @@ export function renderSummary(d) {
             updateTaskHeatDayBadge(idx);
           }
         });
-        cell.addEventListener("click", () => {
+        const triggerTaskClick = () => {
           if (!isNaN(idx)) {
             pinnedTaskIdx = idx;
             updateTaskHeatDayBadge(idx);
             if (taskHeatDays[idx] && taskHeatDays[idx].key) {
               switchRecordDate(taskHeatDays[idx].key);
             }
+          }
+        };
+        cell.addEventListener("click", triggerTaskClick);
+        cell.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            triggerTaskClick();
           }
         });
       });
@@ -2277,13 +2295,20 @@ export function renderSummary(d) {
             updateHeatDayBadge(idx);
           }
         });
-        cell.addEventListener("click", () => {
+        const triggerFreeClick = () => {
           if (!isNaN(idx)) {
             pinnedIdx = idx;
             updateHeatDayBadge(idx);
             if (heatDays[idx] && heatDays[idx].key) {
               switchRecordDate(heatDays[idx].key);
             }
+          }
+        };
+        cell.addEventListener("click", triggerFreeClick);
+        cell.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            triggerFreeClick();
           }
         });
       });
