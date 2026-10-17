@@ -5,7 +5,7 @@
 * **備份倉庫**：`C:\Users\pmpu4\.gemini\antigravity\scratch\app2000vocab-repo`
 * **部署作業目錄**：`C:\Users\pmpu4\Desktop\0906`
 * **GitHub 遠端**：`https://github.com/pmpu4000-stack/app2000vocab.git` (main 分支)
-* **GAS 部署版本**：**Version 211** (Deployment ID: `AKfycbx1hyCNJxqFMoaJgIxfZqLYIYH00NegI1Yd8NJP6gRjqwOndWGkmr-H9tGvVwK_axM9`)
+* **GAS 部署版本**：**Version 215** (Deployment ID: `AKfycbx1hyCNJxqFMoaJgIxfZqLYIYH00NegI1Yd8NJP6gRjqwOndWGkmr-H9tGvVwK_axM9`)
 
 ## 2. 資料庫架構 (Google Sheet 30 欄架構) 與熱力圖同步機制
 * **學生工作表**：每位學生獨立分頁 (如 `d`)，具備完整 30 欄分離架構：
