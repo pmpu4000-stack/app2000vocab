@@ -996,9 +996,9 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     statusBg = "rgba(16,185,129,0.15)";
     displayStatusStr = statusStr.includes("已完成") ? statusStr : "🟢 已完成";
   } else if (isIncomplete) {
-    displayStatusStr = `🟠 作答中斷 (${taskCorrWords}/${taskTotWords})`;
-    statusColor = "#d97706";
-    statusBg = "rgba(245,158,11,0.15)";
+    displayStatusStr = `🟣 作答中斷 (${taskCorrWords}/${taskTotWords})`;
+    statusColor = "#a855f7";
+    statusBg = "rgba(168,85,247,0.18)";
     statusDesc = "⏳ 測驗中途作答中斷";
   } else if (isUntested) {
     if (hasLoggedInOrFree) {
@@ -1141,7 +1141,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
         </div>
         <div class="task-score-item">
           <div class="task-score-label">📊 測驗狀態</div>
-          <div class="task-score-val" style="color:#d97706; font-size:17px; font-weight:800;">🟠 作答中斷</div>
+          <div class="task-score-val" style="color:#a855f7; font-size:17px; font-weight:800;">🟣 作答中斷</div>
         </div>
       </div>
     `;
@@ -1176,7 +1176,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
           <span class="task-card-title task-title-assigned">${formattedTaskName}</span>
         </div>
         <div style="display:flex; align-items:center; gap:6px;">
-          <span class="status-badge-pill ${isFinished ? 'success' : (isIncomplete ? 'warning' : (hasLoggedInOrFree ? 'warning' : 'danger'))}">${displayStatusStr}</span>
+          <span class="status-badge-pill ${isFinished ? 'success' : (isIncomplete ? 'purple' : (hasLoggedInOrFree ? 'warning' : 'danger'))}">${displayStatusStr}</span>
         </div>
       </div>
 
@@ -1775,7 +1775,7 @@ export function renderSummary(d) {
         a: tAtt, c: tCor, rate: tRate,
         wordsCount: taskWordsCount,
         statusType: "incomplete",
-        statusLabel: `🟠 作答中斷 (${curCorr}/${curTot})`,
+        statusLabel: `🟣 作答中斷 (${curCorr}/${curTot})`,
         levelClass: "h-status-purple",
         badgeTier: "tier-status-purple"
       };

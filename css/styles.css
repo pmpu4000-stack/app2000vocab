@@ -429,6 +429,8 @@ body.daily-limit-reached #btn-upload {
 .status-badge-pill.success{color:#047857;background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.25)}
 .status-badge-pill.warning{color:#B45309;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.25)}
 .status-badge-pill.danger{color:#B91C1C;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.25)}
+.status-badge-pill.purple,
+.status-badge-pill.incomplete{color:#7E22CE;background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.3)}
 .word-split-content::-webkit-scrollbar,
 .word-split-box > div:not(.word-split-title)::-webkit-scrollbar{width:5px}
 .word-split-content::-webkit-scrollbar-track,
@@ -976,6 +978,12 @@ body[data-theme="dark"],
   color: #F87171 !important;
   background: rgba(239, 68, 68, 0.18) !important;
   border-color: rgba(239, 68, 68, 0.35) !important;
+}
+[data-theme="dark"] .status-badge-pill.purple,
+[data-theme="dark"] .status-badge-pill.incomplete {
+  color: #E9D5FF !important;
+  background: rgba(168, 85, 247, 0.22) !important;
+  border-color: rgba(192, 132, 252, 0.45) !important;
 }
 [data-theme="dark"] .date-nav-btn {
   background: #20263A !important;

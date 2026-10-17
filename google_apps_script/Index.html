@@ -9184,7 +9184,7 @@ function renderAnalyticsTable() {
     if (s.status.includes("已完成")) {
       statusPill = `<span class="analytics-status-pill analytics-status-done">🟢 已完成</span>`;
     } else if (s.status.includes("作答中") || s.status.includes("中斷") || s.status.includes("進行中")) {
-      statusPill = `<span class="analytics-status-pill" style="background:rgba(249, 115, 22, 0.15); color:#ea580c; border:1px solid rgba(249, 115, 22, 0.3);">🟠 作答中斷</span>`;
+      statusPill = `<span class="analytics-status-pill" style="background:rgba(168, 85, 247, 0.18); color:#a855f7; border:1px solid rgba(168, 85, 247, 0.35);">🟣 作答中斷</span>`;
     } else if (s.status.includes("登入未受測")) {
       statusPill = `<span class="analytics-status-pill" style="background:rgba(234, 179, 8, 0.15); color:#ca8a04; border:1px solid rgba(234, 179, 8, 0.3);">🟡 登入未受測</span>`;
     } else if (s.status.includes("缺席未受測") || s.status.includes("缺考")) {
@@ -14608,9 +14608,9 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
     statusBg = "rgba(16,185,129,0.15)";
     displayStatusStr = statusStr.includes("已完成") ? statusStr : "🟢 已完成";
   } else if (isIncomplete) {
-    displayStatusStr = "🟠 作答中斷";
-    statusColor = "#d97706";
-    statusBg = "rgba(245,158,11,0.15)";
+    displayStatusStr = "🟣 作答中斷";
+    statusColor = "#a855f7";
+    statusBg = "rgba(168,85,247,0.18)";
     statusDesc = "⏳ 測驗中途作答中斷";
   } else if (isUntested) {
     if (hasLoggedInOrFree) {
@@ -14712,7 +14712,7 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
         : "";
       wrongContentHtml = `
         <div style="display:flex; flex-direction:column; justify-content:flex-start; align-items:flex-start; gap:4px; padding:2px 4px; font-size:12.5px; line-height:1.5;">
-          <div style="color:#d97706; font-weight:700;">⏳ 測驗中途作答中斷</div>
+          <div style="color:#a855f7; font-weight:700;">⏳ 測驗中途作答中斷</div>
           <div style="font-size:12px; color:var(--ink3);">學生已完成 ${taskCorrWords}/${taskTotWords} 題，尚餘 ${remainingCount} 題未完成：</div>
           ${remainingPills}
         </div>
