@@ -1084,7 +1084,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
           <div class="word-split-title ${leftTitleClass}">
             <span>${leftTitleText}</span>
           </div>
-          <div class="word-split-content" style="max-height:138px; overflow-y:auto;">
+          <div class="word-split-content">
             ${correctContentHtml}
           </div>
         </div>
@@ -1092,7 +1092,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
           <div class="word-split-title ${rightTitleClass}">
             <span>${rightTitleText}</span>
           </div>
-          <div class="word-split-content" style="max-height:138px; overflow-y:auto;">
+          <div class="word-split-content">
             ${wrongContentHtml}
           </div>
         </div>
@@ -1160,7 +1160,7 @@ function renderUntestedTaskCardHtml(info, d) {
           <div class="word-split-title untested-title">
             <span>📋 本次應測單字範圍 ${cleanWords.length > 0 ? `(${cleanWords.length} 字)` : ""}</span>
           </div>
-          <div class="word-split-content" style="max-height:138px; overflow-y:auto;">
+          <div class="word-split-content">
             ${wordsHtml}
           </div>
         </div>
