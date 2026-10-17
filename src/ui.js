@@ -175,6 +175,37 @@ export function renderRound(word, mode, { onAnswer, onCheck, disablePeek }) {
     el.sent.innerHTML = html;
     el.sent.style.cursor = "default";
 
+    // 確保所有例句方塊尺寸一致（完全等高、等大）
+    const equalizeSentRows = () => {
+      const rows = el.sent.querySelectorAll(".sent-row");
+      if (!rows.length) return;
+      rows.forEach(r => {
+        r.style.height = "";
+        r.style.minHeight = "";
+      });
+      let maxH = 0;
+      rows.forEach(r => {
+        const h = r.getBoundingClientRect().height;
+        if (h > maxH) maxH = h;
+      });
+      const baseline = (window.innerWidth <= 600) ? 56 : 64;
+      maxH = Math.ceil(Math.max(maxH, baseline));
+      rows.forEach(r => {
+        r.style.height = `${maxH}px`;
+        r.style.minHeight = `${maxH}px`;
+      });
+    };
+    equalizeSentRows();
+    requestAnimationFrame(equalizeSentRows);
+    if (!el.sent._resizeBound) {
+      el.sent._resizeBound = true;
+      window.addEventListener("resize", () => {
+        if (el.sent && el.sent.querySelector(".sent-row")) {
+          equalizeSentRows();
+        }
+      });
+    }
+
     el.sent.querySelectorAll(".sent-row").forEach(row => {
       const idx = parseInt(row.dataset.idx, 10);
       const targetSent = sentsList[idx];

@@ -131,7 +131,8 @@ header{display:flex; align-items:center; justify-content:space-between; flex-wra
 .sent{font-size:14px;color:var(--ink3);font-weight:600;min-height:20px;margin-top:6px}
 .sents-vertical-list{display:flex;flex-direction:column;gap:8px;margin:4px 0 10px;width:100%}
 .sent-row{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:12px;
-  background:#F8F9FD;border:1px solid var(--line);transition:background .15s,border-color .15s}
+  background:#F8F9FD;border:1px solid var(--line);transition:background .15s,border-color .15s;
+  min-height:64px;box-sizing:border-box}
 .sent-row:hover{background:#F1F3FB;border-color:rgba(108,76,224,.3)}
 .sent-row.playing{background:#EEF7FF;border-color:var(--sky)}
 
@@ -145,7 +146,7 @@ header{display:flex; align-items:center; justify-content:space-between; flex-wra
 .sent-speaker-btn.level-advanced{background:rgba(108,76,224,.12);border-color:rgba(108,76,224,.5);color:var(--violet)}
 .sent-speaker-btn.level-dialogue{background:rgba(224,86,123,.12);border-color:rgba(224,86,123,.5);color:#D83A6F}
 
-.sent-text-wrap{flex:1;min-width:0;text-align:left;display:flex;flex-direction:column;justify-content:center;cursor:pointer;padding-left:2px}
+.sent-text-wrap{flex:1;min-width:0;text-align:left;display:flex;flex-direction:column;justify-content:center;cursor:pointer;padding-left:2px;height:100%}
 .sent-en{font-size:14px;line-height:1.45;color:var(--ink);font-weight:600;word-break:break-word;text-align:left}
 .sent-en u{display:inline-block;text-decoration:none;min-width:48px;height:19px;line-height:19px;margin:0 4px;padding:0 6px;vertical-align:-2px;overflow:hidden;background:rgba(108,76,224,.10);border:1px solid rgba(108,76,224,.28);border-radius:5px;position:relative;box-sizing:border-box}
 .sent-en u::after{content:"";position:absolute;left:5px;right:5px;bottom:2px;height:2px;background:var(--violet);border-radius:1px}
@@ -628,7 +629,7 @@ body.daily-limit-reached #btn-upload {
   .levelbar{gap:8px}
   .lvchip{flex:1 1 calc(33.333% - 8px);min-width:100px;padding:8px 10px}
   .banner .gate{flex-wrap:wrap} .banner .challenge{margin-left:0;width:100%}
-  .sent-row{padding:6px 10px;gap:8px}
+  .sent-row{padding:6px 10px;gap:8px;min-height:56px;box-sizing:border-box}
   .sent-speaker-btn{width:34px;height:34px;min-width:34px;font-size:15px}
   .sent-en{font-size:13px;line-height:1.42}
   .sent-en u{min-width:42px;height:18px;line-height:18px;vertical-align:-2px;overflow:hidden}

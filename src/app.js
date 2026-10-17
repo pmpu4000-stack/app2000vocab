@@ -88,6 +88,82 @@ function getWeekFridayDate() {
   return friday.getFullYear() + "-" + String(friday.getMonth() + 1).padStart(2, "0") + "-" + String(friday.getDate()).padStart(2, "0");
 }
 
+function getWeekSaturdayDate() {
+  const d = new Date();
+  const day = d.getDay(); // 0=Sun, 6=Sat
+  const diff = d.getDate() - day + (day === 0 ? -1 : 6);
+  const saturday = new Date(d.getFullYear(), d.getMonth(), diff);
+  return saturday.getFullYear() + "-" + String(saturday.getMonth() + 1).padStart(2, "0") + "-" + String(saturday.getDate()).padStart(2, "0");
+}
+
+function getSaturdayRemedyRecord() {
+  const satDateStr = getWeekSaturdayDate();
+  const mondayStr = getWeekMondayDate();
+
+  // 1. 本地記錄 weekend_remedy_${mondayStr}
+  try {
+    const rawRemedy = localStorage.getItem("weekend_remedy_" + mondayStr);
+    if (rawRemedy) {
+      const data = JSON.parse(rawRemedy);
+      if (data && data.satCompleted) {
+        return {
+          completed: true,
+          wrongWords: Array.isArray(data.satWrongWords) ? data.satWrongWords : [],
+          correctWords: Array.isArray(data.satCorrectWords) ? data.satCorrectWords : [],
+          score: data.satScore || "",
+          rate: data.satRate || "",
+          date: satDateStr
+        };
+      }
+    }
+  } catch(_) {}
+
+  // 2. 本地 task_summary_${satDateStr}
+  try {
+    const rawSummary = localStorage.getItem("task_summary_" + satDateStr);
+    if (rawSummary) {
+      const summary = JSON.parse(rawSummary);
+      if (summary && summary.completed) {
+        return {
+          completed: true,
+          wrongWords: Array.isArray(summary.wrongWords) ? summary.wrongWords : [],
+          correctWords: Array.isArray(summary.correctWords) ? summary.correctWords : [],
+          score: `${summary.score}/${summary.total}`,
+          rate: summary.rate || "",
+          date: satDateStr
+        };
+      }
+    }
+  } catch(_) {}
+
+  // 3. student_task_history
+  try {
+    const rawHist = localStorage.getItem("student_task_history");
+    if (rawHist) {
+      const hist = JSON.parse(rawHist);
+      if (Array.isArray(hist)) {
+        const satItem = hist.find(item => {
+          if (!item || !item.date) return false;
+          const nd = normalizeDateStr(item.date);
+          return nd === satDateStr && (String(item.taskName || "").includes("週末") || item.isWeekend);
+        });
+        if (satItem) {
+          return {
+            completed: true,
+            wrongWords: Array.isArray(satItem.wrongWords) ? satItem.wrongWords : [],
+            correctWords: Array.isArray(satItem.correctWords) ? satItem.correctWords : [],
+            score: satItem.score || "",
+            rate: satItem.rate || "",
+            date: satDateStr
+          };
+        }
+      }
+    }
+  } catch(_) {}
+
+  return null;
+}
+
 // ── 錯題記錄：只記錄「今日指定練習」中答錯的單字 ──
 function recordTaskMistake(word) {
   try {
@@ -258,11 +334,18 @@ function renderCurrent() {
   if (isTask && taskState.task) {
     const catLabel = document.getElementById("catlabel");
     const modeHint = document.getElementById("modehint");
+    const isWeekendTask = !!taskState.task.isWeekend;
     if (catLabel) {
-      catLabel.textContent = `🎯 今日任務 (${taskState.index + 1}/${taskState.pool.length})`;
-      catLabel.style.background = "linear-gradient(135deg, #6366f1, #8b5cf6)";
+      catLabel.textContent = isWeekendTask
+        ? `🔥 週末任務 (${taskState.index + 1}/${taskState.pool.length})`
+        : `🎯 今日任務 (${taskState.index + 1}/${taskState.pool.length})`;
+      catLabel.style.background = isWeekendTask
+        ? "linear-gradient(135deg, #ef4444, #f59e0b)"
+        : "linear-gradient(135deg, #6366f1, #8b5cf6)";
     }
-    if (modeHint) modeHint.textContent = `【${taskState.task.taskName}】純聽拼測驗中`;
+    if (modeHint) {
+      modeHint.textContent = `【${taskState.task.taskName}】${isWeekendTask ? "弱點衝刺拼字中" : "純聽拼測驗中"}`;
+    }
 
     // 嚴格強制隱藏關卡/模式列與挑戰橫幅
     const modesEl = document.getElementById("modes");
@@ -611,7 +694,22 @@ function checkAndStartDailyTask() {
     if (bannerEl) bannerEl.style.display = isTimeUp ? "none" : "";
 
     const catLabel = document.getElementById("catlabel");
-    if (catLabel) catLabel.textContent = "✅ 今日指定練習已完成，明天再繼續！已開放自由升級闖關";
+    if (catLabel) {
+      const dNow = new Date();
+      const dayNow = dNow.getDay();
+      if (dayNow === 6) {
+        const satRecord = getSaturdayRemedyRecord();
+        if (satRecord && satRecord.wrongWords && satRecord.wrongWords.length > 0) {
+          catLabel.textContent = `💪 週六錯題已消滅，剩餘 ${satRecord.wrongWords.length} 題明天（週日）繼續施測！已開放自由闖關`;
+        } else {
+          catLabel.textContent = "🌟 本週錯題已全數消滅！週末已開放自由闖關";
+        }
+      } else if (dayNow === 0) {
+        catLabel.textContent = "✅ 週末錯題補救測驗已完成，已開放自由闖關！";
+      } else {
+        catLabel.textContent = "✅ 今日指定練習已完成，明天再繼續！已開放自由升級闖關";
+      }
+    }
 
     console.log("今日指定練習已完成，當日不再開放重複使用，進入自由闖關模式。");
     newRound();
@@ -624,19 +722,57 @@ function checkAndStartDailyTask() {
 
   let taskToRun = null;
 
-  // 週末自動檢核：學生於星期一到星期五沒有答對（包含沒有作答/缺考）的單字一律自動變成六日的指派單字測驗
+  // 週末自動檢核：
+  // 週六：週一至週五未答對（包含沒有作答/缺考）的單字
+  // 週日：若週六測試仍有錯題，則週日繼續施測剩餘錯題；若週六全數答對，則週日無須再測
   if (isWeekend) {
     if (assignedTaskObj && assignedTaskObj.hasTask && assignedTaskObj.isWeekend && Array.isArray(assignedTaskObj.words) && assignedTaskObj.words.length > 0) {
       taskToRun = assignedTaskObj;
     } else {
-      const unfinished = getMonToFriUnfinishedWords();
-      if (unfinished.length > 0) {
-        taskToRun = {
-          taskName  : "週末指定單字消滅戰",
-          words     : unfinished,
-          count     : "ALL",
-          isWeekend : true
-        };
+      if (day === 6) {
+        // ── 週六：以週一至週五未答對/缺考單字進行消滅戰 ──
+        const unfinished = getMonToFriUnfinishedWords();
+        if (unfinished.length > 0) {
+          taskToRun = {
+            taskName  : "週末指定單字消滅戰",
+            words     : unfinished,
+            count     : "ALL",
+            isWeekend : true,
+            weekendStage: "sat"
+          };
+        }
+      } else if (day === 0) {
+        // ── 週日：檢查週六測試結果 ──
+        const satRecord = getSaturdayRemedyRecord();
+        if (satRecord && satRecord.completed) {
+          if (satRecord.wrongWords.length > 0) {
+            // 週六仍有錯題 -> 週日繼續施測！
+            taskToRun = {
+              taskName  : "週末錯題接續消滅戰",
+              words     : satRecord.wrongWords,
+              count     : "ALL",
+              isWeekend : true,
+              weekendStage: "sun_remedy"
+            };
+          } else {
+            // 週六全數答對消滅 -> 週日直接解鎖自由闖關，無須再測
+            taskToRun = null;
+            localStorage.setItem("task_done_" + todayDash, "true");
+            localStorage.setItem("task_done_" + todaySlash, "true");
+          }
+        } else {
+          // 週六無測驗紀錄 -> 週日直接以週一至週五未答對單字進行消滅戰
+          const unfinished = getMonToFriUnfinishedWords();
+          if (unfinished.length > 0) {
+            taskToRun = {
+              taskName  : "週末指定單字消滅戰",
+              words     : unfinished,
+              count     : "ALL",
+              isWeekend : true,
+              weekendStage: "sun_initial"
+            };
+          }
+        }
       }
     }
   }
@@ -677,7 +813,14 @@ function checkAndStartDailyTask() {
     if (bannerEl) bannerEl.style.display = isTimeUp ? "none" : "";
     const catLabel = document.getElementById("catlabel");
     if (catLabel) {
-      catLabel.textContent = "💡 今日尚無指派任務，已開放自由闖關升級";
+      const satRecord = (day === 0) ? getSaturdayRemedyRecord() : null;
+      if (day === 0 && satRecord && satRecord.completed && satRecord.wrongWords.length === 0) {
+        catLabel.textContent = "🌟 本週錯題已在週六全數消滅！今日直接開放自由闖關";
+      } else if (isWeekend) {
+        catLabel.textContent = "🌟 本週無待補強錯題，週末已開放自由闖關！";
+      } else {
+        catLabel.textContent = "💡 今日尚無指派任務，已開放自由闖關升級";
+      }
     }
     newRound();
     return;
@@ -782,6 +925,32 @@ function showTaskIntroScreen(task) {
   if (fbEl) fbEl.innerHTML = "";
 
   const isResumed = savedProgress !== null;
+  const isWeekendTask = !!task.isWeekend;
+  const dNow = new Date();
+  const dayNow = dNow.getDay();
+  const isSaturday = (dayNow === 6);
+  const isSunday = (dayNow === 0);
+
+  const modalIcon = isWeekendTask ? "🔥" : "🎯";
+  const modalTag = isWeekendTask ? "WEEKEND CHALLENGE" : "TODAY'S MISSION";
+  const modalTitle = isWeekendTask 
+    ? (isSunday ? "週末錯題接續消滅戰" : "週末弱點單字消滅戰")
+    : "今日指定單字練習";
+
+  const reminderText = isWeekendTask
+    ? (isSaturday 
+        ? "💡 <b>貼心提醒</b>：今天先挑戰這週的錯題，若有未過關的單字，<b>明天（週日）會繼續施測</b>；全數消滅即可提早解鎖自由闖關！"
+        : isSunday 
+          ? "💡 <b>貼心提醒</b>：接續昨天未過關的錯題繼續挑戰！今天全數作答完畢後，立即解鎖自由闖關！"
+          : "💡 <b>貼心提醒</b>：把這週沒記熟的單字消滅掉，全數作答完成後立即開放自由闖關！")
+    : "※ 途中存檔或強制結束不代表結束；全數作答完成後立即開放自由闖關！";
+
+  const btnText = isResumed 
+    ? `▶️ 開始練習（接續第 ${resumeIndex + 1} 題）`
+    : isWeekendTask 
+      ? `🔥 開始消滅弱點單字` 
+      : `🎯 開始今天的練習`;
+
   const resumeHtml = isResumed ? `
     <div style="background:rgba(245, 158, 11, 0.15); border:1.5px solid #f59e0b; border-radius:10px; padding:10px 14px; margin-bottom:16px; text-align:left; color:#fbbf24; font-size:13.5px; line-height:1.5;">
       ⚡ <b>偵測到上次未完成進度</b><br>
@@ -790,18 +959,14 @@ function showTaskIntroScreen(task) {
     </div>
   ` : "";
 
-  const btnText = isResumed 
-    ? `▶️ 開始今天的練習（繼續第 ${resumeIndex + 1} 題）`
-    : `🎯 開始今天的練習`;
-
   const stageEl = document.getElementById("stage");
   if (stageEl) {
     stageEl.innerHTML = `
-      <div style="width:100%; max-width:440px; margin:0 auto; text-align:center; padding:18px 16px; background:rgba(30, 41, 59, 0.6); border:1.5px solid #6366f1; border-radius:16px; box-shadow:0 8px 24px rgba(0,0,0,0.25);">
-        <div style="font-size:44px; margin-bottom:8px;">🎯</div>
-        <div style="font-size:11px; font-weight:800; letter-spacing:1px; text-transform:uppercase; color:#a5b4fc; margin-bottom:4px;">TODAY'S MISSION</div>
-        <h2 style="font-size:20px; font-weight:800; color:#fff; margin:0 0 8px;">今日指定單字練習</h2>
-        <div style="font-size:16px; font-weight:700; color:#38bdf8; margin-bottom:14px;">
+      <div style="width:100%; max-width:440px; margin:0 auto; text-align:center; padding:18px 16px; background:rgba(30, 41, 59, 0.6); border:1.5px solid ${isWeekendTask ? '#f59e0b' : '#6366f1'}; border-radius:16px; box-shadow:0 8px 24px rgba(0,0,0,0.25);">
+        <div style="font-size:44px; margin-bottom:8px;">${modalIcon}</div>
+        <div style="font-size:11px; font-weight:800; letter-spacing:1px; text-transform:uppercase; color:${isWeekendTask ? '#fcd34d' : '#a5b4fc'}; margin-bottom:4px;">${modalTag}</div>
+        <h2 style="font-size:20px; font-weight:800; color:#fff; margin:0 0 8px;">${modalTitle}</h2>
+        <div style="font-size:16px; font-weight:700; color:${isWeekendTask ? '#fde047' : '#38bdf8'}; margin-bottom:14px;">
           【${task.taskName}】
         </div>
 
@@ -814,18 +979,18 @@ function showTaskIntroScreen(task) {
           </div>
           <div style="display:flex; justify-content:space-between; margin-bottom:3px;">
             <span>🎧 測驗模式：</span>
-            <b style="color:#6366f1;">純聽音拼字</b>
+            <b style="color:${isWeekendTask ? '#fbbf24' : '#6366f1'};">純聽音拼字</b>
           </div>
           <div style="display:flex; justify-content:space-between;">
             <span>💾 隨時存檔防護：</span>
             <b style="color:#10b981;">自動記憶中途進度</b>
           </div>
           <div style="font-size:12px; color:#94a3b8; margin-top:8px; border-top:1px dashed #334155; padding-top:6px;">
-            ※ 途中存檔或強制結束不代表結束；全數作答完成後立即開放自由闖關！
+            ${reminderText}
           </div>
         </div>
 
-        <button id="btn-start-today-task" style="width:100%; padding:14px 20px; font-size:16.5px; font-weight:800; color:#fff; background:linear-gradient(135deg, #6366f1, #8b5cf6); border:none; border-radius:12px; cursor:pointer; box-shadow:0 4px 15px rgba(99, 102, 241, 0.4); transition:transform 0.1s, box-shadow 0.1s;">
+        <button id="btn-start-today-task" style="width:100%; padding:14px 20px; font-size:16.5px; font-weight:800; color:#fff; background:${isWeekendTask ? 'linear-gradient(135deg, #f59e0b, #ef4444)' : 'linear-gradient(135deg, #6366f1, #8b5cf6)'}; border:none; border-radius:12px; cursor:pointer; box-shadow:0 4px 15px ${isWeekendTask ? 'rgba(239, 68, 68, 0.4)' : 'rgba(99, 102, 241, 0.4)'}; transition:transform 0.1s, box-shadow 0.1s;">
           ${btnText}
         </button>
       </div>
@@ -961,28 +1126,157 @@ function finishTaskMode() {
   const bannerEl = document.getElementById("banner");
   if (bannerEl) bannerEl.style.display = isTimeUp ? "none" : "";
 
+  // 若為週末測驗，記錄週末補救進度至本機並剔除已消滅單字
+  const isWeekendTask = !!task.isWeekend;
+  const dNow = new Date();
+  const dayNow = dNow.getDay();
+  const isSat = (dayNow === 6);
+  const isSun = (dayNow === 0);
+  const wrongCount = cleanWrongWords.length;
+  const mondayStr = getWeekMondayDate();
+
+  if (isWeekendTask) {
+    try {
+      const rawRemedy = localStorage.getItem("weekend_remedy_" + mondayStr);
+      const remedyMap = rawRemedy ? JSON.parse(rawRemedy) : {};
+      if (isSat) {
+        remedyMap.satCompleted = true;
+        remedyMap.satScore = `${correct}/${total}`;
+        remedyMap.satRate = rate + "%";
+        remedyMap.satWrongWords = cleanWrongWords;
+        remedyMap.satCorrectWords = cleanCorrectWords;
+        remedyMap.satTotal = total;
+      } else {
+        remedyMap.sunCompleted = true;
+        remedyMap.sunScore = `${correct}/${total}`;
+        remedyMap.sunRate = rate + "%";
+        remedyMap.sunWrongWords = cleanWrongWords;
+        remedyMap.sunCorrectWords = cleanCorrectWords;
+      }
+      remedyMap.updatedAt = nowTs;
+      localStorage.setItem("weekend_remedy_" + mondayStr, JSON.stringify(remedyMap));
+    } catch(_) {}
+
+    // 從本機 weekTaskMistakes 中剔除已成功答對消滅的單字
+    if (cleanCorrectWords.length > 0) {
+      try {
+        const rawMistakes = localStorage.getItem("weekTaskMistakes");
+        if (rawMistakes) {
+          const map = JSON.parse(rawMistakes);
+          let changed = false;
+          for (const dKey in map) {
+            if (Array.isArray(map[dKey])) {
+              const origLen = map[dKey].length;
+              map[dKey] = map[dKey].filter(cw => !cleanCorrectWords.includes(String(cw).trim().toLowerCase()));
+              if (map[dKey].length !== origLen) changed = true;
+            }
+          }
+          if (changed) {
+            localStorage.setItem("weekTaskMistakes", JSON.stringify(map));
+          }
+        }
+      } catch(_) {}
+    }
+  }
+
   burst();
 
   // 5. 顯示結算視窗並自動同步上傳試算表
   ui.setScreen("quiz");
-  ui.quizResult({
-    emoji: rate >= 80 ? "🏆" : "💪",
-    color: rate >= 80 ? "var(--green)" : "var(--coral)",
-    headline: `恭喜完成「${task.taskName}」！`,
-    sub: `本次測驗答對 ${correct}／${total} 題（正確率 ${rate}%）`,
-    extraHtml: `
-      <div style="margin:16px 0; font-size:14px; color:#475569; line-height:1.6;">
-        ${task.isWeekend ? "✨ 週末錯題消滅成功！弱點單字已補強。" : "✨ 今日指定進度已達標！"}<br>
-        今日測驗已鎖定，現在為您解鎖<b>「自由闖關模式」</b>，快去賺取更多星號吧！
+
+  let resEmoji = "💪";
+  let resColor = "var(--coral, #f59e0b)";
+  let resHeadline = `恭喜完成「${task.taskName}」！`;
+  let resSub = `本次測驗答對 ${correct}／${total} 題（正確率 ${rate}%）`;
+  let resHtml = "";
+  let resBtnLabel = "開始自由闖關 →";
+  let postCatLabel = "✅ 今日指定練習已完成，明天再繼續！已開放自由升級闖關";
+
+  if (isWeekendTask) {
+    if (wrongCount === 0 || rate >= 100) {
+      // 週末全數消滅成功
+      resEmoji = "🎉";
+      resColor = "var(--green, #10b981)";
+      resHeadline = "太厲害了！本週錯題全部消滅！";
+      resSub = `本次測驗 ${total} 題全部答對（正確率 100%）！`;
+      resHtml = `
+        <div style="margin:16px 0; font-size:15px; color:var(--ink, #334155); line-height:1.7;">
+          太強了！這禮拜的所有錯題單字，已經被你<b>全部消滅乾淨</b>囉！🌟<br>
+          這個週末你的弱點單字已經全部過關${isSat ? "，明天週日不用再補考囉" : ""}，好好放鬆一下吧！<br>
+          <span style="font-size:13px; color:var(--ink3, #64748b); display:inline-block; margin-top:8px;">
+            現在已為你解鎖<b>「自由闖關模式」</b>，快去賺取更多星星吧！
+          </span>
+        </div>
+        <div style="font-size:12px; color:var(--ink3, #94a3b8);">（全數消滅紀錄已自動同步寫入雲端）</div>
+      `;
+      resBtnLabel = "太棒了，前往自由闖關 →";
+      postCatLabel = "🌟 本週錯題已全數消滅！週末已開放自由闖關";
+    } else if (isSat) {
+      // 週六結算且仍有錯題
+      resEmoji = "💪";
+      resColor = "var(--coral, #f59e0b)";
+      resHeadline = "週六錯題消滅戰告一段落！";
+      resSub = `本次答對 ${correct}／${total} 題（正確率 ${rate}%）`;
+      resHtml = `
+        <div style="margin:16px 0; font-size:15px; color:var(--ink, #334155); line-height:1.7;">
+          今天先成功消滅了 <b style="color:var(--green, #10b981);">${correct}</b> 個弱點單字，表現很棒！👏<br>
+          還有 <b style="color:#ef4444;">${wrongCount}</b> 個單字還沒記熟，別灰心，<b>明天（週日）會繼續施測這幾題</b>，把它們徹底消滅！<br>
+          <span style="font-size:13px; color:var(--ink3, #64748b); display:inline-block; margin-top:8px;">
+            今天任務已結束，現在可以去<b>「自由闖關」</b>放鬆練習、多賺點星星喔！
+          </span>
+        </div>
+        <div style="font-size:12px; color:var(--ink3, #94a3b8);">（週六進度已存檔，剩餘錯題將於週日接續施測）</div>
+      `;
+      resBtnLabel = "好的，去自由闖關 →";
+      postCatLabel = `💪 週六已消滅 ${correct} 題，剩餘 ${wrongCount} 題明天（週日）繼續施測！已開放自由闖關`;
+    } else {
+      // 週日結算
+      resEmoji = rate >= 70 ? "👏" : "💪";
+      resColor = rate >= 70 ? "var(--green, #10b981)" : "var(--coral, #f59e0b)";
+      resHeadline = "週日錯題補救測驗完成！";
+      resSub = `本次答對 ${correct}／${total} 題（正確率 ${rate}%）`;
+      resHtml = `
+        <div style="margin:16px 0; font-size:15px; color:var(--ink, #334155); line-height:1.7;">
+          週末這兩天的錯題消滅挑戰辛苦了！這次又救回了 <b style="color:var(--green, #10b981);">${correct}</b> 個單字！<br>
+          ${wrongCount > 0 ? `雖然還有 <b style="color:#ef4444;">${wrongCount}</b> 個單字稍微不熟，但多練習就一定有進步！下週課堂繼續加油喔！` : `本週所有弱點單字都已經補強完畢囉！`}<br>
+          <span style="font-size:13px; color:var(--ink3, #64748b); display:inline-block; margin-top:8px;">
+            現在已開放<b>「自由闖關模式」</b>，隨時都能上去保持手感！
+          </span>
+        </div>
+        <div style="font-size:12px; color:var(--ink3, #94a3b8);">（週末成績已自動同步寫入雲端每日任務紀錄）</div>
+      `;
+      resBtnLabel = "辛苦了，前往自由闖關 →";
+      postCatLabel = "✅ 週末錯題補救測驗已完成，已開放自由闖關！";
+    }
+  } else {
+    // 平日指定練習
+    resEmoji = rate >= 80 ? "🏆" : "💪";
+    resColor = rate >= 80 ? "var(--green, #10b981)" : "var(--coral, #f59e0b)";
+    resHeadline = "今日指定練習完成囉！";
+    resSub = `本次測驗答對 ${correct}／${total} 題（正確率 ${rate}%）`;
+    resHtml = `
+      <div style="margin:16px 0; font-size:15px; color:var(--ink, #334155); line-height:1.7;">
+        今天的指定單字練習已經順利達標囉！🎉<br>
+        今日測驗已鎖定，現在為你解鎖<b>「自由闖關模式」</b>，快去挑戰賺取更多星星吧！
       </div>
-      <div style="font-size:12px; color:#64748b;">（成績已自動同步寫入雲端每日任務紀錄）</div>
-    `,
-    btnLabel: "開始自由闖關 →",
+      <div style="font-size:12px; color:var(--ink3, #94a3b8);">（成績已自動同步寫入雲端每日任務紀錄）</div>
+    `;
+    resBtnLabel = "開始自由闖關 →";
+    postCatLabel = "✅ 今日指定練習已完成，明天再繼續！已開放自由升級闖關";
+  }
+
+  ui.quizResult({
+    emoji: resEmoji,
+    color: resColor,
+    headline: resHeadline,
+    sub: resSub,
+    extraHtml: resHtml,
+    btnLabel: resBtnLabel,
   }, () => {
     ui.setScreen("play");
     refreshChrome();
     const catLabel = document.getElementById("catlabel");
-    if (catLabel) catLabel.textContent = "✅ 今日指定練習已完成，明天再繼續！已開放自由升級闖關";
+    if (catLabel) catLabel.textContent = postCatLabel;
     newRound();
   });
 
