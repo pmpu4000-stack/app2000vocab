@@ -769,6 +769,102 @@ body[data-theme="dark"],
   -webkit-text-fill-color: #F0F3FA !important;
   caret-color: #F0F3FA !important;
 }
+/* 登入狀態提示條與方塊間距（高清晰、顯眼高質感） */
+.login-box-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.login-box-group > * {
+  margin: 0 !important;
+}
+
+#login-msg.login-status-banner {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0 !important;
+  padding: 11px 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.45;
+  text-align: center;
+  animation: loginMsgFadeIn 0.25s ease-out;
+  transition: all 0.25s ease;
+}
+@keyframes loginMsgFadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+#login-msg.login-status-banner.active {
+  display: flex !important;
+}
+
+/* 1. 載入資料 (稍微顯眼一點的橘黃色，淺色深色皆以鮮明顯眼為主) */
+#login-msg.login-status-banner.msg-loading,
+#login-msg.login-status-banner.msg-loading-data {
+  background: #FEF3C7 !important;
+  color: #92400E !important;
+  border: 1.5px solid #F59E0B !important;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.28), 0 0 6px rgba(251, 191, 36, 0.25) !important;
+}
+[data-theme="dark"] #login-msg.login-status-banner.msg-loading,
+[data-theme="dark"] #login-msg.login-status-banner.msg-loading-data {
+  background: rgba(245, 158, 11, 0.24) !important;
+  color: #FDE047 !important;
+  border: 1.5px solid #F59E0B !important;
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.45), 0 0 6px rgba(251, 191, 36, 0.35) !important;
+}
+
+/* 2. 載入遊戲 (100% 答對率熱力圖榮耀綠色，顯眼高光微光框框) */
+#login-msg.login-status-banner.msg-success,
+#login-msg.login-status-banner.msg-loading-game {
+  background: #15803D !important;
+  color: #FFFFFF !important;
+  border: 2px solid #16A34A !important;
+  box-shadow: 0 4px 14px rgba(22, 163, 74, 0.45), 0 0 10px rgba(34, 197, 94, 0.4) !important;
+}
+[data-theme="dark"] #login-msg.login-status-banner.msg-success,
+[data-theme="dark"] #login-msg.login-status-banner.msg-loading-game {
+  background: rgba(34, 197, 94, 0.45) !important;
+  color: #FFFFFF !important;
+  border: 2px solid #86EFAC !important;
+  box-shadow: 0 0 18px rgba(52, 211, 153, 0.75), 0 0 8px rgba(134, 239, 172, 0.85), inset 0 0 8px rgba(52, 211, 153, 0.3) !important;
+}
+
+/* 3. 錯誤提示 (鮮明警戒紅) */
+#login-msg.login-status-banner.msg-error {
+  background: #FEF2F2 !important;
+  color: #DC2626 !important;
+  border: 1.5px solid #EF4444 !important;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.18) !important;
+}
+[data-theme="dark"] #login-msg.login-status-banner.msg-error {
+  background: rgba(239, 68, 68, 0.24) !important;
+  color: #FCA5A5 !important;
+  border: 1.5px solid #F87171 !important;
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.35) !important;
+}
+
+/* 4. 宵禁/時段警告 (活力金琥珀) */
+#login-msg.login-status-banner.msg-warning {
+  background: #FEFCE8 !important;
+  color: #B45309 !important;
+  border: 1.5px solid #F59E0B !important;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.18) !important;
+}
+[data-theme="dark"] #login-msg.login-status-banner.msg-warning {
+  background: rgba(245, 158, 11, 0.20) !important;
+  color: #FDE047 !important;
+  border: 1.5px solid #F59E0B !important;
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.30) !important;
+}
 
 /* 錯題與答對單字區塊暗模式調和 (柔和舒適深底) */
 [data-theme="dark"] .word-split-box.correct-box {
