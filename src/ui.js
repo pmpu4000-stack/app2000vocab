@@ -1328,17 +1328,13 @@ function buildTaskDetailsHtml(records, selectedDate, d) {
       }, d);
     }
 
-    const dateMMDD = normDate ? normDate.replace(/-/g, "").slice(4) : "";
-    const unassignedTitle = dateMMDD ? `📝 ${dateMMDD}指定單字測驗` : "📝 指定單字測驗";
+    const unassignedTitle = "📝 指定單字測驗";
 
     return `
       <div class="task-single-record-block">
         <div class="task-history-header">
           <div>
             <span class="task-card-title task-title-assigned">${unassignedTitle}</span>
-          </div>
-          <div style="display:flex; align-items:center; gap:6px;">
-            <span class="status-badge-pill neutral">⚪ 當日未指派測驗</span>
           </div>
         </div>
 
@@ -1359,17 +1355,14 @@ function buildTaskDetailsHtml(records, selectedDate, d) {
 function buildFreeDetailsHtml(record, selectedDate, d) {
   const normDate = normalizeDateStr(selectedDate);
   const dateMMDD = normDate ? normDate.replace(/-/g, "").slice(4) : "";
-  const freeTitleText = dateMMDD ? `🎮 ${dateMMDD}自由練習成果` : "🎮 自由練習成果";
 
   if (!record || !record.attempts) {
+    const emptyFreeTitle = "🎮 自由練習";
     return `
       <div>
         <div class="task-history-header">
           <div>
-            <span class="task-card-title task-title-free">${freeTitleText}</span>
-          </div>
-          <div style="display:flex; align-items:center; gap:6px;">
-            <span class="status-badge-pill neutral">⚪ 當日尚無練習</span>
+            <span class="task-card-title task-title-free">${emptyFreeTitle}</span>
           </div>
         </div>
 
@@ -1383,6 +1376,8 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
       </div>
     `;
   }
+
+  const freeTitleText = dateMMDD ? `🎮 ${dateMMDD}自由練習成果` : "🎮 自由練習成果";
 
   const attempts = record.attempts || 0;
   const correct = record.correct || 0;
