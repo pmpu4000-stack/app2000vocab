@@ -135,11 +135,49 @@ header{display:flex; align-items:center; justify-content:space-between; flex-wra
 
 .stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:6px 0}
 .stage-prompt-row{display:flex;align-items:center;justify-content:center;gap:8px}
-.stage-sound-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:999px;
-  border:1.5px solid var(--line);background:var(--card);color:var(--ink2);font-size:13px;font-weight:700;
-  cursor:pointer;transition:all .15s}
-.stage-sound-btn:hover{border-color:var(--sky);color:var(--sky);background:#F1F8FC}
-.stage-sound-btn:active{transform:scale(.96)}
+.mini, .stage-sound-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  padding: 8px 18px !important;
+  border-radius: 999px !important;
+  border: 1.5px solid rgba(108, 76, 224, 0.35) !important;
+  background: linear-gradient(135deg, #F5F3FF, #EDE9FE) !important;
+  color: var(--violet, #6C4CE0) !important;
+  font-size: 13.5px !important;
+  font-weight: 750 !important;
+  font-family: inherit !important;
+  cursor: pointer !important;
+  user-select: none !important;
+  box-shadow: 0 2px 8px rgba(108, 76, 224, 0.12) !important;
+  transition: all .18s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+.mini:hover, .stage-sound-btn:hover {
+  border-color: var(--violet, #6C4CE0) !important;
+  color: var(--violet-d, #573BC4) !important;
+  background: linear-gradient(135deg, #EDE9FE, #DDD6FE) !important;
+  transform: translateY(-2px) scale(1.03) !important;
+  box-shadow: 0 5px 14px rgba(108, 76, 224, 0.22) !important;
+}
+.mini:active, .stage-sound-btn:active {
+  transform: translateY(1px) scale(0.96) !important;
+}
+[data-theme="dark"] .mini,
+[data-theme="dark"] .stage-sound-btn {
+  background: rgba(108, 76, 224, 0.18) !important;
+  border-color: rgba(167, 139, 250, 0.45) !important;
+  color: #DDD6FE !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+[data-theme="dark"] .mini:hover,
+[data-theme="dark"] .stage-sound-btn:hover {
+  background: rgba(108, 76, 224, 0.32) !important;
+  border-color: #A78BFA !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 6px 18px rgba(139, 92, 246, 0.35) !important;
+  transform: translateY(-2px) scale(1.03) !important;
+}
 
 /* tiles */
 .tiles{display:flex;flex-wrap:wrap;gap:7px;justify-content:center}

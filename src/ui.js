@@ -38,7 +38,10 @@ function revealHtml(word) {
 function pulse(cls) { el.card.classList.remove("pop", "shake"); void el.card.offsetWidth; el.card.classList.add(cls); }
 function miniBtn(label, onClick) {
   const b = document.createElement("button");
-  b.className = "mini"; b.textContent = label; b.onclick = onClick;
+  b.type = "button";
+  b.className = "mini stage-sound-btn";
+  b.innerHTML = label;
+  b.onclick = onClick;
   return b;
 }
 function textInput(placeholder, onCheck) {
