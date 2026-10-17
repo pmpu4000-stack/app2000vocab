@@ -2925,6 +2925,41 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
       };
     }
 
+    // 徹底清除本機所有學生快取與學習歷程，確保電腦教室共用時零污染、零個資外洩
+    function purgeAllStudentSessionAndLocalData() {
+      try {
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (!k) continue;
+          if (
+            k.startsWith("spellAgent") ||
+            k.startsWith("today_task") ||
+            k.startsWith("task_done") ||
+            k.startsWith("task_words") ||
+            k.startsWith("task_summary") ||
+            k.startsWith("assigned_task") ||
+            k.startsWith("weekend_remedy") ||
+            k === "vacation_pending_mistakes" ||
+            k === "student_task_history" ||
+            k === "cached_summary" ||
+            k === "weekTaskMistakes" ||
+            k === "remedy_learned_words" ||
+            k === "current_user" ||
+            k === "user_role" ||
+            k === "user_real_name" ||
+            k === "user_class_name"
+          ) {
+            keysToRemove.push(k);
+          }
+        }
+        keysToRemove.forEach(k => localStorage.removeItem(k));
+        sessionStorage.clear();
+        window.__CURRENT_USER = "";
+        window.__CACHED_SUMMARY = null;
+      } catch(_) {}
+    }
+
     // 點擊「登入帳號」欄位可確認資訊或切換登出
     const statUser = document.getElementById("stat-user");
     if (statUser) {
@@ -2942,8 +2977,8 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
               window.uploadLocalStorageData(true, true);
             }
           } catch(_) {}
-          sessionStorage.removeItem("current_pass");
-          sessionStorage.removeItem("assigned_task");
+          // 徹底抹除電腦教室本機所有帳號殘留資料，保證零污染
+          purgeAllStudentSessionAndLocalData();
           // 登出時重新載入頁面，徹底銷毀記憶體中的舊帳號作答狀態與定時器
           location.reload();
         }
@@ -3050,11 +3085,17 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
         }
 
         if (result.status === "success") {
-          // ── 帳號資料完全隔離與安全復原 ──
-          const lastUser = localStorage.getItem("current_user");
-          const isDifferentUser = lastUser && lastUser !== user;
-          
-          // 檢查本機目前是否已存在該帳號之有效進度（防止雲端遇暫時異常或空紀錄時誤抹除本機紀錄）
+          // ── 帳號資料完全隔離與安全零污染保證 ──
+          const lastUser = (localStorage.getItem("current_user") || "").trim();
+          const isDifferentUser = !lastUser || lastUser.toLowerCase() !== user.toLowerCase();
+
+          // 判定雲端是否有實質紀錄（必須是含有有效 spellAgent.v2 的物件）
+          const hasCloudRecords = result.records && 
+                                  typeof result.records === "object" && 
+                                  !Array.isArray(result.records) && 
+                                  Object.keys(result.records).length > 0 &&
+                                  !!result.records["spellAgent.v2"];
+
           let localAgentData = null;
           try {
             const rawLocal = localStorage.getItem("spellAgent.v2");
@@ -3066,41 +3107,15 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
             }
           } catch(_) {}
 
-          // 判定雲端是否有實質紀錄（必須是含有有效 spellAgent.v2 的物件）
-          const hasCloudRecords = result.records && 
-                                  typeof result.records === "object" && 
-                                  !Array.isArray(result.records) && 
-                                  Object.keys(result.records).length > 0 &&
-                                  !!result.records["spellAgent.v2"];
-
           // 切換不同使用者帳號時，完整清理前一位使用者的所有學習紀錄、任務快取與歷史明細
           if (isDifferentUser) {
-            const keysToRemove = [];
-            for (let i = 0; i < localStorage.length; i++) {
-              const k = localStorage.key(i);
-              if (k && (
-                k.startsWith("spellAgent") ||
-                k === "today_task_in_progress" ||
-                k === "today_task_summary" ||
-                k.startsWith("task_done") ||
-                k.startsWith("task_words") ||
-                k.startsWith("task_summary") ||
-                k === "student_task_history" ||
-                k.startsWith("assigned_task") ||
-                k === "cached_summary" ||
-                k === "weekTaskMistakes"
-              )) {
-                keysToRemove.push(k);
-              }
-            }
-            keysToRemove.forEach(k => localStorage.removeItem(k));
-            sessionStorage.removeItem("assigned_task");
+            purgeAllStudentSessionAndLocalData();
           } else {
             // 同一帳號重新登入時，亦先清除舊的 task_words_* 快取，改由伺服器回傳之最新 taskWordsMap 寫入
             const oldTaskWordKeys = [];
             for (let i = 0; i < localStorage.length; i++) {
               const k = localStorage.key(i);
-              if (k && k.startsWith("task_words_")) oldTaskWordKeys.push(k);
+              if (k && (k.startsWith("task_words_") || k === "today_task_in_progress")) oldTaskWordKeys.push(k);
             }
             oldTaskWordKeys.forEach(k => localStorage.removeItem(k));
           }

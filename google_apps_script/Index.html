@@ -6790,6 +6790,7 @@ function logout() {
   closeStudentDailyReportModal();
   closeGoalModal();
   hideToast();
+  try { sessionStorage.clear(); } catch(_) {}
 }
 
 // 學生：直接登出 | 教師查看學生：返回班級總覽
