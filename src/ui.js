@@ -1695,9 +1695,9 @@ export function renderSummary(d) {
     const hasLoggedInOrFree = !!(freeRec && freeRec.attempts > 0) || (tRec.freeTested > 0) || statusStr.includes("登入未受測") || statusStr.includes("登入未作答");
 
     if (isFinished) {
-      // 依「正確率」計算量級：少 (<60%)、中 (60%~79%)、大 (>=80%)
-      const level = tRate < 60 ? 1 : tRate < 80 ? 2 : 3;
-      const badgeTier = tRate < 60 ? "tier-green-low" : tRate < 80 ? "tier-green-mid" : "tier-green-high";
+      // 依「正確率」計算六階純綠色量級：<60%、60~69%、70~79%、80~89%、90~99%、100%
+      const level = tRate < 60 ? 1 : tRate < 70 ? 2 : tRate < 80 ? 3 : tRate < 90 ? 4 : tRate < 100 ? 5 : 6;
+      const badgeTier = tRate === 100 ? "tier-green-perfect" : (tRate >= 80 ? "tier-green-high" : (tRate >= 60 ? "tier-green-mid" : "tier-green-low"));
       return {
         a: tAtt, c: tCor, rate: tRate,
         wordsCount: taskWordsCount,
@@ -1898,7 +1898,7 @@ export function renderSummary(d) {
         </div>
         <div class="heatmap" id="heatmap-grid">${d.history.days.map((x, idx) =>
           `<i class="hc h${x.level}" data-idx="${idx}" data-key="${x.key}" data-a="${x.a || 0}" data-rate="${x.rate || 0}"></i>`).join("")}</div>
-        <div class="heat-legend"><b>連續</b>：從今天往回算，一天都沒中斷、天天有練習的天數。<br><b>最佳</b>：你曾經創下「最長連續天天練習」的紀錄。<br><b>累計</b>：從開始到現在，總共有練習過的天數（中間有休息也算）。<br><b>熱力圖</b>：方格顏色依當日作答正確率呈現三種深淺綠色（淺綠：未達 60% · 翠綠：60%~79% · 深綠：80% 以上；灰色：無紀錄）。</div>
+        <div class="heat-legend"><b>連續</b>：從今天往回算，一天都沒中斷、天天有練習的天數。<br><b>最佳</b>：你曾經創下「最長連續天天練習」的紀錄。<br><b>累計</b>：從開始到現在，總共有練習過的天數（中間有休息也算）。<br><b>熱力圖</b>：方格顏色依當日作答正確率呈現六階深淺綠色（&lt;60% · 60%~69% · 70%~79% · 80%~89% · 90%~99% · 100%；灰色：無紀錄）。</div>
       </div>
     </div>`;
 
@@ -1914,6 +1914,7 @@ export function renderSummary(d) {
 
   const getHeatBadgeTierClass = (att, rate) => {
     if (!att || att <= 0) return "heat-day-info tier-gray";
+    if (rate === 100) return "heat-day-info tier-green-perfect";
     if (rate >= 80) return "heat-day-info tier-green-high";
     if (rate >= 60) return "heat-day-info tier-green-mid";
     return "heat-day-info tier-green-low";
@@ -2011,7 +2012,7 @@ export function renderSummary(d) {
       heatDayInfoEl.className = "heat-day-info tier-gray";
       heatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 無練習紀錄`;
     } else {
-      const badgeTier = rate >= 80 ? "tier-green-high" : (rate >= 60 ? "tier-green-mid" : "tier-green-low");
+      const badgeTier = rate === 100 ? "tier-green-perfect" : (rate >= 80 ? "tier-green-high" : (rate >= 60 ? "tier-green-mid" : "tier-green-low"));
       heatDayInfoEl.className = `heat-day-info ${badgeTier}`;
       heatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 正確率 <b>${rate}%</b>`;
     }
