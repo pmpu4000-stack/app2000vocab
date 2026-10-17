@@ -1802,7 +1802,7 @@ export function renderSummary(d) {
     </div>
     <div class="subh">各關卡進度</div>
     <table class="sumtable">${lvRows}</table>
-    <div class="subh">🎮 4 大練習模式答對單字數</div>
+    <div class="subh">🎮 四大練習模式答對單字數</div>
     <div class="mode-stat-grid">
       <div class="mode-stat-card mode-card-listen">
         <div class="mode-stat-title">🎧 聽與拼</div>
@@ -2582,7 +2582,7 @@ async function _exportRecordToExcel(payload) {
       ["答對過單字(不重複)", `${ov.distinctCorrect} / ${ov.totalVocab} 字`, "連續練習天數", `${ov.streak} 天`, "最佳連續 / 累計天數", `最佳 ${ov.best} 天 / 累計 ${ov.totalDays} 天`],
       ["學習中單字數", `${ov.learn} 字`, "練習中單字數", `${ov.prac} 字`, "已精通單字數 ⭐", `${ov.mast} 字`],
       [],
-      ["【二、4 大練習模式答對單字數】"],
+      ["【二、四大練習模式答對單字數】"],
       ["練習模式", "受測單字數", "答對單字數", "正確率"],
       ["🎧 聽與拼", `${(ms.listen && ms.listen.a) || 0} 字`, `${(ms.listen && ms.listen.c) || 0} 字`, mRate(ms.listen)],
       ["✅ 選拼法", `${(ms.pick && ms.pick.a) || 0} 字`, `${(ms.pick && ms.pick.c) || 0} 字`, mRate(ms.pick)],
