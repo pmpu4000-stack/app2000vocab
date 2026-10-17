@@ -2284,41 +2284,76 @@ function _extractFreeWordsForDate(record, d) {
     const info = wordsMap[k];
     const rawW = (typeof info === "object" && info && info.word) ? info.word : k;
     const wName = resolveWordStr(rawW, d).toLowerCase();
-    if (!wName || /^w\d+$/i.test(wName)) return;
-    const hasWrong = (info && info.wrong > 0);
-    const hasCorrect = (info && info.correct > 0);
-    if (hasWrong) wrongList.push({ word: wName, correct: info.correct || 0 });
-    else if (hasCorrect) correctList.push({ word: wName });
-    else correctList.push({ word: wName });
+    if (!isValidEnglishWordStr(wName)) return;
+
+    const wAtt = (typeof info === "object" && info) ? (info.attempts !== undefined ? info.attempts : (info.a !== undefined ? info.a : 1)) : 1;
+    const wCor = (typeof info === "object" && info) ? (info.correct !== undefined ? info.correct : (info.c !== undefined ? info.c : (info.passed ? 1 : 0))) : 0;
+    const wWrg = (typeof info === "object" && info) ? (info.wrong !== undefined ? info.wrong : Math.max(0, wAtt - wCor)) : 0;
+    const hasWrong = wWrg > 0 || (info && (info.lastResult === "wrong" || info.ew));
+    const hasCorrect = wCor > 0 || (info && (info.passed || info.lastResult === "correct"));
+
+    if (hasWrong) {
+      wrongList.push({
+        word: wName,
+        correct: wCor || 0,
+        wrong: wWrg || 1,
+        hadCorrectThenWrong: !!(info && (info.hadCorrectThenWrong || (info.lastResult === "wrong" && wCor > 0))),
+        lastResult: (info && info.lastResult) ? info.lastResult : ""
+      });
+    } else if (hasCorrect) {
+      correctList.push({ word: wName, correct: wCor || 1 });
+    }
   });
+
+  if (wrongList.length === 0 && Array.isArray(record.freeWrongWords) && record.freeWrongWords.length > 0) {
+    record.freeWrongWords.forEach(rawW => {
+      const wName = resolveWordStr(rawW, d).toLowerCase();
+      if (isValidEnglishWordStr(wName) && !wrongList.some(x => x.word === wName) && !correctList.some(x => x.word === wName)) {
+        wrongList.push({ word: wName, correct: 0, wrong: 1, hadCorrectThenWrong: false, lastResult: "wrong" });
+      }
+    });
+  }
 
   if (correctList.length === 0 && wrongList.length === 0 && attempts > 0) {
     const allWords = ((d && d.allPracticedWords) || []).map(w => ({
       ...w,
       word: resolveWordStr(w.word || w, d).toLowerCase()
-    })).filter(w => w.word && !/^w\d+$/i.test(w.word));
+    })).filter(w => isValidEnglishWordStr(w.word));
 
     if (wrongCount > 0 && allWords.length > 0) {
       const wrongCands = allWords.filter(w => (w.wrong > 0 || w.ew));
       wrongCands.sort((a, b) => (b.wrong || 0) - (a.wrong || 0));
-      wrongCands.slice(0, wrongCount).forEach(w => wrongList.push({ word: w.word, correct: w.correct || 0 }));
+      wrongCands.slice(0, wrongCount).forEach(w => wrongList.push({ word: w.word, correct: w.correct || 0, wrong: w.wrong || 1, hadCorrectThenWrong: false, lastResult: "" }));
     }
     if (correct > 0 && allWords.length > 0) {
       const correctCands = allWords.filter(w => w.correct > 0 && !wrongList.some(wl => wl.word === w.word));
       correctCands.sort((a, b) => (b.correct || 0) - (a.correct || 0));
-      correctCands.slice(0, correct).forEach(w => correctList.push({ word: w.word }));
+      correctCands.slice(0, correct).forEach(w => correctList.push({ word: w.word, correct: w.correct || 1 }));
     }
   }
 
   correctList.sort((a, b) => a.word.localeCompare(b.word));
   wrongList.sort((a, b) => a.word.localeCompare(b.word));
+
+  const correctedCount = wrongList.filter(w => {
+    const isStillWrong = w.hadCorrectThenWrong || (w.lastResult === "wrong" && w.correct > 0);
+    return !isStillWrong && w.correct > 0;
+  }).length;
   const totalWords = (correctList.length + wrongList.length) > 0 ? (correctList.length + wrongList.length) : attempts;
-  const correctCount = (correctList.length + wrongList.length) > 0 ? correctList.length : correct;
+  const correctCount = (correctList.length + wrongList.length) > 0 ? (correctList.length + correctedCount) : correct;
   const rate = totalWords > 0 ? Math.round((correctCount / totalWords) * 100) : 0;
 
   return {
     correctWords: correctList.map(x => x.word),
-    wrongWords: wrongList.map(x => x.correct > 0 ? `${x.word}(已訂正)` : x.word),
+    wrongWords: wrongList.map(x => {
+      if (x.hadCorrectThenWrong || (x.lastResult === "wrong" && x.correct > 0)) {
+        return `${x.word}(曾對後錯⚠️)`;
+      } else if (x.correct > 0) {
+        return `${x.word}(已訂正)`;
+      } else {
+        return x.word;
+      }
+    }),
     totalWords,
     correctCount,
     rate
@@ -2335,11 +2370,19 @@ function _buildExportPayload(d, mode, startDate, endDate) {
   // 收集所有有紀錄日期
   const activeDateSet = new Set();
   historyList.forEach(item => {
-    if (item && item.date && (!item.taskName || item.taskName !== "自主練習")) {
+    if (item && item.date) {
       const nd = normalizeDateStr(item.date);
       if (nd) activeDateSet.add(nd);
     }
   });
+  if (Array.isArray(window.cachedBackupTaskHistory)) {
+    window.cachedBackupTaskHistory.forEach(h => {
+      if (h && h.date && h.taskName && h.taskName !== "自主練習" && !String(h.taskName).includes("未指派")) {
+        const nd = normalizeDateStr(h.date);
+        if (nd) activeDateSet.add(nd);
+      }
+    });
+  }
   Object.keys(dailyPracticeMap).forEach(dateStr => {
     const dp = dailyPracticeMap[dateStr];
     if (dp && (dp.attempts > 0 || (dp.words && Object.keys(dp.words).length > 0))) {
@@ -2393,7 +2436,33 @@ function _buildExportPayload(d, mode, startDate, endDate) {
   let periodFreeDays = 0;
 
   const dailyRecords = targetDates.map(dt => {
-    const tRec = historyList.find(item => normalizeDateStr(item.date) === dt && (!item.taskName || item.taskName !== "自主練習")) || null;
+    let tRec = historyList.find(item => normalizeDateStr(item.date) === dt && (!item.taskName || item.taskName !== "自主練習")) || null;
+    let isUntestedAssigned = false;
+    if (!tRec && Array.isArray(window.cachedBackupTaskHistory)) {
+      const bTask = window.cachedBackupTaskHistory.find(h => {
+        const hDate = String(h.date || "").trim().split(" ")[0].replace(/\//g, "-");
+        return normalizeDateStr(hDate) === dt && h.taskName && h.taskName !== "自主練習" && !String(h.taskName).includes("未指派");
+      });
+      if (bTask) {
+        isUntestedAssigned = true;
+        const bWords = Array.isArray(bTask.words) ? bTask.words : [];
+        tRec = {
+          date: dt,
+          taskName: bTask.taskName || bTask.name || "每日指定測驗",
+          score: "—",
+          rate: "—",
+          status: "未受測",
+          words: bWords,
+          wrongWords: []
+        };
+      }
+    }
+
+    const fRec = resolveDailyPracticeRecord(dt, d, historyList);
+    const fInfo = _extractFreeWordsForDate(fRec, d);
+    const hasFree = fInfo.totalWords > 0;
+    if (hasFree) periodFreeDays++;
+
     let hasTask = false, taskName = "無指派測驗", taskStatus = "無紀錄", taskScore = "—", taskRate = "—";
     let taskCorrectWords = [], taskWrongWords = [];
     let tAtt = 0, tCor = 0;
@@ -2401,16 +2470,14 @@ function _buildExportPayload(d, mode, startDate, endDate) {
     if (tRec) {
       hasTask = true;
       taskName = tRec.taskName || "每日指定測驗";
-      taskStatus = String(tRec.status || "已完成").replace(/^[🟢●⏳\s]+/, "");
-      taskScore = tRec.score || "—";
-      taskRate = formatRatePercentage(tRec.rate, tRec.score);
+      const rawStatus = String(tRec.status || "已完成");
       const resolved = resolveTaskWords(tRec, dt, d);
       taskCorrectWords = resolved.correctList || [];
       taskWrongWords = resolved.wrongList || [];
       tAtt = parseInt(tRec.attempts) || 0;
       tCor = parseInt(tRec.correct) || 0;
-      if (!tAtt && taskScore.includes("/")) {
-        const sp = taskScore.split("/");
+      if (!tAtt && String(tRec.score || "").includes("/")) {
+        const sp = String(tRec.score).split("/");
         tCor = parseInt(sp[0]) || 0;
         tAtt = parseInt(sp[1]) || 0;
       }
@@ -2418,13 +2485,28 @@ function _buildExportPayload(d, mode, startDate, endDate) {
         tCor = taskCorrectWords.length;
         tAtt = taskCorrectWords.length + taskWrongWords.length;
       }
-      if (taskStatus.includes("完成") || tAtt > 0) periodTaskDone++;
-    }
 
-    const fRec = resolveDailyPracticeRecord(dt, d, historyList);
-    const fInfo = _extractFreeWordsForDate(fRec, d);
-    const hasFree = fInfo.totalWords > 0;
-    if (hasFree) periodFreeDays++;
+      const isIncomplete = rawStatus.includes("作答中") || rawStatus.includes("中斷") || rawStatus.includes("未完成") || tRec.inProgress === true;
+      const isUntested = isUntestedAssigned || rawStatus.includes("未受測") || (!isIncomplete && !rawStatus.includes("已完成") && (tRec.score === "—" || tRec.score === "尚未開始" || rawStatus.includes("待完成")));
+      const hasLoggedInOrFree = hasFree || (tRec.freeTested > 0) || rawStatus.includes("登入未受測") || rawStatus.includes("登入未作答");
+
+      if (isUntested) {
+        taskStatus = hasLoggedInOrFree ? "登入未受測" : "缺席未受測";
+        taskScore = "—";
+        taskRate = "—";
+        taskCorrectWords = [];
+        taskWrongWords = [];
+      } else if (isIncomplete) {
+        taskStatus = `作答中斷 (${tCor}/${tAtt || 5})`;
+        taskScore = tRec.score || `${tCor}/${tAtt || 5}`;
+        taskRate = formatRatePercentage(tRec.rate, taskScore);
+      } else {
+        taskStatus = rawStatus.replace(/^[🟢●⏳🟠🟣🟡🔴\s]+/, "") || "已完成";
+        taskScore = tRec.score || "—";
+        taskRate = formatRatePercentage(tRec.rate, taskScore);
+        periodTaskDone++;
+      }
+    }
 
     const freeAtt = fInfo.totalWords;
     const freeCor = fInfo.correctCount;
@@ -2588,6 +2670,7 @@ async function _exportRecordToExcel(payload) {
     ];
 
     payload.dailyRecords.forEach(r => {
+      const isUntested = r.taskStatus.includes("未受測");
       ws1Data.push([
         r.date,
         r.totalAttempts,
@@ -2595,14 +2678,14 @@ async function _exportRecordToExcel(payload) {
         `${r.totalRate}%`,
         r.hasTask ? r.taskName : "無指派測驗",
         r.hasTask ? r.taskStatus : "無紀錄",
-        r.hasTask ? `${r.taskScore} 字` : "—",
-        r.hasTask ? r.taskRate : "—",
-        r.taskCorrectWords.length > 0 ? r.taskCorrectWords.join(", ") : "—",
-        r.taskWrongWords.length > 0 ? r.taskWrongWords.join(", ") : (r.hasTask ? "全對無錯題" : "—"),
+        r.hasTask && r.taskScore !== "—" && r.taskScore !== "尚未開始" ? `${r.taskScore} 字` : "—",
+        r.hasTask && r.taskRate !== "—" ? r.taskRate : "—",
+        r.taskCorrectWords.length > 0 ? r.taskCorrectWords.join(", ") : (isUntested ? "未施測" : "—"),
+        r.taskWrongWords.length > 0 ? r.taskWrongWords.join(", ") : (isUntested ? "未施測" : (r.hasTask ? "全對無錯題" : "—")),
         r.freeAttempts,
         r.freeCorrect,
         r.freeWrong,
-        r.hasFree ? `${r.freeRate}%` : "0%",
+        r.hasFree ? `${r.freeRate}%` : "—",
         r.freeCorrectWords.length > 0 ? r.freeCorrectWords.join(", ") : "—",
         r.freeWrongWords.length > 0 ? r.freeWrongWords.join(", ") : (r.hasFree ? "全對無錯題" : "—")
       ]);
@@ -2683,13 +2766,18 @@ async function _exportRecordToExcel(payload) {
       ["日期", "當日施測單字數", "當日答對單字數", "當日正確率", "指定測驗名稱", "指定測驗狀態", "指定測驗得分", "指定測驗正確率", "指定測驗答對單字", "指定測驗答錯單字", "自由練習施測單字數", "自由練習答對單字數", "自由練習答錯單字數", "自由練習正確率", "自由練習答對單字", "自由練習答錯單字"]
     ];
     payload.dailyRecords.forEach(r => {
+      const isUntested = r.taskStatus.includes("未受測");
       rows.push([
         r.date, r.totalAttempts, r.totalCorrect, `${r.totalRate}%`,
         r.hasTask ? r.taskName : "無指派測驗", r.hasTask ? r.taskStatus : "無紀錄",
-        r.hasTask ? `${r.taskScore} 字` : "—", r.hasTask ? r.taskRate : "—",
-        r.taskCorrectWords.join(" "), r.taskWrongWords.join(" "),
-        r.freeAttempts, r.freeCorrect, r.freeWrong, `${r.freeRate}%`,
-        r.freeCorrectWords.join(" "), r.freeWrongWords.join(" ")
+        r.hasTask && r.taskScore !== "—" && r.taskScore !== "尚未開始" ? `${r.taskScore} 字` : "—",
+        r.hasTask && r.taskRate !== "—" ? r.taskRate : "—",
+        r.taskCorrectWords.length > 0 ? r.taskCorrectWords.join(" ") : (isUntested ? "未施測" : "—"),
+        r.taskWrongWords.length > 0 ? r.taskWrongWords.join(" ") : (isUntested ? "未施測" : (r.hasTask ? "全對無錯題" : "—")),
+        r.freeAttempts, r.freeCorrect, r.freeWrong,
+        r.hasFree ? `${r.freeRate}%` : "—",
+        r.freeCorrectWords.length > 0 ? r.freeCorrectWords.join(" ") : "—",
+        r.freeWrongWords.length > 0 ? r.freeWrongWords.join(" ") : (r.hasFree ? "全對無錯題" : "—")
       ]);
     });
     const csvContent = "\uFEFF" + rows.map(row => row.map(c => `"${String(c ?? "").replace(/"/g, '""')}"`).join(",")).join("\r\n");
@@ -2716,19 +2804,23 @@ async function _exportRecordToPdf(payload) {
   const dailyCardsHtml = payload.dailyRecords.map(r => {
     const badgeColor = r.totalAttempts === 0 ? "#64748B" : r.totalRate >= 80 ? "#1E9A66" : r.totalRate >= 60 ? "#B45309" : "#DC2626";
     const badgeBg = r.totalAttempts === 0 ? "#F1F5F9" : r.totalRate >= 80 ? "#ECFDF5" : r.totalRate >= 60 ? "#FEFCE8" : "#FEF2F2";
+    const isTaskUntested = r.taskStatus.includes("未受測");
+
     const taskCorrPills = r.taskCorrectWords.length > 0
       ? r.taskCorrectWords.map(w => `<span style="display:inline-block;padding:2px 6px;margin:2px;border-radius:4px;background:#E4F7EE;color:#1E9A66;border:1px solid rgba(47,180,124,.35);font-size:11px;font-weight:700;">${esc(w)}</span>`).join("")
-      : `<span style="font-size:11px;color:#9AA0BD;">（無答對單字紀錄）</span>`;
+      : (isTaskUntested ? `<span style="font-size:11px;color:#9AA0BD;">（未施測）</span>` : `<span style="font-size:11px;color:#9AA0BD;">（無答對單字紀錄）</span>`);
     const taskWrongPills = r.taskWrongWords.length > 0
       ? r.taskWrongWords.map(w => `<span style="display:inline-block;padding:2px 6px;margin:2px;border-radius:4px;background:#FFE9E9;color:#D64545;border:1px solid rgba(255,107,107,.4);font-size:11px;font-weight:700;">${esc(w)}</span>`).join("")
-      : `<span style="font-size:11px;color:#1E9A66;font-weight:700;">${r.hasTask ? "🎉 全數答對無錯題" : "（無錯題紀錄）"}</span>`;
+      : (isTaskUntested ? `<span style="font-size:11px;color:#9AA0BD;">（未施測無錯題）</span>` : `<span style="font-size:11px;color:#1E9A66;font-weight:700;">${r.hasTask ? "🎉 全數答對無錯題" : "（無錯題紀錄）"}</span>`);
 
     const freeCorrPills = r.freeCorrectWords.length > 0
       ? r.freeCorrectWords.map(w => `<span style="display:inline-block;padding:2px 6px;margin:2px;border-radius:4px;background:#E4F7EE;color:#1E9A66;border:1px solid rgba(47,180,124,.35);font-size:11px;font-weight:700;">${esc(w)}</span>`).join("")
       : `<span style="font-size:11px;color:#9AA0BD;">（當日無自由練習答對單字）</span>`;
     const freeWrongPills = r.freeWrongWords.length > 0
       ? r.freeWrongWords.map(w => `<span style="display:inline-block;padding:2px 6px;margin:2px;border-radius:4px;background:#FFE9E9;color:#D64545;border:1px solid rgba(255,107,107,.4);font-size:11px;font-weight:700;">${esc(w)}</span>`).join("")
-      : `<span style="font-size:11px;color:#1E9A66;font-weight:700;">${r.hasFree ? "🎉 全數答對無錯題" : "（當日無自由練習錯題）"}</span>`;
+      : `<span style="font-size:11px;color:#1E9A66;font-weight:700;">${r.hasFree ? "🎉 全數答對無錯題" : "（當日無自由練習紀錄）"}</span>`;
+
+    const taskScoreText = (r.hasTask && r.taskScore !== "—" && r.taskScore !== "尚未開始") ? `${esc(r.taskScore)} 字 (${esc(r.taskRate)})` : "—";
 
     return `
       <div style="border:1.5px solid #E7E9F5; border-radius:14px; padding:12px 14px; margin-bottom:12px; background:#F8F9FD; page-break-inside:avoid;">
@@ -2743,7 +2835,7 @@ async function _exportRecordToPdf(payload) {
         <div style="margin-bottom:8px; background:#FFFFFF; border:1px solid #E7E9F5; border-radius:10px; padding:9px 11px;">
           <div style="font-size:12.5px; font-weight:800; color:#232A4D; margin-bottom:6px; display:flex; justify-content:space-between;">
             <span>📝 指定測驗：${esc(r.hasTask ? r.taskName : "當日無指派測驗紀錄")}</span>
-            <span style="color:#0284C7;">${r.hasTask ? `狀態：${esc(r.taskStatus)} ｜ 得分：${esc(r.taskScore)} 字 (${esc(r.taskRate)})` : "未施測"}</span>
+            <span style="color:#0284C7;">${r.hasTask ? (isTaskUntested ? `狀態：${esc(r.taskStatus)}（未測驗）` : `狀態：${esc(r.taskStatus)} ｜ 得分：${taskScoreText}`) : "未施測"}</span>
           </div>
           ${r.hasTask ? `
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
@@ -2762,7 +2854,7 @@ async function _exportRecordToPdf(payload) {
         <!-- 自由練習 -->
         <div style="background:#FFFFFF; border:1px solid #E7E9F5; border-radius:10px; padding:9px 11px;">
           <div style="font-size:12.5px; font-weight:800; color:#232A4D; margin-bottom:6px; display:flex; justify-content:space-between;">
-            <span>🎮 ${r.date ? normalizeDateStr(r.date).replace(/-/g, "").slice(4) : ""}自由練習成果</span>
+            <span>🎮 自由練習成果</span>
             <span style="color:#0284C7;">${r.hasFree ? `答對 ${r.freeCorrect}/${r.freeAttempts} 字 (${r.freeRate}%)` : "當日無自由練習紀錄"}</span>
           </div>
           ${r.hasFree ? `
