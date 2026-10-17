@@ -1474,9 +1474,6 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
         <div>
           <span class="task-card-title task-title-free">${freeTitleText}</span>
         </div>
-        <div style="display:flex; align-items:center; gap:6px;">
-          <span class="status-badge-pill success">🟢 已完成</span>
-        </div>
       </div>
 
       <div class="task-score-grid">
