@@ -1238,7 +1238,7 @@ function buildTaskDetailsHtml(records, selectedDate, d) {
     }
 
     return `
-      <div class="task-empty-notice-box" style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:330px; padding:20px 14px; text-align:center; box-sizing:border-box;">
+      <div class="task-empty-notice-box" style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:335px; min-height:335px; padding:20px 14px; text-align:center; box-sizing:border-box;">
         <div style="font-size:28px; margin-bottom:8px;">☕</div>
         <div style="font-size:13.5px; font-weight:700; color:var(--ink2);">該日未指派指定測驗（${selectedDate}）</div>
         <div style="font-size:12px; margin-top:4px; color:var(--ink3);">老師當日未指派指定測驗，可切換至其他日期查看紀錄</div>
@@ -1262,7 +1262,7 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
             <span class="task-card-title task-title-free">${freeTitleText}</span>
           </div>
         </div>
-        <div class="task-empty-notice-box" style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:280px; padding:20px 14px; text-align:center; box-sizing:border-box;">
+        <div class="task-empty-notice-box" style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:305px; min-height:305px; padding:20px 14px; text-align:center; box-sizing:border-box;">
           <div style="font-size:26px; margin-bottom:6px;">🎮</div>
           <div style="font-size:13.5px; font-weight:700; color:var(--ink2);">該指定日期（${selectedDate}）尚無自由練習受測紀錄</div>
           <div style="font-size:12px; margin-top:4px; color:var(--ink3);">可從上方日曆選擇器或快速按鈕切換至其他日期查看作答狀況</div>
@@ -1870,7 +1870,7 @@ export function renderSummary(d) {
       <span>📝 指定測驗作答紀錄</span>
     </div>
     <div class="task-history-card">
-      <div id="task-record-details">
+      <div id="task-record-details" style="min-height:335px;">
         ${initialTaskDetailsHtml}
       </div>
       <div class="embedded-heatmap-sec">
@@ -1888,7 +1888,7 @@ export function renderSummary(d) {
       <span>🎮 自由練習作答紀錄</span>
     </div>
     <div class="task-history-card">
-      <div id="free-record-details">
+      <div id="free-record-details" style="min-height:335px;">
         ${initialFreeDetailsHtml}
       </div>
       <div class="embedded-heatmap-sec">
