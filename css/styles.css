@@ -413,7 +413,21 @@ body.daily-limit-reached #btn-upload {
 .word-split-title.wrong-title{color:#D64545}
 .word-split-content,
 .word-split-box > div:not(.word-split-title){display:flex;flex-wrap:wrap;align-items:flex-start;align-content:flex-start;gap:5px;height:160px;min-height:160px;max-height:160px;overflow-y:auto;overscroll-behavior:contain;padding-right:4px;scrollbar-width:thin;scrollbar-color:rgba(100,116,139,0.35) transparent}
-.task-empty-notice-box{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:330px;padding:20px 14px;text-align:center;box-sizing:border-box}
+.task-empty-notice-box{display:flex;flex-direction:column;align-items:center;justify-content:center;height:284px;min-height:284px;max-height:284px;background:#F8FAFC;border:1.5px dashed #CBD5E1;border-radius:12px;margin-top:12px;padding:20px 14px;text-align:center;box-sizing:border-box;transition:background .2s,border-color .2s}
+.task-empty-notice-icon{font-size:38px;line-height:1;margin-bottom:12px;opacity:.95;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.06))}
+.task-empty-notice-title{font-size:15px;font-weight:800;color:var(--ink,#1E293B);margin-bottom:6px}
+.task-empty-notice-desc{font-size:13px;color:var(--ink2,#64748B);line-height:1.6;max-width:380px;margin-bottom:16px}
+.task-empty-notice-btn{border:none;color:#FFFFFF !important;padding:8px 18px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:transform .15s ease,box-shadow .15s ease,filter .15s ease}
+.task-empty-notice-btn:hover{transform:translateY(-1.5px);filter:brightness(1.08)}
+.task-empty-notice-btn:active{transform:translateY(0)}
+.task-empty-notice-btn.task-btn{background:linear-gradient(135deg,#4f46e5 0%,#3b82f6 100%);box-shadow:0 3px 10px rgba(79,70,229,.25)}
+.task-empty-notice-btn.free-btn{background:linear-gradient(135deg,#10b981 0%,#059669 100%);box-shadow:0 3px 10px rgba(16,185,129,.25)}
+
+.status-badge-pill{font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;display:inline-flex;align-items:center;gap:4px;transition:all .15s ease}
+.status-badge-pill.neutral{color:#475569;background:rgba(148,163,184,.15);border:1px solid rgba(148,163,184,.25)}
+.status-badge-pill.success{color:#047857;background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.25)}
+.status-badge-pill.warning{color:#B45309;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.25)}
+.status-badge-pill.danger{color:#B91C1C;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.25)}
 .word-split-content::-webkit-scrollbar,
 .word-split-box > div:not(.word-split-title)::-webkit-scrollbar{width:5px}
 .word-split-content::-webkit-scrollbar-track,
@@ -919,6 +933,45 @@ body[data-theme="dark"],
 }
 [data-theme="dark"] .word-split-box .t-empty-hint {
   color: #94A3B8 !important;
+}
+[data-theme="dark"] .task-empty-notice-box {
+  background: rgba(148, 163, 184, 0.05) !important;
+  border-color: rgba(148, 163, 184, 0.22) !important;
+}
+[data-theme="dark"] .task-empty-notice-title {
+  color: #F0F3FA !important;
+}
+[data-theme="dark"] .task-empty-notice-desc {
+  color: #94A3B8 !important;
+}
+[data-theme="dark"] .task-empty-notice-icon {
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.45)) !important;
+}
+[data-theme="dark"] .task-empty-notice-btn.task-btn {
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.45) !important;
+}
+[data-theme="dark"] .task-empty-notice-btn.free-btn {
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.45) !important;
+}
+[data-theme="dark"] .status-badge-pill.neutral {
+  color: #F1F5F9 !important;
+  background: rgba(148, 163, 184, 0.18) !important;
+  border-color: rgba(148, 163, 184, 0.35) !important;
+}
+[data-theme="dark"] .status-badge-pill.success {
+  color: #34D399 !important;
+  background: rgba(16, 185, 129, 0.18) !important;
+  border-color: rgba(52, 211, 153, 0.35) !important;
+}
+[data-theme="dark"] .status-badge-pill.warning {
+  color: #FBBF24 !important;
+  background: rgba(245, 158, 11, 0.18) !important;
+  border-color: rgba(245, 158, 11, 0.35) !important;
+}
+[data-theme="dark"] .status-badge-pill.danger {
+  color: #F87171 !important;
+  background: rgba(239, 68, 68, 0.18) !important;
+  border-color: rgba(239, 68, 68, 0.35) !important;
 }
 [data-theme="dark"] .date-nav-btn {
   background: #20263A !important;

@@ -6,7 +6,7 @@
 import { loadWordBank } from "./wordbank.js?v=20261016_2015";
 import * as store from "./store.js?v=20261017_0907";
 import { nextWord } from "./srs.js?v=20261016_2015";
-import * as ui from "./ui.js?v=20261017_1522";
+import * as ui from "./ui.js?v=20261017_1534";
 import { burst } from "./confetti.js?v=20261016_2015";
 import {
   LEVELS, levelColor, levelName, sample,

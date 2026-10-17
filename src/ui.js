@@ -1124,7 +1124,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
           <span class="task-card-title task-title-assigned">${formattedTaskName}</span>
         </div>
         <div style="display:flex; align-items:center; gap:6px;">
-          <span style="font-size:12px; font-weight:700; color:${statusColor}; background:${statusBg}; padding:3px 10px; border-radius:999px;">${displayStatusStr}</span>
+          <span class="status-badge-pill ${isFinished ? 'success' : (isIncomplete ? 'warning' : (hasLoggedInOrFree ? 'warning' : 'danger'))}">${displayStatusStr}</span>
         </div>
       </div>
 
@@ -1190,7 +1190,7 @@ function renderUntestedTaskCardHtml(info, d) {
           <span class="task-card-title task-title-assigned">${formattedTaskName}</span>
         </div>
         <div style="display:flex; align-items:center; gap:6px;">
-          <span style="font-size:12px; font-weight:700; color:${statusColor}; background:${statusBg}; padding:3px 10px; border-radius:999px;">${displayStatusStr}</span>
+          <span class="status-badge-pill ${hasLoggedInOrFree ? 'warning' : 'danger'}">${displayStatusStr}</span>
         </div>
       </div>
 
@@ -1301,17 +1301,17 @@ function buildTaskDetailsHtml(records, selectedDate, d) {
             <span class="task-card-title task-title-assigned">${unassignedTitle}</span>
           </div>
           <div style="display:flex; align-items:center; gap:6px;">
-            <span style="font-size:12px; font-weight:700; color:var(--ink3); background:rgba(148,163,184,0.15); padding:3px 10px; border-radius:999px;">⚪ 當日未指派測驗</span>
+            <span class="status-badge-pill neutral">⚪ 當日未指派測驗</span>
           </div>
         </div>
 
-        <div class="task-empty-notice-box" style="height: 284px; min-height: 284px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--bg2, #F8FAFC); border: 1.5px dashed var(--line, #CBD5E1); border-radius: 12px; margin-top: 12px; padding: 20px; text-align: center; box-sizing: border-box;">
-          <div style="font-size: 38px; line-height: 1; margin-bottom: 12px; opacity: 0.9;">☕</div>
-          <div style="font-size: 15px; font-weight: 800; color: var(--ink); margin-bottom: 6px;">本日無指定單字測驗</div>
-          <div style="font-size: 13px; color: var(--ink2); line-height: 1.5; max-width: 380px; margin-bottom: 16px;">
+        <div class="task-empty-notice-box">
+          <div class="task-empty-notice-icon">☕</div>
+          <div class="task-empty-notice-title">本日無指定單字測驗</div>
+          <div class="task-empty-notice-desc">
             老師當天未安排全班指定隨堂測驗。<br>隨時可前往單字庫進行自主練習，累積熟練度！
           </div>
-          <button type="button" onclick="const sc = document.getElementById('btn-summary-close'); if (sc) sc.click();" style="border:none; background:linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%); color:#fff; padding:8px 18px; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 3px 10px rgba(79,70,229,0.25); transition:transform 0.15s ease;">
+          <button type="button" class="task-empty-notice-btn task-btn" onclick="const sc = document.getElementById('btn-summary-close'); if (sc) sc.click();">
             🎮 前往自主練習挑戰
           </button>
         </div>
@@ -1335,17 +1335,17 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
             <span class="task-card-title task-title-free">${freeTitleText}</span>
           </div>
           <div style="display:flex; align-items:center; gap:6px;">
-            <span style="font-size:12px; font-weight:700; color:var(--ink3); background:rgba(148,163,184,0.15); padding:3px 10px; border-radius:999px;">⚪ 當日尚無練習</span>
+            <span class="status-badge-pill neutral">⚪ 當日尚無練習</span>
           </div>
         </div>
 
-        <div class="task-empty-notice-box" style="height: 284px; min-height: 284px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--bg2, #F8FAFC); border: 1.5px dashed var(--line, #CBD5E1); border-radius: 12px; margin-top: 12px; padding: 20px; text-align: center; box-sizing: border-box;">
-          <div style="font-size: 38px; line-height: 1; margin-bottom: 12px; opacity: 0.9;">🎮</div>
-          <div style="font-size: 15px; font-weight: 800; color: var(--ink); margin-bottom: 6px;">當日尚無自由練習紀錄</div>
-          <div style="font-size: 13px; color: var(--ink2); line-height: 1.5; max-width: 380px; margin-bottom: 16px;">
+        <div class="task-empty-notice-box">
+          <div class="task-empty-notice-icon">🎮</div>
+          <div class="task-empty-notice-title">當日尚無自由練習紀錄</div>
+          <div class="task-empty-notice-desc">
             尚未進行自由單字練習或複習。<br>每天動動手指挑戰 10~20 個單字，保持語感與連勝紀錄！
           </div>
-          <button type="button" onclick="const sc = document.getElementById('btn-summary-close'); if (sc) sc.click();" style="border:none; background:linear-gradient(135deg, #10b981 0%, #059669 100%); color:#fff; padding:8px 18px; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 3px 10px rgba(16,185,129,0.25); transition:transform 0.15s ease;">
+          <button type="button" class="task-empty-notice-btn free-btn" onclick="const sc = document.getElementById('btn-summary-close'); if (sc) sc.click();">
             ⚡ 馬上開始自由練習
           </button>
         </div>
@@ -1485,7 +1485,7 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
           <span class="task-card-title task-title-free">${freeTitleText}</span>
         </div>
         <div style="display:flex; align-items:center; gap:6px;">
-          <span style="font-size:12px; font-weight:700; color:#047857; background:rgba(16,185,129,0.15); padding:3px 10px; border-radius:999px;">🟢 已完成</span>
+          <span class="status-badge-pill success">🟢 已完成</span>
         </div>
       </div>
 
