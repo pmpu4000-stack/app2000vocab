@@ -1073,7 +1073,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     <div class="task-single-record-block" style="${blockStyle}">
       <div class="task-history-header">
         <div>
-          <span class="task-card-title">${formattedTaskName}</span>
+          <span class="task-card-title task-title-assigned">${formattedTaskName}</span>
         </div>
       </div>
 
@@ -1132,7 +1132,7 @@ function renderUntestedTaskCardHtml(info, d) {
     <div class="task-single-record-block">
       <div class="task-history-header">
         <div>
-          <span class="task-card-title">${formattedTaskName}</span>
+          <span class="task-card-title task-title-assigned">${formattedTaskName}</span>
         </div>
       </div>
 
@@ -1259,7 +1259,7 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
       <div>
         <div class="task-history-header">
           <div>
-            <span class="task-card-title">${freeTitleText}</span>
+            <span class="task-card-title task-title-free">${freeTitleText}</span>
           </div>
         </div>
         <div class="task-empty-notice-box" style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:280px; padding:20px 14px; text-align:center; box-sizing:border-box;">
@@ -1398,7 +1398,7 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
     <div>
       <div class="task-history-header">
         <div>
-          <span class="task-card-title">${freeTitleText}</span>
+          <span class="task-card-title task-title-free">${freeTitleText}</span>
         </div>
       </div>
 
