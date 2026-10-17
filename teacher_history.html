@@ -3245,7 +3245,7 @@
       box-shadow: none !important;
     }
 
-    /* 🎯 本週待攻克單字 Pill 標籤樣式 */
+    /* 🎯 本週待攻克單字 Pill 標籤與 5 大等級分組樣式（溫和白底/柔灰藍底，無壓力、零扣分感） */
     .word-pill-tag.conquer-pill {
       display: inline-flex !important;
       align-items: center !important;
@@ -3254,29 +3254,69 @@
       border-radius: 999px !important;
       font-size: 13px !important;
       font-weight: 700 !important;
-      background: rgba(239, 68, 68, 0.08) !important;
-      border: 1.5px solid rgba(239, 68, 68, 0.28) !important;
-      color: #DC2626 !important;
+      background: #FFFFFF !important;
+      border: 1.5px solid #CBD5E1 !important;
+      color: #334155 !important;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
       cursor: pointer !important;
       user-select: none !important;
       transition: all .16s ease !important;
     }
     .word-pill-tag.conquer-pill:hover {
-      background: rgba(239, 68, 68, 0.16) !important;
-      border-color: #EF4444 !important;
+      background: #F8FAFC !important;
+      border-color: #94A3B8 !important;
+      color: #0F172A !important;
       transform: translateY(-1.5px) !important;
-      box-shadow: 0 3px 8px rgba(239, 68, 68, 0.18) !important;
+      box-shadow: 0 3px 8px rgba(15, 23, 42, 0.08) !important;
     }
     [data-theme="dark"] .word-pill-tag.conquer-pill {
-      background: rgba(239, 68, 68, 0.16) !important;
-      border-color: rgba(248, 113, 113, 0.42) !important;
-      color: #FCA5A5 !important;
+      background: rgba(255, 255, 255, 0.08) !important;
+      border-color: rgba(226, 232, 240, 0.28) !important;
+      color: #F8FAFC !important;
+      box-shadow: none !important;
     }
     [data-theme="dark"] .word-pill-tag.conquer-pill:hover {
-      background: rgba(239, 68, 68, 0.28) !important;
-      border-color: #F87171 !important;
+      background: rgba(255, 255, 255, 0.16) !important;
+      border-color: rgba(248, 250, 252, 0.55) !important;
       color: #FFFFFF !important;
-      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35) !important;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.35) !important;
+    }
+    .conquer-level-groups {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 8px !important;
+    }
+    .conquer-level-row {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 6px !important;
+      padding: 9px 12px !important;
+      border-radius: 10px !important;
+      background: rgba(248, 250, 252, 0.85) !important;
+      border: 1px solid #E2E8F0 !important;
+    }
+    [data-theme="dark"] .conquer-level-row {
+      background: rgba(255, 255, 255, 0.03) !important;
+      border-color: rgba(148, 163, 184, 0.18) !important;
+    }
+    .conquer-level-head {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      font-size: 12.5px !important;
+      font-weight: 750 !important;
+      color: var(--ink) !important;
+    }
+    [data-theme="dark"] .conquer-level-head {
+      color: #F0F3FA !important;
+    }
+    .conquer-level-count {
+      font-size: 11.5px !important;
+      font-weight: 700 !important;
+      color: var(--ink3) !important;
+    }
+    [data-theme="dark"] .conquer-level-count {
+      color: #94A3B8 !important;
     }
 
     .task-history-header {
@@ -15690,8 +15730,8 @@ function renderStudentDailyTaskAndFreeSections(resp) {
     if (conquerBadge) {
       conquerBadge.textContent = count > 0 ? `待攻克 ${count} 字` : '已全數掌握 ✨';
       conquerBadge.style.cssText = count > 0
-        ? 'margin-left:auto; font-size:11.5px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(239,68,68,0.12); color:#DC2626; border:1px solid rgba(239,68,68,0.25);'
-        : 'margin-left:auto; font-size:11.5px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(30,154,102,0.12); color:#1E9A66; border:1px solid rgba(30,154,102,0.25);';
+        ? 'margin-left:auto; font-size:11.5px; font-weight:700; padding:2px 10px; border-radius:999px; background:rgba(255,255,255,0.12); color:var(--ink); border:1px solid rgba(148,163,184,0.38);'
+        : 'margin-left:auto; font-size:11.5px; font-weight:700; padding:2px 10px; border-radius:999px; background:rgba(30,154,102,0.12); color:#1E9A66; border:1px solid rgba(30,154,102,0.25);';
     }
 
     if (count === 0) {
@@ -15706,19 +15746,52 @@ function renderStudentDailyTaskAndFreeSections(resp) {
         </div>
       `;
     } else {
-      const pills = pendingWords.map(w => `
-        <span class="word-pill-tag conquer-pill" data-word="${w}" title="點擊聆聽發音">${w}</span>
-      `).join("");
+      if (!window._wordBankLevelMap && typeof WORD_BANK_2000 !== "undefined" && Array.isArray(WORD_BANK_2000)) {
+        window._wordBankLevelMap = new Map();
+        for (let i = 0; i < WORD_BANK_2000.length; i++) {
+          window._wordBankLevelMap.set(String(WORD_BANK_2000[i][0]).toLowerCase(), WORD_BANK_2000[i][2]);
+        }
+      }
+      const bMap = window._wordBankLevelMap || null;
+      const byLv = { 1: [], 2: [], 3: [], 4: [], 5: [] };
+      pendingWords.forEach(w => {
+        const cleanW = String(w || "").trim().toLowerCase();
+        const lv = (bMap && bMap.has(cleanW)) ? bMap.get(cleanW) : 1;
+        const targetLv = (lv >= 1 && lv <= 5) ? lv : 1;
+        byLv[targetLv].push(cleanW);
+      });
+
+      const lvNames  = ["入門", "基礎", "進階", "挑戰", "精熟"];
+      const lvColors = ["#2FB47C", "#2D9CDB", "#6C4CE0", "#E8892B", "#E0567B"];
+      const levelSectionsHtml = [1, 2, 3, 4, 5].map(lv => {
+        const list = byLv[lv] || [];
+        const lvDotColor = lvColors[lv - 1];
+        const lvTitle = `Level ${lv}「${lvNames[lv - 1]}」`;
+        const pillsOrEmpty = list.length > 0
+          ? `<div class="conquer-word-list" style="display:flex; flex-wrap:wrap; gap:8px; padding:2px 0;">${list.map(w => `<span class="word-pill-tag conquer-pill" data-word="${w}" onclick="event.stopPropagation(); speakMasteredWord('${w.replace(/'/g, "\\'")}')" title="點擊聆聽發音">${w}</span>`).join("")}</div>`
+          : `<div style="font-size:12px; color:var(--ink3); font-style:italic; padding:1px 0;">（本關卡目前無待攻克單字）</div>`;
+
+        return `
+          <div class="conquer-level-row">
+            <div class="conquer-level-head">
+              <span><span style="color:${lvDotColor}; margin-right:5px;">●</span>${lvTitle}</span>
+              <span class="conquer-level-count">${list.length} 字</span>
+            </div>
+            ${pillsOrEmpty}
+          </div>
+        `;
+      }).join("");
+
       conquerDetailsContainer.innerHTML = `
         <div class="week-conquer-wrap" style="display:flex; flex-direction:column; gap:10px;">
-          <div class="week-conquer-tip" style="display:flex; align-items:flex-start; gap:8px; padding:10px 14px; background:rgba(239, 68, 68, 0.06); border:1px solid rgba(239, 68, 68, 0.2); border-radius:10px; font-size:12.5px; line-height:1.55; color:var(--ink2);">
+          <div class="week-conquer-tip" style="display:flex; align-items:flex-start; gap:8px; padding:10px 14px; background:rgba(148, 163, 184, 0.1); border:1px solid rgba(148, 163, 184, 0.28); border-radius:10px; font-size:12.5px; line-height:1.55; color:var(--ink2);">
             <span style="font-size:15px; flex-shrink:0;">💡</span>
             <div>
               本週累積 <b>${count}</b> 個待攻克單字。在<b>自由練習</b>中只要拼對該單字，系統即判定為已學會並自動移除，<b>不滾入週末錯題消滅戰測驗</b>！
             </div>
           </div>
-          <div class="conquer-word-list" style="display:flex; flex-wrap:wrap; gap:8px; padding:4px 0;">
-            ${pills}
+          <div class="conquer-level-groups">
+            ${levelSectionsHtml}
           </div>
         </div>
       `;

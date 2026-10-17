@@ -1779,7 +1779,42 @@ export function getWeekPendingConquerWords() {
   return Array.from(unfinishedWords).sort();
 }
 
-export function buildWeekPendingConquerHtml(words) {
+let _lastSummaryWords = null;
+function _resolveConquerWordLevel(wordStr, d) {
+  const clean = String(wordStr || "").trim().toLowerCase();
+  if (!clean) return 1;
+  const wordsRef = (d && d.words) ? d.words : _lastSummaryWords;
+  if (wordsRef) {
+    if (wordsRef._byWord && wordsRef._byWord.has(clean)) {
+      return wordsRef._byWord.get(clean).level || 1;
+    }
+    if (Array.isArray(wordsRef)) {
+      const found = wordsRef.find(x => x && x.word === clean);
+      if (found && found.level) return found.level;
+    }
+  }
+  if (typeof window !== "undefined") {
+    if (window.__WORDS && window.__WORDS._byWord && window.__WORDS._byWord.has(clean)) {
+      return window.__WORDS._byWord.get(clean).level || 1;
+    }
+    if (Array.isArray(window.__WORDS)) {
+      const found = window.__WORDS.find(x => x && x.word === clean);
+      if (found && found.level) return found.level;
+    }
+    if (!window._wordBankLevelMap && Array.isArray(window.WORD_BANK_2000)) {
+      window._wordBankLevelMap = new Map();
+      for (let i = 0; i < window.WORD_BANK_2000.length; i++) {
+        window._wordBankLevelMap.set(String(window.WORD_BANK_2000[i][0]).toLowerCase(), window.WORD_BANK_2000[i][2]);
+      }
+    }
+    if (window._wordBankLevelMap && window._wordBankLevelMap.has(clean)) {
+      return window._wordBankLevelMap.get(clean) || 1;
+    }
+  }
+  return 1;
+}
+
+export function buildWeekPendingConquerHtml(words, d = null) {
   const pendingWords = Array.isArray(words) ? words : getWeekPendingConquerWords();
   const count = pendingWords.length;
 
@@ -1796,20 +1831,43 @@ export function buildWeekPendingConquerHtml(words) {
     `;
   }
 
-  const pillsHtml = pendingWords.map(w => `
-    <span class="word-pill-tag conquer-pill" data-word="${w}" title="點擊聆聽發音">${w}</span>
-  `).join("");
+  // 依五個等級 (Level 1 ~ 5) 分類待攻克單字
+  const byLv = { 1: [], 2: [], 3: [], 4: [], 5: [] };
+  pendingWords.forEach(w => {
+    const lv = _resolveConquerWordLevel(w, d);
+    const targetLv = (lv >= 1 && lv <= 5) ? lv : 1;
+    byLv[targetLv].push(w);
+  });
+
+  const levelSectionsHtml = [1, 2, 3, 4, 5].map(lv => {
+    const list = byLv[lv] || [];
+    const lvDotColor = levelColor(lv);
+    const lvTitle = `Level ${lv}「${levelName(lv)}」`;
+    const pillsOrEmpty = list.length > 0
+      ? `<div class="conquer-word-list" style="display:flex; flex-wrap:wrap; gap:8px; padding:2px 0;">${list.map(w => `<span class="word-pill-tag conquer-pill" data-word="${w}" title="點擊聆聽發音">${w}</span>`).join("")}</div>`
+      : `<div style="font-size:12px; color:var(--ink3); font-style:italic; padding:1px 0;">（本關卡目前無待攻克單字）</div>`;
+
+    return `
+      <div class="conquer-level-row">
+        <div class="conquer-level-head">
+          <span><span style="color:${lvDotColor}; margin-right:5px;">●</span>${lvTitle}</span>
+          <span class="conquer-level-count">${list.length} 字</span>
+        </div>
+        ${pillsOrEmpty}
+      </div>
+    `;
+  }).join("");
 
   return `
     <div class="week-conquer-wrap" style="display:flex; flex-direction:column; gap:10px;">
-      <div class="week-conquer-tip" style="display:flex; align-items:flex-start; gap:8px; padding:10px 14px; background:rgba(239, 68, 68, 0.06); border:1px solid rgba(239, 68, 68, 0.2); border-radius:10px; font-size:12.5px; line-height:1.55; color:var(--ink2);">
+      <div class="week-conquer-tip" style="display:flex; align-items:flex-start; gap:8px; padding:10px 14px; background:rgba(148, 163, 184, 0.1); border:1px solid rgba(148, 163, 184, 0.28); border-radius:10px; font-size:12.5px; line-height:1.55; color:var(--ink2);">
         <span style="font-size:15px; flex-shrink:0;">💡</span>
         <div>
           本週累積 <b>${count}</b> 個待攻克單字。在<b>自由練習</b>中只要拼對該單字，系統即判定為已學會並自動移除，<b>不滾入週末錯題消滅戰測驗</b>！
         </div>
       </div>
-      <div class="conquer-word-list" style="display:flex; flex-wrap:wrap; gap:8px; padding:4px 0;">
-        ${pillsHtml}
+      <div class="conquer-level-groups">
+        ${levelSectionsHtml}
       </div>
     </div>
   `;
@@ -1824,8 +1882,8 @@ export function updateWeekConquerSection() {
   if (badgeEl) {
     badgeEl.textContent = count > 0 ? `待攻克 ${count} 字` : '已全數掌握 ✨';
     badgeEl.style.cssText = count > 0 
-      ? 'margin-left:auto; font-size:11.5px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(239,68,68,0.12); color:#DC2626; border:1px solid rgba(239,68,68,0.25);'
-      : 'margin-left:auto; font-size:11.5px; font-weight:700; padding:2px 8px; border-radius:999px; background:rgba(30,154,102,0.12); color:#1E9A66; border:1px solid rgba(30,154,102,0.25);';
+      ? 'margin-left:auto; font-size:11.5px; font-weight:700; padding:2px 10px; border-radius:999px; background:rgba(255,255,255,0.12); color:var(--ink); border:1px solid rgba(148,163,184,0.38);'
+      : 'margin-left:auto; font-size:11.5px; font-weight:700; padding:2px 10px; border-radius:999px; background:rgba(30,154,102,0.12); color:#1E9A66; border:1px solid rgba(30,154,102,0.25);';
   }
   detailsEl.innerHTML = buildWeekPendingConquerHtml(words);
 }
@@ -1834,6 +1892,7 @@ export function updateWeekConquerSection() {
 let _activeRecordSelectedDate = "";
 export function summaryHidden() { return el.summary.hidden; }
 export function renderSummary(d) {
+  if (d && d.words) _lastSummaryWords = d.words;
   clearResolveWordsCache();
   const lvRows = d.levels
     .map((L) => {
@@ -2098,7 +2157,7 @@ export function renderSummary(d) {
 
   const pendingConquerWords = getWeekPendingConquerWords();
   const conquerCount = pendingConquerWords.length;
-  const initialConquerHtml = buildWeekPendingConquerHtml(pendingConquerWords);
+  const initialConquerHtml = buildWeekPendingConquerHtml(pendingConquerWords, d);
 
   el.summary.innerHTML = `
     <div class="bigrate" style="margin-top:2px;">
@@ -2213,7 +2272,7 @@ export function renderSummary(d) {
     <!-- 子標題 3：本週待攻克單字 -->
     <div class="subh-child" style="margin-top:16px;">
       <span>🎯 本週待攻克單字</span>
-      <span id="week-conquer-badge" class="badge-count" style="margin-left:auto; font-size:11.5px; font-weight:700; padding:2px 8px; border-radius:999px; ${conquerCount > 0 ? 'background:rgba(239,68,68,0.12); color:#DC2626; border:1px solid rgba(239,68,68,0.25);' : 'background:rgba(30,154,102,0.12); color:#1E9A66; border:1px solid rgba(30,154,102,0.25);'}">
+      <span id="week-conquer-badge" class="badge-count" style="margin-left:auto; font-size:11.5px; font-weight:700; padding:2px 10px; border-radius:999px; ${conquerCount > 0 ? 'background:rgba(255,255,255,0.12); color:var(--ink); border:1px solid rgba(148,163,184,0.38);' : 'background:rgba(30,154,102,0.12); color:#1E9A66; border:1px solid rgba(30,154,102,0.25);'}">
         ${conquerCount > 0 ? `待攻克 ${conquerCount} 字` : '已全數掌握 ✨'}
       </span>
     </div>
