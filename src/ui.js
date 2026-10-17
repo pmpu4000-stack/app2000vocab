@@ -1746,7 +1746,7 @@ export function renderSummary(d) {
     const resolvedCorr = resolved.correctList || [];
     const resolvedWrong = resolved.wrongList || [];
     const resolvedAnsCount = resolvedCorr.length + resolvedWrong.length;
-    taskWordsCount = resolvedRaw.length || (Array.isArray(tRec.words) && tRec.words.length) || tAtt || 5;
+    const taskWordsCount = resolvedRaw.length || (Array.isArray(tRec.words) && tRec.words.length) || tAtt || 5;
 
     const isUnfinishedAttempt = (taskWordsCount > 0 && resolvedAnsCount < taskWordsCount && resolvedWrong.length === 0);
 
