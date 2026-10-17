@@ -2159,14 +2159,10 @@ export function renderSummary(d) {
     };
   }
 
-  // 綁定快速跳轉下拉選單
+  // 綁定快速跳轉下拉選單 (標準原生 onchange 事件)
   const quickSelect = $("#record-quick-dates");
   if (quickSelect) {
     quickSelect.onchange = (e) => switchRecordDate(e.target.value);
-    quickSelect.oninput = (e) => switchRecordDate(e.target.value);
-    // 阻擋點擊事件冒泡至外層容器，避免外層事件監聽器干擾原生下拉選單展開
-    quickSelect.onclick = (e) => { e.stopPropagation(); };
-    quickSelect.onmousedown = (e) => { e.stopPropagation(); };
   }
 
   const sumCloseEl = document.getElementById("sumClose");

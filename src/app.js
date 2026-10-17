@@ -6,7 +6,7 @@
 import { loadWordBank } from "./wordbank.js?v=20261016_2015";
 import * as store from "./store.js?v=20261017_0907";
 import { nextWord } from "./srs.js?v=20261016_2015";
-import * as ui from "./ui.js?v=20261017_1005";
+import * as ui from "./ui.js?v=20261017_1420";
 import { burst } from "./confetti.js?v=20261016_2015";
 import {
   LEVELS, levelColor, levelName, sample,
@@ -222,7 +222,8 @@ function refreshChrome() {
   if (typeof ui.initExportRecordsCard === "function") {
     ui.initExportRecordsCard(() => store.summary(WORDS));
   }
-  if (!ui.summaryHidden()) ui.renderSummary(store.summary(WORDS));
+  const isLocked = (typeof window !== "undefined") && (window.__dailyUsageTimeIsUp || (window.dailyUsageState && window.dailyUsageState.isLockedDown) || document.body.classList.contains("daily-limit-reached"));
+  if (!isLocked && !ui.summaryHidden()) ui.renderSummary(store.summary(WORDS));
 
   // ⚠️ 今日指定測驗進行中或待開始：強制隱藏模式列、關卡列與等級挑戰橫幅
   if (taskState.active || taskState.pending) {
