@@ -1402,7 +1402,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
         rightTitleText = `❌ 待加強單字 (${missedCount} 字)`;
         wrongContentHtml = `
           <div style="display:flex; flex-direction:column; gap:4px; padding:6px 8px; font-size:12.5px; line-height:1.55; color:var(--ink2);">
-            <div>⚠️ 本次測驗施測 <b>${taskTotWords}</b> 字，答對 <b>${taskCorrWords}</b> 字，尚有 <b style="color:#ef4444;">${missedCount}</b> 字未掌握。</div>
+            <div>⚠️ 本次測驗施測 <b>${taskTotWords}</b> 字，答對 <b>${taskCorrWords}</b> 字，尚有 <b style="color:var(--ink, #475569); font-weight:800;">${missedCount}</b> 字未掌握。</div>
             <div style="font-size:11.5px; color:var(--ink3);">📌 提醒：未掌握之單字已自動排入週末弱點補強測驗。</div>
           </div>
         `;

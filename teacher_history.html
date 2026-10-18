@@ -3417,8 +3417,8 @@
       font-weight: 800 !important;
     }
     .word-split-box.wrong-box {
-      background: #FFF5F5 !important;
-      border: 1px solid rgba(255, 107, 107, 0.3) !important;
+      background: #F8FAFC !important;
+      border: 1px solid #CBD5E1 !important;
     }
     [data-theme="dark"] .word-split-box.correct-box {
       background: rgba(14, 165, 233, 0.12) !important;
@@ -3433,8 +3433,8 @@
       border-color: rgba(56, 189, 248, 0.45) !important;
     }
     [data-theme="dark"] .word-split-box.wrong-box {
-      background: rgba(255, 107, 107, 0.12) !important;
-      border-color: rgba(255, 107, 107, 0.35) !important;
+      background: rgba(148, 163, 184, 0.08) !important;
+      border-color: rgba(148, 163, 184, 0.28) !important;
     }
     .word-split-title {
       font-size: 13px !important;
@@ -3445,9 +3445,9 @@
       gap: 6px !important;
     }
     .word-split-title.correct-title { color: #065F46 !important; }
-    .word-split-title.wrong-title { color: #D64545 !important; }
+    .word-split-title.wrong-title { color: #475569 !important; }
     [data-theme="dark"] .word-split-title.correct-title { color: #38C78B !important; }
-    [data-theme="dark"] .word-split-title.wrong-title { color: #FF8E8E !important; }
+    [data-theme="dark"] .word-split-title.wrong-title { color: #94A3B8 !important; }
 
     .word-split-content,
     .word-split-box > div:not(.word-split-title) {
@@ -3588,9 +3588,9 @@
       font-weight: 800 !important;
     }
     .word-pill-tag.wrong {
-      background: #FFE9E9 !important;
-      color: #D64545 !important;
-      border: 1.5px solid rgba(255, 107, 107, 0.5) !important;
+      background: #F1F5F9 !important;
+      color: #334155 !important;
+      border: 1.5px solid #CBD5E1 !important;
       font-weight: 700 !important;
     }
     .word-pill-tag.neutral {
@@ -3609,9 +3609,9 @@
       border-color: rgba(245, 158, 11, 0.45) !important;
     }
     [data-theme="dark"] .word-pill-tag.wrong {
-      background: rgba(255, 107, 107, 0.22) !important;
-      color: #FCA5A5 !important;
-      border-color: rgba(255, 107, 107, 0.45) !important;
+      background: rgba(148, 163, 184, 0.16) !important;
+      color: #E2E8F0 !important;
+      border-color: rgba(148, 163, 184, 0.38) !important;
     }
 
     .diag-bubble-tag {
@@ -3621,15 +3621,15 @@
       font-size: 9.5px;
       font-weight: 800;
       margin-left: 3px;
-      background: rgba(239, 68, 68, 0.12);
-      color: #dc2626;
-      border: 1px solid rgba(239, 68, 68, 0.25);
+      background: #E2E8F0;
+      color: #475569;
+      border: 1px solid #CBD5E1;
       vertical-align: middle;
     }
     [data-theme="dark"] .diag-bubble-tag {
-      background: rgba(239, 68, 68, 0.2);
-      color: #f87171;
-      border-color: rgba(239, 68, 68, 0.4);
+      background: rgba(148, 163, 184, 0.22);
+      color: #CBD5E1;
+      border-color: rgba(148, 163, 184, 0.45);
     }
     .streak-freeze-badge {
       display: inline-flex;
@@ -15116,7 +15116,7 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
         rightTitleText = `❌ 待加強單字 (${missedCount} 字)`;
         wrongContentHtml = `
           <div style="display:flex; flex-direction:column; gap:4px; padding:6px 8px; font-size:12.5px; line-height:1.55; color:var(--ink2);">
-            <div>⚠️ 本次測驗施測 <b>${taskTotWords}</b> 字，答對 <b>${taskCorrWords}</b> 字，尚有 <b style="color:#ef4444;">${missedCount}</b> 字未掌握。</div>
+            <div>⚠️ 本次測驗施測 <b>${taskTotWords}</b> 字，答對 <b>${taskCorrWords}</b> 字，尚有 <b style="color:var(--ink, #475569); font-weight:800;">${missedCount}</b> 字未掌握。</div>
             <div style="font-size:11.5px; color:var(--ink3);">📌 提醒：未掌握之單字已自動排入週末弱點補強測驗。</div>
           </div>
         `;
