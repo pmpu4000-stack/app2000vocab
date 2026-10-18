@@ -438,6 +438,21 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 [data-theme="dark"] .heat-day-info.tier-green-perfect b,
 [data-theme="dark"] .heat-day-info.tier-blue-perfect b { color: #E0F2FE !important; }
 
+/* 比照熱力圖邏輯：數值純藍階層 (低溫灰藍 -> 頂溫電光蔚藍) */
+.heat-rate-val.tier-6 { color: #0066FF !important; }
+.heat-rate-val.tier-5 { color: #0284C7 !important; }
+.heat-rate-val.tier-4 { color: #0284C7 !important; }
+.heat-rate-val.tier-3 { color: #0EA5E9 !important; }
+.heat-rate-val.tier-2 { color: #38BDF8 !important; }
+.heat-rate-val.tier-1 { color: #64748B !important; }
+
+[data-theme="dark"] .heat-rate-val.tier-6 { color: #00D2FF !important; text-shadow: 0 0 10px rgba(0,210,255,0.4); }
+[data-theme="dark"] .heat-rate-val.tier-5 { color: #38BDF8 !important; }
+[data-theme="dark"] .heat-rate-val.tier-4 { color: #38BDF8 !important; }
+[data-theme="dark"] .heat-rate-val.tier-3 { color: #7DD3FC !important; }
+[data-theme="dark"] .heat-rate-val.tier-2 { color: #93C5FD !important; }
+[data-theme="dark"] .heat-rate-val.tier-1 { color: #94A3B8 !important; }
+
 /* 指定測驗 3 大特殊狀態方格 (登入未受測=金黃色, 缺席未受測=純警戒紅, 登入作答未完成=莫蘭迪柔紫) */
 .hc.h-status-pink,
 .hc.h-status-yellow,

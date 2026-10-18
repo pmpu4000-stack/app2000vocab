@@ -1502,7 +1502,22 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
       </div>
     `;
   } else if (hasUnanswered) {
-    const scoreColor = overallScoreRate >= 80 ? '#16a34a' : (overallScoreRate >= 60 ? '#ca8a04' : '#ea580c');
+    const getHeatmapRateClass = (r) => {
+      const n = (typeof r === 'number') ? r : (parseInt(r, 10) || 0);
+      if (n >= 100) return 'tier-6';
+      if (n >= 90) return 'tier-5';
+      if (n >= 80) return 'tier-4';
+      if (n >= 70) return 'tier-3';
+      if (n >= 60) return 'tier-2';
+      return 'tier-1';
+    };
+    const getHeatmapRateColor = (r) => {
+      const n = (typeof r === 'number') ? r : (parseInt(r, 10) || 0);
+      if (n >= 100) return '#00D2FF';
+      if (n >= 80) return '#38BDF8';
+      if (n >= 60) return '#7DD3FC';
+      return '#94A3B8';
+    };
     scoreGridHtml = `
       <div class="task-score-grid">
         <div class="task-score-subgrid">
@@ -1520,27 +1535,27 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
           </div>
           <div class="task-score-item" style="display:flex; flex-direction:column; justify-content:center; padding:10px 4px;">
             <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap; font-size:11px;" title="答錯單字 / 未作答單字">
-              <span style="flex:1; text-align:right; color:#ef4444;">答錯</span>
+              <span style="flex:1; text-align:right; color:var(--ink2);">答錯</span>
               <span style="padding:0 2px; opacity:0.6;">/</span>
-              <span style="flex:1; text-align:left; color:#ea580c;">未作答</span>
+              <span style="flex:1; text-align:left; color:var(--ink2);">未作答</span>
             </div>
             <div class="task-score-val" style="display:flex; align-items:center; justify-content:center;">
-              <span style="flex:1; text-align:right; color:#ef4444;">${actualWrong}</span>
+              <span style="flex:1; text-align:right; color:${actualWrong > 0 ? '#ef4444' : 'var(--ink3)'};">${actualWrong}</span>
               <span style="padding:0 4px; font-weight:700; color:var(--ink3); opacity:0.6; font-size:18px;">/</span>
-              <span style="flex:1; text-align:left; color:#ea580c;">${actualUnanswered}</span>
+              <span style="flex:1; text-align:left; color:${actualUnanswered > 0 ? '#ea580c' : 'var(--ink3)'};">${actualUnanswered}</span>
             </div>
           </div>
         </div>
         <div class="task-score-subgrid">
           <div class="task-score-item" style="display:flex; flex-direction:column; justify-content:center; padding:10px 4px;">
             <div class="task-score-label" style="font-size:11px;" title="實際有作答題目的答對率">作答正確率</div>
-            <div class="task-score-val" style="color:${actualAnswered > 0 ? '#16a34a' : 'var(--ink3)'}; font-size:22px; font-weight:800; line-height:1.2;">
+            <div class="task-score-val heat-rate-val ${getHeatmapRateClass(attemptedRate)}" style="color:${actualAnswered > 0 ? getHeatmapRateColor(attemptedRate) : 'var(--ink3)'}; font-size:22px; font-weight:800; line-height:1.2;">
               ${actualAnswered > 0 ? attemptedRate + '%' : '—'}
             </div>
           </div>
           <div class="task-score-item" style="display:flex; flex-direction:column; justify-content:center; padding:10px 4px;">
             <div class="task-score-label" style="font-size:11px;" title="以全卷應測總單字數為分母計算之正確率">全卷正確率</div>
-            <div class="task-score-val" style="color:${scoreColor}; font-size:22px; font-weight:800; line-height:1.2;">
+            <div class="task-score-val heat-rate-val ${getHeatmapRateClass(overallScoreRate)}" style="color:${getHeatmapRateColor(overallScoreRate)}; font-size:22px; font-weight:800; line-height:1.2;">
               ${overallScoreRate}%
             </div>
           </div>
@@ -1548,7 +1563,22 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
       </div>
     `;
   } else {
-    const rateColor = taskRate >= 100 ? "#059669" : (taskRate >= 80 ? "#16a34a" : (taskRate >= 60 ? "#ca8a04" : "#ea580c"));
+    const getHeatmapRateClass = (r) => {
+      const n = (typeof r === 'number') ? r : (parseInt(r, 10) || 0);
+      if (n >= 100) return 'tier-6';
+      if (n >= 90) return 'tier-5';
+      if (n >= 80) return 'tier-4';
+      if (n >= 70) return 'tier-3';
+      if (n >= 60) return 'tier-2';
+      return 'tier-1';
+    };
+    const getHeatmapRateColor = (r) => {
+      const n = (typeof r === 'number') ? r : (parseInt(r, 10) || 0);
+      if (n >= 100) return '#00D2FF';
+      if (n >= 80) return '#38BDF8';
+      if (n >= 60) return '#7DD3FC';
+      return '#94A3B8';
+    };
     scoreGridHtml = `
       <div class="task-score-grid">
         <div class="task-score-item">
@@ -1565,7 +1595,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
         </div>
         <div class="task-score-item">
           <div class="task-score-label">正確率</div>
-          <div class="task-score-val" style="color:${rateColor}; font-size:22px; font-weight:800;">${taskRate}%</div>
+          <div class="task-score-val heat-rate-val ${getHeatmapRateClass(taskRate)}" style="color:${getHeatmapRateColor(taskRate)}; font-size:22px; font-weight:800;">${taskRate}%</div>
         </div>
       </div>
     `;

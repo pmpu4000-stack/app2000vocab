@@ -3429,6 +3429,21 @@
       line-height: 1.2 !important;
     }
 
+    /* 比照熱力圖邏輯：數值純藍階層 (低溫灰藍 -> 頂溫電光蔚藍) */
+    .heat-rate-val.tier-6 { color: #0066FF !important; }
+    .heat-rate-val.tier-5 { color: #0284C7 !important; }
+    .heat-rate-val.tier-4 { color: #0284C7 !important; }
+    .heat-rate-val.tier-3 { color: #0EA5E9 !important; }
+    .heat-rate-val.tier-2 { color: #38BDF8 !important; }
+    .heat-rate-val.tier-1 { color: #64748B !important; }
+
+    [data-theme="dark"] .heat-rate-val.tier-6 { color: #00D2FF !important; text-shadow: 0 0 10px rgba(0,210,255,0.4); }
+    [data-theme="dark"] .heat-rate-val.tier-5 { color: #38BDF8 !important; }
+    [data-theme="dark"] .heat-rate-val.tier-4 { color: #38BDF8 !important; }
+    [data-theme="dark"] .heat-rate-val.tier-3 { color: #7DD3FC !important; }
+    [data-theme="dark"] .heat-rate-val.tier-2 { color: #93C5FD !important; }
+    [data-theme="dark"] .heat-rate-val.tier-1 { color: #94A3B8 !important; }
+
     /* 答對/答錯單字雙欄盒與單字膠囊 */
     .word-split-grid {
       display: grid !important;
@@ -15336,27 +15351,27 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
           </div>
           <div class="task-score-item" style="display:flex; flex-direction:column; justify-content:center; padding:10px 4px;">
             <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap; font-size:11px;" title="答錯單字 / 未作答單字">
-              <span style="flex:1; text-align:right; color:#ef4444;">答錯</span>
+              <span style="flex:1; text-align:right; color:var(--ink2);">答錯</span>
               <span style="padding:0 2px; opacity:0.6;">/</span>
-              <span style="flex:1; text-align:left; color:#ea580c;">未作答</span>
+              <span style="flex:1; text-align:left; color:var(--ink2);">未作答</span>
             </div>
             <div class="task-score-val" style="display:flex; align-items:center; justify-content:center;">
-              <span style="flex:1; text-align:right; color:#ef4444;">${actualWrong}</span>
+              <span style="flex:1; text-align:right; color:${actualWrong > 0 ? '#ef4444' : 'var(--ink3)'};">${actualWrong}</span>
               <span style="padding:0 4px; font-weight:700; color:var(--ink3); opacity:0.6; font-size:18px;">/</span>
-              <span style="flex:1; text-align:left; color:#ea580c;">${actualUnanswered}</span>
+              <span style="flex:1; text-align:left; color:${actualUnanswered > 0 ? '#ea580c' : 'var(--ink3)'};">${actualUnanswered}</span>
             </div>
           </div>
         </div>
         <div class="task-score-subgrid">
           <div class="task-score-item" style="display:flex; flex-direction:column; justify-content:center; padding:10px 4px;">
             <div class="task-score-label" style="font-size:11px;" title="實際有作答題目的答對率">作答正確率</div>
-            <div class="task-score-val" style="color:${actualAnswered > 0 ? '#16a34a' : 'var(--ink3)'}; font-size:22px; font-weight:800; line-height:1.2;">
+            <div class="task-score-val heat-rate-val ${attemptedRate >= 100 ? 'tier-6' : (attemptedRate >= 90 ? 'tier-5' : (attemptedRate >= 80 ? 'tier-4' : (attemptedRate >= 70 ? 'tier-3' : (attemptedRate >= 60 ? 'tier-2' : 'tier-1'))))}" style="color:${actualAnswered > 0 ? (attemptedRate >= 100 ? '#00D2FF' : (attemptedRate >= 80 ? '#38BDF8' : (attemptedRate >= 60 ? '#7DD3FC' : '#94A3B8'))) : 'var(--ink3)'}; font-size:22px; font-weight:800; line-height:1.2;">
               ${actualAnswered > 0 ? attemptedRate + '%' : '—'}
             </div>
           </div>
           <div class="task-score-item" style="display:flex; flex-direction:column; justify-content:center; padding:10px 4px;">
             <div class="task-score-label" style="font-size:11px;" title="以全卷應測總單字數為分母計算之正確率">全卷正確率</div>
-            <div class="task-score-val" style="color:${overallScoreRate >= 80 ? '#16a34a' : (overallScoreRate >= 60 ? '#ca8a04' : '#ea580c')}; font-size:22px; font-weight:800; line-height:1.2;">
+            <div class="task-score-val heat-rate-val ${overallScoreRate >= 100 ? 'tier-6' : (overallScoreRate >= 90 ? 'tier-5' : (overallScoreRate >= 80 ? 'tier-4' : (overallScoreRate >= 70 ? 'tier-3' : (overallScoreRate >= 60 ? 'tier-2' : 'tier-1'))))}" style="color:${overallScoreRate >= 100 ? '#00D2FF' : (overallScoreRate >= 80 ? '#38BDF8' : (overallScoreRate >= 60 ? '#7DD3FC' : '#94A3B8'))}; font-size:22px; font-weight:800; line-height:1.2;">
               ${overallScoreRate}%
             </div>
           </div>
@@ -15378,7 +15393,7 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
         </div>
         <div class="task-score-item">
           <div class="task-score-label">正確率</div>
-          <div class="task-score-val" style="color:${taskRate >= 80 ? '#16a34a' : (taskRate >= 60 ? '#ca8a04' : '#ea580c')}; font-size:22px; font-weight:800;">
+          <div class="task-score-val heat-rate-val ${taskRate >= 100 ? 'tier-6' : (taskRate >= 90 ? 'tier-5' : (taskRate >= 80 ? 'tier-4' : (taskRate >= 70 ? 'tier-3' : (taskRate >= 60 ? 'tier-2' : 'tier-1'))))}" style="color:${taskRate >= 100 ? '#00D2FF' : (taskRate >= 80 ? '#38BDF8' : (taskRate >= 60 ? '#7DD3FC' : '#94A3B8'))}; font-size:22px; font-weight:800;">
             ${taskRate}%
           </div>
         </div>
