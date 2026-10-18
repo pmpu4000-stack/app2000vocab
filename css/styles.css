@@ -328,87 +328,87 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 [data-theme="dark"] .hc{background:#1E293B;border-color:#334155}
 [data-theme="dark"] .hc.hc-active{outline:2.5px solid #34D399;outline-offset:1px}
 /* 熱力圖專屬：純綠色系六階層（指定測驗與自由練習共用，依正確率：<60% / 60-69% / 70-79% / 80-89% / 90-99% / 100%） */
-/* 熱力圖專屬：純藍色系六階層（指定測驗與自由練習共用，依正確率越淡到越鮮豔：<60% / 60-69% / 70-79% / 80-89% / 90-99% / 100%） */
-.hc.h1, .heatmap .hc.h1, #task-heatmap-grid .hc.h1, #heatmap-grid .hc.h1 { background: #DBEAFE !important; border-color: #BFDBFE !important; }
-.hc.h2, .heatmap .hc.h2, #task-heatmap-grid .hc.h2, #heatmap-grid .hc.h2 { background: #BFDBFE !important; border-color: #93C5FD !important; }
-.hc.h3, .heatmap .hc.h3, #task-heatmap-grid .hc.h3, #heatmap-grid .hc.h3 { background: #93C5FD !important; border-color: #60A5FA !important; }
-.hc.h4, .heatmap .hc.h4, #task-heatmap-grid .hc.h4, #heatmap-grid .hc.h4 { background: #60A5FA !important; border-color: #3B82F6 !important; }
-.hc.h5, .heatmap .hc.h5, #task-heatmap-grid .hc.h5, #heatmap-grid .hc.h5 { background: #3B82F6 !important; border-color: #2563EB !important; }
+/* 熱力圖專屬：⚡【電光寶石蔚藍】六階層（依正確率由淡至極鮮豔：<60% / 60-69% / 70-79% / 80-89% / 90-99% / 100%） */
+.hc.h1, .heatmap .hc.h1, #task-heatmap-grid .hc.h1, #heatmap-grid .hc.h1 { background: #E0F2FE !important; border-color: #BAE6FD !important; }
+.hc.h2, .heatmap .hc.h2, #task-heatmap-grid .hc.h2, #heatmap-grid .hc.h2 { background: #BAE6FD !important; border-color: #7DD3FC !important; }
+.hc.h3, .heatmap .hc.h3, #task-heatmap-grid .hc.h3, #heatmap-grid .hc.h3 { background: #7DD3FC !important; border-color: #38BDF8 !important; }
+.hc.h4, .heatmap .hc.h4, #task-heatmap-grid .hc.h4, #heatmap-grid .hc.h4 { background: #38BDF8 !important; border-color: #0284C7 !important; }
+.hc.h5, .heatmap .hc.h5, #task-heatmap-grid .hc.h5, #heatmap-grid .hc.h5 { background: #0284C7 !important; border-color: #0369A1 !important; }
 .hc.h6, .heatmap .hc.h6, #task-heatmap-grid .hc.h6, #heatmap-grid .hc.h6 {
-  background: #1D4ED8 !important;
-  border: 1.5px solid #1E40AF !important;
-  box-shadow: 0 0 8px rgba(37,99,235,.55), 0 2px 5px rgba(29,78,216,.4) !important;
+  background: #0066FF !important;
+  border: 1.5px solid #0052CC !important;
+  box-shadow: 0 0 10px rgba(0,102,255,.6), 0 2px 6px rgba(0,82,204,.45) !important;
   position: relative;
   z-index: 1;
 }
-.hc.hc-active, .heatmap .hc.hc-active, #task-heatmap-grid .hc.hc-active, #heatmap-grid .hc.hc-active { outline: 2.5px solid #2563EB !important; outline-offset: 1px; }
+.hc.hc-active, .heatmap .hc.hc-active, #task-heatmap-grid .hc.hc-active, #heatmap-grid .hc.hc-active { outline: 2.5px solid #0066FF !important; outline-offset: 1px; }
 
-[data-theme="dark"] .hc.h1, [data-theme="dark"] .heatmap .hc.h1, [data-theme="dark"] #task-heatmap-grid .hc.h1, [data-theme="dark"] #heatmap-grid .hc.h1 { background: #172554 !important; border-color: #1E3A8A !important; }
-[data-theme="dark"] .hc.h2, [data-theme="dark"] .heatmap .hc.h2, [data-theme="dark"] #task-heatmap-grid .hc.h2, [data-theme="dark"] #heatmap-grid .hc.h2 { background: #1E3A8A !important; border-color: #1D4ED8 !important; }
-[data-theme="dark"] .hc.h3, [data-theme="dark"] .heatmap .hc.h3, [data-theme="dark"] #task-heatmap-grid .hc.h3, [data-theme="dark"] #heatmap-grid .hc.h3 { background: #1E40AF !important; border-color: #2563EB !important; }
-[data-theme="dark"] .hc.h4, [data-theme="dark"] .heatmap .hc.h4, [data-theme="dark"] #task-heatmap-grid .hc.h4, [data-theme="dark"] #heatmap-grid .hc.h4 { background: #1D4ED8 !important; border-color: #3B82F6 !important; }
-[data-theme="dark"] .hc.h5, [data-theme="dark"] .heatmap .hc.h5, [data-theme="dark"] #task-heatmap-grid .hc.h5, [data-theme="dark"] #heatmap-grid .hc.h5 { background: #2563EB !important; border-color: #60A5FA !important; }
+[data-theme="dark"] .hc.h1, [data-theme="dark"] .heatmap .hc.h1, [data-theme="dark"] #task-heatmap-grid .hc.h1, [data-theme="dark"] #heatmap-grid .hc.h1 { background: #0C2A4A !important; border-color: #0284C7 !important; }
+[data-theme="dark"] .hc.h2, [data-theme="dark"] .heatmap .hc.h2, [data-theme="dark"] #task-heatmap-grid .hc.h2, [data-theme="dark"] #heatmap-grid .hc.h2 { background: #0369A1 !important; border-color: #38BDF8 !important; }
+[data-theme="dark"] .hc.h3, [data-theme="dark"] .heatmap .hc.h3, [data-theme="dark"] #task-heatmap-grid .hc.h3, [data-theme="dark"] #heatmap-grid .hc.h3 { background: #0284C7 !important; border-color: #7DD3FC !important; }
+[data-theme="dark"] .hc.h4, [data-theme="dark"] .heatmap .hc.h4, [data-theme="dark"] #task-heatmap-grid .hc.h4, [data-theme="dark"] #heatmap-grid .hc.h4 { background: #0084FF !important; border-color: #BAE6FD !important; }
+[data-theme="dark"] .hc.h5, [data-theme="dark"] .heatmap .hc.h5, [data-theme="dark"] #task-heatmap-grid .hc.h5, [data-theme="dark"] #heatmap-grid .hc.h5 { background: #00B4D8 !important; border-color: #E0F2FE !important; }
 [data-theme="dark"] .hc.h6, [data-theme="dark"] .heatmap .hc.h6, [data-theme="dark"] #task-heatmap-grid .hc.h6, [data-theme="dark"] #heatmap-grid .hc.h6 {
-  background: #38BDF8 !important;
-  border: 1.5px solid #93C5FD !important;
-  box-shadow: 0 0 10px rgba(56,189,248,.75), 0 0 4px rgba(147,197,253,.9) !important;
+  background: #00D2FF !important;
+  border: 1.5px solid #90E0EF !important;
+  box-shadow: 0 0 14px rgba(0,210,255,.8), 0 0 6px rgba(144,224,239,.95) !important;
   position: relative;
   z-index: 1;
 }
 [data-theme="dark"] .hc.h6:hover, [data-theme="dark"] .heatmap .hc.h6:hover {
   transform: scale(1.18);
-  box-shadow: 0 0 16px rgba(56,189,248,.95), 0 0 6px #93C5FD !important;
+  box-shadow: 0 0 20px rgba(0,210,255,1), 0 0 8px #90E0EF !important;
   z-index: 3;
 }
-[data-theme="dark"] .hc.hc-active, [data-theme="dark"] .heatmap .hc.hc-active, [data-theme="dark"] #task-heatmap-grid .hc.hc-active, [data-theme="dark"] #heatmap-grid .hc.hc-active { outline: 2.5px solid #38BDF8 !important; outline-offset: 1px; }
+[data-theme="dark"] .hc.hc-active, [data-theme="dark"] .heatmap .hc.hc-active, [data-theme="dark"] #task-heatmap-grid .hc.hc-active, [data-theme="dark"] #heatmap-grid .hc.hc-active { outline: 2.5px solid #00D2FF !important; outline-offset: 1px; }
 
-/* 指定測驗已完成右側純藍色框框 (依正確率：少/中/大) */
+/* 指定測驗已完成右側⚡【電光寶石蔚藍】框框 (依正確率：少/中/大) */
 .heat-day-info.tier-green-low,
-.heat-day-info.tier-blue-low { background: #EFF6FF !important; color: #1D4ED8 !important; border: 2px solid #93C5FD !important; box-shadow: 0 2px 6px rgba(59,130,246,.15) !important; }
+.heat-day-info.tier-blue-low { background: #F0F9FF !important; color: #0284C7 !important; border: 2px solid #BAE6FD !important; box-shadow: 0 2px 6px rgba(2,132,199,.15) !important; }
 .heat-day-info.tier-green-low b,
-.heat-day-info.tier-blue-low b { color: #1E40AF !important; }
+.heat-day-info.tier-blue-low b { color: #0369A1 !important; }
 [data-theme="dark"] .heat-day-info.tier-green-low,
-[data-theme="dark"] .heat-day-info.tier-blue-low { background: rgba(30,58,138,.35) !important; color: #93C5FD !important; border: 2px solid #2563EB !important; }
+[data-theme="dark"] .heat-day-info.tier-blue-low { background: rgba(12,42,74,.5) !important; color: #7DD3FC !important; border: 2px solid #0284C7 !important; }
 [data-theme="dark"] .heat-day-info.tier-green-low b,
-[data-theme="dark"] .heat-day-info.tier-blue-low b { color: #BFDBFE !important; }
+[data-theme="dark"] .heat-day-info.tier-blue-low b { color: #BAE6FD !important; }
 
 .heat-day-info.tier-green-mid,
-.heat-day-info.tier-blue-mid { background: #DBEAFE !important; color: #1E40AF !important; border: 2px solid #3B82F6 !important; box-shadow: 0 2px 6px rgba(59,130,246,.20) !important; }
+.heat-day-info.tier-blue-mid { background: #E0F2FE !important; color: #0369A1 !important; border: 2px solid #38BDF8 !important; box-shadow: 0 2px 6px rgba(2,132,199,.20) !important; }
 .heat-day-info.tier-green-mid b,
-.heat-day-info.tier-blue-mid b { color: #172554 !important; }
+.heat-day-info.tier-blue-mid b { color: #0C4A6E !important; }
 [data-theme="dark"] .heat-day-info.tier-green-mid,
-[data-theme="dark"] .heat-day-info.tier-blue-mid { background: rgba(30,64,175,.45) !important; color: #BFDBFE !important; border: 2px solid #3B82F6 !important; }
+[data-theme="dark"] .heat-day-info.tier-blue-mid { background: rgba(3,105,161,.5) !important; color: #BAE6FD !important; border: 2px solid #38BDF8 !important; }
 [data-theme="dark"] .heat-day-info.tier-green-mid b,
-[data-theme="dark"] .heat-day-info.tier-blue-mid b { color: #DBEAFE !important; }
+[data-theme="dark"] .heat-day-info.tier-blue-mid b { color: #E0F2FE !important; }
 
 .heat-day-info.tier-green-high,
-.heat-day-info.tier-blue-high { background: #1D4ED8 !important; color: #FFFFFF !important; border: 2px solid #1E40AF !important; box-shadow: 0 2px 8px rgba(29,78,216,.28) !important; }
+.heat-day-info.tier-blue-high { background: #0284C7 !important; color: #FFFFFF !important; border: 2px solid #0369A1 !important; box-shadow: 0 2px 8px rgba(2,132,199,.28) !important; }
 .heat-day-info.tier-green-high b,
-.heat-day-info.tier-blue-high b { color: #BFDBFE !important; }
+.heat-day-info.tier-blue-high b { color: #BAE6FD !important; }
 [data-theme="dark"] .heat-day-info.tier-green-high,
-[data-theme="dark"] .heat-day-info.tier-blue-high { background: rgba(59,130,246,.35) !important; color: #FFFFFF !important; border: 2px solid #60A5FA !important; box-shadow: 0 0 10px rgba(56,189,248,.35) !important; }
+[data-theme="dark"] .heat-day-info.tier-blue-high { background: rgba(0,132,255,.45) !important; color: #FFFFFF !important; border: 2px solid #38BDF8 !important; box-shadow: 0 0 10px rgba(0,132,255,.35) !important; }
 [data-theme="dark"] .heat-day-info.tier-green-high b,
-[data-theme="dark"] .heat-day-info.tier-blue-high b { color: #BFDBFE !important; }
+[data-theme="dark"] .heat-day-info.tier-blue-high b { color: #BAE6FD !important; }
 
-/* 滿分 100% 榮耀湛藍微光框框 */
+/* 滿分 100% ⚡ 極致電光蔚藍強烈發光框框 */
 .heat-day-info.tier-green-perfect,
 .heat-day-info.tier-blue-perfect {
-  background: #1D4ED8 !important;
+  background: #0066FF !important;
   color: #FFFFFF !important;
-  border: 2.5px solid #2563EB !important;
-  box-shadow: 0 4px 14px rgba(37,99,235,.45), 0 0 8px rgba(59,130,246,.3) !important;
+  border: 2.5px solid #0052CC !important;
+  box-shadow: 0 4px 16px rgba(0,102,255,.5), 0 0 10px rgba(0,102,255,.35) !important;
 }
 .heat-day-info.tier-green-perfect b,
-.heat-day-info.tier-blue-perfect b { color: #93C5FD !important; }
+.heat-day-info.tier-blue-perfect b { color: #BAE6FD !important; }
 [data-theme="dark"] .heat-day-info.tier-green-perfect,
 [data-theme="dark"] .heat-day-info.tier-blue-perfect {
-  background: rgba(59,130,246,.45) !important;
+  background: rgba(0,210,255,.45) !important;
   color: #FFFFFF !important;
-  border: 2px solid #93C5FD !important;
-  box-shadow: 0 0 18px rgba(56,189,248,.7), 0 0 6px rgba(147,197,253,.85), inset 0 0 8px rgba(56,189,248,.3) !important;
+  border: 2px solid #90E0EF !important;
+  box-shadow: 0 0 20px rgba(0,210,255,.85), 0 0 8px rgba(144,224,239,.9) !important;
 }
 [data-theme="dark"] .heat-day-info.tier-green-perfect b,
-[data-theme="dark"] .heat-day-info.tier-blue-perfect b { color: #BFDBFE !important; }
+[data-theme="dark"] .heat-day-info.tier-blue-perfect b { color: #E0F2FE !important; }
 
 /* 指定測驗 3 大特殊狀態方格 (登入未受測=金黃色, 缺席未受測=純警戒紅, 登入作答未完成=莫蘭迪柔紫) */
 .hc.h-status-pink,
