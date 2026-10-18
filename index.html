@@ -54,6 +54,15 @@
             <div>作為英語科學習歷程與教學輔導使用</div>
           </div>
         </div>
+
+        <div class="login-upload-note">
+          <span class="note-icon">☁️</span>
+          <div class="note-body">
+            <div>完成作答或要暫時離開遊戲前</div>
+            <div>請務必先點擊「上傳紀錄」進行存檔</div>
+            <div>作答成效即時同步雲端，才不會做白工喔！</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -404,7 +413,7 @@
           inp.style.borderColor = isDark ? "#2B334E" : "#E7E9F5";
         }
       });
-      const noteBoxes = document.querySelectorAll("#login-overlay .curfew-note-box, #login-overlay .login-study-note");
+      const noteBoxes = document.querySelectorAll("#login-overlay .curfew-note-box, #login-overlay .login-study-note, #login-overlay .login-upload-note");
       noteBoxes.forEach(box => {
         box.style.color = isDark ? "#F8FAFC" : "#1E293B";
         box.style.background = isDark ? "rgba(108, 76, 224, 0.22)" : "rgba(108, 76, 224, 0.08)";

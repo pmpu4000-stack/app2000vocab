@@ -4457,7 +4457,8 @@
       color: #9AA0BD !important;
     }
     .curfew-note-box,
-    .login-study-note {
+    .login-study-note,
+    .login-upload-note {
       margin-top: 10px;
       padding: 10px 14px;
       background: rgba(108,76,224,0.08);
@@ -4474,20 +4475,23 @@
       box-sizing: border-box;
     }
     [data-theme="dark"] .curfew-note-box,
-    [data-theme="dark"] .login-study-note {
+    [data-theme="dark"] .login-study-note,
+    [data-theme="dark"] .login-upload-note {
       background: rgba(108, 76, 224, 0.22) !important;
       border: 1px solid rgba(108, 76, 224, 0.45) !important;
       color: #F8FAFC !important;
       font-weight: 600 !important;
     }
     .curfew-note-box .note-icon,
-    .login-study-note .note-icon {
+    .login-study-note .note-icon,
+    .login-upload-note .note-icon {
       font-size: 14px;
       line-height: 1.5;
       flex-shrink: 0;
     }
     .curfew-note-box .note-body,
-    .login-study-note .note-body {
+    .login-study-note .note-body,
+    .login-upload-note .note-body {
       flex: 1;
       text-align: left;
       line-height: 1.6;
@@ -4541,6 +4545,15 @@
         <div class="note-body">
           <div>登入將記錄班級座號與答題成績</div>
           <div>作為英語科學習歷程與教學輔導使用</div>
+        </div>
+      </div>
+
+      <div class="login-upload-note">
+        <span class="note-icon">☁️</span>
+        <div class="note-body">
+          <div>完成作答或要暫時離開遊戲前</div>
+          <div>請務必先點擊「上傳紀錄」進行存檔</div>
+          <div>作答成效即時同步雲端，才不會做白工喔！</div>
         </div>
       </div>
     </div>
@@ -6883,7 +6896,7 @@ function applyPageThemeBackground(theme) {
         inp.style.borderColor = isDark ? "#2B334E" : "#E7E9F5";
       }
     });
-    const noteBoxes = loginOverlay.querySelectorAll(".curfew-note-box, .login-study-note");
+    const noteBoxes = loginOverlay.querySelectorAll(".curfew-note-box, .login-study-note, .login-upload-note");
     noteBoxes.forEach(box => {
       box.style.color = isDark ? "#F8FAFC" : "#1E293B";
       box.style.background = isDark ? "rgba(108, 76, 224, 0.22)" : "rgba(108, 76, 224, 0.08)";

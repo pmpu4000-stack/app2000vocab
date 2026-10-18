@@ -1348,7 +1348,8 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 
   
 .curfew-note-box,
-.login-study-note {
+.login-study-note,
+.login-upload-note {
   margin: 0;
   padding: 10px 14px;
   background: rgba(108,76,224,0.08);
@@ -1365,20 +1366,23 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   box-sizing: border-box;
 }
 [data-theme="dark"] .curfew-note-box,
-[data-theme="dark"] .login-study-note {
+[data-theme="dark"] .login-study-note,
+[data-theme="dark"] .login-upload-note {
   background: rgba(108, 76, 224, 0.22) !important;
   border: 1px solid rgba(108, 76, 224, 0.45) !important;
   color: #F8FAFC !important;
   font-weight: 600 !important;
 }
 .curfew-note-box .note-icon,
-.login-study-note .note-icon {
+.login-study-note .note-icon,
+.login-upload-note .note-icon {
   font-size: 14px;
   line-height: 1.5;
   flex-shrink: 0;
 }
 .curfew-note-box .note-body,
-.login-study-note .note-body {
+.login-study-note .note-body,
+.login-upload-note .note-body {
   flex: 1;
   text-align: left;
   line-height: 1.6;
