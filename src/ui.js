@@ -1266,8 +1266,8 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
       statusColor = "#16a34a";
       statusDesc = "⚠️ 有登入但未測驗";
     } else {
-      displayStatusStr = "🟠 缺席未受測";
-      statusColor = "#b45309";
+      displayStatusStr = "🟢 缺席未受測";
+      statusColor = "#059669";
       statusDesc = "📴 當日無登入紀錄 (缺考)";
     }
   }
@@ -1579,8 +1579,8 @@ function renderUntestedTaskCardHtml(info, d) {
     wordsHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（指派單字載入中或未指定具體單字清單）</span>`;
   }
 
-  const statusColor = hasLoggedInOrFree ? "#16a34a" : "#b45309";
-  const displayStatusStr = hasLoggedInOrFree ? "🟢 登入未受測" : "🟠 缺席未受測";
+  const statusColor = hasLoggedInOrFree ? "#16a34a" : "#059669";
+  const displayStatusStr = hasLoggedInOrFree ? "🟢 登入未受測" : "🟢 缺席未受測";
 
   const adviceText = hasLoggedInOrFree
     ? "當日有登入系統進行自由練習，但<strong>尚未完成本次指定測驗</strong>。"
@@ -2500,12 +2500,12 @@ export function renderSummary(d) {
         badgeTier: "tier-status-yellow"
       };
     } else {
-      // 🟠 缺席未受測 (方格濃郁蜜糖琥珀金，右側琥珀金框)
+      // 🟢 缺席未受測 (極致電光翠綠，右側極致電光翠綠發光框)
       res = {
         a: 0, c: 0, rate: 0,
         wordsCount: taskWordsCount,
         statusType: "absent_untested",
-        statusLabel: "🟠 缺席未受測",
+        statusLabel: "🟢 缺席未受測",
         levelClass: "h-status-red",
         badgeTier: "tier-status-red"
       };
