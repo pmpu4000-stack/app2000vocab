@@ -2557,3 +2557,29 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 .task-score-num-tot  { color: #0369A1 !important; }
 [data-theme="dark"] .task-score-num-corr { color: #38BDF8 !important; }
 [data-theme="dark"] .task-score-num-tot  { color: #7DD3FC !important; }
+
+/* 本週待攻克單字清單：超過 4 行時上下滑動瀏覽 */
+.conquer-word-list {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  padding: 2px 4px 2px 0 !important;
+  max-height: 148px !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(148, 163, 184, 0.35) transparent !important;
+}
+.conquer-word-list::-webkit-scrollbar {
+  width: 5px;
+}
+.conquer-word-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.conquer-word-list::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.35);
+  border-radius: 999px;
+}
+.conquer-word-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.6);
+}

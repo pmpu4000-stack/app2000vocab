@@ -2249,7 +2249,7 @@ export function buildWeekPendingConquerHtml(words, d = null) {
     const lvDotColor = levelColor(lv);
     const lvTitle = `Level ${lv}「${levelName(lv)}」`;
     const pillsOrEmpty = list.length > 0
-      ? `<div class="conquer-word-list" style="display:flex; flex-wrap:wrap; gap:8px; padding:2px 0;">${list.map(w => `<span class="word-pill-tag conquer-pill" data-word="${w}" title="點擊聆聽發音">${w}</span>`).join("")}</div>`
+      ? `<div class="conquer-word-list" style="display:flex; flex-wrap:wrap; gap:8px; padding:2px 4px 2px 0; max-height:148px; overflow-y:auto; overscroll-behavior:contain;">${list.map(w => `<span class="word-pill-tag conquer-pill" data-word="${w}" title="點擊聆聽發音">${w}</span>`).join("")}</div>`
       : `<div style="font-size:12px; color:var(--ink3); font-style:italic; padding:1px 0;">（本關卡目前無待攻克單字）</div>`;
 
     return `
@@ -2265,8 +2265,8 @@ export function buildWeekPendingConquerHtml(words, d = null) {
 
   return `
     <div class="week-conquer-wrap" style="display:flex; flex-direction:column; gap:10px;">
-      <div class="week-conquer-tip" style="display:flex; align-items:center; gap:8px; padding:10px 14px; background:rgba(148, 163, 184, 0.1); border:1px solid rgba(148, 163, 184, 0.28); border-radius:10px; font-size:12.5px; line-height:1.55; color:var(--ink2);">
-        <span style="font-size:15px; flex-shrink:0; line-height:1;">💡</span>
+      <div class="week-conquer-tip" style="display:flex; align-items:flex-start; gap:8px; padding:4px 2px 8px; font-size:12.5px; line-height:1.55; color:var(--ink2);">
+        <span style="font-size:15px; flex-shrink:0; line-height:1.3;">💡</span>
         <div style="flex:1; line-height:1.55;">
           本週累積 <b>${count}</b> 個待攻克單字。在<b>自由練習</b>中只要拼對該單字，系統即判定為已學會並自動移除，<b>不滾入週末錯題消滅戰測驗</b>！
         </div>
