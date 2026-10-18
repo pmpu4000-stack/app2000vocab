@@ -25,7 +25,7 @@
       --chart-container-bg: #FFFFFF; --chart-title-color: #232A4D;
       --diff-zero-bg: #F1F3FB;
       --kpi1: #6C4CE0; --kpi2: #2FB47C; --kpi3: #E8892B; --kpi4: #2D9CDB; --kpi5: #E0567B; --kpi6: #8A5BD6;
-      --heatmap-lvl-0: #ebedf0; --heatmap-lvl-1: #9be9a8; --heatmap-lvl-2: #40c463; --heatmap-lvl-3: #30a14e; --heatmap-lvl-4: #216e39;
+      --heatmap-lvl-0: #ebedf0; --heatmap-lvl-1: #bfdbfe; --heatmap-lvl-2: #60a5fa; --heatmap-lvl-3: #2563eb; --heatmap-lvl-4: #1d4ed8;
       --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
       --shadow-sm: 0 10px 30px -12px rgba(35, 42, 77, 0.28);
       --shadow-md: 0 10px 30px -12px rgba(35, 42, 77, 0.28);
@@ -60,7 +60,7 @@
       --warning: #F59E0B; --warning-bg: rgba(245,158,11,0.2);
       --diff-zero-bg: #2B334E;
       --kpi1: #8B6BF0; --kpi2: #2FB47C; --kpi3: #F59E0B; --kpi4: #38BDF8; --kpi5: #FB7185; --kpi6: #A78BFA;
-      --heatmap-lvl-0: rgba(255, 255, 255, 0.08); --heatmap-lvl-1: #0e4429; --heatmap-lvl-2: #006d32; --heatmap-lvl-3: #26a641; --heatmap-lvl-4: #39d353;
+      --heatmap-lvl-0: rgba(255, 255, 255, 0.08); --heatmap-lvl-1: #172554; --heatmap-lvl-2: #1e40af; --heatmap-lvl-3: #2563eb; --heatmap-lvl-4: #38bdf8;
       --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
       --shadow-sm: 0 10px 30px -10px rgba(0, 0, 0, 0.45);
       --shadow-md: 0 10px 30px -10px rgba(0, 0, 0, 0.45);
@@ -4117,9 +4117,13 @@
       outline: 2.5px solid #34D399 !important;
       outline-offset: 1px !important;
     }
-    .hc.h1 { background: #B5E3CB !important; border-color: #9AD6B8 !important; }
-    .hc.h2 { background: #6FCBA0 !important; border-color: #55BE8E !important; }
-    .hc.h3 { background: var(--green) !important; border-color: #1E9A66 !important; }
+    .hc.h1 { background: #DBEAFE !important; border-color: #BFDBFE !important; }
+    .hc.h2 { background: #BFDBFE !important; border-color: #93C5FD !important; }
+    .hc.h3 { background: #93C5FD !important; border-color: #60A5FA !important; }
+    .hc.h4 { background: #60A5FA !important; border-color: #3B82F6 !important; }
+    .hc.h5 { background: #3B82F6 !important; border-color: #2563EB !important; }
+    .hc.h6 { background: #1D4ED8 !important; border-color: #1E40AF !important; box-shadow: 0 0 8px rgba(37,99,235,.55) !important; }
+    .hc.hc-active { outline: 2.5px solid #2563EB !important; outline-offset: 1px !important; }
     .heatmap-yellow .hc.h1 { background: #FEF08A !important; border-color: #FDE047 !important; }
     .heatmap-yellow .hc.h2 { background: #FACC15 !important; border-color: #EAB308 !important; }
     .heatmap-yellow .hc.h3 { background: #EAB308 !important; border-color: #CA8A04 !important; }
@@ -4128,18 +4132,13 @@
       background: #0B0E18 !important;
       border: 1px solid #1B2033 !important;
     }
-    [data-theme="dark"] .hc.h1 {
-      background: #14573F !important;
-      border-color: #1B6B4D !important;
-    }
-    [data-theme="dark"] .hc.h2 {
-      background: #1E8F66 !important;
-      border-color: #27A878 !important;
-    }
-    [data-theme="dark"] .hc.h3 {
-      background: #2FB47C !important;
-      border-color: #4AD49A !important;
-    }
+    [data-theme="dark"] .hc.h1 { background: #172554 !important; border-color: #1E3A8A !important; }
+    [data-theme="dark"] .hc.h2 { background: #1E3A8A !important; border-color: #1D4ED8 !important; }
+    [data-theme="dark"] .hc.h3 { background: #1E40AF !important; border-color: #2563EB !important; }
+    [data-theme="dark"] .hc.h4 { background: #1D4ED8 !important; border-color: #3B82F6 !important; }
+    [data-theme="dark"] .hc.h5 { background: #2563EB !important; border-color: #60A5FA !important; }
+    [data-theme="dark"] .hc.h6 { background: #38BDF8 !important; border-color: #93C5FD !important; box-shadow: 0 0 10px rgba(56,189,248,.75) !important; }
+    [data-theme="dark"] .hc.hc-active { outline: 2.5px solid #38BDF8 !important; outline-offset: 1px !important; }
     [data-theme="dark"] .heatmap-yellow .hc.h1 {
       background: #713F12 !important;
       border-color: #854D0E !important;
@@ -4178,6 +4177,23 @@
     .task-score-num-tot  { color: #EF4444 !important; }
     [data-theme="dark"] .task-score-num-corr { color: #38BDF8 !important; }
     [data-theme="dark"] .task-score-num-tot  { color: #F87171 !important; }
+
+    .heat-day-info.tier-green-low, .heat-day-info.tier-blue-low { background: #EFF6FF !important; color: #1D4ED8 !important; border: 2px solid #93C5FD !important; }
+    .heat-day-info.tier-green-low b, .heat-day-info.tier-blue-low b { color: #1E40AF !important; }
+    .heat-day-info.tier-green-mid, .heat-day-info.tier-blue-mid { background: #DBEAFE !important; color: #1E40AF !important; border: 2px solid #3B82F6 !important; }
+    .heat-day-info.tier-green-mid b, .heat-day-info.tier-blue-mid b { color: #172554 !important; }
+    .heat-day-info.tier-green-high, .heat-day-info.tier-blue-high { background: #1D4ED8 !important; color: #FFFFFF !important; border: 2px solid #1E40AF !important; }
+    .heat-day-info.tier-green-high b, .heat-day-info.tier-blue-high b { color: #BFDBFE !important; }
+    .heat-day-info.tier-green-perfect, .heat-day-info.tier-blue-perfect { background: #1D4ED8 !important; color: #FFFFFF !important; border: 2.5px solid #2563EB !important; box-shadow: 0 4px 14px rgba(37,99,235,.45) !important; }
+    .heat-day-info.tier-green-perfect b, .heat-day-info.tier-blue-perfect b { color: #93C5FD !important; }
+    [data-theme="dark"] .heat-day-info.tier-green-low, [data-theme="dark"] .heat-day-info.tier-blue-low { background: rgba(30,58,138,.35) !important; color: #93C5FD !important; border: 2px solid #2563EB !important; }
+    [data-theme="dark"] .heat-day-info.tier-green-low b, [data-theme="dark"] .heat-day-info.tier-blue-low b { color: #BFDBFE !important; }
+    [data-theme="dark"] .heat-day-info.tier-green-mid, [data-theme="dark"] .heat-day-info.tier-blue-mid { background: rgba(30,64,175,.45) !important; color: #BFDBFE !important; border: 2px solid #3B82F6 !important; }
+    [data-theme="dark"] .heat-day-info.tier-green-mid b, [data-theme="dark"] .heat-day-info.tier-blue-mid b { color: #DBEAFE !important; }
+    [data-theme="dark"] .heat-day-info.tier-green-high, [data-theme="dark"] .heat-day-info.tier-blue-high { background: rgba(59,130,246,.35) !important; color: #FFFFFF !important; border: 2px solid #60A5FA !important; }
+    [data-theme="dark"] .heat-day-info.tier-green-high b, [data-theme="dark"] .heat-day-info.tier-blue-high b { color: #BFDBFE !important; }
+    [data-theme="dark"] .heat-day-info.tier-green-perfect, [data-theme="dark"] .heat-day-info.tier-blue-perfect { background: rgba(59,130,246,.45) !important; color: #FFFFFF !important; border: 2px solid #93C5FD !important; box-shadow: 0 0 18px rgba(56,189,248,.7) !important; }
+    [data-theme="dark"] .heat-day-info.tier-green-perfect b, [data-theme="dark"] .heat-day-info.tier-blue-perfect b { color: #BFDBFE !important; }
 
     .embedded-heatmap-sec {
       margin-top: 14px !important;
@@ -16463,7 +16479,7 @@ function renderStudentSummary(resp) {
     const keyDash  = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
     const keyShort = d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
     const { a: att, c: cor, rate, isIncomplete } = getTaskDayStatForHeat(keyDash, keyShort);
-    const lvl = att === 0 ? 0 : att < 10 ? 1 : att < 20 ? 2 : 3;
+    const lvl = att === 0 ? 0 : rate < 60 ? 1 : rate < 70 ? 2 : rate < 80 ? 3 : rate < 90 ? 4 : rate < 100 ? 5 : 6;
     const lvlClass = isIncomplete ? "h-status-purple" : ("h" + lvl);
     taskDays.push({ key: keyDash, dateNum: d.getDate(), a: att, c: cor, rate: rate, level: lvl, levelClass: lvlClass, isIncomplete: isIncomplete });
   }
