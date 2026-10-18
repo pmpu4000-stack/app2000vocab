@@ -15204,8 +15204,9 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
           <div id="${unansId}" style="display:none; flex-wrap:wrap; gap:6px; margin-top:8px; padding:8px; background:rgba(148,163,184,0.08); border-radius:8px; border:1px solid rgba(148,163,184,0.18);">
             ${unansPills}
           </div>
-          <div style="font-size:11px; color:var(--ink3); margin-top:5px; line-height:1.4;">
-            💡 提示：該生測驗中途作答中斷，未完成之單字將自動排入週末補強測驗。
+          <div style="display:flex; align-items:flex-start; font-size:11px; color:var(--ink3); margin-top:5px; line-height:1.45;">
+            <span style="white-space:nowrap; flex-shrink:0;">💡 提示：</span>
+            <span style="flex:1;">該生測驗中途作答中斷，未完成之單字將自動排入週末補強測驗。</span>
           </div>
         </div>
       `;
