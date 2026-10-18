@@ -14970,18 +14970,12 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
           </div>
         </div>
         <div class="task-score-item">
-          <div class="task-score-label">📊 正確率 ${isIncomplete ? "(全卷 / 已測)" : ""}</div>
+          <div class="task-score-label">📊 正確率</div>
           <div class="task-score-val" style="color:${isIncomplete ? '#a855f7' : (taskRate >= 80 ? '#16a34a' : '#ea580c')};">
-            ${taskRate}% ${isIncomplete && totalAnswered > 0 ? `<small style="font-size:12px; font-weight:600; color:var(--ink3);">(${Math.round((taskCorrWords / totalAnswered) * 100)}%)</small>` : ""}
+            ${taskRate}% ${isIncomplete ? `<small style="font-size:11px; font-weight:600; color:var(--ink3);">(尚餘 ${Math.max(0, taskTotWords - totalAnswered)} 題未答)</small>` : ""}
           </div>
         </div>
       </div>
-      ${isIncomplete ? `
-        <div style="margin: 8px 0 12px 0; padding: 7px 12px; border-radius: 8px; background: rgba(168, 85, 247, 0.08); border: 1px solid rgba(168, 85, 247, 0.22); font-size: 12px; line-height: 1.5; color: var(--ink2); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
-          <span>📝 <b>測驗進度</b>：總題數 ${taskTotWords} 題 · 已測 ${totalAnswered} 題 · 尚餘 <b>${Math.max(0, taskTotWords - totalAnswered)}</b> 題未作答</span>
-          <span style="color:#a855f7; font-weight:750;">🟣 中途作答中斷</span>
-        </div>
-      ` : ""}
     `;
 
   return `

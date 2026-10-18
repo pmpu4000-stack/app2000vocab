@@ -1151,7 +1151,6 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     `;
   } else if (isIncomplete) {
     const unattemptedCount = Math.max(0, taskTotWords - totalAnswered);
-    const attemptedAccuracy = totalAnswered > 0 ? Math.round((taskCorrWords / totalAnswered) * 100) : 0;
     scoreGridHtml = `
       <div class="task-score-grid">
         <div class="task-score-item">
@@ -1167,15 +1166,11 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
           </div>
         </div>
         <div class="task-score-item">
-          <div class="task-score-label">📊 正確率 (全卷 / 已測)</div>
+          <div class="task-score-label">📊 正確率</div>
           <div class="task-score-val" style="color:#a855f7; font-size:17px; font-weight:800;">
-            ${taskRate}% <small style="font-size:12px; font-weight:600; color:var(--ink3);">(${attemptedAccuracy}%)</small>
+            ${taskRate}% <small style="font-size:11px; font-weight:600; color:var(--ink3);">(尚餘 ${unattemptedCount} 題未答)</small>
           </div>
         </div>
-      </div>
-      <div style="margin: 8px 0 12px 0; padding: 7px 12px; border-radius: 8px; background: rgba(168, 85, 247, 0.08); border: 1px solid rgba(168, 85, 247, 0.22); font-size: 12px; line-height: 1.5; color: var(--ink2); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
-        <span>📝 <b>測驗進度</b>：總題數 ${taskTotWords} 題 · 已測 ${totalAnswered} 題 · 尚餘 <b>${unattemptedCount}</b> 題未作答</span>
-        <span style="color:#a855f7; font-weight:750;">🟣 中途作答中斷</span>
       </div>
     `;
   } else {
