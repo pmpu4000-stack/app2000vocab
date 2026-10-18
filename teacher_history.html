@@ -14639,6 +14639,40 @@ function resolveTaskWords(record, selectedDate, agent) {
     }
   }
 
+  // 3-2. 從本機 task_summary 與 weekend_remedy 快取尋找
+  if (pool.length === 0) {
+    try {
+      const rawTS = localStorage.getItem("task_summary_" + padDate) || localStorage.getItem("task_summary_" + shortDate);
+      if (rawTS) {
+        const ts = JSON.parse(rawTS);
+        if (ts && Array.isArray(ts.words) && ts.words.length > 0) {
+          pool = ts.words.map(w => typeof w === "string" ? w : (w.word || w.display || w.w)).filter(Boolean);
+        }
+      }
+    } catch(_) {}
+  }
+  if (pool.length === 0) {
+    try {
+      const dObj = new Date(padDate.replace(/-/g, "/"));
+      const day = dObj.getDay();
+      if (day === 0 || day === 6) {
+        const diff = dObj.getDate() - day + (day === 0 ? -6 : 1);
+        const mObj = new Date(dObj.getFullYear(), dObj.getMonth(), diff);
+        const monKey = mObj.getFullYear() + "-" + String(mObj.getMonth() + 1).padStart(2, "0") + "-" + String(mObj.getDate()).padStart(2, "0");
+        const rawRem = localStorage.getItem("weekend_remedy_" + monKey);
+        if (rawRem) {
+          const rem = JSON.parse(rawRem);
+          if (rem) {
+            const corr = day === 6 ? rem.satCorrectWords : rem.sunCorrectWords;
+            const wrg = day === 6 ? rem.satWrongWords : rem.sunWrongWords;
+            if (Array.isArray(corr)) pool = pool.concat(corr);
+            if (Array.isArray(wrg)) pool = pool.concat(wrg);
+          }
+        }
+      }
+    } catch(_) {}
+  }
+
   // 4. 錯題單字與作答題數精準校驗 (確保代號轉為真實單字)
   const wrongWords = (Array.isArray(record.wrongWords) ? record.wrongWords : [])
     .map(w => resolveWord(String(w).trim()).toLowerCase())
@@ -14897,13 +14931,33 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
   }
   const taskRate = taskTotWords > 0 ? Math.round((taskCorrWords / taskTotWords) * 100) : (parseInt(rateVal) || 0);
 
-  // 核心完成判定：已作答單字數（答對 + 答錯）必須達到應測總單字數，才算真正完成！
-  const isFinished = (totalAnswered >= taskTotWords && taskTotWords > 0) || (taskTotWords > 0 && totalAnswered > 0 && unansweredList.length === 0 && !statusStr.includes("未受測") && !statusStr.includes("中斷") && !statusStr.includes("作答中"));
+  // 核心完成判定：只要狀態明確為已完成、或得分顯示已滿/完成、或答題數已達標
+  const hasFinishedStatus = statusStr.includes("已完成") || statusStr.includes("● 已完成") || statusStr.includes("🟢 已完成") || statusStr.includes("●已完成") || (record.completed === true) || (record.alreadyCompleted === true);
+  const isFinishedScore = (taskTotWords > 0 && taskCorrWords + wrongList.length >= taskTotWords) ||
+                          (taskTotWords > 0 && taskRate === 100) ||
+                          (totalAnswered >= taskTotWords && taskTotWords > 0) ||
+                          (taskTotWords > 0 && totalAnswered > 0 && unansweredList.length === 0 && !statusStr.includes("未受測") && !statusStr.includes("中斷") && !statusStr.includes("作答中"));
+  const isExplicitlyNotFinished = statusStr.includes("未受測") || statusStr.includes("中斷") || statusStr.includes("作答中") || statusStr.includes("未完成") || scoreVal === "—" || scoreVal === "尚未開始" || record.inProgress === true;
+
+  const isFinished = (hasFinishedStatus || isFinishedScore) && !isExplicitlyNotFinished;
 
   // 核心中斷判定：已作答但未答滿全部題目（例如 5 題只答 2 題），或狀態標記為作答中/未完成/中斷
   const isPartialAttempt = (totalAnswered > 0 && taskTotWords > 0 && totalAnswered < taskTotWords) || (unansweredList.length > 0 && totalAnswered > 0);
-  const isIncomplete = isPartialAttempt || (!isFinished && (statusStr.includes("作答中") || statusStr.includes("未完成") || statusStr.includes("中斷") || record.inProgress === true));
-  const isUntested = !isFinished && !isIncomplete && (statusStr.includes("未受測") || scoreVal === "—" || scoreVal === "尚未開始" || totalAnswered === 0);
+  const isIncomplete = !isFinished && (
+    isPartialAttempt ||
+    statusStr.includes("作答中") ||
+    statusStr.includes("未完成") ||
+    statusStr.includes("中斷") ||
+    record.inProgress === true
+  );
+
+  // 核心未受測判定：絕不因為單字清單暫未展開 (totalAnswered === 0) 誤把已完成的測驗判斷為未受測！
+  const isUntested = !isFinished && !isIncomplete && (
+    statusStr.includes("未受測") ||
+    scoreVal === "—" ||
+    scoreVal === "尚未開始" ||
+    (totalAnswered === 0 && !hasFinishedStatus && taskRate === 0)
+  );
 
   let displayStatusStr = statusStr;
   let statusColor = "#64748b";
@@ -15257,6 +15311,67 @@ function buildTaskDetailsHtml(records, selectedDate, agent) {
   const sDateShort = unpadDateKey(selectedDate);
   const slashPad = sDateNorm.replace(/-/g, "/");
   const slashShort = sDateShort.replace(/-/g, "/");
+
+  if (list.length === 0) {
+    // 檢查是否有當日已完成的 task_summary 或 weekend_remedy
+    try {
+      const rawTS = localStorage.getItem("task_summary_" + sDateNorm) || localStorage.getItem("task_summary_" + sDateShort);
+      if (rawTS) {
+        const ts = JSON.parse(rawTS);
+        if (ts && ts.completed && ts.taskName && ts.taskName !== "自主練習") {
+          list.push({
+            date: sDateNorm,
+            taskName: ts.taskName,
+            score: (ts.score !== undefined && ts.total !== undefined) ? `${ts.score}/${ts.total}` : (ts.score || "已完成"),
+            rate: ts.rate || "100%",
+            status: "● 已完成",
+            wrongWords: ts.wrongWords || [],
+            words: ts.words || []
+          });
+        }
+      }
+    } catch(_) {}
+
+    if (list.length === 0) {
+      try {
+        const dObj = new Date(sDateNorm.replace(/-/g, "/"));
+        const day = dObj.getDay();
+        if (day === 0 || day === 6) {
+          const diff = dObj.getDate() - day + (day === 0 ? -6 : 1);
+          const mObj = new Date(dObj.getFullYear(), dObj.getMonth(), diff);
+          const monKey = mObj.getFullYear() + "-" + String(mObj.getMonth() + 1).padStart(2, "0") + "-" + String(mObj.getDate()).padStart(2, "0");
+          const rawRem = localStorage.getItem("weekend_remedy_" + monKey);
+          if (rawRem) {
+            const rem = JSON.parse(rawRem);
+            if (rem && ((day === 6 && rem.satCompleted) || (day === 0 && rem.sunCompleted))) {
+              const corr = day === 6 ? (rem.satCorrectWords || []) : (rem.sunCorrectWords || []);
+              const wrg = day === 6 ? (rem.satWrongWords || []) : (rem.sunWrongWords || []);
+              const sc = day === 6 ? rem.satScore : rem.sunScore;
+              const rt = day === 6 ? rem.satRate : rem.sunRate;
+              const wList = Array.from(new Set([...corr, ...wrg]));
+              list.push({
+                date: sDateNorm,
+                taskName: "🎯 週末待攻克單字測驗成果",
+                score: sc || (wList.length ? `${corr.length}/${wList.length}` : "已完成"),
+                rate: rt || "100%",
+                status: "● 已完成",
+                wrongWords: wrg,
+                correctWords: corr,
+                words: wList,
+                isWeekend: true
+              });
+            }
+          }
+        }
+      } catch(_) {}
+    }
+  }
+
+  list.sort((a, b) => {
+    const aDone = a && a.status && (a.status.includes("已完成") || a.status.includes("●") || a.status.includes("🟢")) ? 1 : 0;
+    const bDone = b && b.status && (b.status.includes("已完成") || b.status.includes("●") || b.status.includes("🟢")) ? 1 : 0;
+    return bDone - aDone;
+  });
 
   // 1. 取得當日指派單字與任務名稱
   let assignedWords = taskDict[sDateNorm] || taskDict[sDateShort] || taskDict[slashPad] || taskDict[slashShort] || null;
@@ -15684,15 +15799,44 @@ function renderStudentDailyTaskAndFreeSections(resp) {
 
     // A. 匹配教師指定測驗紀錄 (相容 2026-10-05 與 2026-10-5 與 2026/10/05，支援同日多個測驗/補考)
     let matchedTasks = [];
+    const mergeOrPushTask = (item) => {
+      if (!item || !item.taskName) return;
+      const cleanName = String(item.taskName).replace(/^[📝🎯📑\s]+/, "").trim();
+      const existIdx = matchedTasks.findIndex(t => {
+        const tClean = String(t.taskName || "").replace(/^[📝🎯📑\s]+/, "").trim();
+        return tClean === cleanName || tClean.includes(cleanName) || cleanName.includes(tClean);
+      });
+      if (existIdx >= 0) {
+        const old = matchedTasks[existIdx];
+        const oldIsDone = old.status && (old.status.includes("已完成") || old.status.includes("● 已完成") || old.status.includes("🟢"));
+        const newIsDone = item.status && (item.status.includes("已完成") || item.status.includes("● 已完成") || item.status.includes("🟢"));
+        if (!oldIsDone && newIsDone) {
+          matchedTasks[existIdx] = { ...old, ...item };
+        } else {
+          if ((!old.words || old.words.length === 0) && item.words && item.words.length > 0) {
+            old.words = item.words;
+          }
+          if ((!old.wrongWords || old.wrongWords.length === 0) && item.wrongWords && item.wrongWords.length > 0) {
+            old.wrongWords = item.wrongWords;
+          }
+          if ((!old.score || old.score === "—") && item.score && item.score !== "—") {
+            old.score = item.score;
+            old.rate = item.rate;
+            if (item.status) old.status = item.status;
+          }
+        }
+      } else {
+        matchedTasks.push(item);
+      }
+    };
+
     if (Array.isArray(dailyTaskHistory)) {
       dailyTaskHistory.forEach(h => {
         if (!h || !h.date) return;
         const hdNorm = normalizeDateKey(h.date);
         const isUnassigned = !h.taskName || h.taskName === "自主練習" || h.taskName.includes("自由練習") || h.taskName.includes("未指派");
         if ((hdNorm === targetDate || unpadDateKey(h.date) === shortTarget) && !isUnassigned) {
-          if (!matchedTasks.some(t => t.taskName === h.taskName)) {
-            matchedTasks.push(h);
-          }
+          mergeOrPushTask(h);
         }
       });
     }
@@ -15700,17 +15844,15 @@ function renderStudentDailyTaskAndFreeSections(resp) {
     if (todayTask && todayTask.date && todayTask.hasDone && todayTask.taskName !== "自主練習" && !todayTask.taskName.includes("未指派")) {
       const tdNorm = normalizeDateKey(todayTask.date);
       if (tdNorm === targetDate || unpadDateKey(todayTask.date) === shortTarget) {
-        if (!matchedTasks.some(t => t.taskName === todayTask.taskName)) {
-          matchedTasks.push({
-            date: targetDate,
-            taskName: todayTask.taskName || "測驗",
-            score: todayTask.score || "—",
-            rate: todayTask.rate || "—",
-            status: "● 已完成",
-            words: todayTask.words || [],
-            wrongWords: todayTask.wrongWords || []
-          });
-        }
+        mergeOrPushTask({
+          date: targetDate,
+          taskName: todayTask.taskName || "測驗",
+          score: todayTask.score || "—",
+          rate: todayTask.rate || "—",
+          status: "● 已完成",
+          words: todayTask.words || [],
+          wrongWords: todayTask.wrongWords || []
+        });
       }
     }
 
@@ -15724,17 +15866,15 @@ function renderStudentDailyTaskAndFreeSections(resp) {
             if (info.taskName.includes("未指派") || info.status.includes("未指派")) {
               continue;
             }
-            if (!matchedTasks.some(t => t.taskName === info.taskName)) {
-              matchedTasks.push({
-                date: targetDate,
-                taskName: info.taskName,
-                score: info.score || "—",
-                rate: info.rate || "—",
-                status: info.status || (info.status.includes("未受測") ? "⚪ 未受測" : "● 已完成"),
-                words: [],
-                wrongWords: info.wrongWords || []
-              });
-            }
+            mergeOrPushTask({
+              date: targetDate,
+              taskName: info.taskName,
+              score: info.score || "—",
+              rate: info.rate || "—",
+              status: info.status || (info.status.includes("未受測") ? "⚪ 未受測" : "● 已完成"),
+              words: [],
+              wrongWords: info.wrongWords || []
+            });
           }
         }
       }

@@ -752,6 +752,129 @@ function getCombinedTaskHistory() {
     }
   } catch(_) {}
 
+  // 掃描 localStorage 中的 task_summary_YYYY-MM-DD 與 weekend_remedy_YYYY-MM-DD 記錄，確保歷史紀錄完整無缺
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith("task_summary_")) {
+        const kDate = normalizeDateStr(k.slice("task_summary_".length));
+        if (kDate) {
+          const raw = localStorage.getItem(k);
+          if (raw) {
+            const ts = JSON.parse(raw);
+            if (ts && ts.completed && ts.taskName && ts.taskName !== "自主練習") {
+              const existIdx = list.findIndex(item => item && normalizeDateStr(item.date) === kDate);
+              const tsWords = (Array.isArray(ts.words) ? ts.words : []).map(w => typeof w === "string" ? w : (w.word || w.display || w.w)).filter(Boolean);
+              const tsWrong = (Array.isArray(ts.wrongWords) ? ts.wrongWords : []).map(w => String(w).trim().toLowerCase()).filter(w => /^[a-zA-Z]+(?:[-'][a-zA-Z]+)*$/.test(w));
+              const tsScore = (ts.score !== undefined && ts.total !== undefined) ? `${ts.score}/${ts.total}` : (ts.score || "已完成");
+              const tsItem = {
+                date: kDate,
+                taskName: ts.taskName,
+                score: tsScore,
+                rate: ts.rate || "100%",
+                status: "🟢 已完成",
+                updatedAt: ts.updatedAt || kDate,
+                wrongWords: tsWrong,
+                words: tsWords
+              };
+              if (existIdx >= 0) {
+                const old = list[existIdx];
+                const oldCompleted = old.status && old.status.includes("已完成");
+                list[existIdx] = {
+                  ...old,
+                  ...(oldCompleted ? {} : tsItem),
+                  words: (tsWords.length > 0) ? tsWords : old.words,
+                  wrongWords: (tsWrong.length > 0) ? tsWrong : old.wrongWords
+                };
+              } else {
+                list.push(tsItem);
+              }
+            }
+          }
+        }
+      } else if (k && k.startsWith("weekend_remedy_")) {
+        const mondayStr = normalizeDateStr(k.slice("weekend_remedy_".length));
+        if (mondayStr) {
+          const rawRem = localStorage.getItem(k);
+          if (rawRem) {
+            const rem = JSON.parse(rawRem);
+            if (rem) {
+              const mDate = new Date(mondayStr.replace(/-/g, "/"));
+              // Saturday = monday + 5 days
+              const satD = new Date(mDate.getFullYear(), mDate.getMonth(), mDate.getDate() + 5);
+              const satKey = satD.getFullYear() + "-" + String(satD.getMonth() + 1).padStart(2, "0") + "-" + String(satD.getDate()).padStart(2, "0");
+              if (rem.satCompleted) {
+                const existIdx = list.findIndex(item => item && normalizeDateStr(item.date) === satKey);
+                const satCorr = (Array.isArray(rem.satCorrectWords) ? rem.satCorrectWords : []).map(w => String(w).trim().toLowerCase()).filter(w => /^[a-zA-Z]+(?:[-'][a-zA-Z]+)*$/.test(w));
+                const satWrong = (Array.isArray(rem.satWrongWords) ? rem.satWrongWords : []).map(w => String(w).trim().toLowerCase()).filter(w => /^[a-zA-Z]+(?:[-'][a-zA-Z]+)*$/.test(w));
+                const satWords = Array.from(new Set([...satCorr, ...satWrong]));
+                const satItem = {
+                  date: satKey,
+                  taskName: "🎯 週末待攻克單字測驗成果",
+                  score: rem.satScore || (satWords.length ? `${satCorr.length}/${satWords.length}` : "已完成"),
+                  rate: rem.satRate || (satWords.length ? `${Math.round((satCorr.length / satWords.length) * 100)}%` : "100%"),
+                  status: "🟢 已完成",
+                  updatedAt: rem.updatedAt || satKey,
+                  wrongWords: satWrong,
+                  correctWords: satCorr,
+                  words: satWords,
+                  isWeekend: true
+                };
+                if (existIdx >= 0) {
+                  const old = list[existIdx];
+                  const oldCompleted = old.status && old.status.includes("已完成");
+                  list[existIdx] = {
+                    ...old,
+                    ...(oldCompleted ? {} : satItem),
+                    words: (satWords.length > 0) ? satWords : old.words,
+                    wrongWords: (satWrong.length > 0) ? satWrong : old.wrongWords,
+                    correctWords: (satCorr.length > 0) ? satCorr : old.correctWords
+                  };
+                } else {
+                  list.push(satItem);
+                }
+              }
+              // Sunday = monday + 6 days
+              const sunD = new Date(mDate.getFullYear(), mDate.getMonth(), mDate.getDate() + 6);
+              const sunKey = sunD.getFullYear() + "-" + String(sunD.getMonth() + 1).padStart(2, "0") + "-" + String(sunD.getDate()).padStart(2, "0");
+              if (rem.sunCompleted) {
+                const existIdx = list.findIndex(item => item && normalizeDateStr(item.date) === sunKey);
+                const sunCorr = (Array.isArray(rem.sunCorrectWords) ? rem.sunCorrectWords : []).map(w => String(w).trim().toLowerCase()).filter(w => /^[a-zA-Z]+(?:[-'][a-zA-Z]+)*$/.test(w));
+                const sunWrong = (Array.isArray(rem.sunWrongWords) ? rem.sunWrongWords : []).map(w => String(w).trim().toLowerCase()).filter(w => /^[a-zA-Z]+(?:[-'][a-zA-Z]+)*$/.test(w));
+                const sunWords = Array.from(new Set([...sunCorr, ...sunWrong]));
+                const sunItem = {
+                  date: sunKey,
+                  taskName: "🎯 週末待攻克單字測驗成果",
+                  score: rem.sunScore || (sunWords.length ? `${sunCorr.length}/${sunWords.length}` : "已完成"),
+                  rate: rem.sunRate || (sunWords.length ? `${Math.round((sunCorr.length / sunWords.length) * 100)}%` : "100%"),
+                  status: "🟢 已完成",
+                  updatedAt: rem.updatedAt || sunKey,
+                  wrongWords: sunWrong,
+                  correctWords: sunCorr,
+                  words: sunWords,
+                  isWeekend: true
+                };
+                if (existIdx >= 0) {
+                  const old = list[existIdx];
+                  const oldCompleted = old.status && old.status.includes("已完成");
+                  list[existIdx] = {
+                    ...old,
+                    ...(oldCompleted ? {} : sunItem),
+                    words: (sunWords.length > 0) ? sunWords : old.words,
+                    wrongWords: (sunWrong.length > 0) ? sunWrong : old.wrongWords,
+                    correctWords: (sunCorr.length > 0) ? sunCorr : old.correctWords
+                  };
+                } else {
+                  list.push(sunItem);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  } catch(_) {}
+
   // 清理 localStorage 中不屬於實際指派任務日期的殘留 task_words_* 快取
   const validTaskDates = new Set(
     list.filter(r => r && r.date && r.taskName && r.taskName !== "自主練習" && !String(r.taskName).includes("未指派"))
@@ -955,6 +1078,54 @@ function resolveTaskWords(record, selectedDate, d) {
     } catch(_) {}
   }
 
+  // 7. 從 task_summary_YYYY-MM-DD 提取 (每日測驗結算存檔)
+  if (pool.length === 0 && normDate) {
+    try {
+      const rawTS = localStorage.getItem("task_summary_" + normDate) || localStorage.getItem("task_summary_" + slashDate);
+      if (rawTS) {
+        const ts = JSON.parse(rawTS);
+        if (ts && Array.isArray(ts.words) && ts.words.length > 0) {
+          pool = ts.words.map(w => typeof w === "string" ? w : (w.word || w.display || w.w)).filter(Boolean);
+        }
+        if (Array.isArray(ts.wrongWords) && ts.wrongWords.length > 0 && (!record.wrongWords || record.wrongWords.length === 0)) {
+          record.wrongWords = ts.wrongWords;
+        }
+        if (Array.isArray(ts.correctWords) && ts.correctWords.length > 0 && (!record.correctWords || record.correctWords.length === 0)) {
+          record.correctWords = ts.correctWords;
+        }
+      }
+    } catch(_) {}
+  }
+
+  // 8. 從 weekend_remedy_YYYY-MM-DD 提取 (週末補強測驗存檔)
+  if (normDate && (pool.length === 0 || !record.correctWords || record.correctWords.length === 0)) {
+    try {
+      const dObj = new Date(normDate.replace(/-/g, "/"));
+      const day = dObj.getDay();
+      if (day === 0 || day === 6) {
+        const diff = dObj.getDate() - day + (day === 0 ? -6 : 1);
+        const mObj = new Date(dObj.getFullYear(), dObj.getMonth(), diff);
+        const monKey = mObj.getFullYear() + "-" + String(mObj.getMonth() + 1).padStart(2, "0") + "-" + String(mObj.getDate()).padStart(2, "0");
+        const rawRem = localStorage.getItem("weekend_remedy_" + monKey);
+        if (rawRem) {
+          const rem = JSON.parse(rawRem);
+          if (rem) {
+            const corr = day === 6 ? rem.satCorrectWords : rem.sunCorrectWords;
+            const wrg = day === 6 ? rem.satWrongWords : rem.sunWrongWords;
+            if (Array.isArray(corr) && corr.length > 0) {
+              if (!record.correctWords || record.correctWords.length === 0) record.correctWords = corr;
+              pool = pool.concat(corr);
+            }
+            if (Array.isArray(wrg) && wrg.length > 0) {
+              if (!record.wrongWords || record.wrongWords.length === 0) record.wrongWords = wrg;
+              pool = pool.concat(wrg);
+            }
+          }
+        }
+      }
+    } catch(_) {}
+  }
+
   // 整理答錯單字並過濾非英文單字之狀態註記（如 (應測單字)、(未完成)、—）
   let wrongList = Array.from(new Set(
     (record.wrongWords || [])
@@ -1050,13 +1221,33 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
   const unansweredList = rawWords.filter(w => !answeredSet.has(String(w).toLowerCase())).sort((a, b) => a.localeCompare(b));
   const totalAnswered = correctList.length + wrongList.length;
 
-  // 核心完成判定：已作答單字數（答對 + 答錯）必須達到應測總單字數，才算真正完成！
-  const isFinished = (totalAnswered >= taskTotWords && taskTotWords > 0) || (taskTotWords > 0 && totalAnswered > 0 && unansweredList.length === 0 && !statusStr.includes("未受測") && !statusStr.includes("中斷") && !statusStr.includes("作答中"));
+  // 核心完成判定：只要狀態明確為已完成、或得分顯示已滿/完成、或答題數已達標
+  const hasFinishedStatus = statusStr.includes("已完成") || statusStr.includes("● 已完成") || statusStr.includes("🟢 已完成") || (record.completed === true) || (record.alreadyCompleted === true);
+  const isFinishedScore = (taskTotWords > 0 && taskCorrWords + wrongList.length >= taskTotWords) ||
+                          (taskTotWords > 0 && taskRate === 100) ||
+                          (totalAnswered >= taskTotWords && taskTotWords > 0) ||
+                          (taskTotWords > 0 && totalAnswered > 0 && unansweredList.length === 0 && !statusStr.includes("未受測") && !statusStr.includes("中斷") && !statusStr.includes("作答中"));
+  const isExplicitlyNotFinished = statusStr.includes("未受測") || statusStr.includes("中斷") || statusStr.includes("作答中") || statusStr.includes("未完成") || scoreVal === "—" || scoreVal === "尚未開始" || record.inProgress === true;
+
+  const isFinished = (hasFinishedStatus || isFinishedScore) && !isExplicitlyNotFinished;
 
   // 核心中斷判定：已作答但未答滿全部題目（例如 5 題只答 2 題），或狀態標記為作答中/未完成/中斷
   const isPartialAttempt = (totalAnswered > 0 && taskTotWords > 0 && totalAnswered < taskTotWords) || (unansweredList.length > 0 && totalAnswered > 0);
-  const isIncomplete = isPartialAttempt || (!isFinished && (statusStr.includes("作答中") || statusStr.includes("未完成") || statusStr.includes("中斷") || record.inProgress === true));
-  const isUntested = !isFinished && !isIncomplete && (statusStr.includes("未受測") || scoreVal === "—" || scoreVal === "尚未開始" || totalAnswered === 0);
+  const isIncomplete = !isFinished && (
+    isPartialAttempt ||
+    statusStr.includes("作答中") ||
+    statusStr.includes("未完成") ||
+    statusStr.includes("中斷") ||
+    record.inProgress === true
+  );
+
+  // 核心未受測判定：絕不因為單字清單暫未展開 (totalAnswered === 0) 誤把已完成的測驗判斷為未受測！
+  const isUntested = !isFinished && !isIncomplete && (
+    statusStr.includes("未受測") ||
+    scoreVal === "—" ||
+    scoreVal === "尚未開始" ||
+    (totalAnswered === 0 && !hasFinishedStatus && taskRate === 0)
+  );
 
   let displayStatusStr = statusStr;
   let statusColor = "#64748b";
@@ -1165,7 +1356,11 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     if (correctList.length > 0) {
       correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
     } else if (isFinished) {
-      correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（本次測驗無答對單字）</span>`;
+      if (taskCorrWords > 0) {
+        correctContentHtml = `<div style="font-size:12.5px; font-weight:700; color:#047857; padding:4px 0;">🎉 本次測驗全數答對（共 ${taskCorrWords} 字），表現完美！</div>`;
+      } else {
+        correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（本次測驗無答對單字）</span>`;
+      }
     } else {
       correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（測驗待完成，尚未答對單字）</span>`;
     }
@@ -1409,6 +1604,67 @@ function buildTaskDetailsHtml(records, selectedDate, d) {
     .filter(r => r && r.taskName && r.taskName !== "自主練習" && !r.taskName.includes("自由練習") && !r.taskName.includes("未指派"));
 
   const normDate = normalizeDateStr(selectedDate);
+
+  if (list.length === 0) {
+    // 檢查是否有當日已完成的 task_summary 或 weekend_remedy
+    try {
+      const rawTS = localStorage.getItem("task_summary_" + normDate);
+      if (rawTS) {
+        const ts = JSON.parse(rawTS);
+        if (ts && ts.completed && ts.taskName && ts.taskName !== "自主練習") {
+          list.push({
+            date: normDate,
+            taskName: ts.taskName,
+            score: (ts.score !== undefined && ts.total !== undefined) ? `${ts.score}/${ts.total}` : (ts.score || "已完成"),
+            rate: ts.rate || "100%",
+            status: "🟢 已完成",
+            wrongWords: ts.wrongWords || [],
+            words: ts.words || []
+          });
+        }
+      }
+    } catch(_) {}
+
+    if (list.length === 0) {
+      try {
+        const dObj = new Date(normDate.replace(/-/g, "/"));
+        const day = dObj.getDay();
+        if (day === 0 || day === 6) {
+          const diff = dObj.getDate() - day + (day === 0 ? -6 : 1);
+          const mObj = new Date(dObj.getFullYear(), dObj.getMonth(), diff);
+          const monKey = mObj.getFullYear() + "-" + String(mObj.getMonth() + 1).padStart(2, "0") + "-" + String(mObj.getDate()).padStart(2, "0");
+          const rawRem = localStorage.getItem("weekend_remedy_" + monKey);
+          if (rawRem) {
+            const rem = JSON.parse(rawRem);
+            if (rem && ((day === 6 && rem.satCompleted) || (day === 0 && rem.sunCompleted))) {
+              const corr = day === 6 ? (rem.satCorrectWords || []) : (rem.sunCorrectWords || []);
+              const wrg = day === 6 ? (rem.satWrongWords || []) : (rem.sunWrongWords || []);
+              const sc = day === 6 ? rem.satScore : rem.sunScore;
+              const rt = day === 6 ? rem.satRate : rem.sunRate;
+              const wList = Array.from(new Set([...corr, ...wrg]));
+              list.push({
+                date: normDate,
+                taskName: "🎯 週末待攻克單字測驗成果",
+                score: sc || (wList.length ? `${corr.length}/${wList.length}` : "已完成"),
+                rate: rt || "100%",
+                status: "🟢 已完成",
+                wrongWords: wrg,
+                correctWords: corr,
+                words: wList,
+                isWeekend: true
+              });
+            }
+          }
+        }
+      } catch(_) {}
+    }
+  }
+
+  list.sort((a, b) => {
+    const aDone = a && a.status && (a.status.includes("已完成") || a.status.includes("●") || a.status.includes("🟢")) ? 1 : 0;
+    const bDone = b && b.status && (b.status.includes("已完成") || b.status.includes("●") || b.status.includes("🟢")) ? 1 : 0;
+    return bDone - aDone;
+  });
 
   // 1. 僅從明確的備份任務歷程（如學習歷程頁 cachedBackupTaskHistory）檢查是否指派，絕不單憑殘留的 task_words_* 快取誤判為有指派
   let assignedWords = [];
@@ -2113,7 +2369,7 @@ export function renderSummary(d) {
     if (taskDayStatCache.has(norm)) return taskDayStatCache.get(norm);
 
     const tArr = taskByDateMap.get(norm);
-    const tRec = (tArr && tArr[0]) || null;
+    const tRec = (tArr && (tArr.find(r => r && r.status && r.status.includes("已完成")) || tArr.find(r => r && r.score && r.score !== "—" && r.score !== "尚未開始") || tArr[0])) || null;
     if (!tRec || !tRec.taskName || tRec.taskName === "⚪ 未指派" || (tRec.status && tRec.status.includes("未指派"))) {
       const res = {
         a: 0, c: 0, rate: 0,
