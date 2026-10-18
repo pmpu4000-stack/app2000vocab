@@ -1359,16 +1359,15 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
         const diag = diagnoseWordMistake(w);
         return `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="答錯單字：${diag.desc} (點擊聆聽發音)">${w} <span class="diag-bubble-tag" title="${diag.desc}">${diag.tag}</span></span>`;
       }).join("");
-    } else if (actualAnswered > 0) {
-      wrongPillsHtml = `<div style="font-size:12px; color:var(--ink2); padding:2px 0;">✨ 已作答的 ${actualAnswered} 題全數答對，無答錯單字！</div>`;
     }
 
     let unansAccordionHtml = "";
     if (unansweredList.length > 0) {
       const unansId = `unans-box-${Math.random().toString(36).substr(2, 7)}`;
       const unansPills = unansweredList.map(w => `<span class="word-pill-tag neutral" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="未測單字 (點擊聆聽發音)">${w}</span>`).join("");
+      const unansTopStyle = wrongList.length > 0 ? "margin-top:10px; padding-top:8px; border-top:1px dashed var(--line, rgba(148,163,184,0.25));" : "";
       unansAccordionHtml = `
-        <div style="margin-top:10px; padding-top:8px; border-top:1px dashed var(--line, rgba(148,163,184,0.25)); width:100%;">
+        <div style="${unansTopStyle} width:100%;">
           <div onclick="const el=document.getElementById('${unansId}'); const arrow=this.querySelector('.accordion-arrow'); if(el){ const isHidden=el.style.display==='none'; el.style.display=isHidden?'flex':'none'; if(arrow) arrow.textContent=isHidden?'▲':'▼'; }" 
                style="cursor:pointer; display:flex; align-items:center; justify-content:space-between; font-size:12px; font-weight:700; color:var(--ink2); padding:4px 2px; user-select:none;">
             <span>⏳ 尚有 ${unansweredList.length} 個單字未受測（點擊查看清單）</span>
