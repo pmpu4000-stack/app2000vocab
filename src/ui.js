@@ -1283,7 +1283,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
   let rightTitleClass = "wrong-title";
   let rightTitleText = wrongList.length > 0 
     ? `❌ 答錯的單字 (${wrongList.length} 字)` 
-    : (isTrulyPerfect ? `❌ 答錯的單字 (0 字)` : (missedCount > 0 ? `❌ 待加強單字 (${missedCount} 字)` : `❌ 答錯的單字 (0 字)`));
+    : (isTrulyPerfect ? `❌ 答錯的單字 (0 字)` : (missedCount > 0 ? `❌ 未作答的單字 (${missedCount} 字)` : `❌ 答錯的單字 (0 字)`));
 
   if (isUntested) {
     leftBoxClass = "untested-box";
@@ -1369,12 +1369,12 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
       correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（測驗待完成，尚未答對單字）</span>`;
     }
 
-    // 2. 答錯的單字
+    // 2. 答錯的單字與未作答單字
     if (wrongList.length > 0) {
       const normDate = normalizeDateStr(selectedDate);
       const slashDate = normDate.replace(/-/g, "/");
       const dpDay = d && d.dailyPractice && (d.dailyPractice[normDate] || d.dailyPractice[slashDate] || d.dailyPractice[selectedDate]);
-      wrongContentHtml = wrongList.map(w => {
+      const wrongPills = wrongList.map(w => {
         const diag = diagnoseWordMistake(w);
         const diagBadge = `<span class="diag-bubble-tag" title="${diag.desc}">${diag.tag}</span>`;
         const isHadCW = (hadCorrectThenWrongList && hadCorrectThenWrongList.includes(w)) ||
@@ -1385,6 +1385,22 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
         }
         return `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w} ${diagBadge}</span>`;
       }).join("");
+
+      const remainingUnanswered = (rawWords.length > 0)
+        ? rawWords.filter(w => !correctList.includes(String(w).toLowerCase()) && !wrongList.includes(String(w).toLowerCase()))
+        : (unansweredList.length > 0 ? unansweredList : []);
+
+      let unansExtraHtml = "";
+      if (remainingUnanswered.length > 0) {
+        const unansPills = remainingUnanswered.map(w => `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="未作答單字 (點擊聆聽發音)">${w} <span class="diag-bubble-tag" title="未作答">未作答</span></span>`).join("");
+        unansExtraHtml = `
+          <div style="margin-top:10px; padding-top:8px; border-top:1px dashed var(--line, rgba(148,163,184,0.25)); width:100%;">
+            <div style="font-size:12px; font-weight:700; color:var(--ink2); margin-bottom:6px;">⏳ 未作答單字 (${remainingUnanswered.length} 字)：</div>
+            <div style="display:flex; flex-wrap:wrap; gap:6px;">${unansPills}</div>
+          </div>
+        `;
+      }
+      wrongContentHtml = `<div style="display:flex; flex-direction:column; width:100%;"><div style="display:flex; flex-wrap:wrap; gap:6px;">${wrongPills}</div>${unansExtraHtml}</div>`;
     } else if (isTrulyPerfect) {
       wrongContentHtml = `<span class="perfect-score-msg">🎉 全數答對，無答錯單字！</span>`;
     } else if (missedCount > 0) {
@@ -1393,17 +1409,16 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
         : (unansweredList.length > 0 ? unansweredList : []);
 
       if (unmastered.length > 0) {
-        rightTitleText = `❌ 待加強單字 (${unmastered.length} 字)`;
+        rightTitleText = `❌ 未作答的單字 (${unmastered.length} 字)`;
         wrongContentHtml = unmastered.map(w => {
-          const diag = diagnoseWordMistake(w);
-          return `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="未答對單字：${diag.desc} (點擊聆聽發音)">${w} <span class="diag-bubble-tag" title="${diag.desc}">待加強</span></span>`;
+          return `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="未作答單字 (點擊聆聽發音)">${w} <span class="diag-bubble-tag" title="未作答">未作答</span></span>`;
         }).join("");
       } else {
-        rightTitleText = `❌ 待加強單字 (${missedCount} 字)`;
+        rightTitleText = `❌ 未作答的單字 (${missedCount} 字)`;
         wrongContentHtml = `
           <div style="display:flex; flex-direction:column; gap:4px; padding:6px 8px; font-size:12.5px; line-height:1.55; color:var(--ink2);">
-            <div>⚠️ 本次測驗施測 <b>${taskTotWords}</b> 字，答對 <b>${taskCorrWords}</b> 字，尚有 <b style="color:var(--ink, #475569); font-weight:800;">${missedCount}</b> 字未掌握。</div>
-            <div style="font-size:11.5px; color:var(--ink3);">📌 提醒：未掌握之單字已自動排入週末弱點補強測驗。</div>
+            <div>⚠️ 本次測驗施測 <b>${taskTotWords}</b> 字，答對 <b>${taskCorrWords}</b> 字，尚有 <b style="color:var(--ink, #475569); font-weight:800;">${missedCount}</b> 字未作答。</div>
+            <div style="font-size:11.5px; color:var(--ink3);">📌 提醒：未作答之單字已自動排入週末弱點補強測驗。</div>
           </div>
         `;
       }
