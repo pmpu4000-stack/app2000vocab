@@ -1266,8 +1266,8 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
       statusColor = "#d97706";
       statusDesc = "⚠️ 有登入但未測驗";
     } else {
-      displayStatusStr = "🔴 缺席未受測";
-      statusColor = "#ef4444";
+      displayStatusStr = "🟠 缺席未受測";
+      statusColor = "#b45309";
       statusDesc = "📴 當日無登入紀錄 (缺考)";
     }
   }
@@ -1564,8 +1564,8 @@ function renderUntestedTaskCardHtml(info, d) {
     wordsHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（指派單字載入中或未指定具體單字清單）</span>`;
   }
 
-  const statusColor = hasLoggedInOrFree ? "#d97706" : "#ef4444";
-  const displayStatusStr = hasLoggedInOrFree ? "🟡 登入未受測" : "🔴 缺席未受測";
+  const statusColor = hasLoggedInOrFree ? "#d97706" : "#b45309";
+  const displayStatusStr = hasLoggedInOrFree ? "🟡 登入未受測" : "🟠 缺席未受測";
 
   const adviceText = hasLoggedInOrFree
     ? "當日有登入系統進行自由練習，但<strong>尚未完成本次指定測驗</strong>。"
@@ -1578,7 +1578,7 @@ function renderUntestedTaskCardHtml(info, d) {
           <span class="task-card-title task-title-assigned">${formattedTaskName}</span>
         </div>
         <div style="display:flex; align-items:center; gap:6px;">
-          <span class="status-badge-pill ${hasLoggedInOrFree ? 'warning' : 'danger'}">${displayStatusStr}</span>
+          <span class="status-badge-pill ${hasLoggedInOrFree ? 'warning' : 'warning-rich'}">${displayStatusStr}</span>
         </div>
       </div>
 
@@ -2485,12 +2485,12 @@ export function renderSummary(d) {
         badgeTier: "tier-status-yellow"
       };
     } else {
-      // 🔴 缺席未受測 (方格珊瑚玫瑰紅，右側粉紅紅框)
+      // 🟠 缺席未受測 (方格濃郁蜜糖琥珀金，右側琥珀金框)
       res = {
         a: 0, c: 0, rate: 0,
         wordsCount: taskWordsCount,
         statusType: "absent_untested",
-        statusLabel: "🔴 缺席未受測",
+        statusLabel: "🟠 缺席未受測",
         levelClass: "h-status-red",
         badgeTier: "tier-status-red"
       };
