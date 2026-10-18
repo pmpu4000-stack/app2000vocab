@@ -1223,6 +1223,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
   // 方案 A 關鍵統計：全卷應測總單字數 vs 實際已作答單字數
   const assignedTotWords = (rawWords && rawWords.length > 0) ? rawWords.length : taskTotWords;
   const actualAnswered = totalAnswered > 0 ? totalAnswered : (taskCorrWords + wrongList.length);
+  const actualWrong = wrongList.length > 0 ? wrongList.length : Math.max(0, actualAnswered - taskCorrWords);
   const actualUnanswered = (unansweredList && unansweredList.length > 0)
     ? unansweredList.length
     : Math.max(0, assignedTotWords - actualAnswered);
@@ -1498,10 +1499,15 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
             </div>
           </div>
           <div class="task-score-item" style="display:flex; flex-direction:column; justify-content:center; padding:10px 4px;">
-            <div class="task-score-label" style="font-size:11px; color:#ef4444;" title="未作答題數">未作答</div>
-            <div class="task-score-val" style="display:flex; align-items:center; justify-content:center; color:#ef4444;">
-              <span>${actualUnanswered}</span>
-              <span style="font-size:13px; font-weight:700; margin-left:2px; color:var(--ink3);">題</span>
+            <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap; font-size:11px;" title="答錯單字 / 未作答單字">
+              <span style="flex:1; text-align:right; color:#ef4444;">答錯</span>
+              <span style="padding:0 2px; opacity:0.6;">/</span>
+              <span style="flex:1; text-align:left; color:#ea580c;">未作答</span>
+            </div>
+            <div class="task-score-val" style="display:flex; align-items:center; justify-content:center;">
+              <span style="flex:1; text-align:right; color:#ef4444;">${actualWrong}</span>
+              <span style="padding:0 4px; font-weight:700; color:var(--ink3); opacity:0.6; font-size:18px;">/</span>
+              <span style="flex:1; text-align:left; color:#ea580c;">${actualUnanswered}</span>
             </div>
           </div>
         </div>
