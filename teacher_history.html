@@ -2663,9 +2663,9 @@
       margin: 6px 0 14px !important;
       line-height: 1.6 !important;
       background: rgba(108, 76, 224, 0.05) !important;
-      padding: 8px 12px !important;
-      border-radius: 8px !important;
-      border: 1px solid rgba(108, 76, 224, 0.15) !important;
+      padding: 10px 14px !important;
+      border-radius: 10px !important;
+      border: 1px solid rgba(108, 76, 224, 0.15) !important; display: flex !important; align-items: center !important; gap: 8px !important;
     }
     .formula-note-box b {
       color: var(--ink) !important;
@@ -5257,8 +5257,9 @@
             <div class="mode-stat-sub" id="stModeTrapSub">受測 0 字 (0%)</div>
           </div>
         </div>
-        <div class="formula-note-box" style="margin-top:-4px; margin-bottom:14px; font-size:12px;">
-          💡 <b>小提示</b>：同一個單字若在不同玩法答對會各自累計，因此四項加總會大於上方的「共答對單字數」。
+        <div class="formula-note-box" style="margin-top:-4px; margin-bottom:14px; font-size:12px; display:flex; align-items:center; gap:8px; padding:10px 14px;">
+          <span style="font-size:15px; flex-shrink:0; line-height:1;">💡</span>
+          <div style="flex:1; line-height:1.55;"><b>小提示</b>：同一個單字若在不同玩法答對會各自累計，因此四項加總會大於上方的「共答對單字數」。</div>
         </div>
 
         <!-- 📅 單日作答歷程（大區塊標題，同等層級） -->
@@ -16173,9 +16174,9 @@ function renderStudentDailyTaskAndFreeSections(resp) {
 
       conquerDetailsContainer.innerHTML = `
         <div class="week-conquer-wrap" style="display:flex; flex-direction:column; gap:10px;">
-          <div class="week-conquer-tip" style="display:flex; align-items:flex-start; gap:8px; padding:10px 14px; background:rgba(148, 163, 184, 0.1); border:1px solid rgba(148, 163, 184, 0.28); border-radius:10px; font-size:12.5px; line-height:1.55; color:var(--ink2);">
-            <span style="font-size:15px; flex-shrink:0;">💡</span>
-            <div>
+          <div class="week-conquer-tip" style="display:flex; align-items:center; gap:8px; padding:10px 14px; background:rgba(148, 163, 184, 0.1); border:1px solid rgba(148, 163, 184, 0.28); border-radius:10px; font-size:12.5px; line-height:1.55; color:var(--ink2);">
+            <span style="font-size:15px; flex-shrink:0; line-height:1;">💡</span>
+            <div style="flex:1; line-height:1.55;">
               本週累積 <b>${count}</b> 個待攻克單字。在<b>自由練習</b>中只要拼對該單字，系統即判定為已學會並自動移除，<b>不滾入週末錯題消滅戰測驗</b>！
             </div>
           </div>

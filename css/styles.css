@@ -1641,7 +1641,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   background: rgba(108, 76, 224, 0.05);
   padding: 10px 14px;
   border-radius: 10px;
-  border: 1px solid rgba(108, 76, 224, 0.15);
+  border: 1px solid rgba(108, 76, 224, 0.15); display: flex; align-items: center; gap: 8px;
 }
 .formula-note-box b {
   color: var(--ink);

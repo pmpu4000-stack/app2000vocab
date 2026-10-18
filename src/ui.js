@@ -2265,9 +2265,9 @@ export function buildWeekPendingConquerHtml(words, d = null) {
 
   return `
     <div class="week-conquer-wrap" style="display:flex; flex-direction:column; gap:10px;">
-      <div class="week-conquer-tip" style="display:flex; align-items:flex-start; gap:8px; padding:10px 14px; background:rgba(148, 163, 184, 0.1); border:1px solid rgba(148, 163, 184, 0.28); border-radius:10px; font-size:12.5px; line-height:1.55; color:var(--ink2);">
-        <span style="font-size:15px; flex-shrink:0;">💡</span>
-        <div>
+      <div class="week-conquer-tip" style="display:flex; align-items:center; gap:8px; padding:10px 14px; background:rgba(148, 163, 184, 0.1); border:1px solid rgba(148, 163, 184, 0.28); border-radius:10px; font-size:12.5px; line-height:1.55; color:var(--ink2);">
+        <span style="font-size:15px; flex-shrink:0; line-height:1;">💡</span>
+        <div style="flex:1; line-height:1.55;">
           本週累積 <b>${count}</b> 個待攻克單字。在<b>自由練習</b>中只要拼對該單字，系統即判定為已學會並自動移除，<b>不滾入週末錯題消滅戰測驗</b>！
         </div>
       </div>
@@ -2597,8 +2597,9 @@ export function renderSummary(d) {
         <div class="mode-stat-sub">受測 ${(d.modeStats?.trap?.a || 0)} 字 (${d.modeStats?.trap?.a ? Math.round((d.modeStats.trap.c / d.modeStats.trap.a)*100) : 0}%)</div>
       </div>
     </div>
-    <div class="formula-note-box" style="margin-top:-4px; margin-bottom:14px; font-size:12px;">
-      💡 <b>小提示</b>：同一個單字若在不同玩法答對會各自累計，因此四項加總會大於上方的「共答對單字數」。
+    <div class="formula-note-box" style="margin-top:-4px; margin-bottom:14px; font-size:12px; display:flex; align-items:center; gap:8px; padding:10px 14px;">
+      <span style="font-size:15px; flex-shrink:0; line-height:1;">💡</span>
+      <div style="flex:1; line-height:1.55;"><b>小提示</b>：同一個單字若在不同玩法答對會各自累計，因此四項加總會大於上方的「共答對單字數」。</div>
     </div>
 
     <!-- 📅 每日作答紀錄（大區塊標題，同等層級） -->
