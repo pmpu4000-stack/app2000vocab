@@ -15054,8 +15054,8 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
 
   const isFinished = (hasFinishedStatus || isFinishedScore) && !isExplicitlyNotFinished;
 
-  // 核心中斷判定：已作答但未答滿全部題目（例如 20 題只答 5 題），或狀態標記為作答中/未完成/中斷
-  const isPartialAttempt = hasUnanswered || (totalAnswered > 0 && taskTotWords > 0 && totalAnswered < taskTotWords) || (unansweredList.length > 0 && totalAnswered > 0);
+  // 核心中斷判定：已作答但未答滿全部題目（例如 20 題只答 5 題），必須實際有作答 (actualAnswered > 0)
+  const isPartialAttempt = (actualAnswered > 0 && hasUnanswered) || (totalAnswered > 0 && taskTotWords > 0 && totalAnswered < taskTotWords) || (unansweredList.length > 0 && totalAnswered > 0);
   const isIncomplete = !isFinished && (
     isPartialAttempt ||
     statusStr.includes("作答中") ||
@@ -15132,6 +15132,26 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
     } else {
       wrongContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（指派單字載入中或未指定具體單字清單）</span>`;
     }
+  } else if (isIncomplete && actualAnswered === 0) {
+    leftBoxClass = "advice-box";
+    leftTitleClass = "advice-title";
+    leftTitleText = `💡 測驗作答狀態`;
+    correctContentHtml = `
+      <div style="display:flex; flex-direction:column; justify-content:flex-start; align-items:flex-start; gap:6px; padding:6px 4px; font-size:12.5px; line-height:1.6;">
+        <div><b>尚未開始作答</b>。該生本次測驗共 ${assignedTotWords} 題，尚未作答任何題目。</div>
+        <div style="font-size:11.5px; color:var(--ink3);">📌 提醒：未作答之單字已自動排入週末弱點補強測驗。</div>
+      </div>
+    `;
+
+    rightBoxClass = "untested-box";
+    rightTitleClass = "untested-title";
+    const unansWords = (unansweredList && unansweredList.length > 0) ? unansweredList : rawWords;
+    rightTitleText = `🔘 尚未作答的單字 (${unansWords.length} 字)`;
+    if (unansWords.length > 0) {
+      wrongContentHtml = unansWords.map(w => `<span class="word-pill-tag neutral" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); speakMasteredWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="未作答單字 (點擊聆聽發音)">${w}</span>`).join("");
+    } else {
+      wrongContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（待測單字載入中）</span>`;
+    }
   } else if (isIncomplete) {
     leftBoxClass = "correct-box";
     leftTitleClass = "correct-title";
@@ -15152,8 +15172,8 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
         const diag = diagnoseWordMistake(w);
         return `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); speakMasteredWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="答錯單字：${diag.desc} (點擊聆聽發音)">${w} <span class="diag-bubble-tag" title="${diag.desc}">${diag.tag}</span></span>`;
       }).join("");
-    } else {
-      wrongPillsHtml = `<div style="font-size:12px; color:var(--ink2); padding:2px 0;">✨ 已作答題目全數答對，無答錯單字！</div>`;
+    } else if (actualAnswered > 0) {
+      wrongPillsHtml = `<div style="font-size:12px; color:var(--ink2); padding:2px 0;">✨ 已作答的 ${actualAnswered} 題全數答對，無答錯單字！</div>`;
     }
 
     let unansAccordionHtml = "";
@@ -15330,8 +15350,8 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
         <div class="task-score-subgrid">
           <div class="task-score-item" style="display:flex; flex-direction:column; justify-content:center; padding:10px 4px;">
             <div class="task-score-label" style="font-size:11px;" title="實際有作答題目的答對率">作答正確率</div>
-            <div class="task-score-val" style="color:#16a34a; font-size:22px; font-weight:800; line-height:1.2;">
-              ${attemptedRate}%
+            <div class="task-score-val" style="color:${actualAnswered > 0 ? '#16a34a' : 'var(--ink3)'}; font-size:22px; font-weight:800; line-height:1.2;">
+              ${actualAnswered > 0 ? attemptedRate + '%' : '—'}
             </div>
           </div>
           <div class="task-score-item" style="display:flex; flex-direction:column; justify-content:center; padding:10px 4px;">
