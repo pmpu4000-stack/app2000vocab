@@ -1514,23 +1514,25 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     const getHeatmapRateColor = (r) => {
       const n = (typeof r === 'number') ? r : (parseInt(r, 10) || 0);
       if (n >= 100) return '#00D2FF';
+      if (n >= 90) return '#00B4D8';
       if (n >= 80) return '#38BDF8';
-      if (n >= 60) return '#7DD3FC';
+      if (n >= 70) return '#7DD3FC';
+      if (n >= 60) return '#93C5FD';
       return '#94A3B8';
     };
     scoreGridHtml = `
       <div class="task-score-grid">
         <div class="task-score-subgrid">
           <div class="task-score-item" style="display:flex; flex-direction:column; justify-content:center; padding:10px 4px;">
-            <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap; font-size:11px;" title="已答對單字 / 應施測單字">
+            <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap; font-size:11px;" title="已答對單字 / 已施測單字">
               <span style="flex:1; text-align:right;">已答對</span>
               <span style="padding:0 2px; opacity:0.6;">/</span>
-              <span style="flex:1; text-align:left;">應施測</span>
+              <span style="flex:1; text-align:left;">已施測</span>
             </div>
-            <div class="task-score-val" style="display:flex; align-items:center; justify-content:center;">
-              <span class="task-score-num-corr" style="flex:1; text-align:right; color:#0284c7;">${taskCorrWords}</span>
+            <div class="task-score-val heat-rate-val ${getHeatmapRateClass(attemptedRate)}" style="display:flex; align-items:center; justify-content:center; color:${actualAnswered > 0 ? getHeatmapRateColor(attemptedRate) : 'var(--ink3)'};">
+              <span class="task-score-num-corr" style="flex:1; text-align:right;">${taskCorrWords}</span>
               <span style="padding:0 4px; font-weight:700; color:var(--ink3); opacity:0.6; font-size:18px;">/</span>
-              <span class="task-score-num-tot" style="flex:1; text-align:left; color:#0369a1;">${assignedTotWords}</span>
+              <span class="task-score-num-tot" style="flex:1; text-align:left;">${assignedTotWords}</span>
             </div>
           </div>
           <div class="task-score-item" style="display:flex; flex-direction:column; justify-content:center; padding:10px 4px;">
@@ -1575,22 +1577,24 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     const getHeatmapRateColor = (r) => {
       const n = (typeof r === 'number') ? r : (parseInt(r, 10) || 0);
       if (n >= 100) return '#00D2FF';
+      if (n >= 90) return '#00B4D8';
       if (n >= 80) return '#38BDF8';
-      if (n >= 60) return '#7DD3FC';
+      if (n >= 70) return '#7DD3FC';
+      if (n >= 60) return '#93C5FD';
       return '#94A3B8';
     };
     scoreGridHtml = `
       <div class="task-score-grid">
         <div class="task-score-item">
           <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap;">
-            <span style="flex:1; text-align:right;">答對單字數</span>
+            <span style="flex:1; text-align:right;">已答對單字</span>
             <span style="padding:0 6px; opacity:0.6;">/</span>
-            <span style="flex:1; text-align:left;">施測單字數</span>
+            <span style="flex:1; text-align:left;">已施測單字</span>
           </div>
-          <div class="task-score-val" style="display:flex; align-items:center; justify-content:center;">
-            <span class="task-score-num-corr" style="flex:1; text-align:right; color:#0284c7;">${taskCorrWords}</span>
+          <div class="task-score-val heat-rate-val ${getHeatmapRateClass(taskRate)}" style="display:flex; align-items:center; justify-content:center; color:${getHeatmapRateColor(taskRate)};">
+            <span class="task-score-num-corr" style="flex:1; text-align:right;">${taskCorrWords}</span>
             <span style="padding:0 6px; font-weight:700; color:var(--ink3); opacity:0.6; font-size:18px;">/</span>
-            <span class="task-score-num-tot" style="flex:1; text-align:left; color:#0369a1;">${taskTotWords}</span>
+            <span class="task-score-num-tot" style="flex:1; text-align:left;">${taskTotWords}</span>
           </div>
         </div>
         <div class="task-score-item">
