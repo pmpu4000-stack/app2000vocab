@@ -1479,7 +1479,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
           <div class="task-score-val" style="display:flex; align-items:center; justify-content:center;">
             <span class="task-score-num-corr" style="flex:1; text-align:right; color:#0284c7;">${taskCorrWords}</span>
             <span style="padding:0 6px; font-weight:700; color:var(--ink3); opacity:0.6; font-size:18px;">/</span>
-            <span class="task-score-num-tot" style="flex:1; text-align:left; color:#ef4444;">${taskTotWords}</span>
+            <span class="task-score-num-tot" style="flex:1; text-align:left; color:#0369a1;">${taskTotWords}</span>
           </div>
         </div>
         <div class="task-score-item">
@@ -1503,7 +1503,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
           <div class="task-score-val" style="display:flex; align-items:center; justify-content:center;">
             <span class="task-score-num-corr" style="flex:1; text-align:right; color:#0284c7;">${taskCorrWords}</span>
             <span style="padding:0 6px; font-weight:700; color:var(--ink3); opacity:0.6; font-size:18px;">/</span>
-            <span class="task-score-num-tot" style="flex:1; text-align:left; color:#ef4444;">${taskTotWords}</span>
+            <span class="task-score-num-tot" style="flex:1; text-align:left; color:#0369a1;">${taskTotWords}</span>
           </div>
         </div>
         <div class="task-score-item">

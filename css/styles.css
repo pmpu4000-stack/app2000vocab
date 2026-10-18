@@ -2554,6 +2554,6 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 
 /* 測驗分數 4 (藍色) / 5 (紅色) 高對比配色 */
 .task-score-num-corr { color: #0284C7 !important; }
-.task-score-num-tot  { color: #EF4444 !important; }
+.task-score-num-tot  { color: #0369A1 !important; }
 [data-theme="dark"] .task-score-num-corr { color: #38BDF8 !important; }
-[data-theme="dark"] .task-score-num-tot  { color: #F87171 !important; }
+[data-theme="dark"] .task-score-num-tot  { color: #7DD3FC !important; }
