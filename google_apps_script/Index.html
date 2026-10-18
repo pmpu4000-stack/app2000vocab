@@ -4139,6 +4139,24 @@
       outline: 2.5px solid #FDE047 !important;
       outline-offset: 1px !important;
     }
+    /* 指定測驗特殊狀態方格 (登入作答未完成: 明亮模式淡淡紫色, 深色模式黯沉紫色) */
+    .hc.h-status-purple,
+    .hc.h-status-blue { background: #E9D5FF !important; border-color: #C4B5FD !important; box-shadow: 0 1px 2px rgba(168,85,247,.20) !important; }
+    [data-theme="dark"] .hc.h-status-purple,
+    [data-theme="dark"] .hc.h-status-blue { background: #3B1D5A !important; border-color: #581C87 !important; box-shadow: none !important; }
+    .heat-day-info.tier-status-purple,
+    .heat-day-info.tier-status-blue { background: #FAF5FF !important; color: #6B21A8 !important; border: 2px solid #C4B5FD !important; box-shadow: 0 2px 6px rgba(168,85,247,.15) !important; }
+    .heat-day-info.tier-status-purple b,
+    .heat-day-info.tier-status-blue b { color: #581C87 !important; }
+    [data-theme="dark"] .heat-day-info.tier-status-purple,
+    [data-theme="dark"] .heat-day-info.tier-status-blue { background: rgba(59, 29, 90, 0.45) !important; color: #DDD6FE !important; border-color: #581C87 !important; box-shadow: 0 2px 8px rgba(0,0,0,.35) !important; }
+    [data-theme="dark"] .heat-day-info.tier-status-purple b,
+    [data-theme="dark"] .heat-day-info.tier-status-blue b { color: #F3E8FF !important; }
+    .status-badge-pill.purple,
+    .status-badge-pill.incomplete { color: #6B21A8 !important; background: #F3E8FF !important; border: 1px solid #D8B4FE !important; }
+    [data-theme="dark"] .status-badge-pill.purple,
+    [data-theme="dark"] .status-badge-pill.incomplete { color: #E9D5FF !important; background: #3B1D5A !important; border: 1px solid #581C87 !important; }
+
     .embedded-heatmap-sec {
       margin-top: 14px !important;
       padding-top: 12px !important;
@@ -9352,7 +9370,7 @@ function renderAnalyticsTable() {
     if (s.status.includes("已完成")) {
       statusPill = `<span class="analytics-status-pill analytics-status-done">🟢 已完成</span>`;
     } else if (s.status.includes("作答中") || s.status.includes("中斷") || s.status.includes("進行中")) {
-      statusPill = `<span class="analytics-status-pill" style="background:rgba(168, 85, 247, 0.18); color:#a855f7; border:1px solid rgba(168, 85, 247, 0.35);">🟣 作答中斷</span>`;
+      statusPill = `<span class="analytics-status-pill status-badge-pill purple" style="background:#F3E8FF; color:#6B21A8; border:1px solid #D8B4FE;">🟣 作答中斷</span>`;
     } else if (s.status.includes("登入未受測")) {
       statusPill = `<span class="analytics-status-pill" style="background:rgba(234, 179, 8, 0.15); color:#ca8a04; border:1px solid rgba(234, 179, 8, 0.3);">🟡 登入未受測</span>`;
     } else if (s.status.includes("缺席未受測") || s.status.includes("缺考")) {
@@ -14856,8 +14874,8 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
 
   if (isIncomplete) {
     displayStatusStr = `🟣 作答中斷 (${taskCorrWords}/${taskTotWords})`;
-    statusColor = "#a855f7";
-    statusBg = "rgba(168,85,247,0.18)";
+    statusColor = "#6B21A8";
+    statusBg = "#F3E8FF";
     statusDesc = "⏳ 測驗中途作答中斷";
   } else if (isFinished) {
     statusColor = "#047857";
@@ -15067,7 +15085,7 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
       <div class="task-history-header">
         <div>
           <span class="task-card-title">${formattedTaskName}</span>
-          <span style="margin-left:8px; font-size:11.5px; font-weight:700; color:${statusColor}; background:${statusBg}; padding:2px 8px; border-radius:999px;">${displayStatusStr}</span>
+          <span class="status-badge-pill ${isIncomplete ? 'purple' : ''}" style="margin-left:8px; font-size:11.5px; font-weight:700; color:${statusColor}; background:${statusBg}; padding:2px 8px; border-radius:999px;">${displayStatusStr}</span>
         </div>
       </div>
 
@@ -16409,7 +16427,8 @@ function renderStudentSummary(resp) {
       tCor = correctList.length;
       if (tRate === 0 && tAtt > 0) tRate = Math.round((tCor / tAtt) * 100);
     }
-    const res = { a: tAtt, c: tCor, rate: tRate };
+    const isInc = String(matchedTask.status || "").includes("作答中") || String(matchedTask.status || "").includes("中斷") || String(matchedTask.status || "").includes("未完成") || matchedTask.inProgress === true;
+    const res = { a: tAtt, c: tCor, rate: tRate, isIncomplete: isInc };
     taskHeatStatCache.set(keyDash, res);
     return res;
   };
@@ -16421,9 +16440,10 @@ function renderStudentSummary(resp) {
     d.setDate(d.getDate() - i);
     const keyDash  = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
     const keyShort = d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
-    const { a: att, c: cor, rate } = getTaskDayStatForHeat(keyDash, keyShort);
+    const { a: att, c: cor, rate, isIncomplete } = getTaskDayStatForHeat(keyDash, keyShort);
     const lvl = att === 0 ? 0 : att < 10 ? 1 : att < 20 ? 2 : 3;
-    taskDays.push({ key: keyDash, dateNum: d.getDate(), a: att, c: cor, rate: rate, level: lvl });
+    const lvlClass = isIncomplete ? "h-status-purple" : ("h" + lvl);
+    taskDays.push({ key: keyDash, dateNum: d.getDate(), a: att, c: cor, rate: rate, level: lvl, levelClass: lvlClass, isIncomplete: isIncomplete });
   }
 
   const allTaskActiveDates = new Set();
@@ -16472,7 +16492,7 @@ function renderStudentSummary(resp) {
 
   if (taskHeatGrid) {
     taskHeatGrid.innerHTML = taskDays.map((day, idx) => {
-      return `<i class="hc h${day.level}" data-idx="${idx}" data-key="${day.key}" data-a="${day.a || 0}" data-rate="${day.rate || 0}"></i>`;
+      return `<i class="hc ${day.levelClass || ('h' + day.level)}" data-idx="${idx}" data-key="${day.key}" data-a="${day.a || 0}" data-rate="${day.rate || 0}"></i>`;
     }).join("");
 
     const taskHeatDayInfoEl = document.getElementById("stTaskHeatDayInfo");

@@ -1064,7 +1064,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
 
   if (isIncomplete) {
     displayStatusStr = `🟣 作答中斷 (${taskCorrWords}/${taskTotWords})`;
-    statusColor = "#a855f7";
+    statusColor = "#6B21A8";
     statusDesc = "⏳ 測驗中途作答中斷";
   } else if (isFinished) {
     statusColor = "#047857";

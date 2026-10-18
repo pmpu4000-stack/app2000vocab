@@ -411,14 +411,14 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 .hc.h-status-orange { background: #FDE047 !important; border-color: #EAB308 !important; box-shadow: 0 1px 3px rgba(234,179,8,.35) !important; }
 .hc.h-status-red    { background: #EF4444 !important; border-color: #DC2626 !important; box-shadow: 0 1px 3px rgba(239,68,68,.35) !important; }
 .hc.h-status-purple,
-.hc.h-status-blue   { background: #C084FC !important; border-color: #A855F7 !important; box-shadow: 0 1px 3px rgba(168,85,247,.35) !important; }
+.hc.h-status-blue   { background: #E9D5FF !important; border-color: #C4B5FD !important; box-shadow: 0 1px 2px rgba(168,85,247,.20) !important; }
 
 [data-theme="dark"] .hc.h-status-pink,
 [data-theme="dark"] .hc.h-status-yellow,
 [data-theme="dark"] .hc.h-status-orange { background: #CA8A04 !important; border-color: #FDE047 !important; box-shadow: 0 0 8px rgba(250,204,21,.35) !important; }
 [data-theme="dark"] .hc.h-status-red    { background: #DC2626 !important; border-color: #F87171 !important; box-shadow: 0 0 8px rgba(239,68,68,.30) !important; }
 [data-theme="dark"] .hc.h-status-purple,
-[data-theme="dark"] .hc.h-status-blue   { background: #7E22CE !important; border-color: #C084FC !important; }
+[data-theme="dark"] .hc.h-status-blue   { background: #3B1D5A !important; border-color: #581C87 !important; box-shadow: none !important; }
 
 /* 右邊框框對應特殊狀態樣式 (登入未受測=黃色框, 缺席未受測=紅框) */
 .heat-day-info.tier-status-pink,
@@ -440,11 +440,11 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 [data-theme="dark"] .heat-day-info.tier-status-red b { color: #FECACA !important; }
 
 .heat-day-info.tier-status-purple,
-.heat-day-info.tier-status-blue { background: #FAF5FF !important; color: #7E22CE !important; border: 2px solid #C084FC !important; box-shadow: 0 2px 6px rgba(168,85,247,.20) !important; }
+.heat-day-info.tier-status-blue { background: #FAF5FF !important; color: #6B21A8 !important; border: 2px solid #C4B5FD !important; box-shadow: 0 2px 6px rgba(168,85,247,.15) !important; }
 .heat-day-info.tier-status-purple b,
 .heat-day-info.tier-status-blue b { color: #581C87 !important; }
 [data-theme="dark"] .heat-day-info.tier-status-purple,
-[data-theme="dark"] .heat-day-info.tier-status-blue { background: rgba(168,85,247,.20) !important; color: #E9D5FF !important; border-color: #C084FC !important; }
+[data-theme="dark"] .heat-day-info.tier-status-blue { background: rgba(59, 29, 90, 0.45) !important; color: #DDD6FE !important; border-color: #581C87 !important; box-shadow: 0 2px 8px rgba(0,0,0,.35) !important; }
 [data-theme="dark"] .heat-day-info.tier-status-purple b,
 [data-theme="dark"] .heat-day-info.tier-status-blue b { color: #F3E8FF !important; }
 
@@ -621,7 +621,7 @@ body.daily-limit-reached #btn-upload {
 .status-badge-pill.warning{color:#B45309;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.25)}
 .status-badge-pill.danger{color:#B91C1C;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.25)}
 .status-badge-pill.purple,
-.status-badge-pill.incomplete{color:#7E22CE;background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.3)}
+.status-badge-pill.incomplete{color:#6B21A8 !important;background:#F3E8FF !important;border:1px solid #D8B4FE !important}
 .word-split-content::-webkit-scrollbar,
 .word-split-box > div:not(.word-split-title)::-webkit-scrollbar{width:6px}
 .word-split-content::-webkit-scrollbar-track,
@@ -1175,8 +1175,8 @@ body[data-theme="dark"],
 [data-theme="dark"] .status-badge-pill.purple,
 [data-theme="dark"] .status-badge-pill.incomplete {
   color: #E9D5FF !important;
-  background: rgba(168, 85, 247, 0.22) !important;
-  border-color: rgba(192, 132, 252, 0.45) !important;
+  background: #3B1D5A !important;
+  border: 1px solid #581C87 !important;
 }
 [data-theme="dark"] .date-nav-col-header .date-nav-label {
   color: #FBBF24 !important;
