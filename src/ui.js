@@ -620,6 +620,21 @@ function normalizeDateStr(ds) {
   return clean;
 }
 
+function formatWeekendTaskDate(ds, fallbackText = "") {
+  let target = ds || "";
+  if (!target && fallbackText) {
+    const match = String(fallbackText).match(/\b(\d{4}[-/]\d{1,2}[-/]\d{1,2})\b/);
+    if (match) target = match[1];
+  }
+  if (!target) return "";
+  const clean = String(target).trim().split(/[T\s]/)[0].replace(/\//g, "-");
+  const m = clean.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (m) {
+    return `${m[1]}/${m[2].padStart(2, "0")}/${m[3].padStart(2, "0")}`;
+  }
+  return clean.replace(/-/g, "/");
+}
+
 function resolveWordStr(raw, d) {
   if (!raw) return "";
   const s = String(raw).trim();
@@ -810,7 +825,7 @@ function getCombinedTaskHistory() {
                 const satWords = Array.from(new Set([...satCorr, ...satWrong]));
                 const satItem = {
                   date: satKey,
-                  taskName: "🎯 週末待攻克單字測驗成果",
+                  taskName: `🎯 ${formatWeekendTaskDate(satKey)} 週末待攻克測驗作答紀錄`,
                   score: rem.satScore || (satWords.length ? `${satCorr.length}/${satWords.length}` : "已完成"),
                   rate: rem.satRate || (satWords.length ? `${Math.round((satCorr.length / satWords.length) * 100)}%` : "100%"),
                   status: "🟢 已完成",
@@ -844,7 +859,7 @@ function getCombinedTaskHistory() {
                 const sunWords = Array.from(new Set([...sunCorr, ...sunWrong]));
                 const sunItem = {
                   date: sunKey,
-                  taskName: "🎯 週末待攻克單字測驗成果",
+                  taskName: `🎯 ${formatWeekendTaskDate(sunKey)} 週末待攻克測驗作答紀錄`,
                   score: rem.sunScore || (sunWords.length ? `${sunCorr.length}/${sunWords.length}` : "已完成"),
                   rate: rem.sunRate || (sunWords.length ? `${Math.round((sunCorr.length / sunWords.length) * 100)}%` : "100%"),
                   status: "🟢 已完成",
@@ -1484,11 +1499,12 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     }
   }
 
-  const dateStr = record && record.date ? record.date : "";
-  const isWeekendTask = isWeekend(dateStr) || String(record.taskName || "").includes("週末") || String(record.taskName || "").includes("消滅戰") || String(record.taskName || "").includes("待攻克");
+  const dateStr = record && record.date ? record.date : (selectedDate || "");
+  const isWeekendTask = isWeekend(dateStr) || isWeekend(selectedDate) || String(record.taskName || "").includes("週末") || String(record.taskName || "").includes("消滅戰") || String(record.taskName || "").includes("待攻克");
   let formattedTaskName = "";
   if (isWeekendTask) {
-    formattedTaskName = "🎯 週末待攻克單字測驗成果";
+    const cleanDate = formatWeekendTaskDate(dateStr || selectedDate, record.taskName);
+    formattedTaskName = cleanDate ? `🎯 ${cleanDate} 週末待攻克測驗作答紀錄` : "🎯 週末待攻克測驗作答紀錄";
   } else {
     let cleanTaskName = String(record.taskName || "平日指定測驗").trim().replace(/^[📝📑\s]+/, "");
     cleanTaskName = cleanTaskName.replace(/指定單字隨堂測驗/g, "平日指定測驗作答紀錄").replace(/隨堂測驗/g, "測驗結果");
@@ -1664,7 +1680,8 @@ function renderUntestedTaskCardHtml(info, d) {
   const isWeekendTask = isWeekend(selectedDate) || String(taskName || "").includes("週末") || String(taskName || "").includes("消滅戰") || String(taskName || "").includes("待攻克");
   let formattedTaskName = "";
   if (isWeekendTask) {
-    formattedTaskName = "🎯 週末待攻克單字測驗成果";
+    const cleanDate = formatWeekendTaskDate(selectedDate, taskName);
+    formattedTaskName = cleanDate ? `🎯 ${cleanDate} 週末待攻克測驗作答紀錄` : "🎯 週末待攻克測驗作答紀錄";
   } else {
     let cleanTaskName = String(taskName || "平日指定測驗作答紀錄").trim().replace(/^[📝📑\s]+/, "");
     cleanTaskName = cleanTaskName.replace(/指定單字隨堂測驗/g, "平日指定測驗作答紀錄").replace(/隨堂測驗/g, "測驗結果");
@@ -1799,7 +1816,7 @@ function buildTaskDetailsHtml(records, selectedDate, d) {
               const wList = Array.from(new Set([...corr, ...wrg]));
               list.push({
                 date: normDate,
-                taskName: "🎯 週末待攻克單字測驗成果",
+                taskName: `🎯 ${formatWeekendTaskDate(normDate)} 週末待攻克測驗作答紀錄`,
                 score: sc || (wList.length ? `${corr.length}/${wList.length}` : "已完成"),
                 rate: rt || "100%",
                 status: "🟢 已完成",
@@ -2757,9 +2774,9 @@ export function renderSummary(d) {
       </div>
     </div>
 
-    <!-- 子標題 1：平日指定測驗 / 週末待攻克單字測驗成果 -->
+    <!-- 子標題 1：平日指定測驗 / 週末待攻克測驗作答紀錄 -->
     <div class="subh-child">
-      <span id="task-subh-title">${isWeekend(defaultSelectedDate) ? "🎯 週末待攻克單字測驗成果" : "📝 平日指定測驗作答紀錄"}</span>
+      <span id="task-subh-title">${isWeekend(defaultSelectedDate) ? `🎯 ${formatWeekendTaskDate(defaultSelectedDate)} 週末待攻克測驗作答紀錄` : "📝 平日指定測驗作答紀錄"}</span>
     </div>
     <div class="task-history-card">
       <div id="task-record-details">
@@ -3039,7 +3056,7 @@ export function renderSummary(d) {
     // 更新指定測驗 / 週末攻克測驗次標題與作答紀錄 (支援一日多個測驗/補考)
     const taskSubhTitle = $("#task-subh-title");
     if (taskSubhTitle) {
-      taskSubhTitle.textContent = isWeekend(targetDate) ? "🎯 週末待攻克單字測驗成果" : "📝 平日指定測驗作答紀錄";
+      taskSubhTitle.textContent = isWeekend(targetDate) ? `🎯 ${formatWeekendTaskDate(targetDate)} 週末待攻克測驗作答紀錄` : "📝 平日指定測驗作答紀錄";
     }
     const targetTaskRecords = taskByDateMap.get(targetDate) || [];
     const taskDetailsContainer = $("#task-record-details");
