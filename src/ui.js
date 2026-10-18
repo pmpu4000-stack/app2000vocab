@@ -1213,6 +1213,13 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     }
   }
 
+  const answeredSet = new Set([
+    ...correctList.map(w => String(w).toLowerCase()),
+    ...wrongList.map(w => String(w).toLowerCase())
+  ]);
+  const unansweredList = rawWords.filter(w => !answeredSet.has(String(w).toLowerCase())).sort((a, b) => a.localeCompare(b));
+  const totalAnswered = correctList.length + wrongList.length;
+
   // 方案 A 關鍵統計：全卷應測總單字數 vs 實際已作答單字數
   const assignedTotWords = (rawWords && rawWords.length > 0) ? rawWords.length : taskTotWords;
   const actualAnswered = totalAnswered > 0 ? totalAnswered : (taskCorrWords + wrongList.length);
@@ -1227,13 +1234,6 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
   const overallScoreRate = assignedTotWords > 0 ? Math.round((taskCorrWords / assignedTotWords) * 100) : 0;
 
   const taskRate = hasUnanswered ? overallScoreRate : (taskTotWords > 0 ? Math.round((taskCorrWords / taskTotWords) * 100) : (parseInt(rateVal) || 0));
-
-  const answeredSet = new Set([
-    ...correctList.map(w => String(w).toLowerCase()),
-    ...wrongList.map(w => String(w).toLowerCase())
-  ]);
-  const unansweredList = rawWords.filter(w => !answeredSet.has(String(w).toLowerCase())).sort((a, b) => a.localeCompare(b));
-  const totalAnswered = correctList.length + wrongList.length;
 
   // 核心完成判定：只要狀態明確為已完成、或得分顯示已滿/完成、或答題數已達標
   const hasFinishedStatus = statusStr.includes("已完成") || statusStr.includes("● 已完成") || statusStr.includes("🟢 已完成") || (record.completed === true) || (record.alreadyCompleted === true);
