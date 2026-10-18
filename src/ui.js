@@ -5,6 +5,7 @@
 import { CATS } from "./data.js?v=20261013_1225";
 import { say, sayWord, spellOut, playContestSentence, stopAudio, parseDialogue } from "./audio.js?v=20261013_2225";
 import { LEVELS, levelColor, levelName, misspellings, shuffle } from "./levels.js?v=20261013_1225";
+import { diagnoseWordMistake } from "./diagnostics.js";
 
 if (typeof window !== "undefined") {
   window.__say = say;
@@ -421,15 +422,90 @@ function renderScramble(word, onCheck) {
 // ---------- feedback & actions ----------
 export function note(msg) { el.fb.textContent = msg; }
 
-export function showResult(correct, word, info) {
+export function showResult(correct, word, info, guessVal = "", onRepairComplete = null) {
   if (correct) {
     el.fb.className = "feedback ok";
     el.fb.textContent = `✅ ${CHEERS[Math.floor(Math.random() * CHEERS.length)]}  +${info.gain}`;
     pulse("pop"); say(word.word);
   } else {
+    const diag = diagnoseWordMistake(word.word, guessVal);
     el.fb.className = "feedback bad";
-    el.fb.innerHTML = `❌ 再看一次！ 正確拼法：<span class="reveal" style="display:inline">${revealHtml(word)}</span>`;
+    el.fb.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
+        <span>❌ 再看一次！</span>
+        <span class="diag-tag-chip" style="background:${diag.bg};color:${diag.color};border:1px solid ${diag.color}50;" title="${diag.desc}">🔍 ${diag.tag}</span>
+        <span>正確拼法：<span class="reveal" style="display:inline">${revealHtml(word)}</span></span>
+      </div>
+      <div class="active-repair-card" id="active-repair-card">
+        <div class="active-repair-header">
+          <span style="font-size:16px;">✍️</span>
+          <span><b>親手更正</b>：請鍵入正確單字加深神經連結</span>
+        </div>
+        <div class="active-repair-input-wrap">
+          <input type="text" id="active-repair-input" class="active-repair-input" placeholder="請輸入「${word.word}」..." autocomplete="off" autocapitalize="none" spellcheck="false" />
+          <button type="button" id="active-repair-btn" class="active-repair-btn">更正確認 ↵</button>
+        </div>
+        <div id="active-repair-msg" class="active-repair-msg"></div>
+      </div>
+    `;
     pulse("shake"); say(word.word, 0.8);
+
+    // 鎖定「下一個 Next」按鈕，直到親手更正完成
+    el.checkBtn.style.display = "";
+    el.checkBtn.disabled = true;
+    el.checkBtn.textContent = "✍️ 請先完成親手更正";
+    el.checkBtn.className = "btn ghost locked";
+
+    const repairInp = document.getElementById("active-repair-input");
+    const repairBtn = document.getElementById("active-repair-btn");
+    const repairMsg = document.getElementById("active-repair-msg");
+
+    if (repairInp && repairBtn) {
+      let isRepaired = false;
+      const doCheckRepair = () => {
+        if (isRepaired) return;
+        const val = repairInp.value.trim().toLowerCase();
+        if (!val) {
+          if (repairMsg) repairMsg.innerHTML = `<span style="color:var(--ink3);">請先輸入單字後點擊確認 ✏️</span>`;
+          return;
+        }
+        if (val === word.word.toLowerCase()) {
+          isRepaired = true;
+          repairInp.disabled = true;
+          repairBtn.disabled = true;
+          repairInp.classList.add("ok");
+          repairBtn.textContent = "✅ 已更正";
+          if (repairMsg) repairMsg.innerHTML = `<span style="color:#10B981;font-weight:700;">✨ 太棒了！已親手更正，神經連結已加強！</span>`;
+          say(word.word);
+
+          // 解鎖 Next 按鈕
+          setActionNext();
+          if (typeof onRepairComplete === "function") {
+            onRepairComplete();
+          }
+        } else {
+          pulse("shake");
+          if (repairMsg) repairMsg.innerHTML = `<span style="color:#EF4444;font-weight:700;">💡 還差一點點喔，正確拼法為「${word.word}」，再試一次！</span>`;
+          repairInp.select();
+        }
+      };
+
+      repairBtn.onclick = doCheckRepair;
+      repairInp.onkeydown = (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          doCheckRepair();
+        }
+      };
+      setTimeout(() => { try { repairInp.focus(); } catch(_) {} }, 100);
+    }
+  }
+}
+
+export function focusActiveRepair() {
+  const inp = document.getElementById("active-repair-input");
+  if (inp && !inp.disabled) {
+    try { inp.focus(); } catch(_) {}
   }
 }
 export function setActionNext() {
@@ -480,6 +556,8 @@ export function renderProgress(s) {
 
   const sStreak = el.sStreak || (el.sStreak = $("#s-streak"));
   if (sStreak) sStreak.textContent = s.streak !== undefined ? s.streak : 0;
+  const sFreeze = $("#s-freeze-val");
+  if (sFreeze) sFreeze.textContent = `${(s.streakFreezes !== undefined) ? s.streakFreezes : 1}/2`;
 
   const total = s.total || 2055;
   const vocabRate = total > 0 ? Math.round((distinctCorr / total) * 100) : 0;
@@ -1047,7 +1125,10 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     
     let wrongPillsHtml = "";
     if (wrongList.length > 0) {
-      wrongPillsHtml = wrongList.map(w => `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="答錯單字 (點擊聆聽發音)">${w}</span>`).join("");
+      wrongPillsHtml = wrongList.map(w => {
+        const diag = diagnoseWordMistake(w);
+        return `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="答錯單字：${diag.desc} (點擊聆聽發音)">${w} <span class="diag-bubble-tag" title="${diag.desc}">${diag.tag}</span></span>`;
+      }).join("");
     } else {
       wrongPillsHtml = `<div style="font-size:12px; color:var(--ink2); padding:2px 0;">✨ 已作答題目全數答對，無答錯單字！</div>`;
     }
@@ -1095,13 +1176,15 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
       const slashDate = normDate.replace(/-/g, "/");
       const dpDay = d && d.dailyPractice && (d.dailyPractice[normDate] || d.dailyPractice[slashDate] || d.dailyPractice[selectedDate]);
       wrongContentHtml = wrongList.map(w => {
+        const diag = diagnoseWordMistake(w);
+        const diagBadge = `<span class="diag-bubble-tag" title="${diag.desc}">${diag.tag}</span>`;
         const isHadCW = (hadCorrectThenWrongList && hadCorrectThenWrongList.includes(w)) ||
                         (record.hadCorrectThenWrong && record.hadCorrectThenWrong.includes(w)) ||
                         (dpDay && dpDay.words && dpDay.words[w] && (dpDay.words[w].hadCorrectThenWrong || (dpDay.words[w].lastResult === "wrong" && dpDay.words[w].correct > 0)));
         if (isHadCW) {
-          return `<span class="word-pill-tag warning" data-word="${w.replace(/"/g, "&quot;")}" style="border:1.5px dashed #f59e0b; background:rgba(245,158,11,0.1); color:#b45309; cursor:pointer;" title="當日曾答對，但後續作答時答錯 (點擊聆聽發音)">${w} <small style="font-size:10px; font-weight:700;">(曾對後錯⚠️)</small></span>`;
+          return `<span class="word-pill-tag warning" data-word="${w.replace(/"/g, "&quot;")}" style="border:1.5px dashed #f59e0b; background:rgba(245,158,11,0.1); color:#b45309; cursor:pointer;" title="當日曾答對，但後續作答時答錯：${diag.desc} (點擊聆聽發音)">${w} ${diagBadge} <small style="font-size:10px; font-weight:700;">(曾對後錯⚠️)</small></span>`;
         }
-        return `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`;
+        return `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w} ${diagBadge}</span>`;
       }).join("");
     } else if (isFinished) {
       wrongContentHtml = `<span class="perfect-score-msg">🎉 全數答對，無答錯單字！</span>`;
@@ -1535,12 +1618,14 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
   let wrongContentHtml = "";
   if (wrongList.length > 0) {
     wrongContentHtml = wrongList.map(w => {
+      const diag = diagnoseWordMistake(w.word);
+      const diagBadge = `<span class="diag-bubble-tag" title="${diag.desc}">${diag.tag}</span>`;
       if (w.hadCorrectThenWrong || (w.lastResult === "wrong" && w.correct > 0)) {
-        return `<span class="word-pill-tag warning" data-word="${w.word.replace(/"/g, "&quot;")}" style="border:1.5px dashed #f59e0b; background:rgba(245,158,11,0.1); color:#b45309; cursor:pointer;" title="當日曾答對，但後續作答時答錯 (點擊聆聽發音)">${w.word} <small style="font-size:10px; font-weight:700;">(曾對後錯⚠️)</small></span>`;
+        return `<span class="word-pill-tag warning" data-word="${w.word.replace(/"/g, "&quot;")}" style="border:1.5px dashed #f59e0b; background:rgba(245,158,11,0.1); color:#b45309; cursor:pointer;" title="當日曾答對，但後續作答時答錯：${diag.desc} (點擊聆聽發音)">${w.word} ${diagBadge} <small style="font-size:10px; font-weight:700;">(曾對後錯⚠️)</small></span>`;
       } else if (w.correct > 0) {
-        return `<span class="word-pill-tag correct" data-word="${w.word.replace(/"/g, "&quot;")}" style="border:1.5px dashed var(--green, #10B981); cursor:pointer;" title="當日曾答錯，已訂正答對 (點擊聆聽發音)">${w.word} <small style="font-size:10px; opacity:0.85;">(已訂正)</small></span>`;
+        return `<span class="word-pill-tag correct" data-word="${w.word.replace(/"/g, "&quot;")}" style="border:1.5px dashed var(--green, #10B981); cursor:pointer;" title="當日曾答錯，已訂正答對：${diag.desc} (點擊聆聽發音)">${w.word} ${diagBadge} <small style="font-size:10px; opacity:0.85;">(已訂正)</small></span>`;
       } else {
-        return `<span class="word-pill-tag wrong" data-word="${w.word.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w.word}</span>`;
+        return `<span class="word-pill-tag wrong" data-word="${w.word.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="答錯單字：${diag.desc} (點擊聆聽發音)">${w.word} ${diagBadge}</span>`;
       }
     }).join("");
   } else if (displayWrongBoxCount > 0) {
@@ -2270,7 +2355,7 @@ export function renderSummary(d) {
       </div>
       <div class="embedded-heatmap-sec">
         <div class="streakline">
-          <span>連續 <b>${taskStreak}</b> 天 · 最佳 <b>${taskBest}</b> 天 · 累計練習 <b>${taskTotal}</b> 天</span>
+          <span>連續 <b>${taskStreak}</b> 天 · 最佳 <b>${taskBest}</b> 天 · 累計練習 <b>${taskTotal}</b> 天 <span class="streak-freeze-badge" title="連勝守護護盾：偶爾請假缺席時，系統自動消耗 1 個護盾守護連續紀錄！每累積 50 題答對可補充（上限 2 個）。">🛡️ 護盾: <b>${d.streakFreezes !== undefined ? d.streakFreezes : ((d.history && typeof d.history.streakFreezes === 'number') ? d.history.streakFreezes : 1)}/2</b></span></span>
           <span id="task-heat-day-info" class="heat-day-info"></span>
         </div>
         <div class="heatmap heatmap-task" id="task-heatmap-grid">${taskHeatDays.map((x, idx) =>
@@ -2287,8 +2372,9 @@ export function renderSummary(d) {
         ${initialFreeDetailsHtml}
       </div>
       <div class="embedded-heatmap-sec">
+        ${(d.history && d.history.justUsedFreeze) ? `<div style="margin:6px 0 10px;padding:6px 12px;border-radius:8px;background:rgba(59,130,246,0.12);border:1px solid rgba(59,130,246,0.3);color:#1d4ed8;font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px;">🛡️ 系統已自動為你使用「連勝守護卡」，成功守護了連續修練天數！</div>` : ''}
         <div class="streakline">
-          <span>連續 <b>${d.history.streak}</b> 天 · 最佳 <b>${d.history.best}</b> 天 · 累計練習 <b>${d.history.total}</b> 天</span>
+          <span>連續 <b>${d.history.streak}</b> 天 · 最佳 <b>${d.history.best}</b> 天 · 累計練習 <b>${d.history.total}</b> 天 <span class="streak-freeze-badge" title="連勝守護護盾：偶爾請假缺席時，系統自動消耗 1 個護盾守護連續紀錄！每累積 50 題答對可補充（上限 2 個）。">🛡️ 護盾: <b>${d.streakFreezes !== undefined ? d.streakFreezes : ((d.history && typeof d.history.streakFreezes === 'number') ? d.history.streakFreezes : 1)}/2</b></span></span>
           <span id="heat-day-info" class="heat-day-info"></span>
         </div>
         <div class="heatmap" id="heatmap-grid">${d.history.days.map((x, idx) =>
@@ -3176,14 +3262,22 @@ async function _exportRecordToPdf(payload) {
       ? r.taskCorrectWords.map(w => `<span style="display:inline-block;padding:2px 6px;margin:2px;border-radius:4px;background:#E4F7EE;color:#1E9A66;border:1px solid rgba(47,180,124,.35);font-size:11px;font-weight:700;">${esc(w)}</span>`).join("")
       : (isTaskUntested ? `<span style="font-size:11px;color:#9AA0BD;">（未施測）</span>` : `<span style="font-size:11px;color:#9AA0BD;">（無答對單字紀錄）</span>`);
     const taskWrongPills = r.taskWrongWords.length > 0
-      ? r.taskWrongWords.map(w => `<span style="display:inline-block;padding:2px 6px;margin:2px;border-radius:4px;background:#FFE9E9;color:#D64545;border:1px solid rgba(255,107,107,.4);font-size:11px;font-weight:700;">${esc(w)}</span>`).join("")
+      ? r.taskWrongWords.map(w => {
+          const cleanW = w.replace(/\(.*?\)/g, "").trim();
+          const diag = diagnoseWordMistake(cleanW);
+          return `<span style="display:inline-flex;align-items:center;padding:2px 6px;margin:2px;border-radius:4px;background:#FFE9E9;color:#D64545;border:1px solid rgba(255,107,107,.4);font-size:11px;font-weight:700;">${esc(w)}<span class="diag-bubble-tag" title="${diag.desc}">${diag.tag}</span></span>`;
+        }).join("")
       : (isTaskUntested ? `<span style="font-size:11px;color:#9AA0BD;">（未施測無錯題）</span>` : `<span style="font-size:11px;color:#1E9A66;font-weight:700;">${r.hasTask ? "🎉 全數答對無錯題" : "（無錯題紀錄）"}</span>`);
 
     const freeCorrPills = r.freeCorrectWords.length > 0
       ? r.freeCorrectWords.map(w => `<span style="display:inline-block;padding:2px 6px;margin:2px;border-radius:4px;background:#E4F7EE;color:#1E9A66;border:1px solid rgba(47,180,124,.35);font-size:11px;font-weight:700;">${esc(w)}</span>`).join("")
       : `<span style="font-size:11px;color:#9AA0BD;">（當日無自由練習答對單字）</span>`;
     const freeWrongPills = r.freeWrongWords.length > 0
-      ? r.freeWrongWords.map(w => `<span style="display:inline-block;padding:2px 6px;margin:2px;border-radius:4px;background:#FFE9E9;color:#D64545;border:1px solid rgba(255,107,107,.4);font-size:11px;font-weight:700;">${esc(w)}</span>`).join("")
+      ? r.freeWrongWords.map(w => {
+          const cleanW = w.replace(/\(.*?\)/g, "").trim();
+          const diag = diagnoseWordMistake(cleanW);
+          return `<span style="display:inline-flex;align-items:center;padding:2px 6px;margin:2px;border-radius:4px;background:#FFE9E9;color:#D64545;border:1px solid rgba(255,107,107,.4);font-size:11px;font-weight:700;">${esc(w)}<span class="diag-bubble-tag" title="${diag.desc}">${diag.tag}</span></span>`;
+        }).join("")
       : `<span style="font-size:11px;color:#1E9A66;font-weight:700;">${r.hasFree ? "🎉 全數答對無錯題" : "（當日無自由練習紀錄）"}</span>`;
 
     const taskScoreText = (r.hasTask && r.taskScore !== "—" && r.taskScore !== "尚未開始") ? `${esc(r.taskScore)} 字 (${esc(r.taskRate)})` : "—";

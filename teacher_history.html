@@ -3597,6 +3597,42 @@
       border-color: rgba(255, 107, 107, 0.45) !important;
     }
 
+    .diag-bubble-tag {
+      display: inline-block;
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-size: 9.5px;
+      font-weight: 800;
+      margin-left: 3px;
+      background: rgba(239, 68, 68, 0.12);
+      color: #dc2626;
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      vertical-align: middle;
+    }
+    [data-theme="dark"] .diag-bubble-tag {
+      background: rgba(239, 68, 68, 0.2);
+      color: #f87171;
+      border-color: rgba(239, 68, 68, 0.4);
+    }
+    .streak-freeze-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      color: #2563eb;
+      font-size: 11.5px;
+      font-weight: 800;
+      margin-left: 6px;
+    }
+    [data-theme="dark"] .streak-freeze-badge {
+      background: rgba(59, 130, 246, 0.2);
+      color: #60a5fa;
+      border-color: rgba(59, 130, 246, 0.4);
+    }
+
     /* 練習紀錄熱力圖與連續天數 */
     .streakline {
       font-size: 13.5px !important;
@@ -14736,6 +14772,49 @@ function extractRowFreeInfo(row, headers) {
   return { attempts, correct, wrong: Math.max(0, attempts - correct), rate, wrongWords, wordsMap };
 }
 
+function diagnoseWordMistake(word, guess = "") {
+  const w = String(word || "").trim().toLowerCase();
+  const g = String(guess || "").trim().toLowerCase();
+
+  // 1. 雙子音遺漏 (Double Consonant Miss)
+  const doubleConsonantRegex = /([bcdfghjklmnpqrstvwxyz])\1/i;
+  if (doubleConsonantRegex.test(w)) {
+    if (g && !doubleConsonantRegex.test(g)) {
+      return { tag: "雙子音遺漏", code: "double_consonant", desc: "遺漏雙子音 (如 dd/tt/ss/ll/pp/mm/nn)", color: "#EF4444", bg: "#FEE2E2" };
+    }
+    return { tag: "雙子音", code: "double_consonant", desc: "雙子音拼寫盲點", color: "#EF4444", bg: "#FEE2E2" };
+  }
+
+  // 2. 靜音/不發音字母 (Silent Letters)
+  if (/(?:^kn|^wr|mb$|bt$|igh|alk$|alf$|^ps|^pn|gn$)/i.test(w)) {
+    return { tag: "靜音字母", code: "silent_letter", desc: "含不發音字母 (如 kn-, wr-, -mb, igh)", color: "#8B5CF6", bg: "#EDE9FE" };
+  }
+
+  // 3. 詞尾後綴盲點 (Suffix variations)
+  if (/(tion|sion|able|ible|ence|ance|ous|ious|ture|sure|ment|less|ful|ly|ness)$/i.test(w)) {
+    return { tag: "詞尾後綴", code: "suffix_confusion", desc: "常用字尾/詞尾變化盲點", color: "#F59E0B", bg: "#FEF3C7" };
+  }
+
+  // 4. 形近 / 同音詞混淆 (Homophone / Lookalike pairs)
+  const lookalikes = [
+    "quiet", "quite", "weather", "whether", "except", "accept",
+    "affect", "effect", "advice", "advise", "loose", "lose",
+    "principle", "principal", "hear", "here", "their", "there",
+    "piece", "peace", "flower", "flour", "wear", "where"
+  ];
+  if (lookalikes.includes(w)) {
+    return { tag: "形近同音", code: "lookalike", desc: "常見形近或同音易混淆詞", color: "#EC4899", bg: "#FCE7F3" };
+  }
+
+  // 5. 母音與弱音混淆 (Vowel / Schwa Digraphs)
+  if (/(ea|ee|ai|ay|oa|ou|ie|ei|au|aw|oo|ue)/i.test(w)) {
+    return { tag: "母音弱音", code: "vowel_schwa", desc: "雙母音或非重讀弱音易混淆", color: "#3B82F6", bg: "#DBEAFE" };
+  }
+
+  // 6. 一般音形記憶
+  return { tag: "音形記憶", code: "orthographic", desc: "音形對應記憶加強", color: "#6B7280", bg: "#F3F4F6" };
+}
+
 function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalCount = 1, hasLoggedInOrFree = false) {
   const { rawWords, wrongList, correctList, hadCorrectThenWrongList } = resolveTaskWords(record, selectedDate, agent);
 
@@ -14842,7 +14921,10 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
 
     let wrongPillsHtml = "";
     if (wrongList.length > 0) {
-      wrongPillsHtml = wrongList.map(w => `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); speakMasteredWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
+      wrongPillsHtml = wrongList.map(w => {
+        const diag = diagnoseWordMistake(w);
+        return `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); speakMasteredWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="答錯單字：${diag.desc} (點擊聆聽發音)">${w} <span class="diag-bubble-tag" title="${diag.desc}">${diag.tag}</span></span>`;
+      }).join("");
     } else {
       wrongPillsHtml = `<div style="font-size:12px; color:var(--ink2); padding:2px 0;">✨ 已作答題目全數答對，無答錯單字！</div>`;
     }
@@ -14895,13 +14977,15 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
       const dpMap = (agent && agent.dailyPractice) ? agent.dailyPractice : {};
       const dpDay = dpMap[sDateNorm] || dpMap[sDateShort] || dpMap[selectedDate] || null;
       wrongContentHtml = wrongList.map(w => {
+        const diag = diagnoseWordMistake(w);
+        const diagBadge = `<span class="diag-bubble-tag" title="${diag.desc}">${diag.tag}</span>`;
         const isHadCW = (hadCorrectThenWrongList && hadCorrectThenWrongList.includes(w)) ||
                         (record.hadCorrectThenWrong && record.hadCorrectThenWrong.includes(w)) ||
                         (dpDay && dpDay.words && dpDay.words[w] && (dpDay.words[w].hadCorrectThenWrong || (dpDay.words[w].lastResult === "wrong" && dpDay.words[w].correct > 0)));
         if (isHadCW) {
-          return `<span class="word-pill-tag warning" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); speakMasteredWord('${w.replace(/'/g, "\\'")}')" style="border:1.5px dashed #f59e0b; background:rgba(245,158,11,0.1); color:#b45309; cursor:pointer;" title="當日曾答對，但後續作答時答錯 (點擊聆聽發音)">${w} <small style="font-size:10px; font-weight:700;">(曾對後錯⚠️)</small></span>`;
+          return `<span class="word-pill-tag warning" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); speakMasteredWord('${w.replace(/'/g, "\\'")}')" style="border:1.5px dashed #f59e0b; background:rgba(245,158,11,0.1); color:#b45309; cursor:pointer;" title="當日曾答對，但後續作答時答錯：${diag.desc} (點擊聆聽發音)">${w} ${diagBadge} <small style="font-size:10px; font-weight:700;">(曾對後錯⚠️)</small></span>`;
         }
-        return `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); speakMasteredWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`;
+        return `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); speakMasteredWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="答錯單字：${diag.desc} (點擊聆聽發音)">${w} ${diagBadge}</span>`;
       }).join("");
     } else if (isFinished) {
       wrongContentHtml = `<span class="perfect-score-msg">🎉 太棒了！本次測驗全數答對，無任何答錯單字！</span>`;
@@ -15312,12 +15396,14 @@ function buildFreeDetailsHtml(record, selectedDate, agent) {
   let wrongContentHtml = "";
   if (wrongList.length > 0) {
     wrongContentHtml = wrongList.map(w => {
+      const diag = diagnoseWordMistake(w.word);
+      const diagBadge = `<span class="diag-bubble-tag" title="${diag.desc}">${diag.tag}</span>`;
       if (w.hadCorrectThenWrong || (w.lastResult === "wrong" && w.correct > 0)) {
-        return `<span class="word-pill-tag warning" data-word="${w.word.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); speakMasteredWord('${w.word.replace(/'/g, "\\'")}')" style="border:1.5px dashed #f59e0b; background:rgba(245,158,11,0.1); color:#b45309; cursor:pointer;" title="當日曾答對，但後續作答時答錯 (點擊聆聽發音)">${w.word} <small style="font-size:10px; font-weight:700;">(曾對後錯⚠️)</small></span>`;
+        return `<span class="word-pill-tag warning" data-word="${w.word.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); speakMasteredWord('${w.word.replace(/'/g, "\\'")}')" style="border:1.5px dashed #f59e0b; background:rgba(245,158,11,0.1); color:#b45309; cursor:pointer;" title="當日曾答對，但後續作答時答錯：${diag.desc} (點擊聆聽發音)">${w.word} ${diagBadge} <small style="font-size:10px; font-weight:700;">(曾對後錯⚠️)</small></span>`;
       } else if (w.correct > 0) {
-        return `<span class="word-pill-tag correct" data-word="${w.word.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); speakMasteredWord('${w.word.replace(/'/g, "\\'")}')" style="border:1.5px dashed var(--green, #10B981); cursor:pointer;" title="當日曾答錯，已訂正答對 (點擊聆聽發音)">${w.word} <small style="font-size:10px; opacity:0.85;">(已訂正)</small></span>`;
+        return `<span class="word-pill-tag correct" data-word="${w.word.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); speakMasteredWord('${w.word.replace(/'/g, "\\'")}')" style="border:1.5px dashed var(--green, #10B981); cursor:pointer;" title="當日曾答錯，已訂正答對：${diag.desc} (點擊聆聽發音)">${w.word} ${diagBadge} <small style="font-size:10px; opacity:0.85;">(已訂正)</small></span>`;
       } else {
-        return `<span class="word-pill-tag wrong" data-word="${w.word.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); speakMasteredWord('${w.word.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w.word}</span>`;
+        return `<span class="word-pill-tag wrong" data-word="${w.word.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); speakMasteredWord('${w.word.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="答錯單字：${diag.desc} (點擊聆聽發音)">${w.word} ${diagBadge}</span>`;
       }
     }).join("");
   } else if (displayWrongBoxCount > 0) {
@@ -16377,8 +16463,9 @@ function renderStudentSummary(resp) {
 
   const elTaskStreakLine = document.getElementById("stTaskStreakLine");
   if (elTaskStreakLine) {
+    const sFreezes = (agent && typeof agent.streakFreezes === 'number') ? agent.streakFreezes : 1;
     elTaskStreakLine.innerHTML = `
-      <span>連續 <b id="stTaskHeatStreak">${taskStreak}</b> 天 · 最佳 <b id="stTaskHeatBest">${taskBest}</b> 天 · 累計練習 <b id="stTaskHeatTotal">${taskTotalActive}</b> 天</span>
+      <span>連續 <b id="stTaskHeatStreak">${taskStreak}</b> 天 · 最佳 <b id="stTaskHeatBest">${taskBest}</b> 天 · 累計練習 <b id="stTaskHeatTotal">${taskTotalActive}</b> 天 <span class="streak-freeze-badge" title="連勝守護護盾：偶爾請假缺席時，系統自動消耗 1 個護盾守護連續紀錄！每累積 50 題答對可補充（上限 2 個）。">🛡️ 護盾: <b>${sFreezes}/2</b></span></span>
       <span id="stTaskHeatDayInfo" class="heat-day-info"></span>
     `;
   }
@@ -16556,8 +16643,9 @@ function renderStudentSummary(resp) {
 
   const elStreakLine = document.getElementById("stStreakLine");
   if (elStreakLine) {
+    const sFreezes = (agent && typeof agent.streakFreezes === 'number') ? agent.streakFreezes : 1;
     elStreakLine.innerHTML = `
-      <span>連續 <b id="stHeatStreak">${streak}</b> 天 · 最佳 <b id="stHeatBest">${best}</b> 天 · 累計練習 <b id="stHeatTotal">${totalActive}</b> 天</span>
+      <span>連續 <b id="stHeatStreak">${streak}</b> 天 · 最佳 <b id="stHeatBest">${best}</b> 天 · 累計練習 <b id="stHeatTotal">${totalActive}</b> 天 <span class="streak-freeze-badge" title="連勝守護護盾：偶爾請假缺席時，系統自動消耗 1 個護盾守護連續紀錄！每累積 50 題答對可補充（上限 2 個）。">🛡️ 護盾: <b>${sFreezes}/2</b></span></span>
       <span id="stHeatDayInfo" class="heat-day-info"></span>
     `;
   }

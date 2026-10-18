@@ -14,7 +14,7 @@ import {
 } from "./levels.js?v=20261018_v220";
 
 let WORDS = [];
-const state = { mode: "listen", word: null, answered: false, round: null };
+const state = { mode: "listen", word: null, answered: false, round: null, activeRepairRequired: false };
 
 // ── 今日指定任務與週末錯題狀態 ──
 const taskState = {
@@ -601,6 +601,10 @@ function newRound() {
 }
 
 function check() {
+  if (state.activeRepairRequired) {
+    ui.focusActiveRepair();
+    return;
+  }
   if (state.answered) { clearAutoNextTimer(); newRound(); return; }
   const getGuess = state.round.getGuess;
   if (!getGuess) return;
@@ -641,20 +645,26 @@ function answer(correct, guessVal) {
     
     // 依然更新背單字進度 (指定任務模式 isFree=false)
     const info = store.grade(state.word.id, correct, store.progress().current, state.mode, state.word.word, false);
-    ui.showResult(correct, state.word, info);
     taskState.index++;
     // 每作答完一題立即更新持久化進度並同步雲端！
     persistTaskProgress();
     refreshChrome();
 
-    ui.setActionNext();
-    scheduleAutoNext();
+    if (correct) {
+      ui.showResult(true, state.word, info);
+      ui.setActionNext();
+      scheduleAutoNext();
+    } else {
+      state.activeRepairRequired = true;
+      ui.showResult(false, state.word, info, guessVal, () => {
+        state.activeRepairRequired = false;
+      });
+    }
     return;
   }
 
   // ── 自由闖關中作答：正常升降級，同步收錄至每日自由練習作答歷程 ──
   const info = store.grade(state.word.id, correct, store.progress().current, state.mode, state.word.word, true);
-  ui.showResult(correct, state.word, info);
   
   // ★ 核心規則：如果在施測後自主練習答對，則登記為已學會，不加入假日與寒暑假指派測驗內容！
   if (correct && state.word && state.word.word) {
@@ -667,8 +677,16 @@ function answer(correct, guessVal) {
   // 標記有自由練習進度待同步（由 5 分鐘定時器、離開頁面、或手動按鈕統一同步）
   window.hasUnsavedChanges = true;
 
-  ui.setActionNext();
-  scheduleAutoNext();
+  if (correct) {
+    ui.showResult(true, state.word, info);
+    ui.setActionNext();
+    scheduleAutoNext();
+  } else {
+    state.activeRepairRequired = true;
+    ui.showResult(false, state.word, info, guessVal, () => {
+      state.activeRepairRequired = false;
+    });
+  }
 }
 
 function pickLevel(n) {

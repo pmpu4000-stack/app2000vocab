@@ -69,6 +69,7 @@ function fresh() {
     // per-day free practice detailed log, keyed by date -> { date, attempts, correct, wrong, words: { [word]: { word, attempts, correct, wrong, passed } } }
     dailyPractice: {},
     points: 0, streak: 0, best: 0, attempts: 0, correct: 0,
+    streakFreezes: 1, streakFreezeUsed: [],
   };
 }
 
@@ -85,6 +86,8 @@ function load() {
     const base = fresh();
     const merged = {
       ...base, ...d,
+      streakFreezes: (typeof d.streakFreezes === "number") ? d.streakFreezes : 1,
+      streakFreezeUsed: Array.isArray(d.streakFreezeUsed) ? d.streakFreezeUsed : [],
       mstat: { ...base.mstat, ...(d.mstat || {}) },
       level: { ...base.level, ...(d.level || {}), placed: true },
       session: { ...base.session, ...(d.session || {}) },
@@ -173,6 +176,13 @@ export function grade(id, correct, level, mode, wordStr = null, isFree = true) {
     gain = 8 + Math.min(12, DB.streak * 2);
     DB.points += gain;
     if (DB.box[id] === 3 && before < 3) newlyMastered = true;
+
+    // 每累計 50 題答對，獎勵 1 個連勝守護卡（上限 2 個）
+    if (typeof DB.streakFreezes !== "number") DB.streakFreezes = 1;
+    if (DB.correct > 0 && DB.correct % 50 === 0 && DB.streakFreezes < 2) {
+      DB.streakFreezes++;
+      DB.__justEarnedFreeze = true;
+    }
   } else {
     st.ew = true;
     // 若該單字曾答對過，降回 Box 1 學習中；若從未答對過，維持 Box 0 生字狀態（不虛增學習成果）
@@ -395,9 +405,29 @@ export function historyData(n = 28, preloadedTaskHistory = null) {
     days.push({ key, dnum, a, c, rate, level });
   }
 
-  // 連續天數 (streak)
+  // 連續天數 (streak) — 支援連勝守護卡 (Streak Freeze) 自動保護
   let streak = 0;
-  const has = (off) => getDayStat(dayAgo(off).key).a > 0;
+  if (typeof DB.streakFreezes !== "number") DB.streakFreezes = 1;
+  if (!Array.isArray(DB.streakFreezeUsed)) DB.streakFreezeUsed = [];
+
+  const isDayCovered = (k) => {
+    if (DB.streakFreezeUsed.includes(k)) return true;
+    return getDayStat(k).a > 0;
+  };
+
+  // 自動消耗連勝護盾機制：若昨日未作答，但前日有連續作答且存有護盾，自動消耗 1 個護盾延續連續紀錄
+  const yKey = dayAgo(1).key;
+  const d2Key = dayAgo(2).key;
+  if (getDayStat(yKey).a === 0 && !DB.streakFreezeUsed.includes(yKey)) {
+    if (isDayCovered(d2Key) && DB.streakFreezes > 0) {
+      DB.streakFreezes--;
+      DB.streakFreezeUsed.push(yKey);
+      DB.__justUsedFreeze = true;
+      save();
+    }
+  }
+
+  const has = (off) => isDayCovered(dayAgo(off).key);
   const start = has(0) ? 0 : has(1) ? 1 : null;
   if (start !== null) {
     let k = start;
@@ -419,6 +449,10 @@ export function historyData(n = 28, preloadedTaskHistory = null) {
   for (const dKey of candidateDates) {
     if (dKey && getDayStat(dKey).a > 0) activeDateSet.add(dKey);
   }
+  // 將已守護之日期亦納入活躍集合
+  for (const fKey of DB.streakFreezeUsed) {
+    activeDateSet.add(fKey);
+  }
 
   // 計算最佳連續天數
   const toIdx = (ds) => {
@@ -437,7 +471,33 @@ export function historyData(n = 28, preloadedTaskHistory = null) {
   }
   best = Math.max(best, streak);
 
-  return { days, streak, best, total: idxs.length };
+  return {
+    days,
+    streak,
+    best,
+    total: idxs.length,
+    streakFreezes: (typeof DB.streakFreezes === "number") ? DB.streakFreezes : 1,
+    streakFreezeUsed: DB.streakFreezeUsed || [],
+    justUsedFreeze: !!DB.__justUsedFreeze,
+    justEarnedFreeze: !!DB.__justEarnedFreeze
+  };
+}
+
+export function getStreakFreezes() {
+  if (typeof DB.streakFreezes !== "number") DB.streakFreezes = 1;
+  return {
+    count: DB.streakFreezes,
+    max: 2,
+    usedDates: DB.streakFreezeUsed || [],
+    justUsed: !!DB.__justUsedFreeze,
+    justEarned: !!DB.__justEarnedFreeze
+  };
+}
+
+export function clearStreakFreezeNotice() {
+  delete DB.__justUsedFreeze;
+  delete DB.__justEarnedFreeze;
+  save();
 }
 
 export function sessionState() {
@@ -856,6 +916,8 @@ export function summary(words) {
     practiceDates: getPracticeDates(),
     rawHistory: DB.history || {},
     allPracticedWords,
+    streakFreezes: (typeof DB.streakFreezes === "number") ? DB.streakFreezes : 1,
+    streakFreezeUsed: DB.streakFreezeUsed || [],
     words,
   };
 }
