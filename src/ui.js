@@ -1276,14 +1276,14 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
   let wrongContentHtml = "";
   let leftBoxClass = "correct-box";
   let leftTitleClass = "correct-title";
-  let leftTitleText = `✅ 已答對的單字 (${correctList.length} 字)`;
+  let leftTitleText = `<span style="color:#10B981; font-weight:900; margin-right:4px;">✔</span>已答對的單字 (${correctList.length} 字)`;
   const isTrulyPerfect = (taskRate >= 100) || (taskTotWords > 0 && taskCorrWords >= taskTotWords && wrongList.length === 0);
   const missedCount = Math.max(0, taskTotWords - taskCorrWords);
   let rightBoxClass = "wrong-box";
   let rightTitleClass = "wrong-title";
   let rightTitleText = wrongList.length > 0 
     ? `❌ 答錯的單字 (${wrongList.length} 字)` 
-    : (isTrulyPerfect ? `❌ 答錯的單字 (0 字)` : (missedCount > 0 ? `❌ 未作答的單字 (${missedCount} 字)` : `❌ 答錯的單字 (0 字)`));
+    : (isTrulyPerfect ? `❌ 答錯的單字 (0 字)` : (missedCount > 0 ? `⏱️ 未作答的單字 (${missedCount} 字)` : `❌ 答錯的單字 (0 字)`));
 
   if (isUntested) {
     leftBoxClass = "untested-box";
@@ -1307,7 +1307,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
   } else if (isIncomplete) {
     leftBoxClass = "correct-box";
     leftTitleClass = "correct-title";
-    leftTitleText = `✅ 已答對的單字 (${correctList.length} 字)`;
+    leftTitleText = `<span style="color:#10B981; font-weight:900; margin-right:4px;">✔</span>已答對的單字 (${correctList.length} 字)`;
     if (correctList.length > 0) {
       correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
     } else {
@@ -1409,12 +1409,12 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
         : (unansweredList.length > 0 ? unansweredList : []);
 
       if (unmastered.length > 0) {
-        rightTitleText = `❌ 未作答的單字 (${unmastered.length} 字)`;
+        rightTitleText = `⏱️ 未作答的單字 (${unmastered.length} 字)`;
         wrongContentHtml = unmastered.map(w => {
           return `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="未作答單字 (點擊聆聽發音)">${w} <span class="diag-bubble-tag" title="未作答">未作答</span></span>`;
         }).join("");
       } else {
-        rightTitleText = `❌ 未作答的單字 (${missedCount} 字)`;
+        rightTitleText = `⏱️ 未作答的單字 (${missedCount} 字)`;
         wrongContentHtml = `
           <div style="display:flex; flex-direction:column; gap:4px; padding:6px 8px; font-size:12.5px; line-height:1.55; color:var(--ink2);">
             <div>⚠️ 本次測驗施測 <b>${taskTotWords}</b> 字，答對 <b>${taskCorrWords}</b> 字，尚有 <b style="color:var(--ink, #475569); font-weight:800;">${missedCount}</b> 字未作答。</div>
@@ -1461,7 +1461,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
           </div>
         </div>
         <div class="task-score-item">
-          <div class="task-score-label">📊 測驗狀態</div>
+          <div class="task-score-label">測驗狀態</div>
           <div class="task-score-val" style="color:${statusColor}; font-size:17px; font-weight:800;">${displayStatusStr}</div>
         </div>
       </div>
@@ -1483,7 +1483,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
           </div>
         </div>
         <div class="task-score-item">
-          <div class="task-score-label">📊 正確率</div>
+          <div class="task-score-label">正確率</div>
           <div class="task-score-val" style="color:#a855f7; font-size:17px; font-weight:800;">
             ${taskRate}% <small style="font-size:11px; font-weight:600; color:var(--ink3);">(尚餘 ${unattemptedCount} 題未答)</small>
           </div>
@@ -1507,7 +1507,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
           </div>
         </div>
         <div class="task-score-item">
-          <div class="task-score-label">📊 正確率</div>
+          <div class="task-score-label">正確率</div>
           <div class="task-score-val" style="color:${rateColor};">${taskRate}%</div>
         </div>
       </div>
@@ -1607,7 +1607,7 @@ function renderUntestedTaskCardHtml(info, d) {
           </div>
         </div>
         <div class="task-score-item">
-          <div class="task-score-label">📊 測驗狀態</div>
+          <div class="task-score-label">測驗狀態</div>
           <div class="task-score-val" style="color:${statusColor}; font-size:17px; font-weight:800;">${displayStatusStr}</div>
         </div>
       </div>
@@ -1950,7 +1950,7 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
           </div>
         </div>
         <div class="task-score-item">
-          <div class="task-score-label">📊 正確率</div>
+          <div class="task-score-label">正確率</div>
           <div class="task-score-val" style="color:${freeRateColor};">${wordRate}%</div>
         </div>
       </div>
@@ -1960,7 +1960,7 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
         <!-- 答對的單字區 -->
         <div class="word-split-box correct-box">
           <div class="word-split-title correct-title">
-            <span>✅ 答對的單字 (${displayCorrectBoxCount} 字)</span>
+            <span><span style="color:#10B981; font-weight:900; margin-right:4px;">✔</span>已答對的單字 (${displayCorrectBoxCount} 字)</span>
           </div>
           <div class="word-split-content">
             ${correctContentHtml}
@@ -3593,7 +3593,7 @@ async function _exportRecordToPdf(payload) {
           ${r.hasTask ? `
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
               <div style="background:#F1FBF6; border:1px solid rgba(47,180,124,.3); border-radius:8px; padding:7px 9px;">
-                <div style="font-size:11.5px; font-weight:800; color:#065F46; margin-bottom:4px;">✅ 答對的單字</div>
+                <div style="font-size:11.5px; font-weight:800; color:#065F46; margin-bottom:4px;"><span style="color:#10B981; font-weight:900; margin-right:4px;">✔</span>答對的單字</div>
                 <div>${taskCorrPills}</div>
               </div>
               <div style="background:#FFF5F5; border:1px solid rgba(255,107,107,.3); border-radius:8px; padding:7px 9px;">
@@ -3613,7 +3613,7 @@ async function _exportRecordToPdf(payload) {
           ${r.hasFree ? `
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
               <div style="background:#F1FBF6; border:1px solid rgba(47,180,124,.3); border-radius:8px; padding:7px 9px;">
-                <div style="font-size:11.5px; font-weight:800; color:#065F46; margin-bottom:4px;">✅ 答對的單字</div>
+                <div style="font-size:11.5px; font-weight:800; color:#065F46; margin-bottom:4px;"><span style="color:#10B981; font-weight:900; margin-right:4px;">✔</span>答對的單字</div>
                 <div>${freeCorrPills}</div>
               </div>
               <div style="background:#FFF5F5; border:1px solid rgba(255,107,107,.3); border-radius:8px; padding:7px 9px;">
