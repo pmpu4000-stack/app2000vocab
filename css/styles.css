@@ -1293,15 +1293,17 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 .curfew-note-box,
 .login-study-note {
   margin: 0;
-  padding: 9px 12px;
+  padding: 8px 8px;
   background: rgba(108,76,224,0.08);
   border: 1px solid rgba(108,76,224,0.22);
   border-radius: 10px;
-  font-size: 12px;
-  line-height: 1.5;
+  font-size: 11px;
+  line-height: 1.55;
+  letter-spacing: -0.2px;
   text-align: center;
   color: #1E293B !important;
   font-weight: 600;
+  word-break: keep-all;
 }
 [data-theme="dark"] .curfew-note-box,
 [data-theme="dark"] .login-study-note {
