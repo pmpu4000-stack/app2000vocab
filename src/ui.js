@@ -1212,7 +1212,21 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
       if (!isNaN(sCorr)) taskCorrWords = sCorr;
     }
   }
-  const taskRate = taskTotWords > 0 ? Math.round((taskCorrWords / taskTotWords) * 100) : (parseInt(rateVal) || 0);
+
+  // 方案 A 關鍵統計：全卷應測總單字數 vs 實際已作答單字數
+  const assignedTotWords = (rawWords && rawWords.length > 0) ? rawWords.length : taskTotWords;
+  const actualAnswered = totalAnswered > 0 ? totalAnswered : (taskCorrWords + wrongList.length);
+  const actualUnanswered = (unansweredList && unansweredList.length > 0)
+    ? unansweredList.length
+    : Math.max(0, assignedTotWords - actualAnswered);
+  const hasUnanswered = actualUnanswered > 0 && assignedTotWords > actualAnswered;
+
+  // (A) 實作命中率 (針對有作答題目的答對比例，如 4/5 = 80%)
+  const attemptedRate = actualAnswered > 0 ? Math.round((taskCorrWords / actualAnswered) * 100) : 0;
+  // (B) 整體得分率 / 總掌握率 (未作答視同 0 分，分母採全卷應測單字數，如 4/20 = 20%)
+  const overallScoreRate = assignedTotWords > 0 ? Math.round((taskCorrWords / assignedTotWords) * 100) : 0;
+
+  const taskRate = hasUnanswered ? overallScoreRate : (taskTotWords > 0 ? Math.round((taskCorrWords / taskTotWords) * 100) : (parseInt(rateVal) || 0));
 
   const answeredSet = new Set([
     ...correctList.map(w => String(w).toLowerCase()),
@@ -1223,16 +1237,16 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
 
   // 核心完成判定：只要狀態明確為已完成、或得分顯示已滿/完成、或答題數已達標
   const hasFinishedStatus = statusStr.includes("已完成") || statusStr.includes("● 已完成") || statusStr.includes("🟢 已完成") || (record.completed === true) || (record.alreadyCompleted === true);
-  const isFinishedScore = (taskTotWords > 0 && taskCorrWords + wrongList.length >= taskTotWords) ||
-                          (taskTotWords > 0 && taskRate === 100) ||
-                          (totalAnswered >= taskTotWords && taskTotWords > 0) ||
-                          (taskTotWords > 0 && totalAnswered > 0 && unansweredList.length === 0 && !statusStr.includes("未受測") && !statusStr.includes("中斷") && !statusStr.includes("作答中"));
-  const isExplicitlyNotFinished = statusStr.includes("未受測") || statusStr.includes("中斷") || statusStr.includes("作答中") || statusStr.includes("未完成") || scoreVal === "—" || scoreVal === "尚未開始" || record.inProgress === true;
+  const isFinishedScore = (!hasUnanswered && taskTotWords > 0 && taskCorrWords + wrongList.length >= taskTotWords) ||
+                          (!hasUnanswered && taskTotWords > 0 && taskRate === 100) ||
+                          (!hasUnanswered && totalAnswered >= taskTotWords && taskTotWords > 0) ||
+                          (!hasUnanswered && taskTotWords > 0 && totalAnswered > 0 && unansweredList.length === 0 && !statusStr.includes("未受測") && !statusStr.includes("中斷") && !statusStr.includes("作答中"));
+  const isExplicitlyNotFinished = hasUnanswered || statusStr.includes("未受測") || statusStr.includes("中斷") || statusStr.includes("作答中") || statusStr.includes("未完成") || scoreVal === "—" || scoreVal === "尚未開始" || record.inProgress === true;
 
   const isFinished = (hasFinishedStatus || isFinishedScore) && !isExplicitlyNotFinished;
 
-  // 核心中斷判定：已作答但未答滿全部題目（例如 5 題只答 2 題），或狀態標記為作答中/未完成/中斷
-  const isPartialAttempt = (totalAnswered > 0 && taskTotWords > 0 && totalAnswered < taskTotWords) || (unansweredList.length > 0 && totalAnswered > 0);
+  // 核心中斷判定：已作答但未答滿全部題目（例如 20 題只答 5 題），或狀態標記為作答中/未完成/中斷
+  const isPartialAttempt = hasUnanswered || (totalAnswered > 0 && taskTotWords > 0 && totalAnswered < taskTotWords) || (unansweredList.length > 0 && totalAnswered > 0);
   const isIncomplete = !isFinished && (
     isPartialAttempt ||
     statusStr.includes("作答中") ||
@@ -1254,7 +1268,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
   let statusDesc = "";
 
   if (isIncomplete) {
-    displayStatusStr = `🟣 作答中斷 (${taskCorrWords}/${taskTotWords})`;
+    displayStatusStr = `🟣 作答中斷 (${taskCorrWords}/${assignedTotWords})`;
     statusColor = "#6B21A8";
     statusDesc = "⏳ 測驗中途作答中斷";
   } else if (isFinished) {
@@ -1466,26 +1480,32 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
         </div>
       </div>
     `;
-  } else if (isIncomplete) {
-    const unattemptedCount = unansweredList.length > 0 ? unansweredList.length : Math.max(0, taskTotWords - totalAnswered);
+  } else if (hasUnanswered) {
+    const scoreColor = overallScoreRate >= 80 ? '#16a34a' : (overallScoreRate >= 60 ? '#ca8a04' : '#ea580c');
     scoreGridHtml = `
       <div class="task-score-grid">
         <div class="task-score-item">
           <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap;">
-            <span style="flex:1; text-align:right;">已答對單字</span>
+            <span style="flex:1; text-align:right;">答對單字數</span>
             <span style="padding:0 6px; opacity:0.6;">/</span>
-            <span style="flex:1; text-align:left;">總施測單字</span>
+            <span style="flex:1; text-align:left;">應測總單字數</span>
           </div>
           <div class="task-score-val" style="display:flex; align-items:center; justify-content:center;">
             <span class="task-score-num-corr" style="flex:1; text-align:right; color:#0284c7;">${taskCorrWords}</span>
             <span style="padding:0 6px; font-weight:700; color:var(--ink3); opacity:0.6; font-size:18px;">/</span>
-            <span class="task-score-num-tot" style="flex:1; text-align:left; color:#0369a1;">${taskTotWords}</span>
+            <span class="task-score-num-tot" style="flex:1; text-align:left; color:#0369a1;">${assignedTotWords}</span>
+          </div>
+          <div style="font-size:11px; font-weight:600; color:var(--ink2); margin-top:2px; display:flex; align-items:center; justify-content:center; gap:5px;">
+            <span>已作答 ${actualAnswered} 題</span>
+            <span style="opacity:0.35;">•</span>
+            <span style="color:#ef4444; font-weight:700;">未作答 ${actualUnanswered} 題</span>
           </div>
         </div>
         <div class="task-score-item">
-          <div class="task-score-label">正確率</div>
-          <div class="task-score-val" style="color:#a855f7; font-size:17px; font-weight:800;">
-            ${taskRate}% <small style="font-size:11px; font-weight:600; color:var(--ink3);">(尚餘 ${unattemptedCount} 題未答)</small>
+          <div class="task-score-label">整體得分率</div>
+          <div class="task-score-val" style="display:flex; flex-direction:column; align-items:center; justify-content:center;">
+            <span style="color:${scoreColor}; font-size:22px; font-weight:800; line-height:1.2;">${overallScoreRate}%</span>
+            <span style="font-size:11px; font-weight:700; color:#16a34a; margin-top:2px;">(作答命中率 ${attemptedRate}%)</span>
           </div>
         </div>
       </div>
@@ -1508,7 +1528,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
         </div>
         <div class="task-score-item">
           <div class="task-score-label">正確率</div>
-          <div class="task-score-val" style="color:${rateColor};">${taskRate}%</div>
+          <div class="task-score-val" style="color:${rateColor}; font-size:22px; font-weight:800;">${taskRate}%</div>
         </div>
       </div>
     `;
