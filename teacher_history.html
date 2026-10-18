@@ -4410,16 +4410,19 @@
     .curfew-note-box,
     .login-study-note {
       margin-top: 10px;
-      padding: 9px 12px;
+      padding: 10px 14px;
       background: rgba(108,76,224,0.08);
       border: 1px solid rgba(108,76,224,0.22);
       border-radius: 12px;
       font-size: 11.5px;
       line-height: 1.6;
-      text-align: center;
+      text-align: left;
       color: #1E293B !important;
       font-weight: 600;
-      word-break: keep-all;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      box-sizing: border-box;
     }
     [data-theme="dark"] .curfew-note-box,
     [data-theme="dark"] .login-study-note {
@@ -4427,6 +4430,19 @@
       border: 1px solid rgba(108, 76, 224, 0.45) !important;
       color: #F8FAFC !important;
       font-weight: 600 !important;
+    }
+    .curfew-note-box .note-icon,
+    .login-study-note .note-icon {
+      font-size: 14px;
+      line-height: 1.5;
+      flex-shrink: 0;
+    }
+    .curfew-note-box .note-body,
+    .login-study-note .note-body {
+      flex: 1;
+      text-align: left;
+      line-height: 1.6;
+      word-break: keep-all;
     }
     /* 嚴格保證未登入時絕不出現任何登出按鈕 */
     body:not(.student-mode):not(.teacher-mode) #btnStudentDirectLogout,
@@ -4463,14 +4479,20 @@
       <p id="login-msg" style="color:#FF6B6B; font-size:13px; margin-top:12px; min-height:18px; line-height:1.5;"></p>
 
       <div class="curfew-note-box">
-        ⏰ 每日開放作答時間：07:30 至 22:00<br>
-        請於時段內進行十分鐘指定單字測驗<br>
-        並歡迎多加進行自由練習
+        <span class="note-icon">⏰</span>
+        <div class="note-body">
+          <div>每日開放作答時間：07:30 至 22:00</div>
+          <div>請於時段內進行十分鐘指定單字測驗</div>
+          <div>並歡迎多加進行自由練習</div>
+        </div>
       </div>
 
       <div class="login-study-note">
-        💡 登入將記錄班級座號與答題成績<br>
-        作為英語科學習歷程與教學輔導使用
+        <span class="note-icon">💡</span>
+        <div class="note-body">
+          <div>登入將記錄班級座號與答題成績</div>
+          <div>作為英語科學習歷程與教學輔導使用</div>
+        </div>
       </div>
     </div>
   </div>
