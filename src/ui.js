@@ -1510,11 +1510,18 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
             </div>
           </div>
         </div>
-        <div class="task-score-item" style="display:flex; flex-direction:column; justify-content:center;">
-          <div class="task-score-label">整體得分率</div>
-          <div class="task-score-val" style="display:flex; flex-direction:column; align-items:center; justify-content:center;">
-            <span style="color:${scoreColor}; font-size:22px; font-weight:800; line-height:1.2;">${overallScoreRate}%</span>
-            <span style="font-size:11px; font-weight:700; color:#16a34a; margin-top:2px;">(作答命中率 ${attemptedRate}%)</span>
+        <div class="task-score-subgrid">
+          <div class="task-score-item" style="display:flex; flex-direction:column; justify-content:center; padding:10px 4px;">
+            <div class="task-score-label">整體得分率</div>
+            <div class="task-score-val" style="color:${scoreColor}; font-size:22px; font-weight:800; line-height:1.2;">
+              ${overallScoreRate}%
+            </div>
+          </div>
+          <div class="task-score-item" style="display:flex; flex-direction:column; justify-content:center; padding:10px 4px;">
+            <div class="task-score-label">作答命中率</div>
+            <div class="task-score-val" style="color:#16a34a; font-size:22px; font-weight:800; line-height:1.2;">
+              ${attemptedRate}%
+            </div>
           </div>
         </div>
       </div>
