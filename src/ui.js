@@ -1262,8 +1262,8 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     displayStatusStr = "🟢 已完成";
   } else if (isUntested) {
     if (hasLoggedInOrFree) {
-      displayStatusStr = "🟡 登入未受測";
-      statusColor = "#d97706";
+      displayStatusStr = "🟢 登入未受測";
+      statusColor = "#16a34a";
       statusDesc = "⚠️ 有登入但未測驗";
     } else {
       displayStatusStr = "🟠 缺席未受測";
@@ -1579,8 +1579,8 @@ function renderUntestedTaskCardHtml(info, d) {
     wordsHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（指派單字載入中或未指定具體單字清單）</span>`;
   }
 
-  const statusColor = hasLoggedInOrFree ? "#d97706" : "#b45309";
-  const displayStatusStr = hasLoggedInOrFree ? "🟡 登入未受測" : "🟠 缺席未受測";
+  const statusColor = hasLoggedInOrFree ? "#16a34a" : "#b45309";
+  const displayStatusStr = hasLoggedInOrFree ? "🟢 登入未受測" : "🟠 缺席未受測";
 
   const adviceText = hasLoggedInOrFree
     ? "當日有登入系統進行自由練習，但<strong>尚未完成本次指定測驗</strong>。"
@@ -2490,12 +2490,12 @@ export function renderSummary(d) {
         badgeTier: "tier-status-purple"
       };
     } else if (hasLoggedInOrFree) {
-      // 🟡 登入未受測 (方格金黃色，右側黃色框)
+      // 🟢 登入未受測 (方格清新綠色，右側綠色框)
       res = {
         a: 0, c: 0, rate: 0,
         wordsCount: taskWordsCount,
         statusType: "login_untested",
-        statusLabel: "🟡 登入未受測",
+        statusLabel: "🟢 登入未受測",
         levelClass: "h-status-yellow",
         badgeTier: "tier-status-yellow"
       };

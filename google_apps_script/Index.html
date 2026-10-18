@@ -4158,25 +4158,25 @@
     /* 指定測驗特殊狀態方格 (登入未受測=清新陽光黃, 缺席未受測=濃郁蜜糖琥珀金, 登入作答未完成=莫蘭迪柔紫) */
     .hc.h-status-pink,
     .hc.h-status-yellow,
-    .hc.h-status-orange { background: #FEF08A !important; border-color: #FACC15 !important; box-shadow: 0 1px 3px rgba(250,204,21,.35) !important; }
+    .hc.h-status-orange { background: #86EFAC !important; border-color: #22C55E !important; box-shadow: 0 1px 3px rgba(34,197,94,.35) !important; }
     .hc.h-status-red    { background: #F59E0B !important; border-color: #D97706 !important; box-shadow: 0 1px 4px rgba(217,119,6,.40) !important; }
     [data-theme="dark"] .hc.h-status-pink,
     [data-theme="dark"] .hc.h-status-yellow,
-    [data-theme="dark"] .hc.h-status-orange { background: #EAB308 !important; border-color: #FEF08A !important; box-shadow: 0 0 8px rgba(250,204,21,.45) !important; }
+    [data-theme="dark"] .hc.h-status-orange { background: #16A34A !important; border-color: #86EFAC !important; box-shadow: 0 0 8px rgba(34,197,94,.45) !important; }
     [data-theme="dark"] .hc.h-status-red    { background: #F59E0B !important; border-color: #FCD34D !important; box-shadow: 0 0 10px rgba(245,158,11,.55) !important; }
 
     .heat-day-info.tier-status-pink,
     .heat-day-info.tier-status-yellow,
-    .heat-day-info.tier-status-orange { background: #FEFCE8 !important; color: #B45309 !important; border: 2px solid #FACC15 !important; box-shadow: 0 2px 6px rgba(250,204,21,.20) !important; }
+    .heat-day-info.tier-status-orange { background: #F0FDF4 !important; color: #15803D !important; border: 2px solid #22C55E !important; box-shadow: 0 2px 6px rgba(34,197,94,.20) !important; }
     .heat-day-info.tier-status-pink b,
     .heat-day-info.tier-status-yellow b,
-    .heat-day-info.tier-status-orange b { color: #92400E !important; }
+    .heat-day-info.tier-status-orange b { color: #166534 !important; }
     [data-theme="dark"] .heat-day-info.tier-status-pink,
     [data-theme="dark"] .heat-day-info.tier-status-yellow,
-    [data-theme="dark"] .heat-day-info.tier-status-orange { background: rgba(250,204,21,.16) !important; color: #FDE047 !important; border-color: #FACC15 !important; box-shadow: 0 2px 8px rgba(0,0,0,.35) !important; }
+    [data-theme="dark"] .heat-day-info.tier-status-orange { background: rgba(34,197,94,.18) !important; color: #86EFAC !important; border-color: #22C55E !important; box-shadow: 0 2px 8px rgba(0,0,0,.35) !important; }
     [data-theme="dark"] .heat-day-info.tier-status-pink b,
     [data-theme="dark"] .heat-day-info.tier-status-yellow b,
-    [data-theme="dark"] .heat-day-info.tier-status-orange b { color: #FEF08A !important; }
+    [data-theme="dark"] .heat-day-info.tier-status-orange b { color: #BBF7D0 !important; }
 
     .heat-day-info.tier-status-red { background: #FFFBEB !important; color: #B45309 !important; border: 2px solid #F59E0B !important; box-shadow: 0 2px 6px rgba(245,158,11,.25) !important; }
     .heat-day-info.tier-status-red b { color: #78350F !important; }
@@ -16779,7 +16779,7 @@ function renderStudentSummary(resp) {
           taskHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ <b>🟣 作答中斷</b>`;
         } else if (currentItem && currentItem.isLoginUntested) {
           taskHeatDayInfoEl.className = "heat-day-info tier-status-yellow";
-          taskHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ <b>🟡 登入未受測</b>`;
+          taskHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ <b>🟢 登入未受測</b>`;
         } else if (currentItem && currentItem.isAbsent) {
           taskHeatDayInfoEl.className = "heat-day-info tier-status-red";
           taskHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ <b>🟠 缺席未受測</b>`;
