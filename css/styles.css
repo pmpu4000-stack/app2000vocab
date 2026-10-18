@@ -45,39 +45,42 @@ header{display:flex; align-items:center; justify-content:space-between; flex-wra
 .stat span{display:flex;align-items:center;justify-content:center;height:14px;margin-top:2px;font-size:10px;color:var(--ink3);font-weight:700;letter-spacing:.4px;text-transform:uppercase;white-space:nowrap;line-height:14px}
 .stat.upload b{font-size:18px}
 
-/* 字體調整單一整合方塊：在同一個方格中設置 A- / A+ 與 縮小 / 放大 */
-.stat.font-scale-combo {
-  min-width: 66px;
-  padding: 6px 8px;
-  user-select: none;
-  cursor: default;
-}
-.stat.font-scale-combo b {
-  font-size: 15px;
-  font-weight: 800;
-  color: var(--ink);
-  letter-spacing: -0.2px;
-}
-.stat.font-scale-combo .font-scale-half {
+/* 字體調整方塊：兩個獨立方塊 (A- 縮小 與 A+ 放大) */
+.stat.font-size-btn {
+  min-width: 52px;
+  padding: 6px 10px;
   cursor: pointer;
-  padding: 1px 4px;
-  border-radius: 5px;
-  transition: all .12s ease;
-  display: inline-block;
+  transition: transform .12s, background .12s, border-color .12s;
+  user-select: none;
 }
-.stat.font-scale-combo .font-scale-half:hover {
-  background: rgba(108, 76, 224, 0.12);
-  color: var(--violet);
+.stat.font-size-btn b {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: var(--ink);
 }
-.stat.font-scale-combo .font-scale-half:active {
-  transform: scale(0.92);
+.stat.font-size-btn span {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--ink3);
 }
-[data-theme="dark"] .stat.font-scale-combo b {
+.stat.font-size-btn:hover {
+  border-color: var(--violet);
+  background: rgba(108, 76, 224, 0.06);
+  transform: translateY(-1px);
+}
+.stat.font-size-btn:active {
+  transform: translateY(1px);
+}
+[data-theme="dark"] .stat.font-size-btn b {
   color: #F0F3FA !important;
 }
-[data-theme="dark"] .stat.font-scale-combo .font-scale-half:hover {
-  background: rgba(108, 76, 224, 0.3) !important;
-  color: #A78BFA !important;
+[data-theme="dark"] .stat.font-size-btn span {
+  color: #94A3B8 !important;
+}
+[data-theme="dark"] .stat.font-size-btn:hover {
+  background: rgba(108, 76, 224, 0.2) !important;
+  border-color: #8B5CF6 !important;
 }
 
 /* 內容區字體縮放 (不影響 header 標題與圖標，確保標題區域永遠不會被擠壓) */
@@ -672,19 +675,25 @@ body.daily-limit-reached #btn-upload {
 @media (max-width:820px){
   header{flex-wrap:wrap;gap:10px}
   .stats{width:100%;margin:6px 0 0;flex-wrap:wrap;gap:6px;justify-content:stretch}
-  .stat, .stat.ok, .stat.user, .stat.upload, .stat.score, .stat.rate, .stat.timer, .stat.theme, .stat.font-scale-combo{
-    flex:1 1 calc(25% - 6px);
-    min-width:64px;
+  .stat, .stat.ok, .stat.user, .stat.upload, .stat.score, .stat.rate, .stat.timer, .stat.theme, .stat.streak-freeze, .stat.font-size-btn{
+    flex:1 1 calc(20% - 6px);
+    min-width:52px;
     height:50px;
   }
 }
 @media (max-width:580px){
   .stats{width:100%;margin:6px 0 0;flex-wrap:wrap;gap:6px}
-  .stat, .stat.ok, .stat.user, .stat.upload, .stat.score, .stat.rate, .stat.timer, .stat.theme, .stat.font-scale-combo{
-    flex:1 1 calc(25% - 6px);
-    min-width:56px;
+  .stat, .stat.ok, .stat.user, .stat.upload, .stat.score, .stat.rate, .stat.timer, .stat.theme, .stat.streak-freeze{
+    flex:1 1 calc(33.333% - 6px);
+    min-width:54px;
     height:48px;
-    padding:4px 4px;
+    padding:4px 6px;
+  }
+  .stat.font-size-btn{
+    flex:1 1 calc(50% - 6px) !important;
+    min-width:54px;
+    height:48px;
+    padding:4px 6px;
   }
   .stat b{font-size:15px}
   .stat span{font-size:9.5px}
