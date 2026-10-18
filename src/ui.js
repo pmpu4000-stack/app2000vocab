@@ -1497,7 +1497,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
           </div>
           <div style="font-size:11px; font-weight:600; color:var(--ink2); margin-top:2px; display:flex; align-items:center; justify-content:center; gap:5px;">
             <span>已作答 ${actualAnswered} 題</span>
-            <span style="opacity:0.35;">•</span>
+            <span style="opacity:0.4; margin:0 2px;">/</span>
             <span style="color:#ef4444; font-weight:700;">未作答 ${actualUnanswered} 題</span>
           </div>
         </div>
