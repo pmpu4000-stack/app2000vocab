@@ -14992,9 +14992,13 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
   let leftBoxClass = "correct-box";
   let leftTitleClass = "correct-title";
   let leftTitleText = `✅ 已答對的單字 (${correctList.length} 字)`;
+  const isTrulyPerfect = (taskRate >= 100) || (taskTotWords > 0 && taskCorrWords >= taskTotWords && wrongList.length === 0);
+  const missedCount = Math.max(0, taskTotWords - taskCorrWords);
   let rightBoxClass = "wrong-box";
   let rightTitleClass = "wrong-title";
-  let rightTitleText = `❌ 答錯的單字 (${wrongList.length} 字)`;
+  let rightTitleText = wrongList.length > 0 
+    ? `❌ 答錯的單字 (${wrongList.length} 字)` 
+    : (isTrulyPerfect ? `❌ 答錯的單字 (0 字)` : (missedCount > 0 ? `❌ 待加強單字 (${missedCount} 字)` : `❌ 答錯的單字 (0 字)`));
 
   if (isUntested) {
     leftBoxClass = "untested-box";
@@ -15070,12 +15074,10 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
     if (correctList.length > 0) {
       correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); speakMasteredWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
     } else if (isFinished) {
-      if (rawWords.length > 0) {
-        correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（本次測驗全數答錯，尚無答對單字）</span>`;
+      if (taskCorrWords > 0) {
+        correctContentHtml = `<div style="font-size:12.5px; font-weight:700; color:#047857; padding:4px 0;">🎉 本次測驗全數答對（共 ${taskCorrWords} 字），表現完美！</div>`;
       } else {
-        correctContentHtml = (wrongList.length === 0)
-          ? `<span class="perfect-score-msg">🎉 太棒了！本次測驗全數答對！</span>`
-          : `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（本次測驗答對 ${taskCorrWords}/${taskTotWords} 字）</span>`;
+        correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（本次測驗無答對單字）</span>`;
       }
     } else {
       correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（測驗待完成，尚未作答）</span>`;
@@ -15097,8 +15099,28 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
         }
         return `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); speakMasteredWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="答錯單字：${diag.desc} (點擊聆聽發音)">${w} ${diagBadge}</span>`;
       }).join("");
-    } else if (isFinished) {
+    } else if (isTrulyPerfect) {
       wrongContentHtml = `<span class="perfect-score-msg">🎉 太棒了！本次測驗全數答對，無任何答錯單字！</span>`;
+    } else if (missedCount > 0) {
+      const unmastered = (rawWords.length > 0)
+        ? rawWords.filter(w => !correctList.includes(String(w).toLowerCase()))
+        : (unansweredList.length > 0 ? unansweredList : []);
+
+      if (unmastered.length > 0) {
+        rightTitleText = `❌ 待加強單字 (${unmastered.length} 字)`;
+        wrongContentHtml = unmastered.map(w => {
+          const diag = diagnoseWordMistake(w);
+          return `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); speakMasteredWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="未答對單字：${diag.desc} (點擊聆聽發音)">${w} <span class="diag-bubble-tag" title="${diag.desc}">待加強</span></span>`;
+        }).join("");
+      } else {
+        rightTitleText = `❌ 待加強單字 (${missedCount} 字)`;
+        wrongContentHtml = `
+          <div style="display:flex; flex-direction:column; gap:4px; padding:6px 8px; font-size:12.5px; line-height:1.55; color:var(--ink2);">
+            <div>⚠️ 本次測驗施測 <b>${taskTotWords}</b> 字，答對 <b>${taskCorrWords}</b> 字，尚有 <b style="color:#ef4444;">${missedCount}</b> 字未掌握。</div>
+            <div style="font-size:11.5px; color:var(--ink3);">📌 提醒：未掌握之單字已自動排入週末弱點補強測驗。</div>
+          </div>
+        `;
+      }
     } else {
       wrongContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（目前無答錯單字）</span>`;
     }
@@ -15177,7 +15199,6 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
       <div class="task-history-header">
         <div>
           <span class="task-card-title">${formattedTaskName}</span>
-          <span class="status-badge-pill ${isIncomplete ? 'purple' : ''}" style="margin-left:8px; font-size:11.5px; font-weight:700; color:${statusColor}; background:${statusBg}; padding:2px 8px; border-radius:999px;">${displayStatusStr}</span>
         </div>
       </div>
 

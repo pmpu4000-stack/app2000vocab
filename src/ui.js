@@ -1277,9 +1277,13 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
   let leftBoxClass = "correct-box";
   let leftTitleClass = "correct-title";
   let leftTitleText = `✅ 已答對的單字 (${correctList.length} 字)`;
+  const isTrulyPerfect = (taskRate >= 100) || (taskTotWords > 0 && taskCorrWords >= taskTotWords && wrongList.length === 0);
+  const missedCount = Math.max(0, taskTotWords - taskCorrWords);
   let rightBoxClass = "wrong-box";
   let rightTitleClass = "wrong-title";
-  let rightTitleText = `❌ 答錯的單字 (${wrongList.length} 字)`;
+  let rightTitleText = wrongList.length > 0 
+    ? `❌ 答錯的單字 (${wrongList.length} 字)` 
+    : (isTrulyPerfect ? `❌ 答錯的單字 (0 字)` : (missedCount > 0 ? `❌ 待加強單字 (${missedCount} 字)` : `❌ 答錯的單字 (0 字)`));
 
   if (isUntested) {
     leftBoxClass = "untested-box";
@@ -1381,8 +1385,28 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
         }
         return `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w} ${diagBadge}</span>`;
       }).join("");
-    } else if (isFinished) {
+    } else if (isTrulyPerfect) {
       wrongContentHtml = `<span class="perfect-score-msg">🎉 全數答對，無答錯單字！</span>`;
+    } else if (missedCount > 0) {
+      const unmastered = (rawWords.length > 0)
+        ? rawWords.filter(w => !correctList.includes(String(w).toLowerCase()))
+        : (unansweredList.length > 0 ? unansweredList : []);
+
+      if (unmastered.length > 0) {
+        rightTitleText = `❌ 待加強單字 (${unmastered.length} 字)`;
+        wrongContentHtml = unmastered.map(w => {
+          const diag = diagnoseWordMistake(w);
+          return `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="未答對單字：${diag.desc} (點擊聆聽發音)">${w} <span class="diag-bubble-tag" title="${diag.desc}">待加強</span></span>`;
+        }).join("");
+      } else {
+        rightTitleText = `❌ 待加強單字 (${missedCount} 字)`;
+        wrongContentHtml = `
+          <div style="display:flex; flex-direction:column; gap:4px; padding:6px 8px; font-size:12.5px; line-height:1.55; color:var(--ink2);">
+            <div>⚠️ 本次測驗施測 <b>${taskTotWords}</b> 字，答對 <b>${taskCorrWords}</b> 字，尚有 <b style="color:#ef4444;">${missedCount}</b> 字未掌握。</div>
+            <div style="font-size:11.5px; color:var(--ink3);">📌 提醒：未掌握之單字已自動排入週末弱點補強測驗。</div>
+          </div>
+        `;
+      }
     } else {
       wrongContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（目前無答錯單字）</span>`;
     }
@@ -1480,9 +1504,6 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
       <div class="task-history-header">
         <div>
           <span class="task-card-title task-title-assigned">${formattedTaskName}</span>
-        </div>
-        <div style="display:flex; align-items:center; gap:6px;">
-          <span class="status-badge-pill ${isFinished ? 'success' : (isIncomplete ? 'purple' : (hasLoggedInOrFree ? 'warning' : 'danger'))}">${displayStatusStr}</span>
         </div>
       </div>
 
