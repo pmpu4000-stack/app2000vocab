@@ -15302,10 +15302,10 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
       <div class="task-score-grid">
         <div class="task-score-subgrid">
           <div class="task-score-item" style="display:flex; flex-direction:column; justify-content:center; padding:10px 4px;">
-            <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap; font-size:11px;" title="答對單字 / 應測單字">
-              <span style="flex:1; text-align:right;">答對單字</span>
+            <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap; font-size:11px;" title="已答對單字 / 應施測單字">
+              <span style="flex:1; text-align:right;">已答對</span>
               <span style="padding:0 2px; opacity:0.6;">/</span>
-              <span style="flex:1; text-align:left;">應測單字</span>
+              <span style="flex:1; text-align:left;">應施測</span>
             </div>
             <div class="task-score-val" style="display:flex; align-items:center; justify-content:center;">
               <span class="task-score-num-corr" style="flex:1; text-align:right; color:#0284c7;">${taskCorrWords}</span>
@@ -15314,29 +15314,24 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
             </div>
           </div>
           <div class="task-score-item" style="display:flex; flex-direction:column; justify-content:center; padding:10px 4px;">
-            <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap; font-size:11px;" title="已作答 / 未作答">
-              <span style="flex:1; text-align:right;">已作答</span>
-              <span style="padding:0 2px; opacity:0.6;">/</span>
-              <span style="flex:1; text-align:left; color:#ef4444;">未作答</span>
-            </div>
-            <div class="task-score-val" style="display:flex; align-items:center; justify-content:center;">
-              <span style="flex:1; text-align:right; color:#0284c7;">${actualAnswered}</span>
-              <span style="padding:0 4px; font-weight:700; color:var(--ink3); opacity:0.6; font-size:18px;">/</span>
-              <span style="flex:1; text-align:left; color:#ef4444;">${actualUnanswered}</span>
+            <div class="task-score-label" style="font-size:11px; color:#ef4444;" title="未作答題數">未作答</div>
+            <div class="task-score-val" style="display:flex; align-items:center; justify-content:center; color:#ef4444;">
+              <span>${actualUnanswered}</span>
+              <span style="font-size:13px; font-weight:700; margin-left:2px; color:var(--ink3);">題</span>
             </div>
           </div>
         </div>
         <div class="task-score-subgrid">
           <div class="task-score-item" style="display:flex; flex-direction:column; justify-content:center; padding:10px 4px;">
-            <div class="task-score-label" style="font-size:11px;">全卷正確率</div>
-            <div class="task-score-val" style="color:${overallScoreRate >= 80 ? '#16a34a' : (overallScoreRate >= 60 ? '#ca8a04' : '#ea580c')}; font-size:22px; font-weight:800; line-height:1.2;">
-              ${overallScoreRate}%
+            <div class="task-score-label" style="font-size:11px;" title="實際有作答題目的答對率">作答正確率</div>
+            <div class="task-score-val" style="color:#16a34a; font-size:22px; font-weight:800; line-height:1.2;">
+              ${attemptedRate}%
             </div>
           </div>
           <div class="task-score-item" style="display:flex; flex-direction:column; justify-content:center; padding:10px 4px;">
-            <div class="task-score-label" style="font-size:11px;">作答正確率</div>
-            <div class="task-score-val" style="color:#16a34a; font-size:22px; font-weight:800; line-height:1.2;">
-              ${attemptedRate}%
+            <div class="task-score-label" style="font-size:11px;" title="以全卷應測總單字數為分母計算之正確率">全卷正確率</div>
+            <div class="task-score-val" style="color:${overallScoreRate >= 80 ? '#16a34a' : (overallScoreRate >= 60 ? '#ca8a04' : '#ea580c')}; font-size:22px; font-weight:800; line-height:1.2;">
+              ${overallScoreRate}%
             </div>
           </div>
         </div>
