@@ -1486,10 +1486,10 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
       <div class="task-score-grid">
         <div class="task-score-subgrid">
           <div class="task-score-item" style="display:flex; flex-direction:column; justify-content:center; padding:10px 4px;">
-            <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap; font-size:10.5px;" title="答對單字數 / 應測總單字數">
-              <span style="flex:1; text-align:right;">答對單字數</span>
+            <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap; font-size:11px;" title="答對單字 / 應測單字">
+              <span style="flex:1; text-align:right;">答對單字</span>
               <span style="padding:0 2px; opacity:0.6;">/</span>
-              <span style="flex:1; text-align:left;">應測總單字數</span>
+              <span style="flex:1; text-align:left;">應測單字</span>
             </div>
             <div class="task-score-val" style="display:flex; align-items:center; justify-content:center;">
               <span class="task-score-num-corr" style="flex:1; text-align:right; color:#0284c7;">${taskCorrWords}</span>
@@ -1498,10 +1498,10 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
             </div>
           </div>
           <div class="task-score-item" style="display:flex; flex-direction:column; justify-content:center; padding:10px 4px;">
-            <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap; font-size:10.5px;" title="已作答題數 / 未作答題數">
-              <span style="flex:1; text-align:right;">已作答題數</span>
+            <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap; font-size:11px;" title="已作答 / 未作答">
+              <span style="flex:1; text-align:right;">已作答</span>
               <span style="padding:0 2px; opacity:0.6;">/</span>
-              <span style="flex:1; text-align:left; color:#ef4444;">未作答題數</span>
+              <span style="flex:1; text-align:left; color:#ef4444;">未作答</span>
             </div>
             <div class="task-score-val" style="display:flex; align-items:center; justify-content:center;">
               <span style="flex:1; text-align:right; color:#0284c7;">${actualAnswered}</span>
@@ -1512,13 +1512,13 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
         </div>
         <div class="task-score-subgrid">
           <div class="task-score-item" style="display:flex; flex-direction:column; justify-content:center; padding:10px 4px;">
-            <div class="task-score-label">整體得分率</div>
+            <div class="task-score-label" style="font-size:11px;">全卷正確率</div>
             <div class="task-score-val" style="color:${scoreColor}; font-size:22px; font-weight:800; line-height:1.2;">
               ${overallScoreRate}%
             </div>
           </div>
           <div class="task-score-item" style="display:flex; flex-direction:column; justify-content:center; padding:10px 4px;">
-            <div class="task-score-label">作答命中率</div>
+            <div class="task-score-label" style="font-size:11px;">作答正確率</div>
             <div class="task-score-val" style="color:#16a34a; font-size:22px; font-weight:800; line-height:1.2;">
               ${attemptedRate}%
             </div>
