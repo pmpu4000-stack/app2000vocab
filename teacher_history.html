@@ -3534,28 +3534,28 @@
       border: 1px solid #E2E8F0 !important;
     }
     .word-split-box.advice-box {
-      background: #FFFBEB !important;
-      border: 1px solid rgba(245, 158, 11, 0.35) !important;
+      background: #ECFDF5 !important;
+      border: 1.5px solid rgba(16, 185, 129, 0.35) !important;
     }
     .word-split-title.untested-title {
       color: #475569 !important;
     }
     .word-split-title.advice-title {
-      color: #B45309 !important;
+      color: #065F46 !important;
     }
     [data-theme="dark"] .word-split-box.untested-box {
       background: rgba(148, 163, 184, 0.08) !important;
       border-color: rgba(148, 163, 184, 0.25) !important;
     }
     [data-theme="dark"] .word-split-box.advice-box {
-      background: rgba(245, 158, 11, 0.12) !important;
-      border-color: rgba(245, 158, 11, 0.35) !important;
+      background: rgba(16, 185, 129, 0.12) !important;
+      border-color: rgba(16, 185, 129, 0.35) !important;
     }
     [data-theme="dark"] .word-split-title.untested-title {
       color: #94A3B8 !important;
     }
     [data-theme="dark"] .word-split-title.advice-title {
-      color: #FBBF24 !important;
+      color: #34D399 !important;
     }
 
     .perfect-score-msg {
@@ -15055,24 +15055,24 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
     : (isTrulyPerfect ? `❌ 答錯的單字 (0 字)` : (missedCount > 0 ? `⏱️ 未作答的單字 (${missedCount} 字)` : `❌ 答錯的單字 (0 字)`));
 
   if (isUntested) {
-    leftBoxClass = "untested-box";
-    leftTitleClass = "untested-title";
-    leftTitleText = `📋 本次應測單字範圍 ${taskTotWords > 0 ? `(${taskTotWords} 字)` : (rawWords.length > 0 ? `(${rawWords.length} 字)` : "")}`;
-    if (rawWords.length > 0) {
-      correctContentHtml = rawWords.map(w => `<span class="word-pill-tag neutral" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); speakMasteredWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
-    } else {
-      correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（指派單字載入中或未指定具體單字清單）</span>`;
-    }
-
-    rightBoxClass = "advice-box";
-    rightTitleClass = "advice-title";
-    rightTitleText = "💡 補考與學習提醒";
-    wrongContentHtml = `
+    leftBoxClass = "advice-box";
+    leftTitleClass = "advice-title";
+    leftTitleText = "💡 補考與學習提醒";
+    correctContentHtml = `
       <div style="display:flex; flex-direction:column; justify-content:flex-start; align-items:flex-start; gap:8px; padding:6px 4px; font-size:12.5px; line-height:1.6;">
         <div>${hasLoggedInOrFree ? "該生當日有登入自由練習，但<strong>尚未完成本次指定測驗</strong>。請提醒學生點擊「每日指定測驗」進行補測。" : "該生當日無登入紀錄，<strong>尚未進行本次指定測驗</strong>。可提醒學生前往測驗專區進行補考挑戰！"}</div>
         <div style="font-size:11.5px; opacity:0.85; margin-top:4px;">📌 提示：完成補測後，系統將自動採計成績並更新學習歷程。</div>
       </div>
     `;
+
+    rightBoxClass = "untested-box";
+    rightTitleClass = "untested-title";
+    rightTitleText = `📋 本次應測單字範圍 ${taskTotWords > 0 ? `(${taskTotWords} 字)` : (rawWords.length > 0 ? `(${rawWords.length} 字)` : "")}`;
+    if (rawWords.length > 0) {
+      wrongContentHtml = rawWords.map(w => `<span class="word-pill-tag neutral" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); speakMasteredWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
+    } else {
+      wrongContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（指派單字載入中或未指定具體單字清單）</span>`;
+    }
   } else if (isIncomplete) {
     leftBoxClass = "correct-box";
     leftTitleClass = "correct-title";
@@ -15370,14 +15370,6 @@ function renderUntestedTaskCardHtml(info, agent) {
       </div>
 
       <div class="word-split-grid">
-        <div class="word-split-box untested-box">
-          <div class="word-split-title untested-title">
-            <span>📋 本次應測單字範圍 ${cleanWords.length > 0 ? `(${cleanWords.length} 字)` : ""}</span>
-          </div>
-          <div class="word-split-content">
-            ${wordsHtml}
-          </div>
-        </div>
         <div class="word-split-box advice-box">
           <div class="word-split-title advice-title">
             <span>💡 補考與學習提醒</span>
@@ -15385,6 +15377,14 @@ function renderUntestedTaskCardHtml(info, agent) {
           <div class="word-split-content" style="display:flex; flex-direction:column; justify-content:flex-start; align-items:flex-start; gap:8px; padding:6px 4px; font-size:12.5px; line-height:1.6;">
             <div>${adviceText}</div>
             <div style="font-size:11.5px; opacity:0.85; margin-top:4px;">📌 提示：完成補測後，系統將自動採計成績並更新學習歷程。</div>
+          </div>
+        </div>
+        <div class="word-split-box untested-box">
+          <div class="word-split-title untested-title">
+            <span>📋 本次應測單字範圍 ${cleanWords.length > 0 ? `(${cleanWords.length} 字)` : ""}</span>
+          </div>
+          <div class="word-split-content">
+            ${wordsHtml}
           </div>
         </div>
       </div>

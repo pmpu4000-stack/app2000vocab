@@ -1286,24 +1286,24 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     : (isTrulyPerfect ? `❌ 答錯的單字 (0 字)` : (missedCount > 0 ? `⏱️ 未作答的單字 (${missedCount} 字)` : `❌ 答錯的單字 (0 字)`));
 
   if (isUntested) {
-    leftBoxClass = "untested-box";
-    leftTitleClass = "untested-title";
-    leftTitleText = `📋 本次應測單字範圍 ${taskTotWords > 0 ? `(${taskTotWords} 字)` : (rawWords.length > 0 ? `(${rawWords.length} 字)` : "")}`;
-    if (rawWords.length > 0) {
-      correctContentHtml = rawWords.map(w => `<span class="word-pill-tag neutral" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
-    } else {
-      correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（指派單字載入中或未指定具體單字清單）</span>`;
-    }
-
-    rightBoxClass = "advice-box";
-    rightTitleClass = "advice-title";
-    rightTitleText = "💡 學習紀錄提醒";
-    wrongContentHtml = `
+    leftBoxClass = "advice-box";
+    leftTitleClass = "advice-title";
+    leftTitleText = "💡 學習紀錄提醒";
+    correctContentHtml = `
       <div style="display:flex; flex-direction:column; justify-content:flex-start; align-items:flex-start; gap:6px; padding:6px 4px; font-size:12.5px; line-height:1.6;">
         <div>${statusDesc ? `<b>${statusDesc}</b>。` : ""}${hasLoggedInOrFree ? "當日有登入進行自由練習，但未完成本次指定測驗。" : "當日無登入紀錄，未進行本次指定測驗。"}</div>
         <div style="font-size:11.5px; color:var(--ink3);">📌 提醒：未測驗之指定單字將自動排入週末補強測驗。</div>
       </div>
     `;
+
+    rightBoxClass = "untested-box";
+    rightTitleClass = "untested-title";
+    rightTitleText = `📋 本次應測單字範圍 ${taskTotWords > 0 ? `(${taskTotWords} 字)` : (rawWords.length > 0 ? `(${rawWords.length} 字)` : "")}`;
+    if (rawWords.length > 0) {
+      wrongContentHtml = rawWords.map(w => `<span class="word-pill-tag neutral" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
+    } else {
+      wrongContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（指派單字載入中或未指定具體單字清單）</span>`;
+    }
   } else if (isIncomplete) {
     leftBoxClass = "correct-box";
     leftTitleClass = "correct-title";
@@ -1613,14 +1613,6 @@ function renderUntestedTaskCardHtml(info, d) {
       </div>
 
       <div class="word-split-grid grid-2">
-        <div class="word-split-box untested-box">
-          <div class="word-split-title untested-title">
-            <span>📋 本次應測單字範圍 ${cleanWords.length > 0 ? `(${cleanWords.length} 字)` : ""}</span>
-          </div>
-          <div class="word-split-content">
-            ${wordsHtml}
-          </div>
-        </div>
         <div class="word-split-box advice-box">
           <div class="word-split-title advice-title">
             <span>💡 學習提醒</span>
@@ -1628,6 +1620,14 @@ function renderUntestedTaskCardHtml(info, d) {
           <div class="word-split-content" style="display:flex; flex-direction:column; justify-content:flex-start; align-items:flex-start; gap:6px; padding:6px 4px; font-size:12.5px; line-height:1.6;">
             <div>${adviceText}</div>
             <div style="font-size:11.5px; color:var(--ink3);">📌 提醒：未完成之指定單字將排入週末補強測驗。</div>
+          </div>
+        </div>
+        <div class="word-split-box untested-box">
+          <div class="word-split-title untested-title">
+            <span>📋 本次應測單字範圍 ${cleanWords.length > 0 ? `(${cleanWords.length} 字)` : ""}</span>
+          </div>
+          <div class="word-split-content">
+            ${wordsHtml}
           </div>
         </div>
       </div>
