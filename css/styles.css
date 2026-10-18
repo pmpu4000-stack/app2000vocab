@@ -552,7 +552,7 @@ body.daily-limit-reached #btn-upload {
 .word-pill-tag{display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border-radius:8px;font-size:12.5px;font-weight:700;margin:3px;line-height:1.4;cursor:pointer;transition:transform .12s,box-shadow .12s;user-select:none}
 .word-pill-tag:hover{transform:translateY(-1px);box-shadow:0 3px 8px rgba(0,0,0,0.08)}
 .word-pill-tag:active{transform:scale(0.96)}
-.word-pill-tag.correct{background:#ECFDF5;color:#065F46;border:1.5px solid #10B981;font-weight:800}
+.word-pill-tag.correct{background:#EFF6FF;color:#1D4ED8;border:1.5px solid #38BDF8;font-weight:800}
 .word-pill-tag.warning{background:#FFFBEB;color:#B45309;border:1.5px dashed #F59E0B;font-weight:800}
 .word-pill-tag.wrong{background:#FFE9E9;color:#D64545;border:1.5px solid rgba(255,107,107,.5);font-weight:700}
 .word-pill-tag.neutral{background:#F1F1F8;color:var(--ink2);border:1px solid var(--line)}
@@ -593,12 +593,12 @@ body.daily-limit-reached #btn-upload {
   .word-split-grid.grid-2{grid-template-columns:1fr}
 }
 .word-split-box{border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;box-sizing:border-box}
-.word-split-box.correct-box{background:#F1FBF6;border:1px solid rgba(47,180,124,.3)}
+.word-split-box.correct-box{background:#F0F9FF;border:1px solid rgba(14,165,233,.35)}
 .word-split-box.wrong-box{background:#FFF5F5;border:1px solid rgba(255,107,107,.3)}
 .word-split-box.unanswered-box{background:#F8FAFC;border:1px solid #CBD5E1}
 [data-theme="dark"] .word-split-box.unanswered-box{background:rgba(148,163,184,.08)!important;border-color:#334155!important}
 .word-split-title{font-size:12.5px;font-weight:800;margin-bottom:8px;display:flex;align-items:center;gap:6px}
-.word-split-title.correct-title{color:#065F46}
+.word-split-title.correct-title{color:#0284C7}
 .word-split-title.wrong-title{color:#D64545}
 .word-split-title.unanswered-title{color:#475569}
 [data-theme="dark"] .word-split-title.unanswered-title{color:#94A3B8!important}
@@ -1081,15 +1081,15 @@ body[data-theme="dark"],
 
 /* 錯題與答對單字區塊暗模式調和 (柔和舒適深底) */
 [data-theme="dark"] .word-split-box.correct-box {
-  background: rgba(47, 180, 124, 0.12) !important;
-  border-color: rgba(47, 180, 124, 0.35) !important;
+  background: rgba(14, 165, 233, 0.12) !important;
+  border-color: rgba(56, 189, 248, 0.35) !important;
 }
 [data-theme="dark"] .word-split-box.wrong-box {
   background: rgba(255, 107, 107, 0.12) !important;
   border-color: rgba(255, 107, 107, 0.35) !important;
 }
 [data-theme="dark"] .word-split-title.correct-title {
-  color: #38C78B !important;
+  color: #38BDF8 !important;
 }
 [data-theme="dark"] .word-split-title.wrong-title {
   color: #FF8E8E !important;
@@ -1121,9 +1121,9 @@ body[data-theme="dark"],
   color: #FBBF24 !important;
 }
 [data-theme="dark"] .word-pill-tag.correct {
-  background: rgba(47, 180, 124, 0.22) !important;
-  color: #6EE7B7 !important;
-  border-color: rgba(47, 180, 124, 0.45) !important;
+  background: rgba(14, 165, 233, 0.22) !important;
+  color: #7DD3FC !important;
+  border-color: rgba(56, 189, 248, 0.45) !important;
 }
 [data-theme="dark"] .word-pill-tag.wrong {
   background: rgba(255, 107, 107, 0.22) !important;
@@ -2540,3 +2540,9 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   color: #60a5fa;
   border-color: rgba(59, 130, 246, 0.4);
 }
+
+/* 測驗分數 4 (藍色) / 5 (紅色) 高對比配色 */
+.task-score-num-corr { color: #0284C7 !important; }
+.task-score-num-tot  { color: #EF4444 !important; }
+[data-theme="dark"] .task-score-num-corr { color: #38BDF8 !important; }
+[data-theme="dark"] .task-score-num-tot  { color: #F87171 !important; }

@@ -3404,16 +3404,33 @@
       padding: 12px 14px !important;
     }
     .word-split-box.correct-box {
-      background: #F1FBF6 !important;
-      border: 1px solid rgba(47, 180, 124, 0.3) !important;
+      background: #F0F9FF !important;
+      border: 1px solid rgba(14, 165, 233, 0.35) !important;
+    }
+    .word-split-title.correct-title {
+      color: #0284C7 !important;
+    }
+    .word-pill-tag.correct {
+      background: #EFF6FF !important;
+      color: #1D4ED8 !important;
+      border: 1.5px solid #38BDF8 !important;
+      font-weight: 800 !important;
     }
     .word-split-box.wrong-box {
       background: #FFF5F5 !important;
       border: 1px solid rgba(255, 107, 107, 0.3) !important;
     }
     [data-theme="dark"] .word-split-box.correct-box {
-      background: rgba(47, 180, 124, 0.12) !important;
-      border-color: rgba(47, 180, 124, 0.35) !important;
+      background: rgba(14, 165, 233, 0.12) !important;
+      border-color: rgba(56, 189, 248, 0.35) !important;
+    }
+    [data-theme="dark"] .word-split-title.correct-title {
+      color: #38BDF8 !important;
+    }
+    [data-theme="dark"] .word-pill-tag.correct {
+      background: rgba(14, 165, 233, 0.22) !important;
+      color: #7DD3FC !important;
+      border-color: rgba(56, 189, 248, 0.45) !important;
     }
     [data-theme="dark"] .word-split-box.wrong-box {
       background: rgba(255, 107, 107, 0.12) !important;
@@ -4156,6 +4173,11 @@
     .status-badge-pill.incomplete { color: #6B21A8 !important; background: #F3E8FF !important; border: 1px solid #D8B4FE !important; }
     [data-theme="dark"] .status-badge-pill.purple,
     [data-theme="dark"] .status-badge-pill.incomplete { color: #E9D5FF !important; background: #3B1D5A !important; border: 1px solid #581C87 !important; }
+
+    .task-score-num-corr { color: #0284C7 !important; }
+    .task-score-num-tot  { color: #EF4444 !important; }
+    [data-theme="dark"] .task-score-num-corr { color: #38BDF8 !important; }
+    [data-theme="dark"] .task-score-num-tot  { color: #F87171 !important; }
 
     .embedded-heatmap-sec {
       margin-top: 14px !important;
@@ -15065,16 +15087,16 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
             <span style="padding:0 6px; opacity:0.6;">/</span>
             <span style="flex:1; text-align:left;">施測單字數</span>
           </div>
-          <div class="task-score-val" style="color:#0284c7; display:flex; align-items:center; justify-content:center;">
-            <span style="flex:1; text-align:right;">${taskCorrWords}</span>
+          <div class="task-score-val" style="display:flex; align-items:center; justify-content:center;">
+            <span class="task-score-num-corr" style="flex:1; text-align:right; color:#0284c7;">${taskCorrWords}</span>
             <span style="padding:0 6px; font-weight:700; color:var(--ink3); opacity:0.6; font-size:18px;">/</span>
-            <span style="flex:1; text-align:left;">${taskTotWords}</span>
+            <span class="task-score-num-tot" style="flex:1; text-align:left; color:#ef4444;">${taskTotWords}</span>
           </div>
         </div>
         <div class="task-score-item">
           <div class="task-score-label">📊 正確率</div>
           <div class="task-score-val" style="color:${isIncomplete ? '#a855f7' : (taskRate >= 80 ? '#16a34a' : '#ea580c')};">
-            ${taskRate}% ${isIncomplete ? `<small style="font-size:11px; font-weight:600; color:var(--ink3);">(尚餘 ${Math.max(0, taskTotWords - totalAnswered)} 題未答)</small>` : ""}
+            ${taskRate}% ${isIncomplete ? `<small style="font-size:11px; font-weight:600; color:var(--ink3);">(尚餘 ${unansweredList.length > 0 ? unansweredList.length : Math.max(0, taskTotWords - totalAnswered)} 題未答)</small>` : ""}
           </div>
         </div>
       </div>

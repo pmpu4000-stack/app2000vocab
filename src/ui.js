@@ -1233,7 +1233,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
       </div>
     `;
   } else if (isIncomplete) {
-    const unattemptedCount = Math.max(0, taskTotWords - totalAnswered);
+    const unattemptedCount = unansweredList.length > 0 ? unansweredList.length : Math.max(0, taskTotWords - totalAnswered);
     scoreGridHtml = `
       <div class="task-score-grid">
         <div class="task-score-item">
@@ -1242,10 +1242,10 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
             <span style="padding:0 6px; opacity:0.6;">/</span>
             <span style="flex:1; text-align:left;">總施測單字</span>
           </div>
-          <div class="task-score-val" style="color:#0284c7; display:flex; align-items:center; justify-content:center;">
-            <span style="flex:1; text-align:right;">${taskCorrWords}</span>
+          <div class="task-score-val" style="display:flex; align-items:center; justify-content:center;">
+            <span class="task-score-num-corr" style="flex:1; text-align:right; color:#0284c7;">${taskCorrWords}</span>
             <span style="padding:0 6px; font-weight:700; color:var(--ink3); opacity:0.6; font-size:18px;">/</span>
-            <span style="flex:1; text-align:left;">${taskTotWords}</span>
+            <span class="task-score-num-tot" style="flex:1; text-align:left; color:#ef4444;">${taskTotWords}</span>
           </div>
         </div>
         <div class="task-score-item">
@@ -1266,10 +1266,10 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
             <span style="padding:0 6px; opacity:0.6;">/</span>
             <span style="flex:1; text-align:left;">施測單字數</span>
           </div>
-          <div class="task-score-val" style="color:#0284c7; display:flex; align-items:center; justify-content:center;">
-            <span style="flex:1; text-align:right;">${taskCorrWords}</span>
+          <div class="task-score-val" style="display:flex; align-items:center; justify-content:center;">
+            <span class="task-score-num-corr" style="flex:1; text-align:right; color:#0284c7;">${taskCorrWords}</span>
             <span style="padding:0 6px; font-weight:700; color:var(--ink3); opacity:0.6; font-size:18px;">/</span>
-            <span style="flex:1; text-align:left;">${taskTotWords}</span>
+            <span class="task-score-num-tot" style="flex:1; text-align:left; color:#ef4444;">${taskTotWords}</span>
           </div>
         </div>
         <div class="task-score-item">
