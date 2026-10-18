@@ -3604,8 +3604,97 @@ function _ensureScriptLoaded(globalVar, primaryUrl, fallbackUrl) {
   });
 }
 
+function getWordZh(word) {
+  if (!word) return "";
+  const wLower = String(word).trim().toLowerCase();
+  if (!window._wordBankZhMap && Array.isArray(window.WORD_BANK_2000)) {
+    window._wordBankZhMap = new Map();
+    for (let i = 0; i < window.WORD_BANK_2000.length; i++) {
+      window._wordBankZhMap.set(String(window.WORD_BANK_2000[i][0]).toLowerCase(), window.WORD_BANK_2000[i][1]);
+    }
+  }
+  if (window._wordBankZhMap && window._wordBankZhMap.has(wLower)) {
+    return window._wordBankZhMap.get(wLower);
+  }
+  if (window.DICTIONARY && window.DICTIONARY[wLower]) {
+    const entry = window.DICTIONARY[wLower];
+    return typeof entry === "string" ? entry : (entry.zh || entry.def || "");
+  }
+  return "";
+}
+
+function _generatePedagogicalAdvice(payload) {
+  const ps = payload.periodSummary || {};
+  const ov = payload.overall || {};
+  const avg = ps.avgRate || 0;
+  const mast = ov.mast || 0;
+  const streak = ov.streak || 0;
+  const wrongCount = (payload.uniqueWrongWords || []).length;
+
+  let highlight = "";
+  if (avg >= 90) {
+    highlight = `該生在評估區間內展現卓越的學習成效，平均正確率高達 ${avg}%，已精通 ${mast} 個核心字彙，聽音辨字與拼寫反應極為敏銳！`;
+  } else if (avg >= 80) {
+    highlight = `該生單字基礎扎實穩定，平均正確率表現優良（${avg}%），已精通 ${mast} 個核心字彙，整體作答自律且專注。`;
+  } else if (avg >= 60) {
+    highlight = `該生具備基礎字彙拼讀實力，平均正確率為 ${avg}%。建議每日維持固定複習頻率，以強化單字熟練度。`;
+  } else {
+    highlight = `該生目前正確率為 ${avg}%，尚有明顯進步空間。建議加強每日測驗的完整作答度，避免中斷提早交卷。`;
+  }
+
+  let diagnosis = "";
+  if (wrongCount === 0) {
+    diagnosis = "本次評估範圍內無任何錯題單字紀錄，各項題型作答穩定度與抗干擾能力極佳！";
+  } else {
+    diagnosis = `區間內累計出現 ${wrongCount} 個錯題單字，主要特徵包含「形近同音字混淆」及「複合字長字尾拼寫失誤」，建議利用音節分段拆解輔助記憶。`;
+  }
+
+  let actionPlan = "";
+  if (streak >= 7) {
+    actionPlan = `連續學習已達 ${streak} 天，學習毅力令人讚賞！建議持續向進階關卡推進，並定期參加「週末待攻克測驗」以保持滿分紀錄。`;
+  } else {
+    actionPlan = "建議每週末固定進入「週末待攻克測驗」進行弱點補強，將平日未完成或答錯之單字逐一攻克，穩步邁向 2000 單字全精通！";
+  }
+
+  return { highlight, diagnosis, actionPlan };
+}
+
 async function _exportRecordToExcel(payload) {
   const fileName = `拼字小特工_使用紀錄_${payload.studentId}_${payload.fileScopeTag}`;
+
+  // 整理不重複錯題庫
+  const uniqueWrongMap = new Map();
+  payload.dailyRecords.forEach(r => {
+    (r.taskWrongWords || []).forEach(w => {
+      const clean = String(w).trim().toLowerCase();
+      if (clean && !uniqueWrongMap.has(clean)) {
+        uniqueWrongMap.set(clean, {
+          word: clean,
+          zh: getWordZh(clean) || "—",
+          taskName: r.taskName || "指定測驗",
+          date: r.date || "—",
+          tag: "拼寫弱點",
+          desc: "需加強拼寫記憶"
+        });
+      }
+    });
+    (r.freeWrongWords || []).forEach(w => {
+      const clean = String(w).trim().toLowerCase();
+      if (clean && !uniqueWrongMap.has(clean)) {
+        uniqueWrongMap.set(clean, {
+          word: clean,
+          zh: getWordZh(clean) || "—",
+          taskName: "自由練習",
+          date: r.date || "—",
+          tag: "自由練習",
+          desc: "自由練習答錯"
+        });
+      }
+    });
+  });
+  payload.uniqueWrongWords = Array.from(uniqueWrongMap.values());
+  const advice = _generatePedagogicalAdvice(payload);
+
   try {
     const XLSX = await _ensureScriptLoaded(
       "XLSX",
@@ -3614,113 +3703,241 @@ async function _exportRecordToExcel(payload) {
     );
     const wb = XLSX.utils.book_new();
 
-    // Sheet 1: 每日使用紀錄明細
+    // ════════════════════════════════════════════════════════════════
+    // Sheet 1: 📅 每日學習與測驗明細 (直覺易懂 · 一眼看懂每日表現)
+    // ════════════════════════════════════════════════════════════════
     const ws1Data = [
-      ["拼字小特工 · 學生使用與作答紀錄明細表"],
-      ["學生帳號", payload.studentId, "匯出範圍", payload.scopeTitle, "匯出時間", payload.exportTime],
-      ["區間練習天數", `${payload.periodSummary.activeDaysCount} 天`, "區間施測單字數", `${payload.periodSummary.totalAttempts} 字`, "區間答對單字數", `${payload.periodSummary.totalCorrect} 字`, "區間平均正確率", `${payload.periodSummary.avgRate}%`],
+      ["【拼字小特工 · 學生單字作答歷程檔案】"],
+      ["學生帳號", payload.studentId, "統計區間", payload.scopeTitle, "匯出時間", payload.exportTime],
+      [
+        "【學習活躍天數】", `${payload.periodSummary.activeDaysCount} 天`,
+        "【指定測驗完成】", `${payload.periodSummary.taskDoneCount} 次`,
+        "【測驗平均正確率】", `${payload.periodSummary.avgRate}%`,
+        "【自由練習活躍】", `${payload.periodSummary.freeActiveDays || 0} 天`,
+        "【待複習錯題】", `${payload.uniqueWrongWords.length} 字`
+      ],
       [],
       [
         "日期",
-        "當日施測單字數",
-        "當日答對單字數",
-        "當日正確率(%)",
+        "星期",
+        "當日學習狀態",
         "指定測驗名稱",
-        "指定測驗狀態",
-        "指定測驗得分(字)",
-        "指定測驗正確率",
-        "指定測驗-答對單字",
-        "指定測驗-答錯單字",
-        "自由練習-施測單字數",
-        "自由練習-答對單字數",
-        "自由練習-答錯單字數",
-        "自由練習-正確率(%)",
-        "自由練習-答對單字",
-        "自由練習-答錯單字"
+        "測驗得分(答對/應測)",
+        "測驗正確率",
+        "測驗答錯單字(含中文釋義)",
+        "測驗答對單字(摘要)",
+        "自由練習-題數與成績",
+        "自由練習-正確率",
+        "自由練習-答錯單字",
+        "學習診斷備註"
       ]
     ];
 
     payload.dailyRecords.forEach(r => {
+      const dtObj = new Date(String(r.date).replace(/-/g, "/"));
+      const dayNames = ["週日", "週一", "週二", "週三", "週四", "週五", "週六"];
+      const dayOfWeek = dayNames[dtObj.getDay()] || "";
+
+      let statusText = "☕ 本日無測驗";
+      if (r.hasTask) {
+        if (r.taskStatus.includes("未受測")) {
+          statusText = r.taskStatus;
+        } else if (r.taskStatus.includes("中斷")) {
+          statusText = "🟣 作答中斷";
+        } else {
+          statusText = "🟢 測驗完成";
+        }
+      } else if (r.hasFree) {
+        statusText = "🟡 僅自由練習";
+      }
+
+      const taskNameText = r.hasTask ? r.taskName : "無指派測驗";
       const isUntested = r.taskStatus.includes("未受測");
+
+      let scoreText = "—";
+      let rateText = "—";
+      if (r.hasTask) {
+        if (isUntested) {
+          scoreText = "未受測";
+          rateText = "0%";
+        } else {
+          scoreText = (r.taskScore && r.taskScore !== "—") ? `${r.taskScore} 字` : "已完成";
+          rateText = (r.taskRate && r.taskRate !== "—") ? r.taskRate : "100%";
+        }
+      }
+
+      const wrongStr = (r.taskWrongWords && r.taskWrongWords.length > 0)
+        ? r.taskWrongWords.map(w => `${w}${getWordZh(w) ? ` (${getWordZh(w)})` : ''}`).join(", ")
+        : (r.hasTask ? (isUntested ? "未施測" : "🎉 全數答對無錯題") : "—");
+
+      const corrStr = (r.taskCorrectWords && r.taskCorrectWords.length > 0)
+        ? r.taskCorrectWords.map(w => `${w}${getWordZh(w) ? ` (${getWordZh(w)})` : ''}`).join(", ")
+        : (r.hasTask ? (isUntested ? "未施測" : "無答對單字") : "—");
+
+      const freeScoreText = r.hasFree ? `${r.freeAttempts} 題 (對 ${r.freeCorrect} 錯 ${r.freeWrong})` : "未練習";
+      const freeRateText = r.hasFree ? `${r.freeRate}%` : "—";
+      const freeWrongStr = (r.freeWrongWords && r.freeWrongWords.length > 0)
+        ? r.freeWrongWords.map(w => `${w}${getWordZh(w) ? ` (${getWordZh(w)})` : ''}`).join(", ")
+        : (r.hasFree ? "🎉 全對無錯題" : "—");
+
+      let remark = "";
+      if (r.hasTask && !isUntested && r.taskWrongWords.length === 0) {
+        remark = "🎉 本次測驗全數答對，無任何錯題！";
+      } else if (r.hasTask && r.taskWrongWords.length > 0) {
+        remark = `💡 答錯 ${r.taskWrongWords.length} 字，已納入個人弱點強化庫。`;
+      } else if (isUntested) {
+        remark = "⚠️ 今日有指派測驗但未受測，將排入週末補強。";
+      }
+
       ws1Data.push([
         r.date,
-        r.totalAttempts,
-        r.totalCorrect,
-        `${r.totalRate}%`,
-        r.hasTask ? r.taskName : "無指派測驗",
-        r.hasTask ? r.taskStatus : "無紀錄",
-        r.hasTask && r.taskScore !== "—" && r.taskScore !== "尚未開始" ? `${r.taskScore} 字` : "—",
-        r.hasTask && r.taskRate !== "—" ? r.taskRate : "—",
-        r.taskCorrectWords.length > 0 ? r.taskCorrectWords.join(", ") : (isUntested ? "未施測" : "—"),
-        r.taskWrongWords.length > 0 ? r.taskWrongWords.join(", ") : (isUntested ? "未施測" : (r.hasTask ? "全對無錯題" : "—")),
-        r.freeAttempts,
-        r.freeCorrect,
-        r.freeWrong,
-        r.hasFree ? `${r.freeRate}%` : "—",
-        r.freeCorrectWords.length > 0 ? r.freeCorrectWords.join(", ") : "—",
-        r.freeWrongWords.length > 0 ? r.freeWrongWords.join(", ") : (r.hasFree ? "全對無錯題" : "—")
+        dayOfWeek,
+        statusText,
+        taskNameText,
+        scoreText,
+        rateText,
+        wrongStr,
+        corrStr,
+        freeScoreText,
+        freeRateText,
+        freeWrongStr,
+        remark
       ]);
     });
 
     ws1Data.push([]);
     ws1Data.push([
-      "區間合計 / 平均",
-      payload.periodSummary.totalAttempts,
-      payload.periodSummary.totalCorrect,
-      `${payload.periodSummary.avgRate}%`,
+      "【區間合計 / 平均】",
+      "",
+      `活躍 ${payload.periodSummary.activeDaysCount} 天`,
       `完成 ${payload.periodSummary.taskDoneCount} 次測驗`,
-      "", "", "", "", "",
-      `活躍 ${payload.periodSummary.freeActiveDays} 天`,
-      "", "", "", "", ""
+      `${payload.periodSummary.totalCorrect} / ${payload.periodSummary.totalAttempts} 字`,
+      `${payload.periodSummary.avgRate}%`,
+      "",
+      "",
+      `自由練習 ${payload.periodSummary.freeActiveDays} 天`,
+      "",
+      "",
+      ""
     ]);
 
     const ws1 = XLSX.utils.aoa_to_sheet(ws1Data);
     ws1["!cols"] = [
-      { wch: 13 }, { wch: 14 }, { wch: 14 }, { wch: 13 },
-      { wch: 20 }, { wch: 13 }, { wch: 13 }, { wch: 14 },
-      { wch: 36 }, { wch: 36 },
-      { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 },
-      { wch: 36 }, { wch: 36 }
+      { wch: 13 }, // 日期
+      { wch: 8 },  // 星期
+      { wch: 16 }, // 當日學習狀態
+      { wch: 28 }, // 指定測驗名稱
+      { wch: 18 }, // 測驗得分
+      { wch: 12 }, // 測驗正確率
+      { wch: 36 }, // 測驗答錯單字
+      { wch: 36 }, // 測驗答對單字
+      { wch: 22 }, // 自由練習-題數與成績
+      { wch: 14 }, // 自由練習-正確率
+      { wch: 30 }, // 自由練習-答錯單字
+      { wch: 38 }  // 學習診斷備註
     ];
-    XLSX.utils.book_append_sheet(wb, ws1, "每日使用紀錄明細");
+    XLSX.utils.book_append_sheet(wb, ws1, "每日作答與測驗明細");
 
-    // Sheet 2: 整體學習進度總覽
+    // ════════════════════════════════════════════════════════════════
+    // Sheet 2: 📊 整體進度與關卡總表 (四大模式 · Level 1~5 關卡進度 · 教師評語)
+    // ════════════════════════════════════════════════════════════════
     const ov = payload.overall;
     const ms = ov.modeStats || {};
     const mRate = (m) => (m && m.a > 0) ? `${Math.round((m.c / m.a) * 100)}%` : "0%";
+    const getBar = (pct) => {
+      const filled = Math.min(10, Math.max(0, Math.round(pct / 10)));
+      return "■".repeat(filled) + "□".repeat(10 - filled) + ` ${pct}%`;
+    };
+
     const ws2Data = [
-      ["拼字小特工 · 整體學習進度與關卡總覽"],
-      ["學生帳號", payload.studentId, "匯出時間", payload.exportTime],
+      ["【拼字小特工 · 整體學習進度與關卡掌握總表】"],
+      ["學生帳號", payload.studentId, "評估時間", payload.exportTime],
       [],
-      ["【一、整體學習進度指標】"],
-      ["累積受測單字數", `${ov.testedVocab || ov.attempts} 字`, "累積答對單字數", `${ov.distinctCorrect || ov.correct} 字`, "單字掌握率", `${ov.passRate}%`],
-      ["答對過單字(不重複)", `${ov.distinctCorrect} / ${ov.totalVocab} 字`, "連續練習天數", `${ov.streak} 天`, "最佳連續 / 累計天數", `最佳 ${ov.best} 天 / 累計 ${ov.totalDays} 天`],
-      ["學習中單字數", `${ov.learn} 字`, "練習中單字數", `${ov.prac} 字`, "已精通單字數 ⭐", `${ov.mast} 字`],
+      ["━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"],
+      ["【一、全庫 2000 核心詞彙累積總進度】"],
+      ["━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"],
+      ["全庫核心總字數", `${ov.totalVocab} 字`, "已精通單字數 ⭐", `${ov.mast} 字`, "核心單字掌握率", `${Math.round(ov.mast / (ov.totalVocab || 2055) * 100)}%`],
+      ["練習中單字數", `${ov.prac} 字`, "學習中單字數", `${ov.learn} 字`, "累計作答總題量", `${ov.attempts} 題`],
+      ["連續練習天數", `${ov.streak} 天`, "最佳連續天數", `${ov.best} 天`, "累計練習天數", `${ov.totalDays} 天`],
       [],
-      ["【二、四大練習模式答對單字數】"],
-      ["練習模式", "受測單字數", "答對單字數", "正確率"],
-      ["🎧 聽與拼", `${(ms.listen && ms.listen.a) || 0} 字`, `${(ms.listen && ms.listen.c) || 0} 字`, mRate(ms.listen)],
-      ["✅ 選拼法", `${(ms.pick && ms.pick.a) || 0} 字`, `${(ms.pick && ms.pick.c) || 0} 字`, mRate(ms.pick)],
-      ["🧩 重組", `${(ms.scramble && ms.scramble.a) || 0} 字`, `${(ms.scramble && ms.scramble.c) || 0} 字`, mRate(ms.scramble)],
-      ["🖍️ 填陷阱", `${(ms.trap && ms.trap.a) || 0} 字`, `${(ms.trap && ms.trap.c) || 0} 字`, mRate(ms.trap)],
+      ["━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"],
+      ["【二、四大練習模式答題成效分析】"],
+      ["━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"],
+      ["練習題型模式", "已測題數", "答對題數", "正確率", "熟練程度", "能力特徵與訓練目標"],
+      ["🎧 聽與拼", `${(ms.listen && ms.listen.a) || 0} 題`, `${(ms.listen && ms.listen.c) || 0} 題`, mRate(ms.listen), getBar(parseInt(mRate(ms.listen))), "訓練聽音辨字、自然發音 (Phonics) 與完整字母拼寫記憶"],
+      ["✅ 選拼法", `${(ms.pick && ms.pick.a) || 0} 題`, `${(ms.pick && ms.pick.c) || 0} 題`, mRate(ms.pick), getBar(parseInt(mRate(ms.pick))), "強化同音異義字、形近干擾字與易混淆單字辨別力"],
+      ["🧩 單字重組", `${(ms.scramble && ms.scramble.a) || 0} 題`, `${(ms.scramble && ms.scramble.c) || 0} 題`, mRate(ms.scramble), getBar(parseInt(mRate(ms.scramble))), "訓練音節拆解、詞根詞綴與單字結構組合速度"],
+      ["🖍️ 填空陷阱", `${(ms.trap && ms.trap.a) || 0} 題`, `${(ms.trap && ms.trap.c) || 0} 題`, mRate(ms.trap), getBar(parseInt(mRate(ms.trap))), "攻克母音盲區、雙寫字母與高頻拼寫陷阱弱點"],
       [],
-      ["【三、各關卡進度 (Level 1 ~ Level 5)】"],
-      ["關卡名稱", "答對單字 / 已測單字", "關卡正確率", "學習中(字)", "練習中(字)", "精通⭐(字)", "該關總單字數"]
+      ["━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"],
+      ["【三、教育部／CEFR 難度關卡進度 (Level 1 ~ Level 5)】"],
+      ["━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"],
+      ["關卡難度", "難度名稱", "答對 / 實測單字", "關卡掌握率", "精通⭐(字)", "練習中(字)", "學習中(字)", "關卡總字數"]
     ];
+
     (ov.levels || []).forEach(L => {
       ws2Data.push([
-        `Level ${L.level}「${L.name}」`,
-        `${L.correct}/${L.tested}`,
-        `${L.rate}%`,
-        L.learn,
-        L.prac,
-        L.mast,
-        L.total
+        `Level ${L.level}`,
+        L.name || "",
+        `${L.correct || 0} / ${L.tested || 0}`,
+        `${L.rate || 0}%`,
+        L.mast || 0,
+        L.prac || 0,
+        L.learn || 0,
+        L.total || 0
       ]);
     });
+
+    ws2Data.push([]);
+    ws2Data.push(["━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"]);
+    ws2Data.push(["【四、學習診斷分析與專業評語建議】"]);
+    ws2Data.push(["━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"]);
+    ws2Data.push(["🎯 學習優勢成效", advice.highlight]);
+    ws2Data.push(["🔍 錯題特徵診斷", advice.diagnosis]);
+    ws2Data.push(["🚀 週末攻克指引", advice.actionPlan]);
+
     const ws2 = XLSX.utils.aoa_to_sheet(ws2Data);
-    ws2["!cols"] = [{ wch: 22 }, { wch: 20 }, { wch: 16 }, { wch: 16 }, { wch: 18 }, { wch: 18 }, { wch: 16 }];
-    XLSX.utils.book_append_sheet(wb, ws2, "整體學習進度總覽");
+    ws2["!cols"] = [
+      { wch: 18 }, { wch: 14 }, { wch: 22 }, { wch: 14 },
+      { wch: 16 }, { wch: 45 }, { wch: 14 }, { wch: 14 }
+    ];
+    XLSX.utils.book_append_sheet(wb, ws2, "整體學習進度與關卡總表");
+
+    // ════════════════════════════════════════════════════════════════
+    // Sheet 3: ❌ 個人錯題弱點分析庫 (可直接列印為複習單字卡)
+    // ════════════════════════════════════════════════════════════════
+    const ws3Data = [
+      ["【學生個人錯題與弱點單字庫 · 週末待攻克目標清單】"],
+      ["學生帳號", payload.studentId, "累計錯題總數", `${payload.uniqueWrongWords.length} 字`, "整理時間", payload.exportTime],
+      [],
+      ["序號", "英文單字", "中文釋義", "出錯測驗名稱", "出錯日期", "錯誤特徵標籤", "診斷特徵說明", "強化攻克建議"]
+    ];
+
+    payload.uniqueWrongWords.forEach((w, idx) => {
+      ws3Data.push([
+        idx + 1,
+        w.word,
+        w.zh || "—",
+        w.taskName || "指定測驗",
+        w.date || "—",
+        w.tag || "拼寫弱點",
+        w.desc || "需加強拼寫記憶",
+        "自動納入週六／週日待攻克消滅戰強化練習"
+      ]);
+    });
+
+    const ws3 = XLSX.utils.aoa_to_sheet(ws3Data);
+    ws3["!cols"] = [
+      { wch: 6 },  // 序號
+      { wch: 18 }, // 英文單字
+      { wch: 22 }, // 中文釋義
+      { wch: 30 }, // 出錯測驗名稱
+      { wch: 14 }, // 出錯日期
+      { wch: 16 }, // 錯誤特徵標籤
+      { wch: 26 }, // 診斷特徵說明
+      { wch: 38 }  // 強化攻克建議
+    ];
+    XLSX.utils.book_append_sheet(wb, ws3, "個人錯題弱點分析庫");
 
     try {
       const wbout = XLSX.write(wb, { bookType: "xlsx", type: "array" });
@@ -3732,23 +3949,23 @@ async function _exportRecordToExcel(payload) {
     }
   } catch (err) {
     console.warn("XLSX fallback to CSV:", err);
-    // 備援 CSV 輸出 (含 UTF-8 BOM，Excel 可直接開啟)
     const rows = [
-      ["日期", "當日施測單字數", "當日答對單字數", "當日正確率", "指定測驗名稱", "指定測驗狀態", "指定測驗得分", "指定測驗正確率", "指定測驗答對單字", "指定測驗答錯單字", "自由練習施測單字數", "自由練習答對單字數", "自由練習答錯單字數", "自由練習正確率", "自由練習答對單字", "自由練習答錯單字"]
+      ["日期", "當日學習狀態", "指定測驗名稱", "測驗得分", "測驗正確率", "測驗答錯單字", "測驗答對單字", "自由練習-題數", "自由練習-正確率", "自由練習-答錯單字", "學習備註"]
     ];
     payload.dailyRecords.forEach(r => {
       const isUntested = r.taskStatus.includes("未受測");
+      const statusText = r.hasTask ? (isUntested ? r.taskStatus : "🟢 測驗完成") : (r.hasFree ? "🟡 僅自由練習" : "☕ 本日無測驗");
+      const scoreText = r.hasTask ? (isUntested ? "未受測" : `${r.taskScore} 字`) : "—";
+      const rateText = r.hasTask ? (isUntested ? "0%" : `${r.taskRate}`) : "—";
+      const wrongStr = (r.taskWrongWords && r.taskWrongWords.length > 0) ? r.taskWrongWords.join(" ") : (r.hasTask ? "全對無錯題" : "—");
+      const corrStr = (r.taskCorrectWords && r.taskCorrectWords.length > 0) ? r.taskCorrectWords.join(" ") : "—";
+      const freeScoreText = r.hasFree ? `${r.freeAttempts} 題 (對 ${r.freeCorrect} 錯 ${r.freeWrong})` : "未練習";
+      const freeRateText = r.hasFree ? `${r.freeRate}%` : "—";
+      const freeWrongStr = (r.freeWrongWords && r.freeWrongWords.length > 0) ? r.freeWrongWords.join(" ") : (r.hasFree ? "全對無錯題" : "—");
+
       rows.push([
-        r.date, r.totalAttempts, r.totalCorrect, `${r.totalRate}%`,
-        r.hasTask ? r.taskName : "無指派測驗", r.hasTask ? r.taskStatus : "無紀錄",
-        r.hasTask && r.taskScore !== "—" && r.taskScore !== "尚未開始" ? `${r.taskScore} 字` : "—",
-        r.hasTask && r.taskRate !== "—" ? r.taskRate : "—",
-        r.taskCorrectWords.length > 0 ? r.taskCorrectWords.join(" ") : (isUntested ? "未施測" : "—"),
-        r.taskWrongWords.length > 0 ? r.taskWrongWords.join(" ") : (isUntested ? "未施測" : (r.hasTask ? "全對無錯題" : "—")),
-        r.freeAttempts, r.freeCorrect, r.freeWrong,
-        r.hasFree ? `${r.freeRate}%` : "—",
-        r.freeCorrectWords.length > 0 ? r.freeCorrectWords.join(" ") : "—",
-        r.freeWrongWords.length > 0 ? r.freeWrongWords.join(" ") : (r.hasFree ? "全對無錯題" : "—")
+        r.date, statusText, r.taskName, scoreText, rateText, wrongStr, corrStr,
+        freeScoreText, freeRateText, freeWrongStr, ""
       ]);
     });
     const csvContent = "\uFEFF" + rows.map(row => row.map(c => `"${String(c ?? "").replace(/"/g, '""')}"`).join(",")).join("\r\n");
