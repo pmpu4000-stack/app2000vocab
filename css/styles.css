@@ -45,8 +45,14 @@ header{display:flex; align-items:center; justify-content:space-between; flex-wra
 .stat span{display:flex;align-items:center;justify-content:center;height:14px;margin-top:2px;font-size:10px;color:var(--ink3);font-weight:700;letter-spacing:.4px;text-transform:uppercase;white-space:nowrap;line-height:14px}
 .stat.upload b{font-size:18px}
 
-/* 字體調整方塊：規格設定比照其他 .stat 方塊 */
-.stat.font-size-btn{min-width:48px;padding:6px 8px;cursor:pointer;transition:transform .12s,background .12s,border-color .12s;user-select:none}
+/* 字體調整方塊與群組：確保 A- 與 A+ 恆常保持左右並排，永不上下拆開換行 */
+.stat-font-group {
+  display: flex;
+  gap: 6px;
+  align-items: stretch;
+  flex: 0 0 auto;
+}
+.stat.font-size-btn{min-width:44px;padding:6px 8px;cursor:pointer;transition:transform .12s,background .12s,border-color .12s;user-select:none;flex:1 1 50%;}
 .stat.font-size-btn b{font-size:15px;font-weight:800;letter-spacing:-0.5px;color:var(--ink)}
 .stat.font-size-btn span{font-size:10px;font-weight:700;color:var(--ink3)}
 .stat.font-size-btn:hover{border-color:var(--violet);background:rgba(108,76,224,0.06);transform:translateY(-1px)}
@@ -652,6 +658,16 @@ body.daily-limit-reached #btn-upload {
     min-width:64px;
     height:50px;
   }
+  .stat-font-group {
+    flex: 1 1 calc(33% - 6px);
+    display: flex;
+    gap: 6px;
+  }
+  .stat-font-group .stat.font-size-btn {
+    flex: 1 1 50%;
+    min-width: 44px;
+    height: 50px;
+  }
 }
 @media (max-width:580px){
   .stats{width:100%;margin:6px 0 0;flex-wrap:wrap;gap:6px}
@@ -663,6 +679,17 @@ body.daily-limit-reached #btn-upload {
   }
   .stat b{font-size:16px}
   .stat span{font-size:9.5px}
+  .stat-font-group {
+    flex: 1 1 calc(50% - 6px);
+    display: flex;
+    gap: 6px;
+  }
+  .stat-font-group .stat.font-size-btn {
+    flex: 1 1 50%;
+    min-width: 44px;
+    height: 48px;
+    padding: 4px 6px;
+  }
   .title h1{font-size:20px} .tile{width:40px;height:48px;font-size:22px}
   .modes{gap:8px}
   .mode{flex:1 1 calc(50% - 8px);min-width:115px;padding:10px 6px;font-size:13px}
