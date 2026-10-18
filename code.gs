@@ -955,18 +955,22 @@ function getWeekendRemediationTask(ss, cleanClass, username, completedTasksToday
   const dayOfWeek = d.getDay(); // 0=Sun, 6=Sat
   if (dayOfWeek !== 0 && dayOfWeek !== 6) return null;
 
-  // 計算本週週一至週五標準日期區間
+  // 計算本週週一至週五與週六標準日期區間
   const diffToMon = (dayOfWeek === 0 ? -6 : 1 - dayOfWeek);
   const monDate = new Date(d.getFullYear(), d.getMonth(), d.getDate() + diffToMon);
   const friDate = new Date(d.getFullYear(), d.getMonth(), d.getDate() + diffToMon + 4);
+  const satDate = new Date(d.getFullYear(), d.getMonth(), d.getDate() + diffToMon + 5);
   const monStr = Utilities.formatDate(monDate, "Asia/Taipei", "yyyy-MM-dd");
   const friStr = Utilities.formatDate(friDate, "Asia/Taipei", "yyyy-MM-dd");
+  const satStr = Utilities.formatDate(satDate, "Asia/Taipei", "yyyy-MM-dd");
 
   const tasks = getTeacherTasksCached_(ss);
   if (tasks.length === 0) return null;
 
-  // 取得學生在週一至週五的實際作答紀錄
+  // 取得學生在週一至週六的實際作答紀錄
   const studentDoneMap = {};
+  let satCompletedRec = null;
+
   if (username) {
     const uSheet = getStudentSheet(ss, username);
     if (uSheet && uSheet.getLastRow() >= 2) {
@@ -977,18 +981,53 @@ function getWeekendRemediationTask(ss, cleanClass, username, completedTasksToday
       const uVals = uSheet.getRange(2, 1, maxRows, lastCol).getValues();
       for (let r = 0; r < uVals.length; r++) {
         const rowD = formatStandardDateYMD(uVals[r][0]);
+        const tName = String(uVals[r][hMap.taskName] || "").trim().toLowerCase();
+        const score = String(uVals[r][hMap.taskScore] || "").trim();
+        const status = String(uVals[r][hMap.status] || "").trim();
+        const wrongStr = String(uVals[r][hMap.wrong] || "").trim();
+        const wrongList = wrongStr ? wrongStr.split(/[\s,;\n\r]+/).map(w => w.trim().toLowerCase()).filter(Boolean) : [];
+        const isDone = (status.includes("已完成") || (score !== "—" && score !== ""));
+
         if (rowD >= monStr && rowD <= friStr) {
-          const tName = String(uVals[r][hMap.taskName] || "").trim().toLowerCase();
-          const score = String(uVals[r][hMap.taskScore] || "").trim();
-          const status = String(uVals[r][hMap.status] || "").trim();
-          const wrongStr = String(uVals[r][hMap.wrong] || "").trim();
-          const wrongList = wrongStr ? wrongStr.split(/[\s,;\n\r]+/).map(w => w.trim().toLowerCase()).filter(Boolean) : [];
-          if (tName && (status.includes("已完成") || (score !== "—" && score !== ""))) {
+          if (tName && isDone) {
             studentDoneMap[tName] = { completed: true, wrongWords: wrongList };
             studentDoneMap[rowD + "_" + tName] = { completed: true, wrongWords: wrongList };
           }
+        } else if (rowD === satStr) {
+          if (tName && (tName.includes("週末") || tName.includes("消滅") || tName.includes("待攻克")) && isDone) {
+            satCompletedRec = { completed: true, wrongWords: wrongList };
+          }
         }
       }
+    }
+  }
+
+  // ★ 核心防護：若今天是週日，且週六已施測完成：
+  // 1. 若週六 0 錯題（全數答對 100%），本週錯題已全數消滅，週日絕不指派任何任務！
+  // 2. 若週六仍有錯題，週日只施測週六剩餘的錯題！
+  if (dayOfWeek === 0) {
+    if (satCompletedRec && satCompletedRec.completed) {
+      if (satCompletedRec.wrongWords.length === 0) {
+        return null; // 週六已全數消滅，週日無任何任務
+      }
+      const sunTaskName = "週末錯題接續消滅戰";
+      if (completedTasksToday && completedTasksToday.has(sunTaskName.toLowerCase())) {
+        return {
+          hasTask: false,
+          alreadyCompleted: true,
+          message: "本週週末錯題接續消滅戰今日已完成！已開放自由升級闖關。"
+        };
+      }
+      return {
+        hasTask   : true,
+        taskName  : sunTaskName,
+        words     : satCompletedRec.wrongWords,
+        total     : satCompletedRec.wrongWords.length,
+        mode      : "ALL",
+        count     : satCompletedRec.wrongWords.length,
+        isWeekend : true,
+        date      : todayStrDash
+      };
     }
   }
 
@@ -2935,13 +2974,13 @@ function syncAndBackfillStudentTaskHistory(ss, username, records, uSheet) {
       if (insertIndex <= uSheet.getLastRow()) {
         uSheet.insertRowBefore(insertIndex);
       }
-      const formulaSum = `=SUM(G${insertIndex}:I${insertIndex})`;
-      const formulaAcc = `=IF(K${insertIndex}>0, J${insertIndex}/K${insertIndex}, 0)`;
+      const pureSum = 0;
+      const pureAcc = 0;
       const newRowVals = [
         `${taskDate} 23:59:59`, "",
         1, 0, 0, 0,
         0, 0, 0,
-        formulaSum, 0, formulaAcc,
+        pureSum, 0, pureAcc,
         "0/0", "0/0", "0/0", "0/0", "0/0",
         "0/0", "0/0", "0/0", "0/0",
         tName, tScore, tRate, tStatus, wrongWordsStr,
@@ -3229,9 +3268,9 @@ function handleSaveRecord(ss, params, auth) {
     }
   }
 
-  // Google Sheets 原生公式：共答對單字由 G+H+I 動態加總，單字掌握率由 J/K 動態計算
-  const formulaCorrect = `=SUM(G2:I2)`;
-  const formulaRate    = `=IF(K2>0, J2/K2, 0)`;
+  // 前端/後端直接計算純數值寫入試算表（不使用 Google Sheet 公式，避免重算風暴拖慢效能）
+  const pureCorrect = distinctC;
+  const pureRate    = testedWordsCount > 0 ? (Math.round((distinctC / testedWordsCount) * 10000) / 10000) : 0;
   const curLevel = (agentData.level && agentData.level.current) || agentData.currentLevel || 1;
 
   const rowData = [
@@ -3239,7 +3278,7 @@ function handleSaveRecord(ss, params, auth) {
     curLevel, agentData.points || 0,
     agentData.streak || 0, agentData.best || 0,
     learning, practicing, mastered,
-    formulaCorrect, testedWordsCount, formulaRate,
+    pureCorrect, testedWordsCount, pureRate,
     l1Str, l2Str, l3Str, l4Str, l5Str,
     mListenStr, mPickStr, mScrambleStr, mTrapStr,
     taskName, taskScore, taskRate, status, wrongWordsStr,
@@ -5444,8 +5483,8 @@ function cleanupAndOptimizeSpreadsheet() {
           const oldStreak = (agentData && agentData.streak !== undefined) ? agentData.streak : (row[hMap.streak] || 0);
           const oldBest = (agentData && agentData.best !== undefined) ? agentData.best : (row[hMap.best] || 0);
 
-          const formulaCorrect = `=SUM(G${rowIdx}:I${rowIdx})`;
-          const formulaRate    = `=IF(K${rowIdx}>0, J${rowIdx}/K${rowIdx}, 0)`;
+          const pureCorrect = sumData.distinctCorrect;
+          const pureRate    = sumData.testedVocab > 0 ? (Math.round((sumData.distinctCorrect / sumData.testedVocab) * 10000) / 10000) : 0;
 
           const rawTask = String(row[hMap.taskName] || "").trim();
           const rawScore = String(row[hMap.taskScore] || "").trim();
@@ -5509,9 +5548,9 @@ function cleanupAndOptimizeSpreadsheet() {
             sumData.learning,    // 7: 學習中
             sumData.practicing,  // 8: 練習中
             sumData.mastered,    // 9: 精通 (純整數格式)
-            formulaCorrect,      // 10: 共答對單字
+            pureCorrect,         // 10: 共答對單字
             sumData.testedVocab, // 11: 累積受測單字
-            formulaRate,         // 12: 單字掌握率
+            pureRate,            // 12: 單字掌握率
             sumData.l1, sumData.l2, sumData.l3, sumData.l4, sumData.l5, // 13~17: LEVEL 1~5
             sumData.mListen, sumData.mPick, sumData.mScramble, sumData.mTrap, // 18~21: 四大模式
             taskName,            // 22: 任務名稱

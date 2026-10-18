@@ -849,10 +849,22 @@ function getCombinedTaskHistory() {
                   list.push(satItem);
                 }
               }
+              const satClearedAll = rem.satCompleted && (!rem.satWrongWords || rem.satWrongWords.length === 0);
               // Sunday = monday + 6 days
               const sunD = new Date(mDate.getFullYear(), mDate.getMonth(), mDate.getDate() + 6);
               const sunKey = sunD.getFullYear() + "-" + String(sunD.getMonth() + 1).padStart(2, "0") + "-" + String(sunD.getDate()).padStart(2, "0");
-              if (rem.sunCompleted) {
+              if (satClearedAll && rem.sunCompleted) {
+                // 自動修復：若週六已全數消滅，週日不應有 completed 標記，清理 localStorage
+                delete rem.sunCompleted;
+                delete rem.sunScore;
+                delete rem.sunRate;
+                delete rem.sunWrongWords;
+                delete rem.sunCorrectWords;
+                delete rem.sunTotal;
+                try { localStorage.setItem(k, JSON.stringify(rem)); } catch(_) {}
+                try { localStorage.removeItem("task_summary_" + sunKey); } catch(_) {}
+              }
+              if (rem.sunCompleted && !satClearedAll) {
                 const existIdx = list.findIndex(item => item && normalizeDateStr(item.date) === sunKey);
                 const sunCorr = (Array.isArray(rem.sunCorrectWords) ? rem.sunCorrectWords : []).map(w => String(w).trim().toLowerCase()).filter(w => /^[a-zA-Z]+(?:[-'][a-zA-Z]+)*$/.test(w));
                 const sunWrong = (Array.isArray(rem.sunWrongWords) ? rem.sunWrongWords : []).map(w => String(w).trim().toLowerCase()).filter(w => /^[a-zA-Z]+(?:[-'][a-zA-Z]+)*$/.test(w));
@@ -889,6 +901,28 @@ function getCombinedTaskHistory() {
       }
     }
   } catch(_) {}
+
+  // 防護過濾：若該週末週六已全部消滅所有錯題（100% 正確 / 0 錯題），週日理應無任何週末測驗紀錄
+  // 徹底移除不當漏出或複製到週日的週末測驗項目
+  for (let i = list.length - 1; i >= 0; i--) {
+    const item = list[i];
+    if (!item || !item.date) continue;
+    const iDate = normalizeDateStr(item.date);
+    const iD = new Date(iDate.replace(/-/g, "/"));
+    if (iD.getDay() === 0) {
+      const satD = new Date(iD.getFullYear(), iD.getMonth(), iD.getDate() - 1);
+      const satKey = satD.getFullYear() + "-" + String(satD.getMonth() + 1).padStart(2, "0") + "-" + String(satD.getDate()).padStart(2, "0");
+      const satItem = list.find(s => s && normalizeDateStr(s.date) === satKey && (String(s.taskName || "").includes("週末") || s.isWeekend));
+      if (satItem) {
+        const satWrongs = Array.isArray(satItem.wrongWords) ? satItem.wrongWords : [];
+        if (satWrongs.length === 0 || satItem.rate === "100%") {
+          if (String(item.taskName || "").includes("週末") || item.isWeekend) {
+            list.splice(i, 1);
+          }
+        }
+      }
+    }
+  }
 
   // 清理 localStorage 中不屬於實際指派任務日期的殘留 task_words_* 快取
   const validTaskDates = new Set(
@@ -1777,11 +1811,53 @@ function buildTaskDetailsHtml(records, selectedDate, d) {
 
   const normDate = normalizeDateStr(selectedDate);
 
+  // 判定是否為週日，且週六已全數消滅錯題（100% / 0 錯題）
+  let isSatClearedOnSunday = false;
+  const dObjCheck = d || new Date(normDate.replace(/-/g, "/"));
+  if (dObjCheck && dObjCheck.getDay() === 0) {
+    const diff = dObjCheck.getDate() - 1; // 週六
+    const satObj = new Date(dObjCheck.getFullYear(), dObjCheck.getMonth(), diff);
+    const satKey = satObj.getFullYear() + "-" + String(satObj.getMonth() + 1).padStart(2, "0") + "-" + String(satObj.getDate()).padStart(2, "0");
+    const mDiff = dObjCheck.getDate() - 6; // 週一
+    const mObj = new Date(dObjCheck.getFullYear(), dObjCheck.getMonth(), mDiff);
+    const monKey = mObj.getFullYear() + "-" + String(mObj.getMonth() + 1).padStart(2, "0") + "-" + String(mObj.getDate()).padStart(2, "0");
+
+    try {
+      const rawRem = localStorage.getItem("weekend_remedy_" + monKey);
+      if (rawRem) {
+        const rem = JSON.parse(rawRem);
+        if (rem && rem.satCompleted && (!rem.satWrongWords || rem.satWrongWords.length === 0)) {
+          isSatClearedOnSunday = true;
+        }
+      }
+    } catch(_) {}
+    if (!isSatClearedOnSunday) {
+      try {
+        const rawSum = localStorage.getItem("task_summary_" + satKey);
+        if (rawSum) {
+          const sum = JSON.parse(rawSum);
+          if (sum && sum.completed && (!sum.wrongWords || sum.wrongWords.length === 0)) {
+            isSatClearedOnSunday = true;
+          }
+        }
+      } catch(_) {}
+    }
+  }
+
+  // 若週日且週六已全數消滅，徹底過濾 list 中的週末測驗紀錄
+  if (isSatClearedOnSunday) {
+    for (let i = list.length - 1; i >= 0; i--) {
+      if (String(list[i].taskName || "").includes("週末") || list[i].isWeekend) {
+        list.splice(i, 1);
+      }
+    }
+  }
+
   if (list.length === 0) {
     // 檢查是否有當日已完成的 task_summary 或 weekend_remedy
     try {
       const rawTS = localStorage.getItem("task_summary_" + normDate);
-      if (rawTS) {
+      if (rawTS && !isSatClearedOnSunday) {
         const ts = JSON.parse(rawTS);
         if (ts && ts.completed && ts.taskName && ts.taskName !== "自主練習") {
           list.push({
@@ -1808,7 +1884,8 @@ function buildTaskDetailsHtml(records, selectedDate, d) {
           const rawRem = localStorage.getItem("weekend_remedy_" + monKey);
           if (rawRem) {
             const rem = JSON.parse(rawRem);
-            if (rem && ((day === 6 && rem.satCompleted) || (day === 0 && rem.sunCompleted))) {
+            const satClearedAll = rem && rem.satCompleted && (!rem.satWrongWords || rem.satWrongWords.length === 0);
+            if (rem && ((day === 6 && rem.satCompleted) || (day === 0 && rem.sunCompleted && !satClearedAll))) {
               const corr = day === 6 ? (rem.satCorrectWords || []) : (rem.sunCorrectWords || []);
               const wrg = day === 6 ? (rem.satWrongWords || []) : (rem.sunWrongWords || []);
               const sc = day === 6 ? rem.satScore : rem.sunScore;
@@ -1862,7 +1939,7 @@ function buildTaskDetailsHtml(records, selectedDate, d) {
   const isAssigned = isUntestedRecord || !!taskName;
 
   if (list.length === 0) {
-    if (isAssigned) {
+    if (isAssigned && !isSatClearedOnSunday) {
       return renderUntestedTaskCardHtml({
         taskName: taskName || (normDate.replace(/-/g, "").slice(4) + "指定單字測驗結果"),
         assignedWords: assignedWords || [],
@@ -1885,7 +1962,9 @@ function buildTaskDetailsHtml(records, selectedDate, d) {
           <div class="task-empty-notice-icon">☕</div>
           <div class="task-empty-notice-title">本日無指定單字測驗</div>
           <div class="task-empty-notice-desc">
-            老師當天未安排全班指定隨堂測驗。
+            ${isSatClearedOnSunday 
+              ? "本週待攻克單字已於週六全數消滅，今日無須再測驗！已全面開放自由闖關升級。" 
+              : "老師當天未安排全班指定隨堂測驗。"}
           </div>
         </div>
       </div>

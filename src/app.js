@@ -113,6 +113,14 @@ function getWeekSaturdayDate() {
   return saturday.getFullYear() + "-" + String(saturday.getMonth() + 1).padStart(2, "0") + "-" + String(saturday.getDate()).padStart(2, "0");
 }
 
+function getWeekSundayDate() {
+  const d = new Date();
+  const day = d.getDay(); // 0=Sun, 6=Sat
+  const diff = d.getDate() - day + (day === 0 ? 0 : 7);
+  const sunday = new Date(d.getFullYear(), d.getMonth(), diff);
+  return sunday.getFullYear() + "-" + String(sunday.getMonth() + 1).padStart(2, "0") + "-" + String(sunday.getDate()).padStart(2, "0");
+}
+
 function getSaturdayRemedyRecord() {
   const satDateStr = getWeekSaturdayDate();
   const mondayStr = getWeekMondayDate();
@@ -963,7 +971,12 @@ function checkAndStartDailyTask() {
           catLabel.textContent = "🌟 本週錯題已全數消滅！週末已開放自由闖關";
         }
       } else if (dayNow === 0) {
-        catLabel.textContent = "✅ 週末錯題補救測驗已完成，已開放自由闖關！";
+        const satRecord = getSaturdayRemedyRecord();
+        if (satRecord && satRecord.completed && (!satRecord.wrongWords || satRecord.wrongWords.length === 0)) {
+          catLabel.textContent = "🌟 本週錯題已於週六全數消滅！週末已開放自由闖關";
+        } else {
+          catLabel.textContent = "✅ 週末錯題補救測驗已完成，已開放自由闖關！";
+        }
       } else {
         catLabel.textContent = "✅ 今日指定練習已完成，明天再繼續！已開放自由升級闖關";
       }
@@ -1017,6 +1030,10 @@ function checkAndStartDailyTask() {
             taskToRun = null;
             localStorage.setItem("task_done_" + todayDash, "true");
             localStorage.setItem("task_done_" + todaySlash, "true");
+            sessionStorage.removeItem("assigned_task");
+            localStorage.removeItem("assigned_task_active");
+            localStorage.removeItem("assigned_task_backup");
+            assignedTaskObj = null;
           }
         } else {
           // 週六無測驗紀錄 -> 週日直接以週一至週五未答對單字進行消滅戰
@@ -1035,8 +1052,18 @@ function checkAndStartDailyTask() {
     }
   }
 
+  // 檢查若為週日且週六已全數消滅，徹底封鎖任何指派或殘留週末任務
+  const satRecOnSun = (day === 0) ? getSaturdayRemedyRecord() : null;
+  const isSatClearedOnSun = (day === 0 && satRecOnSun && satRecOnSun.completed && (!satRecOnSun.wrongWords || satRecOnSun.wrongWords.length === 0));
+  if (isSatClearedOnSun) {
+    taskToRun = null;
+    if (assignedTaskObj && (assignedTaskObj.isWeekend || String(assignedTaskObj.taskName || "").includes("週末"))) {
+      assignedTaskObj = null;
+    }
+  }
+
   // 若平日（或週末有老師當日特別指派之非補強任務），檢查是否有老師指定的單字任務
-  if (!taskToRun && assignedTaskObj && assignedTaskObj.hasTask && assignedTaskObj.words && assignedTaskObj.words.length > 0) {
+  if (!taskToRun && !isSatClearedOnSun && assignedTaskObj && assignedTaskObj.hasTask && assignedTaskObj.words && assignedTaskObj.words.length > 0) {
     taskToRun = assignedTaskObj;
   }
 
@@ -1331,6 +1358,22 @@ function finishTaskMode() {
     (taskState.hadCorrectThenWrong || []).map(w => String(w).trim().toLowerCase()).filter(Boolean)
   ));
 
+  // 若為週末測驗，精準判斷週六或週日階段，並對齊有效日期防跨日誤植
+  const isWeekendTask = !!task.isWeekend;
+  const dNow = new Date();
+  const dayNow = dNow.getDay();
+  const isSat = (task.weekendStage === "sat") || (dayNow === 6);
+  const isSun = (task.weekendStage === "sun_remedy" || task.weekendStage === "sun_initial" || (!isSat && dayNow === 0));
+  const wrongCount = cleanWrongWords.length;
+  const mondayStr = getWeekMondayDate();
+
+  let effectiveTaskDate = todayDash;
+  if (isWeekendTask && isSat) {
+    effectiveTaskDate = getWeekSaturdayDate();
+  } else if (isWeekendTask && isSun) {
+    effectiveTaskDate = getWeekSundayDate();
+  }
+
   const finishedTaskPayload = {
     hasTask             : false,
     alreadyCompleted    : true,
@@ -1341,14 +1384,14 @@ function finishTaskMode() {
     hadCorrectThenWrong : cleanHadCorrectThenWrong,
     score               : `${correct}/${total}`,
     rate                : rate + "%",
-    date                : todayDash
+    date                : effectiveTaskDate
   };
   sessionStorage.setItem("assigned_task", JSON.stringify(finishedTaskPayload));
   localStorage.setItem("assigned_task_active", JSON.stringify(finishedTaskPayload));
 
   if (allTaskWords.length > 0) {
-    localStorage.setItem("task_words_" + todayDash, JSON.stringify(allTaskWords));
-    localStorage.setItem("task_words_" + todaySlash, JSON.stringify(allTaskWords));
+    localStorage.setItem("task_words_" + effectiveTaskDate, JSON.stringify(allTaskWords));
+    localStorage.setItem("task_words_" + effectiveTaskDate.replace(/-/g, "/"), JSON.stringify(allTaskWords));
   }
 
   // 3. 儲存今日任務成績摘要（標記 completed: true）
@@ -1360,7 +1403,7 @@ function finishTaskMode() {
     rate                : rate + "%",
     completed           : true,
     isWeekend           : !!task.isWeekend,
-    date                : todayDash,
+    date                : effectiveTaskDate,
     wrongWords          : cleanWrongWords,
     correctWords        : cleanCorrectWords,
     hadCorrectThenWrong : cleanHadCorrectThenWrong,
@@ -1368,14 +1411,22 @@ function finishTaskMode() {
     updatedAt           : nowTs
   };
   localStorage.setItem("today_task_summary", JSON.stringify(summaryObj));
-  localStorage.setItem("task_summary_" + todayDash, JSON.stringify(summaryObj));
+  localStorage.setItem("task_summary_" + effectiveTaskDate, JSON.stringify(summaryObj));
 
   try {
     const rawHist = localStorage.getItem("student_task_history");
     const histList = rawHist ? JSON.parse(rawHist) : [];
-    const filtered = histList.filter(item => !(normalizeDateStr(item.date) === todayDash && item.taskName === task.taskName));
+    let filtered = histList.filter(item => !(normalizeDateStr(item.date) === effectiveTaskDate && item.taskName === task.taskName));
+
+    // 若為週末週六測驗且全數答對（0 錯題），清除任何誤植於該週週日的週末測驗紀錄
+    if (isWeekendTask && isSat && cleanWrongWords.length === 0) {
+      const sunDateStr = getWeekSundayDate();
+      filtered = filtered.filter(item => !(normalizeDateStr(item.date) === sunDateStr && (String(item.taskName || "").includes("週末") || item.isWeekend)));
+      localStorage.removeItem("task_summary_" + sunDateStr);
+    }
+
     filtered.unshift({
-      date                : todayDash,
+      date                : effectiveTaskDate,
       taskName            : task.taskName,
       score               : `${correct}/${total}`,
       rate                : rate + "%",
@@ -1401,14 +1452,6 @@ function finishTaskMode() {
   if (bannerEl) bannerEl.style.display = isTimeUp ? "none" : "";
 
   // 若為週末測驗，記錄週末補救進度至本機並剔除已消滅單字
-  const isWeekendTask = !!task.isWeekend;
-  const dNow = new Date();
-  const dayNow = dNow.getDay();
-  const isSat = (dayNow === 6);
-  const isSun = (dayNow === 0);
-  const wrongCount = cleanWrongWords.length;
-  const mondayStr = getWeekMondayDate();
-
   if (isWeekendTask) {
     try {
       const rawRemedy = localStorage.getItem("weekend_remedy_" + mondayStr);
@@ -1420,7 +1463,17 @@ function finishTaskMode() {
         remedyMap.satWrongWords = cleanWrongWords;
         remedyMap.satCorrectWords = cleanCorrectWords;
         remedyMap.satTotal = total;
-      } else {
+
+        // ★ 若週六已全數答對消滅（0 錯題），週日無須測驗，徹底清理任何殘留的週日完成旗標與成績！
+        if (cleanWrongWords.length === 0) {
+          delete remedyMap.sunCompleted;
+          delete remedyMap.sunScore;
+          delete remedyMap.sunRate;
+          delete remedyMap.sunWrongWords;
+          delete remedyMap.sunCorrectWords;
+          delete remedyMap.sunTotal;
+        }
+      } else if (isSun) {
         remedyMap.sunCompleted = true;
         remedyMap.sunScore = `${correct}/${total}`;
         remedyMap.sunRate = rate + "%";

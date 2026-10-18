@@ -955,18 +955,22 @@ function getWeekendRemediationTask(ss, cleanClass, username, completedTasksToday
   const dayOfWeek = d.getDay(); // 0=Sun, 6=Sat
   if (dayOfWeek !== 0 && dayOfWeek !== 6) return null;
 
-  // 計算本週週一至週五標準日期區間
+  // 計算本週週一至週五與週六標準日期區間
   const diffToMon = (dayOfWeek === 0 ? -6 : 1 - dayOfWeek);
   const monDate = new Date(d.getFullYear(), d.getMonth(), d.getDate() + diffToMon);
   const friDate = new Date(d.getFullYear(), d.getMonth(), d.getDate() + diffToMon + 4);
+  const satDate = new Date(d.getFullYear(), d.getMonth(), d.getDate() + diffToMon + 5);
   const monStr = Utilities.formatDate(monDate, "Asia/Taipei", "yyyy-MM-dd");
   const friStr = Utilities.formatDate(friDate, "Asia/Taipei", "yyyy-MM-dd");
+  const satStr = Utilities.formatDate(satDate, "Asia/Taipei", "yyyy-MM-dd");
 
   const tasks = getTeacherTasksCached_(ss);
   if (tasks.length === 0) return null;
 
-  // 取得學生在週一至週五的實際作答紀錄
+  // 取得學生在週一至週六的實際作答紀錄
   const studentDoneMap = {};
+  let satCompletedRec = null;
+
   if (username) {
     const uSheet = getStudentSheet(ss, username);
     if (uSheet && uSheet.getLastRow() >= 2) {
@@ -977,18 +981,53 @@ function getWeekendRemediationTask(ss, cleanClass, username, completedTasksToday
       const uVals = uSheet.getRange(2, 1, maxRows, lastCol).getValues();
       for (let r = 0; r < uVals.length; r++) {
         const rowD = formatStandardDateYMD(uVals[r][0]);
+        const tName = String(uVals[r][hMap.taskName] || "").trim().toLowerCase();
+        const score = String(uVals[r][hMap.taskScore] || "").trim();
+        const status = String(uVals[r][hMap.status] || "").trim();
+        const wrongStr = String(uVals[r][hMap.wrong] || "").trim();
+        const wrongList = wrongStr ? wrongStr.split(/[\s,;\n\r]+/).map(w => w.trim().toLowerCase()).filter(Boolean) : [];
+        const isDone = (status.includes("已完成") || (score !== "—" && score !== ""));
+
         if (rowD >= monStr && rowD <= friStr) {
-          const tName = String(uVals[r][hMap.taskName] || "").trim().toLowerCase();
-          const score = String(uVals[r][hMap.taskScore] || "").trim();
-          const status = String(uVals[r][hMap.status] || "").trim();
-          const wrongStr = String(uVals[r][hMap.wrong] || "").trim();
-          const wrongList = wrongStr ? wrongStr.split(/[\s,;\n\r]+/).map(w => w.trim().toLowerCase()).filter(Boolean) : [];
-          if (tName && (status.includes("已完成") || (score !== "—" && score !== ""))) {
+          if (tName && isDone) {
             studentDoneMap[tName] = { completed: true, wrongWords: wrongList };
             studentDoneMap[rowD + "_" + tName] = { completed: true, wrongWords: wrongList };
           }
+        } else if (rowD === satStr) {
+          if (tName && (tName.includes("週末") || tName.includes("消滅") || tName.includes("待攻克")) && isDone) {
+            satCompletedRec = { completed: true, wrongWords: wrongList };
+          }
         }
       }
+    }
+  }
+
+  // ★ 核心防護：若今天是週日，且週六已施測完成：
+  // 1. 若週六 0 錯題（全數答對 100%），本週錯題已全數消滅，週日絕不指派任何任務！
+  // 2. 若週六仍有錯題，週日只施測週六剩餘的錯題！
+  if (dayOfWeek === 0) {
+    if (satCompletedRec && satCompletedRec.completed) {
+      if (satCompletedRec.wrongWords.length === 0) {
+        return null; // 週六已全數消滅，週日無任何任務
+      }
+      const sunTaskName = "週末錯題接續消滅戰";
+      if (completedTasksToday && completedTasksToday.has(sunTaskName.toLowerCase())) {
+        return {
+          hasTask: false,
+          alreadyCompleted: true,
+          message: "本週週末錯題接續消滅戰今日已完成！已開放自由升級闖關。"
+        };
+      }
+      return {
+        hasTask   : true,
+        taskName  : sunTaskName,
+        words     : satCompletedRec.wrongWords,
+        total     : satCompletedRec.wrongWords.length,
+        mode      : "ALL",
+        count     : satCompletedRec.wrongWords.length,
+        isWeekend : true,
+        date      : todayStrDash
+      };
     }
   }
 

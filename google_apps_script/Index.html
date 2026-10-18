@@ -15639,6 +15639,68 @@ function buildTaskDetailsHtml(records, selectedDate, agent) {
       }
     } catch(_) {}
 
+  // 判定是否為週日，且週六已全數消滅錯題（100% / 0 錯題）
+  let isSatClearedOnSunday = false;
+  const dObjCheck = new Date(sDateNorm.replace(/-/g, "/"));
+  if (dObjCheck && dObjCheck.getDay() === 0) {
+    const diff = dObjCheck.getDate() - 1; // 週六
+    const satObj = new Date(dObjCheck.getFullYear(), dObjCheck.getMonth(), diff);
+    const satKey = satObj.getFullYear() + "-" + String(satObj.getMonth() + 1).padStart(2, "0") + "-" + String(satObj.getDate()).padStart(2, "0");
+    const mDiff = dObjCheck.getDate() - 6; // 週一
+    const mObj = new Date(dObjCheck.getFullYear(), dObjCheck.getMonth(), mDiff);
+    const monKey = mObj.getFullYear() + "-" + String(mObj.getMonth() + 1).padStart(2, "0") + "-" + String(mObj.getDate()).padStart(2, "0");
+
+    try {
+      const rawRem = localStorage.getItem("weekend_remedy_" + monKey);
+      if (rawRem) {
+        const rem = JSON.parse(rawRem);
+        if (rem && rem.satCompleted && (!rem.satWrongWords || rem.satWrongWords.length === 0)) {
+          isSatClearedOnSunday = true;
+        }
+      }
+    } catch(_) {}
+    if (!isSatClearedOnSunday) {
+      try {
+        const rawSum = localStorage.getItem("task_summary_" + satKey);
+        if (rawSum) {
+          const sum = JSON.parse(rawSum);
+          if (sum && sum.completed && (!sum.wrongWords || sum.wrongWords.length === 0)) {
+            isSatClearedOnSunday = true;
+          }
+        }
+      } catch(_) {}
+    }
+  }
+
+  // 若週日且週六已全數消滅，徹底過濾 list 中的週末測驗紀錄
+  if (isSatClearedOnSunday) {
+    for (let i = list.length - 1; i >= 0; i--) {
+      if (String(list[i].taskName || "").includes("週末") || list[i].isWeekend) {
+        list.splice(i, 1);
+      }
+    }
+  }
+
+  if (list.length === 0) {
+    // 檢查是否有當日已完成的 task_summary 或 weekend_remedy
+    try {
+      const rawTS = localStorage.getItem("task_summary_" + sDateNorm);
+      if (rawTS && !isSatClearedOnSunday) {
+        const ts = JSON.parse(rawTS);
+        if (ts && ts.completed && ts.taskName && ts.taskName !== "自主練習") {
+          list.push({
+            date: sDateNorm,
+            taskName: ts.taskName,
+            score: (ts.score !== undefined && ts.total !== undefined) ? `${ts.score}/${ts.total}` : (ts.score || "已完成"),
+            rate: ts.rate || "100%",
+            status: "● 已完成",
+            wrongWords: ts.wrongWords || [],
+            words: ts.words || []
+          });
+        }
+      }
+    } catch(_) {}
+
     if (list.length === 0) {
       try {
         const dObj = new Date(sDateNorm.replace(/-/g, "/"));
@@ -15650,7 +15712,8 @@ function buildTaskDetailsHtml(records, selectedDate, agent) {
           const rawRem = localStorage.getItem("weekend_remedy_" + monKey);
           if (rawRem) {
             const rem = JSON.parse(rawRem);
-            if (rem && ((day === 6 && rem.satCompleted) || (day === 0 && rem.sunCompleted))) {
+            const satClearedAll = rem && rem.satCompleted && (!rem.satWrongWords || rem.satWrongWords.length === 0);
+            if (rem && ((day === 6 && rem.satCompleted) || (day === 0 && rem.sunCompleted && !satClearedAll))) {
               const corr = day === 6 ? (rem.satCorrectWords || []) : (rem.sunCorrectWords || []);
               const wrg = day === 6 ? (rem.satWrongWords || []) : (rem.sunWrongWords || []);
               const sc = day === 6 ? rem.satScore : rem.sunScore;
@@ -15707,7 +15770,7 @@ function buildTaskDetailsHtml(records, selectedDate, agent) {
     }
   }
 
-  const isAssignedOnDate = !!((assignedWords && assignedWords.length > 0) || taskName || Object.keys(taskDict).some(k => k.startsWith(sDateNorm) || k.startsWith(sDateShort)));
+  const isAssignedOnDate = !isSatClearedOnSunday && !!((assignedWords && assignedWords.length > 0) || taskName || Object.keys(taskDict).some(k => k.startsWith(sDateNorm) || k.startsWith(sDateShort)));
 
   // 2. 判斷學生當天是否有登入或自由練習紀錄
   const dpMap = (agent && agent.dailyPractice) ? agent.dailyPractice : {};
@@ -15732,8 +15795,8 @@ function buildTaskDetailsHtml(records, selectedDate, agent) {
     return `
       <div class="task-empty-notice-box" style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:330px; padding:20px 14px; text-align:center; box-sizing:border-box;">
         <div style="font-size:28px; margin-bottom:8px;">☕</div>
-        <div style="font-size:14px; font-weight:700; color:var(--ink2);">該日未指派指定測驗（${selectedDate}）</div>
-        <div style="font-size:12px; margin-top:6px; color:var(--ink3);">老師當日未指派指定測驗，可切換至其他日期查看紀錄</div>
+        <div style="font-size:14px; font-weight:700; color:var(--ink2);">${isSatClearedOnSunday ? "本日無指定單字測驗" : `該日未指派指定測驗（${selectedDate}）`}</div>
+        <div style="font-size:12px; margin-top:6px; color:var(--ink3);">${isSatClearedOnSunday ? "本週待攻克單字已於週六全數消滅，今日無須再測驗！已全面開放自由闖關升級。" : "老師當日未指派指定測驗，可切換至其他日期查看紀錄"}</div>
       </div>
     `;
   }
