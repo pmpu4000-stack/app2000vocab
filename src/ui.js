@@ -1291,29 +1291,35 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
   let wrongContentHtml = "";
   let leftBoxClass = "correct-box";
   let leftTitleClass = "correct-title";
-  let leftTitleText = `<span style="color:#10B981; font-weight:900; margin-right:4px;">✔</span>已答對的單字 (${correctList.length} 字)`;
+  let leftTitleText = `<span class="card-icon-slot" style="color:#10B981; font-weight:900;">✔</span><span>已答對的單字 (${correctList.length} 字)</span>`;
   const isTrulyPerfect = (taskRate >= 100) || (taskTotWords > 0 && taskCorrWords >= taskTotWords && wrongList.length === 0);
   const missedCount = Math.max(0, taskTotWords - taskCorrWords);
   let rightBoxClass = "wrong-box";
   let rightTitleClass = "wrong-title";
   let rightTitleText = wrongList.length > 0 
-    ? `❌ 答錯的單字 (${wrongList.length} 字)` 
-    : (isTrulyPerfect ? `❌ 答錯的單字 (0 字)` : (missedCount > 0 ? `🔘 未作答的單字 (${missedCount} 字)` : `❌ 答錯的單字 (0 字)`));
+    ? `<span class="card-icon-slot">❌</span><span>答錯的單字 (${wrongList.length} 字)</span>` 
+    : (isTrulyPerfect ? `<span class="card-icon-slot">❌</span><span>答錯的單字 (0 字)</span>` : (missedCount > 0 ? `<span class="card-icon-slot">🔘</span><span>未作答的單字 (${missedCount} 字)</span>` : `<span class="card-icon-slot">❌</span><span>答錯的單字 (0 字)</span>`));
 
   if (isUntested) {
     leftBoxClass = "advice-box";
     leftTitleClass = "advice-title";
-    leftTitleText = "💡 學習紀錄提醒";
+    leftTitleText = `<span class="card-icon-slot">💡</span><span>學習紀錄提醒</span>`;
     correctContentHtml = `
-      <div style="display:flex; flex-direction:column; justify-content:flex-start; align-items:flex-start; gap:6px; padding:6px 4px; font-size:12.5px; line-height:1.6;">
+      <div style="display:flex; flex-direction:column; justify-content:flex-start; align-items:flex-start; gap:6px; padding:6px 0; font-size:12.5px; line-height:1.6; width:100%;">
         <div>${statusDesc ? `<b>${statusDesc}</b>。` : ""}${hasLoggedInOrFree ? "當日有登入進行自由練習，但未完成本次指定測驗。" : "當日無登入紀錄，未進行本次指定測驗。"}</div>
-        <div style="font-size:11.5px; color:var(--ink3);">📌 提醒：未測驗之指定單字將自動排入週末補強測驗。</div>
+        <div style="display:flex; align-items:flex-start; font-size:11.5px; color:var(--ink3); gap:6px; width:100%;">
+          <span class="card-icon-slot" style="margin-top:1px;">📌</span>
+          <div style="flex:1; display:flex; align-items:flex-start;">
+            <span style="white-space:nowrap; flex-shrink:0;">提醒：</span>
+            <span style="flex:1;">未測驗之指定單字將自動排入週末補強測驗。</span>
+          </div>
+        </div>
       </div>
     `;
 
     rightBoxClass = "untested-box";
     rightTitleClass = "untested-title";
-    rightTitleText = `📋 本次應測單字範圍 ${taskTotWords > 0 ? `(${taskTotWords} 字)` : (rawWords.length > 0 ? `(${rawWords.length} 字)` : "")}`;
+    rightTitleText = `<span class="card-icon-slot">📋</span><span>本次應測單字範圍 ${taskTotWords > 0 ? `(${taskTotWords} 字)` : (rawWords.length > 0 ? `(${rawWords.length} 字)` : "")}</span>`;
     if (rawWords.length > 0) {
       wrongContentHtml = rawWords.map(w => `<span class="word-pill-tag neutral" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
     } else {
@@ -1322,18 +1328,24 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
   } else if (isIncomplete && actualAnswered === 0) {
     leftBoxClass = "advice-box";
     leftTitleClass = "advice-title";
-    leftTitleText = `💡 測驗作答狀態`;
+    leftTitleText = `<span class="card-icon-slot">💡</span><span>測驗作答狀態</span>`;
     correctContentHtml = `
-      <div style="display:flex; flex-direction:column; justify-content:flex-start; align-items:flex-start; gap:6px; padding:6px 4px; font-size:12.5px; line-height:1.6;">
+      <div style="display:flex; flex-direction:column; justify-content:flex-start; align-items:flex-start; gap:6px; padding:6px 0; font-size:12.5px; line-height:1.6; width:100%;">
         <div><b>尚未開始作答</b>。本次測驗共 ${assignedTotWords} 題，尚未作答任何題目。</div>
-        <div style="font-size:11.5px; color:var(--ink3);">📌 提醒：未作答之單字已自動排入週末弱點補強測驗。</div>
+        <div style="display:flex; align-items:flex-start; font-size:11.5px; color:var(--ink3); gap:6px; width:100%;">
+          <span class="card-icon-slot" style="margin-top:1px;">📌</span>
+          <div style="flex:1; display:flex; align-items:flex-start;">
+            <span style="white-space:nowrap; flex-shrink:0;">提醒：</span>
+            <span style="flex:1;">未作答之單字已自動排入週末弱點補強測驗。</span>
+          </div>
+        </div>
       </div>
     `;
 
     rightBoxClass = "untested-box";
     rightTitleClass = "untested-title";
     const unansWords = (unansweredList && unansweredList.length > 0) ? unansweredList : rawWords;
-    rightTitleText = `🔘 尚未作答的單字 (${unansWords.length} 字)`;
+    rightTitleText = `<span class="card-icon-slot">🔘</span><span>尚未作答的單字 (${unansWords.length} 字)</span>`;
     if (unansWords.length > 0) {
       wrongContentHtml = unansWords.map(w => `<span class="word-pill-tag neutral" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="未作答單字 (點擊聆聽發音)">${w}</span>`).join("");
     } else {
@@ -1342,7 +1354,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
   } else if (isIncomplete) {
     leftBoxClass = "correct-box";
     leftTitleClass = "correct-title";
-    leftTitleText = `<span style="color:#10B981; font-weight:900; margin-right:4px;">✔</span>已答對的單字 (${correctList.length} 字)`;
+    leftTitleText = `<span class="card-icon-slot" style="color:#10B981; font-weight:900;">✔</span><span>已答對的單字 (${correctList.length} 字)</span>`;
     if (correctList.length > 0) {
       correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
     } else {
@@ -1351,7 +1363,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
 
     rightBoxClass = "wrong-box";
     rightTitleClass = "wrong-title";
-    rightTitleText = `❌ 答錯的單字 (${wrongList.length} 字)`;
+    rightTitleText = `<span class="card-icon-slot">❌</span><span>答錯的單字 (${wrongList.length} 字)</span>`;
     
     let wrongPillsHtml = "";
     if (wrongList.length > 0) {
@@ -1369,16 +1381,20 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
       unansAccordionHtml = `
         <div style="${unansTopStyle} width:100%;">
           <div onclick="const el=document.getElementById('${unansId}'); const arrow=this.querySelector('.accordion-arrow'); if(el){ const isHidden=el.style.display==='none'; el.style.display=isHidden?'flex':'none'; if(arrow) arrow.textContent=isHidden?'▲':'▼'; }" 
-               style="cursor:pointer; display:flex; align-items:center; justify-content:space-between; font-size:12px; font-weight:700; color:var(--ink2); padding:4px 2px; user-select:none;">
-            <span>⏳ 尚有 ${unansweredList.length} 個單字未受測（點擊查看清單）</span>
-            <span class="accordion-arrow" style="font-size:10px; color:var(--ink3);">▼</span>
+               style="cursor:pointer; display:flex; align-items:center; font-size:12px; font-weight:700; color:var(--ink2); padding:4px 0; gap:6px; user-select:none; width:100%;">
+            <span class="card-icon-slot">⏳</span>
+            <span style="flex:1;">尚有 ${unansweredList.length} 個單字未受測（點擊查看清單）</span>
+            <span class="accordion-arrow" style="font-size:10px; color:var(--ink3); margin-left:auto;">▼</span>
           </div>
           <div id="${unansId}" style="display:none; flex-wrap:wrap; gap:6px; margin-top:8px; padding:8px; background:rgba(148,163,184,0.08); border-radius:8px; border:1px solid rgba(148,163,184,0.18);">
             ${unansPills}
           </div>
-          <div style="display:flex; align-items:flex-start; font-size:11px; color:var(--ink3); margin-top:5px; line-height:1.45;">
-            <span style="white-space:nowrap; flex-shrink:0;">💡 提示：</span>
-            <span style="flex:1;">本次測驗中途作答中斷，未完成之單字將自動排入週末補強測驗。</span>
+          <div style="display:flex; align-items:flex-start; font-size:11px; color:var(--ink3); margin-top:5px; line-height:1.45; gap:6px; width:100%; padding:0;">
+            <span class="card-icon-slot" style="margin-top:1px;">💡</span>
+            <div style="flex:1; display:flex; align-items:flex-start;">
+              <span style="white-space:nowrap; flex-shrink:0;">提示：</span>
+              <span style="flex:1;">本次測驗中途作答中斷，未完成之單字將自動排入週末補強測驗。</span>
+            </div>
           </div>
         </div>
       `;
@@ -1430,7 +1446,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
         const unansPills = remainingUnanswered.map(w => `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="未作答單字 (點擊聆聽發音)">${w} <span class="diag-bubble-tag" title="未作答">未作答</span></span>`).join("");
         unansExtraHtml = `
           <div style="margin-top:10px; padding-top:8px; border-top:1px dashed var(--line, rgba(148,163,184,0.25)); width:100%;">
-            <div style="font-size:12px; font-weight:700; color:var(--ink2); margin-bottom:6px;">🔘 未作答單字 (${remainingUnanswered.length} 字)：</div>
+            <div style="font-size:12px; font-weight:700; color:var(--ink2); margin-bottom:6px; display:flex; align-items:center; gap:6px;"><span class="card-icon-slot">🔘</span><span>未作答單字 (${remainingUnanswered.length} 字)：</span></div>
             <div style="display:flex; flex-wrap:wrap; gap:6px;">${unansPills}</div>
           </div>
         `;
@@ -1444,16 +1460,22 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
         : (unansweredList.length > 0 ? unansweredList : []);
 
       if (unmastered.length > 0) {
-        rightTitleText = `🔘 未作答的單字 (${unmastered.length} 字)`;
+        rightTitleText = `<span class="card-icon-slot">🔘</span><span>未作答的單字 (${unmastered.length} 字)</span>`;
         wrongContentHtml = unmastered.map(w => {
           return `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="未作答單字 (點擊聆聽發音)">${w} <span class="diag-bubble-tag" title="未作答">未作答</span></span>`;
         }).join("");
       } else {
-        rightTitleText = `🔘 未作答的單字 (${missedCount} 字)`;
+        rightTitleText = `<span class="card-icon-slot">🔘</span><span>未作答的單字 (${missedCount} 字)</span>`;
         wrongContentHtml = `
-          <div style="display:flex; flex-direction:column; gap:4px; padding:6px 8px; font-size:12.5px; line-height:1.55; color:var(--ink2);">
+          <div style="display:flex; flex-direction:column; gap:4px; padding:6px 0; font-size:12.5px; line-height:1.55; color:var(--ink2); width:100%;">
             <div>⚠️ 本次測驗施測 <b>${taskTotWords}</b> 字，答對 <b>${taskCorrWords}</b> 字，尚有 <b style="color:var(--ink, #475569); font-weight:800;">${missedCount}</b> 字未作答。</div>
-            <div style="font-size:11.5px; color:var(--ink3);">📌 提醒：未作答之單字已自動排入週末弱點補強測驗。</div>
+            <div style="display:flex; align-items:flex-start; font-size:11.5px; color:var(--ink3); gap:6px; width:100%;">
+              <span class="card-icon-slot" style="margin-top:1px;">📌</span>
+              <div style="flex:1; display:flex; align-items:flex-start;">
+                <span style="white-space:nowrap; flex-shrink:0;">提醒：</span>
+                <span style="flex:1;">未作答之單字已自動排入週末弱點補強測驗。</span>
+              </div>
+            </div>
           </div>
         `;
       }
@@ -1618,7 +1640,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
       <div class="word-split-grid grid-2">
         <div class="word-split-box ${leftBoxClass}">
           <div class="word-split-title ${leftTitleClass}">
-            <span>${leftTitleText}</span>
+            ${leftTitleText}
           </div>
           <div class="word-split-content">
             ${correctContentHtml}
@@ -1626,7 +1648,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
         </div>
         <div class="word-split-box ${rightBoxClass}">
           <div class="word-split-title ${rightTitleClass}">
-            <span>${rightTitleText}</span>
+            ${rightTitleText}
           </div>
           <div class="word-split-content">
             ${wrongContentHtml}
@@ -1706,16 +1728,22 @@ function renderUntestedTaskCardHtml(info, d) {
       <div class="word-split-grid grid-2">
         <div class="word-split-box advice-box">
           <div class="word-split-title advice-title">
-            <span>💡 學習提醒</span>
+            <span class="card-icon-slot">💡</span><span>學習提醒</span>
           </div>
-          <div class="word-split-content" style="display:flex; flex-direction:column; justify-content:flex-start; align-items:flex-start; gap:6px; padding:6px 4px; font-size:12.5px; line-height:1.6;">
+          <div class="word-split-content" style="display:flex; flex-direction:column; justify-content:flex-start; align-items:flex-start; gap:6px; padding:6px 0; font-size:12.5px; line-height:1.6; width:100%;">
             <div>${adviceText}</div>
-            <div style="font-size:11.5px; color:var(--ink3);">📌 提醒：未完成之指定單字將排入週末補強測驗。</div>
+            <div style="display:flex; align-items:flex-start; font-size:11.5px; color:var(--ink3); gap:6px; width:100%;">
+              <span class="card-icon-slot" style="margin-top:1px;">📌</span>
+              <div style="flex:1; display:flex; align-items:flex-start;">
+                <span style="white-space:nowrap; flex-shrink:0;">提醒：</span>
+                <span style="flex:1;">未完成之指定單字將排入週末補強測驗。</span>
+              </div>
+            </div>
           </div>
         </div>
         <div class="word-split-box untested-box">
           <div class="word-split-title untested-title">
-            <span>📋 本次應測單字範圍 ${cleanWords.length > 0 ? `(${cleanWords.length} 字)` : ""}</span>
+            <span class="card-icon-slot">📋</span><span>本次應測單字範圍 ${cleanWords.length > 0 ? `(${cleanWords.length} 字)` : ""}</span>
           </div>
           <div class="word-split-content">
             ${wordsHtml}
