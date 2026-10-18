@@ -690,9 +690,9 @@ body.daily-limit-reached #btn-upload {
 .perfect-score-msg{display:inline-flex;align-items:center;font-size:12px;font-weight:800;color:#065F46;background:#ECFDF5;border:1px solid #A7F3D0;padding:4px 10px;border-radius:8px;line-height:1.4}
 [data-theme="dark"] .perfect-score-msg{color:#6EE7B7!important;background:rgba(16,185,129,.18)!important;border-color:rgba(52,211,153,.35)!important}
 .word-split-box.untested-box{background:#F8FAFC;border:1px solid #E2E8F0}
-.word-split-box.advice-box{background:#ECFDF5;border:1.5px solid rgba(16,185,129,.35)}
+.word-split-box.advice-box{background:#F8FAFC;border:1px solid #CBD5E1}
 .word-split-title.untested-title{color:#475569}
-.word-split-title.advice-title{color:#065F46}
+.word-split-title.advice-title{color:#475569}
 
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 @media (max-width:820px){
@@ -1174,14 +1174,14 @@ body[data-theme="dark"],
   border-color: rgba(148, 163, 184, 0.25) !important;
 }
 [data-theme="dark"] .word-split-box.advice-box {
-  background: rgba(16, 185, 129, 0.12) !important;
-  border-color: rgba(16, 185, 129, 0.35) !important;
+  background: rgba(148, 163, 184, 0.08) !important;
+  border-color: rgba(148, 163, 184, 0.28) !important;
 }
 [data-theme="dark"] .word-split-title.untested-title {
   color: #94A3B8 !important;
 }
 [data-theme="dark"] .word-split-title.advice-title {
-  color: #34D399 !important;
+  color: #94A3B8 !important;
 }
 [data-theme="dark"] .word-pill-tag.correct {
   background: rgba(14, 165, 233, 0.22) !important;

@@ -1316,8 +1316,8 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     : (isTrulyPerfect ? `<span class="card-icon-slot">❌</span><span>答錯的單字 (0 字)</span>` : (missedCount > 0 ? `<span class="card-icon-slot">🔘</span><span>未作答的單字 (${missedCount} 字)</span>` : `<span class="card-icon-slot">❌</span><span>答錯的單字 (0 字)</span>`));
 
   if (isUntested) {
-    leftBoxClass = "advice-box";
-    leftTitleClass = "advice-title";
+    leftBoxClass = "wrong-box advice-box";
+    leftTitleClass = "wrong-title advice-title";
     leftTitleText = `<span class="card-icon-slot">💡</span><span>學習紀錄提醒</span>`;
     correctContentHtml = `
       <div style="display:flex; flex-direction:column; justify-content:flex-start; align-items:flex-start; gap:6px; padding:6px 0; font-size:12.5px; line-height:1.6; width:100%;">
@@ -1341,8 +1341,8 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
       wrongContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（指派單字載入中或未指定具體單字清單）</span>`;
     }
   } else if (isIncomplete && actualAnswered === 0) {
-    leftBoxClass = "advice-box";
-    leftTitleClass = "advice-title";
+    leftBoxClass = "wrong-box advice-box";
+    leftTitleClass = "wrong-title advice-title";
     leftTitleText = `<span class="card-icon-slot">💡</span><span>測驗作答狀態</span>`;
     correctContentHtml = `
       <div style="display:flex; flex-direction:column; justify-content:flex-start; align-items:flex-start; gap:6px; padding:6px 0; font-size:12.5px; line-height:1.6; width:100%;">
@@ -1743,8 +1743,8 @@ function renderUntestedTaskCardHtml(info, d) {
       </div>
 
       <div class="word-split-grid grid-2">
-        <div class="word-split-box advice-box">
-          <div class="word-split-title advice-title">
+        <div class="word-split-box wrong-box advice-box">
+          <div class="word-split-title wrong-title advice-title">
             <span class="card-icon-slot">💡</span><span>學習提醒</span>
           </div>
           <div class="word-split-content" style="display:flex; flex-direction:column; justify-content:flex-start; align-items:flex-start; gap:6px; padding:6px 0; font-size:12.5px; line-height:1.6; width:100%;">
