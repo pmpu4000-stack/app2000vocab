@@ -3365,9 +3365,27 @@
     }
     .task-score-grid {
       display: grid !important;
-      grid-template-columns: repeat(3, 1fr) !important;
+      grid-template-columns: repeat(2, 1fr) !important;
       gap: 10px !important;
       margin-bottom: 12px !important;
+    }
+    .task-score-subgrid {
+      display: grid !important;
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 8px !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+    }
+    @media (max-width: 580px) {
+      .task-score-subgrid {
+        gap: 6px !important;
+      }
+      .task-score-subgrid .task-score-label {
+        font-size: 10px !important;
+      }
+      .task-score-subgrid .task-score-val {
+        font-size: 18px !important;
+      }
     }
     @media (max-width: 480px) {
       .task-score-grid {
@@ -15282,24 +15300,33 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
     `
     : (hasUnanswered ? `
       <div class="task-score-grid">
-        <div class="task-score-item">
-          <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap;">
-            <span style="flex:1; text-align:right;">答對單字數</span>
-            <span style="padding:0 6px; opacity:0.6;">/</span>
-            <span style="flex:1; text-align:left;">應測總單字數</span>
+        <div class="task-score-subgrid">
+          <div class="task-score-item" style="display:flex; flex-direction:column; justify-content:center; padding:10px 4px;">
+            <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap; font-size:10.5px;" title="答對單字數 / 應測總單字數">
+              <span style="flex:1; text-align:right;">答對單字數</span>
+              <span style="padding:0 2px; opacity:0.6;">/</span>
+              <span style="flex:1; text-align:left;">應測總單字數</span>
+            </div>
+            <div class="task-score-val" style="display:flex; align-items:center; justify-content:center;">
+              <span class="task-score-num-corr" style="flex:1; text-align:right; color:#0284c7;">${taskCorrWords}</span>
+              <span style="padding:0 4px; font-weight:700; color:var(--ink3); opacity:0.6; font-size:18px;">/</span>
+              <span class="task-score-num-tot" style="flex:1; text-align:left; color:#0369a1;">${assignedTotWords}</span>
+            </div>
           </div>
-          <div class="task-score-val" style="display:flex; align-items:center; justify-content:center;">
-            <span class="task-score-num-corr" style="flex:1; text-align:right; color:#0284c7;">${taskCorrWords}</span>
-            <span style="padding:0 6px; font-weight:700; color:var(--ink3); opacity:0.6; font-size:18px;">/</span>
-            <span class="task-score-num-tot" style="flex:1; text-align:left; color:#0369a1;">${assignedTotWords}</span>
-          </div>
-          <div style="font-size:11px; font-weight:600; color:var(--ink2); margin-top:2px; display:flex; align-items:center; justify-content:center; gap:5px;">
-            <span>已作答 ${actualAnswered} 題</span>
-            <span style="opacity:0.4; margin:0 2px;">/</span>
-            <span style="color:#ef4444; font-weight:700;">未作答 ${actualUnanswered} 題</span>
+          <div class="task-score-item" style="display:flex; flex-direction:column; justify-content:center; padding:10px 4px;">
+            <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap; font-size:10.5px;" title="已作答題數 / 未作答題數">
+              <span style="flex:1; text-align:right;">已作答題數</span>
+              <span style="padding:0 2px; opacity:0.6;">/</span>
+              <span style="flex:1; text-align:left; color:#ef4444;">未作答題數</span>
+            </div>
+            <div class="task-score-val" style="display:flex; align-items:center; justify-content:center;">
+              <span style="flex:1; text-align:right; color:#0284c7;">${actualAnswered}</span>
+              <span style="padding:0 4px; font-weight:700; color:var(--ink3); opacity:0.6; font-size:18px;">/</span>
+              <span style="flex:1; text-align:left; color:#ef4444;">${actualUnanswered}</span>
+            </div>
           </div>
         </div>
-        <div class="task-score-item">
+        <div class="task-score-item" style="display:flex; flex-direction:column; justify-content:center;">
           <div class="task-score-label">整體得分率</div>
           <div class="task-score-val" style="display:flex; flex-direction:column; align-items:center; justify-content:center;">
             <span style="color:${overallScoreRate >= 80 ? '#16a34a' : (overallScoreRate >= 60 ? '#ca8a04' : '#ea580c')}; font-size:22px; font-weight:800; line-height:1.2;">${overallScoreRate}%</span>
