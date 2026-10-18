@@ -16893,13 +16893,37 @@ function renderStudentSummary(resp) {
       tCor = parseInt(p[0]) || 0;
       tAtt = parseInt(p[1]) || 0;
     }
-    let tRate = tAtt > 0 ? Math.round((tCor / tAtt) * 100) : (parseInt(matchedTask.rate) || 0);
-    if (tAtt === 0 && (String(matchedTask.status || "").includes("已") || (matchedTask.score && matchedTask.score !== "—" && matchedTask.score !== "尚未開始"))) {
-      const { rawWords, wrongList, correctList } = resolveTaskWords(matchedTask, keyDash, agent);
-      tAtt = (correctList.length + wrongList.length) || rawWords.length || 10;
-      tCor = correctList.length;
-      if (tRate === 0 && tAtt > 0) tRate = Math.round((tCor / tAtt) * 100);
+
+    // 解析該測驗的詳細單字清單 (rawWords, wrongList, correctList)
+    const { rawWords, wrongList, correctList } = resolveTaskWords(matchedTask, keyDash, agent);
+    if (correctList && correctList.length > 0) {
+      tCor = Math.max(tCor, correctList.length);
     }
+    const answeredWordsCount = (correctList.length + wrongList.length) > 0 ? (correctList.length + wrongList.length) : tAtt;
+    if (tAtt === 0) {
+      tAtt = answeredWordsCount;
+    }
+
+    // 全卷應測總單字數（優先採 rawWords 清單長度，若無則採 score 的分母或已作答題數）
+    let assignedTotWords = (rawWords && rawWords.length > 0) ? rawWords.length : answeredWordsCount;
+    if (matchedTask.score && String(matchedTask.score).includes("/")) {
+      const p = String(matchedTask.score).split("/");
+      const sTot = parseInt(p[1], 10);
+      if (!isNaN(sTot) && sTot > assignedTotWords) assignedTotWords = sTot;
+    }
+    if (assignedTotWords < answeredWordsCount) assignedTotWords = answeredWordsCount;
+    if (assignedTotWords < tAtt) assignedTotWords = tAtt;
+
+    // 全卷正確率：以全卷應測總單字數 (assignedTotWords) 為分母計算之正確率，作為熱力圖的依據
+    let tRate = 0;
+    if (assignedTotWords > 0) {
+      tRate = Math.round((tCor / assignedTotWords) * 100);
+    } else if (tAtt > 0) {
+      tRate = Math.round((tCor / tAtt) * 100);
+    } else {
+      tRate = parseInt(matchedTask.rate) || 0;
+    }
+
     const isInc = String(matchedTask.status || "").includes("作答中") || String(matchedTask.status || "").includes("中斷") || String(matchedTask.status || "").includes("未完成") || matchedTask.inProgress === true;
     let isLoginUntested = false;
     let isAbsent = false;
@@ -16911,7 +16935,7 @@ function renderStudentSummary(resp) {
         isAbsent = true;
       }
     }
-    const res = { a: tAtt, c: tCor, rate: tRate, isIncomplete: isInc, isLoginUntested: isLoginUntested, isAbsent: isAbsent };
+    const res = { a: tAtt, c: tCor, rate: tRate, wordsCount: assignedTotWords, isIncomplete: isInc, isLoginUntested: isLoginUntested, isAbsent: isAbsent };
     taskHeatStatCache.set(keyDash, res);
     return res;
   };
@@ -17014,7 +17038,8 @@ function renderStudentSummary(resp) {
           taskHeatDayInfoEl.className = "heat-day-info tier-status-red";
           taskHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ <b>🟢 缺席未受測</b>`;
         } else if (att > 0) {
-          taskHeatDayInfoEl.className = "heat-day-info tier-blue-high";
+          const tierClass = rate >= 100 ? "tier-blue-perfect" : (rate >= 80 ? "tier-blue-high" : (rate >= 60 ? "tier-blue-mid" : "tier-blue-low"));
+          taskHeatDayInfoEl.className = `heat-day-info ${tierClass}`;
           taskHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 正確率 <b>${rate}%</b>`;
         } else {
           taskHeatDayInfoEl.className = "heat-day-info tier-gray";

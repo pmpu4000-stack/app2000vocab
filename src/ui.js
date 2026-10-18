@@ -2561,7 +2561,6 @@ export function renderSummary(d) {
       tCor = parseInt(sp[0], 10) || 0;
       tAtt = parseInt(sp[1], 10) || 0;
     }
-    let tRate = tAtt > 0 ? Math.round((tCor / tAtt) * 100) : (parseInt(tRec.rate) || 0);
 
     const statusStr = String(tRec.status || "");
     // 計算單字數量 (wordsCount)
@@ -2570,13 +2569,25 @@ export function renderSummary(d) {
     const resolvedCorr = resolved.correctList || [];
     const resolvedWrong = resolved.wrongList || [];
     const resolvedAnsCount = resolvedCorr.length + resolvedWrong.length;
-    const taskWordsCount = resolvedRaw.length || (Array.isArray(tRec.words) && tRec.words.length) || tAtt || 5;
+    let taskWordsCount = resolvedRaw.length || (Array.isArray(tRec.words) && tRec.words.length) || tAtt || 5;
 
     if (!tAtt && resolvedAnsCount > 0) {
       tAtt = resolvedAnsCount;
       tCor = resolvedCorr.length;
-      tRate = Math.round((tCor / tAtt) * 100);
     }
+    if (resolvedCorr.length > 0) {
+      tCor = Math.max(tCor, resolvedCorr.length);
+    }
+    if (tRec.score && String(tRec.score).includes("/")) {
+      const sp = String(tRec.score).split("/");
+      const sTot = parseInt(sp[1], 10);
+      if (!isNaN(sTot) && sTot > taskWordsCount) taskWordsCount = sTot;
+    }
+    if (taskWordsCount < resolvedAnsCount) taskWordsCount = resolvedAnsCount;
+    if (taskWordsCount < tAtt) taskWordsCount = tAtt;
+
+    // 全卷正確率作為熱力圖依據
+    let tRate = taskWordsCount > 0 ? Math.round((tCor / taskWordsCount) * 100) : (tAtt > 0 ? Math.round((tCor / tAtt) * 100) : (parseInt(tRec.rate) || 0));
 
     // 核心完成判定：只要狀態明確為已完成，或已全數作答完畢
     const isFinished = statusStr.includes("已完成") || (!statusStr.includes("未受測") && !statusStr.includes("尚未開始") && ((tAtt > 0 && tAtt >= taskWordsCount) || (resolvedAnsCount > 0 && resolvedAnsCount >= taskWordsCount)));
