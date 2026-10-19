@@ -1324,11 +1324,18 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     record.inProgress === true
   );
 
+  let displayStatusStr = "";
+  let statusColor = "#64748b";
+  let statusDesc = "";
+
   const isUnassigned = (record.taskName && (record.taskName.includes("未指派") || record.taskName.includes("自主練習") || record.taskName.includes("自由練習"))) || statusStr.includes("未指派");
 
   // 核心未受測判定：絕不因為單字清單暫未展開 (totalAnswered === 0) 誤把已完成的測驗判斷為未受測！
   const isUntested = !isUnassigned && !isFinished && !isIncomplete && (
     statusStr.includes("未受測") ||
+    statusStr.includes("缺席") ||
+    statusStr.includes("缺考") ||
+    statusStr.includes("未作答") ||
     scoreVal === "—" ||
     scoreVal === "尚未開始" ||
     (totalAnswered === 0 && !hasFinishedStatus && taskRate === 0)
@@ -1346,7 +1353,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     statusColor = "#047857";
     displayStatusStr = "已完成";
   } else if (isUntested) {
-    if (hasLoggedInOrFree) {
+    if (hasLoggedInOrFree || statusStr.includes("登入未受測") || statusStr.includes("登入未作答")) {
       displayStatusStr = "登入未受測";
       statusColor = "#16a34a";
       statusDesc = "⚠️ 有登入但未測驗";
@@ -1355,6 +1362,11 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
       statusColor = "#059669";
       statusDesc = "📴 當日無登入紀錄 (缺考)";
     }
+  }
+
+  if (!displayStatusStr) {
+    displayStatusStr = statusStr || "未受測";
+    statusColor = "#64748b";
   }
 
   let correctContentHtml = "";
@@ -1961,9 +1973,19 @@ function buildTaskDetailsHtml(records, selectedDate, d) {
     return bDone - aDone;
   });
 
-  // 1. 僅從明確的備份任務歷程（如學習歷程頁 cachedBackupTaskHistory）檢查是否指派，絕不單憑殘留的 task_words_* 快取誤判為有指派
+  // 1. 從歷程資料與快取中提取任務名稱與單字清單
   let assignedWords = [];
   let taskName = "";
+
+  const allHist = getCombinedTaskHistory();
+  const matchedHist = allHist.find(h => {
+    const hd = normalizeDateStr(h && h.date ? h.date : "");
+    return hd === normDate && h.taskName && h.taskName !== "自主練習" && !String(h.taskName).includes("自由練習") && !String(h.taskName).includes("未指派");
+  });
+  if (matchedHist) {
+    taskName = matchedHist.taskName || matchedHist.name || "";
+    if (Array.isArray(matchedHist.words) && matchedHist.words.length > 0) assignedWords = matchedHist.words;
+  }
 
   if (Array.isArray(window.cachedBackupTaskHistory)) {
     const matched = window.cachedBackupTaskHistory.find(h => {
@@ -1971,25 +1993,38 @@ function buildTaskDetailsHtml(records, selectedDate, d) {
       return normalizeDateStr(hDate) === normDate;
     });
     if (matched && matched.taskName && matched.taskName !== "自主練習" && !String(matched.taskName).includes("未指派")) {
-      taskName = matched.taskName || matched.name || "";
-      if (Array.isArray(matched.words)) assignedWords = matched.words;
+      if (!taskName) taskName = matched.taskName || matched.name || "";
+      if (assignedWords.length === 0 && Array.isArray(matched.words)) assignedWords = matched.words;
     }
+  }
+
+  if (assignedWords.length === 0) {
+    try {
+      const rawW = localStorage.getItem("task_words_" + normDate) || localStorage.getItem("task_words_" + normDate.replace(/-/g, "/"));
+      if (rawW) {
+        const pw = JSON.parse(rawW);
+        if (Array.isArray(pw) && pw.length > 0) assignedWords = pw;
+      }
+    } catch(_) {}
   }
 
   // 2. 判斷學生當天是否有自由練習紀錄
   const freeRec = resolveDailyPracticeRecord(selectedDate, d, records);
   const hasLoggedInOrFree = !!(freeRec && (freeRec.attempts > 0 || freeRec.correct > 0));
 
-  const isUntestedRecord = (Array.isArray(records) && records.some(r => r && r.status && r.status.includes("未受測") && r.taskName && !r.taskName.includes("未指派"))) ||
-                           (!Array.isArray(records) && records && records.status && records.status.includes("未受測") && records.taskName && !records.taskName.includes("未指派"));
-  const isAssigned = isUntestedRecord || !!taskName;
+  // 3. 取得熱力圖狀態與未受測標記
+  const stat = (typeof getTaskDayStat === "function") ? getTaskDayStat(selectedDate) : null;
+  const isStatUntested = stat && (stat.statusType === "login_untested" || stat.statusType === "absent_untested");
+  const isUntestedRecord = (Array.isArray(records) && records.some(r => r && r.status && (r.status.includes("未受測") || r.status.includes("缺席") || r.status.includes("未作答")))) ||
+                           (!Array.isArray(records) && records && records.status && (records.status.includes("未受測") || records.status.includes("缺席") || records.status.includes("未作答")));
+  const isAssigned = isStatUntested || isUntestedRecord || !!taskName || (assignedWords && assignedWords.length > 0);
 
   if (list.length === 0) {
     if (isAssigned && !isSatClearedOnSunday) {
       return renderUntestedTaskCardHtml({
-        taskName: taskName || (normDate.replace(/-/g, "").slice(4) + "指定單字測驗結果"),
+        taskName: taskName || (normDate.replace(/-/g, "").slice(4) + "指定單字隨堂測驗"),
         assignedWords: assignedWords || [],
-        hasLoggedInOrFree,
+        hasLoggedInOrFree: hasLoggedInOrFree || (stat && stat.statusType === "login_untested"),
         selectedDate
       }, d);
     }
@@ -2691,8 +2726,8 @@ export function renderSummary(d) {
     if (taskDayStatCache.has(norm)) return taskDayStatCache.get(norm);
 
     const tArr = taskByDateMap.get(norm);
-    const tRec = (tArr && (tArr.find(r => r && r.status && r.status.includes("已完成")) || tArr.find(r => r && r.score && r.score !== "—" && r.score !== "尚未開始") || tArr[0])) || null;
-    if (!tRec || !tRec.taskName || tRec.taskName === "⚪ 未指派" || (tRec.status && tRec.status.includes("未指派"))) {
+    const isUnassignedTask = !tRec || !tRec.taskName || tRec.taskName === "⚪ 未指派" || tRec.taskName === "未指派" || tRec.taskName === "自主練習" || String(tRec.taskName).includes("未指派") || (tRec.status && tRec.status.includes("未指派"));
+    if (isUnassignedTask) {
       const res = {
         a: 0, c: 0, rate: 0,
         statusType: "unassigned",
@@ -3066,6 +3101,10 @@ export function renderSummary(d) {
             updateTaskHeatDayBadge(idx);
             if (taskHeatDays[idx] && taskHeatDays[idx].key) {
               switchRecordDate(taskHeatDays[idx].key);
+              const detailsEl = $("#task-record-details");
+              if (detailsEl) {
+                detailsEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
+              }
             }
           }
         };
@@ -3154,6 +3193,10 @@ export function renderSummary(d) {
             updateHeatDayBadge(idx);
             if (heatDays[idx] && heatDays[idx].key) {
               switchRecordDate(heatDays[idx].key);
+              const detailsEl = $("#free-record-details");
+              if (detailsEl) {
+                detailsEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
+              }
             }
           }
         };

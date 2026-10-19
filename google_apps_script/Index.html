@@ -11921,7 +11921,18 @@ function setupHeatmapTooltips() {
     };
 
     cell.addEventListener("mouseenter", showTip);
-    cell.addEventListener("click", showTip);
+    cell.addEventListener("click", e => {
+      showTip(e);
+      const date = cell.getAttribute("data-date");
+      if (date) {
+        const qDate = document.getElementById("queryDate") || document.getElementById("targetDate");
+        if (qDate) {
+          qDate.value = date;
+          const qBtn = document.getElementById("btnQuery") || document.getElementById("btnSearch");
+          if (qBtn) qBtn.click();
+        }
+      }
+    });
     cell.addEventListener("focus", showTip);
     cell.addEventListener("blur", () => {
       tooltip.style.display = "none";
@@ -15805,7 +15816,9 @@ function buildTaskDetailsHtml(records, selectedDate, agent) {
     }
   }
 
-  const isAssignedOnDate = !isSatClearedOnSunday && !!((assignedWords && assignedWords.length > 0) || taskName || Object.keys(taskDict).some(k => k.startsWith(sDateNorm) || k.startsWith(sDateShort)));
+  const isUntestedRecord = (Array.isArray(records) && records.some(r => r && r.status && (r.status.includes("未受測") || r.status.includes("缺席") || r.status.includes("未作答")))) ||
+                           (!Array.isArray(records) && records && records.status && (records.status.includes("未受測") || records.status.includes("缺席") || records.status.includes("未作答")));
+  const isAssignedOnDate = !isSatClearedOnSunday && !!(isUntestedRecord || (assignedWords && assignedWords.length > 0) || taskName || Object.keys(taskDict).some(k => k.startsWith(sDateNorm) || k.startsWith(sDateShort)));
 
   // 2. 判斷學生當天是否有登入或自由練習紀錄
   const dpMap = (agent && agent.dailyPractice) ? agent.dailyPractice : {};
@@ -17230,6 +17243,8 @@ function renderStudentSummary(resp) {
             updateStTaskHeatDayBadge(idx);
             if (taskDays[idx] && taskDays[idx].key && typeof window.__switchStRecordDate === "function") {
               window.__switchStRecordDate(taskDays[idx].key);
+              const detEl = document.getElementById("task-record-details");
+              if (detEl) detEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
             }
           }
         });
@@ -17412,6 +17427,8 @@ function renderStudentSummary(resp) {
             updateStHeatDayBadge(idx);
             if (days[idx] && days[idx].key && typeof window.__switchStRecordDate === "function") {
               window.__switchStRecordDate(days[idx].key);
+              const detEl = document.getElementById("free-record-details");
+              if (detEl) detEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
             }
           }
         });
