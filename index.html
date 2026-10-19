@@ -117,7 +117,7 @@
           <b id="s-user" class="tnum">-</b>
           <span>登入帳號</span>
         </div>
-        <div class="stat streak-freeze" id="stat-streak-freeze" title="連勝護盾（若當日未練習，自動消耗 1 個護盾守護連續紀錄，每達 50 題答對自動補充）">
+        <div class="stat streak-freeze" id="stat-streak-freeze" style="cursor:pointer;" title="連勝護盾（點擊查看說明）：目前剩餘 1 個，上限 2 個（尚未用完）。若當日未練習，自動消耗 1 個護盾守護連續紀錄，每達 50 題答對自動補充">
           <b id="s-freeze-val" class="tnum" style="color:#2563eb;">1/2</b>
           <span>🛡️ 連勝護盾</span>
         </div>
@@ -662,6 +662,79 @@
           location.reload();
         }
       };
+    // 點擊「連勝護盾」欄位彈出說明彈窗
+    window.openStreakFreezeModal = function() {
+      let curFreezes = 1;
+      try {
+        const sa = JSON.parse(localStorage.getItem("spellAgent.v2") || "{}");
+        if (typeof sa.streakFreezes === "number") curFreezes = sa.streakFreezes;
+      } catch(_) {}
+      const valEl = document.getElementById("s-freeze-val");
+      if (valEl && valEl.textContent) {
+        const m = valEl.textContent.match(/^(\d+)/);
+        if (m) curFreezes = parseInt(m[1], 10);
+      }
+
+      let mEl = document.getElementById("streak-freeze-modal");
+      if (!mEl) {
+        mEl = document.createElement("div");
+        mEl.id = "streak-freeze-modal";
+        mEl.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.65);backdrop-filter:blur(4px);z-index:999999;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;";
+        mEl.onclick = (e) => { if (e.target === mEl) mEl.style.display = 'none'; };
+        document.body.appendChild(mEl);
+      }
+
+      const isAvailable = curFreezes > 0;
+      const statusColor = isAvailable ? "#10B981" : "#EF4444";
+      const statusBg = isAvailable ? "rgba(16,185,129,0.12)" : "rgba(239,68,68,0.12)";
+      const statusText = isAvailable ? `🟢 守護中（目前剩餘 ${curFreezes} 個，尚未用完）` : "🔴 已用完（目前無剩餘護盾）";
+
+      mEl.innerHTML = `
+        <div style="background:var(--card, #FFFFFF); color:var(--ink, #1E293B); border-radius:18px; max-width:440px; width:100%; padding:24px 22px; box-shadow:0 12px 36px rgba(0,0,0,0.25); border:1.5px solid var(--line, #E2E8F0); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; line-height:1.6;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; border-bottom:1px solid var(--line, #E2E8F0); padding-bottom:10px;">
+            <div style="font-size:18px; font-weight:800; display:flex; align-items:center; gap:8px;">
+              <span>🛡️ 連勝護盾機制說明</span>
+            </div>
+            <button onclick="document.getElementById('streak-freeze-modal').style.display='none'" style="background:none; border:none; font-size:20px; cursor:pointer; color:var(--ink3, #94A3B8); padding:0 4px;">✕</button>
+          </div>
+          
+          <div style="background:${statusBg}; border:1px solid ${statusColor}; border-radius:12px; padding:12px 14px; margin-bottom:14px; text-align:center;">
+            <div style="font-size:13px; color:var(--ink2, #475569); font-weight:600; margin-bottom:2px;">目前護盾存量</div>
+            <div style="font-size:26px; font-weight:900; color:${statusColor};">${curFreezes} / 2 個</div>
+            <div style="font-size:12.5px; font-weight:800; color:${statusColor}; margin-top:3px;">${statusText}</div>
+          </div>
+
+          <div style="font-size:13.5px; color:var(--ink2, #475569); display:flex; flex-direction:column; gap:10px; margin-bottom:18px;">
+            <div>
+              <b style="color:var(--ink, #0F172A);">📌 什麼是「1/2」？</b><br>
+              代表目前<b>持有 ${curFreezes} 個護盾</b>，背包上限最多可儲存 <b>2 個</b>。<b>護盾尚未用完</b>，請放心！
+            </div>
+            <div>
+              <b style="color:var(--ink, #0F172A);">❓ 下方為什麼顯示「用完了」？</b><br>
+              若下方畫面看到用完提示，通常是「<b>⏰ 今日 10 分鐘練習時間已用完</b>」的休息防沉迷提醒，<b>並非</b>連勝護盾用完。
+            </div>
+            <div>
+              <b style="color:var(--ink, #0F172A);">🛡️ 護盾如何使用？</b><br>
+              若某天因請假或忙碌未上線練習，隔日系統會<b>自動消耗 1 個護盾</b>保護連續練習天數不歸零。
+            </div>
+            <div>
+              <b style="color:var(--ink, #0F172A);">⚡ 如何補充護盾？</b><br>
+              平日或自由練習中，每<b>累積答對 50 題</b>，系統就會自動獎勵補充 1 個護盾（最高存滿 2 個）。
+            </div>
+          </div>
+
+          <button onclick="document.getElementById('streak-freeze-modal').style.display='none'" style="width:100%; padding:10px 0; background:linear-gradient(135deg,#3B82F6,#2563EB); color:#FFFFFF; border:none; border-radius:10px; font-size:14px; font-weight:800; cursor:pointer; box-shadow:0 2px 8px rgba(37,99,235,0.3);">
+            我知道了
+          </button>
+        </div>
+      `;
+      mEl.style.display = "flex";
+    };
+
+    const statFreeze = document.getElementById("stat-streak-freeze");
+    if (statFreeze) {
+      statFreeze.style.cursor = "pointer";
+      statFreeze.onclick = () => window.openStreakFreezeModal();
     }
 
     // 支援輸入框按下 Enter 鍵直接登入

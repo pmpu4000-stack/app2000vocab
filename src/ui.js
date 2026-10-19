@@ -579,7 +579,16 @@ export function renderProgress(s) {
   const sStreak = el.sStreak || (el.sStreak = $("#s-streak"));
   if (sStreak) sStreak.textContent = s.streak !== undefined ? s.streak : 0;
   const sFreeze = $("#s-freeze-val");
-  if (sFreeze) sFreeze.textContent = `${(s.streakFreezes !== undefined) ? s.streakFreezes : 1}/2`;
+  if (sFreeze) {
+    const fCount = (s.streakFreezes !== undefined) ? s.streakFreezes : 1;
+    sFreeze.textContent = `${fCount}/2`;
+    const fParent = sFreeze.closest ? sFreeze.closest(".stat") : null;
+    if (fParent) {
+      fParent.title = `連勝護盾（點擊查看說明）：目前剩餘 ${fCount} 個，上限 2 個（${fCount > 0 ? "尚未用完" : "已用完"}）。若當日未練習，自動消耗 1 個護盾守護連續紀錄，每達 50 題答對自動補充`;
+      fParent.style.cursor = "pointer";
+      fParent.onclick = () => { if (typeof window.openStreakFreezeModal === "function") window.openStreakFreezeModal(); };
+    }
+  }
 
   const total = s.total || 2055;
   const vocabRate = total > 0 ? Math.round((distinctCorr / total) * 100) : 0;
@@ -2935,7 +2944,7 @@ export function renderSummary(d) {
       </div>
       <div class="embedded-heatmap-sec">
         <div class="streakline">
-          <span>連續 <b>${taskStreak}</b> 天 · 最佳 <b>${taskBest}</b> 天 · 累計練習 <b>${taskTotal}</b> 天 <span class="streak-freeze-badge" title="連勝守護護盾：偶爾請假缺席時，系統自動消耗 1 個護盾守護連續紀錄！每累積 50 題答對可補充（上限 2 個）。">🛡️ 護盾: <b>${d.streakFreezes !== undefined ? d.streakFreezes : ((d.history && typeof d.history.streakFreezes === 'number') ? d.history.streakFreezes : 1)}/2</b></span></span>
+          <span>連續 <b>${taskStreak}</b> 天 · 最佳 <b>${taskBest}</b> 天 · 累計練習 <b>${taskTotal}</b> 天 <span class="streak-freeze-badge" onclick="event.stopPropagation(); (typeof window.openStreakFreezeModal==='function') &amp;&amp; window.openStreakFreezeModal();" style="cursor:pointer;" title="連勝守護護盾（點擊查看說明）：偶爾請假缺席時，系統自動消耗 1 個護盾守護連續紀錄！每累積 50 題答對可補充（上限 2 個）。">🛡️ 護盾: <b>${d.streakFreezes !== undefined ? d.streakFreezes : ((d.history && typeof d.history.streakFreezes === 'number') ? d.history.streakFreezes : 1)}/2</b></span></span>
           <span id="task-heat-day-info" class="heat-day-info"></span>
         </div>
         <div class="heatmap heatmap-task" id="task-heatmap-grid">${taskHeatDays.map((x, idx) =>
@@ -2953,7 +2962,7 @@ export function renderSummary(d) {
       </div>
       <div class="embedded-heatmap-sec">
         <div class="streakline">
-          <span>連續 <b>${d.history.streak}</b> 天 · 最佳 <b>${d.history.best}</b> 天 · 累計練習 <b>${d.history.total}</b> 天 <span class="streak-freeze-badge" title="連勝守護護盾：偶爾請假缺席時，系統自動消耗 1 個護盾守護連續紀錄！每累積 50 題答對可補充（上限 2 個）。">🛡️ 護盾: <b>${d.streakFreezes !== undefined ? d.streakFreezes : ((d.history && typeof d.history.streakFreezes === 'number') ? d.history.streakFreezes : 1)}/2</b></span></span>
+          <span>連續 <b>${d.history.streak}</b> 天 · 最佳 <b>${d.history.best}</b> 天 · 累計練習 <b>${d.history.total}</b> 天 <span class="streak-freeze-badge" onclick="event.stopPropagation(); (typeof window.openStreakFreezeModal==='function') &amp;&amp; window.openStreakFreezeModal();" style="cursor:pointer;" title="連勝守護護盾（點擊查看說明）：偶爾請假缺席時，系統自動消耗 1 個護盾守護連續紀錄！每累積 50 題答對可補充（上限 2 個）。">🛡️ 護盾: <b>${d.streakFreezes !== undefined ? d.streakFreezes : ((d.history && typeof d.history.streakFreezes === 'number') ? d.history.streakFreezes : 1)}/2</b></span></span>
           <span id="heat-day-info" class="heat-day-info"></span>
         </div>
         <div class="heatmap" id="heatmap-grid">${d.history.days.map((x, idx) =>
