@@ -978,7 +978,7 @@ function getWeekendRemediationTask(ss, cleanClass, username, completedTasksToday
       const headers = uSheet.getRange(1, 1, 1, lastCol).getValues()[0] || [];
       const hMap = getHeaderIndexMap(headers);
       const maxRows = Math.min(uSheet.getLastRow() - 1, 60);
-      const uVals = uSheet.getRange(2, 1, maxRows, lastCol).getValues();
+      const freeWrongWordsSet = new Set();
       for (let r = 0; r < uVals.length; r++) {
         const rowD = formatStandardDateYMD(uVals[r][0]);
         const tName = String(uVals[r][hMap.taskName] || "").trim().toLowerCase();
@@ -987,6 +987,17 @@ function getWeekendRemediationTask(ss, cleanClass, username, completedTasksToday
         const wrongStr = String(uVals[r][hMap.wrong] || "").trim();
         const wrongList = wrongStr ? wrongStr.split(/[\s,;\n\r]+/).map(w => w.trim().toLowerCase()).filter(Boolean) : [];
         const isDone = (status.includes("已完成") || (score !== "—" && score !== ""));
+
+        // 讀取平日自由練習錯題
+        if (hMap.freeWrong !== undefined && uVals[r][hMap.freeWrong]) {
+          const fwStr = String(uVals[r][hMap.freeWrong] || "").trim();
+          if (fwStr) {
+            const fwList = fwStr.split(/[\s,;\n\r]+/).map(w => w.trim().toLowerCase()).filter(Boolean);
+            if (rowD >= monStr && rowD <= friStr) {
+              fwList.forEach(w => freeWrongWordsSet.add(w));
+            }
+          }
+        }
 
         if (rowD >= monStr && rowD <= friStr) {
           if (tName && isDone) {
@@ -1067,6 +1078,11 @@ function getWeekendRemediationTask(ss, cleanClass, username, completedTasksToday
       // 學生有作答，但沒有答對（答錯的單字）：納入六日測驗
       doneRec.wrongWords.forEach(w => unpassedWordsSet.add(w));
     }
+  }
+
+  // ★ 平日自由練習中答錯的單字也自動納入六日待攻克測驗
+  if (typeof freeWrongWordsSet !== "undefined" && freeWrongWordsSet && freeWrongWordsSet.size > 0) {
+    freeWrongWordsSet.forEach(w => unpassedWordsSet.add(w));
   }
 
   if (unpassedWordsSet.size === 0) return null;

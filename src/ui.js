@@ -2354,6 +2354,12 @@ export function getWeekPendingConquerWords() {
               if (cw) unfinishedWords.add(cw);
             });
           }
+          if (Array.isArray(item.freeWrongWords)) {
+            item.freeWrongWords.forEach(w => {
+              const cw = String(w).trim().toLowerCase();
+              if (cw) unfinishedWords.add(cw);
+            });
+          }
           const status = String(item.status || "");
           const score = String(item.score || "");
           const isUnattempted = !status.includes("已完成") || score === "—" || score === "尚未開始";
@@ -2365,6 +2371,27 @@ export function getWeekPendingConquerWords() {
           }
         }
       });
+    }
+  } catch(_) {}
+
+  // 1b. 從 app2000vocab_data 讀取平日自由練習中的錯題
+  try {
+    const rawData = localStorage.getItem("app2000vocab_data");
+    if (rawData) {
+      const parsed = JSON.parse(rawData);
+      if (parsed && parsed.dailyPractice) {
+        for (const dateKey in parsed.dailyPractice) {
+          if (dateKey >= mondayStr && dateKey <= fridayStr) {
+            const dp = parsed.dailyPractice[dateKey];
+            if (dp && Array.isArray(dp.wrongWords)) {
+              dp.wrongWords.forEach(w => {
+                const cw = String(w).trim().toLowerCase();
+                if (cw) unfinishedWords.add(cw);
+              });
+            }
+          }
+        }
+      }
     }
   } catch(_) {}
 
@@ -2895,7 +2922,6 @@ export function renderSummary(d) {
         ${initialFreeDetailsHtml}
       </div>
       <div class="embedded-heatmap-sec">
-        ${(d.history && d.history.justUsedFreeze) ? `<div style="margin:6px 0 10px;padding:6px 12px;border-radius:8px;background:rgba(59,130,246,0.12);border:1px solid rgba(59,130,246,0.3);color:#1d4ed8;font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px;">🛡️ 系統已自動為你使用「連勝守護卡」，成功守護了連續修練天數！</div>` : ''}
         <div class="streakline">
           <span>連續 <b>${d.history.streak}</b> 天 · 最佳 <b>${d.history.best}</b> 天 · 累計練習 <b>${d.history.total}</b> 天 <span class="streak-freeze-badge" title="連勝守護護盾：偶爾請假缺席時，系統自動消耗 1 個護盾守護連續紀錄！每累積 50 題答對可補充（上限 2 個）。">🛡️ 護盾: <b>${d.streakFreezes !== undefined ? d.streakFreezes : ((d.history && typeof d.history.streakFreezes === 'number') ? d.history.streakFreezes : 1)}/2</b></span></span>
           <span id="heat-day-info" class="heat-day-info"></span>

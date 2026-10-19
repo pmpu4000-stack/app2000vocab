@@ -322,7 +322,7 @@ function getVacationDayAssignedWords(dayOfWeek) {
   }
 }
 
-// ── 錯題記錄：只記錄「今日指定練習」中答錯的單字 ──
+// ── 錯題記錄：記錄平日測驗與自由練習中答錯的單字（滾入週末消滅戰） ──
 function recordTaskMistake(word) {
   try {
     const raw = localStorage.getItem("weekTaskMistakes");
@@ -337,13 +337,26 @@ function recordTaskMistake(word) {
   } catch(_) {}
 }
 
-// ── 取得學生於星期一到星期五沒有答對（包含沒有作答/缺考）的所有單字 ──
+function unmarkWordLearnedInFreePractice(word) {
+  try {
+    const raw = localStorage.getItem("remedy_learned_words");
+    if (!raw) return;
+    const list = JSON.parse(raw);
+    const cleanWord = String(word).trim().toLowerCase();
+    if (Array.isArray(list) && list.includes(cleanWord)) {
+      const updated = list.filter(w => w !== cleanWord);
+      localStorage.setItem("remedy_learned_words", JSON.stringify(updated));
+    }
+  } catch(_) {}
+}
+
+// ── 取得學生於星期一到星期五沒有答對（包含沒有作答/缺考/自由練習寫錯）的所有單字 ──
 function getMonToFriUnfinishedWords() {
   const unfinishedWords = new Set();
   const mondayStr = getWeekMondayDate();
   const fridayStr = getWeekFridayDate();
 
-  // 1. 從 student_task_history（由雲端試算表歷程同步）讀取本週一至週五任務
+  // 1. 從 student_task_history（由雲端試算表歷程同步）讀取本週一至週五任務與自由練習錯題
   try {
     const rawHist = localStorage.getItem("student_task_history");
     if (rawHist) {
@@ -353,14 +366,21 @@ function getMonToFriUnfinishedWords() {
           if (!item || !item.date) return;
           const iDate = String(item.date).trim().replace(/\//g, "-");
           if (iDate >= mondayStr && iDate <= fridayStr) {
-            // (a) 該測驗中答錯的單字
+            // (a) 指定測驗中答錯的單字
             if (Array.isArray(item.wrongWords)) {
               item.wrongWords.forEach(w => {
                 const cw = String(w).trim().toLowerCase();
                 if (cw) unfinishedWords.add(cw);
               });
             }
-            // (b) 若該任務狀態未完成、缺考或沒有作答（例如尚未開始或 score 為 "—"）
+            // (b) 自由練習中答錯的單字
+            if (Array.isArray(item.freeWrongWords)) {
+              item.freeWrongWords.forEach(w => {
+                const cw = String(w).trim().toLowerCase();
+                if (cw) unfinishedWords.add(cw);
+              });
+            }
+            // (c) 若該任務狀態未完成、缺考或沒有作答（例如尚未開始或 score 為 "—"）
             const status = String(item.status || "");
             const score = String(item.score || "");
             const isUnattempted = !status.includes("已完成") || score === "—" || score === "尚未開始";
@@ -376,7 +396,7 @@ function getMonToFriUnfinishedWords() {
     }
   } catch(_) {}
 
-  // 2. 從 weekTaskMistakes（本機即時記錄）讀取本週一至週五的錯題
+  // 2. 從 weekTaskMistakes（本機即時記錄）讀取本週一至週五的錯題（包含自由練習答錯單字）
   try {
     const rawMistakes = localStorage.getItem("weekTaskMistakes");
     if (rawMistakes) {
@@ -398,7 +418,32 @@ function getMonToFriUnfinishedWords() {
     }
   } catch(_) {}
 
-  // 3. 排除已在自主練習中答對並登記為已學會的單字（不加入假日指派測驗）
+  // 3. 從 dailyPractice（自由練習作答歷程）讀取本週一至週五答錯的單字
+  try {
+    const rawData = localStorage.getItem("app2000vocab_data");
+    if (rawData) {
+      const dbObj = JSON.parse(rawData);
+      if (dbObj && dbObj.dailyPractice) {
+        for (const dateKey in dbObj.dailyPractice) {
+          const normD = String(dateKey).trim().split(" ")[0].replace(/\//g, "-");
+          if (normD >= mondayStr && normD <= fridayStr) {
+            const dp = dbObj.dailyPractice[dateKey];
+            if (dp && dp.words) {
+              for (const wKey in dp.words) {
+                const info = dp.words[wKey];
+                if (info && (info.wrong > 0 || info.lastResult === "wrong" || info.hadCorrectThenWrong)) {
+                  const cw = String(wKey).trim().toLowerCase();
+                  if (cw) unfinishedWords.add(cw);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  } catch(_) {}
+
+  // 4. 排除已在自主練習中答對並登記為已學會的單字（不加入假日指派測驗）
   try {
     const rawLearned = localStorage.getItem("remedy_learned_words");
     const learnedList = rawLearned ? JSON.parse(rawLearned) : [];
@@ -647,12 +692,13 @@ function answer(correct, guessVal) {
       if (taskState.correctWords.includes(w) && !taskState.hadCorrectThenWrong.includes(w)) {
         taskState.hadCorrectThenWrong.push(w);
       }
-      // ⚠️ 僅在指定任務中答錯，才收錄進週末錯題補救庫！
+      // 週末消滅戰錯題補救庫：記錄答錯單字
       recordTaskMistake(w);
     }
     
-    // 依然更新背單字進度 (指定任務模式 isFree=false)
-    const info = store.grade(state.word.id, correct, store.progress().current, state.mode, state.word.word, false);
+    // 依然更新背單字進度 (指定任務模式 isFree=false，優先記錄該單字所屬正確關卡 Level)
+    const wordLevel = (state.word && state.word.level) || store.progress().current;
+    const info = store.grade(state.word.id, correct, wordLevel, state.mode, state.word.word, false);
     taskState.index++;
     // 每作答完一題立即更新持久化進度並同步雲端！
     persistTaskProgress();
@@ -672,11 +718,24 @@ function answer(correct, guessVal) {
   }
 
   // ── 自由闖關中作答：正常升降級，同步收錄至每日自由練習作答歷程 ──
-  const info = store.grade(state.word.id, correct, store.progress().current, state.mode, state.word.word, true);
+  const wordLevel = (state.word && state.word.level) || store.progress().current;
+  const info = store.grade(state.word.id, correct, wordLevel, state.mode, state.word.word, true);
   
-  // ★ 核心規則：如果在施測後自主練習答對，則登記為已學會，不加入假日與寒暑假指派測驗內容！
-  if (correct && state.word && state.word.word) {
-    markWordLearnedInFreePractice(state.word.word);
+  if (state.word && state.word.word) {
+    const w = String(state.word.word).trim().toLowerCase();
+    if (correct) {
+      // ★ 核心規則：如果在自由練習中答對，則登記為已學會，從本週待攻克單字中消滅！
+      markWordLearnedInFreePractice(w);
+    } else {
+      // ★ 核心規則：自由練習寫錯的單字，亦自動滾入六日待攻克單字！
+      recordTaskMistake(w);
+      unmarkWordLearnedInFreePractice(w);
+    }
+    try {
+      if (typeof ui !== "undefined" && typeof ui.updateWeekConquerSection === "function") {
+        ui.updateWeekConquerSection();
+      }
+    } catch(_) {}
   }
 
   // 依需求取消答對單字灑花特效

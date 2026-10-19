@@ -16392,6 +16392,12 @@ function renderStudentDailyTaskAndFreeSections(resp) {
             if (cw) unfinishedWords.add(cw);
           });
         }
+        if (Array.isArray(item.freeWrongWords)) {
+          item.freeWrongWords.forEach(w => {
+            const cw = String(w).trim().toLowerCase();
+            if (cw) unfinishedWords.add(cw);
+          });
+        }
         const status = String(item.status || "");
         const score = String(item.score || "");
         const isUnattempted = !status.includes("已完成") || score === "—" || score === "尚未開始";
@@ -16403,6 +16409,29 @@ function renderStudentDailyTaskAndFreeSections(resp) {
         }
       }
     });
+
+    // 自由練習平日錯題納入待攻克單字庫
+    if (agent && agent.dailyPractice) {
+      Object.entries(agent.dailyPractice).forEach(([dateKey, dp]) => {
+        const iDate = String(dateKey).trim().split(" ")[0].replace(/\//g, "-");
+        if (iDate >= mondayStr && iDate <= fridayStr && dp) {
+          if (Array.isArray(dp.wrongWords)) {
+            dp.wrongWords.forEach(w => {
+              const cw = String(w).trim().toLowerCase();
+              if (cw) unfinishedWords.add(cw);
+            });
+          }
+          if (dp.words) {
+            Object.entries(dp.words).forEach(([wKey, info]) => {
+              if (info && info.wrong > 0 && (!info.correct || info.correct === 0)) {
+                const cw = String(wKey).trim().toLowerCase();
+                if (cw) unfinishedWords.add(cw);
+              }
+            });
+          }
+        }
+      });
+    }
 
     // 檢查自主練習是否已答對學會
     const learnedWords = new Set();
