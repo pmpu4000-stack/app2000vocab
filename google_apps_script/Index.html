@@ -5472,8 +5472,9 @@
         <div class="subh-child" style="margin-top:16px; display:flex; align-items:center; flex-wrap:wrap; gap:8px;">
           <span id="stWeekConquerTitle">🎯 本週待攻克單字</span>
           <div class="conquer-cycle-toggle-group" style="display:inline-flex; align-items:center; gap:4px; margin-left:auto; background:var(--bar-track, rgba(0,0,0,0.06)); padding:2px; border-radius:8px;">
-            <button type="button" id="btn-st-conquer-cycle-current" class="date-nav-btn active" onclick="event.stopPropagation(); renderTeacherStudentConquerSection('current');" style="font-size:11.5px; padding:3px 8px; border-radius:6px; height:auto; line-height:1.2;">本週</button>
-            <button type="button" id="btn-st-conquer-cycle-prev" class="date-nav-btn" onclick="event.stopPropagation(); renderTeacherStudentConquerSection('previous');" style="font-size:11.5px; padding:3px 8px; border-radius:6px; height:auto; line-height:1.2;" title="查看上週遺留待攻克單字">上週</button>
+            <button type="button" id="btn-st-conquer-cycle-current" class="date-nav-btn active" style="font-size:11.5px; padding:3px 8px; border-radius:6px; height:auto; line-height:1.2;">本週</button>
+            <button type="button" id="btn-st-conquer-cycle-prev" class="date-nav-btn" style="font-size:11.5px; padding:3px 8px; border-radius:6px; height:auto; line-height:1.2;" title="查看上一週遺留待攻克單字">上一週</button>
+            <button type="button" id="btn-st-conquer-cycle-biweekly" class="date-nav-btn" style="font-size:11.5px; padding:3px 8px; border-radius:6px; height:auto; line-height:1.2;" title="查看上一回雙週（過去14天）所有待攻克單字">上一回雙週</button>
           </div>
           <span id="stWeekConquerBadge" class="badge-count" style="font-size:11.5px; font-weight:700; padding:2px 8px; border-radius:999px;"></span>
         </div>
@@ -16510,27 +16511,43 @@ function renderStudentDailyTaskAndFreeSections(resp) {
 
     const btnCur = document.getElementById("btn-st-conquer-cycle-current");
     const btnPrev = document.getElementById("btn-st-conquer-cycle-prev");
-    const isPrevious = (cycleParam === "previous");
+    const btnBiweekly = document.getElementById("btn-st-conquer-cycle-biweekly");
+    const isPrevious = (cycleParam === "previous" || cycleParam === "prevWeek");
+    const isPrevBiweekly = (cycleParam === "prevBiweekly");
 
-    if (btnCur && btnPrev) {
-      if (isPrevious) {
-        btnCur.classList.remove("active");
-        btnPrev.classList.add("active");
-      } else {
-        btnCur.classList.add("active");
-        btnPrev.classList.remove("active");
-      }
+    [btnCur, btnPrev, btnBiweekly].forEach(b => { if (b) b.classList.remove("active"); });
+    if (isPrevBiweekly && btnBiweekly) {
+      btnBiweekly.classList.add("active");
+    } else if (isPrevious && btnPrev) {
+      btnPrev.classList.add("active");
+    } else if (btnCur) {
+      btnCur.classList.add("active");
     }
 
     if (conquerTitle) {
-      conquerTitle.textContent = isPrevious ? "🎯 上週平日待攻克單字回顧" : "🎯 本週待攻克單字";
+      if (isPrevBiweekly) {
+        conquerTitle.textContent = "🎯 上一回雙週待攻克單字回顧";
+      } else if (isPrevious) {
+        conquerTitle.textContent = "🎯 上一週平日待攻克單字回顧";
+      } else {
+        conquerTitle.textContent = "🎯 本週待攻克單字";
+      }
     }
 
     const dNow = new Date();
     const day = dNow.getDay();
     const diff = dNow.getDate() - day + (day === 0 ? -6 : 1);
-    const monday = new Date(dNow.getFullYear(), dNow.getMonth(), diff - (isPrevious ? 7 : 0));
-    const friday = new Date(dNow.getFullYear(), dNow.getMonth(), diff + 4 - (isPrevious ? 7 : 0));
+    let monday, friday;
+    if (isPrevBiweekly) {
+      monday = new Date(dNow.getFullYear(), dNow.getMonth(), diff - 14);
+      friday = new Date(dNow.getFullYear(), dNow.getMonth(), diff - 3);
+    } else if (isPrevious) {
+      monday = new Date(dNow.getFullYear(), dNow.getMonth(), diff - 7);
+      friday = new Date(dNow.getFullYear(), dNow.getMonth(), diff - 3);
+    } else {
+      monday = new Date(dNow.getFullYear(), dNow.getMonth(), diff);
+      friday = new Date(dNow.getFullYear(), dNow.getMonth(), diff + 4);
+    }
     const formatD = (dt) => dt.getFullYear() + "-" + String(dt.getMonth() + 1).padStart(2, "0") + "-" + String(dt.getDate()).padStart(2, "0");
     const mondayStr = formatD(monday);
     const fridayStr = formatD(friday);
@@ -16550,6 +16567,24 @@ function renderStudentDailyTaskAndFreeSections(resp) {
     if (curResp.todayTaskResult) allStudentTasks.push(curResp.todayTaskResult);
     if (Array.isArray(window.cachedStudentDailyHistory)) allStudentTasks.push(...window.cachedStudentDailyHistory);
     if (Array.isArray(window.cachedBackupTaskHistory)) allStudentTasks.push(...window.cachedBackupTaskHistory);
+    // 同步提取試算表歷史列 (resp.data) 中的平日指定測驗錯題
+    if (curResp.data && Array.isArray(curResp.data)) {
+      for (const r of curResp.data) {
+        if (!r || !r[0]) continue;
+        const info = extractRowTaskInfo(r, curResp.headers);
+        if (info && info.taskName && info.taskName !== "自主練習" && !info.taskName.includes("自由練習")) {
+          allStudentTasks.push({
+            date: normalizeDateKey(r[0]),
+            taskName: info.taskName,
+            status: info.status || "",
+            score: info.score || "",
+            words: info.words || [],
+            wrongWords: info.wrongWords || [],
+            correctWords: info.correctWords || []
+          });
+        }
+      }
+    }
 
     allStudentTasks.forEach(item => {
       if (!item || !item.date) return;
@@ -16706,7 +16741,29 @@ function renderStudentDailyTaskAndFreeSections(resp) {
     }
   };
 
-  renderTeacherStudentConquerSection("current");
+  const btnStCur = document.getElementById("btn-st-conquer-cycle-current");
+  const btnStPrev = document.getElementById("btn-st-conquer-cycle-prev");
+  const btnStBiweekly = document.getElementById("btn-st-conquer-cycle-biweekly");
+  if (btnStCur) {
+    btnStCur.onclick = (e) => {
+      e.stopPropagation();
+      window.renderTeacherStudentConquerSection("current");
+    };
+  }
+  if (btnStPrev) {
+    btnStPrev.onclick = (e) => {
+      e.stopPropagation();
+      window.renderTeacherStudentConquerSection("previous");
+    };
+  }
+  if (btnStBiweekly) {
+    btnStBiweekly.onclick = (e) => {
+      e.stopPropagation();
+      window.renderTeacherStudentConquerSection("prevBiweekly");
+    };
+  }
+
+  window.renderTeacherStudentConquerSection("current");
   }
 }
 

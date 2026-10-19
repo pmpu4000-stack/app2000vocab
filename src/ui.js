@@ -2452,10 +2452,22 @@ export function getWeekPendingConquerWords(cycleParam = "current") {
   const cycleInfo = getBiweeklyCycleInfo();
   
   let scanStartStr, scanEndStr;
-  if (cycleParam === "previous") {
+  if (cycleParam === "previous" || cycleParam === "prevWeek") {
+    // 上一週平日 (週一至週五)
     scanStartStr = cycleInfo.prevWeek.monday;
     scanEndStr = cycleInfo.prevWeek.friday;
+  } else if (cycleParam === "prevBiweekly") {
+    // 上一回完整雙週（跨過去 14 天的兩個平日週）
+    const dNow = new Date();
+    const day = dNow.getDay();
+    const diffToMon = dNow.getDate() - day + (day === 0 ? -6 : 1);
+    const twoWeeksAgoMon = new Date(dNow.getFullYear(), dNow.getMonth(), diffToMon - 14);
+    const lastWeekFri = new Date(dNow.getFullYear(), dNow.getMonth(), diffToMon - 3);
+    const formatD = (dt) => dt.getFullYear() + "-" + String(dt.getMonth() + 1).padStart(2, "0") + "-" + String(dt.getDate()).padStart(2, "0");
+    scanStartStr = formatD(twoWeeksAgoMon);
+    scanEndStr = formatD(lastWeekFri);
   } else {
+    // 當前週期 (雙週第 1 週為本週，雙週第 2 週為雙週大消滅儲備池)
     scanStartStr = cycleInfo.scanStartStr;
     scanEndStr = cycleInfo.scanEndStr;
   }
@@ -2717,11 +2729,14 @@ export function updateWeekConquerSection(cycleParam = _activeConquerCycle) {
   const words = getWeekPendingConquerWords(_activeConquerCycle);
   const count = words.length;
   const cycleInfo = getBiweeklyCycleInfo();
-  const isPrevious = (_activeConquerCycle === "previous");
+  const isPrevious = (_activeConquerCycle === "previous" || _activeConquerCycle === "prevWeek");
+  const isPrevBiweekly = (_activeConquerCycle === "prevBiweekly");
 
   if (titleEl) {
-    if (isPrevious) {
-      titleEl.textContent = "🎯 上週平日待攻克單字回顧";
+    if (isPrevBiweekly) {
+      titleEl.textContent = "🎯 上一回雙週待攻克單字回顧";
+    } else if (isPrevious) {
+      titleEl.textContent = "🎯 上一週平日待攻克單字回顧";
     } else {
       titleEl.textContent = cycleInfo.isBiweeklyBossWeek ? "🎯 雙週待攻克單字（雙週大消滅儲備池）" : "🎯 本週待攻克單字（雙週第 1 週）";
     }
@@ -2730,14 +2745,14 @@ export function updateWeekConquerSection(cycleParam = _activeConquerCycle) {
   // 更新切換按鈕 active 樣式
   const btnCur = $("#btn-conquer-cycle-current");
   const btnPrev = $("#btn-conquer-cycle-prev");
-  if (btnCur && btnPrev) {
-    if (isPrevious) {
-      btnCur.classList.remove("active");
-      btnPrev.classList.add("active");
-    } else {
-      btnCur.classList.add("active");
-      btnPrev.classList.remove("active");
-    }
+  const btnBiweekly = $("#btn-conquer-cycle-biweekly");
+  [btnCur, btnPrev, btnBiweekly].forEach(b => { if (b) b.classList.remove("active"); });
+  if (isPrevBiweekly && btnBiweekly) {
+    btnBiweekly.classList.add("active");
+  } else if (isPrevious && btnPrev) {
+    btnPrev.classList.add("active");
+  } else if (btnCur) {
+    btnCur.classList.add("active");
   }
 
   if (badgeEl) {
@@ -2751,6 +2766,12 @@ export function updateWeekConquerSection(cycleParam = _activeConquerCycle) {
     }
   }
   detailsEl.innerHTML = buildWeekPendingConquerHtml(words, null, _activeConquerCycle);
+}
+
+// 暴露至 window，確保在 HTML onclick 或全域呼叫皆能正常執行
+if (typeof window !== "undefined") {
+  window.updateWeekConquerSection = updateWeekConquerSection;
+  window.getWeekPendingConquerWords = getWeekPendingConquerWords;
 }
 
 // ---------- summary ----------
@@ -3156,12 +3177,13 @@ export function renderSummary(d) {
       </div>
     </div>
 
-    <!-- 子標題 3：待攻克單字（支援雙週週期與自選週期切換） -->
+    <!-- 子標題 3：待攻克單字（支援當前雙週、上週與上一回雙週切換） -->
     <div class="subh-child" style="margin-top:16px; display:flex; align-items:center; flex-wrap:wrap; gap:8px;">
       <span id="week-conquer-title">${(getBiweeklyCycleInfo().isBiweeklyBossWeek) ? "🎯 雙週待攻克單字（雙週大消滅儲備池）" : "🎯 本週待攻克單字（雙週第 1 週）"}</span>
       <div class="conquer-cycle-toggle-group" style="display:inline-flex; align-items:center; gap:4px; margin-left:auto; background:var(--bar-track, rgba(0,0,0,0.06)); padding:2px; border-radius:8px;">
-        <button type="button" id="btn-conquer-cycle-current" class="date-nav-btn active" onclick="event.stopPropagation(); (typeof updateWeekConquerSection==='function'?updateWeekConquerSection('current'):null);" style="font-size:11.5px; padding:3px 8px; border-radius:6px; height:auto; line-height:1.2;">本週</button>
-        <button type="button" id="btn-conquer-cycle-prev" class="date-nav-btn" onclick="event.stopPropagation(); (typeof updateWeekConquerSection==='function'?updateWeekConquerSection('previous'):null);" style="font-size:11.5px; padding:3px 8px; border-radius:6px; height:auto; line-height:1.2;" title="查看上週遺留待攻克單字">上週</button>
+        <button type="button" id="btn-conquer-cycle-current" class="date-nav-btn active" style="font-size:11.5px; padding:3px 8px; border-radius:6px; height:auto; line-height:1.2;">本週</button>
+        <button type="button" id="btn-conquer-cycle-prev" class="date-nav-btn" style="font-size:11.5px; padding:3px 8px; border-radius:6px; height:auto; line-height:1.2;" title="查看上一週遺留待攻克單字">上一週</button>
+        <button type="button" id="btn-conquer-cycle-biweekly" class="date-nav-btn" style="font-size:11.5px; padding:3px 8px; border-radius:6px; height:auto; line-height:1.2;" title="查看上一回雙週（過去14天）所有待攻克單字">上一回雙週</button>
       </div>
       <span id="week-conquer-badge" class="badge-count" style="font-size:11.5px; font-weight:700; padding:2px 10px; border-radius:999px; ${conquerCount > 0 ? 'background:rgba(255,255,255,0.12); color:var(--ink); border:1px solid rgba(148,163,184,0.38);' : 'display:none;'}">
         ${conquerCount > 0 ? `待攻克 ${conquerCount} 字` : ''}
@@ -3460,6 +3482,29 @@ export function renderSummary(d) {
   const quickSelect = $("#record-quick-dates");
   if (quickSelect) {
     quickSelect.onchange = (e) => switchRecordDate(e.target.value);
+  }
+
+  // 綁定待攻克單字週期切換按鈕事件
+  const btnConquerCur = $("#btn-conquer-cycle-current");
+  const btnConquerPrev = $("#btn-conquer-cycle-prev");
+  const btnConquerBiweekly = $("#btn-conquer-cycle-biweekly");
+  if (btnConquerCur) {
+    btnConquerCur.onclick = (e) => {
+      e.stopPropagation();
+      updateWeekConquerSection("current");
+    };
+  }
+  if (btnConquerPrev) {
+    btnConquerPrev.onclick = (e) => {
+      e.stopPropagation();
+      updateWeekConquerSection("prevWeek");
+    };
+  }
+  if (btnConquerBiweekly) {
+    btnConquerBiweekly.onclick = (e) => {
+      e.stopPropagation();
+      updateWeekConquerSection("prevBiweekly");
+    };
   }
 
   const sumCloseEl = document.getElementById("sumClose");
