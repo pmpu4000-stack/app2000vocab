@@ -2500,10 +2500,14 @@ export function updateWeekConquerSection() {
   const words = getWeekPendingConquerWords();
   const count = words.length;
   if (badgeEl) {
-    badgeEl.textContent = count > 0 ? `待攻克 ${count} 字` : '已全數掌握 ✨';
-    badgeEl.style.cssText = count > 0 
-      ? 'margin-left:auto; font-size:11.5px; font-weight:700; padding:2px 10px; border-radius:999px; background:rgba(255,255,255,0.12); color:var(--ink); border:1px solid rgba(148,163,184,0.38);'
-      : 'margin-left:auto; font-size:11.5px; font-weight:700; padding:2px 10px; border-radius:999px; background:rgba(30,154,102,0.12); color:#1E9A66; border:1px solid rgba(30,154,102,0.25);';
+    if (count > 0) {
+      badgeEl.style.display = "inline-block";
+      badgeEl.textContent = `待攻克 ${count} 字`;
+      badgeEl.style.cssText = 'margin-left:auto; font-size:11.5px; font-weight:700; padding:2px 10px; border-radius:999px; background:rgba(255,255,255,0.12); color:var(--ink); border:1px solid rgba(148,163,184,0.38);';
+    } else {
+      badgeEl.style.display = "none";
+      badgeEl.textContent = "";
+    }
   }
   detailsEl.innerHTML = buildWeekPendingConquerHtml(words);
 }
@@ -2905,8 +2909,8 @@ export function renderSummary(d) {
     <!-- 子標題 3：本週待攻克單字 -->
     <div class="subh-child" style="margin-top:16px;">
       <span>🎯 本週待攻克單字</span>
-      <span id="week-conquer-badge" class="badge-count" style="margin-left:auto; font-size:11.5px; font-weight:700; padding:2px 10px; border-radius:999px; ${conquerCount > 0 ? 'background:rgba(255,255,255,0.12); color:var(--ink); border:1px solid rgba(148,163,184,0.38);' : 'background:rgba(30,154,102,0.12); color:#1E9A66; border:1px solid rgba(30,154,102,0.25);'}">
-        ${conquerCount > 0 ? `待攻克 ${conquerCount} 字` : '已全數掌握 ✨'}
+      <span id="week-conquer-badge" class="badge-count" style="margin-left:auto; font-size:11.5px; font-weight:700; padding:2px 10px; border-radius:999px; ${conquerCount > 0 ? 'background:rgba(255,255,255,0.12); color:var(--ink); border:1px solid rgba(148,163,184,0.38);' : 'display:none;'}">
+        ${conquerCount > 0 ? `待攻克 ${conquerCount} 字` : ''}
       </span>
     </div>
     <div class="task-history-card week-conquer-card" style="margin-bottom:0 !important;">
