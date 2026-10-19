@@ -10,7 +10,7 @@
   <link rel="preload" href="data/words2000.json" as="fetch" crossorigin>
   <link rel="preload" href="data/meanings.json" as="fetch" crossorigin>
 </head>
-<body>
+<body class="is-logging-in">
 
   <!-- 登入驗證遮罩 -->
   <div id="login-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#F6F7FB; z-index:9999; display:flex; justify-content:center; align-items:center;">
@@ -1064,6 +1064,7 @@
             await new Promise(r => setTimeout(r, 450));
             await import(`./src/app.js?v=${cacheBuster}`);
             document.getElementById('login-overlay').style.display = 'none';
+            document.body.classList.remove('is-logging-in');
             checkCurfewStatus();
 
             // ★ 學生完整載入進度、單字庫與畫面後，才正式啟動每日練習倒數計時！
@@ -1161,7 +1162,10 @@
         isUploading = false;
         if (!isSilent) {
           const overlay = document.getElementById("login-overlay");
-          if (overlay) overlay.style.display = "flex";
+          if (overlay) {
+            overlay.style.display = "flex";
+            document.body.classList.add("is-logging-in");
+          }
           alert("未偵測到登入狀態，請先登入帳號！");
         }
         return;
@@ -1171,7 +1175,10 @@
         isUploading = false;
         if (!isSilent) {
           const overlay = document.getElementById("login-overlay");
-          if (overlay) overlay.style.display = "flex";
+          if (overlay) {
+            overlay.style.display = "flex";
+            document.body.classList.add("is-logging-in");
+          }
           alert("登入憑證已失效或尚未登入，請先完成登入！");
         }
         return;

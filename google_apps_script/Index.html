@@ -4369,6 +4369,17 @@
       display: flex;
       justify-content: center;
       align-items: center;
+      overflow-y: auto;
+    }
+    /* 當登入遮罩顯示時，鎖定 body 與 html 禁止產生背景捲軸 */
+    html:has(#login-overlay:not([style*="display: none"]):not([style*="display:none"])),
+    body:has(#login-overlay:not([style*="display: none"]):not([style*="display:none"])) {
+      overflow: hidden !important;
+      height: 100vh !important;
+    }
+    body.is-logging-in {
+      overflow: hidden !important;
+      height: 100vh !important;
     }
     [data-theme="dark"] #login-overlay {
       background: #141826 !important;
