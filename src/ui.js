@@ -1318,19 +1318,19 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
   let statusDesc = "";
 
   if (isIncomplete) {
-    displayStatusStr = `🟣 作答中斷 (${taskCorrWords}/${assignedTotWords})`;
+    displayStatusStr = `作答中斷 (${taskCorrWords}/${assignedTotWords})`;
     statusColor = "#6B21A8";
     statusDesc = "⏳ 測驗中途作答中斷";
   } else if (isFinished) {
     statusColor = "#047857";
-    displayStatusStr = "🟢 已完成";
+    displayStatusStr = "已完成";
   } else if (isUntested) {
     if (hasLoggedInOrFree) {
-      displayStatusStr = "🟢 登入未受測";
+      displayStatusStr = "登入未受測";
       statusColor = "#16a34a";
       statusDesc = "⚠️ 有登入但未測驗";
     } else {
-      displayStatusStr = "🟢 缺席未受測";
+      displayStatusStr = "缺席未受測";
       statusColor = "#059669";
       statusDesc = "📴 當日無登入紀錄 (缺考)";
     }
@@ -1744,7 +1744,7 @@ function renderUntestedTaskCardHtml(info, d) {
   }
 
   const statusColor = hasLoggedInOrFree ? "#16a34a" : "#059669";
-  const displayStatusStr = hasLoggedInOrFree ? "🟢 登入未受測" : "🟢 缺席未受測";
+  const displayStatusStr = hasLoggedInOrFree ? "登入未受測" : "缺席未受測";
 
   const adviceText = hasLoggedInOrFree
     ? "當日有登入系統進行自由練習，但<strong>尚未完成本次指定測驗</strong>。"
@@ -2625,7 +2625,7 @@ export function renderSummary(d) {
       const res = {
         a: 0, c: 0, rate: 0,
         statusType: "unassigned",
-        statusLabel: "⚪ 未指派測驗",
+        statusLabel: "未指派測驗",
         levelClass: "h0",
         badgeTier: "tier-gray"
       };
@@ -2704,34 +2704,34 @@ export function renderSummary(d) {
         badgeTier: badgeTier
       };
     } else if (isIncomplete) {
-      // 🟣 登入作答未完成 (方格莫蘭迪柔紫，右側紫底紫框)
+      // 登入作答未完成 (方格莫蘭迪柔紫，右側紫底紫框)
       const curCorr = resolvedCorr.length || tCor;
       const curTot = taskWordsCount || tAtt || 5;
       res = {
         a: tAtt, c: tCor, rate: tRate,
         wordsCount: taskWordsCount,
         statusType: "incomplete",
-        statusLabel: `🟣 作答中斷 (${curCorr}/${curTot})`,
+        statusLabel: `作答中斷 (${curCorr}/${curTot})`,
         levelClass: "h-status-purple",
         badgeTier: "tier-status-purple"
       };
     } else if (hasLoggedInOrFree) {
-      // 🟢 登入未受測 (方格清新綠色，右側綠色框)
+      // 登入未受測 (方格清新綠色，右側綠色框)
       res = {
         a: 0, c: 0, rate: 0,
         wordsCount: taskWordsCount,
         statusType: "login_untested",
-        statusLabel: "🟢 登入未受測",
+        statusLabel: "登入未受測",
         levelClass: "h-status-yellow",
         badgeTier: "tier-status-yellow"
       };
     } else {
-      // 🟢 缺席未受測 (極致電光翠綠，右側極致電光翠綠發光框)
+      // 缺席未受測 (極致電光翠綠，右側極致電光翠綠發光框)
       res = {
         a: 0, c: 0, rate: 0,
         wordsCount: taskWordsCount,
         statusType: "absent_untested",
-        statusLabel: "🟢 缺席未受測",
+        statusLabel: "缺席未受測",
         levelClass: "h-status-red",
         badgeTier: "tier-status-red"
       };

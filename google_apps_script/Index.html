@@ -7645,16 +7645,16 @@ function renderTodayTaskBadge(t) {
   // 4. 若無有效作答成績（未受測 vs 未指派）
   if (correct === null && pct === null) {
     if (statusStr.includes("缺席") || statusStr.includes("缺考")) {
-      return `<span class="badge" style="background:#ecfdf5; color:#065f46; padding:3px 9px; border-radius:14px; font-size:12px; font-weight:700; border:1px solid #a7f3d0; display:inline-flex; align-items:center; gap:4px;"><span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#10b981;"></span>🟢 缺席未受測</span>`;
+      return `<span class="badge" style="background:#ecfdf5; color:#065f46; padding:3px 9px; border-radius:14px; font-size:12px; font-weight:700; border:1px solid #a7f3d0; display:inline-flex; align-items:center; gap:4px;">缺席未受測</span>`;
     }
     if (statusStr.includes("登入未受測")) {
-      return `<span class="badge" style="background:#fefce8; color:#b45309; padding:3px 9px; border-radius:14px; font-size:12px; font-weight:700; border:1px solid #fde047; display:inline-flex; align-items:center; gap:4px;"><span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#eab308;"></span>🟡 登入未受測</span>`;
+      return `<span class="badge" style="background:#fefce8; color:#b45309; padding:3px 9px; border-radius:14px; font-size:12px; font-weight:700; border:1px solid #fde047; display:inline-flex; align-items:center; gap:4px;">登入未受測</span>`;
     }
     const isUntested = statusStr.includes("未受測") || (t.taskName && !t.taskName.includes("未指派") && !t.taskName.includes("自由") && !t.taskName.includes("自主"));
     if (isUntested) {
-      return `<span class="badge" style="background:#fee2e2; color:#ef4444; padding:3px 9px; border-radius:14px; font-size:12px; font-weight:700; border:1px solid #fca5a5; display:inline-flex; align-items:center; gap:4px;"><span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#ef4444;"></span>⚪ 未受測</span>`;
+      return `<span class="badge" style="background:#fee2e2; color:#ef4444; padding:3px 9px; border-radius:14px; font-size:12px; font-weight:700; border:1px solid #fca5a5; display:inline-flex; align-items:center; gap:4px;">未受測</span>`;
     }
-    return `<span class="badge" style="background:#f1f5f9; color:#94a3b8; padding:3px 9px; border-radius:14px; font-size:12px; font-weight:600; border:1px solid #e2e8f0; display:inline-flex; align-items:center; gap:4px;"><span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#94a3b8;"></span>⚪ 未指派</span>`;
+    return `<span class="badge" style="background:#f1f5f9; color:#94a3b8; padding:3px 9px; border-radius:14px; font-size:12px; font-weight:600; border:1px solid #e2e8f0; display:inline-flex; align-items:center; gap:4px;">未指派</span>`;
   }
 
   // 5. 格式化明確清晰的成績顯示 (一眼看懂學生成績！)
@@ -9547,17 +9547,17 @@ function renderAnalyticsTable() {
   list.forEach((s, idx) => {
     const rateNum = parseFloat(s.rate);
     if (s.status.includes("已完成")) {
-      statusPill = `<span class="analytics-status-pill analytics-status-done">🟢 已完成</span>`;
+      statusPill = `<span class="analytics-status-pill analytics-status-done">已完成</span>`;
     } else if (s.status.includes("作答中") || s.status.includes("中斷") || s.status.includes("進行中")) {
-      statusPill = `<span class="analytics-status-pill status-badge-pill purple" style="background:#F3E8FF; color:#6B21A8; border:1px solid #D8B4FE;">🟣 作答中斷</span>`;
+      statusPill = `<span class="analytics-status-pill status-badge-pill purple" style="background:#F3E8FF; color:#6B21A8; border:1px solid #D8B4FE;">作答中斷</span>`;
     } else if (s.status.includes("登入未受測")) {
-      statusPill = `<span class="analytics-status-pill" style="background:rgba(250, 204, 21, 0.16); color:#b45309; border:1px solid rgba(250, 204, 21, 0.4);">🟡 登入未受測</span>`;
+      statusPill = `<span class="analytics-status-pill" style="background:rgba(250, 204, 21, 0.16); color:#b45309; border:1px solid rgba(250, 204, 21, 0.4);">登入未受測</span>`;
     } else if (s.status.includes("缺席未受測") || s.status.includes("缺考")) {
-      statusPill = `<span class="analytics-status-pill" style="background:rgba(16, 185, 129, 0.22); color:#065f46; border:1px solid rgba(16, 185, 129, 0.45);">🟢 缺席未受測</span>`;
+      statusPill = `<span class="analytics-status-pill" style="background:rgba(16, 185, 129, 0.22); color:#065f46; border:1px solid rgba(16, 185, 129, 0.45);">缺席未受測</span>`;
     } else if (s.status.includes("未受測")) {
-      statusPill = `<span class="analytics-status-pill" style="background:rgba(239, 68, 68, 0.12); color:#ef4444; border:1px solid rgba(239, 68, 68, 0.25);">⚪ 未受測</span>`;
+      statusPill = `<span class="analytics-status-pill" style="background:rgba(239, 68, 68, 0.12); color:#ef4444; border:1px solid rgba(239, 68, 68, 0.25);">未受測</span>`;
     } else {
-      statusPill = `<span class="analytics-status-pill analytics-status-notyet">⚪ 未指派</span>`;
+      statusPill = `<span class="analytics-status-pill analytics-status-notyet">未指派</span>`;
     }
 
     let scoreBadge = `<span style="color:var(--text-muted);">—</span>`;
@@ -15137,22 +15137,22 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
   let statusDesc = "";
 
   if (isIncomplete) {
-    displayStatusStr = `🟣 作答中斷 (${taskCorrWords}/${assignedTotWords})`;
+    displayStatusStr = `作答中斷 (${taskCorrWords}/${assignedTotWords})`;
     statusColor = "#6B21A8";
     statusBg = "#F3E8FF";
     statusDesc = "⏳ 測驗中途作答中斷";
   } else if (isFinished) {
     statusColor = "#047857";
     statusBg = "rgba(16,185,129,0.15)";
-    displayStatusStr = "🟢 已完成";
+    displayStatusStr = "已完成";
   } else if (isUntested) {
     if (hasLoggedInOrFree) {
-      displayStatusStr = "🟡 登入未受測";
+      displayStatusStr = "登入未受測";
       statusColor = "#d97706";
       statusBg = "rgba(245,158,11,0.15)";
       statusDesc = "⚠️ 有登入但未測驗";
     } else {
-      displayStatusStr = "🟢 缺席未受測";
+      displayStatusStr = "缺席未受測";
       statusColor = "#059669";
       statusBg = "rgba(16,185,129,0.22)";
       statusDesc = "📴 當日無登入紀錄 (缺考)";
@@ -15529,7 +15529,7 @@ function renderUntestedTaskCardHtml(info, agent) {
     }
   }
 
-  const statusLabel = hasLoggedInOrFree ? "🟡 登入未受測" : "🟢 缺席未受測";
+  const statusLabel = hasLoggedInOrFree ? "登入未受測" : "缺席未受測";
   const statusColor = hasLoggedInOrFree ? "#d97706" : "#059669";
   const statusBg = hasLoggedInOrFree ? "rgba(245, 158, 11, 0.15)" : "rgba(16, 185, 129, 0.22)";
   const statusDesc = hasLoggedInOrFree ? "⚠️ 有登入練習但未測驗" : "📴 當日無登入紀錄 (缺考)";
@@ -17105,13 +17105,13 @@ function renderStudentSummary(resp) {
         const currentItem = activeCellIdx >= 0 && taskDays[activeCellIdx] ? taskDays[activeCellIdx] : null;
         if (currentItem && currentItem.isIncomplete) {
           taskHeatDayInfoEl.className = "heat-day-info tier-status-purple";
-          taskHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ <b>🟣 作答中斷</b>`;
+          taskHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ <b>作答中斷</b>`;
         } else if (currentItem && currentItem.isLoginUntested) {
           taskHeatDayInfoEl.className = "heat-day-info tier-status-yellow";
-          taskHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ <b>🟢 登入未受測</b>`;
+          taskHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ <b>登入未受測</b>`;
         } else if (currentItem && currentItem.isAbsent) {
           taskHeatDayInfoEl.className = "heat-day-info tier-status-red";
-          taskHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ <b>🟢 缺席未受測</b>`;
+          taskHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ <b>缺席未受測</b>`;
         } else if (att > 0) {
           const tierClass = rate >= 100 ? "tier-blue-perfect" : (rate >= 80 ? "tier-blue-high" : (rate >= 60 ? "tier-blue-mid" : "tier-blue-low"));
           taskHeatDayInfoEl.className = `heat-day-info ${tierClass}`;
@@ -19571,13 +19571,13 @@ function renderStudentDailyTask(todayTaskResult, dailyTaskHistory, assignedTask)
         statusBadge.style.background = "rgba(239, 68, 68, 0.1)";
         statusBadge.style.color = "#ef4444";
         statusBadge.style.borderColor = "rgba(239, 68, 68, 0.25)";
-        statusBadge.innerText = "⚪ 未受測";
+        statusBadge.innerText = "未受測";
       } else {
         statusBadge.className = "analytics-status-pill analytics-status-none";
         statusBadge.style.background = "";
         statusBadge.style.color = "";
         statusBadge.style.borderColor = "";
-        statusBadge.innerText = "⚪ 未指派";
+        statusBadge.innerText = "未指派";
       }
     }
     const taskTitle = hasAssigned ? (currentTask.taskName || '每日指定單字測驗') : '每日指定單字隨堂測驗';
@@ -19595,7 +19595,7 @@ function renderStudentDailyTask(todayTaskResult, dailyTaskHistory, assignedTask)
             <div>
               <div style="font-size:15.5px; font-weight:800; color:var(--text); margin-bottom:5px; display:flex; align-items:center; gap:8px;">
                 <span>📌 今日指派測驗：${escapeHtml(taskTitle)}</span>
-                <span style="font-size:11.5px; font-weight:700; color:#ef4444; background:rgba(239,68,68,0.12); padding:2px 8px; border-radius:12px;">⚪ 未受測</span>
+                <span style="font-size:11.5px; font-weight:700; color:#ef4444; background:rgba(239,68,68,0.12); padding:2px 8px; border-radius:12px;">未受測</span>
               </div>
               <div style="font-size:13px; color:var(--text-muted); line-height:1.6;">
                 出題清單：共 <strong>${totalWords}</strong> 個單字（${modeLabel}）｜
@@ -19613,7 +19613,7 @@ function renderStudentDailyTask(todayTaskResult, dailyTaskHistory, assignedTask)
             <div>
               <div style="font-size:15px; font-weight:800; color:var(--text); margin-bottom:4px; display:flex; align-items:center; gap:8px;">
                 <span>☕ 今日未指派指定測驗</span>
-                <span style="font-size:11.5px; font-weight:700; color:var(--text-muted); background:rgba(148,163,184,0.15); padding:2px 8px; border-radius:12px;">⚪ 未指派</span>
+                <span style="font-size:11.5px; font-weight:700; color:var(--text-muted); background:rgba(148,163,184,0.15); padding:2px 8px; border-radius:12px;">未指派</span>
               </div>
               <div style="font-size:13px; color:var(--text-muted); line-height:1.6;">
                 老師今日未指派全班指定測驗，可自由前往測驗區進行自主單字練習！每天堅持 5~10 分鐘，字彙力即刻穩步提升！
