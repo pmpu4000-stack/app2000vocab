@@ -2644,6 +2644,45 @@ export function buildWeekPendingConquerHtml(words, d = null, cycleParam = _activ
   const isPrevious = (cycleParam === "previous");
   const isBoss = cycleInfo.isBiweeklyBossWeek && !isPrevious;
 
+  // Level 1~5 分級標準與特徵對照表 HTML
+  const levelStandardPanelHtml = `
+    <div class="level-standard-panel">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
+        <span style="font-size:12.5px; font-weight:800; color:var(--ink); display:flex; align-items:center; gap:5px;">
+          <span>📊</span><span>Level 1~5 單字分級標準與特徵一覽</span>
+        </span>
+        <span style="font-size:11px; color:var(--ink3);">全書 2,055 字 · 5 大關卡階梯</span>
+      </div>
+      <div class="level-standard-grid">
+        <div class="level-standard-item" style="border-left:3px solid #2FB47C;">
+          <div class="level-standard-head" style="color:#2FB47C;"><span>🟢</span><span>Lv.1 入門</span></div>
+          <div class="level-standard-sub">約 3.4 字母 · 411 字</div>
+          <div class="level-standard-trap">自然拼讀、CVC極短字、單母音、生活高頻詞</div>
+        </div>
+        <div class="level-standard-item" style="border-left:3px solid #2D9CDB;">
+          <div class="level-standard-head" style="color:#2D9CDB;"><span>🔵</span><span>Lv.2 基礎</span></div>
+          <div class="level-standard-sub">約 4.7 字母 · 411 字</div>
+          <div class="level-standard-trap">短單母音/合音、Magic e、基本長母音、常用字詞</div>
+        </div>
+        <div class="level-standard-item" style="border-left:3px solid #6C4CE0;">
+          <div class="level-standard-head" style="color:#6C4CE0;"><span>🟣</span><span>Lv.3 進階</span></div>
+          <div class="level-standard-sub">約 5.2 字母 · 411 字</div>
+          <div class="level-standard-trap">雙音節中長字、複合字、弱化母音Schwa、詞類變化</div>
+        </div>
+        <div class="level-standard-item" style="border-left:3px solid #E8892B;">
+          <div class="level-standard-head" style="color:#E8892B;"><span>🟠</span><span>Lv.4 挑戰</span></div>
+          <div class="level-standard-sub">約 6.7 字母 · 411 字</div>
+          <div class="level-standard-trap">雙子音/不規則母音、不發音字母、抽象觀念與學術名詞</div>
+        </div>
+        <div class="level-standard-item" style="border-left:3px solid #E0567B;">
+          <div class="level-standard-head" style="color:#E0567B;"><span>🔴</span><span>Lv.5 精熟</span></div>
+          <div class="level-standard-sub">約 9.0 字母 · 411 字</div>
+          <div class="level-standard-trap">多音節長字、字根字首派生、多重拼寫陷阱、高階字彙</div>
+        </div>
+      </div>
+    </div>
+  `;
+
   if (count === 0) {
     const emptyTitle = isPrevious
       ? "太棒了！上週平日測驗無遺留待攻克單字"
@@ -2656,14 +2695,17 @@ export function buildWeekPendingConquerHtml(words, d = null, cycleParam = _activ
       : (isBoss ? "週末無須進行雙週大魔王消滅戰！" : "週末無須進行錯題補強測驗！");
 
     return `
-      <div class="task-empty-notice" style="padding:14px 16px; margin:0; background:rgba(30,154,102,0.06); border:1.5px solid rgba(30,154,102,0.22); border-radius:12px; display:flex; flex-direction:column; gap:6px;">
-        <div style="display:flex; align-items:center; gap:8px;">
-          <span style="font-size:18px; line-height:1; flex-shrink:0;">✨</span>
-          <span style="color:#1E9A66; font-size:14px; font-weight:800; line-height:1.4;">${emptyTitle}</span>
-        </div>
-        <div class="task-empty-notice-desc" style="color:var(--ink2); font-size:12.5px; line-height:1.65; padding-left:26px; max-width:100%; margin:0;">
-          <div>${emptyDesc}</div>
-          <div style="margin-top:2px;">${emptySub}</div>
+      <div class="week-conquer-wrap" style="display:flex; flex-direction:column; gap:10px;">
+        ${levelStandardPanelHtml}
+        <div class="task-empty-notice" style="padding:14px 16px; margin:0; background:rgba(30,154,102,0.06); border:1.5px solid rgba(30,154,102,0.22); border-radius:12px; display:flex; flex-direction:column; gap:6px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:18px; line-height:1; flex-shrink:0;">✨</span>
+            <span style="color:#1E9A66; font-size:14px; font-weight:800; line-height:1.4;">${emptyTitle}</span>
+          </div>
+          <div class="task-empty-notice-desc" style="color:var(--ink2); font-size:12.5px; line-height:1.65; padding-left:26px; max-width:100%; margin:0;">
+            <div>${emptyDesc}</div>
+            <div style="margin-top:2px;">${emptySub}</div>
+          </div>
         </div>
       </div>
     `;
@@ -2677,10 +2719,19 @@ export function buildWeekPendingConquerHtml(words, d = null, cycleParam = _activ
     byLv[targetLv].push(w);
   });
 
+  const lvFeatures = {
+    1: "入門 · 極短字/自然拼讀",
+    2: "基礎 · 短合音/Magic e",
+    3: "進階 · 雙音節/弱化音Schwa",
+    4: "挑戰 · 雙子音/不發音字母",
+    5: "精熟 · 多音節/字根字首"
+  };
+
   const levelSectionsHtml = [1, 2, 3, 4, 5].map(lv => {
     const list = byLv[lv] || [];
     const lvDotColor = levelColor(lv);
     const lvTitle = `Level ${lv}「${levelName(lv)}」`;
+    const lvFeatureSub = lvFeatures[lv] || "";
     const pillsOrEmpty = list.length > 0
       ? `<div class="conquer-word-list" style="display:flex; flex-wrap:wrap; gap:8px; padding:2px 4px 2px 0; max-height:148px; overflow-y:auto; overscroll-behavior:contain;">${list.map(w => {
           const diag = diagnoseWordMistake(w);
@@ -2691,7 +2742,11 @@ export function buildWeekPendingConquerHtml(words, d = null, cycleParam = _activ
     return `
       <div class="conquer-level-row">
         <div class="conquer-level-head">
-          <span><span style="color:${lvDotColor}; margin-right:5px;">●</span>${lvTitle}</span>
+          <span style="display:inline-flex; align-items:center; gap:6px;">
+            <span style="color:${lvDotColor};">●</span>
+            <b>${lvTitle}</b>
+            <small style="font-size:11px; font-weight:normal; color:var(--ink3); opacity:0.85;">(${lvFeatureSub})</small>
+          </span>
           <span class="conquer-level-count">${list.length} 字</span>
         </div>
         ${pillsOrEmpty}
@@ -2707,7 +2762,8 @@ export function buildWeekPendingConquerHtml(words, d = null, cycleParam = _activ
 
   return `
     <div class="week-conquer-wrap" style="display:flex; flex-direction:column; gap:10px;">
-      <div class="week-conquer-tip" style="display:flex; align-items:flex-start; gap:8px; padding:4px 2px 8px; font-size:12.5px; line-height:1.55; color:var(--ink2);">
+      ${levelStandardPanelHtml}
+      <div class="week-conquer-tip" style="display:flex; align-items:flex-start; gap:8px; padding:4px 2px 4px; font-size:12.5px; line-height:1.55; color:var(--ink2);">
         <span style="font-size:15px; flex-shrink:0; line-height:1.3;">💡</span>
         <div style="flex:1; line-height:1.55;">
           ${tipText}
@@ -2722,7 +2778,7 @@ export function buildWeekPendingConquerHtml(words, d = null, cycleParam = _activ
 
 export function updateWeekConquerSection(cycleParam = _activeConquerCycle) {
   _activeConquerCycle = cycleParam;
-  const titleEl = $("#week-conquer-title");
+  const titleEl = $("#week-conquer-title") || $("#week-conquer-card-title");
   const badgeEl = $("#week-conquer-badge");
   const detailsEl = $("#week-conquer-details");
   if (!detailsEl) return;
@@ -2759,13 +2815,22 @@ export function updateWeekConquerSection(cycleParam = _activeConquerCycle) {
     if (count > 0) {
       badgeEl.style.display = "inline-block";
       badgeEl.textContent = `待攻克 ${count} 字`;
-      badgeEl.style.cssText = 'margin-left:auto; font-size:11.5px; font-weight:700; padding:2px 10px; border-radius:999px; background:rgba(255,255,255,0.12); color:var(--ink); border:1px solid rgba(148,163,184,0.38);';
+      badgeEl.style.cssText = 'font-size:11.5px; font-weight:700; padding:2px 10px; border-radius:999px; background:rgba(255,255,255,0.12); color:var(--ink); border:1px solid rgba(148,163,184,0.38);';
     } else {
       badgeEl.style.display = "none";
       badgeEl.textContent = "";
     }
   }
   detailsEl.innerHTML = buildWeekPendingConquerHtml(words, null, _activeConquerCycle);
+
+  // 綁定待攻克單字卡片內部的發音點擊
+  detailsEl.querySelectorAll(".word-pill-tag").forEach(pill => {
+    pill.onclick = (e) => {
+      e.stopPropagation();
+      const w = pill.getAttribute("data-word") || pill.textContent || "";
+      if (w) sayWord(w);
+    };
+  });
 }
 
 // 暴露至 window，確保在 HTML onclick 或全域呼叫皆能正常執行
@@ -3174,24 +3239,6 @@ export function renderSummary(d) {
         <div class="heatmap" id="heatmap-grid">${d.history.days.map((x, idx) =>
           `<i class="hc h${x.level}" role="button" tabindex="0" aria-label="${x.key}，正確率 ${x.rate || 0}%" data-idx="${idx}" data-key="${x.key}" data-a="${x.a || 0}" data-rate="${x.rate || 0}"></i>`).join("")}</div>
         <div class="heat-legend"><b>連續</b>：目前不中斷、每天練習的天數。<br><b>最佳</b>：個人最長連續練習紀錄。<br><b>累計</b>：歷來有練習的總天數。<br><b>熱力圖</b>：顏色越鮮豔代表當天正確率越高（灰色為無練習）。</div>
-      </div>
-    </div>
-
-    <!-- 子標題 3：待攻克單字（支援當前雙週、上週與上一回雙週切換） -->
-    <div class="subh-child" style="margin-top:16px; display:flex; align-items:center; flex-wrap:wrap; gap:8px;">
-      <span id="week-conquer-title">${(getBiweeklyCycleInfo().isBiweeklyBossWeek) ? "🎯 雙週待攻克單字（雙週大消滅儲備池）" : "🎯 本週待攻克單字（雙週第 1 週）"}</span>
-      <div class="conquer-cycle-toggle-group" style="display:inline-flex; align-items:center; gap:4px; margin-left:auto; background:var(--bar-track, rgba(0,0,0,0.06)); padding:2px; border-radius:8px;">
-        <button type="button" id="btn-conquer-cycle-current" class="date-nav-btn active" style="font-size:11.5px; padding:3px 8px; border-radius:6px; height:auto; line-height:1.2;">本週</button>
-        <button type="button" id="btn-conquer-cycle-prev" class="date-nav-btn" style="font-size:11.5px; padding:3px 8px; border-radius:6px; height:auto; line-height:1.2;" title="查看上一週遺留待攻克單字">上一週</button>
-        <button type="button" id="btn-conquer-cycle-biweekly" class="date-nav-btn" style="font-size:11.5px; padding:3px 8px; border-radius:6px; height:auto; line-height:1.2;" title="查看上一回雙週（過去14天）所有待攻克單字">上一回雙週</button>
-      </div>
-      <span id="week-conquer-badge" class="badge-count" style="font-size:11.5px; font-weight:700; padding:2px 10px; border-radius:999px; ${conquerCount > 0 ? 'background:rgba(255,255,255,0.12); color:var(--ink); border:1px solid rgba(148,163,184,0.38);' : 'display:none;'}">
-        ${conquerCount > 0 ? `待攻克 ${conquerCount} 字` : ''}
-      </span>
-    </div>
-    <div class="task-history-card week-conquer-card" style="margin-bottom:0 !important;">
-      <div id="week-conquer-details">
-        ${initialConquerHtml}
       </div>
     </div>`;
 
@@ -4883,4 +4930,72 @@ export function initProgressCard() {
     }
   };
 }
+
+export function initConquerCard() {
+  const sec = document.getElementById("week-conquer-section");
+  const container = document.getElementById("week-conquer-container");
+  const toggleBtn = document.getElementById("btn-toggle-conquer-card");
+  if (!sec || !toggleBtn) return;
+
+  // 預先更新內容及徽章計數
+  updateWeekConquerSection("current");
+
+  if (sec.__conquerBound) return;
+  sec.__conquerBound = true;
+
+  toggleBtn.onclick = (e) => {
+    e.preventDefault();
+    const isHidden = (container && container.style.display === "none") || sec.classList.contains("is-collapsed");
+    if (isHidden) {
+      if (container) container.style.display = "block";
+      sec.classList.remove("is-collapsed");
+      toggleBtn.innerHTML = "收合";
+      updateWeekConquerSection();
+      sec.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    } else {
+      if (container) container.style.display = "none";
+      sec.classList.add("is-collapsed");
+      toggleBtn.innerHTML = "展開";
+    }
+  };
+
+  // 綁定週期按鈕
+  const btnCur = document.getElementById("btn-conquer-cycle-current");
+  const btnPrev = document.getElementById("btn-conquer-cycle-prev");
+  const btnBiweekly = document.getElementById("btn-conquer-cycle-biweekly");
+  if (btnCur) {
+    btnCur.onclick = (e) => {
+      e.stopPropagation();
+      updateWeekConquerSection("current");
+      if (container && container.style.display === "none") {
+        container.style.display = "block";
+        sec.classList.remove("is-collapsed");
+        toggleBtn.innerHTML = "收合";
+      }
+    };
+  }
+  if (btnPrev) {
+    btnPrev.onclick = (e) => {
+      e.stopPropagation();
+      updateWeekConquerSection("prevWeek");
+      if (container && container.style.display === "none") {
+        container.style.display = "block";
+        sec.classList.remove("is-collapsed");
+        toggleBtn.innerHTML = "收合";
+      }
+    };
+  }
+  if (btnBiweekly) {
+    btnBiweekly.onclick = (e) => {
+      e.stopPropagation();
+      updateWeekConquerSection("prevBiweekly");
+      if (container && container.style.display === "none") {
+        container.style.display = "block";
+        sec.classList.remove("is-collapsed");
+        toggleBtn.innerHTML = "收合";
+      }
+    };
+  }
+}
+
 

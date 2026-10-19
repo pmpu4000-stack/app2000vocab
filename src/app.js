@@ -1693,6 +1693,8 @@ ui.initModes(state.mode, (mode) => {
 ui.onCheckClick(check);
 ui.onSummary(() => ui.toggleSummary(store.summary(WORDS)));
 ui.initProgressCard();
+ui.initConquerCard();
+
 
 // ---- boot ----
 (async function boot() {

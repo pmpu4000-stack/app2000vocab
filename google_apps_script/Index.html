@@ -5476,22 +5476,28 @@
             </div>
             <div class="heatmap" id="stHeatmapGrid"></div>
             <div class="heat-legend"><b>連續</b>：目前不中斷、每天練習的天數。<br><b>最佳</b>：該生最長連續練習紀錄。<br><b>累計</b>：歷來有練習的總天數。<br><b>熱力圖</b>：顏色越鮮豔代表當天正確率越高（灰色為無練習）。</div>
-          </div>
         </div>
+      </div>
+    </section>
 
-        <!-- 子標題 3：本週待攻克單字（支援自選週期切換） -->
-        <div class="subh-child" style="margin-top:16px; display:flex; align-items:center; flex-wrap:wrap; gap:8px;">
-          <span id="stWeekConquerTitle">🎯 本週待攻克單字</span>
-          <div class="conquer-cycle-toggle-group" style="display:inline-flex; align-items:center; gap:4px; margin-left:auto; background:var(--bar-track, rgba(0,0,0,0.06)); padding:2px; border-radius:8px;">
+    <!-- 🎯 待攻克單字 Conquer 獨立卡片 (比照遊戲網頁，併入 Level 1~5 分級標準與特徵一覽) -->
+    <section class="progress week-conquer-section is-collapsed" id="studentWeekConquerCard">
+      <h3>
+        <span style="display:inline-flex; align-items:center; gap:8px; flex-wrap:wrap;">
+          <span id="stWeekConquerTitle">待攻克單字 Conquer</span>
+          <span id="stWeekConquerBadge" class="badge-count" style="display:none; font-size:11.5px; font-weight:700; padding:2px 10px; border-radius:999px; background:rgba(255,255,255,0.12); color:var(--ink); border:1px solid rgba(148,163,184,0.38);"></span>
+        </span>
+        <span style="display:flex; gap:10px; align-items:center;">
+          <div class="conquer-cycle-toggle-group" style="display:inline-flex; align-items:center; gap:4px; background:var(--bar-track, rgba(0,0,0,0.06)); padding:2px; border-radius:8px;">
             <button type="button" id="btn-st-conquer-cycle-current" class="date-nav-btn active" style="font-size:11.5px; padding:3px 8px; border-radius:6px; height:auto; line-height:1.2;">本週</button>
             <button type="button" id="btn-st-conquer-cycle-prev" class="date-nav-btn" style="font-size:11.5px; padding:3px 8px; border-radius:6px; height:auto; line-height:1.2;" title="查看上一週遺留待攻克單字">上一週</button>
             <button type="button" id="btn-st-conquer-cycle-biweekly" class="date-nav-btn" style="font-size:11.5px; padding:3px 8px; border-radius:6px; height:auto; line-height:1.2;" title="查看上一回雙週（過去14天）所有待攻克單字">上一回雙週</button>
           </div>
-          <span id="stWeekConquerBadge" class="badge-count" style="font-size:11.5px; font-weight:700; padding:2px 8px; border-radius:999px;"></span>
-        </div>
-        <div class="task-history-card week-conquer-card" style="margin-bottom:0 !important;">
-          <div id="st-week-conquer-details"></div>
-        </div>
+          <a id="btn-toggle-st-conquer-card" class="sum-toggle-btn" title="展開或收合待攻克單字">展開</a>
+        </span>
+      </h3>
+      <div class="week-conquer-container" id="st-week-conquer-container" style="display:none; margin-top:8px;">
+        <div id="st-week-conquer-details"></div>
       </div>
     </section>
 
@@ -16673,6 +16679,45 @@ function renderStudentDailyTaskAndFreeSections(resp) {
       }
     }
 
+    // Level 1~5 分級標準與特徵對照表 HTML
+    const levelStandardPanelHtml = `
+      <div class="level-standard-panel">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
+          <span style="font-size:12.5px; font-weight:800; color:var(--ink); display:flex; align-items:center; gap:5px;">
+            <span>📊</span><span>Level 1~5 單字分級標準與特徵一覽</span>
+          </span>
+          <span style="font-size:11px; color:var(--ink3);">全書 2,055 字 · 5 大關卡階梯</span>
+        </div>
+        <div class="level-standard-grid">
+          <div class="level-standard-item" style="border-left:3px solid #2FB47C;">
+            <div class="level-standard-head" style="color:#2FB47C;"><span>🟢</span><span>Lv.1 入門</span></div>
+            <div class="level-standard-sub">約 3.4 字母 · 411 字</div>
+            <div class="level-standard-trap">自然拼讀、CVC極短字、單母音、生活高頻詞</div>
+          </div>
+          <div class="level-standard-item" style="border-left:3px solid #2D9CDB;">
+            <div class="level-standard-head" style="color:#2D9CDB;"><span>🔵</span><span>Lv.2 基礎</span></div>
+            <div class="level-standard-sub">約 4.7 字母 · 411 字</div>
+            <div class="level-standard-trap">短單母音/合音、Magic e、基本長母音、常用字詞</div>
+          </div>
+          <div class="level-standard-item" style="border-left:3px solid #6C4CE0;">
+            <div class="level-standard-head" style="color:#6C4CE0;"><span>🟣</span><span>Lv.3 進階</span></div>
+            <div class="level-standard-sub">約 5.2 字母 · 411 字</div>
+            <div class="level-standard-trap">雙音節中長字、複合字、弱化母音Schwa、詞類變化</div>
+          </div>
+          <div class="level-standard-item" style="border-left:3px solid #E8892B;">
+            <div class="level-standard-head" style="color:#E8892B;"><span>🟠</span><span>Lv.4 挑戰</span></div>
+            <div class="level-standard-sub">約 6.7 字母 · 411 字</div>
+            <div class="level-standard-trap">雙子音/不規則母音、不發音字母、抽象觀念與學術名詞</div>
+          </div>
+          <div class="level-standard-item" style="border-left:3px solid #E0567B;">
+            <div class="level-standard-head" style="color:#E0567B;"><span>🔴</span><span>Lv.5 精熟</span></div>
+            <div class="level-standard-sub">約 9.0 字母 · 411 字</div>
+            <div class="level-standard-trap">多音節長字、字根字首派生、多重拼寫陷阱、高階字彙</div>
+          </div>
+        </div>
+      </div>
+    `;
+
     if (count === 0) {
       const emptyTitle = isPrevious ? "太棒了！上週平日測驗無遺留待攻克單字" : "太棒了！本週目前無待攻克單字";
       const emptyDesc = isPrevious
@@ -16681,14 +16726,17 @@ function renderStudentDailyTaskAndFreeSections(resp) {
       const emptySub = isPrevious ? "上週錯題庫已完全清空！" : "週末無須進行錯題補強測驗！";
 
       conquerDetailsContainer.innerHTML = `
-        <div class="task-empty-notice" style="padding:14px 16px; margin:0; background:rgba(30,154,102,0.06); border:1.5px solid rgba(30,154,102,0.22); border-radius:12px; display:flex; flex-direction:column; gap:6px;">
-          <div style="display:flex; align-items:center; gap:8px;">
-            <span style="font-size:18px; line-height:1; flex-shrink:0;">✨</span>
-            <span style="color:#1E9A66; font-size:14px; font-weight:800; line-height:1.4;">${emptyTitle}</span>
-          </div>
-          <div class="task-empty-notice-desc" style="color:var(--ink2); font-size:12.5px; line-height:1.65; padding-left:26px; max-width:100%; margin:0;">
-            <div>${emptyDesc}</div>
-            <div style="margin-top:2px;">${emptySub}</div>
+        <div class="week-conquer-wrap" style="display:flex; flex-direction:column; gap:10px;">
+          ${levelStandardPanelHtml}
+          <div class="task-empty-notice" style="padding:14px 16px; margin:0; background:rgba(30,154,102,0.06); border:1.5px solid rgba(30,154,102,0.22); border-radius:12px; display:flex; flex-direction:column; gap:6px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:18px; line-height:1; flex-shrink:0;">✨</span>
+              <span style="color:#1E9A66; font-size:14px; font-weight:800; line-height:1.4;">${emptyTitle}</span>
+            </div>
+            <div class="task-empty-notice-desc" style="color:var(--ink2); font-size:12.5px; line-height:1.65; padding-left:26px; max-width:100%; margin:0;">
+              <div>${emptyDesc}</div>
+              <div style="margin-top:2px;">${emptySub}</div>
+            </div>
           </div>
         </div>
       `;
@@ -16710,10 +16758,18 @@ function renderStudentDailyTaskAndFreeSections(resp) {
 
       const lvNames  = ["入門", "基礎", "進階", "挑戰", "精熟"];
       const lvColors = ["#2FB47C", "#2D9CDB", "#6C4CE0", "#E8892B", "#E0567B"];
+      const lvFeatures = {
+        1: "入門 · 極短字/自然拼讀",
+        2: "基礎 · 短合音/Magic e",
+        3: "進階 · 雙音節/弱化音Schwa",
+        4: "挑戰 · 雙子音/不發音字母",
+        5: "精熟 · 多音節/字根字首"
+      };
       const levelSectionsHtml = [1, 2, 3, 4, 5].map(lv => {
         const list = byLv[lv] || [];
         const lvDotColor = lvColors[lv - 1];
         const lvTitle = `Level ${lv}「${lvNames[lv - 1]}」`;
+        const lvFeatureSub = lvFeatures[lv] || "";
         const pillsOrEmpty = list.length > 0
           ? `<div class="conquer-word-list" style="display:flex; flex-wrap:wrap; gap:8px; padding:2px 4px 2px 0; max-height:148px; overflow-y:auto; overscroll-behavior:contain;">${list.map(w => {
               const diag = typeof diagnoseWordMistake === "function" ? diagnoseWordMistake(w) : { tag: "音形記憶", desc: "音形對應與記憶加強", color: "#6B7280", bg: "#F3F4F6" };
@@ -16724,7 +16780,11 @@ function renderStudentDailyTaskAndFreeSections(resp) {
         return `
           <div class="conquer-level-row">
             <div class="conquer-level-head">
-              <span><span style="color:${lvDotColor}; margin-right:5px;">●</span>${lvTitle}</span>
+              <span style="display:inline-flex; align-items:center; gap:6px;">
+                <span style="color:${lvDotColor};">●</span>
+                <b>${lvTitle}</b>
+                <small style="font-size:11px; font-weight:normal; color:var(--ink3); opacity:0.85;">(${lvFeatureSub})</small>
+              </span>
               <span class="conquer-level-count">${list.length} 字</span>
             </div>
             ${pillsOrEmpty}
@@ -16738,7 +16798,8 @@ function renderStudentDailyTaskAndFreeSections(resp) {
 
       conquerDetailsContainer.innerHTML = `
         <div class="week-conquer-wrap" style="display:flex; flex-direction:column; gap:10px;">
-          <div class="week-conquer-tip" style="display:flex; align-items:flex-start; gap:8px; padding:4px 2px 8px; font-size:12.5px; line-height:1.55; color:var(--ink2);">
+          ${levelStandardPanelHtml}
+          <div class="week-conquer-tip" style="display:flex; align-items:flex-start; gap:8px; padding:4px 2px 4px; font-size:12.5px; line-height:1.55; color:var(--ink2);">
             <span style="font-size:15px; flex-shrink:0; line-height:1.3;">💡</span>
             <div style="flex:1; line-height:1.55;">
               ${tipText}
@@ -16755,22 +16816,61 @@ function renderStudentDailyTaskAndFreeSections(resp) {
   const btnStCur = document.getElementById("btn-st-conquer-cycle-current");
   const btnStPrev = document.getElementById("btn-st-conquer-cycle-prev");
   const btnStBiweekly = document.getElementById("btn-st-conquer-cycle-biweekly");
+  const stConquerSec = document.getElementById("studentWeekConquerCard");
+  const stConquerContainer = document.getElementById("st-week-conquer-container");
+  const stConquerToggleBtn = document.getElementById("btn-toggle-st-conquer-card");
+
+  if (stConquerToggleBtn && stConquerSec) {
+    stConquerToggleBtn.onclick = (e) => {
+      e.preventDefault();
+      const isHidden = (stConquerContainer && stConquerContainer.style.display === "none") || stConquerSec.classList.contains("is-collapsed");
+      if (isHidden) {
+        if (stConquerContainer) stConquerContainer.style.display = "block";
+        stConquerSec.classList.remove("is-collapsed");
+        stConquerToggleBtn.innerHTML = "收合";
+        if (typeof window.renderTeacherStudentConquerSection === "function") {
+          window.renderTeacherStudentConquerSection();
+        }
+        stConquerSec.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      } else {
+        if (stConquerContainer) stConquerContainer.style.display = "none";
+        stConquerSec.classList.add("is-collapsed");
+        stConquerToggleBtn.innerHTML = "展開";
+      }
+    };
+  }
+
   if (btnStCur) {
     btnStCur.onclick = (e) => {
       e.stopPropagation();
       window.renderTeacherStudentConquerSection("current");
+      if (stConquerContainer && stConquerContainer.style.display === "none" && stConquerSec) {
+        stConquerContainer.style.display = "block";
+        stConquerSec.classList.remove("is-collapsed");
+        if (stConquerToggleBtn) stConquerToggleBtn.innerHTML = "收合";
+      }
     };
   }
   if (btnStPrev) {
     btnStPrev.onclick = (e) => {
       e.stopPropagation();
       window.renderTeacherStudentConquerSection("previous");
+      if (stConquerContainer && stConquerContainer.style.display === "none" && stConquerSec) {
+        stConquerContainer.style.display = "block";
+        stConquerSec.classList.remove("is-collapsed");
+        if (stConquerToggleBtn) stConquerToggleBtn.innerHTML = "收合";
+      }
     };
   }
   if (btnStBiweekly) {
     btnStBiweekly.onclick = (e) => {
       e.stopPropagation();
       window.renderTeacherStudentConquerSection("prevBiweekly");
+      if (stConquerContainer && stConquerContainer.style.display === "none" && stConquerSec) {
+        stConquerContainer.style.display = "block";
+        stConquerSec.classList.remove("is-collapsed");
+        if (stConquerToggleBtn) stConquerToggleBtn.innerHTML = "收合";
+      }
     };
   }
 
