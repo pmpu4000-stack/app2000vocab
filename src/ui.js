@@ -2445,13 +2445,20 @@ function resolveDailyPracticeRecord(dateStr, d, historyList) {
   return null;
 }
 
-// ── 取得待攻克單字清單（清楚精準收集平日指定測驗錯題，排除答對題與自由練習錯題，支援雙週週期與自由練習消除機制） ──
-export function getWeekPendingConquerWords() {
+// ── 取得待攻克單字清單（清楚精準收集平日指定測驗錯題，排除答對題與自由練習錯題，支援雙週週期、切換查看上週與自由練習消除機制） ──
+export function getWeekPendingConquerWords(cycleParam = "current") {
   const unfinishedWords = new Set();
   const learnedWords = new Set();
   const cycleInfo = getBiweeklyCycleInfo();
-  const scanStartStr = cycleInfo.scanStartStr;
-  const scanEndStr = cycleInfo.scanEndStr;
+  
+  let scanStartStr, scanEndStr;
+  if (cycleParam === "previous") {
+    scanStartStr = cycleInfo.prevWeek.monday;
+    scanEndStr = cycleInfo.prevWeek.friday;
+  } else {
+    scanStartStr = cycleInfo.scanStartStr;
+    scanEndStr = cycleInfo.scanEndStr;
+  }
 
   const normalizeCleanWord = (w) => {
     if (!w) return "";
@@ -2616,22 +2623,35 @@ function _resolveConquerWordLevel(wordStr, d) {
   return 1;
 }
 
-export function buildWeekPendingConquerHtml(words, d = null) {
-  const pendingWords = Array.isArray(words) ? words : getWeekPendingConquerWords();
+let _activeConquerCycle = "current";
+
+export function buildWeekPendingConquerHtml(words, d = null, cycleParam = _activeConquerCycle) {
+  const pendingWords = Array.isArray(words) ? words : getWeekPendingConquerWords(cycleParam);
   const count = pendingWords.length;
   const cycleInfo = getBiweeklyCycleInfo();
-  const isBoss = cycleInfo.isBiweeklyBossWeek;
+  const isPrevious = (cycleParam === "previous");
+  const isBoss = cycleInfo.isBiweeklyBossWeek && !isPrevious;
 
   if (count === 0) {
+    const emptyTitle = isPrevious
+      ? "太棒了！上週平日測驗無遺留待攻克單字"
+      : `太棒了！${isBoss ? "雙週" : "本週"}目前無待攻克單字`;
+    const emptyDesc = isPrevious
+      ? "上週平日測驗的所有單字皆已掌握或已於自由練習中全數攻克！"
+      : (isBoss ? "雙週平日測驗單字皆已掌握或已於自由練習中全數攻克，" : "本週平日測驗單字皆已掌握或已於自由練習中全數攻克，");
+    const emptySub = isPrevious
+      ? "上週的錯題庫已完全清空！"
+      : (isBoss ? "週末無須進行雙週大魔王消滅戰！" : "週末無須進行錯題補強測驗！");
+
     return `
       <div class="task-empty-notice" style="padding:14px 16px; margin:0; background:rgba(30,154,102,0.06); border:1.5px solid rgba(30,154,102,0.22); border-radius:12px; display:flex; flex-direction:column; gap:6px;">
         <div style="display:flex; align-items:center; gap:8px;">
           <span style="font-size:18px; line-height:1; flex-shrink:0;">✨</span>
-          <span style="color:#1E9A66; font-size:14px; font-weight:800; line-height:1.4;">太棒了！${isBoss ? "雙週" : "本週"}目前無待攻克單字</span>
+          <span style="color:#1E9A66; font-size:14px; font-weight:800; line-height:1.4;">${emptyTitle}</span>
         </div>
         <div class="task-empty-notice-desc" style="color:var(--ink2); font-size:12.5px; line-height:1.65; padding-left:26px; max-width:100%; margin:0;">
-          <div>${isBoss ? "雙週平日測驗單字皆已掌握或已於自由練習中全數攻克，" : "本週平日測驗單字皆已掌握或已於自由練習中全數攻克，"}</div>
-          <div style="margin-top:2px;">${isBoss ? "週末無須進行雙週大魔王消滅戰！" : "週末無須進行錯題補強測驗！"}</div>
+          <div>${emptyDesc}</div>
+          <div style="margin-top:2px;">${emptySub}</div>
         </div>
       </div>
     `;
@@ -2667,9 +2687,11 @@ export function buildWeekPendingConquerHtml(words, d = null) {
     `;
   }).join("");
 
-  const tipText = isBoss
-    ? `雙週（第 2 週大消滅週期）累積 <b>${count}</b> 個待攻克單字。在<b>自由練習</b>中只要拼對該單字，系統即判定為已學會並自動移除！<b>自由練習答錯不計入待攻克</b>，週末將進行雙週大魔王消滅戰。`
-    : `本週（雙週週期第 1 週）累積 <b>${count}</b> 個待攻克單字。在<b>自由練習</b>中只要拼對該單字，系統即判定為已學會並自動移除！<b>自由練習答錯不計入待攻克</b>，週末未消滅之單字將滾入雙週大魔王儲備池。`;
+  const tipText = isPrevious
+    ? `檢視<b>上週平日測驗</b>遺留的 <b>${count}</b> 個待攻克單字。在<b>自由練習</b>中只要拼對該單字，系統即判定為已學會並自動移除！`
+    : (isBoss
+      ? `雙週（第 2 週大消滅週期）累積 <b>${count}</b> 個待攻克單字。在<b>自由練習</b>中只要拼對該單字，系統即判定為已學會並自動移除！<b>自由練習答錯不計入待攻克</b>，週末將進行雙週大魔王消滅戰。`
+      : `本週（雙週週期第 1 週）累積 <b>${count}</b> 個待攻克單字。在<b>自由練習</b>中只要拼對該單字，系統即判定為已學會並自動移除！<b>自由練習答錯不計入待攻克</b>，週末未消滅之單字將滾入雙週大魔王儲備池。`);
 
   return `
     <div class="week-conquer-wrap" style="display:flex; flex-direction:column; gap:10px;">
@@ -2686,17 +2708,38 @@ export function buildWeekPendingConquerHtml(words, d = null) {
   `;
 }
 
-export function updateWeekConquerSection() {
+export function updateWeekConquerSection(cycleParam = _activeConquerCycle) {
+  _activeConquerCycle = cycleParam;
   const titleEl = $("#week-conquer-title");
   const badgeEl = $("#week-conquer-badge");
   const detailsEl = $("#week-conquer-details");
   if (!detailsEl) return;
-  const words = getWeekPendingConquerWords();
+  const words = getWeekPendingConquerWords(_activeConquerCycle);
   const count = words.length;
   const cycleInfo = getBiweeklyCycleInfo();
+  const isPrevious = (_activeConquerCycle === "previous");
+
   if (titleEl) {
-    titleEl.textContent = cycleInfo.isBiweeklyBossWeek ? "🎯 雙週待攻克單字（雙週大消滅儲備池）" : "🎯 本週待攻克單字（雙週第 1 週）";
+    if (isPrevious) {
+      titleEl.textContent = "🎯 上週平日待攻克單字回顧";
+    } else {
+      titleEl.textContent = cycleInfo.isBiweeklyBossWeek ? "🎯 雙週待攻克單字（雙週大消滅儲備池）" : "🎯 本週待攻克單字（雙週第 1 週）";
+    }
   }
+
+  // 更新切換按鈕 active 樣式
+  const btnCur = $("#btn-conquer-cycle-current");
+  const btnPrev = $("#btn-conquer-cycle-prev");
+  if (btnCur && btnPrev) {
+    if (isPrevious) {
+      btnCur.classList.remove("active");
+      btnPrev.classList.add("active");
+    } else {
+      btnCur.classList.add("active");
+      btnPrev.classList.remove("active");
+    }
+  }
+
   if (badgeEl) {
     if (count > 0) {
       badgeEl.style.display = "inline-block";
@@ -2707,7 +2750,7 @@ export function updateWeekConquerSection() {
       badgeEl.textContent = "";
     }
   }
-  detailsEl.innerHTML = buildWeekPendingConquerHtml(words);
+  detailsEl.innerHTML = buildWeekPendingConquerHtml(words, null, _activeConquerCycle);
 }
 
 // ---------- summary ----------
@@ -3113,10 +3156,14 @@ export function renderSummary(d) {
       </div>
     </div>
 
-    <!-- 子標題 3：待攻克單字（支援雙週週期） -->
-    <div class="subh-child" style="margin-top:16px;">
+    <!-- 子標題 3：待攻克單字（支援雙週週期與自選週期切換） -->
+    <div class="subh-child" style="margin-top:16px; display:flex; align-items:center; flex-wrap:wrap; gap:8px;">
       <span id="week-conquer-title">${(getBiweeklyCycleInfo().isBiweeklyBossWeek) ? "🎯 雙週待攻克單字（雙週大消滅儲備池）" : "🎯 本週待攻克單字（雙週第 1 週）"}</span>
-      <span id="week-conquer-badge" class="badge-count" style="margin-left:auto; font-size:11.5px; font-weight:700; padding:2px 10px; border-radius:999px; ${conquerCount > 0 ? 'background:rgba(255,255,255,0.12); color:var(--ink); border:1px solid rgba(148,163,184,0.38);' : 'display:none;'}">
+      <div class="conquer-cycle-toggle-group" style="display:inline-flex; align-items:center; gap:4px; margin-left:auto; background:var(--bar-track, rgba(0,0,0,0.06)); padding:2px; border-radius:8px;">
+        <button type="button" id="btn-conquer-cycle-current" class="date-nav-btn active" onclick="event.stopPropagation(); (typeof updateWeekConquerSection==='function'?updateWeekConquerSection('current'):null);" style="font-size:11.5px; padding:3px 8px; border-radius:6px; height:auto; line-height:1.2;">本週</button>
+        <button type="button" id="btn-conquer-cycle-prev" class="date-nav-btn" onclick="event.stopPropagation(); (typeof updateWeekConquerSection==='function'?updateWeekConquerSection('previous'):null);" style="font-size:11.5px; padding:3px 8px; border-radius:6px; height:auto; line-height:1.2;" title="查看上週遺留待攻克單字">上週</button>
+      </div>
+      <span id="week-conquer-badge" class="badge-count" style="font-size:11.5px; font-weight:700; padding:2px 10px; border-radius:999px; ${conquerCount > 0 ? 'background:rgba(255,255,255,0.12); color:var(--ink); border:1px solid rgba(148,163,184,0.38);' : 'display:none;'}">
         ${conquerCount > 0 ? `待攻克 ${conquerCount} 字` : ''}
       </span>
     </div>
