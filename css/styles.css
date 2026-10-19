@@ -691,6 +691,7 @@ body.daily-limit-reached #btn-upload {
 [data-theme="dark"] .perfect-score-msg{color:#6EE7B7!important;background:rgba(16,185,129,.18)!important;border-color:rgba(52,211,153,.35)!important}
 .word-split-box.untested-box{background:#F8FAFC;border:1px solid #E2E8F0}
 .word-split-box.advice-box{background:#F8FAFC;border:1px solid #CBD5E1}
+.word-split-box.advice-box .word-split-content{display:flex!important;flex-direction:column!important;flex-wrap:nowrap!important;align-items:flex-start!important;align-content:flex-start!important}
 .word-split-title.untested-title{color:#475569}
 .word-split-title.advice-title{color:#475569}
 
