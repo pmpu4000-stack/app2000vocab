@@ -117,8 +117,8 @@
           <b id="s-user" class="tnum">-</b>
           <span>登入帳號</span>
         </div>
-        <div class="stat streak-freeze" id="stat-streak-freeze" style="cursor:pointer;" title="連勝護盾（點擊查看說明）：目前剩餘 1 個，上限 2 個（尚未用完）。若當日未練習，自動消耗 1 個護盾守護連續紀錄，每達 50 題答對自動補充">
-          <b id="s-freeze-val" class="tnum" style="color:#2563eb;">1/2</b>
+        <div class="stat streak-freeze" id="stat-streak-freeze" style="cursor:pointer;" title="連勝護盾（點擊查看說明）：若當日未練習，自動消耗 1 個護盾守護連續紀錄，每達 50 題答對自動補充（上限 2 個）">
+          <b id="s-freeze-val" class="tnum" style="color:#94a3b8;">-</b>
           <span>🛡️ 連勝護盾</span>
         </div>
         <div class="stat theme" id="btn-theme-toggle" style="cursor:pointer; display:flex;" title="點擊切換深色/淺色模式">
@@ -664,15 +664,19 @@
       };
     // 點擊「連勝護盾」欄位彈出說明彈窗
     window.openStreakFreezeModal = function() {
-      let curFreezes = 1;
+      let curFreezes = 0;
       try {
         const sa = JSON.parse(localStorage.getItem("spellAgent.v2") || "{}");
         if (typeof sa.streakFreezes === "number") curFreezes = sa.streakFreezes;
       } catch(_) {}
       const valEl = document.getElementById("s-freeze-val");
       if (valEl && valEl.textContent) {
-        const m = valEl.textContent.match(/^(\d+)/);
-        if (m) curFreezes = parseInt(m[1], 10);
+        if (valEl.textContent.includes("已用完")) {
+          curFreezes = 0;
+        } else {
+          const m = valEl.textContent.match(/(\d+)/);
+          if (m) curFreezes = parseInt(m[1], 10);
+        }
       }
 
       let mEl = document.getElementById("streak-freeze-modal");

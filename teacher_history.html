@@ -17138,9 +17138,9 @@ function renderStudentSummary(resp) {
 
   const elTaskStreakLine = document.getElementById("stTaskStreakLine");
   if (elTaskStreakLine) {
-    const sFreezes = (agent && typeof agent.streakFreezes === 'number') ? agent.streakFreezes : 1;
+    const sFreezes = (agent && typeof agent.streakFreezes === 'number') ? agent.streakFreezes : 0;
     elTaskStreakLine.innerHTML = `
-      <span>連續 <b id="stTaskHeatStreak">${taskStreak}</b> 天 · 最佳 <b id="stTaskHeatBest">${taskBest}</b> 天 · 累計練習 <b id="stTaskHeatTotal">${taskTotalActive}</b> 天 <span class="streak-freeze-badge" title="連勝守護護盾：偶爾請假缺席時，系統自動消耗 1 個護盾守護連續紀錄！每累積 50 題答對可補充（上限 2 個）。">🛡️ 護盾: <b>${sFreezes}/2</b></span></span>
+      <span>連續 <b id="stTaskHeatStreak">${taskStreak}</b> 天 · 最佳 <b id="stTaskHeatBest">${taskBest}</b> 天 · 累計練習 <b id="stTaskHeatTotal">${taskTotalActive}</b> 天 <span class="streak-freeze-badge" title="連勝守護護盾：偶爾請假缺席時，系統自動消耗 1 個護盾守護連續紀錄！每累積 50 題答對可補充（上限 2 個）。">🛡️ 護盾: <b>${sFreezes === 0 ? '已用完' : (sFreezes >= 2 ? '2 個(滿)' : `剩 ${sFreezes} 個`)}</b></span></span>
       <span id="stTaskHeatDayInfo" class="heat-day-info"></span>
     `;
   }
@@ -17330,9 +17330,9 @@ function renderStudentSummary(resp) {
 
   const elStreakLine = document.getElementById("stStreakLine");
   if (elStreakLine) {
-    const sFreezes = (agent && typeof agent.streakFreezes === 'number') ? agent.streakFreezes : 1;
+    const sFreezes = (agent && typeof agent.streakFreezes === 'number') ? agent.streakFreezes : 0;
     elStreakLine.innerHTML = `
-      <span>連續 <b id="stHeatStreak">${streak}</b> 天 · 最佳 <b id="stHeatBest">${best}</b> 天 · 累計練習 <b id="stHeatTotal">${totalActive}</b> 天 <span class="streak-freeze-badge" title="連勝守護護盾：偶爾請假缺席時，系統自動消耗 1 個護盾守護連續紀錄！每累積 50 題答對可補充（上限 2 個）。">🛡️ 護盾: <b>${sFreezes}/2</b></span></span>
+      <span>連續 <b id="stHeatStreak">${streak}</b> 天 · 最佳 <b id="stHeatBest">${best}</b> 天 · 累計練習 <b id="stHeatTotal">${totalActive}</b> 天 <span class="streak-freeze-badge" title="連勝守護護盾：偶爾請假缺席時，系統自動消耗 1 個護盾守護連續紀錄！每累積 50 題答對可補充（上限 2 個）。">🛡️ 護盾: <b>${sFreezes === 0 ? '已用完' : (sFreezes >= 2 ? '2 個(滿)' : `剩 ${sFreezes} 個`)}</b></span></span>
       <span id="stHeatDayInfo" class="heat-day-info"></span>
     `;
   }
