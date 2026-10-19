@@ -9548,6 +9548,7 @@ function renderAnalyticsTable() {
 
   list.forEach((s, idx) => {
     const rateNum = parseFloat(s.rate);
+    let statusPill = "";
     if (s.status.includes("已完成")) {
       statusPill = `<span class="analytics-status-pill analytics-status-done">已完成</span>`;
     } else if (s.status.includes("作答中") || s.status.includes("中斷") || s.status.includes("進行中")) {
@@ -15075,6 +15076,26 @@ function diagnoseWordMistake(word, guess = "") {
   return { tag: "音形記憶", code: "orthographic", desc: "音形對應記憶加強", color: "#6B7280", bg: "#F3F4F6" };
 }
 
+function normalizeDateKey(ds) {
+  if (!ds) return "";
+  const clean = String(ds).trim().split(" ")[0].replace(/\//g, "-");
+  const parts = clean.split("-");
+  if (parts.length === 3) {
+    return `${parts[0]}-${String(parts[1]).padStart(2, "0")}-${String(parts[2]).padStart(2, "0")}`;
+  }
+  return clean;
+}
+
+function unpadDateKey(ds) {
+  if (!ds) return "";
+  const clean = String(ds).trim().split(" ")[0].replace(/\//g, "-");
+  const parts = clean.split("-");
+  if (parts.length === 3) {
+    return `${parts[0]}-${parseInt(parts[1], 10)}-${parseInt(parts[2], 10)}`;
+  }
+  return clean;
+}
+
 function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalCount = 1, hasLoggedInOrFree = false) {
   const { rawWords, wrongList, correctList, hadCorrectThenWrongList } = resolveTaskWords(record, selectedDate, agent);
 
@@ -15187,6 +15208,7 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
   const isTrulyPerfect = (taskRate >= 100) || (taskTotWords > 0 && taskCorrWords >= taskTotWords && wrongList.length === 0);
   const missedCount = Math.max(0, taskTotWords - taskCorrWords);
   let rightBoxClass = "wrong-box";
+  let rightTitleClass = "wrong-title";
   let rightTitleText = wrongList.length > 0 
     ? `<span class="card-icon-slot">❌</span><span>答錯的單字 (${wrongList.length} 字)</span>` 
     : (isTrulyPerfect ? `<span class="card-icon-slot">❌</span><span>答錯的單字 (0 字)</span>` : (missedCount > 0 ? `<span class="card-icon-slot">🔘</span><span>未作答的單字 (${missedCount} 字)</span>` : `<span class="card-icon-slot">❌</span><span>答錯的單字 (0 字)</span>`));
@@ -17208,7 +17230,9 @@ function renderStudentSummary(resp) {
 
       const renderStTaskHeatBadgeContent = (dateKey, att, rate, activeCellIdx) => {
         if (!taskHeatDayInfoEl) return;
-        const currentItem = activeCellIdx >= 0 && taskDays[activeCellIdx] ? taskDays[activeCellIdx] : null;
+        const parts = String(dateKey || "").split("-");
+        const shortK = parts.length === 3 ? `${parts[0]}-${parseInt(parts[1], 10)}-${parseInt(parts[2], 10)}` : dateKey;
+        const currentItem = (activeCellIdx >= 0 && taskDays[activeCellIdx]) ? taskDays[activeCellIdx] : getTaskDayStatForHeat(dateKey, shortK);
         if (currentItem && currentItem.isIncomplete) {
           taskHeatDayInfoEl.className = "heat-day-info tier-status-purple";
           taskHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ <b>作答中斷</b>`;
@@ -17342,6 +17366,7 @@ function renderStudentSummary(resp) {
       }
     });
   }
+  const attempts = unifiedWords.size || ((agent && agent.attempts) ? Number(agent.attempts) : 0);
   let totalActive = allActiveDates.size;
   if (totalActive === 0 && attempts > 0) totalActive = 1;
 
