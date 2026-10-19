@@ -244,21 +244,38 @@ function markWordLearnedInFreePractice(word) {
       }
     }
 
-    // 4. 從週六補救紀錄 (weekend_remedy_) 中移除，確保週日不指派
-    const mondayStr = getWeekMondayDate();
-    const rawRemedy = localStorage.getItem("weekend_remedy_" + mondayStr);
-    if (rawRemedy) {
-      const rObj = JSON.parse(rawRemedy);
-      if (rObj && Array.isArray(rObj.satWrongWords) && rObj.satWrongWords.includes(cleanWord)) {
-        rObj.satWrongWords = rObj.satWrongWords.filter(w => w !== cleanWord);
-        localStorage.setItem("weekend_remedy_" + mondayStr, JSON.stringify(rObj));
-      }
-    }
-
-    // 5. 即時更新「本週待攻克單字」介面區塊
+    // 4. 從所有週末補救紀錄 (weekend_remedy_*) 中移除，確保週日不指派
     try {
-      if (typeof ui !== "undefined" && typeof ui.updateWeekConquerSection === "function") {
-        ui.updateWeekConquerSection();
+      const mondayStr = getWeekMondayDate();
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith("weekend_remedy_")) {
+          try {
+            const rObj = JSON.parse(localStorage.getItem(k));
+            let changed = false;
+            if (rObj && Array.isArray(rObj.satWrongWords) && rObj.satWrongWords.includes(cleanWord)) {
+              rObj.satWrongWords = rObj.satWrongWords.filter(w => w !== cleanWord);
+              changed = true;
+            }
+            if (rObj && Array.isArray(rObj.sunWrongWords) && rObj.sunWrongWords.includes(cleanWord)) {
+              rObj.sunWrongWords = rObj.sunWrongWords.filter(w => w !== cleanWord);
+              changed = true;
+            }
+            if (changed) localStorage.setItem(k, JSON.stringify(rObj));
+          } catch(_) {}
+        }
+      }
+    } catch(_) {}
+
+    // 5. 即時更新「待攻克單字」卡片與區塊
+    try {
+      if (typeof ui !== "undefined") {
+        if (typeof ui.updateConquerRecordsCard === "function") {
+          ui.updateConquerRecordsCard();
+        }
+        if (typeof ui.updateWeekConquerSection === "function") {
+          ui.updateWeekConquerSection();
+        }
       }
     } catch(_) {}
   } catch(_) {}
@@ -315,6 +332,9 @@ function unmarkWordLearnedInFreePractice(word) {
     if (Array.isArray(list) && list.includes(cleanWord)) {
       const updated = list.filter(w => w !== cleanWord);
       localStorage.setItem("remedy_learned_words", JSON.stringify(updated));
+    }
+    if (typeof ui !== "undefined" && typeof ui.updateConquerRecordsCard === "function") {
+      ui.updateConquerRecordsCard();
     }
   } catch(_) {}
 }
@@ -479,6 +499,9 @@ function refreshChrome() {
   ui.renderBanner(cur, ls, ready, hint, startChallenge);
   if (typeof ui.initExportRecordsCard === "function") {
     ui.initExportRecordsCard(() => store.summary(WORDS));
+  }
+  if (typeof ui.initConquerRecordsCard === "function") {
+    ui.initConquerRecordsCard(() => store.summary(WORDS));
   }
   const isLocked = (typeof window !== "undefined") && (window.__dailyUsageTimeIsUp || (window.dailyUsageState && window.dailyUsageState.isLockedDown) || document.body.classList.contains("daily-limit-reached"));
   if (!isLocked && !ui.summaryHidden()) ui.renderSummary(store.summary(WORDS));
@@ -1692,6 +1715,9 @@ ui.initModes(state.mode, (mode) => {
 ui.onCheckClick(check);
 ui.onSummary(() => ui.toggleSummary(store.summary(WORDS)));
 ui.initProgressCard();
+if (typeof ui.initConquerRecordsCard === "function") {
+  ui.initConquerRecordsCard(() => store.summary(WORDS));
+}
 
 // ---- boot ----
 (async function boot() {
