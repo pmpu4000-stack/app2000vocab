@@ -5480,19 +5480,14 @@
       </div>
     </section>
 
-    <!-- 🎯 待攻克單字 Conquer 獨立卡片 (比照遊戲網頁，併入 Level 1~5 分級標準與特徵一覽) -->
+    <!-- 待攻克單字 Conquer 獨立卡片 (比照遊戲網頁，併入 Level 1~5 分級標準與特徵一覽) -->
     <section class="progress week-conquer-section is-collapsed" id="studentWeekConquerCard">
       <h3>
-        <span style="display:inline-flex; align-items:center; gap:8px; flex-wrap:wrap;">
+        <span style="display:inline-flex; align-items:center; gap:8px;">
           <span id="stWeekConquerTitle">待攻克單字 Conquer</span>
           <span id="stWeekConquerBadge" class="badge-count" style="display:none; font-size:11.5px; font-weight:700; padding:2px 10px; border-radius:999px; background:rgba(255,255,255,0.12); color:var(--ink); border:1px solid rgba(148,163,184,0.38);"></span>
         </span>
-        <span style="display:flex; gap:10px; align-items:center;">
-          <div class="conquer-cycle-toggle-group" style="display:inline-flex; align-items:center; gap:4px; background:var(--bar-track, rgba(0,0,0,0.06)); padding:2px; border-radius:8px;">
-            <button type="button" id="btn-st-conquer-cycle-current" class="date-nav-btn active" style="font-size:11.5px; padding:3px 8px; border-radius:6px; height:auto; line-height:1.2;">本週</button>
-            <button type="button" id="btn-st-conquer-cycle-prev" class="date-nav-btn" style="font-size:11.5px; padding:3px 8px; border-radius:6px; height:auto; line-height:1.2;" title="查看上一週遺留待攻克單字">上一週</button>
-            <button type="button" id="btn-st-conquer-cycle-biweekly" class="date-nav-btn" style="font-size:11.5px; padding:3px 8px; border-radius:6px; height:auto; line-height:1.2;" title="查看上一回雙週（過去14天）所有待攻克單字">上一回雙週</button>
-          </div>
+        <span style="display:flex; gap:14px; align-items:center;">
           <a id="btn-toggle-st-conquer-card" class="sum-toggle-btn" title="展開或收合待攻克單字">展開</a>
         </span>
       </h3>
@@ -16542,131 +16537,27 @@ function renderStudentDailyTaskAndFreeSections(resp) {
     }
 
     if (conquerTitle) {
-      if (isPrevBiweekly) {
-        conquerTitle.textContent = "🎯 上一回雙週待攻克單字回顧";
-      } else if (isPrevious) {
-        conquerTitle.textContent = "🎯 上一週平日待攻克單字回顧";
-      } else {
-        conquerTitle.textContent = "🎯 本週待攻克單字";
-      }
+      conquerTitle.textContent = "待攻克單字 Conquer";
     }
 
-    const dNow = new Date();
-    const day = dNow.getDay();
-    const diff = dNow.getDate() - day + (day === 0 ? -6 : 1);
-    let monday, friday;
-    if (isPrevBiweekly) {
-      monday = new Date(dNow.getFullYear(), dNow.getMonth(), diff - 14);
-      friday = new Date(dNow.getFullYear(), dNow.getMonth(), diff - 3);
-    } else if (isPrevious) {
-      monday = new Date(dNow.getFullYear(), dNow.getMonth(), diff - 7);
-      friday = new Date(dNow.getFullYear(), dNow.getMonth(), diff - 3);
-    } else {
-      monday = new Date(dNow.getFullYear(), dNow.getMonth(), diff);
-      friday = new Date(dNow.getFullYear(), dNow.getMonth(), diff + 4);
-    }
-    const formatD = (dt) => dt.getFullYear() + "-" + String(dt.getMonth() + 1).padStart(2, "0") + "-" + String(dt.getDate()).padStart(2, "0");
-    const mondayStr = formatD(monday);
-    const fridayStr = formatD(friday);
-
-    const normalizeCleanWord = (w) => {
-      if (!w) return "";
-      return String(w).replace(/\(.*?\)/g, "").trim().toLowerCase();
-    };
-
-    const unfinishedWords = new Set();
-    const learnedWords = new Set();
-    const allStudentTasks = [];
-    const curResp = window._currentTeacherConquerResp || {};
-    const curAgent = window._currentTeacherConquerAgent || null;
-
-    if (Array.isArray(curResp.dailyTaskHistory)) allStudentTasks.push(...curResp.dailyTaskHistory);
-    if (curResp.todayTaskResult) allStudentTasks.push(curResp.todayTaskResult);
-    if (Array.isArray(window.cachedStudentDailyHistory)) allStudentTasks.push(...window.cachedStudentDailyHistory);
-    if (Array.isArray(window.cachedBackupTaskHistory)) allStudentTasks.push(...window.cachedBackupTaskHistory);
-    // 同步提取試算表歷史列 (resp.data) 中的平日指定測驗錯題
-    if (curResp.data && Array.isArray(curResp.data)) {
-      for (const r of curResp.data) {
-        if (!r || !r[0]) continue;
-        const info = extractRowTaskInfo(r, curResp.headers);
-        if (info && info.taskName && info.taskName !== "自主練習" && !info.taskName.includes("自由練習")) {
-          allStudentTasks.push({
-            date: normalizeDateKey(r[0]),
-            taskName: info.taskName,
-            status: info.status || "",
-            score: info.score || "",
-            words: info.words || [],
-            wrongWords: info.wrongWords || [],
-            correctWords: info.correctWords || []
-          });
-        }
-      }
-    }
-
-    allStudentTasks.forEach(item => {
-      if (!item || !item.date) return;
-      const iDate = String(item.date).trim().split(" ")[0].replace(/\//g, "-");
-      if (iDate >= mondayStr && iDate <= fridayStr) {
-        const tName = String(item.taskName || "").trim();
-        if (tName === "自主練習" || tName.includes("自由練習")) return;
-
-        // 收集答對單字，確保答對者絕不誤入待攻克
-        const correctSet = new Set();
-        if (Array.isArray(item.correctWords)) {
-          item.correctWords.forEach(w => {
-            const cw = normalizeCleanWord(w);
-            if (cw) correctSet.add(cw);
-          });
-        }
-
-        // A. 明確答錯的單字 (wrongWords)
-        if (Array.isArray(item.wrongWords)) {
-          item.wrongWords.forEach(w => {
-            const cw = normalizeCleanWord(w);
-            if (cw && !correctSet.has(cw)) unfinishedWords.add(cw);
-          });
-        }
-
-        // B. 尚未測驗/缺考 或 中途未作答完的單字
-        const status = String(item.status || "");
-        const score = String(item.score || "");
-        const isTotallyUntested = status.includes("未受測") || status.includes("缺席") || status.includes("缺考") || score === "—" || score === "尚未開始";
-        
-        if (Array.isArray(item.words)) {
-          if (isTotallyUntested && correctSet.size === 0 && (!item.wrongWords || item.wrongWords.length === 0)) {
-            item.words.forEach(w => {
-              const cw = normalizeCleanWord(w);
-              if (cw) unfinishedWords.add(cw);
-            });
-          } else if (!isTotallyUntested) {
-            const wrongSet = new Set((item.wrongWords || []).map(normalizeCleanWord));
-            item.words.forEach(w => {
-              const cw = normalizeCleanWord(w);
-              if (cw && !correctSet.has(cw) && !wrongSet.has(cw)) {
-                unfinishedWords.add(cw);
-              }
-            });
-          }
-        }
-      }
-    });
-
-    // 檢查自主練習是否已答對學會（答對即可消除）
-    if (curAgent && curAgent.dailyPractice) {
-      Object.values(curAgent.dailyPractice).forEach(dp => {
-        if (dp && dp.words) {
-          Object.entries(dp.words).forEach(([wKey, info]) => {
-            if (info && (info.correct > 0 || info.passed) && info.lastResult !== "wrong") {
-              const cw = normalizeCleanWord(wKey);
-              if (cw) learnedWords.add(cw);
-            }
-          });
-        }
-      });
-    }
-
-    const pendingWords = Array.from(unfinishedWords).filter(w => !learnedWords.has(w)).sort();
-    const count = pendingWords.length;
+    // 週期選擇導覽列（移入卡片內部）
+    const cycleSelectBarHtml = `
+      <div class="conquer-cycle-nav-bar" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; padding:8px 12px; background:var(--bar-track, rgba(148,163,184,0.08)); border:1px solid rgba(148,163,184,0.18); border-radius:10px; margin-bottom:4px;">
+        <div style="display:flex; align-items:center; gap:6px; font-size:12.5px; font-weight:750; color:var(--ink);">
+          <span>📅 查看週次：</span>
+          <select id="st-conquer-cycle-select" class="task-date-selector" style="font-size:12px; padding:3px 8px; border-radius:6px; border:1px solid rgba(148,163,184,0.35); background:var(--card, #fff); color:var(--ink); font-weight:600; cursor:pointer;" title="選擇查看待攻克週次">
+            <option value="current" ${cycleParam === 'current' ? 'selected' : ''}>本週平日測驗</option>
+            <option value="prevWeek" ${(cycleParam === 'prevWeek' || cycleParam === 'previous') ? 'selected' : ''}>上一週平日測驗</option>
+            <option value="prevBiweekly" ${cycleParam === 'prevBiweekly' ? 'selected' : ''}>上一回雙週週期（過去14天）</option>
+          </select>
+        </div>
+        <div class="conquer-cycle-toggle-group" style="display:inline-flex; align-items:center; gap:4px;">
+          <button type="button" id="btn-st-conquer-cycle-current" class="date-nav-btn ${cycleParam === 'current' ? 'active' : ''}" style="font-size:11.5px; padding:3px 8px; border-radius:6px; height:auto; line-height:1.2;">本週</button>
+          <button type="button" id="btn-st-conquer-cycle-prev" class="date-nav-btn ${(cycleParam === 'prevWeek' || cycleParam === 'previous') ? 'active' : ''}" style="font-size:11.5px; padding:3px 8px; border-radius:6px; height:auto; line-height:1.2;" title="查看上一週遺留待攻克單字">上一週</button>
+          <button type="button" id="btn-st-conquer-cycle-biweekly" class="date-nav-btn ${cycleParam === 'prevBiweekly' ? 'active' : ''}" style="font-size:11.5px; padding:3px 8px; border-radius:6px; height:auto; line-height:1.2;" title="查看上一回雙週（過去14天）所有待攻克單字">上一回雙週</button>
+        </div>
+      </div>
+    `;
 
     if (conquerBadge) {
       if (count > 0) {
@@ -16679,45 +16570,6 @@ function renderStudentDailyTaskAndFreeSections(resp) {
       }
     }
 
-    // Level 1~5 分級標準與特徵對照表 HTML
-    const levelStandardPanelHtml = `
-      <div class="level-standard-panel">
-        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
-          <span style="font-size:12.5px; font-weight:800; color:var(--ink); display:flex; align-items:center; gap:5px;">
-            <span>📊</span><span>Level 1~5 單字分級標準與特徵一覽</span>
-          </span>
-          <span style="font-size:11px; color:var(--ink3);">全書 2,055 字 · 5 大關卡階梯</span>
-        </div>
-        <div class="level-standard-grid">
-          <div class="level-standard-item" style="border-left:3px solid #2FB47C;">
-            <div class="level-standard-head" style="color:#2FB47C;"><span>🟢</span><span>Lv.1 入門</span></div>
-            <div class="level-standard-sub">約 3.4 字母 · 411 字</div>
-            <div class="level-standard-trap">自然拼讀、CVC極短字、單母音、生活高頻詞</div>
-          </div>
-          <div class="level-standard-item" style="border-left:3px solid #2D9CDB;">
-            <div class="level-standard-head" style="color:#2D9CDB;"><span>🔵</span><span>Lv.2 基礎</span></div>
-            <div class="level-standard-sub">約 4.7 字母 · 411 字</div>
-            <div class="level-standard-trap">短單母音/合音、Magic e、基本長母音、常用字詞</div>
-          </div>
-          <div class="level-standard-item" style="border-left:3px solid #6C4CE0;">
-            <div class="level-standard-head" style="color:#6C4CE0;"><span>🟣</span><span>Lv.3 進階</span></div>
-            <div class="level-standard-sub">約 5.2 字母 · 411 字</div>
-            <div class="level-standard-trap">雙音節中長字、複合字、弱化母音Schwa、詞類變化</div>
-          </div>
-          <div class="level-standard-item" style="border-left:3px solid #E8892B;">
-            <div class="level-standard-head" style="color:#E8892B;"><span>🟠</span><span>Lv.4 挑戰</span></div>
-            <div class="level-standard-sub">約 6.7 字母 · 411 字</div>
-            <div class="level-standard-trap">雙子音/不規則母音、不發音字母、抽象觀念與學術名詞</div>
-          </div>
-          <div class="level-standard-item" style="border-left:3px solid #E0567B;">
-            <div class="level-standard-head" style="color:#E0567B;"><span>🔴</span><span>Lv.5 精熟</span></div>
-            <div class="level-standard-sub">約 9.0 字母 · 411 字</div>
-            <div class="level-standard-trap">多音節長字、字根字首派生、多重拼寫陷阱、高階字彙</div>
-          </div>
-        </div>
-      </div>
-    `;
-
     if (count === 0) {
       const emptyTitle = isPrevious ? "太棒了！上週平日測驗無遺留待攻克單字" : "太棒了！本週目前無待攻克單字";
       const emptyDesc = isPrevious
@@ -16727,6 +16579,7 @@ function renderStudentDailyTaskAndFreeSections(resp) {
 
       conquerDetailsContainer.innerHTML = `
         <div class="week-conquer-wrap" style="display:flex; flex-direction:column; gap:10px;">
+          ${cycleSelectBarHtml}
           ${levelStandardPanelHtml}
           <div class="task-empty-notice" style="padding:14px 16px; margin:0; background:rgba(30,154,102,0.06); border:1.5px solid rgba(30,154,102,0.22); border-radius:12px; display:flex; flex-direction:column; gap:6px;">
             <div style="display:flex; align-items:center; gap:8px;">
@@ -16798,6 +16651,7 @@ function renderStudentDailyTaskAndFreeSections(resp) {
 
       conquerDetailsContainer.innerHTML = `
         <div class="week-conquer-wrap" style="display:flex; flex-direction:column; gap:10px;">
+          ${cycleSelectBarHtml}
           ${levelStandardPanelHtml}
           <div class="week-conquer-tip" style="display:flex; align-items:flex-start; gap:8px; padding:4px 2px 4px; font-size:12.5px; line-height:1.55; color:var(--ink2);">
             <span style="font-size:15px; flex-shrink:0; line-height:1.3;">💡</span>
@@ -16811,11 +16665,22 @@ function renderStudentDailyTaskAndFreeSections(resp) {
         </div>
       `;
     }
+
+    // 綁定教師端待攻克週次切換事件
+    const selectEl = conquerDetailsContainer.querySelector("#st-conquer-cycle-select");
+    if (selectEl) {
+      selectEl.onchange = (e) => {
+        window.renderTeacherStudentConquerSection(e.target.value);
+      };
+    }
+    const btnCur = conquerDetailsContainer.querySelector("#btn-st-conquer-cycle-current");
+    const btnPrev = conquerDetailsContainer.querySelector("#btn-st-conquer-cycle-prev");
+    const btnBiweekly = conquerDetailsContainer.querySelector("#btn-st-conquer-cycle-biweekly");
+    if (btnCur) btnCur.onclick = (e) => { e.stopPropagation(); window.renderTeacherStudentConquerSection("current"); };
+    if (btnPrev) btnPrev.onclick = (e) => { e.stopPropagation(); window.renderTeacherStudentConquerSection("previous"); };
+    if (btnBiweekly) btnBiweekly.onclick = (e) => { e.stopPropagation(); window.renderTeacherStudentConquerSection("prevBiweekly"); };
   };
 
-  const btnStCur = document.getElementById("btn-st-conquer-cycle-current");
-  const btnStPrev = document.getElementById("btn-st-conquer-cycle-prev");
-  const btnStBiweekly = document.getElementById("btn-st-conquer-cycle-biweekly");
   const stConquerSec = document.getElementById("studentWeekConquerCard");
   const stConquerContainer = document.getElementById("st-week-conquer-container");
   const stConquerToggleBtn = document.getElementById("btn-toggle-st-conquer-card");
@@ -16836,40 +16701,6 @@ function renderStudentDailyTaskAndFreeSections(resp) {
         if (stConquerContainer) stConquerContainer.style.display = "none";
         stConquerSec.classList.add("is-collapsed");
         stConquerToggleBtn.innerHTML = "展開";
-      }
-    };
-  }
-
-  if (btnStCur) {
-    btnStCur.onclick = (e) => {
-      e.stopPropagation();
-      window.renderTeacherStudentConquerSection("current");
-      if (stConquerContainer && stConquerContainer.style.display === "none" && stConquerSec) {
-        stConquerContainer.style.display = "block";
-        stConquerSec.classList.remove("is-collapsed");
-        if (stConquerToggleBtn) stConquerToggleBtn.innerHTML = "收合";
-      }
-    };
-  }
-  if (btnStPrev) {
-    btnStPrev.onclick = (e) => {
-      e.stopPropagation();
-      window.renderTeacherStudentConquerSection("previous");
-      if (stConquerContainer && stConquerContainer.style.display === "none" && stConquerSec) {
-        stConquerContainer.style.display = "block";
-        stConquerSec.classList.remove("is-collapsed");
-        if (stConquerToggleBtn) stConquerToggleBtn.innerHTML = "收合";
-      }
-    };
-  }
-  if (btnStBiweekly) {
-    btnStBiweekly.onclick = (e) => {
-      e.stopPropagation();
-      window.renderTeacherStudentConquerSection("prevBiweekly");
-      if (stConquerContainer && stConquerContainer.style.display === "none" && stConquerSec) {
-        stConquerContainer.style.display = "block";
-        stConquerSec.classList.remove("is-collapsed");
-        if (stConquerToggleBtn) stConquerToggleBtn.innerHTML = "收合";
       }
     };
   }
