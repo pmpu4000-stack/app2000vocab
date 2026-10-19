@@ -52,8 +52,18 @@ function miniBtn(label, onClick) {
 }
 function textInput(placeholder, onCheck) {
   const inp = document.createElement("input");
+  inp.type = "text";
   inp.className = "spellbox";
-  inp.autocapitalize = "none"; inp.autocomplete = "off"; inp.autocorrect = "off"; inp.spellcheck = false;
+  inp.setAttribute("autocomplete", "off");
+  inp.setAttribute("autocorrect", "off");
+  inp.setAttribute("autocapitalize", "none");
+  inp.setAttribute("spellcheck", "false");
+  inp.setAttribute("data-gramm", "false");
+  inp.setAttribute("data-enable-grammarly", "false");
+  inp.setAttribute("aria-autocomplete", "none");
+  inp.autocapitalize = "none";
+  inp.autocomplete = "off";
+  inp.spellcheck = false;
   inp.placeholder = placeholder;
   inp.onkeydown = (e) => { if (e.key === "Enter") onCheck(); };
   return inp;
@@ -268,6 +278,13 @@ function renderTrap(word, onCheck) {
       t.className = "tile blank";
       const inp = document.createElement("input");
       inp.maxLength = 1; inp.dataset.i = i;
+      inp.setAttribute("autocomplete", "off");
+      inp.setAttribute("autocorrect", "off");
+      inp.setAttribute("autocapitalize", "none");
+      inp.setAttribute("spellcheck", "false");
+      inp.setAttribute("data-gramm", "false");
+      inp.setAttribute("data-enable-grammarly", "false");
+      inp.setAttribute("aria-autocomplete", "none");
       inp.autocapitalize = "none"; inp.autocomplete = "off"; inp.spellcheck = false;
       inp.oninput = () => {
         const ins = [...wrap.querySelectorAll("input")];
@@ -357,7 +374,11 @@ function renderScramble(word, onCheck) {
         selectedIndices.push(idx);
       }
       updateDisplay();
-      inp.focus();
+      // 僅在非觸控螢幕/桌面端聚焦，避免手機點擊字母方塊時彈出虛擬鍵盤與預測提示詞
+      const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+      if (!isTouch) {
+        inp.focus();
+      }
       if (selectedIndices.length === shuffled.length) {
         try { el.checkBtn.focus(); } catch(_) {}
       }
@@ -442,7 +463,7 @@ export function showResult(correct, word, info, guessVal = "", onRepairComplete 
           <span><b>親手更正</b>：請鍵入正確單字加深神經連結</span>
         </div>
         <div class="active-repair-input-wrap">
-          <input type="text" id="active-repair-input" class="active-repair-input" placeholder="請輸入「${word.word}」..." autocomplete="off" autocapitalize="none" spellcheck="false" />
+          <input type="text" id="active-repair-input" class="active-repair-input" placeholder="請輸入「${word.word}」..." autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" data-gramm="false" data-enable-grammarly="false" aria-autocomplete="none" />
           <button type="button" id="active-repair-btn" class="active-repair-btn">更正確認 ↵</button>
         </div>
         <div id="active-repair-msg" class="active-repair-msg"></div>
