@@ -15313,8 +15313,7 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
     let wrongPillsHtml = "";
     if (wrongList.length > 0) {
       wrongPillsHtml = wrongList.map(w => {
-        const diag = diagnoseWordMistake(w);
-        return `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); speakMasteredWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="答錯單字：${diag.desc} (點擊聆聽發音)">${w} <span class="diag-bubble-tag" title="${diag.desc}">${diag.tag}</span></span>`;
+        return `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); speakMasteredWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`;
       }).join("");
     }
 
@@ -15370,15 +15369,13 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
       const dpMap = (agent && agent.dailyPractice) ? agent.dailyPractice : {};
       const dpDay = dpMap[sDateNorm] || dpMap[sDateShort] || dpMap[selectedDate] || null;
       const wrongPills = wrongList.map(w => {
-        const diag = diagnoseWordMistake(w);
-        const diagBadge = `<span class="diag-bubble-tag" title="${diag.desc}">${diag.tag}</span>`;
         const isHadCW = (hadCorrectThenWrongList && hadCorrectThenWrongList.includes(w)) ||
                         (record.hadCorrectThenWrong && record.hadCorrectThenWrong.includes(w)) ||
                         (dpDay && dpDay.words && dpDay.words[w] && (dpDay.words[w].hadCorrectThenWrong || (dpDay.words[w].lastResult === "wrong" && dpDay.words[w].correct > 0)));
         if (isHadCW) {
-          return `<span class="word-pill-tag warning" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); speakMasteredWord('${w.replace(/'/g, "\\'")}')" style="border:1.5px dashed #f59e0b; background:rgba(245,158,11,0.1); color:#b45309; cursor:pointer;" title="當日曾答對，但後續作答時答錯：${diag.desc} (點擊聆聽發音)">${w} ${diagBadge} <small style="font-size:10px; font-weight:700;">(曾對後錯⚠️)</small></span>`;
+          return `<span class="word-pill-tag warning" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); speakMasteredWord('${w.replace(/'/g, "\\'")}')" style="border:1.5px dashed #f59e0b; background:rgba(245,158,11,0.1); color:#b45309; cursor:pointer;" title="當日曾答對，但後續作答時答錯 (點擊聆聽發音)">${w} <small style="font-size:10px; font-weight:700;">(曾對後錯⚠️)</small></span>`;
         }
-        return `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); speakMasteredWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="答錯單字：${diag.desc} (點擊聆聽發音)">${w} ${diagBadge}</span>`;
+        return `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); speakMasteredWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`;
       }).join("");
 
       const remainingUnanswered = (rawWords.length > 0)
@@ -16046,14 +16043,12 @@ function buildFreeDetailsHtml(record, selectedDate, agent) {
   let wrongContentHtml = "";
   if (wrongList.length > 0) {
     wrongContentHtml = wrongList.map(w => {
-      const diag = diagnoseWordMistake(w.word);
-      const diagBadge = `<span class="diag-bubble-tag" title="${diag.desc}">${diag.tag}</span>`;
       if (w.hadCorrectThenWrong || (w.lastResult === "wrong" && w.correct > 0)) {
-        return `<span class="word-pill-tag warning" data-word="${w.word.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); speakMasteredWord('${w.word.replace(/'/g, "\\'")}')" style="border:1.5px dashed #f59e0b; background:rgba(245,158,11,0.1); color:#b45309; cursor:pointer;" title="當日曾答對，但後續作答時答錯：${diag.desc} (點擊聆聽發音)">${w.word} ${diagBadge} <small style="font-size:10px; font-weight:700;">(曾對後錯⚠️)</small></span>`;
+        return `<span class="word-pill-tag warning" data-word="${w.word.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); speakMasteredWord('${w.word.replace(/'/g, "\\'")}')" style="border:1.5px dashed #f59e0b; background:rgba(245,158,11,0.1); color:#b45309; cursor:pointer;" title="當日曾答對，但後續作答時答錯 (點擊聆聽發音)">${w.word} <small style="font-size:10px; font-weight:700;">(曾對後錯⚠️)</small></span>`;
       } else if (w.correct > 0) {
-        return `<span class="word-pill-tag correct" data-word="${w.word.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); speakMasteredWord('${w.word.replace(/'/g, "\\'")}')" style="border:1.5px dashed var(--green, #10B981); cursor:pointer;" title="當日曾答錯，已訂正答對：${diag.desc} (點擊聆聽發音)">${w.word} ${diagBadge} <small style="font-size:10px; opacity:0.85;">(已訂正)</small></span>`;
+        return `<span class="word-pill-tag correct" data-word="${w.word.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); speakMasteredWord('${w.word.replace(/'/g, "\\'")}')" style="border:1.5px dashed var(--green, #10B981); cursor:pointer;" title="當日曾答錯，已訂正答對 (點擊聆聽發音)">${w.word} <small style="font-size:10px; opacity:0.85;">(已訂正)</small></span>`;
       } else {
-        return `<span class="word-pill-tag wrong" data-word="${w.word.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); speakMasteredWord('${w.word.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="答錯單字：${diag.desc} (點擊聆聽發音)">${w.word} ${diagBadge}</span>`;
+        return `<span class="word-pill-tag wrong" data-word="${w.word.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); speakMasteredWord('${w.word.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w.word}</span>`;
       }
     }).join("");
   } else if (displayWrongBoxCount > 0) {
@@ -16493,7 +16488,13 @@ function renderStudentDailyTaskAndFreeSections(resp) {
     const mondayStr = formatD(monday);
     const fridayStr = formatD(friday);
 
+    const normalizeCleanWord = (w) => {
+      if (!w) return "";
+      return String(w).replace(/\(.*?\)/g, "").trim().toLowerCase();
+    };
+
     const unfinishedWords = new Set();
+    const learnedWords = new Set();
     const allStudentTasks = [];
     if (Array.isArray(resp.dailyTaskHistory)) allStudentTasks.push(...resp.dailyTaskHistory);
     if (resp.todayTaskResult) allStudentTasks.push(resp.todayTaskResult);
@@ -16504,61 +16505,58 @@ function renderStudentDailyTaskAndFreeSections(resp) {
       if (!item || !item.date) return;
       const iDate = String(item.date).trim().split(" ")[0].replace(/\//g, "-");
       if (iDate >= mondayStr && iDate <= fridayStr) {
+        const tName = String(item.taskName || "").trim();
+        if (tName === "自主練習" || tName.includes("自由練習")) return;
+
+        // 收集答對單字，確保答對者絕不誤入待攻克
+        const correctSet = new Set();
+        if (Array.isArray(item.correctWords)) {
+          item.correctWords.forEach(w => {
+            const cw = normalizeCleanWord(w);
+            if (cw) correctSet.add(cw);
+          });
+        }
+
+        // A. 明確答錯的單字 (wrongWords)
         if (Array.isArray(item.wrongWords)) {
           item.wrongWords.forEach(w => {
-            const cw = String(w).trim().toLowerCase();
-            if (cw) unfinishedWords.add(cw);
+            const cw = normalizeCleanWord(w);
+            if (cw && !correctSet.has(cw)) unfinishedWords.add(cw);
           });
         }
-        if (Array.isArray(item.freeWrongWords)) {
-          item.freeWrongWords.forEach(w => {
-            const cw = String(w).trim().toLowerCase();
-            if (cw) unfinishedWords.add(cw);
-          });
-        }
+
+        // B. 尚未測驗/缺考 或 中途未作答完的單字
         const status = String(item.status || "");
         const score = String(item.score || "");
-        const isUnattempted = !status.includes("已完成") || score === "—" || score === "尚未開始";
-        if (isUnattempted && Array.isArray(item.words)) {
-          item.words.forEach(w => {
-            const cw = String(w).trim().toLowerCase();
-            if (cw) unfinishedWords.add(cw);
-          });
-        }
-      }
-    });
-
-    // 自由練習平日錯題納入待攻克單字庫
-    if (agent && agent.dailyPractice) {
-      Object.entries(agent.dailyPractice).forEach(([dateKey, dp]) => {
-        const iDate = String(dateKey).trim().split(" ")[0].replace(/\//g, "-");
-        if (iDate >= mondayStr && iDate <= fridayStr && dp) {
-          if (Array.isArray(dp.wrongWords)) {
-            dp.wrongWords.forEach(w => {
-              const cw = String(w).trim().toLowerCase();
+        const isTotallyUntested = status.includes("未受測") || status.includes("缺席") || status.includes("缺考") || score === "—" || score === "尚未開始";
+        
+        if (Array.isArray(item.words)) {
+          if (isTotallyUntested && correctSet.size === 0 && (!item.wrongWords || item.wrongWords.length === 0)) {
+            item.words.forEach(w => {
+              const cw = normalizeCleanWord(w);
               if (cw) unfinishedWords.add(cw);
             });
-          }
-          if (dp.words) {
-            Object.entries(dp.words).forEach(([wKey, info]) => {
-              if (info && info.wrong > 0 && (!info.correct || info.correct === 0)) {
-                const cw = String(wKey).trim().toLowerCase();
-                if (cw) unfinishedWords.add(cw);
+          } else if (!isTotallyUntested) {
+            const wrongSet = new Set((item.wrongWords || []).map(normalizeCleanWord));
+            item.words.forEach(w => {
+              const cw = normalizeCleanWord(w);
+              if (cw && !correctSet.has(cw) && !wrongSet.has(cw)) {
+                unfinishedWords.add(cw);
               }
             });
           }
         }
-      });
-    }
+      }
+    });
 
-    // 檢查自主練習是否已答對學會
-    const learnedWords = new Set();
+    // 檢查自主練習是否已答對學會（答對即可消除）
     if (agent && agent.dailyPractice) {
       Object.values(agent.dailyPractice).forEach(dp => {
         if (dp && dp.words) {
           Object.entries(dp.words).forEach(([wKey, info]) => {
-            if (info && (info.correct > 0 || info.passed)) {
-              learnedWords.add(String(wKey).trim().toLowerCase());
+            if (info && (info.correct > 0 || info.passed) && info.lastResult !== "wrong") {
+              const cw = normalizeCleanWord(wKey);
+              if (cw) learnedWords.add(cw);
             }
           });
         }
@@ -16600,7 +16598,7 @@ function renderStudentDailyTaskAndFreeSections(resp) {
       const bMap = window._wordBankLevelMap || null;
       const byLv = { 1: [], 2: [], 3: [], 4: [], 5: [] };
       pendingWords.forEach(w => {
-        const cleanW = String(w || "").trim().toLowerCase();
+        const cleanW = normalizeCleanWord(w);
         const lv = (bMap && bMap.has(cleanW)) ? bMap.get(cleanW) : 1;
         const targetLv = (lv >= 1 && lv <= 5) ? lv : 1;
         byLv[targetLv].push(cleanW);
@@ -16613,7 +16611,10 @@ function renderStudentDailyTaskAndFreeSections(resp) {
         const lvDotColor = lvColors[lv - 1];
         const lvTitle = `Level ${lv}「${lvNames[lv - 1]}」`;
         const pillsOrEmpty = list.length > 0
-          ? `<div class="conquer-word-list" style="display:flex; flex-wrap:wrap; gap:8px; padding:2px 4px 2px 0; max-height:148px; overflow-y:auto; overscroll-behavior:contain;">${list.map(w => `<span class="word-pill-tag conquer-pill" data-word="${w}" onclick="event.stopPropagation(); speakMasteredWord('${w.replace(/'/g, "\\'")}')" title="點擊聆聽發音">${w}</span>`).join("")}</div>`
+          ? `<div class="conquer-word-list" style="display:flex; flex-wrap:wrap; gap:8px; padding:2px 4px 2px 0; max-height:148px; overflow-y:auto; overscroll-behavior:contain;">${list.map(w => {
+              const diag = typeof diagnoseWordMistake === "function" ? diagnoseWordMistake(w) : { tag: "音形記憶", desc: "音形對應與記憶加強", color: "#6B7280", bg: "#F3F4F6" };
+              return `<span class="word-pill-tag conquer-pill" data-word="${w}" onclick="event.stopPropagation(); speakMasteredWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="待攻克單字：${diag.desc} (點擊聆聽發音)">${w} <span class="diag-bubble-tag" style="background:${diag.bg}; color:${diag.color}; border:1px solid ${diag.color}40;" title="${diag.desc}">${diag.tag}</span></span>`;
+            }).join("")}</div>`
           : `<div style="font-size:12px; color:var(--ink3); font-style:italic; padding:1px 0;">（本關卡目前無待攻克單字）</div>`;
 
         return `

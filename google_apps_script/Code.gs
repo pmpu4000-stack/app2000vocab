@@ -1014,7 +1014,7 @@ function getWeekendRemediationTask(ss, cleanClass, username, completedTasksToday
         // 注意：自由練習錯題不納入週末待攻克！維持自主安全學習
 
         if (rowD >= scanStartStr && rowD <= scanEndStr) {
-          if (tName && isDone) {
+          if (tName && tName !== "自主練習" && !tName.includes("自由練習") && isDone) {
             studentDoneMap[tName] = { completed: true, wrongWords: wrongList };
             studentDoneMap[rowD + "_" + tName] = { completed: true, wrongWords: wrongList };
           }
