@@ -2060,65 +2060,13 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   border-color: rgba(52, 211, 153, 0.75) !important;
   color: #6EE7B7 !important;
 }
-
-/* ============================================================
-   🎯 待攻克單字方塊 (Words to Conquer Card)
-   ============================================================ */
-.conquer-records-card {
-  margin-top: 14px;
-}
-.conquer-records-card h3 {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 15px;
-  font-weight: 800;
-  color: var(--ink);
-  letter-spacing: 0.2px;
+.export-sub-hint {
+  font-size: 11.5px;
+  color: var(--ink3);
+  font-weight: 700;
   text-transform: none;
-  margin-bottom: 10px;
+  letter-spacing: 0;
 }
-.conquer-records-card.is-collapsed h3,
-.export-records-card.is-collapsed h3,
-.learning-record-card.is-collapsed h3,
-.learning-progress-card.is-collapsed h3 {
-  margin-bottom: 0 !important;
-}
-.conquer-records-card h3 a {
-  font-size: 12px;
-  color: #065F46;
-  cursor: pointer;
-  text-decoration: none !important;
-  font-weight: 750;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 8px;
-  border-radius: 6px;
-  background: #ECFDF5;
-  border: 1px solid #10B981;
-  transition: all .15s;
-}
-.conquer-records-card h3 a:hover {
-  color: #047857;
-  background: #D1FAE5;
-  border-color: #059669;
-  opacity: 0.95;
-}
-[data-theme="dark"] .conquer-records-card h3 {
-  color: #F0F3FA !important;
-}
-[data-theme="dark"] .conquer-records-card h3 a {
-  background: rgba(16, 185, 129, 0.16) !important;
-  border: 1px solid rgba(52, 211, 153, 0.45) !important;
-  color: #34D399 !important;
-}
-[data-theme="dark"] .conquer-records-card h3 a:hover {
-  background: rgba(16, 185, 129, 0.28) !important;
-  border-color: rgba(52, 211, 153, 0.75) !important;
-  color: #6EE7B7 !important;
-}
-.conquer-records-card.is-collapsed .conquer-navigator-card,
 .export-records-card.is-collapsed .export-navigator-card,
 .export-records-card.is-collapsed .defs,
 .export-records-card.is-collapsed #export-status-msg,
@@ -2126,65 +2074,6 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 .learning-progress-card.is-collapsed .progress-collapsible-body {
   display: none !important;
 }
-.conquer-navigator-card {
-  background: #fff;
-  border: 1.5px solid var(--line);
-  border-radius: 14px;
-  margin: 6px 0 0 0;
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-[data-theme="dark"] .conquer-navigator-card {
-  background: #181C2A !important;
-  border-color: rgba(255,255,255,0.08) !important;
-}
-.conquer-subtabs-bar {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  align-items: center;
-}
-.btn-sub-tab {
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 12.5px;
-  font-weight: 700;
-  border: 1px solid var(--line);
-  background: var(--chip, #F1EDFF);
-  color: var(--ink2);
-  cursor: pointer;
-  transition: all 0.15s ease;
-  font-family: inherit;
-}
-.btn-sub-tab:hover {
-  border-color: var(--violet);
-  color: var(--violet);
-  transform: translateY(-1px);
-}
-.btn-sub-tab.active {
-  background: linear-gradient(135deg, var(--violet), #8a6bf0);
-  color: #fff;
-  border-color: transparent;
-  box-shadow: 0 4px 12px rgba(108, 76, 224, 0.25);
-}
-[data-theme="dark"] .btn-sub-tab {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.12);
-  color: #94A3B8;
-}
-[data-theme="dark"] .btn-sub-tab:hover {
-  border-color: #A78BFA;
-  color: #DDD6FE;
-}
-[data-theme="dark"] .btn-sub-tab.active {
-  background: linear-gradient(135deg, #7C3AED, #6366F1);
-  color: #FFFFFF;
-  border-color: transparent;
-  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35);
-}
-
 .export-navigator-card {
   background: linear-gradient(135deg, #F1EDFF, #F8F9FD) !important;
   border: 1.5px solid #E4DFFa !important;

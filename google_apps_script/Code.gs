@@ -2736,7 +2736,7 @@ function doPost(e) {
 function doGet(e) {
   // 嚴格資安防護：doGet 僅回傳安全之 Web 介面，全面移除任何未經身分驗證之檢測或除錯後門
   return HtmlService.createHtmlOutputFromFile("Index")
-    .setTitle("學生學習歷程管理系統")
+    .setTitle("學生學習歷程查詢系統")
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
     .addMetaTag("viewport", "width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover");
 }
@@ -4318,11 +4318,9 @@ function getStudentDailyTaskHistory(ss, username) {
       if ((!matchedWords || matchedWords.length === 0) && wrongStr.includes("應測單字") && rawWrongTokens.length > 0) {
         matchedWords = rawWrongTokens;
       }
-      const isSpecialTask = statusVal.includes("未受測") || statusVal.includes("中斷") || statusVal.includes("缺席") || statusVal.includes("作答中");
-      const defaultTaskName = (hasTaskAssigned || isSpecialTask) ? "每日指定測驗" : (hasFreePractice ? "自主練習" : "每日指定測驗");
       list.push({
         date        : dStr,
-        taskName    : taskName || defaultTaskName,
+        taskName    : taskName || (hasFreePractice ? "自主練習" : "每日指定測驗"),
         score       : scoreVal || "—",
         rate        : rateVal || "—",
         status      : statusVal || (hasValidQuizScore ? "🟢 已完成" : (hasTaskAssigned ? "⏳ 尚未開始" : "⚪ 未指派")),

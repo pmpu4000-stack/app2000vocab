@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8" />
-  <title>學生學習歷程管理系統</title>
+  <title>學生學習歷程查詢系統</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
@@ -159,7 +159,7 @@
     h2 { margin: 0; font-size: 1.35rem; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px; }
     h3 { margin: 0 0 16px; font-size: 1.1rem; font-weight: 700; color: var(--text); }
 
-    /* ── 主控制卡片 (學生學習歷程管理系統) 極致纖薄與清爽響應式美化 ── */
+    /* ── 主控制卡片 (學生學習歷程查詢系統) 極致纖薄與清爽響應式美化 ── */
     #mainControlCard {
       padding: 12px 20px !important;
       border-radius: 16px !important;
@@ -1505,7 +1505,7 @@
         justify-content: space-between !important;
       }
 
-      /* 學生學習歷程管理系統主卡片手機端纖薄化 */
+      /* 學生學習歷程查詢系統主卡片手機端纖薄化 */
       #mainControlCard {
         padding: 10px 14px !important;
         border-radius: 14px !important;
@@ -3944,63 +3944,13 @@
       border-color: rgba(52, 211, 153, 0.75) !important;
       color: #6EE7B7 !important;
     }
-
-    /* 🎯 待攻克單字方塊 (Words to Conquer Card - 遊戲一致風格) */
-    .conquer-records-card {
-      margin-top: 14px !important;
-    }
-    .conquer-records-card h3 {
-      display: flex !important;
-      justify-content: space-between !important;
-      align-items: center !important;
-      font-size: 15px !important;
-      font-weight: 800 !important;
-      color: var(--ink) !important;
-      letter-spacing: 0.2px !important;
+    .export-sub-hint {
+      font-size: 11.5px !important;
+      color: var(--ink3) !important;
+      font-weight: 700 !important;
       text-transform: none !important;
-      margin: 0 0 10px 0 !important;
+      letter-spacing: 0 !important;
     }
-    .conquer-records-card.is-collapsed h3,
-    .export-records-card.is-collapsed h3,
-    .learning-record-card.is-collapsed h3,
-    .learning-progress-card.is-collapsed h3 {
-      margin-bottom: 0 !important;
-    }
-    .conquer-records-card h3 a {
-      font-size: 12px !important;
-      color: #065F46 !important;
-      cursor: pointer !important;
-      text-decoration: none !important;
-      font-weight: 750 !important;
-      display: inline-flex !important;
-      align-items: center !important;
-      gap: 4px !important;
-      padding: 3px 8px !important;
-      border-radius: 6px !important;
-      background: #ECFDF5 !important;
-      border: 1px solid #10B981 !important;
-      transition: all .15s !important;
-    }
-    .conquer-records-card h3 a:hover {
-      color: #047857 !important;
-      background: #D1FAE5 !important;
-      border-color: #059669 !important;
-      opacity: 0.95 !important;
-    }
-    [data-theme="dark"] .conquer-records-card h3 {
-      color: #F0F3FA !important;
-    }
-    [data-theme="dark"] .conquer-records-card h3 a {
-      background: rgba(16, 185, 129, 0.16) !important;
-      border: 1px solid rgba(52, 211, 153, 0.45) !important;
-      color: #34D399 !important;
-    }
-    [data-theme="dark"] .conquer-records-card h3 a:hover {
-      background: rgba(16, 185, 129, 0.28) !important;
-      border-color: rgba(52, 211, 153, 0.75) !important;
-      color: #6EE7B7 !important;
-    }
-    .conquer-records-card.is-collapsed .conquer-navigator-card,
     .export-records-card.is-collapsed .export-navigator-card,
     .export-records-card.is-collapsed .defs,
     .export-records-card.is-collapsed #export-status-msg,
@@ -4008,65 +3958,6 @@
     .learning-progress-card.is-collapsed .progress-collapsible-body {
       display: none !important;
     }
-    .conquer-navigator-card {
-      background: #fff !important;
-      border: 1.5px solid var(--line) !important;
-      border-radius: 14px !important;
-      margin: 6px 0 0 0 !important;
-      padding: 14px !important;
-      display: flex !important;
-      flex-direction: column !important;
-      gap: 12px !important;
-    }
-    [data-theme="dark"] .conquer-navigator-card {
-      background: #181C2A !important;
-      border-color: rgba(255,255,255,0.08) !important;
-    }
-    .conquer-subtabs-bar {
-      display: flex !important;
-      gap: 8px !important;
-      flex-wrap: wrap !important;
-      align-items: center !important;
-    }
-    .btn-sub-tab {
-      padding: 6px 14px !important;
-      border-radius: 20px !important;
-      font-size: 12.5px !important;
-      font-weight: 700 !important;
-      border: 1px solid var(--line) !important;
-      background: var(--chip, #F1EDFF) !important;
-      color: var(--ink2) !important;
-      cursor: pointer !important;
-      transition: all 0.15s ease !important;
-      font-family: inherit !important;
-    }
-    .btn-sub-tab:hover {
-      border-color: var(--violet) !important;
-      color: var(--violet) !important;
-      transform: translateY(-1px) !important;
-    }
-    .btn-sub-tab.active {
-      background: linear-gradient(135deg, var(--violet), #8a6bf0) !important;
-      color: #fff !important;
-      border-color: transparent !important;
-      box-shadow: 0 4px 12px rgba(108, 76, 224, 0.25) !important;
-    }
-    [data-theme="dark"] .btn-sub-tab {
-      background: rgba(255, 255, 255, 0.06) !important;
-      border-color: rgba(255, 255, 255, 0.12) !important;
-      color: #94A3B8 !important;
-    }
-    [data-theme="dark"] .btn-sub-tab:hover {
-      border-color: #A78BFA !important;
-      color: #DDD6FE !important;
-    }
-    [data-theme="dark"] .btn-sub-tab.active {
-      background: linear-gradient(135deg, #7C3AED, #6366F1) !important;
-      color: #FFFFFF !important;
-      border-color: transparent !important;
-      box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35) !important;
-    }
-
     .export-controls-wrap {
       display: flex !important;
       flex-direction: column !important;
@@ -4620,30 +4511,55 @@
 </style>
 </head>
 <body>
-  <!-- 登入驗證遮罩 -->
-  <div id="login-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:var(--paper, #F6F7FB); z-index:9999; display:flex; justify-content:center; align-items:center; overflow-y:auto; padding:20px 12px; box-sizing:border-box;">
-    <div style="background:var(--card, #ffffff); padding:28px 26px 20px 26px; border-radius:20px; box-shadow:0 18px 40px -10px rgba(35,42,77,0.22); width:320px; max-width:92vw; text-align:center; border:1px solid var(--border, #E7E9F5); position:relative; box-sizing:border-box; margin:auto;">
+  <!-- 登入驗證遮罩 (1:1 完美比照遊戲網頁登入處) -->
+  <div id="login-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:var(--paper, #F6F7FB); z-index:9999; display:flex; justify-content:center; align-items:center; overflow-y:auto; padding:24px 12px; box-sizing:border-box;">
+    <div style="background:var(--card, #ffffff); padding:36px 32px; border-radius:24px; box-shadow:0 20px 45px -10px rgba(35,42,77,0.22); width:320px; max-width:92vw; text-align:center; border:1px solid var(--border, #E7E9F5); position:relative; box-sizing:border-box; margin:auto;">
       <!-- 登入視窗切換按鈕 -->
       <button type="button" id="btn-login-theme-toggle" onclick="toggleTheme()" title="切換深色/淺色模式"
         style="position:absolute; top:16px; right:16px; background:rgba(108,76,224,0.08); border:1px solid #E7E9F5; border-radius:20px; padding:5px 11px; font-size:12.5px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:4px; color:var(--ink2, #5A6183);">
         <span class="theme-icon">🌙</span><span class="theme-text">深色</span>
       </button>
-      <div style="font-size:36px; margin-bottom:6px;">🎯</div>
-      <h2 style="color:var(--text, #232A4D); margin:0 auto 6px auto; font-size:21px; font-weight:800; text-align:center; display:block; width:100%;">學生學習歷程管理系統</h2>
-      <p style="color:var(--text-muted, #5A6183); font-size:13px; margin-bottom:16px; line-height:1.5; text-align:center;">請輸入帳號與密碼</p>
+      <div style="font-size:40px; margin-bottom:8px;">🎯</div>
+      <h2 style="color:var(--text, #232A4D); margin:0 auto 8px auto; font-size:22px; font-weight:800; text-align:center; display:block; width:100%;">學生學習歷程查詢系統</h2>
+      <p style="color:var(--text-muted, #5A6183); font-size:13px; margin-bottom:20px; line-height:1.5; text-align:center;">請輸入帳號與密碼</p>
       
       <input type="text" id="username" placeholder="請輸入帳號 (如: 70101)" autocomplete="username" class="login-input"
-        style="width:100%; padding:12px 14px; margin-bottom:11px; border:1.5px solid var(--border, #E7E9F5); border-radius:12px; box-sizing:border-box; font-size:15px; outline:none; transition:all .2s;">
+        style="width:100%; padding:13px 14px; margin-bottom:12px; border:1.5px solid var(--border, #E7E9F5); border-radius:12px; box-sizing:border-box; font-size:15px; outline:none; transition:all .2s;">
       
       <input type="password" id="password" placeholder="請輸入密碼" autocomplete="current-password" class="login-input"
-        style="width:100%; padding:12px 14px; margin-bottom:16px; border:1.5px solid var(--border, #E7E9F5); border-radius:12px; box-sizing:border-box; font-size:15px; outline:none; transition:all .2s;">
+        style="width:100%; padding:13px 14px; margin-bottom:20px; border:1.5px solid var(--border, #E7E9F5); border-radius:12px; box-sizing:border-box; font-size:15px; outline:none; transition:all .2s;">
       
       <button id="btnLogin" onclick="login()"
-        style="width:100%; padding:12px; background:#6C4CE0; color:white; border:none; border-radius:12px; font-weight:700; font-size:15px; cursor:pointer; box-shadow:0 8px 20px -6px rgba(108,76,224,0.45); transition:all 0.2s;">
+        style="width:100%; padding:13px; background:#6C4CE0; color:white; border:none; border-radius:12px; font-weight:700; font-size:15px; cursor:pointer; box-shadow:0 8px 20px -6px rgba(108,76,224,0.45); transition:all 0.2s;">
         確認登入
       </button>
 
-      <p id="login-msg" style="color:#FF6B6B; font-size:13px; margin-top:8px; min-height:0; line-height:1.4; margin-bottom:0;"></p>
+      <p id="login-msg" style="color:#FF6B6B; font-size:13px; margin-top:12px; min-height:18px; line-height:1.5;"></p>
+
+      <div class="curfew-note-box">
+        <span class="note-icon">⏰</span>
+        <div class="note-body">
+          <div>每日開放作答時間：07:30 至 22:00</div>
+          <div>請於時段內進行十分鐘指定單字測驗</div>
+          <div>並歡迎多加進行自由練習</div>
+        </div>
+      </div>
+
+      <div class="login-study-note">
+        <span class="note-icon">💡</span>
+        <div class="note-body">
+          <div>登入將記錄班級座號與答題成績</div>
+          <div>作為英語科學習歷程與教學輔導使用</div>
+        </div>
+      </div>
+
+      <div class="login-upload-note">
+        <span class="note-icon">🌱</span>
+        <div class="note-body">
+          <div>完成作答或要暫時離開遊戲前</div>
+          <div>請務必先點擊「上傳紀錄」進行存檔</div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -4655,7 +4571,7 @@
   <div class="card" id="mainControlCard" style="display:none;">
     <div class="header-title main-header-row">
       <div class="header-title-left">
-        <h2>📊 學生學習歷程管理系統</h2>
+        <h2>📊 學生學習歷程查詢系統</h2>
         <div id="userBadge" style="font-size:12.5px; font-weight:700; color:var(--primary); margin-top:2px; line-height:1.3;"></div>
       </div>
       <div class="header-controls" style="display:flex; align-items:center; gap:8px;">
@@ -5528,24 +5444,16 @@
           </div>
         </div>
 
+        <!-- 子標題 3：本週待攻克單字 -->
+        <div class="subh-child" style="margin-top:16px;">
+          <span>🎯 本週待攻克單字</span>
+          <span id="stWeekConquerBadge" class="badge-count" style="margin-left:auto; font-size:11.5px; font-weight:700; padding:2px 8px; border-radius:999px;"></span>
+        </div>
+        <div class="task-history-card week-conquer-card" style="margin-bottom:0 !important;">
+          <div id="st-week-conquer-details"></div>
+        </div>
       </div>
     </section>
-
-    <!-- 🎯 待攻克單字 Words to Conquer 獨立方塊 -->
-    <section class="progress conquer-records-card is-collapsed" id="studentConquerRecordsCard">
-      <h3>
-        <span style="display:inline-flex;align-items:center;gap:6px;">
-          <span>待攻克單字 Words to Conquer</span>
-        </span>
-        <span style="display:flex;gap:14px">
-          <a id="stConquerToggleBtn" class="sum-toggle-btn" title="展開或收合待攻克單字">展開</a>
-        </span>
-      </h3>
-      <div class="conquer-navigator-card" id="studentConquerRecordsContent" style="display:none;">
-        <div id="studentConquerRecordsContainer"></div>
-      </div>
-    </section>
-
 
     <!-- 📥 底部作答歷程紀錄匯出下載方塊 (支援指定日期或指定範圍，PDF / Excel 雙格式輸出) -->
     <section class="progress export-records-card is-collapsed" id="export-records-section">
@@ -15220,15 +15128,15 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
     record.inProgress === true
   );
 
-  const isExplicitUntestedStatus = statusStr.includes("未受測") || statusStr.includes("缺席");
-  const isUnassigned = !isExplicitUntestedStatus && ((record.taskName && (record.taskName.includes("未指派") || record.taskName.includes("自主練習") || record.taskName.includes("自由練習"))) || statusStr.includes("未指派"));
+  const isUnassigned = (record.taskName && (record.taskName.includes("未指派") || record.taskName.includes("自主練習") || record.taskName.includes("自由練習"))) || statusStr.includes("未指派");
 
   // 核心未受測判定：絕不因為單字清單暫未展開 (totalAnswered === 0) 誤把已完成的測驗判斷為未受測！
-  const isUntested = isExplicitUntestedStatus || (!isUnassigned && !isFinished && !isIncomplete && (
+  const isUntested = !isUnassigned && !isFinished && !isIncomplete && (
+    statusStr.includes("未受測") ||
     scoreVal === "—" ||
     scoreVal === "尚未開始" ||
     (totalAnswered === 0 && !hasFinishedStatus && taskRate === 0)
-  ));
+  );
 
   let displayStatusStr = statusStr;
   let statusColor = "#64748b";
@@ -15493,7 +15401,7 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
   } else {
     let cleanTaskName = String(record.taskName || "平日指定測驗").trim().replace(/^[📝📑\s]+/, "");
     cleanTaskName = cleanTaskName.replace(/指定單字隨堂測驗/g, "平日指定測驗作答紀錄").replace(/隨堂測驗/g, "測驗結果");
-    if (!cleanTaskName || cleanTaskName === "指定測驗" || cleanTaskName === "指定測驗作答紀錄" || cleanTaskName === "自主練習" || cleanTaskName.includes("未指派")) {
+    if (!cleanTaskName || cleanTaskName === "指定測驗" || cleanTaskName === "指定測驗作答紀錄") {
       formattedTaskName = "📝 平日指定測驗作答紀錄";
     } else {
       formattedTaskName = `📝 ${cleanTaskName}`;
@@ -15740,13 +15648,7 @@ function renderUntestedTaskCardHtml(info, agent) {
 
 function buildTaskDetailsHtml(records, selectedDate, agent) {
   const list = (Array.isArray(records) ? records : (records ? [records] : []))
-    .filter(r => r && (!r.taskName || !r.taskName.includes("自由練習")) && (!r.taskName || !r.taskName.includes("未指派") || (r.status && (r.status.includes("未受測") || r.status.includes("缺席")))) && (r.taskName !== "自主練習" || (r.status && (r.status.includes("未受測") || r.status.includes("缺席")))))
-    .map(r => {
-      if (r && (!r.taskName || r.taskName === "自主練習" || r.taskName.includes("未指派")) && r.status && (r.status.includes("未受測") || r.status.includes("缺席"))) {
-        return { ...r, taskName: "每日指定測驗" };
-      }
-      return r;
-    });
+    .filter(r => r && r.taskName && r.taskName !== "自主練習" && !r.taskName.includes("自由練習") && !r.taskName.includes("未指派"));
 
   const taskDict = (window.cachedTaskWordsMap || {});
   const sDateNorm = normalizeDateKey(selectedDate);
@@ -15885,8 +15787,7 @@ function buildTaskDetailsHtml(records, selectedDate, agent) {
     }
   }
 
-  const isUntestedInRecords = (Array.isArray(records) && records.some(r => r && r.status && (r.status.includes("未受測") || r.status.includes("缺席")))) || (!Array.isArray(records) && records && records.status && (records.status.includes("未受測") || records.status.includes("缺席")));
-  const isAssignedOnDate = !isSatClearedOnSunday && (isUntestedInRecords || !!((assignedWords && assignedWords.length > 0) || taskName || Object.keys(taskDict).some(k => k.startsWith(sDateNorm) || k.startsWith(sDateShort))));
+  const isAssignedOnDate = !isSatClearedOnSunday && !!((assignedWords && assignedWords.length > 0) || taskName || Object.keys(taskDict).some(k => k.startsWith(sDateNorm) || k.startsWith(sDateShort)));
 
   // 2. 判斷學生當天是否有登入或自由練習紀錄
   const dpMap = (agent && agent.dailyPractice) ? agent.dailyPractice : {};
@@ -16478,296 +16379,168 @@ function renderStudentDailyTaskAndFreeSections(resp) {
 
   switchRecordDate(defaultSelectedDate);
 
-  // 結束 renderStudentDailyTaskAndFreeSections
-}
+  // 渲染「🎯 本週待攻克單字」區塊
+  const conquerDetailsContainer = document.getElementById("st-week-conquer-details");
+  const conquerBadge = document.getElementById("stWeekConquerBadge");
+  if (conquerDetailsContainer) {
+    const dNow = new Date();
+    const day = dNow.getDay();
+    const diff = dNow.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(dNow.getFullYear(), dNow.getMonth(), diff);
+    const friday = new Date(dNow.getFullYear(), dNow.getMonth(), diff + 4);
+    const formatD = (dt) => dt.getFullYear() + "-" + String(dt.getMonth() + 1).padStart(2, "0") + "-" + String(dt.getDate()).padStart(2, "0");
+    const mondayStr = formatD(monday);
+    const fridayStr = formatD(friday);
 
-let _currentStConquerTab = "all";
+    const unfinishedWords = new Set();
+    const allStudentTasks = [];
+    if (Array.isArray(resp.dailyTaskHistory)) allStudentTasks.push(...resp.dailyTaskHistory);
+    if (resp.todayTaskResult) allStudentTasks.push(resp.todayTaskResult);
+    if (Array.isArray(window.cachedStudentDailyHistory)) allStudentTasks.push(...window.cachedStudentDailyHistory);
+    if (Array.isArray(window.cachedBackupTaskHistory)) allStudentTasks.push(...window.cachedBackupTaskHistory);
 
-function _buildStConquerLevelRowsHtml(words) {
-  if (!window._wordBankLevelMap && typeof WORD_BANK_2000 !== "undefined" && Array.isArray(WORD_BANK_2000)) {
-    window._wordBankLevelMap = new Map();
-    for (let i = 0; i < WORD_BANK_2000.length; i++) {
-      window._wordBankLevelMap.set(String(WORD_BANK_2000[i][0]).toLowerCase(), WORD_BANK_2000[i][2]);
-    }
-  }
-  const bMap = window._wordBankLevelMap || null;
-  const byLv = { 1: [], 2: [], 3: [], 4: [], 5: [] };
-  words.forEach(w => {
-    const cleanW = String(w || "").trim().toLowerCase();
-    const lv = (bMap && bMap.has(cleanW)) ? bMap.get(cleanW) : 1;
-    const targetLv = (lv >= 1 && lv <= 5) ? lv : 1;
-    byLv[targetLv].push(cleanW);
-  });
-
-  const lvNames  = ["入門", "基礎", "進階", "挑戰", "精熟"];
-  const lvColors = ["#2FB47C", "#2D9CDB", "#6C4CE0", "#E8892B", "#E0567B"];
-  return [1, 2, 3, 4, 5].map(lv => {
-    const list = byLv[lv] || [];
-    const lvDotColor = lvColors[lv - 1];
-    const lvTitle = `Level ${lv}「${lvNames[lv - 1]}」`;
-    const pillsOrEmpty = list.length > 0
-      ? `<div class="conquer-word-list" style="display:flex; flex-wrap:wrap; gap:8px; padding:2px 4px 2px 0; max-height:148px; overflow-y:auto; overscroll-behavior:contain;">${list.map(w => `<span class="word-pill-tag conquer-pill" data-word="${w}" onclick="event.stopPropagation(); speakMasteredWord('${w.replace(/'/g, "\\'")}')" title="點擊聆聽發音">${w}</span>`).join("")}</div>`
-      : `<div style="font-size:12px; color:var(--ink3); font-style:italic; padding:1px 0;">（本關卡目前無待攻克單字）</div>`;
-
-    return `
-      <div class="conquer-level-row">
-        <div class="conquer-level-head">
-          <span><span style="color:${lvDotColor}; margin-right:5px;">●</span>${lvTitle}</span>
-          <span class="conquer-level-count">${list.length} 字</span>
-        </div>
-        ${pillsOrEmpty}
-      </div>
-    `;
-  }).join("");
-}
-
-function renderStudentConquerRecords(resp) {
-  const sec = document.getElementById("studentConquerRecordsCard");
-  const content = document.getElementById("studentConquerRecordsContent");
-  const toggleBtn = document.getElementById("stConquerToggleBtn");
-  const container = document.getElementById("studentConquerRecordsContainer");
-  if (!container) return;
-
-  const agent = resp.agentData || {};
-  const dNow = new Date();
-  const day = dNow.getDay();
-  const diff = dNow.getDate() - day + (day === 0 ? -6 : 1);
-  const monday = new Date(dNow.getFullYear(), dNow.getMonth(), diff);
-  const friday = new Date(dNow.getFullYear(), dNow.getMonth(), diff + 4);
-  const formatD = (dt) => dt.getFullYear() + "-" + String(dt.getMonth() + 1).padStart(2, "0") + "-" + String(dt.getDate()).padStart(2, "0");
-  const mondayStr = formatD(monday);
-  const fridayStr = formatD(friday);
-
-  const allStudentTasks = [];
-  if (Array.isArray(resp.dailyTaskHistory)) allStudentTasks.push(...resp.dailyTaskHistory);
-  if (resp.todayTaskResult) allStudentTasks.push(resp.todayTaskResult);
-  if (Array.isArray(window.cachedStudentDailyHistory)) allStudentTasks.push(...window.cachedStudentDailyHistory);
-  if (Array.isArray(window.cachedBackupTaskHistory)) allStudentTasks.push(...window.cachedBackupTaskHistory);
-
-  // 1. 本週待攻克單字
-  const weekUnfinished = new Set();
-  allStudentTasks.forEach(item => {
-    if (!item || !item.date) return;
-    const iDate = String(item.date).trim().split(" ")[0].replace(/\//g, "-");
-    if (iDate >= mondayStr && iDate <= fridayStr) {
-      if (Array.isArray(item.wrongWords)) {
-        item.wrongWords.forEach(w => {
-          const cw = String(w).trim().toLowerCase();
-          if (cw) weekUnfinished.add(cw);
-        });
-      }
-      if (Array.isArray(item.freeWrongWords)) {
-        item.freeWrongWords.forEach(w => {
-          const cw = String(w).trim().toLowerCase();
-          if (cw) weekUnfinished.add(cw);
-        });
-      }
-      const status = String(item.status || "");
-      const score = String(item.score || "");
-      const isUnattempted = !status.includes("已完成") || score === "—" || score === "尚未開始";
-      if (isUnattempted && Array.isArray(item.words)) {
-        item.words.forEach(w => {
-          const cw = String(w).trim().toLowerCase();
-          if (cw) weekUnfinished.add(cw);
-        });
-      }
-    }
-  });
-
-  if (agent && agent.dailyPractice) {
-    Object.entries(agent.dailyPractice).forEach(([dateKey, dp]) => {
-      const iDate = String(dateKey).trim().split(" ")[0].replace(/\//g, "-");
-      if (iDate >= mondayStr && iDate <= fridayStr && dp) {
-        if (Array.isArray(dp.wrongWords)) {
-          dp.wrongWords.forEach(w => {
+    allStudentTasks.forEach(item => {
+      if (!item || !item.date) return;
+      const iDate = String(item.date).trim().split(" ")[0].replace(/\//g, "-");
+      if (iDate >= mondayStr && iDate <= fridayStr) {
+        if (Array.isArray(item.wrongWords)) {
+          item.wrongWords.forEach(w => {
             const cw = String(w).trim().toLowerCase();
-            if (cw) weekUnfinished.add(cw);
+            if (cw) unfinishedWords.add(cw);
           });
         }
-        if (dp.words) {
+        if (Array.isArray(item.freeWrongWords)) {
+          item.freeWrongWords.forEach(w => {
+            const cw = String(w).trim().toLowerCase();
+            if (cw) unfinishedWords.add(cw);
+          });
+        }
+        const status = String(item.status || "");
+        const score = String(item.score || "");
+        const isUnattempted = !status.includes("已完成") || score === "—" || score === "尚未開始";
+        if (isUnattempted && Array.isArray(item.words)) {
+          item.words.forEach(w => {
+            const cw = String(w).trim().toLowerCase();
+            if (cw) unfinishedWords.add(cw);
+          });
+        }
+      }
+    });
+
+    // 自由練習平日錯題納入待攻克單字庫
+    if (agent && agent.dailyPractice) {
+      Object.entries(agent.dailyPractice).forEach(([dateKey, dp]) => {
+        const iDate = String(dateKey).trim().split(" ")[0].replace(/\//g, "-");
+        if (iDate >= mondayStr && iDate <= fridayStr && dp) {
+          if (Array.isArray(dp.wrongWords)) {
+            dp.wrongWords.forEach(w => {
+              const cw = String(w).trim().toLowerCase();
+              if (cw) unfinishedWords.add(cw);
+            });
+          }
+          if (dp.words) {
+            Object.entries(dp.words).forEach(([wKey, info]) => {
+              if (info && info.wrong > 0 && (!info.correct || info.correct === 0)) {
+                const cw = String(wKey).trim().toLowerCase();
+                if (cw) unfinishedWords.add(cw);
+              }
+            });
+          }
+        }
+      });
+    }
+
+    // 檢查自主練習是否已答對學會
+    const learnedWords = new Set();
+    if (agent && agent.dailyPractice) {
+      Object.values(agent.dailyPractice).forEach(dp => {
+        if (dp && dp.words) {
           Object.entries(dp.words).forEach(([wKey, info]) => {
-            if (info && info.wrong > 0 && (!info.correct || info.correct === 0)) {
-              const cw = String(wKey).trim().toLowerCase();
-              if (cw) weekUnfinished.add(cw);
+            if (info && (info.correct > 0 || info.passed)) {
+              learnedWords.add(String(wKey).trim().toLowerCase());
             }
           });
         }
-      }
-    });
-  }
-
-  // 2. 本學期待攻克單字（每週週末錯題消滅戰仍答錯或未答之單字）
-  const semUnfinished = new Set();
-  allStudentTasks.forEach(item => {
-    if (!item || !item.date) return;
-    const isWeekendTask = item.isWeekend === true ||
-      (item.taskName && (item.taskName.includes("週末") || item.taskName.includes("消滅戰") || item.taskName.includes("待攻克") || item.taskName.includes("錯題補強")));
-    let isWeekendDay = false;
-    try {
-      const dt = new Date(String(item.date).split(" ")[0].replace(/-/g, "/"));
-      isWeekendDay = (dt.getDay() === 0 || dt.getDay() === 6);
-    } catch(_) {}
-
-    if (isWeekendTask || isWeekendDay) {
-      if (Array.isArray(item.wrongWords)) {
-        item.wrongWords.forEach(w => {
-          const cw = String(w).trim().toLowerCase();
-          if (cw) semUnfinished.add(cw);
-        });
-      }
-      if (Array.isArray(item.freeWrongWords)) {
-        item.freeWrongWords.forEach(w => {
-          const cw = String(w).trim().toLowerCase();
-          if (cw) semUnfinished.add(cw);
-        });
-      }
-      const status = String(item.status || "");
-      const score = String(item.score || "");
-      const isUnattempted = !status.includes("已完成") || score === "—" || score === "尚未開始";
-      if (isUnattempted && Array.isArray(item.words)) {
-        item.words.forEach(w => {
-          const cw = String(w).trim().toLowerCase();
-          if (cw) semUnfinished.add(cw);
-        });
-      }
+      });
     }
-  });
 
-  // 3. 檢查自主練習是否已答對學會（排除已學會）
-  const learnedWords = new Set();
-  if (agent && agent.dailyPractice) {
-    Object.values(agent.dailyPractice).forEach(dp => {
-      if (dp && dp.words) {
-        Object.entries(dp.words).forEach(([wKey, info]) => {
-          if (info && (info.correct > 0 || info.passed)) {
-            learnedWords.add(String(wKey).trim().toLowerCase());
-          }
-        });
-      }
-    });
-  }
+    const pendingWords = Array.from(unfinishedWords).filter(w => !learnedWords.has(w)).sort();
+    const count = pendingWords.length;
 
-  // 排除本機 remedy_learned_words
-  try {
-    const rawLearned = localStorage.getItem("remedy_learned_words");
-    if (rawLearned) {
-      const lList = JSON.parse(rawLearned);
-      if (Array.isArray(lList)) {
-        lList.forEach(w => learnedWords.add(String(w).trim().toLowerCase()));
-      }
-    }
-  } catch(_) {}
-
-  const weekWords = Array.from(weekUnfinished).filter(w => !learnedWords.has(w)).sort();
-  const semWords = Array.from(semUnfinished).filter(w => !learnedWords.has(w)).sort();
-  const totalCount = weekWords.length + semWords.length;
-
-  const renderContent = (tab) => {
-    _currentStConquerTab = tab;
-    const subtabsHtml = `
-      <div class="conquer-subtabs-bar" style="margin-bottom:12px;">
-        <button class="btn-sub-tab ${tab === 'all' ? 'active' : ''}" data-st-conquer-tab="all" type="button">📑 全部顯示 (${totalCount})</button>
-        <button class="btn-sub-tab ${tab === 'week' ? 'active' : ''}" data-st-conquer-tab="week" type="button">🎯 本週待攻克 (${weekWords.length})</button>
-        <button class="btn-sub-tab ${tab === 'semester' ? 'active' : ''}" data-st-conquer-tab="semester" type="button">📚 本學期待攻克 (${semWords.length})</button>
-      </div>
-    `;
-
-    const weekBlockHtml = weekWords.length === 0
-      ? `
-        <div class="conquer-section-block">
-          <div class="subh-child" style="margin-bottom:8px;">
-            <span>🎯 本週待攻克單字</span>
-            <span class="badge-count" style="margin-left:auto; font-size:11.5px; font-weight:700; padding:2px 10px; border-radius:999px; background:rgba(30,154,102,0.12); color:#1E9A66; border:1px solid rgba(30,154,102,0.3);">全數攻克 ✨</span>
-          </div>
-          <div class="task-empty-notice" style="padding:14px 12px; margin:0; background:rgba(30,154,102,0.06); border:1.5px solid rgba(30,154,102,0.22); border-radius:12px;">
-            <div class="task-empty-notice-title" style="color:#1E9A66; font-size:14px; font-weight:750;">✨ 太棒了！本週目前無待攻克單字</div>
-            <div class="task-empty-notice-desc" style="color:var(--ink2); font-size:12.5px; margin-top:3px;">本週平日測驗單字皆已掌握或已於自主練習中全數攻克，週末無須進行錯題補強測驗！</div>
-          </div>
-        </div>
-      `
-      : `
-        <div class="conquer-section-block week-conquer-wrap" style="display:flex; flex-direction:column; gap:10px;">
-          <div class="subh-child">
-            <span>🎯 本週待攻克單字</span>
-            <span class="badge-count" style="margin-left:auto; font-size:11.5px; font-weight:700; padding:2px 10px; border-radius:999px; background:rgba(255,255,255,0.12); color:var(--ink); border:1px solid rgba(148,163,184,0.38);">待攻克 ${weekWords.length} 字</span>
-          </div>
-          <div class="week-conquer-tip" style="display:flex; align-items:flex-start; gap:8px; padding:4px 2px 8px; font-size:12.5px; line-height:1.55; color:var(--ink2);">
-            <span style="font-size:15px; flex-shrink:0; line-height:1.3;">💡</span>
-            <div style="flex:1; line-height:1.55;">本週累積 <b>${weekWords.length}</b> 個待攻克單字。在<b>自由練習</b>中只要拼對該單字，系統即判定為已學會並自動移除，<b>不滾入週末錯題消滅戰測驗</b>！</div>
-          </div>
-          <div class="conquer-level-groups">${_buildStConquerLevelRowsHtml(weekWords)}</div>
-        </div>
-      `;
-
-    const semBlockHtml = semWords.length === 0
-      ? `
-        <div class="conquer-section-block">
-          <div class="subh-child" style="margin-bottom:8px;">
-            <span>📚 本學期待攻克單字</span>
-            <span class="badge-count" style="margin-left:auto; font-size:11.5px; font-weight:700; padding:2px 10px; border-radius:999px; background:rgba(30,154,102,0.12); color:#1E9A66; border:1px solid rgba(30,154,102,0.3);">全數攻克 ✨</span>
-          </div>
-          <div class="task-empty-notice" style="padding:14px 12px; margin:0; background:rgba(30,154,102,0.06); border:1.5px solid rgba(30,154,102,0.22); border-radius:12px;">
-            <div class="task-empty-notice-title" style="color:#1E9A66; font-size:14px; font-weight:750;">✨ 太棒了！本學期目前無待攻克單字</div>
-            <div class="task-empty-notice-desc" style="color:var(--ink2); font-size:12.5px; margin-top:3px;">歷次週末待攻克單字測驗（錯題消滅戰）之錯題皆已掌握或已於自主練習中全數攻克！</div>
-          </div>
-        </div>
-      `
-      : `
-        <div class="conquer-section-block semester-conquer-wrap" style="display:flex; flex-direction:column; gap:10px;">
-          <div class="subh-child">
-            <span>📚 本學期待攻克單字</span>
-            <span class="badge-count" style="margin-left:auto; font-size:11.5px; font-weight:700; padding:2px 10px; border-radius:999px; background:rgba(255,255,255,0.12); color:var(--ink); border:1px solid rgba(148,163,184,0.38);">待攻克 ${semWords.length} 字</span>
-          </div>
-          <div class="week-conquer-tip" style="display:flex; align-items:flex-start; gap:8px; padding:4px 2px 8px; font-size:12.5px; line-height:1.55; color:var(--ink2);">
-            <span style="font-size:15px; flex-shrink:0; line-height:1.3;">💡</span>
-            <div style="flex:1; line-height:1.55;">收集自每週週末<b>待攻克單字測驗（錯題消滅戰）中仍答錯或未答之單字</b>（目前累積 <b>${semWords.length}</b> 字）。在<b>自主自由練習</b>中只要拼對該單字，系統即判定為已學會並<b>自動從本學期待攻克清單中移出</b>！</div>
-          </div>
-          <div class="conquer-level-groups">${_buildStConquerLevelRowsHtml(semWords)}</div>
-        </div>
-      `;
-
-    let body = "";
-    if (tab === "all") {
-      body = `<div style="display:flex; flex-direction:column; gap:16px;">${weekBlockHtml}<hr style="border:none; border-top:1px dashed var(--line); margin:6px 0;" />${semBlockHtml}</div>`;
-    } else if (tab === "week") {
-      body = weekBlockHtml;
-    } else if (tab === "semester") {
-      body = semBlockHtml;
-    }
-    container.innerHTML = subtabsHtml + body;
-  };
-
-  if (!container.__stConquerBound) {
-    container.__stConquerBound = true;
-    container.addEventListener("click", (e) => {
-      const tabBtn = e.target.closest ? e.target.closest(".btn-sub-tab") : null;
-      if (tabBtn) {
-        e.preventDefault();
-        const tab = tabBtn.getAttribute("data-st-conquer-tab");
-        if (tab) renderContent(tab);
-      }
-    });
-  }
-
-  if (sec && toggleBtn && content) {
-    toggleBtn.onclick = (e) => {
-      e.preventDefault();
-      const isHidden = (content.style.display === "none") || sec.classList.contains("is-collapsed");
-      if (isHidden) {
-        content.style.display = "flex";
-        sec.classList.remove("is-collapsed");
-        toggleBtn.innerHTML = "收合";
-        renderContent(_currentStConquerTab);
-        content.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    if (conquerBadge) {
+      if (count > 0) {
+        conquerBadge.style.display = "inline-block";
+        conquerBadge.textContent = `待攻克 ${count} 字`;
+        conquerBadge.style.cssText = 'margin-left:auto; font-size:11.5px; font-weight:700; padding:2px 10px; border-radius:999px; background:rgba(255,255,255,0.12); color:var(--ink); border:1px solid rgba(148,163,184,0.38);';
       } else {
-        content.style.display = "none";
-        sec.classList.add("is-collapsed");
-        toggleBtn.innerHTML = "展開";
+        conquerBadge.style.display = "none";
+        conquerBadge.textContent = "";
       }
-    };
-  }
+    }
 
-  renderContent(_currentStConquerTab);
+    if (count === 0) {
+      conquerDetailsContainer.innerHTML = `
+        <div class="task-empty-notice" style="padding:14px 12px; margin:0; background:rgba(30,154,102,0.06); border:1.5px solid rgba(30,154,102,0.22); border-radius:12px;">
+          <div class="task-empty-notice-title" style="color:#1E9A66; font-size:14px; font-weight:750;">
+            ✨ 太棒了！本週目前無待攻克單字
+          </div>
+          <div class="task-empty-notice-desc" style="color:var(--ink2); font-size:12.5px; margin-top:3px;">
+            本週平日測驗單字皆已掌握或已於自主練習中全數攻克，週末無須進行錯題補強測驗！
+          </div>
+        </div>
+      `;
+    } else {
+      if (!window._wordBankLevelMap && typeof WORD_BANK_2000 !== "undefined" && Array.isArray(WORD_BANK_2000)) {
+        window._wordBankLevelMap = new Map();
+        for (let i = 0; i < WORD_BANK_2000.length; i++) {
+          window._wordBankLevelMap.set(String(WORD_BANK_2000[i][0]).toLowerCase(), WORD_BANK_2000[i][2]);
+        }
+      }
+      const bMap = window._wordBankLevelMap || null;
+      const byLv = { 1: [], 2: [], 3: [], 4: [], 5: [] };
+      pendingWords.forEach(w => {
+        const cleanW = String(w || "").trim().toLowerCase();
+        const lv = (bMap && bMap.has(cleanW)) ? bMap.get(cleanW) : 1;
+        const targetLv = (lv >= 1 && lv <= 5) ? lv : 1;
+        byLv[targetLv].push(cleanW);
+      });
+
+      const lvNames  = ["入門", "基礎", "進階", "挑戰", "精熟"];
+      const lvColors = ["#2FB47C", "#2D9CDB", "#6C4CE0", "#E8892B", "#E0567B"];
+      const levelSectionsHtml = [1, 2, 3, 4, 5].map(lv => {
+        const list = byLv[lv] || [];
+        const lvDotColor = lvColors[lv - 1];
+        const lvTitle = `Level ${lv}「${lvNames[lv - 1]}」`;
+        const pillsOrEmpty = list.length > 0
+          ? `<div class="conquer-word-list" style="display:flex; flex-wrap:wrap; gap:8px; padding:2px 4px 2px 0; max-height:148px; overflow-y:auto; overscroll-behavior:contain;">${list.map(w => `<span class="word-pill-tag conquer-pill" data-word="${w}" onclick="event.stopPropagation(); speakMasteredWord('${w.replace(/'/g, "\\'")}')" title="點擊聆聽發音">${w}</span>`).join("")}</div>`
+          : `<div style="font-size:12px; color:var(--ink3); font-style:italic; padding:1px 0;">（本關卡目前無待攻克單字）</div>`;
+
+        return `
+          <div class="conquer-level-row">
+            <div class="conquer-level-head">
+              <span><span style="color:${lvDotColor}; margin-right:5px;">●</span>${lvTitle}</span>
+              <span class="conquer-level-count">${list.length} 字</span>
+            </div>
+            ${pillsOrEmpty}
+          </div>
+        `;
+      }).join("");
+
+      conquerDetailsContainer.innerHTML = `
+        <div class="week-conquer-wrap" style="display:flex; flex-direction:column; gap:10px;">
+          <div class="week-conquer-tip" style="display:flex; align-items:flex-start; gap:8px; padding:4px 2px 8px; font-size:12.5px; line-height:1.55; color:var(--ink2);">
+            <span style="font-size:15px; flex-shrink:0; line-height:1.3;">💡</span>
+            <div style="flex:1; line-height:1.55;">
+              本週累積 <b>${count}</b> 個待攻克單字。在<b>自由練習</b>中只要拼對該單字，系統即判定為已學會並自動移除，<b>不滾入週末錯題消滅戰測驗</b>！
+            </div>
+          </div>
+          <div class="conquer-level-groups">
+            ${levelSectionsHtml}
+          </div>
+        </div>
+      `;
+    }
+  }
 }
 
 function renderStudentSummary(resp) {
@@ -17642,14 +17415,6 @@ function renderStudentSummary(resp) {
   } catch (errDT) {
     console.error("renderStudentDailyTaskAndFreeSections error:", errDT);
   }
-
-  // 6b. 渲染待攻克單字方塊 (Words to Conquer)
-  try {
-    renderStudentConquerRecords(resp);
-  } catch (errCQ) {
-    console.error("renderStudentConquerRecords error:", errCQ);
-  }
-
 
   // 確保點擊單字標籤可立即發音（事件委派備援）
   const summarySec = document.getElementById("summary");
