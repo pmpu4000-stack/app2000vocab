@@ -2810,16 +2810,6 @@ export function updateWeekConquerSection(cycleParam = _activeConquerCycle) {
     titleEl.textContent = "待攻克單字 Conquer";
   }
 
-  if (badgeEl) {
-    if (count > 0) {
-      badgeEl.style.display = "inline-block";
-      badgeEl.textContent = `待攻克 ${count} 字`;
-      badgeEl.style.cssText = 'font-size:11.5px; font-weight:700; padding:2px 10px; border-radius:999px; background:rgba(255,255,255,0.12); color:var(--ink); border:1px solid rgba(148,163,184,0.38);';
-    } else {
-      badgeEl.style.display = "none";
-      badgeEl.textContent = "";
-    }
-  }
   detailsEl.innerHTML = buildWeekPendingConquerHtml(words, null, _activeConquerCycle);
 
   // 綁定待攻克內部週次下拉選單及按鈕

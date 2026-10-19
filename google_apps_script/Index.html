@@ -5483,9 +5483,8 @@
     <!-- 待攻克單字 Conquer 獨立卡片 (比照遊戲網頁，併入 Level 1~5 分級標準與特徵一覽) -->
     <section class="progress week-conquer-section is-collapsed" id="studentWeekConquerCard">
       <h3>
-        <span style="display:inline-flex; align-items:center; gap:8px;">
+        <span>
           <span id="stWeekConquerTitle">待攻克單字 Conquer</span>
-          <span id="stWeekConquerBadge" class="badge-count" style="display:none; font-size:11.5px; font-weight:700; padding:2px 10px; border-radius:999px; background:rgba(255,255,255,0.12); color:var(--ink); border:1px solid rgba(148,163,184,0.38);"></span>
         </span>
         <span style="display:flex; gap:14px; align-items:center;">
           <a id="btn-toggle-st-conquer-card" class="sum-toggle-btn" title="展開或收合待攻克單字">展開</a>
@@ -16558,17 +16557,6 @@ function renderStudentDailyTaskAndFreeSections(resp) {
         </div>
       </div>
     `;
-
-    if (conquerBadge) {
-      if (count > 0) {
-        conquerBadge.style.display = "inline-block";
-        conquerBadge.textContent = `待攻克 ${count} 字`;
-        conquerBadge.style.cssText = 'font-size:11.5px; font-weight:700; padding:2px 10px; border-radius:999px; background:rgba(255,255,255,0.12); color:var(--ink); border:1px solid rgba(148,163,184,0.38);';
-      } else {
-        conquerBadge.style.display = "none";
-        conquerBadge.textContent = "";
-      }
-    }
 
     if (count === 0) {
       const emptyTitle = isPrevious ? "太棒了！上週平日測驗無遺留待攻克單字" : "太棒了！本週目前無待攻克單字";
