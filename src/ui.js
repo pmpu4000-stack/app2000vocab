@@ -2726,6 +2726,7 @@ export function renderSummary(d) {
     if (taskDayStatCache.has(norm)) return taskDayStatCache.get(norm);
 
     const tArr = taskByDateMap.get(norm);
+    const tRec = (tArr && (tArr.find(r => r && r.status && r.status.includes("已完成")) || tArr.find(r => r && r.score && r.score !== "—" && r.score !== "尚未開始") || tArr[0])) || null;
     const isUnassignedTask = !tRec || !tRec.taskName || tRec.taskName === "⚪ 未指派" || tRec.taskName === "未指派" || tRec.taskName === "自主練習" || String(tRec.taskName).includes("未指派") || (tRec.status && tRec.status.includes("未指派"));
     if (isUnassignedTask) {
       const res = {
