@@ -15136,15 +15136,15 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
     record.inProgress === true
   );
 
-  const isUnassigned = (record.taskName && (record.taskName.includes("未指派") || record.taskName.includes("自主練習") || record.taskName.includes("自由練習"))) || statusStr.includes("未指派");
+  const isExplicitUntestedStatus = statusStr.includes("未受測") || statusStr.includes("缺席") || statusStr.includes("缺考") || statusStr.includes("未作答");
+  const isUnassigned = !isExplicitUntestedStatus && ((record.taskName && (record.taskName.includes("未指派") || record.taskName.includes("自主練習") || record.taskName.includes("自由練習"))) || statusStr.includes("未指派"));
 
   // 核心未受測判定：絕不因為單字清單暫未展開 (totalAnswered === 0) 誤把已完成的測驗判斷為未受測！
-  const isUntested = !isUnassigned && !isFinished && !isIncomplete && (
-    statusStr.includes("未受測") ||
+  const isUntested = isExplicitUntestedStatus || (!isUnassigned && !isFinished && !isIncomplete && (
     scoreVal === "—" ||
     scoreVal === "尚未開始" ||
     (totalAnswered === 0 && !hasFinishedStatus && taskRate === 0)
-  );
+  ));
 
   let displayStatusStr = statusStr;
   let statusColor = "#64748b";
@@ -15166,7 +15166,7 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
     statusBg = "rgba(16,185,129,0.15)";
     displayStatusStr = "已完成";
   } else if (isUntested) {
-    if (hasLoggedInOrFree) {
+    if (hasLoggedInOrFree || statusStr.includes("登入未受測") || statusStr.includes("登入未作答")) {
       displayStatusStr = "登入未受測";
       statusColor = "#d97706";
       statusBg = "rgba(245,158,11,0.15)";
@@ -15656,7 +15656,21 @@ function renderUntestedTaskCardHtml(info, agent) {
 
 function buildTaskDetailsHtml(records, selectedDate, agent) {
   const list = (Array.isArray(records) ? records : (records ? [records] : []))
-    .filter(r => r && r.taskName && r.taskName !== "自主練習" && !r.taskName.includes("自由練習") && !r.taskName.includes("未指派"));
+    .filter(r => {
+      if (!r) return false;
+      const st = String(r.status || "");
+      const isExpUntested = st.includes("未受測") || st.includes("缺席") || st.includes("缺考") || st.includes("未作答");
+      if (isExpUntested) return true;
+      return r.taskName && r.taskName !== "自主練習" && !r.taskName.includes("自由練習") && !r.taskName.includes("未指派") && !st.includes("未指派");
+    })
+    .map(r => {
+      const st = String(r.status || "");
+      const isExpUntested = st.includes("未受測") || st.includes("缺席") || st.includes("缺考") || st.includes("未作答");
+      if (r && isExpUntested && (!r.taskName || r.taskName === "自主練習" || r.taskName.includes("未指派"))) {
+        return { ...r, taskName: "每日指定測驗" };
+      }
+      return r;
+    });
 
   const taskDict = (window.cachedTaskWordsMap || {});
   const sDateNorm = normalizeDateKey(selectedDate);
@@ -16252,9 +16266,14 @@ function renderStudentDailyTaskAndFreeSections(resp) {
       dailyTaskHistory.forEach(h => {
         if (!h || !h.date) return;
         const hdNorm = normalizeDateKey(h.date);
-        const isUnassigned = !h.taskName || h.taskName === "自主練習" || h.taskName.includes("自由練習") || h.taskName.includes("未指派");
+        const st = String(h.status || "");
+        const isExpUntested = st.includes("未受測") || st.includes("缺席") || st.includes("缺考") || st.includes("未作答");
+        const isUnassigned = !isExpUntested && (!h.taskName || h.taskName === "自主練習" || h.taskName.includes("自由練習") || h.taskName.includes("未指派"));
         if ((hdNorm === targetDate || unpadDateKey(h.date) === shortTarget) && !isUnassigned) {
-          mergeOrPushTask(h);
+          mergeOrPushTask({
+            ...h,
+            taskName: (isExpUntested && (!h.taskName || h.taskName === "自主練習" || h.taskName.includes("未指派"))) ? "每日指定測驗" : h.taskName
+          });
         }
       });
     }
@@ -16280,19 +16299,23 @@ function renderStudentDailyTaskAndFreeSections(resp) {
         const rDate = normalizeDateKey(r[0]);
         if (rDate === targetDate || unpadDateKey(r[0]) === shortTarget) {
           const info = extractRowTaskInfo(r, resp.headers);
-          if (info && info.taskName && info.taskName !== "自主練習" && !info.taskName.includes("自由練習")) {
-            if (info.taskName.includes("未指派") || info.status.includes("未指派")) {
-              continue;
+          if (info) {
+            const st = String(info.status || "");
+            const isExpUntested = st.includes("未受測") || st.includes("缺席") || st.includes("缺考") || st.includes("未作答");
+            if (isExpUntested || (info.taskName && info.taskName !== "自主練習" && !info.taskName.includes("自由練習"))) {
+              if (!isExpUntested && ((info.taskName && info.taskName.includes("未指派")) || st.includes("未指派"))) {
+                continue;
+              }
+              mergeOrPushTask({
+                date: targetDate,
+                taskName: (isExpUntested && (!info.taskName || info.taskName === "自主練習" || info.taskName.includes("未指派"))) ? "每日指定測驗" : (info.taskName || "每日指定測驗"),
+                score: info.score || "—",
+                rate: info.rate || "—",
+                status: info.status || (isExpUntested ? "⚪ 未受測" : "● 已完成"),
+                words: [],
+                wrongWords: info.wrongWords || []
+              });
             }
-            mergeOrPushTask({
-              date: targetDate,
-              taskName: info.taskName,
-              score: info.score || "—",
-              rate: info.rate || "—",
-              status: info.status || (info.status.includes("未受測") ? "⚪ 未受測" : "● 已完成"),
-              words: [],
-              wrongWords: info.wrongWords || []
-            });
           }
         }
       }
@@ -16994,8 +17017,10 @@ function renderStudentSummary(resp) {
       const dNorm = normalizeDayKey(item.date);
       if (!dNorm) continue;
       if (!dthAllMap.has(dNorm)) dthAllMap.set(dNorm, item);
-      if ((!item.taskName || item.taskName !== "自主練習") && !dthTaskMap.has(dNorm)) {
-        dthTaskMap.set(dNorm, item);
+      const st = String(item.status || "");
+      const isExpUntested = st.includes("未受測") || st.includes("缺席") || st.includes("缺考") || st.includes("未作答");
+      if ((!item.taskName || item.taskName !== "自主練習" || isExpUntested) && !dthTaskMap.has(dNorm)) {
+        dthTaskMap.set(dNorm, isExpUntested && (!item.taskName || item.taskName === "自主練習" || item.taskName.includes("未指派")) ? { ...item, taskName: "每日指定測驗" } : item);
       }
     }
   }

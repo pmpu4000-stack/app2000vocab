@@ -4318,9 +4318,11 @@ function getStudentDailyTaskHistory(ss, username) {
       if ((!matchedWords || matchedWords.length === 0) && wrongStr.includes("應測單字") && rawWrongTokens.length > 0) {
         matchedWords = rawWrongTokens;
       }
+      const isSpecialTask = statusVal.includes("未受測") || statusVal.includes("中斷") || statusVal.includes("缺席") || statusVal.includes("作答中") || statusVal.includes("未作答");
+      const defaultTaskName = (hasTaskAssigned || isSpecialTask) ? "每日指定測驗" : (hasFreePractice ? "自主練習" : "每日指定測驗");
       list.push({
         date        : dStr,
-        taskName    : taskName || (hasFreePractice ? "自主練習" : "每日指定測驗"),
+        taskName    : taskName || defaultTaskName,
         score       : scoreVal || "—",
         rate        : rateVal || "—",
         status      : statusVal || (hasValidQuizScore ? "🟢 已完成" : (hasTaskAssigned ? "⏳ 尚未開始" : "⚪ 未指派")),

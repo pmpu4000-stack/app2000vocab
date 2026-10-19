@@ -679,8 +679,18 @@ function getCombinedTaskHistory() {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) {
         parsed.forEach(item => {
-          if (item && item.date && (!item.taskName || item.taskName !== "自主練習")) {
-            list.push({ ...item, date: normalizeDateStr(item.date) });
+          if (item && item.date) {
+            const st = String(item.status || "");
+            const isExplicitUntested = st.includes("未受測") || st.includes("缺席") || st.includes("缺考") || st.includes("未作答");
+            if (!item.taskName || item.taskName !== "自主練習" || isExplicitUntested) {
+              list.push({
+                ...item,
+                date: normalizeDateStr(item.date),
+                taskName: (isExplicitUntested && (!item.taskName || item.taskName === "自主練習" || String(item.taskName).includes("未指派")))
+                  ? "每日指定測驗"
+                  : item.taskName
+              });
+            }
           }
         });
       }
@@ -1328,18 +1338,15 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
   let statusColor = "#64748b";
   let statusDesc = "";
 
-  const isUnassigned = (record.taskName && (record.taskName.includes("未指派") || record.taskName.includes("自主練習") || record.taskName.includes("自由練習"))) || statusStr.includes("未指派");
+  const isExplicitUntestedStatus = statusStr.includes("未受測") || statusStr.includes("缺席") || statusStr.includes("缺考") || statusStr.includes("未作答");
+  const isUnassigned = !isExplicitUntestedStatus && ((record.taskName && (record.taskName.includes("未指派") || record.taskName.includes("自主練習") || record.taskName.includes("自由練習"))) || statusStr.includes("未指派"));
 
   // 核心未受測判定：絕不因為單字清單暫未展開 (totalAnswered === 0) 誤把已完成的測驗判斷為未受測！
-  const isUntested = !isUnassigned && !isFinished && !isIncomplete && (
-    statusStr.includes("未受測") ||
-    statusStr.includes("缺席") ||
-    statusStr.includes("缺考") ||
-    statusStr.includes("未作答") ||
+  const isUntested = isExplicitUntestedStatus || (!isUnassigned && !isFinished && !isIncomplete && (
     scoreVal === "—" ||
     scoreVal === "尚未開始" ||
     (totalAnswered === 0 && !hasFinishedStatus && taskRate === 0)
-  );
+  ));
 
   if (isUnassigned) {
     displayStatusStr = hasLoggedInOrFree ? "當日無指派（已自主練習）" : "當日無指派測驗";
@@ -1863,9 +1870,23 @@ function renderUntestedTaskCardHtml(info, d) {
   `;
 }
 
-function buildTaskDetailsHtml(records, selectedDate, d) {
+function buildTaskDetailsHtml(records, selectedDate, d, dayStat = null) {
   const list = (Array.isArray(records) ? records : (records ? [records] : []))
-    .filter(r => r && r.taskName && r.taskName !== "自主練習" && !r.taskName.includes("自由練習") && !r.taskName.includes("未指派"));
+    .filter(r => {
+      if (!r) return false;
+      const st = String(r.status || "");
+      const isExpUntested = st.includes("未受測") || st.includes("缺席") || st.includes("缺考") || st.includes("未作答");
+      if (isExpUntested) return true;
+      return r.taskName && r.taskName !== "自主練習" && !r.taskName.includes("自由練習") && !r.taskName.includes("未指派") && !st.includes("未指派");
+    })
+    .map(r => {
+      const st = String(r.status || "");
+      const isExpUntested = st.includes("未受測") || st.includes("缺席") || st.includes("缺考") || st.includes("未作答");
+      if (r && isExpUntested && (!r.taskName || r.taskName === "自主練習" || r.taskName.includes("未指派"))) {
+        return { ...r, taskName: "每日指定測驗" };
+      }
+      return r;
+    });
 
   const normDate = normalizeDateStr(selectedDate);
 
@@ -1980,7 +2001,9 @@ function buildTaskDetailsHtml(records, selectedDate, d) {
   const allHist = getCombinedTaskHistory();
   const matchedHist = allHist.find(h => {
     const hd = normalizeDateStr(h && h.date ? h.date : "");
-    return hd === normDate && h.taskName && h.taskName !== "自主練習" && !String(h.taskName).includes("自由練習") && !String(h.taskName).includes("未指派");
+    const st = String((h && h.status) || "");
+    const isExpUntested = st.includes("未受測") || st.includes("缺席") || st.includes("缺考") || st.includes("未作答");
+    return hd === normDate && (isExpUntested || (h.taskName && h.taskName !== "自主練習" && !String(h.taskName).includes("自由練習") && !String(h.taskName).includes("未指派")));
   });
   if (matchedHist) {
     taskName = matchedHist.taskName || matchedHist.name || "";
@@ -2010,10 +2033,10 @@ function buildTaskDetailsHtml(records, selectedDate, d) {
 
   // 2. 判斷學生當天是否有自由練習紀錄
   const freeRec = resolveDailyPracticeRecord(selectedDate, d, records);
-  const hasLoggedInOrFree = !!(freeRec && (freeRec.attempts > 0 || freeRec.correct > 0));
+  const hasLoggedInOrFree = !!(freeRec && (freeRec.attempts > 0 || freeRec.correct > 0)) || (dayStat && dayStat.statusType === "login_untested");
 
   // 3. 取得熱力圖狀態與未受測標記
-  const stat = (typeof getTaskDayStat === "function") ? getTaskDayStat(selectedDate) : null;
+  const stat = dayStat;
   const isStatUntested = stat && (stat.statusType === "login_untested" || stat.statusType === "absent_untested");
   const isUntestedRecord = (Array.isArray(records) && records.some(r => r && r.status && (r.status.includes("未受測") || r.status.includes("缺席") || r.status.includes("未作答")))) ||
                            (!Array.isArray(records) && records && records.status && (records.status.includes("未受測") || records.status.includes("缺席") || records.status.includes("未作答")));
@@ -2024,7 +2047,7 @@ function buildTaskDetailsHtml(records, selectedDate, d) {
       return renderUntestedTaskCardHtml({
         taskName: taskName || (normDate.replace(/-/g, "").slice(4) + "指定單字隨堂測驗"),
         assignedWords: assignedWords || [],
-        hasLoggedInOrFree: hasLoggedInOrFree || (stat && stat.statusType === "login_untested"),
+        hasLoggedInOrFree: hasLoggedInOrFree,
         selectedDate
       }, d);
     }
@@ -2635,12 +2658,16 @@ export function renderSummary(d) {
   const taskByDateMap = new Map();
   for (let i = 0; i < historyList.length; i++) {
     const item = historyList[i];
-    if (item && item.date && (!item.taskName || item.taskName !== "自主練習")) {
-      const nd = normalizeDateStr(item.date);
-      if (nd) {
-        let arr = taskByDateMap.get(nd);
-        if (!arr) { arr = []; taskByDateMap.set(nd, arr); }
-        arr.push(item);
+    if (item && item.date) {
+      const st = String(item.status || "");
+      const isExpUntested = st.includes("未受測") || st.includes("缺席") || st.includes("缺考") || st.includes("未作答");
+      if (!item.taskName || item.taskName !== "自主練習" || isExpUntested) {
+        const nd = normalizeDateStr(item.date);
+        if (nd) {
+          let arr = taskByDateMap.get(nd);
+          if (!arr) { arr = []; taskByDateMap.set(nd, arr); }
+          arr.push(item);
+        }
       }
     }
   }
@@ -2652,7 +2679,11 @@ export function renderSummary(d) {
   const dateSet = new Set();
   dateSet.add(todayDash);
   for (const [nd, arr] of taskByDateMap.entries()) {
-    if (arr.some(item => !item.taskName || !String(item.taskName).includes("未指派"))) {
+    if (arr.some(item => {
+      const st = String((item && item.status) || "");
+      const isExpUntested = st.includes("未受測") || st.includes("缺席") || st.includes("缺考") || st.includes("未作答");
+      return isExpUntested || !item.taskName || !String(item.taskName).includes("未指派");
+    })) {
       dateSet.add(nd);
     }
   }
@@ -2712,12 +2743,6 @@ export function renderSummary(d) {
     return `<option value="${dateStr}" ${dateStr === defaultSelectedDate ? "selected" : ""}>${label}</option>`;
   }).join("");
 
-  const initialTaskRecords = taskByDateMap.get(defaultSelectedDate) || [];
-  const initialTaskDetailsHtml = buildTaskDetailsHtml(initialTaskRecords, defaultSelectedDate, d);
-
-  const initialFreeRecord = resolveDailyPracticeRecord(defaultSelectedDate, d, historyList);
-  const initialFreeDetailsHtml = buildFreeDetailsHtml(initialFreeRecord, defaultSelectedDate, d);
-
   const taskDayStatCache = new Map();
 
   // 計算「指定測驗作答紀錄」最近 4 週 (28 天) 熱力圖資料與連續/最佳/累計天數 (Memoized O(1))
@@ -2727,7 +2752,8 @@ export function renderSummary(d) {
 
     const tArr = taskByDateMap.get(norm);
     const tRec = (tArr && (tArr.find(r => r && r.status && r.status.includes("已完成")) || tArr.find(r => r && r.score && r.score !== "—" && r.score !== "尚未開始") || tArr[0])) || null;
-    const isUnassignedTask = !tRec || !tRec.taskName || tRec.taskName === "⚪ 未指派" || tRec.taskName === "未指派" || tRec.taskName === "自主練習" || String(tRec.taskName).includes("未指派") || (tRec.status && tRec.status.includes("未指派"));
+    const isExplicitUntested = tRec && tRec.status && (tRec.status.includes("未受測") || tRec.status.includes("缺席") || tRec.status.includes("缺考") || tRec.status.includes("未作答"));
+    const isUnassignedTask = !tRec || (!isExplicitUntested && (!tRec.taskName || tRec.taskName === "⚪ 未指派" || tRec.taskName === "未指派" || tRec.taskName === "自主練習" || String(tRec.taskName).includes("未指派") || (tRec.status && tRec.status.includes("未指派"))));
     if (isUnassignedTask) {
       const res = {
         a: 0, c: 0, rate: 0,
@@ -2846,6 +2872,12 @@ export function renderSummary(d) {
     taskDayStatCache.set(norm, res);
     return res;
   };
+
+  const initialTaskRecords = taskByDateMap.get(defaultSelectedDate) || [];
+  const initialTaskDetailsHtml = buildTaskDetailsHtml(initialTaskRecords, defaultSelectedDate, d, getTaskDayStat(defaultSelectedDate));
+
+  const initialFreeRecord = resolveDailyPracticeRecord(defaultSelectedDate, d, historyList);
+  const initialFreeDetailsHtml = buildFreeDetailsHtml(initialFreeRecord, defaultSelectedDate, d);
 
   const nowDt = new Date();
   const taskHeatDays = [];
@@ -3265,7 +3297,7 @@ export function renderSummary(d) {
     const targetTaskRecords = taskByDateMap.get(targetDate) || [];
     const taskDetailsContainer = $("#task-record-details");
     if (taskDetailsContainer) {
-      taskDetailsContainer.innerHTML = buildTaskDetailsHtml(targetTaskRecords, targetDate, d);
+      taskDetailsContainer.innerHTML = buildTaskDetailsHtml(targetTaskRecords, targetDate, d, getTaskDayStat(targetDate));
     }
 
     // 更新自由練習作答紀錄
