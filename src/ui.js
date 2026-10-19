@@ -6,7 +6,7 @@ import { CATS } from "./data.js?v=20261013_1225";
 import { say, sayWord, spellOut, playContestSentence, stopAudio, parseDialogue } from "./audio.js?v=20261013_2225";
 import { LEVELS, levelColor, levelName, misspellings, shuffle } from "./levels.js?v=20261013_1225";
 import { diagnoseWordMistake } from "./diagnostics.js";
-import { normalizeDateStr, formatDateYMD, getWeekRangeDates } from "./store.js";
+import { normalizeDateStr, formatDateYMD, getWeekRangeDates, getBiweeklyCycleInfo } from "./store.js?v=20261019_v228";
 
 if (typeof window !== "undefined") {
   window.__say = say;
@@ -2432,29 +2432,24 @@ function resolveDailyPracticeRecord(dateStr, d, historyList) {
   return null;
 }
 
-// ── 取得當週（週一至週五）待攻克單字清單（已排除在自由練習中答對學會的單字） ──
+// ── 取得待攻克單字清單（支援雙週週期，已排除在自由練習中答對學會的單字；自由練習答錯不計入） ──
 export function getWeekPendingConquerWords() {
   const unfinishedWords = new Set();
-  const weekDates = getWeekRangeDates();
-  const mondayStr = weekDates.monday;
-  const fridayStr = weekDates.friday;
+  const cycleInfo = getBiweeklyCycleInfo();
+  const scanStartStr = cycleInfo.scanStartStr;
+  const scanEndStr = cycleInfo.scanEndStr;
 
-  // 1. 從 student_task_history 讀取本週平日任務中的錯題與未作答題
+  // 1. 從 student_task_history 讀取當前週期（單週或雙週）平日指定任務中的錯題與未作答題
   try {
     const historyList = _getCachedRawStudentTaskHistory();
     if (Array.isArray(historyList)) {
       historyList.forEach(item => {
         if (!item || !item.date) return;
         const iDate = String(item.date).trim().split(" ")[0].replace(/\//g, "-");
-        if (iDate >= mondayStr && iDate <= fridayStr) {
+        if (iDate >= scanStartStr && iDate <= scanEndStr) {
+          // 僅採納平日指派任務錯題 (排除自由練習錯題)
           if (Array.isArray(item.wrongWords)) {
             item.wrongWords.forEach(w => {
-              const cw = String(w).trim().toLowerCase();
-              if (cw) unfinishedWords.add(cw);
-            });
-          }
-          if (Array.isArray(item.freeWrongWords)) {
-            item.freeWrongWords.forEach(w => {
               const cw = String(w).trim().toLowerCase();
               if (cw) unfinishedWords.add(cw);
             });
@@ -2473,34 +2468,13 @@ export function getWeekPendingConquerWords() {
     }
   } catch(_) {}
 
-  // 1b. 從 app2000vocab_data 讀取平日自由練習中的錯題
-  try {
-    const rawData = localStorage.getItem("app2000vocab_data");
-    if (rawData) {
-      const parsed = JSON.parse(rawData);
-      if (parsed && parsed.dailyPractice) {
-        for (const dateKey in parsed.dailyPractice) {
-          if (dateKey >= mondayStr && dateKey <= fridayStr) {
-            const dp = parsed.dailyPractice[dateKey];
-            if (dp && Array.isArray(dp.wrongWords)) {
-              dp.wrongWords.forEach(w => {
-                const cw = String(w).trim().toLowerCase();
-                if (cw) unfinishedWords.add(cw);
-              });
-            }
-          }
-        }
-      }
-    }
-  } catch(_) {}
-
-  // 2. 從 weekTaskMistakes 讀取本機即時記錄
+  // 2. 從 weekTaskMistakes 讀取本機即時記錄（平日指定任務錯題）
   try {
     const rawMistakes = localStorage.getItem("weekTaskMistakes");
     if (rawMistakes) {
       const map = JSON.parse(rawMistakes);
       for (const dateKey in map) {
-        if (dateKey >= mondayStr && dateKey <= fridayStr) {
+        if (dateKey >= scanStartStr && dateKey <= scanEndStr) {
           if (Array.isArray(map[dateKey])) {
             map[dateKey].forEach(w => {
               const cw = String(w).trim().toLowerCase();
@@ -2563,15 +2537,17 @@ function _resolveConquerWordLevel(wordStr, d) {
 export function buildWeekPendingConquerHtml(words, d = null) {
   const pendingWords = Array.isArray(words) ? words : getWeekPendingConquerWords();
   const count = pendingWords.length;
+  const cycleInfo = getBiweeklyCycleInfo();
+  const isBoss = cycleInfo.isBiweeklyBossWeek;
 
   if (count === 0) {
     return `
       <div class="task-empty-notice" style="padding:14px 12px; margin:0; background:rgba(30,154,102,0.06); border:1.5px solid rgba(30,154,102,0.22); border-radius:12px;">
         <div class="task-empty-notice-title" style="color:#1E9A66; font-size:14px; font-weight:750;">
-          ✨ 太棒了！本週目前無待攻克單字
+          ✨ 太棒了！${isBoss ? "雙週" : "本週"}目前無待攻克單字
         </div>
         <div class="task-empty-notice-desc" style="color:var(--ink2); font-size:12.5px; margin-top:3px;">
-          本週平日測驗單字皆已掌握或已於自主練習中全數攻克，週末無須進行錯題補強測驗！
+          ${isBoss ? "雙週平日測驗單字皆已掌握或已於自由練習中全數攻克，週末無須進行雙週大魔王消滅戰！" : "本週平日測驗單字皆已掌握或已於自由練習中全數攻克，週末無須進行錯題補強測驗！"}
         </div>
       </div>
     `;
@@ -2604,12 +2580,16 @@ export function buildWeekPendingConquerHtml(words, d = null) {
     `;
   }).join("");
 
+  const tipText = isBoss
+    ? `雙週（第 2 週大消滅週期）累積 <b>${count}</b> 個待攻克單字。在<b>自由練習</b>中只要拼對該單字，系統即判定為已學會並自動移除！<b>自由練習答錯不計入待攻克</b>，週末將進行雙週大魔王消滅戰。`
+    : `本週（雙週週期第 1 週）累積 <b>${count}</b> 個待攻克單字。在<b>自由練習</b>中只要拼對該單字，系統即判定為已學會並自動移除！<b>自由練習答錯不計入待攻克</b>，週末未消滅之單字將滾入雙週大魔王儲備池。`;
+
   return `
     <div class="week-conquer-wrap" style="display:flex; flex-direction:column; gap:10px;">
       <div class="week-conquer-tip" style="display:flex; align-items:flex-start; gap:8px; padding:4px 2px 8px; font-size:12.5px; line-height:1.55; color:var(--ink2);">
         <span style="font-size:15px; flex-shrink:0; line-height:1.3;">💡</span>
         <div style="flex:1; line-height:1.55;">
-          本週累積 <b>${count}</b> 個待攻克單字。在<b>自由練習</b>中只要拼對該單字，系統即判定為已學會並自動移除，<b>不滾入週末錯題消滅戰測驗</b>！
+          ${tipText}
         </div>
       </div>
       <div class="conquer-level-groups">
@@ -2620,11 +2600,16 @@ export function buildWeekPendingConquerHtml(words, d = null) {
 }
 
 export function updateWeekConquerSection() {
+  const titleEl = $("#week-conquer-title");
   const badgeEl = $("#week-conquer-badge");
   const detailsEl = $("#week-conquer-details");
   if (!detailsEl) return;
   const words = getWeekPendingConquerWords();
   const count = words.length;
+  const cycleInfo = getBiweeklyCycleInfo();
+  if (titleEl) {
+    titleEl.textContent = cycleInfo.isBiweeklyBossWeek ? "🎯 雙週待攻克單字（雙週大消滅儲備池）" : "🎯 本週待攻克單字（雙週第 1 週）";
+  }
   if (badgeEl) {
     if (count > 0) {
       badgeEl.style.display = "inline-block";
@@ -3041,9 +3026,9 @@ export function renderSummary(d) {
       </div>
     </div>
 
-    <!-- 子標題 3：本週待攻克單字 -->
+    <!-- 子標題 3：待攻克單字（支援雙週週期） -->
     <div class="subh-child" style="margin-top:16px;">
-      <span>🎯 本週待攻克單字</span>
+      <span id="week-conquer-title">${(getBiweeklyCycleInfo().isBiweeklyBossWeek) ? "🎯 雙週待攻克單字（雙週大消滅儲備池）" : "🎯 本週待攻克單字（雙週第 1 週）"}</span>
       <span id="week-conquer-badge" class="badge-count" style="margin-left:auto; font-size:11.5px; font-weight:700; padding:2px 10px; border-radius:999px; ${conquerCount > 0 ? 'background:rgba(255,255,255,0.12); color:var(--ink); border:1px solid rgba(148,163,184,0.38);' : 'display:none;'}">
         ${conquerCount > 0 ? `待攻克 ${conquerCount} 字` : ''}
       </span>

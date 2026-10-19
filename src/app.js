@@ -3,16 +3,16 @@
 // drives level-based practice, gates progression behind challenges,
 // and manages teacher-assigned tasks & weekend mistake remediation.
 // =====================================================================
-import { loadWordBank, wordsAtLevel } from "./wordbank.js?v=20261019_v227";
-import * as store from "./store.js?v=20261019_v227";
-import { normalizeDateStr } from "./store.js?v=20261019_v227";
-import { nextWord } from "./srs.js?v=20261019_v227";
-import * as ui from "./ui.js?v=20261019_v227";
-import { burst } from "./confetti.js?v=20261019_v227";
+import { loadWordBank, wordsAtLevel } from "./wordbank.js?v=20261019_v228";
+import * as store from "./store.js?v=20261019_v228";
+import { normalizeDateStr } from "./store.js?v=20261019_v228";
+import { nextWord } from "./srs.js?v=20261019_v228";
+import * as ui from "./ui.js?v=20261019_v228";
+import { burst } from "./confetti.js?v=20261019_v228";
 import {
   LEVELS, levelColor, levelName, sample,
   PASS_RATE, GATE_MIN_ATTEMPTS, CHALLENGE_LEN, PLACEMENT_PER_LEVEL, DAILY_GOAL,
-} from "./levels.js?v=20261019_v227";
+} from "./levels.js?v=20261019_v228";
 
 let WORDS = [];
 const state = { mode: "listen", word: null, answered: false, round: null, activeRepairRequired: false };
@@ -694,11 +694,11 @@ function answer(correct, guessVal) {
   if (state.word && state.word.word) {
     const w = String(state.word.word).trim().toLowerCase();
     if (correct) {
-      // ★ 核心規則：如果在自由練習中答對，則登記為已學會，從本週待攻克單字中消滅！
+      // ★ 核心規則：如果在自由練習中答對，則登記為已學會，從待攻克單字中消滅！
       markWordLearnedInFreePractice(w);
     } else {
-      // ★ 核心規則：自由練習寫錯的單字，亦自動滾入六日待攻克單字！
-      recordTaskMistake(w);
+      // ★ 核心新規範：自由練習純屬自由探索，答錯不懲罰、不滾入週末或雙週待攻克測驗！
+      // 唯若此字先前曾暫時標記學會，則在此次答錯時復原狀態
       unmarkWordLearnedInFreePractice(w);
     }
     try {

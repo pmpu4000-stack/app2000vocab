@@ -60,6 +60,45 @@ export function getWeekRangeDates(baseDate = new Date()) {
   };
 }
 
+// Calculate 2-week (bi-weekly) cycle info
+export function getBiweeklyCycleInfo(baseDate = new Date()) {
+  const d = new Date(baseDate);
+  const target = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const dayNr = (target.getUTCDay() + 6) % 7;
+  target.setUTCDate(target.getUTCDate() - dayNr + 3);
+  const firstThursday = target.valueOf();
+  target.setUTCMonth(0, 1);
+  if (target.getUTCDay() !== 4) {
+    target.setUTCMonth(0, 1 + ((4 - target.getUTCDay()) + 7) % 7);
+  }
+  const isoWeek = 1 + Math.ceil((firstThursday - target) / 604800000);
+  
+  // 雙週週期：奇數週為第 1 週，偶數週為第 2 週（雙週大消滅週）
+  const isBiweeklyBossWeek = (isoWeek % 2 === 0);
+  const weekOfCycle = isBiweeklyBossWeek ? 2 : 1;
+  
+  const currentWeek = getWeekRangeDates(d);
+  
+  const day = d.getDay();
+  const diffToMon = d.getDate() - day + (day === 0 ? -6 : 1);
+  const prevMon = new Date(d.getFullYear(), d.getMonth(), diffToMon - 7);
+  const prevFri = new Date(d.getFullYear(), d.getMonth(), diffToMon - 3);
+  const prevWeek = {
+    monday: formatDateYMD(prevMon),
+    friday: formatDateYMD(prevFri)
+  };
+
+  return {
+    isoWeek,
+    isBiweeklyBossWeek,
+    weekOfCycle,
+    currentWeek,
+    prevWeek,
+    scanStartStr: isBiweeklyBossWeek ? prevWeek.monday : currentWeek.monday,
+    scanEndStr: currentWeek.friday
+  };
+}
+
 // Local calendar date "YYYY-MM-DD" (used to scope a training session or daily practice).
 export function todayStr() {
   return formatDateYMD(new Date());

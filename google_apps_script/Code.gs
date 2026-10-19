@@ -949,11 +949,27 @@ function getActiveTaskForClass(ss, studentClass, username) {
 
 /**
  * 學生於星期一到星期五沒有答對(包含沒有作答/缺考)的單字一律自動變成六日的指派單字測驗
+ * 支援雙週週期（Bi-weekly Cycle）：
+ * - 奇數週：本週指定單字消滅戰
+ * - 偶數週：雙週指定單字大消滅戰（包含上週未消滅錯題 + 本週未消滅錯題）
+ * - 自由練習答錯不計入、不滾入週末測驗！
  */
 function getWeekendRemediationTask(ss, cleanClass, username, completedTasksToday, todayStrDash) {
   const d = new Date();
   const dayOfWeek = d.getDay(); // 0=Sun, 6=Sat
   if (dayOfWeek !== 0 && dayOfWeek !== 6) return null;
+
+  // 計算 ISO 週次與雙週週期
+  const targetDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const dayNr = (targetDate.getDay() + 6) % 7;
+  targetDate.setDate(targetDate.getDate() - dayNr + 3);
+  const firstThursday = targetDate.valueOf();
+  targetDate.setMonth(0, 1);
+  if (targetDate.getDay() !== 4) {
+    targetDate.setMonth(0, 1 + ((4 - targetDate.getDay()) + 7) % 7);
+  }
+  const isoWeek = 1 + Math.ceil((firstThursday - targetDate) / 604800000);
+  const isBiweeklyBossWeek = (isoWeek % 2 === 0);
 
   // 計算本週週一至週五與週六標準日期區間
   const diffToMon = (dayOfWeek === 0 ? -6 : 1 - dayOfWeek);
@@ -964,10 +980,16 @@ function getWeekendRemediationTask(ss, cleanClass, username, completedTasksToday
   const friStr = Utilities.formatDate(friDate, "Asia/Taipei", "yyyy-MM-dd");
   const satStr = Utilities.formatDate(satDate, "Asia/Taipei", "yyyy-MM-dd");
 
+  // 若為雙週大消滅週（第 2 週），向前包含上一週（第 1 週）之日期區間
+  const prevMonDate = new Date(d.getFullYear(), d.getMonth(), d.getDate() + diffToMon - 7);
+  const prevMonStr = Utilities.formatDate(prevMonDate, "Asia/Taipei", "yyyy-MM-dd");
+  const scanStartStr = isBiweeklyBossWeek ? prevMonStr : monStr;
+  const scanEndStr = friStr;
+
   const tasks = getTeacherTasksCached_(ss);
   if (tasks.length === 0) return null;
 
-  // 取得學生在週一至週六的實際作答紀錄
+  // 取得學生在作答區間內的實際作答紀錄
   const studentDoneMap = {};
   let satCompletedRec = null;
 
@@ -978,7 +1000,8 @@ function getWeekendRemediationTask(ss, cleanClass, username, completedTasksToday
       const headers = uSheet.getRange(1, 1, 1, lastCol).getValues()[0] || [];
       const hMap = getHeaderIndexMap(headers);
       const maxRows = Math.min(uSheet.getLastRow() - 1, 60);
-      const freeWrongWordsSet = new Set();
+      const uVals = uSheet.getRange(Math.max(2, uSheet.getLastRow() - maxRows + 1), 1, maxRows, lastCol).getValues();
+
       for (let r = 0; r < uVals.length; r++) {
         const rowD = formatStandardDateYMD(uVals[r][0]);
         const tName = String(uVals[r][hMap.taskName] || "").trim().toLowerCase();
@@ -988,24 +1011,15 @@ function getWeekendRemediationTask(ss, cleanClass, username, completedTasksToday
         const wrongList = wrongStr ? wrongStr.split(/[\s,;\n\r]+/).map(w => w.trim().toLowerCase()).filter(Boolean) : [];
         const isDone = (status.includes("已完成") || (score !== "—" && score !== ""));
 
-        // 讀取平日自由練習錯題
-        if (hMap.freeWrong !== undefined && uVals[r][hMap.freeWrong]) {
-          const fwStr = String(uVals[r][hMap.freeWrong] || "").trim();
-          if (fwStr) {
-            const fwList = fwStr.split(/[\s,;\n\r]+/).map(w => w.trim().toLowerCase()).filter(Boolean);
-            if (rowD >= monStr && rowD <= friStr) {
-              fwList.forEach(w => freeWrongWordsSet.add(w));
-            }
-          }
-        }
+        // 注意：自由練習錯題不納入週末待攻克！維持自主安全學習
 
-        if (rowD >= monStr && rowD <= friStr) {
+        if (rowD >= scanStartStr && rowD <= scanEndStr) {
           if (tName && isDone) {
             studentDoneMap[tName] = { completed: true, wrongWords: wrongList };
             studentDoneMap[rowD + "_" + tName] = { completed: true, wrongWords: wrongList };
           }
         } else if (rowD === satStr) {
-          if (tName && (tName.includes("週末") || tName.includes("消滅") || tName.includes("待攻克")) && isDone) {
+          if (tName && (tName.includes("週末") || tName.includes("消滅") || tName.includes("待攻克") || tName.includes("雙週")) && isDone) {
             satCompletedRec = { completed: true, wrongWords: wrongList };
           }
         }
@@ -1014,19 +1028,19 @@ function getWeekendRemediationTask(ss, cleanClass, username, completedTasksToday
   }
 
   // ★ 核心防護：若今天是週日，且週六已施測完成：
-  // 1. 若週六 0 錯題（全數答對 100%），本週錯題已全數消滅，週日絕不指派任何任務！
+  // 1. 若週六 0 錯題（全數答對 100%），本週/雙週錯題已全數消滅，週日絕不指派任何任務！
   // 2. 若週六仍有錯題，週日只施測週六剩餘的錯題！
   if (dayOfWeek === 0) {
     if (satCompletedRec && satCompletedRec.completed) {
       if (satCompletedRec.wrongWords.length === 0) {
         return null; // 週六已全數消滅，週日無任何任務
       }
-      const sunTaskName = "週末錯題接續消滅戰";
+      const sunTaskName = isBiweeklyBossWeek ? "雙週錯題接續消滅戰" : "週末錯題接續消滅戰";
       if (completedTasksToday && completedTasksToday.has(sunTaskName.toLowerCase())) {
         return {
           hasTask: false,
           alreadyCompleted: true,
-          message: "本週週末錯題接續消滅戰今日已完成！已開放自由升級闖關。"
+          message: `本週${isBiweeklyBossWeek ? "雙週錯題大消滅戰" : "週末錯題接續消滅戰"}今日已完成！已開放自由升級闖關。`
         };
       }
       return {
@@ -1053,9 +1067,9 @@ function getWeekendRemediationTask(ss, cleanClass, username, completedTasksToday
 
     if (!enabled || !tName || !rawWords) continue;
 
-    // 檢查是否為本週週一至週五任務
-    const isMonToFri = tDate ? (tDate >= monStr && tDate <= friStr) : true;
-    if (!isMonToFri) continue;
+    // 檢查是否在當前雙週或單週週期範圍內
+    const isTaskInCycle = tDate ? (tDate >= scanStartStr && tDate <= scanEndStr) : true;
+    if (!isTaskInCycle) continue;
 
     const isClassMatch = (tClass === cleanClass || tClass === "all" || tClass === "全校");
     if (!isClassMatch) continue;
@@ -1072,7 +1086,7 @@ function getWeekendRemediationTask(ss, cleanClass, username, completedTasksToday
     const doneRec = studentDoneMap[key1] || studentDoneMap[key2];
 
     if (!doneRec) {
-      // 學生於週一到週五完全沒有作答（包含未作答/缺考）：全數單字自動納入六日測驗
+      // 學生於指定平日完全沒有作答（包含未作答/缺考）：全數單字自動納入六日測驗
       words.forEach(w => unpassedWordsSet.add(w));
     } else {
       // 學生有作答，但沒有答對（答錯的單字）：納入六日測驗
@@ -1080,19 +1094,14 @@ function getWeekendRemediationTask(ss, cleanClass, username, completedTasksToday
     }
   }
 
-  // ★ 平日自由練習中答錯的單字也自動納入六日待攻克測驗
-  if (typeof freeWrongWordsSet !== "undefined" && freeWrongWordsSet && freeWrongWordsSet.size > 0) {
-    freeWrongWordsSet.forEach(w => unpassedWordsSet.add(w));
-  }
-
   if (unpassedWordsSet.size === 0) return null;
 
-  const weekendTaskName = "週末指定單字消滅戰";
+  const weekendTaskName = isBiweeklyBossWeek ? "雙週指定單字大消滅戰" : "週末指定單字消滅戰";
   if (completedTasksToday && completedTasksToday.has(weekendTaskName.toLowerCase())) {
     return {
       hasTask: false,
       alreadyCompleted: true,
-      message: "本週指定單字未達標消滅戰今日已完成！已開放自由升級闖關。"
+      message: `本週${isBiweeklyBossWeek ? "雙週指定單字大消滅戰" : "指定單字未達標消滅戰"}今日已完成！已開放自由升級闖關。`
     };
   }
 
