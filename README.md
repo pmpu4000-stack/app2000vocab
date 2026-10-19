@@ -57,7 +57,7 @@ since it uses ES modules. Easiest paths:
   so two kids keep separate scores. Nothing is uploaded anywhere.
 - **Audio** uses the browser's built-in text-to-speech (Chrome / Safari / Edge on
   Mac / Windows / iPad / Android all have English voices). If a device has no English
-  voice, the **偷看 (peek)** and answer-reveal still show the word, so practice isn't blocked.
+  voice, the answer-reveal after checking still shows the word, so practice isn't blocked.
 - **GitHub Pages (https) is the most reliable**, especially on iPad.
 - The in-app **重來 reset** clears saved progress.
 

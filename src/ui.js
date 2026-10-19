@@ -18,7 +18,7 @@ const el = {
   playScreen: $("#screen-play"), quizScreen: $("#screen-quiz"),
   levelbar: $("#levelbar"), modes: $("#modes"), stage: $("#stage"), fb: $("#feedback"),
   catlabel: $("#catlabel"), modehint: $("#modehint"), zh: $("#zh"), sent: $("#sent"),
-  peekBtn: $("#peekBtn") || null, checkBtn: $("#checkBtn"), summary: $("#summary"),
+  checkBtn: $("#checkBtn"), summary: $("#summary"),
   card: $("#card"), banner: $("#banner"), session: $("#session"),
   quizhead: $("#quizhead"), quizbar: $("#quizprog-bar"), quizstage: $("#quizstage"),
   sUser: $("#s-user"), statUser: $("#stat-user"), sLevel: $("#s-level"),
@@ -105,9 +105,8 @@ export function initModes(mode, onPick) {
 }
 
 // ---------- one practice round ----------
-export function renderRound(word, mode, { onAnswer, onCheck, disablePeek }) {
+export function renderRound(word, mode, { onAnswer, onCheck }) {
   el.fb.textContent = ""; el.fb.className = "feedback";
-  if (el.peekBtn) el.peekBtn.style.display = "none";
   el.checkBtn.style.display = ""; el.checkBtn.disabled = false;
   el.checkBtn.textContent = "檢查 Check"; el.checkBtn.className = "btn primary";
 
@@ -540,9 +539,6 @@ export function setNextBtnCountdown(secs) {
   if (el.checkBtn && el.checkBtn.style.display !== "none") {
     el.checkBtn.textContent = "下一個 Next →";
   }
-}
-export function peek(word) {
-  // 偷看功能已全面移除
 }
 
 // ---------- header, progress bar, gate banner ----------
@@ -4905,7 +4901,6 @@ export function quizResult({ emoji, headline, sub, extraHtml = "", btnLabel, col
 }
 
 // ---------- one-time button wiring ----------
-export function onPeek(fn) { el.peekBtn.onclick = fn; }
 export function onCheckClick(fn) { el.checkBtn.onclick = fn; }
 export function onReset(fn) { const btn = $("#resetBtn"); if (btn) btn.onclick = fn; }
 export function onSummary(fn) { $("#sumBtn").onclick = fn; }

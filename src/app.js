@@ -509,8 +509,7 @@ function renderCurrent() {
   const isTask = taskState.active;
   state.round = ui.renderRound(state.word, state.mode, { 
     onAnswer: answer, 
-    onCheck: check,
-    disablePeek: true 
+    onCheck: check
   });
   
   // ── 若為今日任務模式：嚴格鎖定純聽拼、隱藏模式與關卡 ──
