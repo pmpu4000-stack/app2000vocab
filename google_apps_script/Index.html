@@ -15123,8 +15123,10 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
     record.inProgress === true
   );
 
+  const isUnassigned = (record.taskName && (record.taskName.includes("未指派") || record.taskName.includes("自主練習") || record.taskName.includes("自由練習"))) || statusStr.includes("未指派");
+
   // 核心未受測判定：絕不因為單字清單暫未展開 (totalAnswered === 0) 誤把已完成的測驗判斷為未受測！
-  const isUntested = !isFinished && !isIncomplete && (
+  const isUntested = !isUnassigned && !isFinished && !isIncomplete && (
     statusStr.includes("未受測") ||
     scoreVal === "—" ||
     scoreVal === "尚未開始" ||
@@ -15136,7 +15138,12 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
   let statusBg = "rgba(148,163,184,0.15)";
   let statusDesc = "";
 
-  if (isIncomplete) {
+  if (isUnassigned) {
+    displayStatusStr = hasLoggedInOrFree ? "當日無指派（已自主練習）" : "當日無指派測驗";
+    statusColor = "#64748b";
+    statusBg = "rgba(148,163,184,0.15)";
+    statusDesc = hasLoggedInOrFree ? "☕ 當日老師無指派測驗，學生自主練習" : "☕ 當日老師無指派測驗";
+  } else if (isIncomplete) {
     displayStatusStr = `作答中斷 (${taskCorrWords}/${assignedTotWords})`;
     statusColor = "#6B21A8";
     statusBg = "#F3E8FF";
@@ -15167,12 +15174,24 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
   const isTrulyPerfect = (taskRate >= 100) || (taskTotWords > 0 && taskCorrWords >= taskTotWords && wrongList.length === 0);
   const missedCount = Math.max(0, taskTotWords - taskCorrWords);
   let rightBoxClass = "wrong-box";
-  let rightTitleClass = "wrong-title";
   let rightTitleText = wrongList.length > 0 
     ? `<span class="card-icon-slot">❌</span><span>答錯的單字 (${wrongList.length} 字)</span>` 
     : (isTrulyPerfect ? `<span class="card-icon-slot">❌</span><span>答錯的單字 (0 字)</span>` : (missedCount > 0 ? `<span class="card-icon-slot">🔘</span><span>未作答的單字 (${missedCount} 字)</span>` : `<span class="card-icon-slot">❌</span><span>答錯的單字 (0 字)</span>`));
 
-  if (isUntested) {
+  if (isUnassigned) {
+    leftBoxClass = "correct-box";
+    leftTitleClass = "correct-title";
+    leftTitleText = `<span class="card-icon-slot">☕</span><span>指定測驗說明</span>`;
+    correctContentHtml = `
+      <div style="display:flex; flex-direction:column; justify-content:flex-start; align-items:flex-start; gap:6px; padding:6px 0; font-size:12.5px; line-height:1.6; width:100%; color:var(--ink2);">
+        <div>${hasLoggedInOrFree ? "當日老師未指派測驗任務，學生已主動完成自由自主練習！" : "當日老師未指派測驗任務，無須受測。"}</div>
+      </div>
+    `;
+    rightBoxClass = "untested-box";
+    rightTitleClass = "untested-title";
+    rightTitleText = `<span class="card-icon-slot">📋</span><span>指定單字範圍</span>`;
+    wrongContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（當日無指定單字）</span>`;
+  } else if (isUntested) {
     leftBoxClass = "wrong-box advice-box";
     leftTitleClass = "wrong-title advice-title";
     leftTitleText = `<span class="card-icon-slot">💡</span><span>補考與學習提醒</span>`;
@@ -15389,7 +15408,20 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
     ? "margin-top: 18px; padding-top: 16px; border-top: 1.5px dashed var(--line, #E7E9F5);"
     : "";
 
-  const scoreGridHtml = isUntested
+  const scoreGridHtml = isUnassigned
+    ? `
+      <div class="task-score-grid">
+        <div class="task-score-item">
+          <div class="task-score-label">指派情形</div>
+          <div class="task-score-val" style="color:var(--ink2); font-size:15px; font-weight:700;">當日無指派</div>
+        </div>
+        <div class="task-score-item">
+          <div class="task-score-label">作答狀態</div>
+          <div class="task-score-val" style="color:${statusColor}; font-size:14.5px; font-weight:800; display:flex; align-items:center; justify-content:center;">${displayStatusStr}</div>
+        </div>
+      </div>
+    `
+    : (isUntested
     ? `
       <div class="task-score-grid">
         <div class="task-score-item">
@@ -15471,7 +15503,7 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
           </div>
         </div>
       </div>
-    `);
+    `));
 
   return `
     <div class="task-single-record-block" style="${blockStyle}">
@@ -17734,104 +17766,119 @@ function _buildStudentExportPayload(resp, mode, startDate, endDate) {
     }
 
     let hasTask = false, taskName = "無指派測驗", formattedTaskName = "無指派測驗", taskStatus = "無紀錄", taskScore = "—", taskRate = "—";
+    let isUnassigned = false;
     let taskCorrectWords = [], taskWrongWords = [], unansweredWords = [];
     let tAtt = 0, tCor = 0, assignedTotWords = 0, actualAnswered = 0, actualWrong = 0, actualUnanswered = 0;
     let attemptedRate = 0, overallScoreRate = 0, hasUnanswered = false;
 
     if (matchedTask) {
-      hasTask = true;
       taskName = matchedTask.taskName || "每日指定測驗";
       const rawStatus = String(matchedTask.status || "已完成");
-      const resolved = resolveStudentTaskWords(matchedTask, dt, agent);
-      taskCorrectWords = resolved.correctList || [];
-      taskWrongWords = resolved.wrongList || [];
-      const rawWords = resolved.rawWords || [];
-
-      const answeredSet = new Set([
-        ...taskCorrectWords.map(w => String(w).toLowerCase()),
-        ...taskWrongWords.map(w => String(w).toLowerCase())
-      ]);
-      unansweredWords = rawWords.filter(w => !answeredSet.has(String(w).toLowerCase())).sort((a, b) => a.localeCompare(b));
-
-      tAtt = parseInt(matchedTask.attempts) || 0;
-      tCor = parseInt(matchedTask.correct) || 0;
-      if (!tAtt && String(matchedTask.score || "").includes("/")) {
-        const sp = String(matchedTask.score).split("/");
-        tCor = parseInt(sp[0], 10) || 0;
-        tAtt = parseInt(sp[1], 10) || 0;
-      }
-      if (taskCorrectWords.length > 0) {
-        tCor = Math.max(tCor, taskCorrectWords.length);
-      }
-      actualAnswered = (taskCorrectWords.length + taskWrongWords.length) > 0 ? (taskCorrectWords.length + taskWrongWords.length) : tAtt;
-      if (tAtt === 0) tAtt = actualAnswered;
-
-      // 全卷應測總單字數
-      assignedTotWords = rawWords.length > 0 ? rawWords.length : actualAnswered;
-      if (matchedTask.score && String(matchedTask.score).includes("/")) {
-        const sp = String(matchedTask.score).split("/");
-        const sTot = parseInt(sp[1], 10);
-        if (!isNaN(sTot) && sTot > assignedTotWords) assignedTotWords = sTot;
-      }
-      if (assignedTotWords < actualAnswered) assignedTotWords = actualAnswered;
-      if (assignedTotWords < tAtt) assignedTotWords = tAtt;
-
-      actualWrong = taskWrongWords.length;
-      actualUnanswered = unansweredWords.length > 0 ? unansweredWords.length : Math.max(0, assignedTotWords - actualAnswered);
-      hasUnanswered = actualUnanswered > 0 && assignedTotWords > actualAnswered;
-
-      // (A) 實作命中率 (作答正確率)
-      attemptedRate = actualAnswered > 0 ? Math.round((tCor / actualAnswered) * 100) : 0;
-      // (B) 全卷正確率 (以全卷總字數為分母)
-      overallScoreRate = assignedTotWords > 0 ? Math.round((tCor / assignedTotWords) * 100) : 0;
-
-      // 格式化測驗名稱 (支援週末待攻克與平日指定測驗)
-      const isWeekendTask = (function(ds) {
-        if (!ds) return false;
-        const clean = String(ds).trim().split(" ")[0].replace(/-/g, "/");
-        const d = new Date(clean);
-        const day = d.getDay();
-        return day === 0 || day === 6;
-      })(dt) || String(matchedTask.taskName || "").includes("週末") || String(matchedTask.taskName || "").includes("消滅戰") || String(matchedTask.taskName || "").includes("待攻克");
-
-      if (isWeekendTask) {
-        const cleanDate = typeof formatWeekendTaskDate === "function" ? formatWeekendTaskDate(dt, matchedTask.taskName) : "";
-        formattedTaskName = cleanDate ? `🎯 ${cleanDate} 週末待攻克測驗作答紀錄` : "🎯 週末待攻克測驗作答紀錄";
-      } else {
-        let cleanTaskName = String(matchedTask.taskName || "平日指定測驗").trim().replace(/^[📝📑\s]+/, "");
-        cleanTaskName = cleanTaskName.replace(/指定單字隨堂測驗/g, "平日指定測驗作答紀錄").replace(/隨堂測驗/g, "測驗結果");
-        if (!cleanTaskName || cleanTaskName === "指定測驗" || cleanTaskName === "指定測驗作答紀錄") {
-          formattedTaskName = "📝 平日指定測驗作答紀錄";
-        } else {
-          formattedTaskName = `📝 ${cleanTaskName}`;
-        }
-      }
-
-      const isIncomplete = hasUnanswered || rawStatus.includes("作答中") || rawStatus.includes("中斷") || rawStatus.includes("未完成") || matchedTask.inProgress === true;
-      const isUntested = isUntestedAssigned || rawStatus.includes("未受測") || (!isIncomplete && !rawStatus.includes("已完成") && (matchedTask.score === "—" || matchedTask.score === "尚未開始" || rawStatus.includes("待完成")));
+      isUnassigned = taskName.includes("未指派") || rawStatus.includes("未指派") || taskName.includes("自主練習") || taskName.includes("自由練習");
       const hasLoggedInOrFree = hasFree || rawStatus.includes("登入未受測") || rawStatus.includes("登入未作答");
 
-      if (isUntested) {
-        taskStatus = hasLoggedInOrFree ? "🟡 登入未受測" : "🟢 缺席未受測";
+      if (isUnassigned) {
+        hasTask = true;
+        taskName = "⚪ 未指派";
+        formattedTaskName = "⚪ 當日無指派測驗";
+        taskStatus = hasLoggedInOrFree ? "當日無指派（已自主練習）" : "當日無指派測驗";
         taskScore = "—";
         taskRate = "—";
         taskCorrectWords = [];
         taskWrongWords = [];
-        unansweredWords = rawWords;
-      } else if (isIncomplete) {
-        taskStatus = `🟣 作答中斷 (${tCor}/${assignedTotWords})`;
-        taskScore = `${tCor}/${assignedTotWords}`;
-        taskRate = `${overallScoreRate}%`;
+        unansweredWords = [];
       } else {
-        taskStatus = "🟢 已完成";
-        taskScore = `${tCor}/${assignedTotWords}`;
-        taskRate = `${overallScoreRate}%`;
-        periodTaskDone++;
-      }
+        hasTask = true;
+        const resolved = resolveStudentTaskWords(matchedTask, dt, agent);
+        taskCorrectWords = resolved.correctList || [];
+        taskWrongWords = resolved.wrongList || [];
+        const rawWords = resolved.rawWords || [];
 
-      periodAssigned += assignedTotWords;
-      periodWrong += actualWrong;
-      periodUnanswered += actualUnanswered;
+        const answeredSet = new Set([
+          ...taskCorrectWords.map(w => String(w).toLowerCase()),
+          ...taskWrongWords.map(w => String(w).toLowerCase())
+        ]);
+        unansweredWords = rawWords.filter(w => !answeredSet.has(String(w).toLowerCase())).sort((a, b) => a.localeCompare(b));
+
+        tAtt = parseInt(matchedTask.attempts) || 0;
+        tCor = parseInt(matchedTask.correct) || 0;
+        if (!tAtt && String(matchedTask.score || "").includes("/")) {
+          const sp = String(matchedTask.score).split("/");
+          tCor = parseInt(sp[0], 10) || 0;
+          tAtt = parseInt(sp[1], 10) || 0;
+        }
+        if (taskCorrectWords.length > 0) {
+          tCor = Math.max(tCor, taskCorrectWords.length);
+        }
+        actualAnswered = (taskCorrectWords.length + taskWrongWords.length) > 0 ? (taskCorrectWords.length + taskWrongWords.length) : tAtt;
+        if (tAtt === 0) tAtt = actualAnswered;
+
+        // 全卷應測總單字數
+        assignedTotWords = rawWords.length > 0 ? rawWords.length : actualAnswered;
+        if (matchedTask.score && String(matchedTask.score).includes("/")) {
+          const sp = String(matchedTask.score).split("/");
+          const sTot = parseInt(sp[1], 10);
+          if (!isNaN(sTot) && sTot > assignedTotWords) assignedTotWords = sTot;
+        }
+        if (assignedTotWords < actualAnswered) assignedTotWords = actualAnswered;
+        if (assignedTotWords < tAtt) assignedTotWords = tAtt;
+
+        actualWrong = taskWrongWords.length;
+        actualUnanswered = unansweredWords.length > 0 ? unansweredWords.length : Math.max(0, assignedTotWords - actualAnswered);
+        hasUnanswered = actualUnanswered > 0 && assignedTotWords > actualAnswered;
+
+        // (A) 實作命中率 (作答正確率)
+        attemptedRate = actualAnswered > 0 ? Math.round((tCor / actualAnswered) * 100) : 0;
+        // (B) 全卷正確率 (以全卷總字數為分母)
+        overallScoreRate = assignedTotWords > 0 ? Math.round((tCor / assignedTotWords) * 100) : 0;
+
+        // 格式化測驗名稱 (支援週末待攻克與平日指定測驗)
+        const isWeekendTask = (function(ds) {
+          if (!ds) return false;
+          const clean = String(ds).trim().split(" ")[0].replace(/-/g, "/");
+          const d = new Date(clean);
+          const day = d.getDay();
+          return day === 0 || day === 6;
+        })(dt) || String(matchedTask.taskName || "").includes("週末") || String(matchedTask.taskName || "").includes("消滅戰") || String(matchedTask.taskName || "").includes("待攻克");
+
+        if (isWeekendTask) {
+          const cleanDate = typeof formatWeekendTaskDate === "function" ? formatWeekendTaskDate(dt, matchedTask.taskName) : "";
+          formattedTaskName = cleanDate ? `🎯 ${cleanDate} 週末待攻克測驗作答紀錄` : "🎯 週末待攻克測驗作答紀錄";
+        } else {
+          let cleanTaskName = String(matchedTask.taskName || "平日指定測驗").trim().replace(/^[📝📑\s]+/, "");
+          cleanTaskName = cleanTaskName.replace(/指定單字隨堂測驗/g, "平日指定測驗作答紀錄").replace(/隨堂測驗/g, "測驗結果");
+          if (!cleanTaskName || cleanTaskName === "指定測驗" || cleanTaskName === "指定測驗作答紀錄") {
+            formattedTaskName = "📝 平日指定測驗作答紀錄";
+          } else {
+            formattedTaskName = `📝 ${cleanTaskName}`;
+          }
+        }
+
+        const isIncomplete = hasUnanswered || rawStatus.includes("作答中") || rawStatus.includes("中斷") || rawStatus.includes("未完成") || matchedTask.inProgress === true;
+        const isUntested = isUntestedAssigned || rawStatus.includes("未受測") || (!isIncomplete && !rawStatus.includes("已完成") && (matchedTask.score === "—" || matchedTask.score === "尚未開始" || rawStatus.includes("待完成")));
+
+        if (isUntested) {
+          taskStatus = hasLoggedInOrFree ? "🟡 登入未受測" : "🟢 缺席未受測";
+          taskScore = "—";
+          taskRate = "—";
+          taskCorrectWords = [];
+          taskWrongWords = [];
+          unansweredWords = rawWords;
+        } else if (isIncomplete) {
+          taskStatus = `🟣 作答中斷 (${tCor}/${assignedTotWords})`;
+          taskScore = `${tCor}/${assignedTotWords}`;
+          taskRate = `${overallScoreRate}%`;
+        } else {
+          taskStatus = "🟢 已完成";
+          taskScore = `${tCor}/${assignedTotWords}`;
+          taskRate = `${overallScoreRate}%`;
+          periodTaskDone++;
+        }
+
+        periodAssigned += assignedTotWords;
+        periodWrong += actualWrong;
+        periodUnanswered += actualUnanswered;
+      }
     }
 
     const freeAtt = fInfo.totalWords;
@@ -17881,6 +17928,7 @@ function _buildStudentExportPayload(resp, mode, startDate, endDate) {
       totalCorrect: dayCor,
       totalRate: dayRate,
       hasTask,
+      isUnassigned,
       taskName,
       formattedTaskName,
       taskStatus,
@@ -18356,7 +18404,9 @@ async function _exportStudentRecordToPdf(payload) {
 
   const dailyCardsHtml = payload.dailyRecords.map(r => {
     let statusBg = "#ECFDF5", statusBorder = "#A7F3D0", statusText = "#065F46";
-    if (r.taskStatus.includes("中斷")) {
+    if (r.isUnassigned) {
+      statusBg = "#F1F5F9"; statusBorder = "#CBD5E1"; statusText = "#475569";
+    } else if (r.taskStatus.includes("中斷")) {
       statusBg = "#F3E8FF"; statusBorder = "#D8B4FE"; statusText = "#6B21A8";
     } else if (r.taskStatus.includes("登入未受測")) {
       statusBg = "#FEF3C7"; statusBorder = "#FCD34D"; statusText = "#B45309";
@@ -18422,7 +18472,7 @@ async function _exportStudentRecordToPdf(payload) {
           </div>
         </div>
 
-        ${r.hasTask ? `
+        ${(r.hasTask && !r.isUnassigned) ? `
           <!-- 4 格關鍵評量指標網格 (1:1 對齊首頁卡片) -->
           <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; margin-bottom:10px;">
             <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; padding:7px 8px; text-align:center;">
@@ -18467,9 +18517,11 @@ async function _exportStudentRecordToPdf(payload) {
             </div>
           </div>
           ${unansSectionHtml}
+        ` : (r.isUnassigned ? `
+          <div style="font-size:12px; color:#64748B; font-style:italic; padding:4px 0;">（當日教師無指定測驗任務${r.hasFree ? "，學生已自主完成自由練習" : ""}）</div>
         ` : `
           <div style="font-size:12px; color:#64748B; font-style:italic;">（當日無排定教師指定測驗紀錄）</div>
-        `}
+        `)}
 
         ${freeSectionHtml}
       </div>

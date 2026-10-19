@@ -1314,19 +1314,21 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     record.inProgress === true
   );
 
+  const isUnassigned = (record.taskName && (record.taskName.includes("未指派") || record.taskName.includes("自主練習") || record.taskName.includes("自由練習"))) || statusStr.includes("未指派");
+
   // 核心未受測判定：絕不因為單字清單暫未展開 (totalAnswered === 0) 誤把已完成的測驗判斷為未受測！
-  const isUntested = !isFinished && !isIncomplete && (
+  const isUntested = !isUnassigned && !isFinished && !isIncomplete && (
     statusStr.includes("未受測") ||
     scoreVal === "—" ||
     scoreVal === "尚未開始" ||
     (totalAnswered === 0 && !hasFinishedStatus && taskRate === 0)
   );
 
-  let displayStatusStr = statusStr;
-  let statusColor = "#64748b";
-  let statusDesc = "";
-
-  if (isIncomplete) {
+  if (isUnassigned) {
+    displayStatusStr = hasLoggedInOrFree ? "當日無指派（已自主練習）" : "當日無指派測驗";
+    statusColor = "#64748b";
+    statusDesc = hasLoggedInOrFree ? "☕ 當日老師無指派測驗，學生自主練習" : "☕ 當日老師無指派測驗";
+  } else if (isIncomplete) {
     displayStatusStr = `作答中斷 (${taskCorrWords}/${assignedTotWords})`;
     statusColor = "#6B21A8";
     statusDesc = "⏳ 測驗中途作答中斷";
@@ -1353,12 +1355,24 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
   const isTrulyPerfect = (taskRate >= 100) || (taskTotWords > 0 && taskCorrWords >= taskTotWords && wrongList.length === 0);
   const missedCount = Math.max(0, taskTotWords - taskCorrWords);
   let rightBoxClass = "wrong-box";
-  let rightTitleClass = "wrong-title";
   let rightTitleText = wrongList.length > 0 
     ? `<span class="card-icon-slot">❌</span><span>答錯的單字 (${wrongList.length} 字)</span>` 
     : (isTrulyPerfect ? `<span class="card-icon-slot">❌</span><span>答錯的單字 (0 字)</span>` : (missedCount > 0 ? `<span class="card-icon-slot">🔘</span><span>未作答的單字 (${missedCount} 字)</span>` : `<span class="card-icon-slot">❌</span><span>答錯的單字 (0 字)</span>`));
 
-  if (isUntested) {
+  if (isUnassigned) {
+    leftBoxClass = "correct-box";
+    leftTitleClass = "correct-title";
+    leftTitleText = `<span class="card-icon-slot">☕</span><span>指定測驗說明</span>`;
+    correctContentHtml = `
+      <div style="display:flex; flex-direction:column; justify-content:flex-start; align-items:flex-start; gap:6px; padding:6px 0; font-size:12.5px; line-height:1.6; width:100%; color:var(--ink2);">
+        <div>${hasLoggedInOrFree ? "當日老師未指派測驗任務，學生已主動完成自由自主練習！" : "當日老師未指派測驗任務，無須受測。"}</div>
+      </div>
+    `;
+    rightBoxClass = "untested-box";
+    rightTitleClass = "untested-title";
+    rightTitleText = `<span class="card-icon-slot">📋</span><span>指定單字範圍</span>`;
+    wrongContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（當日無指定單字）</span>`;
+  } else if (isUntested) {
     leftBoxClass = "wrong-box advice-box";
     leftTitleClass = "wrong-title advice-title";
     leftTitleText = `<span class="card-icon-slot">💡</span><span>學習紀錄提醒</span>`;
@@ -1564,7 +1578,20 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     : "";
 
   let scoreGridHtml = "";
-  if (isUntested) {
+  if (isUnassigned) {
+    scoreGridHtml = `
+      <div class="task-score-grid">
+        <div class="task-score-item">
+          <div class="task-score-label">指派情形</div>
+          <div class="task-score-val" style="color:var(--ink2); font-size:16px; font-weight:700;">當日無指派</div>
+        </div>
+        <div class="task-score-item">
+          <div class="task-score-label">作答狀態</div>
+          <div class="task-score-val" style="color:${statusColor}; font-size:16px; font-weight:800;">${displayStatusStr}</div>
+        </div>
+      </div>
+    `;
+  } else if (isUntested) {
     const untestedWordCount = taskTotWords > 0 ? taskTotWords : (rawWords.length || 0);
     scoreGridHtml = `
       <div class="task-score-grid">
@@ -3477,6 +3504,7 @@ function _buildExportPayload(d, mode, startDate, endDate) {
     }
 
     let hasTask = false, taskName = "無指派測驗", taskStatus = "無紀錄", taskScore = "—", taskRate = "—";
+    let isUnassigned = false;
     let taskCorrectWords = [], taskWrongWords = [];
     let tAtt = 0, tCor = 0;
     let assignedTotWords = 0, actualAnswered = 0, actualWrong = 0, actualUnanswered = 0, hasUnanswered = false, overallScoreRate = 0;
@@ -3487,58 +3515,70 @@ function _buildExportPayload(d, mode, startDate, endDate) {
     const dayOfWeek = dayNames[dtObj.getDay()] || "";
 
     if (tRec) {
-      hasTask = true;
       taskName = tRec.taskName || "每日指定測驗";
       const rawStatus = String(tRec.status || "已完成");
-      const resolved = resolveTaskWords(tRec, dt, d);
-      taskCorrectWords = resolved.correctList || [];
-      taskWrongWords = resolved.wrongList || [];
-      tAtt = parseInt(tRec.attempts) || 0;
-      tCor = parseInt(tRec.correct) || 0;
-      if (!tAtt && String(tRec.score || "").includes("/")) {
-        const sp = String(tRec.score).split("/");
-        tCor = parseInt(sp[0]) || 0;
-        tAtt = parseInt(sp[1]) || 0;
-      }
-      if (!tAtt && (taskCorrectWords.length + taskWrongWords.length) > 0) {
-        tCor = taskCorrectWords.length;
-        tAtt = taskCorrectWords.length + taskWrongWords.length;
-      }
-
-      const rawWords = Array.isArray(tRec.words) ? tRec.words : [];
-      assignedTotWords = rawWords.length > 0 ? rawWords.length : Math.max(tAtt, (taskCorrectWords.length + taskWrongWords.length) || 5);
-      actualAnswered = taskCorrectWords.length + taskWrongWords.length;
-      actualWrong = taskWrongWords.length;
-      actualUnanswered = Math.max(0, assignedTotWords - actualAnswered);
-      overallScoreRate = assignedTotWords > 0 ? Math.round((tCor / assignedTotWords) * 100) : (tAtt > 0 ? Math.round((tCor / tAtt) * 100) : 0);
-
-      const isIncomplete = rawStatus.includes("作答中") || rawStatus.includes("中斷") || rawStatus.includes("未完成") || tRec.inProgress === true;
-      const isUntested = isUntestedAssigned || rawStatus.includes("未受測") || (!isIncomplete && !rawStatus.includes("已完成") && (tRec.score === "—" || tRec.score === "尚未開始" || rawStatus.includes("待完成")));
+      isUnassigned = taskName.includes("未指派") || rawStatus.includes("未指派") || taskName.includes("自主練習") || taskName.includes("自由練習");
       const hasLoggedInOrFree = hasFree || (tRec.freeTested > 0) || rawStatus.includes("登入未受測") || rawStatus.includes("登入未作答");
 
-      hasUnanswered = actualUnanswered > 0 && !isUntested;
-
-      if (isUntested) {
-        taskStatus = hasLoggedInOrFree ? "登入未受測" : "缺席未受測";
+      if (isUnassigned) {
+        hasTask = true;
+        taskName = "⚪ 未指派";
+        taskStatus = hasLoggedInOrFree ? "當日無指派（已自主練習）" : "當日無指派測驗";
         taskScore = "—";
         taskRate = "—";
         taskCorrectWords = [];
         taskWrongWords = [];
-        unansweredWords = rawWords;
-      } else if (isIncomplete) {
-        taskStatus = `作答中斷 (${tCor}/${assignedTotWords})`;
-        taskScore = tRec.score || `${tCor}/${assignedTotWords}`;
-        taskRate = `${overallScoreRate}%`;
       } else {
-        taskStatus = rawStatus.replace(/^[🟢●⏳🟠🟣🟡🔴\s]+/, "") || "已完成";
-        taskScore = `${tCor}/${assignedTotWords}`;
-        taskRate = `${overallScoreRate}%`;
-        periodTaskDone++;
-      }
+        hasTask = true;
+        const resolved = resolveTaskWords(tRec, dt, d);
+        taskCorrectWords = resolved.correctList || [];
+        taskWrongWords = resolved.wrongList || [];
+        tAtt = parseInt(tRec.attempts) || 0;
+        tCor = parseInt(tRec.correct) || 0;
+        if (!tAtt && String(tRec.score || "").includes("/")) {
+          const sp = String(tRec.score).split("/");
+          tCor = parseInt(sp[0]) || 0;
+          tAtt = parseInt(sp[1]) || 0;
+        }
+        if (!tAtt && (taskCorrectWords.length + taskWrongWords.length) > 0) {
+          tCor = taskCorrectWords.length;
+          tAtt = taskCorrectWords.length + taskWrongWords.length;
+        }
 
-      periodAssigned += assignedTotWords;
-      periodWrong += actualWrong;
-      periodUnanswered += actualUnanswered;
+        const rawWords = Array.isArray(tRec.words) ? tRec.words : [];
+        assignedTotWords = rawWords.length > 0 ? rawWords.length : Math.max(tAtt, (taskCorrectWords.length + taskWrongWords.length) || 5);
+        actualAnswered = taskCorrectWords.length + taskWrongWords.length;
+        actualWrong = taskWrongWords.length;
+        actualUnanswered = Math.max(0, assignedTotWords - actualAnswered);
+        overallScoreRate = assignedTotWords > 0 ? Math.round((tCor / assignedTotWords) * 100) : (tAtt > 0 ? Math.round((tCor / tAtt) * 100) : 0);
+
+        const isIncomplete = rawStatus.includes("作答中") || rawStatus.includes("中斷") || rawStatus.includes("未完成") || tRec.inProgress === true;
+        const isUntested = isUntestedAssigned || rawStatus.includes("未受測") || (!isIncomplete && !rawStatus.includes("已完成") && (tRec.score === "—" || tRec.score === "尚未開始" || rawStatus.includes("待完成")));
+
+        hasUnanswered = actualUnanswered > 0 && !isUntested;
+
+        if (isUntested) {
+          taskStatus = hasLoggedInOrFree ? "登入未受測" : "缺席未受測";
+          taskScore = "—";
+          taskRate = "—";
+          taskCorrectWords = [];
+          taskWrongWords = [];
+          unansweredWords = rawWords;
+        } else if (isIncomplete) {
+          taskStatus = `作答中斷 (${tCor}/${assignedTotWords})`;
+          taskScore = tRec.score || `${tCor}/${assignedTotWords}`;
+          taskRate = `${overallScoreRate}%`;
+        } else {
+          taskStatus = rawStatus.replace(/^[🟢●⏳🟠🟣🟡🔴\s]+/, "") || "已完成";
+          taskScore = `${tCor}/${assignedTotWords}`;
+          taskRate = `${overallScoreRate}%`;
+          periodTaskDone++;
+        }
+
+        periodAssigned += assignedTotWords;
+        periodWrong += actualWrong;
+        periodUnanswered += actualUnanswered;
+      }
     }
 
     const freeAtt = fInfo.totalWords;
@@ -3566,6 +3606,7 @@ function _buildExportPayload(d, mode, startDate, endDate) {
       totalCorrect: dayCor,
       totalRate: dayRate,
       hasTask,
+      isUnassigned,
       taskName,
       taskStatus,
       taskScore,
@@ -4101,7 +4142,7 @@ async function _exportRecordToPdf(payload) {
   const dailyCardsHtml = payload.dailyRecords.map(r => {
     const badgeColor = r.totalAttempts === 0 ? "#64748B" : r.totalRate >= 80 ? "#1E9A66" : r.totalRate >= 60 ? "#B45309" : "#DC2626";
     const badgeBg = r.totalAttempts === 0 ? "#F1F5F9" : r.totalRate >= 80 ? "#ECFDF5" : r.totalRate >= 60 ? "#FEFCE8" : "#FEF2F2";
-    const isTaskUntested = r.taskStatus.includes("未受測");
+    const isTaskUntested = !r.isUnassigned && r.taskStatus.includes("未受測");
 
     const taskCorrPills = r.taskCorrectWords.length > 0
       ? r.taskCorrectWords.map(w => `<span style="display:inline-block;padding:2px 6px;margin:2px;border-radius:4px;background:#E4F7EE;color:#1E9A66;border:1px solid rgba(47,180,124,.35);font-size:11px;font-weight:700;">${esc(w)}</span>`).join("")
@@ -4139,10 +4180,10 @@ async function _exportRecordToPdf(payload) {
         <!-- 指定測驗 -->
         <div style="margin-bottom:8px; background:#FFFFFF; border:1px solid #E7E9F5; border-radius:10px; padding:9px 11px;">
           <div style="font-size:12.5px; font-weight:800; color:#232A4D; margin-bottom:6px; display:flex; justify-content:space-between;">
-            <span>📝 指定測驗：${esc(r.hasTask ? r.taskName : "當日無指派測驗紀錄")}</span>
-            <span style="color:#0284C7;">${r.hasTask ? (isTaskUntested ? `狀態：${esc(r.taskStatus)}（未測驗）` : `狀態：${esc(r.taskStatus)} ｜ 得分：${taskScoreText}`) : "未施測"}</span>
+            <span>📝 指定測驗：${esc(r.isUnassigned ? "⚪ 未指派" : (r.hasTask ? r.taskName : "當日無指派測驗紀錄"))}</span>
+            <span style="color:${r.isUnassigned ? '#64748B' : '#0284C7'};">${r.isUnassigned ? `狀態：${esc(r.taskStatus)}` : (r.hasTask ? (isTaskUntested ? `狀態：${esc(r.taskStatus)}（未測驗）` : `狀態：${esc(r.taskStatus)} ｜ 得分：${taskScoreText}`) : "未施測")}</span>
           </div>
-          ${r.hasTask ? `
+          ${(r.hasTask && !r.isUnassigned) ? `
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
               <div style="background:#F1FBF6; border:1px solid rgba(47,180,124,.3); border-radius:8px; padding:7px 9px;">
                 <div style="font-size:11.5px; font-weight:800; color:#065F46; margin-bottom:4px;"><span style="color:#10B981; font-weight:900; margin-right:4px;">✔</span>答對的單字</div>
