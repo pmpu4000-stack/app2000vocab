@@ -3854,7 +3854,22 @@ function _buildExportPayload(d, mode, startDate, endDate) {
       })) : [],
       modeStats: (d && d.modeStats) || {}
     },
-    dailyRecords
+    dailyRecords,
+    pendingConquerWords: getWeekPendingConquerWords().map(w => {
+      const cleanW = String(w || "").trim().toLowerCase();
+      const diag = diagnoseWordMistake(cleanW);
+      const zh = getWordZh(cleanW) || "";
+      const lv = _resolveConquerWordLevel(cleanW, d);
+      return {
+        word: cleanW,
+        zh,
+        level: lv,
+        tag: diag.tag,
+        desc: diag.desc,
+        color: diag.color,
+        bg: diag.bg
+      };
+    })
   };
 }
 
@@ -4214,39 +4229,49 @@ async function _exportRecordToExcel(payload) {
     XLSX.utils.book_append_sheet(wb, ws2, "孩子進度與能力總表");
 
     // ════════════════════════════════════════════════════════════════
-    // Sheet 3: 📝 錯題複習專區 (可直接列印出來在家考孩子)
+    // Sheet 3: 🎯 本期待攻克單字專區 (可直接列印隨身考)
     // ════════════════════════════════════════════════════════════════
+    const conquerList = (payload.pendingConquerWords && payload.pendingConquerWords.length > 0)
+      ? payload.pendingConquerWords
+      : payload.uniqueWrongWords;
+
     const ws3Data = [
-      ["【拼字小特工 · 孩子需加強的單字清單（可直接列印隨身考）】"],
-      ["學生帳號", payload.studentId, "待加強錯題總數", `${payload.uniqueWrongWords.length} 字`, "整理時間", payload.exportTime],
-      ["家長小提示：建議家長可將本頁印出，每天抽考 3~5 個單字，唸中文讓孩子拼英文，增進親子互動！"],
+      ["【拼字小特工 · 本期待攻克單字與弱點特徵清單（可直接列印隨身考）】"],
+      ["學生帳號", payload.studentId, "待攻克單字總數", `${conquerList.length} 字`, "整理時間", payload.exportTime],
+      ["家長小提示：本清單為平日指定測驗錯題與待補強單字，在自由練習中只要拼對該單字即可自動消滅！建議每天抽考 3~5 個單字，唸中文讓孩子拼英文。"],
       [],
-      ["編號", "英文單字", "中文釋義", "出錯的測驗名稱", "出錯日期", "常錯原因 (弱點標籤)", "在家複習記憶口訣 / 建議"]
+      ["編號", "英文單字", "中文釋義", "所屬關卡", "常錯原因 (弱點標籤)", "弱點特徵解析", "攻克狀態", "在家複習記憶口訣 / 建議"]
     ];
 
-    payload.uniqueWrongWords.forEach((w, idx) => {
-      ws3Data.push([
-        idx + 1,
-        w.word,
-        w.zh || "—",
-        w.taskName || "指定測驗",
-        w.date || "—",
-        w.tag || "拼寫弱點",
-        "利用自然發音拆音節記憶，系統已自動排入六日週末消滅戰複習"
-      ]);
-    });
+    if (conquerList.length === 0) {
+      ws3Data.push(["—", "（太棒了！本期無待攻克單字）", "全部掌握", "—", "無錯題", "平時測驗單字皆已掌握或於自由練習中全數攻克", "已消滅", "表現優秀，請繼續保持！"]);
+    } else {
+      conquerList.forEach((w, idx) => {
+        ws3Data.push([
+          idx + 1,
+          w.word,
+          w.zh || "—",
+          w.level ? `Level ${w.level}` : "核心字彙",
+          w.tag || "拼寫弱點",
+          w.desc || "需加強拼寫記憶",
+          "待攻克 (自由練習答對可隨時消滅)",
+          "利用自然發音拆音節記憶，系統已自動排入六日週末消滅戰複習"
+        ]);
+      });
+    }
 
     const ws3 = XLSX.utils.aoa_to_sheet(ws3Data);
     ws3["!cols"] = [
       { wch: 6 },  // 編號
       { wch: 18 }, // 英文單字
       { wch: 22 }, // 中文釋義
-      { wch: 30 }, // 出錯的測驗名稱
-      { wch: 14 }, // 出錯日期
-      { wch: 20 }, // 常錯原因
+      { wch: 14 }, // 所屬關卡
+      { wch: 18 }, // 常錯原因
+      { wch: 28 }, // 弱點特徵解析
+      { wch: 30 }, // 攻克狀態
       { wch: 45 }  // 在家複習記憶口訣
     ];
-    XLSX.utils.book_append_sheet(wb, ws3, "錯題複習專區(可列印)");
+    XLSX.utils.book_append_sheet(wb, ws3, "待攻克單字清單(可列印)");
 
     try {
       const wbout = XLSX.write(wb, { bookType: "xlsx", type: "array" });
@@ -4375,6 +4400,47 @@ async function _exportRecordToPdf(payload) {
     `;
   }).join("");
 
+  const conquerList = payload.pendingConquerWords || [];
+  let conquerSectionHtml = "";
+  if (conquerList.length === 0) {
+    conquerSectionHtml = `
+      <div style="border:1px solid #C7F1DC; border-radius:12px; padding:10px 14px; margin-bottom:14px; background:#F0FDF4; page-break-inside:avoid;">
+        <div style="font-size:13px; font-weight:800; color:#166534; display:flex; justify-content:space-between; align-items:center;">
+          <span>🎯 本期待攻克單字庫（0 字）</span>
+          <span style="font-size:11px; background:#DCFCE7; color:#15803D; padding:2px 8px; border-radius:999px; font-weight:800;">🎉 太棒了！目前全數攻克</span>
+        </div>
+        <div style="font-size:12px; color:#166534; margin-top:4px;">
+          平時指定測驗的錯題皆已完全掌握，或已在自由練習中即時答對並全數消滅！請繼續保持！
+        </div>
+      </div>
+    `;
+  } else {
+    const conquerItemsHtml = conquerList.map(w => {
+      return `
+        <div style="display:inline-flex; align-items:center; background:#FFF; border:1px solid #FECACA; border-radius:8px; padding:4px 8px; margin:3px 4px 3px 0; font-size:11.5px; vertical-align:middle;">
+          <span style="font-weight:800; color:#1E293B; margin-right:4px;">${esc(w.word)}</span>
+          ${w.zh ? `<span style="color:#64748B; font-size:11px; margin-right:6px;">(${esc(w.zh)})</span>` : ""}
+          <span style="font-size:10px; font-weight:700; color:${w.color || '#E11D48'}; background:${w.bg || 'rgba(255,107,107,0.14)'}; padding:1px 6px; border-radius:999px;">${esc(w.tag || '拼寫弱點')}</span>
+        </div>
+      `;
+    }).join("");
+
+    conquerSectionHtml = `
+      <div style="border:1px solid #FECDD3; border-radius:12px; padding:10px 14px; margin-bottom:14px; background:#FFF1F2; page-break-inside:avoid;">
+        <div style="font-size:13px; font-weight:800; color:#9F1239; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
+          <span>🎯 本期待攻克單字庫（共 ${conquerList.length} 字）</span>
+          <span style="font-size:11px; background:#FFE4E6; color:#BE123C; padding:2px 8px; border-radius:999px; font-weight:800;">平日錯題累積 · 自由練習答對可自動消除</span>
+        </div>
+        <div style="font-size:11.5px; color:#881337; margin-bottom:8px; line-height:1.4;">
+          💡 <b>複習提示</b>：以下單字源自平日指定測驗錯題。學生在平日自由練習中只要拼對該單字，即可自動從待攻克庫中消滅；週六日的週末消滅戰也會集中複習此清單！
+        </div>
+        <div style="background:#FFF; border:1px solid #FFE4E6; border-radius:8px; padding:8px 10px;">
+          ${conquerItemsHtml}
+        </div>
+      </div>
+    `;
+  }
+
   const reportHtml = `
     <div id="pdf-export-paper" style="width:720px; background:#FFFFFF; color:#232A4D; padding:22px 24px; font-family:ui-rounded,'SF Pro Rounded','PingFang TC','Microsoft JhengHei',sans-serif; line-height:1.5; box-sizing:border-box;">
       <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid #6C4CE0; padding-bottom:12px; margin-bottom:14px;">
@@ -4418,6 +4484,9 @@ async function _exportRecordToPdf(payload) {
           ${lvRowsHtml}
         </table>
       </div>
+
+      <!-- 🎯 本期待攻克單字庫 -->
+      ${conquerSectionHtml}
 
       <!-- 每日使用紀錄明細 -->
       <div style="font-size:13.5px; font-weight:800; color:#232A4D; margin-bottom:8px;">📋 每日使用與作答紀錄明細（共 ${payload.dailyRecords.length} 日）</div>
