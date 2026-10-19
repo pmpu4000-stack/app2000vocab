@@ -35,13 +35,34 @@ export function unpadDateStr(ds) {
   return clean;
 }
 
-// Local calendar date "YYYY-MM-DD" (used to scope a training session or daily practice).
-function todayStr() {
-  const d = new Date();
+// Format Date to "YYYY-MM-DD"
+export function formatDateYMD(d = new Date()) {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
+}
+
+// Calculate week range dates (Monday to Sunday)
+export function getWeekRangeDates(baseDate = new Date()) {
+  const d = new Date(baseDate);
+  const day = d.getDay(); // 0=Sun, 6=Sat
+  const diffToMon = d.getDate() - day + (day === 0 ? -6 : 1);
+  const mon = new Date(d.getFullYear(), d.getMonth(), diffToMon);
+  const fri = new Date(d.getFullYear(), d.getMonth(), diffToMon + 4);
+  const sat = new Date(d.getFullYear(), d.getMonth(), diffToMon + 5);
+  const sun = new Date(d.getFullYear(), d.getMonth(), diffToMon + 6);
+  return {
+    monday: formatDateYMD(mon),
+    friday: formatDateYMD(fri),
+    saturday: formatDateYMD(sat),
+    sunday: formatDateYMD(sun)
+  };
+}
+
+// Local calendar date "YYYY-MM-DD" (used to scope a training session or daily practice).
+export function todayStr() {
+  return formatDateYMD(new Date());
 }
 // The calendar date `offset` days before today, as { key, dnum }.
 function dayAgo(offset) {

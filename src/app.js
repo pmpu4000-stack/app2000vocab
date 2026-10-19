@@ -84,42 +84,11 @@ function persistTaskProgress() {
 
 const wordsAt = (level) => wordsAtLevel(WORDS, level);
 
-function todayDateStr() {
-  const d = new Date();
-  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
-}
-
-function getWeekMondayDate() {
-  const d = new Date();
-  const day = d.getDay(); // 0=Sun, 6=Sat
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-  const monday = new Date(d.getFullYear(), d.getMonth(), diff);
-  return monday.getFullYear() + "-" + String(monday.getMonth() + 1).padStart(2, "0") + "-" + String(monday.getDate()).padStart(2, "0");
-}
-
-function getWeekFridayDate() {
-  const d = new Date();
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1) + 4;
-  const friday = new Date(d.getFullYear(), d.getMonth(), diff);
-  return friday.getFullYear() + "-" + String(friday.getMonth() + 1).padStart(2, "0") + "-" + String(friday.getDate()).padStart(2, "0");
-}
-
-function getWeekSaturdayDate() {
-  const d = new Date();
-  const day = d.getDay(); // 0=Sun, 6=Sat
-  const diff = d.getDate() - day + (day === 0 ? -1 : 6);
-  const saturday = new Date(d.getFullYear(), d.getMonth(), diff);
-  return saturday.getFullYear() + "-" + String(saturday.getMonth() + 1).padStart(2, "0") + "-" + String(saturday.getDate()).padStart(2, "0");
-}
-
-function getWeekSundayDate() {
-  const d = new Date();
-  const day = d.getDay(); // 0=Sun, 6=Sat
-  const diff = d.getDate() - day + (day === 0 ? 0 : 7);
-  const sunday = new Date(d.getFullYear(), d.getMonth(), diff);
-  return sunday.getFullYear() + "-" + String(sunday.getMonth() + 1).padStart(2, "0") + "-" + String(sunday.getDate()).padStart(2, "0");
-}
+const todayDateStr = () => store.formatDateYMD();
+const getWeekMondayDate = () => store.getWeekRangeDates().monday;
+const getWeekFridayDate = () => store.getWeekRangeDates().friday;
+const getWeekSaturdayDate = () => store.getWeekRangeDates().saturday;
+const getWeekSundayDate = () => store.getWeekRangeDates().sunday;
 
 function getSaturdayRemedyRecord() {
   const satDateStr = getWeekSaturdayDate();

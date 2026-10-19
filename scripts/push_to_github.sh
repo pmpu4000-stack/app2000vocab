@@ -1,19 +1,12 @@
 #!/usr/bin/env bash
 set -e
 
-DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." >/dev/null 2>&1 && pwd)"
 cd "$DIR"
 
 echo "========================================================"
 echo "  🚀 準備推送修改至線上倉庫 (GitHub Pages)"
 echo "========================================================"
-
-# 確保同步 code.gs 與 google_apps_script (以較新檔案為準)
-if [ -f "google_apps_script/Code.gs" ] && [ "google_apps_script/Code.gs" -nt "code.gs" ]; then
-  cp "google_apps_script/Code.gs" "code.gs"
-elif [ -f "code.gs" ]; then
-  cp "code.gs" "google_apps_script/Code.gs"
-fi
 
 if [ -f "teacher_history.html" ] && [ "teacher_history.html" -nt "google_apps_script/Index.html" ]; then
   cp "teacher_history.html" "google_apps_script/Index.html"

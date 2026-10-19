@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." >/dev/null 2>&1 && pwd)"
 cd "$DIR"
 
 echo "========================================================"
@@ -30,11 +30,7 @@ if [ "$STASHED" = "1" ]; then
   git stash pop || echo "⚠️ 暫存還原時發生衝突，請手動確認衝突標記。"
 fi
 
-# 同步 google_apps_script 檔案
-if [ -f "code.gs" ]; then
-  mkdir -p "google_apps_script"
-  cp "code.gs" "google_apps_script/Code.gs"
-fi
+# 同步 teacher_history.html 到 google_apps_script/Index.html
 if [ -f "teacher_history.html" ]; then
   mkdir -p "google_apps_script"
   cp "teacher_history.html" "google_apps_script/Index.html"

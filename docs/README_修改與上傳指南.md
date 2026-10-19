@@ -54,14 +54,16 @@ app2000vocab/
 │   ├── Code.gs                # GAS 後端 API 程式碼 (複製貼回 GAS 編輯器)
 │   └── Index.html             # GAS 教師後台介面 (複製貼回 GAS 編輯器)
 ├── teacher_history.html       # 教師後台介面原始檔案 (同 Index.html)
-├── code.gs                    # GAS 後端原始檔案 (同 Code.gs)
-├── scripts/                   # 資料擴充與維護輔助腳本
-├── 國中2000單字.md             # 教育部 2000 單字字表
-├── 拼字訓練計畫.md             # 教學規劃與自然發音教學計畫
-├── sync_from_online.sh        # 【重要】開工前一鍵自 GitHub 同步最新版本腳本
-├── push_to_github.sh          # 一鍵提交並推送到 GitHub 工具腳本 (內建防覆寫檢查)
-├── create_backup.sh           # 本機快速產生時間戳記備份包腳本
-└── README_修改與上傳指南.md    # 本使用與修改指南
+├── scripts/                   # 維護、部署與自動化輔助腳本
+│   ├── push_to_github.sh      # 一鍵提交並推送到 GitHub 工具腳本
+│   ├── sync_from_online.sh    # 一鍵自 GitHub 同步最新版本腳本
+│   ├── create_backup.sh       # 本機快速產生備份包腳本
+│   ├── deploy_gas.sh          # GAS 自動部署腳本
+│   └── watch_gas.js           # GAS 即時監控部署工具
+└── docs/                      # 核心教學計畫與文檔專區
+    ├── 國中2000單字.md         # 教育部 2000 單字字表
+    ├── 拼字訓練計畫.md         # 教學規劃與自然發音教學計畫
+    └── README_修改與上傳指南.md# 本使用與修改指南
 ```
 
 ---

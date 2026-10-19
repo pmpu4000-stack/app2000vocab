@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-const rootDir = __dirname;
+const rootDir = path.resolve(__dirname, '..');
 const gasDir = path.join(rootDir, 'google_apps_script');
 const DEPLOYMENT_ID = "AKfycbx1hyCNJxqFMoaJgIxfZqLYIYH00NegI1Yd8NJP6gRjqwOndWGkmr-H9tGvVwK_axM9";
 

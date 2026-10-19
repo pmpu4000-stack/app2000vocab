@@ -136,9 +136,10 @@ ECDICT is MIT-licensed (Copyright © 2025 Linwei); third-party corpora licenses 
   misspelled and now corrected.
 
 ## Companion docs
-- `拼字訓練計畫.md` — the teaching plan: the 6 trap categories, the Top-100 word list,
-  the study method (Look–Say–Cover–Write–Check), a weekly schedule, and coaching tips.
-- `國中2000單字.md` — the full verified 2000-word source list.
+- [拼字訓練計畫](docs/拼字訓練計畫.md) — the teaching plan: the 6 trap categories, the Top-100 word list, the study method (Look–Say–Cover–Write–Check), a weekly schedule, and coaching tips.
+- [國中2000單字](docs/國中2000單字.md) — the full verified 2000-word source list.
+- [修改與上傳指南](docs/README_修改與上傳指南.md) — step-by-step developer and deployment handbook.
+- [專案狀態與架構](docs/PROJECT_STATUS.md) — feature specifications, system architecture, and updates.
 
 ## License
-This project is MIT-licensed — see [LICENSE](LICENSE). Third-party dictionary data (ECDICT) and open corpora (including CC0 1.0 Contextual Mini-Dialogues Corpus and CC-BY 2.0 FR Tatoeba) are detailed in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md). All included corpora are strictly verified for commercial and educational use.
+This project is MIT-licensed — see [LICENSE](LICENSE). Third-party dictionary data (ECDICT) and open corpora (including CC0 1.0 Contextual Mini-Dialogues Corpus and CC-BY 2.0 FR Tatoeba) are detailed in [THIRD-PARTY-NOTICES.md](docs/THIRD-PARTY-NOTICES.md). All included corpora are strictly verified for commercial and educational use.

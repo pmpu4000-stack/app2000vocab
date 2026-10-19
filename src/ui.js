@@ -6,6 +6,7 @@ import { CATS } from "./data.js?v=20261013_1225";
 import { say, sayWord, spellOut, playContestSentence, stopAudio, parseDialogue } from "./audio.js?v=20261013_2225";
 import { LEVELS, levelColor, levelName, misspellings, shuffle } from "./levels.js?v=20261013_1225";
 import { diagnoseWordMistake } from "./diagnostics.js";
+import { normalizeDateStr, formatDateYMD, getWeekRangeDates } from "./store.js";
 
 if (typeof window !== "undefined") {
   window.__say = say;
@@ -626,19 +627,6 @@ export function renderBanner(level, ls, ready, hint, onChallenge) {
       <button class="challenge" id="challengeBtn" ${ready ? "" : "disabled"}>🏆 挑戰測驗</button>
     </div>`;
   $("#challengeBtn").onclick = () => { if (ready) onChallenge(); };
-}
-
-function normalizeDateStr(ds) {
-  if (!ds) return "";
-  const clean = String(ds).trim().split(/[T\s]/)[0];
-  const parts = clean.replace(/\//g, "-").split("-");
-  if (parts.length === 3) {
-    const y = parts[0];
-    const m = parts[1].padStart(2, "0");
-    const d = parts[2].padStart(2, "0");
-    return `${y}-${m}-${d}`;
-  }
-  return clean;
 }
 
 function formatWeekendTaskDate(ds, fallbackText = "") {
@@ -2351,15 +2339,9 @@ function resolveDailyPracticeRecord(dateStr, d, historyList) {
 // ── 取得當週（週一至週五）待攻克單字清單（已排除在自由練習中答對學會的單字） ──
 export function getWeekPendingConquerWords() {
   const unfinishedWords = new Set();
-  const d = new Date();
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-  const monday = new Date(d.getFullYear(), d.getMonth(), diff);
-  const friday = new Date(d.getFullYear(), d.getMonth(), diff + 4);
-
-  const formatD = (dt) => dt.getFullYear() + "-" + String(dt.getMonth() + 1).padStart(2, "0") + "-" + String(dt.getDate()).padStart(2, "0");
-  const mondayStr = formatD(monday);
-  const fridayStr = formatD(friday);
+  const weekDates = getWeekRangeDates();
+  const mondayStr = weekDates.monday;
+  const fridayStr = weekDates.friday;
 
   // 1. 從 student_task_history 讀取本週平日任務中的錯題與未作答題
   try {
@@ -3290,7 +3272,7 @@ export function toggleSummary(data) {
 let _latestSummaryGetter = null;
 
 function _formatYMDLocal(dt) {
-  return dt.getFullYear() + "-" + String(dt.getMonth() + 1).padStart(2, "0") + "-" + String(dt.getDate()).padStart(2, "0");
+  return formatDateYMD(dt);
 }
 
 function _extractFreeWordsForDate(record, d) {

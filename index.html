@@ -325,9 +325,12 @@
       }
     }
 
+    const formatDateDash = (dt = new Date()) => `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+    const formatDateSlash = (dt = new Date()) => formatDateDash(dt).replace(/-/g, "/");
+
     // ── 開啟網頁時檢查與安全維護紀錄 ──
     const rememberedUser = localStorage.getItem("current_user");
-    const todayDashStr = new Date().getFullYear() + "-" + String(new Date().getMonth() + 1).padStart(2, "0") + "-" + String(new Date().getDate()).padStart(2, "0");
+    const todayDashStr = formatDateDash();
 
     // 安全清理：僅清除跨日過期的快取或無效殘留，嚴格保留「今日進行中未完之指定測驗進度 (today_task_in_progress)」
     const initialKeysToPurge = [];
@@ -371,7 +374,6 @@
     updateAccountDisplay("-", "");
 
     // ── 暗黑 / 明亮模式切換與記憶機制 ──
-        // ── 暗黑 / 明亮模式切換與記憶機制 ──
     function applyAppTheme(theme) {
       const isDark = (theme === "dark");
       if (isDark) {
@@ -896,9 +898,8 @@
           if (result.assignedTask) {
             sessionStorage.setItem("assigned_task", JSON.stringify(result.assignedTask));
             localStorage.setItem("assigned_task_active", JSON.stringify(result.assignedTask));
-            const d = new Date();
-            const ds1 = d.getFullYear() + "/" + String(d.getMonth() + 1).padStart(2, "0") + "/" + String(d.getDate()).padStart(2, "0");
-            const ds2 = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+            const ds1 = formatDateSlash();
+            const ds2 = formatDateDash();
             if (result.assignedTask.alreadyCompleted) {
               localStorage.setItem("task_done_" + ds1, "true");
               localStorage.setItem("task_done_" + ds2, "true");
@@ -914,7 +915,7 @@
           }
 
           // ── 今日指定測驗進行中進度無縫接續比對（支援斷線、重整、切換電腦） ──
-          const currentTodayDash = new Date().getFullYear() + "-" + String(new Date().getMonth() + 1).padStart(2, "0") + "-" + String(new Date().getDate()).padStart(2, "0");
+          const currentTodayDash = formatDateDash();
           let bestProg = null;
 
           // 1. 本機進度（本帳號）
@@ -1100,9 +1101,8 @@
       const iconEl = document.getElementById("s-upload");
       if (iconEl && !isSilent) iconEl.textContent = "⏳";
 
-      const nowDt = new Date();
-      const todayDash = nowDt.getFullYear() + "-" + String(nowDt.getMonth() + 1).padStart(2, "0") + "-" + String(nowDt.getDate()).padStart(2, "0");
-      const todaySlash = todayDash.replace(/-/g, "/");
+      const todayDash = formatDateDash();
+      const todaySlash = formatDateSlash();
 
       const validHistTaskDates = new Set([todayDash]);
       try {
@@ -1470,8 +1470,7 @@
       const modal = document.getElementById("teacherTaskModal");
       if (!modal) return;
       modal.style.display = "flex";
-      const d = new Date();
-      const todayDash = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+      const todayDash = formatDateDash();
       const dateInp = document.getElementById("t-modal-date");
       if (dateInp && !dateInp.value) {
         dateInp.value = todayDash;
@@ -1596,7 +1595,7 @@
           if (targetClass === "custom") {
             targetClass = (customClassInp && customClassInp.value ? customClassInp.value.trim() : "all");
           }
-          const todayDash = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+          const todayDash = formatDateDash();
           const dateInp = document.getElementById("t-modal-date");
           const targetDate = (dateInp && dateInp.value ? dateInp.value : todayDash).trim() || todayDash;
           const taskName = (document.getElementById("t-modal-name").value || "每日指定單字測驗").trim();
@@ -1670,9 +1669,8 @@
 
           sessionStorage.setItem("assigned_task", JSON.stringify(taskObj));
           localStorage.setItem("assigned_task_active", JSON.stringify(taskObj));
-          const d = new Date();
-          const ds1 = d.getFullYear() + "/" + String(d.getMonth() + 1).padStart(2, "0") + "/" + String(d.getDate()).padStart(2, "0");
-          const ds2 = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+          const ds1 = formatDateSlash();
+          const ds2 = formatDateDash();
           localStorage.removeItem("task_done_" + ds1);
           localStorage.removeItem("task_done_" + ds2);
           closeTeacherModal();
@@ -1772,8 +1770,7 @@
       liftDailyUsageLockdown();
       window.__dailyUsageTimeIsUp = false;
 
-      const d = new Date();
-      const todayStr = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+      const todayStr = formatDateDash();
 
       // ★ 核心準則：以 Google 伺服器端確認之當日首次登入時間為唯一準則！
       let firstLogin = null;
@@ -2050,8 +2047,7 @@
       if (!modal) return;
       modal.style.display = "flex";
 
-      const d = new Date();
-      const todayDash = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+      const todayDash = formatDateDash();
       const sInp = document.getElementById("tm-input-start");
       const eInp = document.getElementById("tm-input-end");
       if (sInp && !sInp.value) sInp.value = todayDash;
@@ -2357,8 +2353,7 @@
         return;
       }
 
-      const today = new Date();
-      const todayDash = today.getFullYear() + "-" + String(today.getMonth() + 1).padStart(2, "0") + "-" + String(today.getDate()).padStart(2, "0");
+      const todayDash = formatDateDash();
 
       let html = `<div style="display:flex; flex-direction:column; gap:6px;">`;
       timeDateRules.forEach(r => {
