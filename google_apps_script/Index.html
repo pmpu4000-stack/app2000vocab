@@ -15245,15 +15245,15 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
     record.inProgress === true
   );
 
-  const isUnassigned = (record.taskName && (record.taskName.includes("未指派") || record.taskName.includes("自主練習") || record.taskName.includes("自由練習"))) || statusStr.includes("未指派");
+  const isExplicitUntestedStatus = statusStr.includes("未受測") || statusStr.includes("缺席");
+  const isUnassigned = !isExplicitUntestedStatus && ((record.taskName && (record.taskName.includes("未指派") || record.taskName.includes("自主練習") || record.taskName.includes("自由練習"))) || statusStr.includes("未指派"));
 
   // 核心未受測判定：絕不因為單字清單暫未展開 (totalAnswered === 0) 誤把已完成的測驗判斷為未受測！
-  const isUntested = !isUnassigned && !isFinished && !isIncomplete && (
-    statusStr.includes("未受測") ||
+  const isUntested = isExplicitUntestedStatus || (!isUnassigned && !isFinished && !isIncomplete && (
     scoreVal === "—" ||
     scoreVal === "尚未開始" ||
     (totalAnswered === 0 && !hasFinishedStatus && taskRate === 0)
-  );
+  ));
 
   let displayStatusStr = statusStr;
   let statusColor = "#64748b";
@@ -15518,7 +15518,7 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
   } else {
     let cleanTaskName = String(record.taskName || "平日指定測驗").trim().replace(/^[📝📑\s]+/, "");
     cleanTaskName = cleanTaskName.replace(/指定單字隨堂測驗/g, "平日指定測驗作答紀錄").replace(/隨堂測驗/g, "測驗結果");
-    if (!cleanTaskName || cleanTaskName === "指定測驗" || cleanTaskName === "指定測驗作答紀錄") {
+    if (!cleanTaskName || cleanTaskName === "指定測驗" || cleanTaskName === "指定測驗作答紀錄" || cleanTaskName === "自主練習" || cleanTaskName.includes("未指派")) {
       formattedTaskName = "📝 平日指定測驗作答紀錄";
     } else {
       formattedTaskName = `📝 ${cleanTaskName}`;
@@ -15765,7 +15765,13 @@ function renderUntestedTaskCardHtml(info, agent) {
 
 function buildTaskDetailsHtml(records, selectedDate, agent) {
   const list = (Array.isArray(records) ? records : (records ? [records] : []))
-    .filter(r => r && r.taskName && r.taskName !== "自主練習" && !r.taskName.includes("自由練習") && !r.taskName.includes("未指派"));
+    .filter(r => r && (!r.taskName || !r.taskName.includes("自由練習")) && (!r.taskName || !r.taskName.includes("未指派") || (r.status && (r.status.includes("未受測") || r.status.includes("缺席")))) && (r.taskName !== "自主練習" || (r.status && (r.status.includes("未受測") || r.status.includes("缺席")))))
+    .map(r => {
+      if (r && (!r.taskName || r.taskName === "自主練習" || r.taskName.includes("未指派")) && r.status && (r.status.includes("未受測") || r.status.includes("缺席"))) {
+        return { ...r, taskName: "每日指定測驗" };
+      }
+      return r;
+    });
 
   const taskDict = (window.cachedTaskWordsMap || {});
   const sDateNorm = normalizeDateKey(selectedDate);
@@ -15904,7 +15910,8 @@ function buildTaskDetailsHtml(records, selectedDate, agent) {
     }
   }
 
-  const isAssignedOnDate = !isSatClearedOnSunday && !!((assignedWords && assignedWords.length > 0) || taskName || Object.keys(taskDict).some(k => k.startsWith(sDateNorm) || k.startsWith(sDateShort)));
+  const isUntestedInRecords = (Array.isArray(records) && records.some(r => r && r.status && (r.status.includes("未受測") || r.status.includes("缺席")))) || (!Array.isArray(records) && records && records.status && (records.status.includes("未受測") || records.status.includes("缺席")));
+  const isAssignedOnDate = !isSatClearedOnSunday && (isUntestedInRecords || !!((assignedWords && assignedWords.length > 0) || taskName || Object.keys(taskDict).some(k => k.startsWith(sDateNorm) || k.startsWith(sDateShort))));
 
   // 2. 判斷學生當天是否有登入或自由練習紀錄
   const dpMap = (agent && agent.dailyPractice) ? agent.dailyPractice : {};
