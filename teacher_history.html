@@ -16579,12 +16579,14 @@ function renderStudentDailyTaskAndFreeSections(resp) {
 
     if (count === 0) {
       conquerDetailsContainer.innerHTML = `
-        <div class="task-empty-notice" style="padding:14px 12px; margin:0; background:rgba(30,154,102,0.06); border:1.5px solid rgba(30,154,102,0.22); border-radius:12px;">
-          <div class="task-empty-notice-title" style="color:#1E9A66; font-size:14px; font-weight:750;">
-            ✨ 太棒了！本週目前無待攻克單字
+        <div class="task-empty-notice" style="padding:14px 16px; margin:0; background:rgba(30,154,102,0.06); border:1.5px solid rgba(30,154,102,0.22); border-radius:12px; display:flex; flex-direction:column; gap:6px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:18px; line-height:1; flex-shrink:0;">✨</span>
+            <span style="color:#1E9A66; font-size:14px; font-weight:800; line-height:1.4;">太棒了！本週目前無待攻克單字</span>
           </div>
-          <div class="task-empty-notice-desc" style="color:var(--ink2); font-size:12.5px; margin-top:3px;">
-            本週平日測驗單字皆已掌握或已於自主練習中全數攻克，週末無須進行錯題補強測驗！
+          <div class="task-empty-notice-desc" style="color:var(--ink2); font-size:12.5px; line-height:1.65; padding-left:26px; max-width:100%; margin:0;">
+            <div>本週平日測驗單字皆已掌握或已於自由練習中全數攻克，</div>
+            <div style="margin-top:2px;">週末無須進行錯題補強測驗！</div>
           </div>
         </div>
       `;
