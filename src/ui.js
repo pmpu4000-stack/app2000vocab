@@ -1587,11 +1587,12 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
   }
 
   const dateStr = record && record.date ? record.date : (selectedDate || "");
-  const isWeekendTask = isWeekend(dateStr) || isWeekend(selectedDate) || String(record.taskName || "").includes("週末") || String(record.taskName || "").includes("消滅戰") || String(record.taskName || "").includes("待攻克");
+  const isWeekendTask = isWeekend(dateStr) || isWeekend(selectedDate) || String(record.taskName || "").includes("週末") || String(record.taskName || "").includes("消滅戰") || String(record.taskName || "").includes("待攻克") || String(record.taskName || "").includes("雙週");
   let formattedTaskName = "";
   if (isWeekendTask) {
     const cleanDate = formatWeekendTaskDate(dateStr || selectedDate, record.taskName);
-    formattedTaskName = cleanDate ? `🎯 ${cleanDate} 週末待攻克測驗作答紀錄` : "🎯 週末待攻克測驗作答紀錄";
+    const isBoss = String(record.taskName || "").includes("雙週") || (getBiweeklyCycleInfo(dateStr || selectedDate).isBiweeklyBossWeek);
+    formattedTaskName = cleanDate ? `🎯 ${cleanDate} ${isBoss ? "雙週指定單字大消滅戰" : "週末待攻克測驗"}作答紀錄` : (isBoss ? "🎯 雙週指定單字大消滅戰作答紀錄" : "🎯 週末待攻克測驗作答紀錄");
   } else {
     let cleanTaskName = String(record.taskName || "平日指定測驗").trim().replace(/^[📝📑\s]+/, "");
     cleanTaskName = cleanTaskName.replace(/指定單字隨堂測驗/g, "平日指定測驗作答紀錄").replace(/隨堂測驗/g, "測驗結果");
@@ -2991,7 +2992,7 @@ export function renderSummary(d) {
 
     <!-- 子標題 1：平日指定測驗 / 週末待攻克測驗作答紀錄 -->
     <div class="subh-child">
-      <span id="task-subh-title">${isWeekend(defaultSelectedDate) ? `🎯 ${formatWeekendTaskDate(defaultSelectedDate)} 週末待攻克測驗作答紀錄` : "📝 平日指定測驗作答紀錄"}</span>
+      <span id="task-subh-title">${isWeekend(defaultSelectedDate) ? (getBiweeklyCycleInfo(defaultSelectedDate).isBiweeklyBossWeek ? `🎯 ${formatWeekendTaskDate(defaultSelectedDate)} 雙週指定單字大消滅戰作答紀錄` : `🎯 ${formatWeekendTaskDate(defaultSelectedDate)} 週末待攻克測驗作答紀錄`) : "📝 平日指定測驗作答紀錄"}</span>
     </div>
     <div class="task-history-card">
       <div id="task-record-details">
@@ -3278,7 +3279,9 @@ export function renderSummary(d) {
     // 更新指定測驗 / 週末攻克測驗次標題與作答紀錄 (支援一日多個測驗/補考)
     const taskSubhTitle = $("#task-subh-title");
     if (taskSubhTitle) {
-      taskSubhTitle.textContent = isWeekend(targetDate) ? `🎯 ${formatWeekendTaskDate(targetDate)} 週末待攻克測驗作答紀錄` : "📝 平日指定測驗作答紀錄";
+      taskSubhTitle.textContent = isWeekend(targetDate)
+        ? (getBiweeklyCycleInfo(targetDate).isBiweeklyBossWeek ? `🎯 ${formatWeekendTaskDate(targetDate)} 雙週指定單字大消滅戰作答紀錄` : `🎯 ${formatWeekendTaskDate(targetDate)} 週末待攻克測驗作答紀錄`)
+        : "📝 平日指定測驗作答紀錄";
     }
     const targetTaskRecords = taskByDateMap.get(targetDate) || [];
     const taskDetailsContainer = $("#task-record-details");
