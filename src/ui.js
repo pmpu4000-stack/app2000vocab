@@ -3207,10 +3207,6 @@ export function renderSummary(d) {
             updateTaskHeatDayBadge(idx);
             if (taskHeatDays[idx] && taskHeatDays[idx].key) {
               switchRecordDate(taskHeatDays[idx].key);
-              const detailsEl = $("#task-record-details");
-              if (detailsEl) {
-                detailsEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
-              }
             }
           }
         };
@@ -3299,10 +3295,6 @@ export function renderSummary(d) {
             updateHeatDayBadge(idx);
             if (heatDays[idx] && heatDays[idx].key) {
               switchRecordDate(heatDays[idx].key);
-              const detailsEl = $("#free-record-details");
-              if (detailsEl) {
-                detailsEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
-              }
             }
           }
         };
