@@ -1,5 +1,6 @@
 # 自動同步與零詢問執行規則 (Auto Sync and Zero Prompts)
 
-- 跨電腦開工第一動：每次收到使用者的任何任務，第一步自動執行 `./sync_from_online.sh`，確保本機與 GitHub 線上最新版本完全一致。
-- 零詢問框原則：嚴禁調用 `ask_question`，嚴禁向使用者詢問「是否要修改？」、「請選擇 A/B」。所有修改一律直接執行修改，改完後由使用者自行檢查。
-- 靜默修改工具：一律使用 `replace_file_content`、`write_to_file` 與 `view_file`，避免跳出終端機權限視窗。
+- 開工第一動：在 repo 根目錄執行 `git pull --rebase`，確保與 GitHub 一致（repo 內沒有 `sync_from_online.sh`，勿嘗試執行）。
+- 零詢問：不使用 `ask_question`、不詢問「是否要修改？」或列 A/B 選項；直接修改，改完簡明回報。
+- 編輯工具：使用 `read_file`、`edit_file`、`write_file`；終端機只用於 git / clasp / Select-String。
+- 收尾：`git add` → `git commit` → `git push`；若修改 `google_apps_script/`，另執行 `clasp.cmd push`。
