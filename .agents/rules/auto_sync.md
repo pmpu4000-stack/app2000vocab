@@ -1,6 +1,6 @@
-# 自動同步與零詢問執行規則 (Auto Sync and Zero Prompts)
+# 自動同步與極致省 Token 執行規則
 
-- 開工第一動：在 repo 根目錄執行 `git pull --rebase`，確保與 GitHub 一致（repo 內沒有 `sync_from_online.sh`，勿嘗試執行）。
-- 零詢問：不使用 `ask_question`、不詢問「是否要修改？」或列 A/B 選項；直接修改，改完簡明回報。
-- 編輯工具：使用 `read_file`、`edit_file`、`write_file`；終端機只用於 git / clasp / Select-String。
-- 收尾：`git add` → `git commit` → `git push`；若修改 `google_apps_script/`，另執行 `clasp.cmd push`。
+- **開工同步**：收到修改任務時，與首個檢視指令合併執行 `git pull --rebase origin main`（純問答免跑）。
+- **零詢問**：嚴禁呼叫 `ask_question` 或詢問確認；直接修改，改完簡明回報（原因、修正內容、部署提示）。
+- **鏡像同步**：`google_apps_script/Index.html` 與根目錄 `teacher_history.html` 為雙胞胎鏡像，修改其一必用 `Copy-Item` 同步另一份。
+- **收尾同步**：合併單一指令執行 `git add . ; git commit -m "..." ; git push origin main`；若涉及 GAS 則加跑 `clasp.cmd push -f`。
