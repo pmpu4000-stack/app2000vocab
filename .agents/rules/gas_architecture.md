@@ -1,4 +1,15 @@
+---
+trigger: model_decision
+description: 修改或查詢 google_apps_script/（Code.gs、Index.html）或 GAS 專案 1Y69Ajf… 時讀取：檔案架構、區段行號、doPost action、工作表欄位。
+---
 # GAS 專案架構記憶 (學生學習歷程查詢系統)
+
+## ⚡ 省 Token 守則（必讀）
+- **本檔已是架構索引，勿再重新探勘全檔**；直接依區段名稱定位。
+- **禁止整檔讀取** `Index.html`（~1.09 MB）/ `Code.gs`（~255 KB）。先 `Select-String -Pattern '<函式名或區段註解>'` 取得行號，再用 `read_file` 讀 ±50~150 行。
+- **避開單字庫巨行**：`Index.html` 中「`// 2000 單字庫資料 (內嵌加速)`」下方約 15 行處有一行約 50,000 字元的單行資料，讀取範圍不可包含該行。
+- 本機 repo 即工作副本，**不要另外 clasp pull 到暫存資料夾**；需要對齊雲端時才在 repo 內 `clasp.cmd pull`。
+- 驗證修改用 `Select-String` 抽查或 `git diff --stat`，不要回讀整段。
 
 - **Script ID**：`1Y69AjfZvh__eyEr6fEjrl-DADDJ5KRn13yRehlWi2EGUZhO_qUQN6KcT`
 - **編輯器**：https://script.google.com/u/0/home/projects/1Y69AjfZvh__eyEr6fEjrl-DADDJ5KRn13yRehlWi2EGUZhO_qUQN6KcT/edit
