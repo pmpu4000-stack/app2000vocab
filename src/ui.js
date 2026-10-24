@@ -2664,28 +2664,28 @@ export function buildWeekPendingConquerHtml(words, d = null, cycleParam = _activ
       <div class="level-standard-grid">
         <div class="level-standard-item" style="border-left:3px solid #2FB47C;">
           <div class="level-standard-head" style="color:#2FB47C;"><span>🟢</span><span>Lv.1 入門</span></div>
-          <div class="level-standard-sub">約 3.4 字母 · 411 字</div>
-          <div class="level-standard-trap">自然拼讀、CVC極短字、單母音、生活高頻詞</div>
+          <div class="level-standard-sub">3~4 字母極短字 · 411 字</div>
+          <div class="level-standard-trap">自然發音基礎、CVC短單字、生活高頻必備詞</div>
         </div>
         <div class="level-standard-item" style="border-left:3px solid #2D9CDB;">
           <div class="level-standard-head" style="color:#2D9CDB;"><span>🔵</span><span>Lv.2 基礎</span></div>
-          <div class="level-standard-sub">約 4.7 字母 · 411 字</div>
-          <div class="level-standard-trap">短單母音/合音、Magic e、基本長母音、常用字詞</div>
+          <div class="level-standard-sub">4~5 字母常用字 · 411 字</div>
+          <div class="level-standard-trap">常見長母音、Magic e字尾、基礎日常詞彙</div>
         </div>
         <div class="level-standard-item" style="border-left:3px solid #6C4CE0;">
           <div class="level-standard-head" style="color:#6C4CE0;"><span>🟣</span><span>Lv.3 進階</span></div>
-          <div class="level-standard-sub">約 5.2 字母 · 411 字</div>
-          <div class="level-standard-trap">雙音節中長字、複合字、弱化母音Schwa、詞類變化</div>
+          <div class="level-standard-sub">5~6 字母雙音節 · 411 字</div>
+          <div class="level-standard-trap">雙音節單字、複合名詞、常見詞類衍生變化</div>
         </div>
         <div class="level-standard-item" style="border-left:3px solid #E8892B;">
           <div class="level-standard-head" style="color:#E8892B;"><span>🟠</span><span>Lv.4 挑戰</span></div>
-          <div class="level-standard-sub">約 6.7 字母 · 411 字</div>
-          <div class="level-standard-trap">雙子音/不規則母音、不發音字母、抽象觀念與學術名詞</div>
+          <div class="level-standard-sub">6~8 字母中長字 · 411 字</div>
+          <div class="level-standard-trap">雙子音/不發音字母、連音變化、學科核心詞彙</div>
         </div>
         <div class="level-standard-item" style="border-left:3px solid #E0567B;">
           <div class="level-standard-head" style="color:#E0567B;"><span>🔴</span><span>Lv.5 精熟</span></div>
-          <div class="level-standard-sub">約 9.0 字母 · 411 字</div>
-          <div class="level-standard-trap">多音節長字、字根字首派生、多重拼寫陷阱、高階字彙</div>
+          <div class="level-standard-sub">8 字母以上長單字 · 411 字</div>
+          <div class="level-standard-trap">多音節長單字、字根字首派生、進階易混淆字</div>
         </div>
       </div>
     </div>
@@ -2768,11 +2768,11 @@ export function buildWeekPendingConquerHtml(words, d = null, cycleParam = _activ
   });
 
   const lvFeatures = {
-    1: "入門 · 極短字/自然拼讀",
-    2: "基礎 · 短合音/Magic e",
-    3: "進階 · 雙音節/弱化音Schwa",
-    4: "挑戰 · 雙子音/不發音字母",
-    5: "精熟 · 多音節/字根字首"
+    1: "入門 · 3~4 字母極短字/自然發音",
+    2: "基礎 · 4~5 字母常用字/Magic e",
+    3: "進階 · 5~6 字母雙音節/複合字",
+    4: "挑戰 · 6~8 字母中長字/不發音字母",
+    5: "精熟 · 8 字母以上多音節長字/字根字首"
   };
 
   const levelSectionsHtml = [1, 2, 3, 4, 5].map(lv => {

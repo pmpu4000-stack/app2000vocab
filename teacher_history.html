@@ -16719,11 +16719,11 @@ function renderStudentDailyTaskAndFreeSections(resp) {
       const lvNames  = ["入門", "基礎", "進階", "挑戰", "精熟"];
       const lvColors = ["#2FB47C", "#2D9CDB", "#6C4CE0", "#E8892B", "#E0567B"];
       const lvFeatures = {
-        1: "入門 · 極短字/自然拼讀",
-        2: "基礎 · 短合音/Magic e",
-        3: "進階 · 雙音節/弱化音Schwa",
-        4: "挑戰 · 雙子音/不發音字母",
-        5: "精熟 · 多音節/字根字首"
+        1: "入門 · 3~4 字母極短字/自然發音",
+        2: "基礎 · 4~5 字母常用字/Magic e",
+        3: "進階 · 5~6 字母雙音節/複合字",
+        4: "挑戰 · 6~8 字母中長字/不發音字母",
+        5: "精熟 · 8 字母以上多音節長字/字根字首"
       };
       const levelSectionsHtml = [1, 2, 3, 4, 5].map(lv => {
         const list = byLv[lv] || [];
