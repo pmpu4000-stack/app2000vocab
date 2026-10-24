@@ -4029,6 +4029,7 @@ function _buildExportPayload(d, mode, startDate, endDate) {
       passRate: (d && d.passRate) || 0,
       distinctCorrect: (d && d.distinctCorrect) || 0,
       totalVocab: (d && d.total) || 2055,
+      points: (d && d.points !== undefined) ? d.points : ((d && d.history && d.history.points) || 0),
       learn: learnCount,
       prac: pracCount,
       mast: mastCount,
@@ -4832,6 +4833,35 @@ async function _exportRecordToPdf(payload) {
         <div style="background:#F8F9FD; border:1px solid #E7E9F5; border-radius:10px; padding:8px 10px; text-align:center;">
           <div style="font-size:11px; color:#5A6183; font-weight:700;">📊 區間平均正確率</div>
           <div style="font-size:18px; font-weight:900; color:${ps.avgRate >= 80 ? '#1E9A66' : '#E8892B'};">${ps.avgRate}%</div>
+        </div>
+      </div>
+
+      <!-- 整體進度 Progress 獨立方塊（比照遊戲網頁整體進度） -->
+      <div style="border:1.5px solid #E7E9F5; border-radius:16px; padding:14px 16px; margin-bottom:14px; background:#FFFFFF; page-break-inside:avoid; box-shadow:0 2px 6px rgba(0,0,0,0.03);">
+        <div style="font-size:14px; font-weight:800; color:#232A4D; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+          <span>整體進度 Progress</span>
+        </div>
+        <!-- 三色三階熟練度進度條 -->
+        <div style="height:16px; border-radius:10px; background:#E8EBF5; overflow:hidden; display:flex; border:1.5px solid rgba(35,42,77,0.12); margin-bottom:10px; box-sizing:border-box;">
+          <div style="width:${Math.min(100, Math.max(0, ((ov.learn || 0) / (ov.totalVocab || 2055) * 100)))}%; height:100%; background:linear-gradient(90deg, #6366F1, #818CF8);"></div>
+          <div style="width:${Math.min(100, Math.max(0, ((ov.prac || 0) / (ov.totalVocab || 2055) * 100)))}%; height:100%; background:linear-gradient(90deg, #0284C7, #38BDF8);"></div>
+          <div style="width:${Math.min(100, Math.max(0, ((ov.mast || 0) / (ov.totalVocab || 2055) * 100)))}%; height:100%; background:linear-gradient(90deg, #10B981, #34D399);"></div>
+        </div>
+        <!-- 圖例與指標說明 -->
+        <div style="display:flex; flex-direction:column; gap:6px; font-size:12px; color:#5A6183;">
+          <div style="display:flex; align-items:center; gap:16px; font-weight:700;">
+            <span style="display:inline-flex; align-items:center; gap:5px;"><i style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#6366F1;"></i>學習中 <b style="color:#4F46E5; font-size:13px;">${ov.learn || 0}</b></span>
+            <span style="display:inline-flex; align-items:center; gap:5px;"><i style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#0284C7;"></i>練習中 <b style="color:#0284C7; font-size:13px;">${ov.prac || 0}</b></span>
+            <span style="display:inline-flex; align-items:center; gap:5px;"><i style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#10B981;"></i>精通 <b style="color:#059669; font-size:13px;">${ov.mast || 0}</b></span>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px; font-weight:700; color:#232A4D; padding-top:4px; border-top:1px dashed #E7E9F5;">
+            <span>答對 <b style="color:#D97706; font-size:13.5px;">${ov.distinctCorrect || ((ov.learn || 0) + (ov.prac || 0) + (ov.mast || 0))}</b> 字，共 <b style="color:#D97706; font-size:13.5px;">${ov.totalVocab || 2055}</b> 字，掌握率 <b style="color:#D97706; font-size:13.5px;">${ov.passRate || 0}%</b></span>
+            <span style="color:#CBD5E1;">/</span>
+            <span>獲得 <b style="color:#D97706; font-size:13.5px;">${ov.points || 0}</b> 分</span>
+          </div>
+        </div>
+        <div style="font-size:11px; color:#9AA0BD; margin-top:8px; line-height:1.4;">
+          熟練度定義：<b>學習中</b>＝答對 1 次 · <b>練習中</b>＝連續答對 2 次 · <b>精通</b>＝連續答對 3 次（答錯會退回「學習中」）
         </div>
       </div>
 
