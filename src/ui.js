@@ -4551,14 +4551,40 @@ async function _exportRecordToPdf(payload) {
   const ps = payload.periodSummary;
   const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
-  const lvRowsHtml = (ov.levels || []).map(L => `
-    <tr>
-      <td style="padding:6px 8px; border-bottom:1px solid #E7E9F5; font-weight:700; color:#232A4D;">Level ${L.level}「${esc(L.name)}」</td>
-      <td style="padding:6px 8px; border-bottom:1px solid #E7E9F5; text-align:right; font-weight:700; color:#232A4D;">
-        學習中 ${L.learn} 字 / 練習中 ${L.prac} 字 / 精通 ${L.mast} 字 / 共答對 ${(L.learn || 0) + (L.prac || 0) + (L.mast || 0)} 字
-      </td>
-    </tr>
-  `).join("");
+  const lvRowsHtml = (ov.levels || []).map(L => {
+    const totCorr = (L.learn || 0) + (L.prac || 0) + (L.mast || 0);
+    const color = levelColor(L.level);
+    return `
+      <tr>
+        <td style="padding:7px 10px; border-bottom:1px solid #E7E9F5; font-weight:800; color:#232A4D; width:34%;">
+          <span style="color:${color}; font-size:14px; margin-right:4px;">●</span> Level ${L.level}「${esc(L.name)}」
+        </td>
+        <td style="padding:7px 10px; border-bottom:1px solid #E7E9F5; text-align:right;">
+          <div style="display:inline-flex; align-items:center; gap:6px; font-size:12px;">
+            <span style="display:inline-flex; align-items:center; gap:3px;">
+              <span style="color:#5A6183; font-weight:700;">學習中</span>
+              <b style="color:#4F46E5; font-weight:900;">${L.learn || 0}</b>字
+            </span>
+            <span style="color:#CBD5E1; font-weight:700;">/</span>
+            <span style="display:inline-flex; align-items:center; gap:3px;">
+              <span style="color:#5A6183; font-weight:700;">練習中</span>
+              <b style="color:#0284C7; font-weight:900;">${L.prac || 0}</b>字
+            </span>
+            <span style="color:#CBD5E1; font-weight:700;">/</span>
+            <span style="display:inline-flex; align-items:center; gap:3px;">
+              <span style="color:#5A6183; font-weight:700;">精通</span>
+              <b style="color:#059669; font-weight:900;">${L.mast || 0}</b>字
+            </span>
+            <span style="color:#CBD5E1; font-weight:700;">/</span>
+            <span style="display:inline-flex; align-items:center; gap:3px; background:#F1EDFF; padding:2px 8px; border-radius:6px; border:1px solid rgba(108,76,224,0.25);">
+              <span style="color:#6C4CE0; font-weight:700;">共答對</span>
+              <b style="color:#573BC4; font-weight:900;">${totCorr}</b>字
+            </span>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join("");
 
   const dailyCardsHtml = payload.dailyRecords.map(r => {
     const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -4809,11 +4835,11 @@ async function _exportRecordToPdf(payload) {
         </div>
       </div>
 
-      <!-- 整體關卡進度 -->
-      <div style="border:1px solid #E7E9F5; border-radius:12px; padding:10px 14px; margin-bottom:14px; background:#FFFFFF;">
-        <div style="font-size:13px; font-weight:800; color:#232A4D; margin-bottom:6px; display:flex; justify-content:space-between;">
-          <span>📊 整體學習進度與各關卡統計</span>
-          <span style="font-size:11.5px; color:#5A6183;">學習中 ${ov.learn} 字 · 練習中 ${ov.prac} 字 · 精通 ⭐ ${ov.mast} 字（累計練習 ${ov.totalDays} 天）</span>
+      <!-- 各關卡進度（比照學習足跡版型） -->
+      <div style="border:1.5px solid #E7E9F5; border-radius:14px; padding:12px 14px; margin-bottom:14px; background:#FFFFFF; page-break-inside:avoid; box-shadow:0 2px 6px rgba(0,0,0,0.03);">
+        <div style="font-size:13.5px; font-weight:800; color:#232A4D; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #E7E9F5; padding-bottom:8px;">
+          <span>📊 各關卡進度</span>
+          <span style="font-size:12px; color:#5A6183; font-weight:700;">全書掌握 ${ov.distinctCorrect} 字 / 2055 字（掌握率 ${ov.passRate}%）</span>
         </div>
         <table style="width:100%; border-collapse:collapse; font-size:12px;">
           ${lvRowsHtml}
