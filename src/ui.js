@@ -465,11 +465,11 @@ export function showResult(correct, word, info, guessVal = "", onRepairComplete 
       <div class="active-repair-card" id="active-repair-card">
         <div class="active-repair-header">
           <span style="font-size:16px;">✍️</span>
-          <span><b>親手更正</b>：請鍵入正確單字加深神經連結</span>
+          <span><b>訂正</b></span>
         </div>
         <div class="active-repair-input-wrap">
           <input type="text" id="active-repair-input" class="active-repair-input" inputmode="url" placeholder="請輸入「${word.word}」..." autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" data-gramm="false" data-enable-grammarly="false" aria-autocomplete="none" />
-          <button type="button" id="active-repair-btn" class="active-repair-btn">更正確認 ↵</button>
+          <button type="button" id="active-repair-btn" class="active-repair-btn">訂正確認 ↵</button>
         </div>
         <div id="active-repair-msg" class="active-repair-msg"></div>
       </div>
@@ -479,7 +479,7 @@ export function showResult(correct, word, info, guessVal = "", onRepairComplete 
     // 鎖定「下一個 Next」按鈕，直到親手更正完成
     el.checkBtn.style.display = "";
     el.checkBtn.disabled = true;
-    el.checkBtn.textContent = "✍️ 請先完成親手更正";
+    el.checkBtn.textContent = "✍️ 請先完成訂正";
     el.checkBtn.className = "btn ghost locked";
 
     const repairInp = document.getElementById("active-repair-input");
@@ -500,8 +500,8 @@ export function showResult(correct, word, info, guessVal = "", onRepairComplete 
           repairInp.disabled = true;
           repairBtn.disabled = true;
           repairInp.classList.add("ok");
-          repairBtn.textContent = "✅ 已更正";
-          if (repairMsg) repairMsg.innerHTML = `<span style="color:#10B981;font-weight:700;">✨ 太棒了！已親手更正，神經連結已加強！</span>`;
+          repairBtn.textContent = "✅ 已訂正";
+          if (repairMsg) repairMsg.innerHTML = `<span style="color:#10B981;font-weight:700;">✨ 太棒了！已完成訂正！</span>`;
           say(word.word);
 
           // 解鎖 Next 按鈕
