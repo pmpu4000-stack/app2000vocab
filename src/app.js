@@ -511,6 +511,12 @@ function refreshChrome() {
     const bannerEl = document.getElementById("banner");
     if (bannerEl) bannerEl.style.display = "none";
   }
+
+  // 作答開始或題目切換時，自動將題卡卡片滾動至可視區域置中，確保完整呈現頂端提示與底部檢查按鈕
+  const cardEl = document.getElementById("card");
+  if (cardEl && typeof cardEl.scrollIntoView === "function") {
+    cardEl.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
 }
 
 function renderCurrent() {
@@ -544,6 +550,12 @@ function renderCurrent() {
     if (levelBar) levelBar.style.display = "none";
     const bannerEl = document.getElementById("banner");
     if (bannerEl) bannerEl.style.display = "none";
+  }
+
+  // 作答開始或題目切換時，自動將題卡卡片滾動至可視區域置中，確保完整呈現頂端提示與底部檢查按鈕
+  const cardEl = document.getElementById("card");
+  if (cardEl && typeof cardEl.scrollIntoView === "function") {
+    cardEl.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 }
 
