@@ -457,9 +457,7 @@ export function showResult(correct, word, info, guessVal = "", onRepairComplete 
     const diag = diagnoseWordMistake(word.word, guessVal);
     el.fb.className = "feedback bad";
     el.fb.innerHTML = `
-      <div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
-        <span>❌ 再看一次！</span>
-        <span class="diag-tag-chip" style="background:${diag.bg};color:${diag.color};border:1px solid ${diag.color}50;" title="${diag.desc}">🔍 ${diag.tag}</span>
+      <div style="display:flex;align-items:center;justify-content:center;margin-bottom:8px;font-size:16px;">
         <span>正確拼法：<span class="reveal" style="display:inline">${revealHtml(word)}</span></span>
       </div>
       <div class="active-repair-card" id="active-repair-card">
