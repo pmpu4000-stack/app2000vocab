@@ -1153,14 +1153,8 @@
      *    切頁或直接關閉時，瀏覽器底層確保資料送達，學生無須在頁面乾等。
      */
     async function uploadLocalStorageData(isSilent = false, immediate = false) {
-      if (isSilent && !immediate) {
-        if (uploadDebounceTimer) clearTimeout(uploadDebounceTimer);
-        uploadDebounceTimer = setTimeout(() => {
-          uploadDebounceTimer = null;
-          uploadLocalStorageData(true, true);
-        }, 2500);
-        return;
-      }
+      // 唯有使用者主動點擊「上傳紀錄」按鈕 (isSilent === false) 才執行存檔
+      if (isSilent) return;
 
       if (uploadDebounceTimer) {
         clearTimeout(uploadDebounceTimer);
@@ -1363,38 +1357,7 @@
     // ════════════════════════════════════════════════════════════════════
     window.hasUnsavedChanges = false;
 
-    // 1. 平時每 5 分鐘自動背景存檔一次
-    setInterval(() => {
-      const currentUser = localStorage.getItem("current_user");
-      const currentPass = sessionStorage.getItem("current_pass");
-      if (currentUser && currentPass && window.hasUnsavedChanges) {
-        console.log("⏰ [定時自動存檔] 偵測到未同步進度，執行每 5 分鐘背景同步...");
-        uploadLocalStorageData(true, true);
-      }
-    }, 5 * 60 * 1000);
-
-    // 2. 離開頁面（關閉分頁、切換視窗、切換分頁）時自動背景存檔
-    const saveOnLeave = () => {
-      if (uploadDebounceTimer) {
-        clearTimeout(uploadDebounceTimer);
-        uploadDebounceTimer = null;
-      }
-      try {
-        const u = localStorage.getItem("current_user");
-        const p = sessionStorage.getItem("current_pass");
-        if (u && p && window.hasUnsavedChanges) {
-          uploadLocalStorageData(true, true);
-        }
-      } catch(_) {}
-    };
-
-    window.addEventListener("pagehide", saveOnLeave);
-    window.addEventListener("beforeunload", saveOnLeave);
-    document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "hidden") {
-        saveOnLeave();
-      }
-    });
+    // 依需求調整：全面停用 5 分鐘自動存檔與離開頁面自動背景同步，僅由使用者手動點擊「上傳紀錄」存檔
 
     window.uploadLocalStorageData = uploadLocalStorageData;
 
