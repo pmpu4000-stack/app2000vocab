@@ -289,7 +289,10 @@
                 <span class="date-nav-title"><span>📄</span> 輸出格式：</span>
               </div>
               <div class="export-btn-group">
-                <button type="button" id="btn-export-download-pdf" class="export-dl-btn pdf-btn" title="下載 PDF 格式作答歷程記錄">
+                <button type="button" id="btn-export-preview-web" class="export-dl-btn preview-btn" title="A4 寬長幅網頁版型即時預覽檢視">
+                  👁️ 網頁長幅檢視
+                </button>
+                <button type="button" id="btn-export-download-pdf" class="export-dl-btn pdf-btn" title="下載標準 A4 分頁列印 PDF 格式">
                   📄 下載 PDF 格式
                 </button>
                 <button type="button" id="btn-export-download-excel" class="export-dl-btn excel-btn" title="下載 Excel 格式作答歷程記錄">
@@ -300,6 +303,17 @@
           </div>
         </div>
         <div class="defs" id="export-status-msg" style="margin-top:8px; display:none;"></div>
+        <!-- 網頁長幅檢視區域 (A4 寬無限長) -->
+        <div id="export-web-preview-container" style="display:none; margin-top:14px; border-top:1.5px dashed var(--line, #E7E9F5); padding-top:14px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <div style="font-size:13.5px; font-weight:800; color:var(--violet, #6C4CE0); display:flex; align-items:center; gap:6px;">
+              <span>👁️ A4 寬長幅網頁檢視</span>
+              <span style="font-size:11px; font-weight:700; color:var(--ink3); background:rgba(108,76,224,0.08); padding:2px 8px; border-radius:999px;">一頁捲軸到底</span>
+            </div>
+            <button type="button" id="btn-close-web-preview" style="background:#F1F5F9; border:1px solid #CBD5E1; border-radius:8px; padding:3px 10px; font-size:12px; font-weight:700; cursor:pointer; color:var(--ink2);">✖ 收起檢視</button>
+          </div>
+          <div id="export-web-preview-body" style="background:#FFFFFF; border:1.5px solid var(--line, #E7E9F5); border-radius:16px; padding:18px 20px; box-shadow:0 4px 14px rgba(0,0,0,0.05); overflow-x:auto;"></div>
+        </div>
       </section>
 
       <p class="foot">

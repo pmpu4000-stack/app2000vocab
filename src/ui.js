@@ -4546,8 +4546,8 @@ async function _exportRecordToExcel(payload) {
   }
 }
 
-async function _exportRecordToPdf(payload) {
-  const fileName = `拼字小特工_使用紀錄_${payload.studentId}_${payload.fileScopeTag}.pdf`;
+
+function _buildReportHtml(payload) {
   const ov = payload.overall;
   const ps = payload.periodSummary;
   const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -4588,7 +4588,6 @@ async function _exportRecordToPdf(payload) {
   }).join("");
 
   const dailyCardsHtml = payload.dailyRecords.map(r => {
-    const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     const isTaskUntested = !r.isUnassigned && r.taskStatus.includes("未受測");
 
     // 1. 指定測驗 KPI 方塊
@@ -4642,7 +4641,6 @@ async function _exportRecordToPdf(payload) {
       `;
     }
 
-    // 指定測驗左右兩欄
     let taskLeftContent = "";
     let taskRightContent = "";
     if (r.isUnassigned) {
@@ -4669,7 +4667,6 @@ async function _exportRecordToPdf(payload) {
       }
     }
 
-    // 2. 自由練習 KPI 方塊
     let freeKpiHtml = "";
     if (r.hasFree) {
       freeKpiHtml = `
@@ -4692,7 +4689,6 @@ async function _exportRecordToPdf(payload) {
       `;
     }
 
-    // 自由練習左右兩欄
     let freeLeftContent = "";
     let freeRightContent = "";
     if (r.hasFree) {
@@ -4760,7 +4756,8 @@ async function _exportRecordToPdf(payload) {
           ` : ''}
         </div>
       </div>
-    `;  }).join("");
+    `;
+  }).join("");
 
   const conquerList = payload.pendingConquerWords || [];
   let conquerSectionHtml = "";
@@ -4803,8 +4800,8 @@ async function _exportRecordToPdf(payload) {
     `;
   }
 
-  const reportHtml = `
-    <div id="pdf-export-paper" style="width:720px; background:#FFFFFF; color:#232A4D; padding:22px 24px; font-family:ui-rounded,'SF Pro Rounded','PingFang TC','Microsoft JhengHei',sans-serif; line-height:1.5; box-sizing:border-box;">
+  return `
+    <div id="pdf-export-paper" style="width:720px; max-width:100%; margin:0 auto; background:#FFFFFF; color:#232A4D; padding:22px 24px; font-family:ui-rounded,'SF Pro Rounded','PingFang TC','Microsoft JhengHei',sans-serif; line-height:1.5; box-sizing:border-box;">
       <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid #6C4CE0; padding-bottom:12px; margin-bottom:14px;">
         <div>
           <div style="font-size:20px; font-weight:900; color:#232A4D;">🎯 拼字小特工 · 學生使用與作答紀錄報表</div>
@@ -4884,7 +4881,11 @@ async function _exportRecordToPdf(payload) {
       ${dailyCardsHtml}
     </div>
   `;
+}
 
+async function _exportRecordToPdf(payload) {
+  const fileName = `拼字小特工_使用紀錄_${payload.studentId}_${payload.fileScopeTag}.pdf`;
+  const reportHtml = _buildReportHtml(payload);
   const overlay = document.createElement("div");
   overlay.id = "pdf-export-temp-overlay";
   overlay.style.cssText = "position:fixed;inset:0;z-index:99999;background:rgba(20,24,38,0.82);display:flex;flex-direction:column;align-items:center;overflow:auto;padding:20px;";
@@ -4903,21 +4904,13 @@ async function _exportRecordToPdf(payload) {
       "https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"
     );
     const paperEl = overlay.querySelector("#pdf-export-paper");
-    // 計算自適應單頁超長長度：固定 A4 寬度 (210mm)，依網頁元素實際渲染高度計算對應之自訂 mm 高度
-    const elWidthPx = paperEl.offsetWidth || 720;
-    const elHeightPx = paperEl.scrollHeight || paperEl.offsetHeight || 1200;
-    const targetWidthMm = 210;
-    const marginMm = 8;
-    const contentWidthMm = targetWidthMm - (marginMm * 2);
-    const contentHeightMm = (elHeightPx / elWidthPx) * contentWidthMm;
-    const totalHeightMm = Math.max(297, Math.ceil(contentHeightMm + (marginMm * 2)));
-
     const opt = {
-      margin: [marginMm, marginMm, marginMm, marginMm],
+      margin: [8, 8, 8, 8],
       filename: fileName,
       image: { type: "jpeg", quality: 0.98 },
       html2canvas: { scale: 2, useCORS: true, backgroundColor: "#FFFFFF", scrollY: 0 },
-      jsPDF: { unit: "mm", format: [targetWidthMm, totalHeightMm], orientation: "portrait" }
+      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+      pagebreak: { mode: ["avoid-all", "css", "legacy"] }
     };
     let downloaded = false;
     try {
@@ -5130,6 +5123,38 @@ export function initExportRecordsCard(getSummaryFn) {
 
   if (btnDlPdf) btnDlPdf.onclick = () => runDownload("pdf");
   if (btnDlExcel) btnDlExcel.onclick = () => runDownload("excel");
+
+  // 網頁長幅檢視預覽事件綁定
+  const btnPreviewWeb = document.getElementById("btn-export-preview-web");
+  const btnCloseWeb = document.getElementById("btn-close-web-preview");
+  const previewContainer = document.getElementById("export-web-preview-container");
+  const previewBody = document.getElementById("export-web-preview-body");
+
+  if (btnPreviewWeb) {
+    btnPreviewWeb.onclick = () => {
+      const d = _latestSummaryGetter ? _latestSummaryGetter() : null;
+      const sDate = (currentMode === "single")
+        ? (inputSingle && inputSingle.value ? inputSingle.value : todayDash)
+        : (inputStart && inputStart.value ? inputStart.value : sevenDaysAgo);
+      const eDate = (currentMode === "single")
+        ? sDate
+        : (inputEnd && inputEnd.value ? inputEnd.value : todayDash);
+
+      const payload = _buildExportPayload(d, currentMode, sDate, eDate);
+      if (previewBody) {
+        previewBody.innerHTML = _buildReportHtml(payload);
+      }
+      if (previewContainer) {
+        previewContainer.style.display = "block";
+        previewContainer.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    };
+  }
+  if (btnCloseWeb && previewContainer) {
+    btnCloseWeb.onclick = () => {
+      previewContainer.style.display = "none";
+    };
+  }
 }
 
 // ---------- quiz (placement & challenge) ----------

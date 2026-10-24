@@ -2338,11 +2338,22 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 }
 .export-btn-group {
   display: grid !important;
-  grid-template-columns: 1fr 1fr !important;
+  grid-template-columns: 1.2fr 1fr 1fr !important;
   gap: 8px !important;
   width: 100% !important;
   margin-left: 0 !important;
   box-sizing: border-box !important;
+}
+@media (max-width: 640px) {
+  .export-btn-group {
+    grid-template-columns: 1fr !important;
+  }
+}
+.export-dl-btn.preview-btn {
+  background: linear-gradient(135deg, #0284C7, #38BDF8) !important;
+  color: #FFFFFF !important;
+  border: 1px solid #0369A1 !important;
+  box-shadow: 0 3px 8px rgba(2, 132, 199, 0.25) !important;
 }
 .export-dl-btn {
   display: inline-flex !important;
