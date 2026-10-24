@@ -132,7 +132,7 @@ export function renderRound(word, mode, { onAnswer, onCheck }) {
 
     for (const part of parts) {
       const trimmed = part.trim();
-      const m = trimmed.match(/^([a-zA-Z\.\s\/]+?)[\s]+([\u4e00-\u9fa5（(].*)$/);
+      const m = trimmed.match(/^([a-zA-Z\.\s\/]+?)[\s]+(.*)$/);
       if (m) {
         const posStr = m[1].trim();
         const defStr = m[2].trim();
