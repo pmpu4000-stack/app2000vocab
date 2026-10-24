@@ -780,27 +780,24 @@
           <div style="background:${statusBg}; border:1px solid ${statusColor}; border-radius:12px; padding:12px 14px; margin-bottom:14px; text-align:center;">
             <div style="font-size:13px; color:var(--ink2, #475569); font-weight:600; margin-bottom:2px;">目前護盾存量</div>
             <div style="font-size:26px; font-weight:900; color:${statusColor};">${curFreezes} / 2 個</div>
-            <div style="font-size:12.5px; font-weight:800; color:${statusColor}; margin-top:3px;">${statusText}</div>
+            <div style="font-size:12.5px; font-weight:800; color:${statusColor}; margin-top:3px;">${curFreezes > 0 ? `🟢 尚有 ${curFreezes} 個護盾可用` : "🔴 目前無護盾可用"}</div>
           </div>
 
           <div style="font-size:13.5px; color:var(--ink2, #475569); display:flex; flex-direction:column; gap:10px; margin-bottom:18px;">
             <div>
-              <b style="color:var(--ink, #0F172A);">📌 什麼是「1/2」？</b><br>
-              代表目前<b>持有 ${curFreezes} 個護盾</b>，背包上限最多可儲存 <b>2 個</b>。<b>護盾尚未用完</b>，請放心！
+              <b style="color:var(--ink, #0F172A);">🛡️ 什麼是連勝護盾？</b><br>
+              若某天因請假或忙碌沒上線練習，系統會<b>自動扣除 1 個護盾</b>，讓你的「連續天數」不中斷。
             </div>
             <div>
-              <b style="color:var(--ink, #0F172A);">❓ 下方為什麼顯示「用完了」？</b><br>
-              若下方畫面看到用完提示，通常是「<b>⏰ 今日 10 分鐘練習時間已用完</b>」的休息防沉迷提醒，<b>並非</b>連勝護盾用完。
+              <b style="color:var(--ink, #0F172A);">🎒 護盾上限是多少？</b><br>
+              每位同學最多可儲存 <b>2 個</b> 護盾（目前你擁有 <b>${curFreezes}</b> 個）。
             </div>
             <div>
-              <b style="color:var(--ink, #0F172A);">🛡️ 護盾如何使用？</b><br>
-              若某天因請假或忙碌未上線練習，隔日系統會<b>自動消耗 1 個護盾</b>保護連續練習天數不歸零。
-            </div>
-            <div>
-              <b style="color:var(--ink, #0F172A);">⚡ 如何補充護盾？</b><br>
-              平日或自由練習中，每<b>累積答對 50 題</b>，系統就會自動獎勵補充 1 個護盾（最高存滿 2 個）。
+              <b style="color:var(--ink, #0F172A);">⚡ 如何獲得更多護盾？</b><br>
+              只要在平常練習中，每<b>累積答對 50 題</b>，系統就會自動送你 1 個護盾！
             </div>
           </div>
+
 
           <button onclick="document.getElementById('streak-freeze-modal').style.display='none'" style="width:100%; padding:10px 0; background:linear-gradient(135deg,#3B82F6,#2563EB); color:#FFFFFF; border:none; border-radius:10px; font-size:14px; font-weight:800; cursor:pointer; box-shadow:0 2px 8px rgba(37,99,235,0.3);">
             我知道了
