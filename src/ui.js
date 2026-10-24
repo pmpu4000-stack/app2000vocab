@@ -4060,6 +4060,7 @@ function _buildExportPayload(d, mode, startDate, endDate) {
   const domTotal = parseInt(document.getElementById("n-total")?.textContent || "", 10) || 2055;
   const domRate = parseInt((document.getElementById("n-rate")?.textContent || "").replace("%", ""), 10);
   const domScore = parseInt(document.getElementById("n-score")?.textContent || "", 10);
+  const domStreak = parseInt(document.getElementById("s-streak")?.textContent || "", 10);
 
   const fallbackLearn = d ? (d.levels || []).reduce((acc, L) => acc + (L.learn || 0), 0) : 0;
   const fallbackPrac = d ? (d.levels || []).reduce((acc, L) => acc + (L.prac || 0), 0) : 0;
@@ -4072,6 +4073,7 @@ function _buildExportPayload(d, mode, startDate, endDate) {
   const finalTotalVocab = !isNaN(domTotal) ? domTotal : ((d && d.total) || 2055);
   const finalPassRate = !isNaN(domRate) ? domRate : ((d && d.passRate) || Math.round((finalDistinctCorrect / finalTotalVocab) * 100));
   const finalPoints = !isNaN(domScore) ? domScore : ((d && d.points !== undefined) ? d.points : ((d && d.history && d.history.points) || 0));
+  const finalStreak = !isNaN(domStreak) ? domStreak : ((d && d.history && d.history.streak) || 0);
 
   // 指定測驗平均成績：僅計算學校指定測驗（排除自由練習干擾）
   const periodTaskAvgRate = periodTaskAssignedTotal > 0 
@@ -4117,7 +4119,7 @@ function _buildExportPayload(d, mode, startDate, endDate) {
       learn: learnCount,
       prac: pracCount,
       mast: mastCount,
-      streak: (d && d.history && d.history.streak) || 0,
+      streak: finalStreak,
       best: (d && d.history && d.history.best) || 0,
       totalDays: (d && d.history && d.history.total) || 0,
       levels: (d && d.levels) ? d.levels.map(L => ({
