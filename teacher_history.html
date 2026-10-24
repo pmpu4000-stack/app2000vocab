@@ -3248,6 +3248,55 @@
     }
 
     /* 🎯 本週待攻克單字 Pill 標籤與 5 大等級分組樣式（溫和白底/柔灰藍底，無壓力、零扣分感） */
+    .level-standard-panel {
+      background: rgba(148, 163, 184, 0.05) !important;
+      border: 1px solid rgba(148, 163, 184, 0.20) !important;
+      border-radius: 12px !important;
+      padding: 10px 12px !important;
+      margin-bottom: 8px !important;
+    }
+    [data-theme="dark"] .level-standard-panel {
+      background: rgba(255, 255, 255, 0.03) !important;
+      border-color: rgba(255, 255, 255, 0.12) !important;
+    }
+    .level-standard-grid {
+      display: grid !important;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)) !important;
+      gap: 8px !important;
+      margin-top: 6px !important;
+    }
+    .level-standard-item {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 2px !important;
+      padding: 6px 8px !important;
+      border-radius: 8px !important;
+      background: rgba(255, 255, 255, 0.7) !important;
+      border: 1px solid rgba(148, 163, 184, 0.25) !important;
+      font-size: 11.5px !important;
+    }
+    [data-theme="dark"] .level-standard-item {
+      background: rgba(30, 41, 59, 0.7) !important;
+      border-color: rgba(255, 255, 255, 0.1) !important;
+    }
+    .level-standard-head {
+      display: flex !important;
+      align-items: center !important;
+      gap: 5px !important;
+      font-weight: 800 !important;
+      font-size: 12px !important;
+    }
+    .level-standard-sub {
+      color: var(--ink2) !important;
+      font-size: 11px !important;
+      line-height: 1.35 !important;
+    }
+    .level-standard-trap {
+      color: var(--ink3) !important;
+      font-size: 10.5px !important;
+      line-height: 1.3 !important;
+    }
+
     .word-pill-tag.conquer-pill {
       display: inline-flex !important;
       align-items: center !important;
@@ -14187,6 +14236,97 @@ function formatDateYMD(d) {
   return "";
 }
 
+function getWeekRangeDates(baseDate = new Date()) {
+  const d = new Date(baseDate);
+  const day = d.getDay();
+  const diffToMon = d.getDate() - day + (day === 0 ? -6 : 1);
+  const mon = new Date(d.getFullYear(), d.getMonth(), diffToMon);
+  const fri = new Date(d.getFullYear(), d.getMonth(), diffToMon + 4);
+  const sat = new Date(d.getFullYear(), d.getMonth(), diffToMon + 5);
+  const sun = new Date(d.getFullYear(), d.getMonth(), diffToMon + 6);
+  const fmt = (dt) => dt.getFullYear() + "-" + String(dt.getMonth() + 1).padStart(2, "0") + "-" + String(dt.getDate()).padStart(2, "0");
+  return {
+    monday: fmt(mon),
+    friday: fmt(fri),
+    saturday: fmt(sat),
+    sunday: fmt(sun)
+  };
+}
+
+function getBiweeklyCycleInfo(baseDate = new Date()) {
+  const d = new Date(baseDate);
+  const target = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const dayNr = (target.getUTCDay() + 6) % 7;
+  target.setUTCDate(target.getUTCDate() - dayNr + 3);
+  const firstThursday = target.valueOf();
+  target.setUTCMonth(0, 1);
+  if (target.getUTCDay() !== 4) {
+    target.setUTCMonth(0, 1 + ((4 - target.getUTCDay()) + 7) % 7);
+  }
+  const isoWeek = 1 + Math.ceil((firstThursday - target) / 604800000);
+
+  let semesterStartDate = "";
+  let manualCurrentWeek = 0;
+  try {
+    const raw = localStorage.getItem("conquer_roll_settings");
+    if (raw) {
+      const cfg = JSON.parse(raw);
+      if (cfg.semesterStartDate) semesterStartDate = String(cfg.semesterStartDate).trim();
+      if (cfg.manualCurrentWeek) manualCurrentWeek = parseInt(cfg.manualCurrentWeek, 10) || 0;
+    }
+  } catch(_) {}
+
+  let semesterWeek = 1;
+  if (manualCurrentWeek > 0) {
+    semesterWeek = manualCurrentWeek;
+  } else if (semesterStartDate) {
+    const sDate = new Date(semesterStartDate + "T00:00:00");
+    if (!isNaN(sDate.getTime())) {
+      const sDay = sDate.getDay();
+      const sMon = new Date(sDate.getFullYear(), sDate.getMonth(), sDate.getDate() - sDay + (sDay === 0 ? -6 : 1));
+      const curMon = new Date(d.getFullYear(), d.getMonth(), d.getDate() - dayNr);
+      const diffWeeks = Math.floor((curMon - sMon) / (7 * 86400000));
+      semesterWeek = Math.max(1, diffWeeks + 1);
+    }
+  } else {
+    const y = d.getFullYear();
+    const m = d.getMonth() + 1;
+    const defStart = (m >= 2 && m <= 7) ? new Date(y, 1, 15) : (m < 2 ? new Date(y - 1, 7, 30) : new Date(y, 7, 30));
+    const sDay = defStart.getDay();
+    const sMon = new Date(defStart.getFullYear(), defStart.getMonth(), defStart.getDate() - sDay + (sDay === 0 ? -6 : 1));
+    const curMon = new Date(d.getFullYear(), d.getMonth(), d.getDate() - dayNr);
+    const diffWeeks = Math.floor((curMon - sMon) / (7 * 86400000));
+    semesterWeek = Math.max(1, diffWeeks + 1);
+  }
+  
+  const isBiweeklyBossWeek = (semesterWeek % 2 === 0);
+  const weekOfCycle = isBiweeklyBossWeek ? 2 : 1;
+  const currentWeek = getWeekRangeDates(d);
+  
+  const day = d.getDay();
+  const diffToMon = d.getDate() - day + (day === 0 ? -6 : 1);
+  const prevMon = new Date(d.getFullYear(), d.getMonth(), diffToMon - 7);
+  const prevFri = new Date(d.getFullYear(), d.getMonth(), diffToMon - 3);
+  const fmt = (dt) => dt.getFullYear() + "-" + String(dt.getMonth() + 1).padStart(2, "0") + "-" + String(dt.getDate()).padStart(2, "0");
+  const prevWeek = {
+    monday: fmt(prevMon),
+    friday: fmt(prevFri)
+  };
+
+  return {
+    isoWeek,
+    semesterWeek,
+    manualCurrentWeek,
+    semesterStartDate,
+    isBiweeklyBossWeek,
+    weekOfCycle,
+    currentWeek,
+    prevWeek,
+    scanStartStr: isBiweeklyBossWeek ? prevWeek.monday : currentWeek.monday,
+    scanEndStr: currentWeek.friday
+  };
+}
+
 function formatWeekendTaskDate(ds, fallbackText = "") {
   let target = ds || "";
   if (!target && fallbackText) {
@@ -16637,70 +16777,71 @@ function renderStudentDailyTaskAndFreeSections(resp) {
 
   switchRecordDate(defaultSelectedDate);
 
-  // 渲染「🎯 本週待攻克單字」區塊（支援切換本週/上週）
+  // 渲染「🎯 本週待攻克單字」區塊（支援切換第 1~20 週）
   window._currentTeacherConquerResp = resp;
   window._currentTeacherConquerAgent = agent;
-  window.renderTeacherStudentConquerSection = function(cycleParam = "current") {
+  window._teacherActiveConquerCycle = "current";
+  window.renderTeacherStudentConquerSection = function(cycleParam = window._teacherActiveConquerCycle || "current") {
+    window._teacherActiveConquerCycle = cycleParam;
     const conquerDetailsContainer = document.getElementById("st-week-conquer-details");
     const conquerBadge = document.getElementById("stWeekConquerBadge");
     const conquerTitle = document.getElementById("stWeekConquerTitle");
     if (!conquerDetailsContainer) return;
 
-    const btnCur = document.getElementById("btn-st-conquer-cycle-current");
-    const btnPrev = document.getElementById("btn-st-conquer-cycle-prev");
-    const btnBiweekly = document.getElementById("btn-st-conquer-cycle-biweekly");
-    const isPrevious = (cycleParam === "previous" || cycleParam === "prevWeek");
-    const isPrevBiweekly = (cycleParam === "prevBiweekly");
-
-    [btnCur, btnPrev, btnBiweekly].forEach(b => { if (b) b.classList.remove("active"); });
-    if (isPrevBiweekly && btnBiweekly) {
-      btnBiweekly.classList.add("active");
-    } else if (isPrevious && btnPrev) {
-      btnPrev.classList.add("active");
-    } else if (btnCur) {
-      btnCur.classList.add("active");
-    }
-
     if (conquerTitle) {
       conquerTitle.textContent = "待攻克單字 Conquer";
     }
 
-    // 週期選擇導覽列（移入卡片內部）
+    const cycleInfo = (typeof getBiweeklyCycleInfo === "function") ? getBiweeklyCycleInfo() : { semesterWeek: 1, isBiweeklyBossWeek: false };
+    const curSemWeek = cycleInfo.semesterWeek || 1;
+    let activeW = curSemWeek;
+    if (typeof cycleParam === "string" && cycleParam.startsWith("week_")) {
+      activeW = parseInt(cycleParam.replace("week_", ""), 10) || curSemWeek;
+    } else if (cycleParam === "prevWeek" || cycleParam === "previous") {
+      activeW = Math.max(1, curSemWeek - 1);
+    } else if (cycleParam === "nextWeek") {
+      activeW = Math.min(20, curSemWeek + 1);
+    }
+
+    let weekOptionsHtml = "";
+    for (let w = 1; w <= 20; w++) {
+      const isWCurrent = (w === curSemWeek);
+      const isWBoss = (w % 2 === 0);
+      const val = "week_" + w;
+      const selected = (activeW === w);
+      let label = `第 ${w} 週`;
+      if (isWCurrent) label += `（本週${isWBoss ? " · 雙週魔王週" : ""}）`;
+      else if (isWBoss) label += `（雙週大消滅）`;
+      weekOptionsHtml += `<option value="${val}" ${selected ? 'selected' : ''}>${label}</option>`;
+    }
+
+    const isCurrentActive = (activeW === curSemWeek);
     const cycleSelectBarHtml = `
       <div class="conquer-cycle-nav-bar" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; padding:8px 12px; background:var(--bar-track, rgba(148,163,184,0.08)); border:1px solid rgba(148,163,184,0.18); border-radius:10px; margin-bottom:4px;">
         <div style="display:flex; align-items:center; gap:6px; font-size:12.5px; font-weight:750; color:var(--ink);">
           <span>📅 查看週次：</span>
-          <select id="st-conquer-cycle-select" class="task-date-selector" style="font-size:12px; padding:3px 8px; border-radius:6px; border:1px solid rgba(148,163,184,0.35); background:var(--card, #fff); color:var(--ink); font-weight:600; cursor:pointer;" title="選擇查看待攻克週次">
-            <option value="current" ${cycleParam === 'current' ? 'selected' : ''}>本週平日測驗</option>
-            <option value="prevWeek" ${(cycleParam === 'prevWeek' || cycleParam === 'previous') ? 'selected' : ''}>上一週平日測驗</option>
-            <option value="prevBiweekly" ${cycleParam === 'prevBiweekly' ? 'selected' : ''}>上一回雙週週期（過去14天）</option>
+          <select id="st-conquer-cycle-select" class="task-date-selector" style="font-size:12px; padding:4px 9px; border-radius:6px; border:1.5px solid rgba(148,163,184,0.35); background:var(--card, #fff); color:var(--ink); font-weight:700; cursor:pointer;" title="選擇查看待攻克學期週次">
+            ${weekOptionsHtml}
           </select>
         </div>
-        <div class="conquer-cycle-toggle-group" style="display:inline-flex; align-items:center; gap:4px;">
-          <button type="button" id="btn-st-conquer-cycle-current" class="date-nav-btn ${cycleParam === 'current' ? 'active' : ''}" style="font-size:11.5px; padding:3px 8px; border-radius:6px; height:auto; line-height:1.2;">本週</button>
-          <button type="button" id="btn-st-conquer-cycle-prev" class="date-nav-btn ${(cycleParam === 'prevWeek' || cycleParam === 'previous') ? 'active' : ''}" style="font-size:11.5px; padding:3px 8px; border-radius:6px; height:auto; line-height:1.2;" title="查看上一週遺留待攻克單字">上一週</button>
-          <button type="button" id="btn-st-conquer-cycle-biweekly" class="date-nav-btn ${cycleParam === 'prevBiweekly' ? 'active' : ''}" style="font-size:11.5px; padding:3px 8px; border-radius:6px; height:auto; line-height:1.2;" title="查看上一回雙週（過去14天）所有待攻克單字">上一回雙週</button>
+        <div class="conquer-cycle-toggle-group date-nav-btn-group" style="display:inline-flex; align-items:center; gap:4px;">
+          <button type="button" id="btn-st-conquer-cycle-prev" class="date-nav-btn" ${activeW <= 1 ? 'disabled' : ''} style="font-size:11.5px; padding:3px 8px; border-radius:6px; height:auto; line-height:1.2;" title="查看上一週（第 ${Math.max(1, activeW - 1)} 週）待攻克單字">◀ 上一週</button>
+          <button type="button" id="btn-st-conquer-cycle-current" class="date-nav-btn today-btn ${isCurrentActive ? 'active' : ''}" style="font-size:11.5px; padding:3px 8px; border-radius:6px; height:auto; line-height:1.2;" title="切換回本週（第 ${curSemWeek} 週）">📍 本週</button>
+          <button type="button" id="btn-st-conquer-cycle-next" class="date-nav-btn" ${activeW >= 20 ? 'disabled' : ''} style="font-size:11.5px; padding:3px 8px; border-radius:6px; height:auto; line-height:1.2;" title="查看下一週（第 ${Math.min(20, activeW + 1)} 週）待攻克單字">下一週 ▶</button>
         </div>
       </div>
     `;
 
+    // 依選取的週次 activeW 計算日期區間 (週一至週五)
+    const diffW = activeW - curSemWeek;
     const dNow = new Date();
     const day = dNow.getDay();
-    const diff = dNow.getDate() - day + (day === 0 ? -6 : 1);
-    let monday, friday;
-    if (isPrevBiweekly) {
-      monday = new Date(dNow.getFullYear(), dNow.getMonth(), diff - 14);
-      friday = new Date(dNow.getFullYear(), dNow.getMonth(), diff - 3);
-    } else if (isPrevious) {
-      monday = new Date(dNow.getFullYear(), dNow.getMonth(), diff - 7);
-      friday = new Date(dNow.getFullYear(), dNow.getMonth(), diff - 3);
-    } else {
-      monday = new Date(dNow.getFullYear(), dNow.getMonth(), diff);
-      friday = new Date(dNow.getFullYear(), dNow.getMonth(), diff + 4);
-    }
+    const diffToMon = dNow.getDate() - day + (day === 0 ? -6 : 1);
+    const targetMon = new Date(dNow.getFullYear(), dNow.getMonth(), diffToMon + diffW * 7);
+    const targetFri = new Date(dNow.getFullYear(), dNow.getMonth(), diffToMon + diffW * 7 + 4);
     const formatD = (dt) => dt.getFullYear() + "-" + String(dt.getMonth() + 1).padStart(2, "0") + "-" + String(dt.getDate()).padStart(2, "0");
-    const mondayStr = formatD(monday);
-    const fridayStr = formatD(friday);
+    const mondayStr = formatD(targetMon);
+    const fridayStr = formatD(targetFri);
 
     const normalizeCleanWord = (w) => {
       if (!w) return "";
@@ -16818,39 +16959,45 @@ function renderStudentDailyTaskAndFreeSections(resp) {
         <div class="level-standard-grid">
           <div class="level-standard-item" style="border-left:3px solid #2FB47C;">
             <div class="level-standard-head" style="color:#2FB47C;"><span>🟢</span><span>Lv.1 入門</span></div>
-            <div class="level-standard-sub">約 3.4 字母 · 411 字</div>
-            <div class="level-standard-trap">自然拼讀、CVC極短字、單母音、生活高頻詞</div>
+            <div class="level-standard-sub">3~4 字母極短字 · 411 字</div>
+            <div class="level-standard-trap">自然發音基礎、CVC短單字、生活高頻必備詞</div>
           </div>
           <div class="level-standard-item" style="border-left:3px solid #2D9CDB;">
             <div class="level-standard-head" style="color:#2D9CDB;"><span>🔵</span><span>Lv.2 基礎</span></div>
-            <div class="level-standard-sub">約 4.7 字母 · 411 字</div>
-            <div class="level-standard-trap">短單母音/合音、Magic e、基本長母音、常用字詞</div>
+            <div class="level-standard-sub">4~5 字母常用字 · 411 字</div>
+            <div class="level-standard-trap">常見長母音、Magic e字尾、基礎日常詞彙</div>
           </div>
           <div class="level-standard-item" style="border-left:3px solid #6C4CE0;">
             <div class="level-standard-head" style="color:#6C4CE0;"><span>🟣</span><span>Lv.3 進階</span></div>
-            <div class="level-standard-sub">約 5.2 字母 · 411 字</div>
-            <div class="level-standard-trap">雙音節中長字、複合字、弱化母音Schwa、詞類變化</div>
+            <div class="level-standard-sub">5~6 字母雙音節 · 411 字</div>
+            <div class="level-standard-trap">雙音節單字、複合名詞、常見詞類衍生變化</div>
           </div>
           <div class="level-standard-item" style="border-left:3px solid #E8892B;">
             <div class="level-standard-head" style="color:#E8892B;"><span>🟠</span><span>Lv.4 挑戰</span></div>
-            <div class="level-standard-sub">約 6.7 字母 · 411 字</div>
-            <div class="level-standard-trap">雙子音/不規則母音、不發音字母、抽象觀念與學術名詞</div>
+            <div class="level-standard-sub">6~8 字母中長字 · 411 字</div>
+            <div class="level-standard-trap">雙子音/不發音字母、連音變化、學科核心詞彙</div>
           </div>
           <div class="level-standard-item" style="border-left:3px solid #E0567B;">
             <div class="level-standard-head" style="color:#E0567B;"><span>🔴</span><span>Lv.5 精熟</span></div>
-            <div class="level-standard-sub">約 9.0 字母 · 411 字</div>
-            <div class="level-standard-trap">多音節長字、字根字首派生、多重拼寫陷阱、高階字彙</div>
+            <div class="level-standard-sub">8 字母以上長單字 · 411 字</div>
+            <div class="level-standard-trap">多音節長單字、字根字首派生、進階易混淆字</div>
           </div>
         </div>
       </div>
     `;
 
+    const isBoss = (activeW % 2 === 0);
+    const isPrevious = (activeW < curSemWeek);
     if (count === 0) {
-      const emptyTitle = isPrevious ? "太棒了！上週平日測驗無遺留待攻克單字" : "太棒了！本週目前無待攻克單字";
+      const emptyTitle = isPrevious
+        ? "太棒了！上週平日測驗無遺留待攻克單字"
+        : `太棒了！${isBoss ? "雙週" : "本週"}目前無待攻克單字`;
       const emptyDesc = isPrevious
-        ? "該生上週平日測驗單字皆已掌握或已於自由練習中全數攻克！"
-        : "本週平日測驗單字皆已掌握或已於自由練習中全數攻克，";
-      const emptySub = isPrevious ? "上週錯題庫已完全清空！" : "週末無須進行錯題補強測驗！";
+        ? "該生上週平日測驗的所有單字皆已掌握或已於自由練習中全數攻克！"
+        : (isBoss ? "雙週平日測驗單字皆已掌握或已於自由練習中全數攻克，" : "本週平日測驗單字皆已掌握或已於自由練習中全數攻克，");
+      const emptySub = isPrevious
+        ? "上週的錯題庫已完全清空！"
+        : (isBoss ? "週末無須進行雙週大魔王消滅戰！" : "週末無須進行錯題補強測驗！");
 
       conquerDetailsContainer.innerHTML = `
         <div class="week-conquer-wrap" style="display:flex; flex-direction:column; gap:10px;">
@@ -16921,7 +17068,9 @@ function renderStudentDailyTaskAndFreeSections(resp) {
 
       const tipText = isPrevious
         ? `檢視該生<b>上週平日測驗</b>遺留的 <b>${count}</b> 個待攻克單字。在自由練習中只要拼對該單字，系統即判定為已學會並自動移除！`
-        : `本週累積 <b>${count}</b> 個待攻克單字。在<b>自由練習</b>中只要拼對該單字，系統即判定為已學會並自動移除，<b>不滾入週末錯題消滅戰測驗</b>！`;
+        : (isBoss
+          ? `雙週（第 2 週大消滅週期）累積 <b>${count}</b> 個待攻克單字。在<b>自由練習</b>中只要拼對該單字，系統即判定為已學會並自動移除！<b>自由練習答錯不計入待攻克</b>，週末將進行雙週大魔王消滅戰。`
+          : `本週（雙週週期第 1 週）累積 <b>${count}</b> 個待攻克單字。在<b>自由練習</b>中只要拼對該單字，系統即判定為已學會並自動移除！<b>自由練習答錯不計入待攻克</b>，週末未消滅之單字將滾入雙週大魔王儲備池。`);
 
       conquerDetailsContainer.innerHTML = `
         <div class="week-conquer-wrap" style="display:flex; flex-direction:column; gap:10px;">
@@ -16949,10 +17098,27 @@ function renderStudentDailyTaskAndFreeSections(resp) {
     }
     const btnCurEl = conquerDetailsContainer.querySelector("#btn-st-conquer-cycle-current");
     const btnPrevEl = conquerDetailsContainer.querySelector("#btn-st-conquer-cycle-prev");
-    const btnBiweeklyEl = conquerDetailsContainer.querySelector("#btn-st-conquer-cycle-biweekly");
-    if (btnCurEl) btnCurEl.onclick = (e) => { e.stopPropagation(); window.renderTeacherStudentConquerSection("current"); };
-    if (btnPrevEl) btnPrevEl.onclick = (e) => { e.stopPropagation(); window.renderTeacherStudentConquerSection("previous"); };
-    if (btnBiweeklyEl) btnBiweeklyEl.onclick = (e) => { e.stopPropagation(); window.renderTeacherStudentConquerSection("prevBiweekly"); };
+    const btnNextEl = conquerDetailsContainer.querySelector("#btn-st-conquer-cycle-next");
+    if (btnPrevEl) {
+      btnPrevEl.onclick = (e) => {
+        e.stopPropagation();
+        const targetW = Math.max(1, activeW - 1);
+        window.renderTeacherStudentConquerSection("week_" + targetW);
+      };
+    }
+    if (btnCurEl) {
+      btnCurEl.onclick = (e) => {
+        e.stopPropagation();
+        window.renderTeacherStudentConquerSection("week_" + curSemWeek);
+      };
+    }
+    if (btnNextEl) {
+      btnNextEl.onclick = (e) => {
+        e.stopPropagation();
+        const targetW = Math.min(20, activeW + 1);
+        window.renderTeacherStudentConquerSection("week_" + targetW);
+      };
+    }
   };
 
   const stConquerSec = document.getElementById("studentWeekConquerCard");
