@@ -2782,8 +2782,7 @@ export function buildWeekPendingConquerHtml(words, d = null, cycleParam = _activ
     const lvFeatureSub = lvFeatures[lv] || "";
     const pillsOrEmpty = list.length > 0
       ? `<div class="conquer-word-list" style="display:flex; flex-wrap:wrap; gap:8px; padding:2px 4px 2px 0; max-height:148px; overflow-y:auto; overscroll-behavior:contain;">${list.map(w => {
-          const diag = diagnoseWordMistake(w);
-          return `<span class="word-pill-tag conquer-pill" data-word="${w}" style="cursor:pointer;" title="待攻克單字：${diag.desc} (點擊聆聽發音)">${w} <span class="diag-bubble-tag" style="background:${diag.bg}; color:${diag.color}; border:1px solid ${diag.color}40;" title="${diag.desc}">${diag.tag}</span></span>`;
+          return `<span class="word-pill-tag conquer-pill" data-word="${w}" style="cursor:pointer;" title="待攻克單字 (點擊聆聽發音)">${w}</span>`;
         }).join("")}</div>`
       : `<div style="font-size:12px; color:var(--ink3); font-style:italic; padding:1px 0;">（本關卡目前無待攻克單字）</div>`;
 
