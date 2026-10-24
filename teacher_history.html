@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8" />
@@ -16776,12 +16776,12 @@ function renderStudentDailyTaskAndFreeSections(resp) {
         window.renderTeacherStudentConquerSection(e.target.value);
       };
     }
-    const btnCur = conquerDetailsContainer.querySelector("#btn-st-conquer-cycle-current");
-    const btnPrev = conquerDetailsContainer.querySelector("#btn-st-conquer-cycle-prev");
-    const btnBiweekly = conquerDetailsContainer.querySelector("#btn-st-conquer-cycle-biweekly");
-    if (btnCur) btnCur.onclick = (e) => { e.stopPropagation(); window.renderTeacherStudentConquerSection("current"); };
-    if (btnPrev) btnPrev.onclick = (e) => { e.stopPropagation(); window.renderTeacherStudentConquerSection("previous"); };
-    if (btnBiweekly) btnBiweekly.onclick = (e) => { e.stopPropagation(); window.renderTeacherStudentConquerSection("prevBiweekly"); };
+    const btnCurEl = conquerDetailsContainer.querySelector("#btn-st-conquer-cycle-current");
+    const btnPrevEl = conquerDetailsContainer.querySelector("#btn-st-conquer-cycle-prev");
+    const btnBiweeklyEl = conquerDetailsContainer.querySelector("#btn-st-conquer-cycle-biweekly");
+    if (btnCurEl) btnCurEl.onclick = (e) => { e.stopPropagation(); window.renderTeacherStudentConquerSection("current"); };
+    if (btnPrevEl) btnPrevEl.onclick = (e) => { e.stopPropagation(); window.renderTeacherStudentConquerSection("previous"); };
+    if (btnBiweeklyEl) btnBiweeklyEl.onclick = (e) => { e.stopPropagation(); window.renderTeacherStudentConquerSection("prevBiweekly"); };
   };
 
   const stConquerSec = document.getElementById("studentWeekConquerCard");
@@ -16809,7 +16809,6 @@ function renderStudentDailyTaskAndFreeSections(resp) {
   }
 
   window.renderTeacherStudentConquerSection("current");
-  }
 }
 
 function renderStudentSummary(resp) {
