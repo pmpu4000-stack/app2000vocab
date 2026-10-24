@@ -3173,7 +3173,7 @@ export function renderSummary(d) {
       <!-- 左欄：快速跳轉（歷程紀錄選單） -->
       <div class="date-nav-col date-nav-col-quick">
         <div class="date-nav-col-header">
-          <span class="date-nav-icon">🎯</span>
+          <span class="date-nav-icon">📅</span>
           <span class="date-nav-label">快速跳至有紀錄日期</span>
         </div>
         <div class="date-nav-control-wrap">
