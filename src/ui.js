@@ -1,4 +1,4 @@
-// =====================================================================
+﻿// =====================================================================
 // ui.js — the view. All DOM rendering lives here. It renders from plain
 // data and reports intent through callbacks; it never touches the store.
 // =====================================================================
@@ -2481,9 +2481,16 @@ export function getWeekPendingConquerWords(cycleParam = "current") {
         if (!item || !item.date) return;
         const iDate = String(item.date).trim().split(" ")[0].replace(/\//g, "-");
         if (iDate >= scanStartStr && iDate <= scanEndStr) {
-          // 排除自主練習或自由練習記錄
+          // 判斷是否排除自主練習或自由練習記錄
           const tName = String(item.taskName || "").trim();
-          if (tName === "自主練習" || tName.includes("自由練習")) return;
+          const conquerSettings = (() => {
+            try { return JSON.parse(localStorage.getItem("conquer_roll_settings") || "{}"); } catch(_) { return {}; }
+          })();
+          if (tName === "自主練習" || tName.includes("自由練習")) {
+            if (!conquerSettings.rollFreeMistakes) return;
+          }
+
+
 
           // 收集此任務已答對的單字，確保答對者絕不誤入待攻克
           const correctSet = new Set();
@@ -2496,10 +2503,14 @@ export function getWeekPendingConquerWords(cycleParam = "current") {
 
           // A. 明確答錯的單字 (wrongWords)
           if (Array.isArray(item.wrongWords)) {
+            const isFreeTask = (tName === "自主練習" || tName.includes("自由練習"));
+            const shouldRoll = isFreeTask ? conquerSettings.rollFreeMistakes === true : (conquerSettings.rollTaskMistakes !== false);
+            if (shouldRoll) {
             item.wrongWords.forEach(w => {
               const cw = normalizeCleanWord(w);
               if (cw && !correctSet.has(cw)) unfinishedWords.add(cw);
             });
+            }
           }
 
           // B. 尚未測驗/缺考 或 中途未作答完的單字

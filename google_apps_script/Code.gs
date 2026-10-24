@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 學生學習歷程系統 - 後端服務 (Code.gs)
  * v4.1：全面效能最佳化 + 老師線上出題介面 + 今日指定單字測驗 + 週末錯題補救成效 + 每日任務紀錄
  *
@@ -1925,6 +1925,26 @@ function getTimeRestrictions(param1) {
 /**
  * 儲存全校預設作答時間（儲存後自動成為下次預設）
  */
+function getConquerRollSettings() {
+  try {
+    const raw = PropertiesService.getScriptProperties().getProperty("CONQUER_ROLL_SETTINGS");
+    if (raw) return JSON.parse(raw);
+  } catch(_) {}
+  return { rollTaskMistakes: true, rollFreeMistakes: false };
+}
+
+function saveConquerRollSettings(param1, settingsData) {
+  const ss = (param1 && typeof param1.getSheetByName === "function") ? param1 : SpreadsheetApp.getActiveSpreadsheet();
+  const auth = authenticateUser(ss, settingsData.username, settingsData.password);
+  if (!auth.success || auth.role !== "teacher") return { status: "error", message: "無教師權限" };
+  const data = {
+    rollTaskMistakes: settingsData.rollTaskMistakes !== false,
+    rollFreeMistakes: !!settingsData.rollFreeMistakes
+  };
+  PropertiesService.getScriptProperties().setProperty("CONQUER_ROLL_SETTINGS", JSON.stringify(data));
+  return { status: "success", message: "✅ 待攻克單字滾入規則已成功更新！", settings: data };
+}
+
 function saveGlobalTimeSetting(param1, param2, param3) {
   let ss, teacherUser, timeData;
   if (param1 && typeof param1.getSheetByName === "function") {
@@ -2568,6 +2588,7 @@ function doPost(e) {
         taskWordsMap: getTaskWordsDictCached_(ss),
         dailyTaskHistory: dailyTaskHistory,
         timeRestriction: timeAllowance,
+        conquerSettings: getConquerRollSettings(),
         dailyUsage: getDailyUsageSettings(ss, auth.username, true),
         cachedSummary: cachedSummary
       });
@@ -2624,6 +2645,16 @@ function doPost(e) {
     }
 
     // ── 7. 學生使用時間管理 API ──
+    if (action === "getConquerRollSettings") {
+      const auth = authenticateUser(ss, params.username, params.password);
+      if (!auth.success || auth.role !== "teacher") return jsonResponse({ status: "error", message: "無教師權限" });
+      return jsonResponse({ status: "success", settings: getConquerRollSettings() });
+    }
+
+    if (action === "saveConquerRollSettings") {
+      return jsonResponse(saveConquerRollSettings(ss, params));
+    }
+
     if (action === "getTimeRestrictions") {
       const auth = authenticateUser(ss, params.username, params.password);
       if (!auth.success || auth.role !== "teacher") return jsonResponse({ status: "error", message: "無教師權限" });

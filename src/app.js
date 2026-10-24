@@ -1,4 +1,4 @@
-// =====================================================================
+﻿// =====================================================================
 // app.js — the controller. Boots the word bank, runs the placement test,
 // drives level-based practice, gates progression behind challenges,
 // and manages teacher-assigned tasks & weekend mistake remediation.
@@ -293,6 +293,14 @@ function getVacationDayAssignedWords(dayOfWeek) {
 }
 
 // ── 錯題記錄：記錄平日測驗與自由練習中答錯的單字（滾入週末消滅戰） ──
+function getConquerRollSettings() {
+  try {
+    const raw = localStorage.getItem("conquer_roll_settings");
+    if (raw) return JSON.parse(raw);
+  } catch(_) {}
+  return { rollTaskMistakes: true, rollFreeMistakes: false };
+}
+
 function recordTaskMistake(word) {
   try {
     const raw = localStorage.getItem("weekTaskMistakes");

@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="zh-Hant">
 <head>
   <meta charset="utf-8">
@@ -986,6 +986,10 @@
               return cloudItem;
             });
             localStorage.setItem("student_task_history", JSON.stringify(mergedHist));
+          }
+
+          if (result.conquerSettings && typeof result.conquerSettings === "object") {
+            localStorage.setItem("conquer_roll_settings", JSON.stringify(result.conquerSettings));
           }
 
           // 若有今日指定任務，存入 sessionStorage 與 localStorage 供 app.js 抓取
