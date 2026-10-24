@@ -124,7 +124,7 @@ export function renderRound(word, mode, { onAnswer, onCheck }) {
       n: '名詞', v: '動詞', vt: '及物動詞', vi: '不及物動詞',
       a: '形容詞', adj: '形容詞', adv: '副詞', prep: '介系詞',
       conj: '連接詞', pron: '代名詞', num: '數詞', aux: '助動詞',
-      art: '冠詞', int: '感嘆詞', interj: '感嘆詞'
+      art: '冠詞', int: '感嘆詞', interj: '感嘆詞', phr: '片語'
     };
     const parts = word.zh.split('；');
     const transList = [];
