@@ -675,29 +675,66 @@
       } catch(_) {}
     }
 
-    // 點擊「登入帳號」欄位可確認資訊或切換登出
+    // 點擊「登入帳號」欄位彈出帳號資訊與切換視窗（連勝護盾同款毛玻璃樣式）
+    window.openAccountModal = function() {
+      const cur = localStorage.getItem("current_user") || "尚未登入";
+      const role = localStorage.getItem("user_role") === "teacher" ? "教師" : "學生";
+      let mEl = document.getElementById("account-info-modal");
+      if (!mEl) {
+        mEl = document.createElement("div");
+        mEl.id = "account-info-modal";
+        mEl.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.65);backdrop-filter:blur(4px);z-index:999999;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;";
+        mEl.onclick = (e) => { if (e.target === mEl) mEl.style.display = "none"; };
+        document.body.appendChild(mEl);
+      }
+      mEl.innerHTML = `
+        <div style="background:var(--card, #FFFFFF); color:var(--ink, #1E293B); border-radius:18px; max-width:400px; width:100%; padding:24px 22px; box-shadow:0 12px 36px rgba(0,0,0,0.25); border:1.5px solid var(--line, #E2E8F0); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; line-height:1.6;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; border-bottom:1px solid var(--line, #E2E8F0); padding-bottom:10px;">
+            <div style="font-size:18px; font-weight:800; display:flex; align-items:center; gap:8px;">
+              <span>👤 目前登入帳號</span>
+            </div>
+            <button onclick="document.getElementById('account-info-modal').style.display='none'" style="background:none; border:none; font-size:20px; cursor:pointer; color:var(--ink3, #94A3B8); padding:0 4px;">✕</button>
+          </div>
+          <div style="background:rgba(59,130,246,0.08); border:1px solid #3B82F6; border-radius:12px; padding:14px; margin-bottom:16px; text-align:center;">
+            <div style="font-size:13px; color:var(--ink2, #475569); font-weight:600; margin-bottom:2px;">登入身分</div>
+            <div style="font-size:22px; font-weight:900; color:#2563EB;">${cur}</div>
+            <div style="font-size:13px; font-weight:700; color:#3B82F6; margin-top:2px;">身分別：${role}</div>
+          </div>
+          <div style="font-size:13.5px; color:var(--ink2, #475569); margin-bottom:18px; text-align:center;">
+            若需更換使用者，請點選下方切換帳號。
+          </div>
+          <div style="display:flex; gap:10px;">
+            <button onclick="document.getElementById('account-info-modal').style.display='none'" style="flex:1; padding:10px 0; background:var(--bg2, #F1F5F9); color:var(--ink, #334155); border:1px solid var(--line, #CBD5E1); border-radius:10px; font-size:14px; font-weight:700; cursor:pointer;">
+              關閉
+            </button>
+            <button onclick="window.confirmLogoutFromModal()" style="flex:1; padding:10px 0; background:linear-gradient(135deg,#EF4444,#DC2626); color:#FFFFFF; border:none; border-radius:10px; font-size:14px; font-weight:800; cursor:pointer; box-shadow:0 2px 8px rgba(220,38,38,0.3);">
+              切換登出
+            </button>
+          </div>
+        </div>
+      `;
+      mEl.style.display = "flex";
+    };
+
+    window.confirmLogoutFromModal = function() {
+      const cur = localStorage.getItem("current_user") || "";
+      try {
+        const rawProg = localStorage.getItem("today_task_in_progress");
+        if (rawProg && cur) {
+          localStorage.setItem("today_task_in_progress_" + cur.toLowerCase(), rawProg);
+        }
+        if (window.uploadLocalStorageData) {
+          window.uploadLocalStorageData(true, true);
+        }
+      } catch(_) {}
+      purgeAllStudentSessionAndLocalData();
+      location.reload();
+    };
+
     const statUser = document.getElementById("stat-user");
     if (statUser) {
-      statUser.onclick = () => {
-        const cur = localStorage.getItem("current_user") || "尚未登入";
-        const role = localStorage.getItem("user_role") === "teacher" ? "教師" : "學生";
-        if (confirm(`【帳號資訊】\n目前登入帳號：${cur} (${role})\n\n是否要登出並切換其他帳號？`)) {
-          // 若有進行中進度，確保寫入專屬帳號快取並觸發緊急同步
-          try {
-            const rawProg = localStorage.getItem("today_task_in_progress");
-            if (rawProg && cur) {
-              localStorage.setItem("today_task_in_progress_" + cur.toLowerCase(), rawProg);
-            }
-            if (window.uploadLocalStorageData) {
-              window.uploadLocalStorageData(true, true);
-            }
-          } catch(_) {}
-          // 徹底抹除電腦教室本機所有帳號殘留資料，保證零污染
-          purgeAllStudentSessionAndLocalData();
-          // 登出時重新載入頁面，徹底銷毀記憶體中的舊帳號作答狀態與定時器
-          location.reload();
-        }
-      };
+      statUser.style.cursor = "pointer";
+      statUser.onclick = () => window.openAccountModal();
     }
 
     // 點擊「連勝護盾」欄位彈出說明彈窗
@@ -1887,15 +1924,58 @@
       localStorage.setItem(`daily_usage_${currentUser}_extended_minutes`, String(dailyUsageState.extendedMinutes));
       localStorage.setItem(`daily_usage_${currentUser}_unlocked`, dailyUsageState.unlocked ? "true" : "false");
 
+      window.openDailyTimerModal = function() {
+        const totalMins = dailyUsageState.limitMinutes + dailyUsageState.extendedMinutes;
+        const extraText = dailyUsageState.extendedMinutes > 0 ? `（含延長 ${dailyUsageState.extendedMinutes} 分鐘）` : "";
+        const isUnlocked = !!dailyUsageState.unlocked;
+        const statusBadge = isUnlocked ? "🟢 今日不限時" : `⏳ 今日可練習：${totalMins} 分鐘 ${extraText}`;
+        
+        let mEl = document.getElementById("daily-timer-modal");
+        if (!mEl) {
+          mEl = document.createElement("div");
+          mEl.id = "daily-timer-modal";
+          mEl.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.65);backdrop-filter:blur(4px);z-index:999999;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;";
+          mEl.onclick = (e) => { if (e.target === mEl) mEl.style.display = "none"; };
+          document.body.appendChild(mEl);
+        }
+        mEl.innerHTML = `
+          <div style="background:var(--card, #FFFFFF); color:var(--ink, #1E293B); border-radius:18px; max-width:440px; width:100%; padding:24px 22px; box-shadow:0 12px 36px rgba(0,0,0,0.25); border:1.5px solid var(--line, #E2E8F0); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; line-height:1.6;">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; border-bottom:1px solid var(--line, #E2E8F0); padding-bottom:10px;">
+              <div style="font-size:18px; font-weight:800; display:flex; align-items:center; gap:8px;">
+                <span>⏱️ 每日練習時間說明</span>
+              </div>
+              <button onclick="document.getElementById('daily-timer-modal').style.display='none'" style="background:none; border:none; font-size:20px; cursor:pointer; color:var(--ink3, #94A3B8); padding:0 4px;">✕</button>
+            </div>
+            
+            <div style="background:rgba(245,158,11,0.1); border:1px solid #F59E0B; border-radius:12px; padding:12px 14px; margin-bottom:14px; text-align:center;">
+              <div style="font-size:13px; color:var(--ink2, #475569); font-weight:600; margin-bottom:2px;">今日練習限額</div>
+              <div style="font-size:20px; font-weight:900; color:#D97706;">${statusBadge}</div>
+            </div>
+
+            <div style="font-size:13.5px; color:var(--ink2, #475569); display:flex; flex-direction:column; gap:10px; margin-bottom:18px;">
+              <div>
+                <b style="color:var(--ink, #0F172A);">🕒 每日計時方式</b><br>
+                每天從<b>第一次登入</b>開始計算時間。
+              </div>
+              <div>
+                <b style="color:var(--ink, #0F172A);">👀 時間到了會怎樣？</b><br>
+                練習時間結束後會暫停答題功能以保護眼睛；您依然可以隨時查看<b>學習進度、學習足跡、待攻克單字與歷程檔案</b>，自由複習所有已學內容！
+              </div>
+            </div>
+
+            <button onclick="document.getElementById('daily-timer-modal').style.display='none'" style="width:100%; padding:10px 0; background:linear-gradient(135deg,#3B82F6,#2563EB); color:#FFFFFF; border:none; border-radius:10px; font-size:14px; font-weight:800; cursor:pointer; box-shadow:0 2px 8px rgba(37,99,235,0.3);">
+              我知道了
+            </button>
+          </div>
+        `;
+        mEl.style.display = "flex";
+      };
+
       const timerBadge = document.getElementById("stat-daily-timer");
       if (timerBadge) {
         timerBadge.style.display = "inline-flex";
-        timerBadge.onclick = () => {
-          const totalMins = dailyUsageState.limitMinutes + dailyUsageState.extendedMinutes;
-          const extra = dailyUsageState.extendedMinutes > 0 ? `（含老師延長 ${dailyUsageState.extendedMinutes} 分鐘）` : "";
-          const statusText = dailyUsageState.unlocked ? "今日不限時（老師已解除限制）" : `今日上限：${totalMins} 分鐘 ${extra}`;
-          alert(`⏱️【每日使用時間說明】\n${statusText}\n\n從當天首次登入開始計算時間，時間到了之後僅顯示學習進度 Progress 方塊供您複習單字！`);
-        };
+        timerBadge.style.cursor = "pointer";
+        timerBadge.onclick = () => window.openDailyTimerModal();
       }
 
       updateDailyUsageTick();
