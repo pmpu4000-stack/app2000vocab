@@ -474,8 +474,9 @@ export function showResult(correct, word, info, guessVal = "", onRepairComplete 
     `;
     pulse("shake"); say(word.word, 0.8);
 
-    // 隱藏「下一個 Next」按鈕，直到訂正完成再顯示解鎖
-    el.checkBtn.style.display = "none";
+    // 佔位隱藏「下一個 Next」按鈕，保持高度防抖動，直到訂正完成再顯示解鎖
+    el.checkBtn.style.display = "";
+    el.checkBtn.style.visibility = "hidden";
     el.checkBtn.disabled = true;
 
     const repairInp = document.getElementById("active-repair-input");
@@ -531,7 +532,7 @@ export function focusActiveRepair() {
   }
 }
 export function setActionNext() {
-  el.checkBtn.style.display = ""; el.checkBtn.disabled = false;
+  el.checkBtn.style.display = ""; el.checkBtn.style.visibility = "visible"; el.checkBtn.disabled = false;
   el.checkBtn.textContent = "下一個 Next →"; el.checkBtn.className = "btn go";
   setTimeout(() => { try { el.checkBtn.focus(); } catch(_) {} }, 50);
 }
