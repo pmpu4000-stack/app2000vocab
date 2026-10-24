@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 學生學習歷程系統 - 後端服務 (Code.gs)
  * v4.1：全面效能最佳化 + 老師線上出題介面 + 今日指定單字測驗 + 週末錯題補救成效 + 每日任務紀錄
  *
@@ -1930,7 +1930,7 @@ function getConquerRollSettings() {
     const raw = PropertiesService.getScriptProperties().getProperty("CONQUER_ROLL_SETTINGS");
     if (raw) return JSON.parse(raw);
   } catch(_) {}
-  return { rollTaskMistakes: true, rollFreeMistakes: false };
+  return { rollTaskMistakes: true, rollFreeMistakes: false, semesterStartDate: "", manualCurrentWeek: 0 };
 }
 
 function saveConquerRollSettings(param1, settingsData) {
@@ -1939,10 +1939,12 @@ function saveConquerRollSettings(param1, settingsData) {
   if (!auth.success || auth.role !== "teacher") return { status: "error", message: "無教師權限" };
   const data = {
     rollTaskMistakes: settingsData.rollTaskMistakes !== false,
-    rollFreeMistakes: !!settingsData.rollFreeMistakes
+    rollFreeMistakes: !!settingsData.rollFreeMistakes,
+    semesterStartDate: settingsData.semesterStartDate ? String(settingsData.semesterStartDate).trim() : "",
+    manualCurrentWeek: Number.isInteger(Number(settingsData.manualCurrentWeek)) ? Number(settingsData.manualCurrentWeek) : 0
   };
   PropertiesService.getScriptProperties().setProperty("CONQUER_ROLL_SETTINGS", JSON.stringify(data));
-  return { status: "success", message: "✅ 待攻克單字滾入規則已成功更新！", settings: data };
+  return { status: "success", message: "✅ 待攻克單字規則與週次設定已成功更新！", settings: data };
 }
 
 function saveGlobalTimeSetting(param1, param2, param3) {

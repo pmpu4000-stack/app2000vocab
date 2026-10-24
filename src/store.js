@@ -60,7 +60,7 @@ export function getWeekRangeDates(baseDate = new Date()) {
   };
 }
 
-// Calculate 2-week (bi-weekly) cycle info
+// Calculate semester week & bi-weekly cycle info
 export function getBiweeklyCycleInfo(baseDate = new Date()) {
   const d = new Date(baseDate);
   const target = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
@@ -72,9 +72,45 @@ export function getBiweeklyCycleInfo(baseDate = new Date()) {
     target.setUTCMonth(0, 1 + ((4 - target.getUTCDay()) + 7) % 7);
   }
   const isoWeek = 1 + Math.ceil((firstThursday - target) / 604800000);
+
+  // 取得教師設定：學期開學日與手動指定週次
+  let semesterStartDate = "";
+  let manualCurrentWeek = 0;
+  try {
+    const raw = localStorage.getItem("conquer_roll_settings");
+    if (raw) {
+      const cfg = JSON.parse(raw);
+      if (cfg.semesterStartDate) semesterStartDate = String(cfg.semesterStartDate).trim();
+      if (cfg.manualCurrentWeek) manualCurrentWeek = parseInt(cfg.manualCurrentWeek, 10) || 0;
+    }
+  } catch(_) {}
+
+  let semesterWeek = 1;
+  if (manualCurrentWeek > 0) {
+    semesterWeek = manualCurrentWeek;
+  } else if (semesterStartDate) {
+    const sDate = new Date(semesterStartDate + "T00:00:00");
+    if (!isNaN(sDate.getTime())) {
+      const sDay = sDate.getDay();
+      const sMon = new Date(sDate.getFullYear(), sDate.getMonth(), sDate.getDate() - sDay + (sDay === 0 ? -6 : 1));
+      const curMon = new Date(d.getFullYear(), d.getMonth(), d.getDate() - dayNr);
+      const diffWeeks = Math.floor((curMon - sMon) / (7 * 86400000));
+      semesterWeek = Math.max(1, diffWeeks + 1);
+    }
+  } else {
+    // 預設依學期自動推算：上學期（8/30起）、下學期（2/15起）
+    const y = d.getFullYear();
+    const m = d.getMonth() + 1;
+    const defStart = (m >= 2 && m <= 7) ? new Date(y, 1, 15) : (m < 2 ? new Date(y - 1, 7, 30) : new Date(y, 7, 30));
+    const sDay = defStart.getDay();
+    const sMon = new Date(defStart.getFullYear(), defStart.getMonth(), defStart.getDate() - sDay + (sDay === 0 ? -6 : 1));
+    const curMon = new Date(d.getFullYear(), d.getMonth(), d.getDate() - dayNr);
+    const diffWeeks = Math.floor((curMon - sMon) / (7 * 86400000));
+    semesterWeek = Math.max(1, diffWeeks + 1);
+  }
   
   // 雙週週期：奇數週為第 1 週，偶數週為第 2 週（雙週大消滅週）
-  const isBiweeklyBossWeek = (isoWeek % 2 === 0);
+  const isBiweeklyBossWeek = (semesterWeek % 2 === 0);
   const weekOfCycle = isBiweeklyBossWeek ? 2 : 1;
   
   const currentWeek = getWeekRangeDates(d);
@@ -90,6 +126,9 @@ export function getBiweeklyCycleInfo(baseDate = new Date()) {
 
   return {
     isoWeek,
+    semesterWeek,
+    manualCurrentWeek,
+    semesterStartDate,
     isBiweeklyBossWeek,
     weekOfCycle,
     currentWeek,

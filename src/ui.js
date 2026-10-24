@@ -2437,7 +2437,19 @@ export function getWeekPendingConquerWords(cycleParam = "current") {
   const cycleInfo = getBiweeklyCycleInfo();
   
   let scanStartStr, scanEndStr;
-  if (cycleParam === "previous" || cycleParam === "prevWeek") {
+  if (typeof cycleParam === "string" && cycleParam.startsWith("week_")) {
+    const targetW = parseInt(cycleParam.replace("week_", ""), 10) || 1;
+    const curW = cycleInfo.semesterWeek || 1;
+    const diffW = targetW - curW;
+    const dNow = new Date();
+    const day = dNow.getDay();
+    const diffToMon = dNow.getDate() - day + (day === 0 ? -6 : 1);
+    const targetMon = new Date(dNow.getFullYear(), dNow.getMonth(), diffToMon + diffW * 7);
+    const targetFri = new Date(dNow.getFullYear(), dNow.getMonth(), diffToMon + diffW * 7 + 4);
+    const formatD = (dt) => dt.getFullYear() + "-" + String(dt.getMonth() + 1).padStart(2, "0") + "-" + String(dt.getDate()).padStart(2, "0");
+    scanStartStr = formatD(targetMon);
+    scanEndStr = formatD(targetFri);
+  } else if (cycleParam === "previous" || cycleParam === "prevWeek") {
     // 上一週平日 (週一至週五)
     scanStartStr = cycleInfo.prevWeek.monday;
     scanEndStr = cycleInfo.prevWeek.friday;
@@ -2679,21 +2691,41 @@ export function buildWeekPendingConquerHtml(words, d = null, cycleParam = _activ
     </div>
   `;
 
-  // 週期選擇導覽列（移入卡片內部）
+  // 週期選擇導覽列（支援第 1~20 週週次切換與本週雙週魔王戰提示）
+  const curSemWeek = cycleInfo.semesterWeek || 1;
+  const isSelectedCurrent = (cycleParam === "current" || cycleParam === ("week_" + curSemWeek));
+
+  let weekOptionsHtml = "";
+  for (let w = 1; w <= 20; w++) {
+    const isWCurrent = (w === curSemWeek);
+    const isWBoss = (w % 2 === 0);
+    const val = "week_" + w;
+    const selected = (cycleParam === val) || (isSelectedCurrent && isWCurrent);
+    let label = `第 ${w} 週`;
+    if (isWCurrent) label += `（本週${isWBoss ? " · 雙週魔王週" : ""}）`;
+    else if (isWBoss) label += `（雙週大消滅）`;
+    weekOptionsHtml += `<option value="${val}" ${selected ? 'selected' : ''}>${label}</option>`;
+  }
+
   const cycleSelectBarHtml = `
     <div class="conquer-cycle-nav-bar" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; padding:8px 12px; background:var(--bar-track, rgba(148,163,184,0.08)); border:1px solid rgba(148,163,184,0.18); border-radius:10px; margin-bottom:4px;">
       <div style="display:flex; align-items:center; gap:6px; font-size:12.5px; font-weight:750; color:var(--ink);">
         <span>📅 查看週次：</span>
-        <select id="conquer-cycle-select" class="task-date-selector" style="font-size:12px; padding:3px 8px; border-radius:6px; border:1px solid rgba(148,163,184,0.35); background:var(--card, #fff); color:var(--ink); font-weight:600; cursor:pointer;" title="選擇查看待攻克週次">
-          <option value="current" ${cycleParam === 'current' ? 'selected' : ''}>${cycleInfo.isBiweeklyBossWeek ? '本週（雙週大魔王消滅戰）' : '本週（雙週第 1 週平日）'}</option>
-          <option value="prevWeek" ${(cycleParam === 'prevWeek' || cycleParam === 'previous') ? 'selected' : ''}>上一週平日測驗</option>
-          <option value="prevBiweekly" ${cycleParam === 'prevBiweekly' ? 'selected' : ''}>上一回雙週週期（過去14天）</option>
+        <select id="conquer-cycle-select" class="task-date-selector" style="font-size:12px; padding:4px 9px; border-radius:6px; border:1.5px solid rgba(148,163,184,0.35); background:var(--card, #fff); color:var(--ink); font-weight:700; cursor:pointer;" title="選擇查看待攻克學期週次">
+          <option value="current" ${cycleParam === 'current' ? 'selected' : ''}>${cycleInfo.isBiweeklyBossWeek ? '本週（第 ' + curSemWeek + ' 週 · 雙週魔王儲備池）' : '本週（第 ' + curSemWeek + ' 週平日）'}</option>
+          <optgroup label="── 學期各週次（第 1 ~ 20 週）──">
+            ${weekOptionsHtml}
+          </optgroup>
+          <optgroup label="── 快捷週期 ──">
+            <option value="prevWeek" ${(cycleParam === 'prevWeek' || cycleParam === 'previous') ? 'selected' : ''}>上一週平日測驗</option>
+            <option value="prevBiweekly" ${cycleParam === 'prevBiweekly' ? 'selected' : ''}>上一回完整雙週（過去14天）</option>
+          </optgroup>
         </select>
       </div>
       <div class="conquer-cycle-toggle-group" style="display:inline-flex; align-items:center; gap:4px;">
-        <button type="button" id="btn-conquer-cycle-current" class="date-nav-btn ${cycleParam === 'current' ? 'active' : ''}" style="font-size:11.5px; padding:3px 8px; border-radius:6px; height:auto; line-height:1.2;">本週</button>
+        <button type="button" id="btn-conquer-cycle-current" class="date-nav-btn ${isSelectedCurrent ? 'active' : ''}" style="font-size:11.5px; padding:3px 8px; border-radius:6px; height:auto; line-height:1.2;">本週 (W${curSemWeek})</button>
         <button type="button" id="btn-conquer-cycle-prev" class="date-nav-btn ${(cycleParam === 'prevWeek' || cycleParam === 'previous') ? 'active' : ''}" style="font-size:11.5px; padding:3px 8px; border-radius:6px; height:auto; line-height:1.2;" title="查看上一週遺留待攻克單字">上一週</button>
-        <button type="button" id="btn-conquer-cycle-biweekly" class="date-nav-btn ${cycleParam === 'prevBiweekly' ? 'active' : ''}" style="font-size:11.5px; padding:3px 8px; border-radius:6px; height:auto; line-height:1.2;" title="查看上一回雙週（過去14天）所有待攻克單字">上一回雙週</button>
+        <button type="button" id="btn-conquer-cycle-biweekly" class="date-nav-btn ${cycleParam === 'prevBiweekly' ? 'active' : ''}" style="font-size:11.5px; padding:3px 8px; border-radius:6px; height:auto; line-height:1.2;" title="查看上一回雙週（過去14天）所有待攻克單字">雙週大池</button>
       </div>
     </div>
   `;

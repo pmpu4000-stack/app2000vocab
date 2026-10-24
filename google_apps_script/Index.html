@@ -5181,13 +5181,13 @@
           </div>
           <div id="duMsg" style="font-size:13px; font-weight:700; color:var(--primary); margin-top:10px; min-height:18px;"></div>
         </div>
-        <!-- 📋 待攻克單字滾入規則設定 -->
+        <!-- 📋 待攻克單字滾入規則與學期週次設定 -->
         <div style="border:1.5px solid var(--border); border-radius:12px; padding:16px 18px; margin-bottom:18px; background:var(--card);">
-          <div style="font-size:15px; font-weight:800; color:var(--text); margin-bottom:4px;">📋 待攻克單字滾入規則（教師控制）</div>
+          <div style="font-size:15px; font-weight:800; color:var(--text); margin-bottom:4px;">📋 待攻克單字滾入規則與學期週次設定（教師控制）</div>
           <div style="font-size:12.5px; color:var(--text-muted); margin-bottom:14px; line-height:1.6;">
-            控制學生在平常測驗或練習中答錯時，是否自動將錯題滾入「週末待攻克消滅戰」中進行補救。
+            控制學生平日答錯題目滾入待攻克機制，並可設定學期開學日或手動指定目前教學週次，精準對應學校行事曆。
           </div>
-          <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:12px;">
+          <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:14px;">
             <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13.5px; font-weight:600; color:var(--text);">
               <input type="checkbox" id="conquerRollTaskMistakes" checked style="width:16px; height:16px; accent-color:var(--primary);">
               指定單字測驗答錯的單字滾入待攻克（預設開啟，讓學生週末補救平日指定測驗錯題）
@@ -5197,8 +5197,44 @@
               自由練習答錯的單字滾入待攻克（預設關閉，鼓勵自主安全探索不懲罰；若開啟則自由練習答錯也需週末補救）
             </label>
           </div>
+          
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:12px; padding:12px 14px; background:rgba(148,163,184,0.08); border-radius:10px; margin-bottom:14px; border:1px solid var(--border);">
+            <div>
+              <label style="font-size:12.5px; font-weight:700; color:var(--text); display:block; margin-bottom:4px;">🗓️ 學期開學首週週一日期：</label>
+              <input type="date" id="conquerSemesterStartDate" style="width:100%; padding:6px 10px; border-radius:6px; border:1px solid var(--border); background:var(--card); color:var(--text); font-size:13px; box-sizing:border-box;">
+              <div style="font-size:11px; color:var(--text-muted); margin-top:3px;">留空則依系統自動推定（8/30 或 2/15）</div>
+            </div>
+            <div>
+              <label style="font-size:12.5px; font-weight:700; color:var(--text); display:block; margin-bottom:4px;">⚙️ 手動指定當前週次（可覆寫）：</label>
+              <select id="conquerManualCurrentWeek" style="width:100%; padding:6px 10px; border-radius:6px; border:1px solid var(--border); background:var(--card); color:var(--text); font-size:13px; box-sizing:border-box; cursor:pointer;">
+                <option value="0">🤖 自動推算（依開學日自動計算當前週次）</option>
+                <option value="1">第 1 週</option>
+                <option value="2">第 2 週（雙週大消滅）</option>
+                <option value="3">第 3 週</option>
+                <option value="4">第 4 週（雙週大消滅）</option>
+                <option value="5">第 5 週</option>
+                <option value="6">第 6 週（雙週大消滅）</option>
+                <option value="7">第 7 週</option>
+                <option value="8">第 8 週（雙週大消滅）</option>
+                <option value="9">第 9 週</option>
+                <option value="10">第 10 週（雙週大消滅）</option>
+                <option value="11">第 11 週</option>
+                <option value="12">第 12 週（雙週大消滅）</option>
+                <option value="13">第 13 週</option>
+                <option value="14">第 14 週（雙週大消滅）</option>
+                <option value="15">第 15 週</option>
+                <option value="16">第 16 週（雙週大消滅）</option>
+                <option value="17">第 17 週</option>
+                <option value="18">第 18 週（雙週大消滅）</option>
+                <option value="19">第 19 週</option>
+                <option value="20">第 20 週（雙週大消滅）</option>
+              </select>
+              <div style="font-size:11px; color:var(--text-muted); margin-top:3px;">如遇連假、放假可隨時手動微調指定當前週次</div>
+            </div>
+          </div>
+
           <div style="display:flex; gap:10px; align-items:center;">
-            <button class="btn-secondary btn-sm" onclick="saveConquerRollSettings()" style="padding:8px 16px; font-weight:700;">💾 儲存滾入規則</button>
+            <button class="btn-secondary btn-sm" onclick="saveConquerRollSettings()" style="padding:8px 16px; font-weight:700;">💾 儲存規則與週次設定</button>
             <div id="conquerRollMsg" style="font-size:13px; font-weight:700; color:var(--primary); min-height:18px;"></div>
           </div>
         </div>
@@ -8655,6 +8691,11 @@ function switchTtsSubTab(subTab) {
 function saveConquerRollSettings() {
   const rollTask = document.getElementById("conquerRollTaskMistakes").checked;
   const rollFree = document.getElementById("conquerRollFreeMistakes").checked;
+  const semDateEl = document.getElementById("conquerSemesterStartDate");
+  const manWeekEl = document.getElementById("conquerManualCurrentWeek");
+  const semDate = semDateEl ? semDateEl.value : "";
+  const manWeek = manWeekEl ? parseInt(manWeekEl.value, 10) || 0 : 0;
+
   const msg = document.getElementById("conquerRollMsg");
   if (msg) msg.textContent = "儲存中...";
 
@@ -8666,7 +8707,7 @@ function saveConquerRollSettings() {
   google.script.run
     .withSuccessHandler(resp => {
       if (msg) {
-        msg.textContent = (resp && resp.status === "success") ? "✅ 已儲存待攻克規則" : ("儲存失敗：" + ((resp && resp.message) || "未知"));
+        msg.textContent = (resp && resp.status === "success") ? "✅ 已儲存待攻克規則與週次設定" : ("儲存失敗：" + ((resp && resp.message) || "未知"));
         setTimeout(() => { if (msg) msg.textContent = ""; }, 4000);
       }
     })
@@ -8677,7 +8718,9 @@ function saveConquerRollSettings() {
       username: currentUser,
       password: currentPass,
       rollTaskMistakes: rollTask,
-      rollFreeMistakes: rollFree
+      rollFreeMistakes: rollFree,
+      semesterStartDate: semDate,
+      manualCurrentWeek: manWeek
     });
 }
 
@@ -8688,8 +8731,14 @@ function loadConquerRollSettings() {
       if (resp && resp.settings) {
         const el1 = document.getElementById("conquerRollTaskMistakes");
         const el2 = document.getElementById("conquerRollFreeMistakes");
+        const semDateEl = document.getElementById("conquerSemesterStartDate");
+        const manWeekEl = document.getElementById("conquerManualCurrentWeek");
         if (el1) el1.checked = (resp.settings.rollTaskMistakes !== false);
         if (el2) el2.checked = !!resp.settings.rollFreeMistakes;
+        if (semDateEl && resp.settings.semesterStartDate) semDateEl.value = resp.settings.semesterStartDate;
+        if (manWeekEl && typeof resp.settings.manualCurrentWeek !== "undefined") {
+          manWeekEl.value = String(resp.settings.manualCurrentWeek);
+        }
       }
     })
     .withFailureHandler(() => {})
