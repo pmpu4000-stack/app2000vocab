@@ -39,7 +39,9 @@ header{display:flex; align-items:center; justify-content:space-between; flex-wra
 .title{flex:0 0 auto;min-width:180px}
 .title h1{font-size:22px;font-weight:800;letter-spacing:.2px;line-height:1.15;white-space:nowrap}
 .title p{font-size:12.5px;color:var(--ink2);font-weight:600;white-space:nowrap}
-.stats{margin-left:auto;display:flex;gap:8px;align-items:stretch;flex-wrap:wrap}
+.stats{margin-left:auto;display:flex;gap:12px;align-items:stretch;flex-wrap:wrap}
+.stats-group{display:inline-flex;align-items:center;gap:6px;padding:3px 6px;border-radius:16px;background:rgba(35,42,77,0.03);border:1px solid rgba(35,42,77,0.06);box-sizing:border-box}
+[data-theme="dark"] .stats-group{background:rgba(255,255,255,0.03);border-color:rgba(255,255,255,0.08)}
 .stat{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:6px 12px;text-align:center;min-width:58px;width:auto;box-shadow:0 2px 0 var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;box-sizing:border-box;flex:0 0 auto;height:52px}
 .stat b{display:flex;align-items:center;justify-content:center;height:22px;font-size:18px;font-weight:800;line-height:22px;white-space:nowrap}
 .stat span{display:flex;align-items:center;justify-content:center;height:14px;margin-top:2px;font-size:10px;color:var(--ink3);font-weight:700;letter-spacing:.4px;text-transform:uppercase;white-space:nowrap;line-height:14px}
@@ -251,9 +253,12 @@ header{display:flex; align-items:center; justify-content:space-between; flex-wra
 .feedback.ok{color:var(--green-d)} .feedback.bad{color:var(--coral)}
 .reveal{text-align:center;font-size:30px;font-weight:800;letter-spacing:1px;min-height:20px}
 .reveal .hl{background:linear-gradient(transparent 55%, var(--marker) 55%);padding:0 2px;border-radius:3px}
-.actions{display:flex;gap:10px;margin-top:14px}
-.btn{flex:1;border:none;border-radius:15px;padding:15px;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit;
-  transition:transform .1s,box-shadow .1s}
+.actions{display:flex;gap:10px;margin-top:10px}
+.btn{flex:1;border:none;border-radius:15px;padding:14px;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit;
+  transition:transform .12s cubic-bezier(0.16, 1, 0.3, 1),box-shadow .12s cubic-bezier(0.16, 1, 0.3, 1),background .15s ease}
+.btn.ready{animation:btnPulseFocus 1.4s infinite ease-in-out;box-shadow:0 0 0 4px rgba(108,76,224,0.25),0 8px 20px -6px var(--violet)}
+@keyframes btnPulseFocus{0%,100%{transform:scale(1)}50%{transform:scale(1.02);box-shadow:0 0 0 6px rgba(108,76,224,0.35),0 10px 22px -6px var(--violet)}}
+.tile.blank input:focus{border-color:var(--violet);box-shadow:0 0 0 3px rgba(108,76,224,0.2);background:#FAF8FF}
 .btn:active{transform:translateY(1px)}
 .btn.primary{background:linear-gradient(135deg,var(--violet),#8a6bf0);color:#fff;box-shadow:0 8px 18px -8px var(--violet)}
 .btn.go{background:linear-gradient(135deg,var(--green),#41c98a);color:#fff;box-shadow:0 8px 18px -8px var(--green)}
@@ -633,11 +638,14 @@ body.daily-limit-reached #btn-upload {
   .stats { gap: 10px; }
 }
 
-/* 平板裝置 (641px ~ 1023px)：最適網格排版與自適應間距 */
+/* 平板裝置 (641px ~ 1023px)：最適網格排版與分群視覺 */
 @media (max-width: 1023px) and (min-width: 641px) {
   .app { max-width: 100%; padding: 0 8px; }
   header { gap: 10px; }
-  .stats { width: 100%; margin-top: 8px; display: grid; grid-template-columns: repeat(auto-fit, minmax(85px, 1fr)); gap: 8px; }
+  .stats { width: 100%; margin-top: 8px; display: flex; flex-direction: column; gap: 8px; }
+  .stats-group { width: 100%; display: grid; gap: 6px; padding: 4px 6px; }
+  .stats-status-group { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); }
+  .stats-action-group { grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); }
   .stat, .stat.ok, .stat.user, .stat.upload, .stat.score, .stat.rate, .stat.timer, .stat.theme, .stat.streak-freeze, .stat.font-size-btn {
     flex: none; width: 100%; min-width: 0; height: 50px; padding: 6px 4px;
   }
@@ -645,7 +653,7 @@ body.daily-limit-reached #btn-upload {
   .opt { min-height: 54px; font-size: 19px; }
 }
 
-/* 手機與小型裝置 (<=640px)：觸控熱區人體工學、全幅自適應 */
+/* 手機與小型裝置 (<=640px)：分群兩列卡片、觸控熱區人體工學 */
 @media (max-width: 640px) {
   body { padding: 8px 6px 36px; }
   header { flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
@@ -653,7 +661,10 @@ body.daily-limit-reached #btn-upload {
   .logo { width: 42px; height: 42px; font-size: 20px; flex: 0 0 42px; border-radius: 12px; }
   .title h1 { font-size: 18px; }
   .title p { font-size: 11px; }
-  .stats { width: 100%; margin: 4px 0 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+  .stats { width: 100%; margin: 4px 0 0; display: flex; flex-direction: column; gap: 6px; }
+  .stats-group { width: 100%; display: grid; gap: 4px; padding: 3px 4px; border-radius: 12px; }
+  .stats-status-group { grid-template-columns: repeat(3, 1fr); }
+  .stats-action-group { grid-template-columns: repeat(4, 1fr); }
   .stat, .stat.ok, .stat.user, .stat.upload, .stat.score, .stat.rate, .stat.timer, .stat.theme, .stat.streak-freeze {
     flex: none; width: 100%; min-width: 0; height: 46px; padding: 3px 2px; border-radius: 10px;
   }
@@ -675,7 +686,8 @@ body.daily-limit-reached #btn-upload {
 }
 
 @media (max-width: 380px) {
-  .stats { grid-template-columns: repeat(3, 1fr); gap: 4px; }
+  .stats-status-group { grid-template-columns: repeat(3, 1fr); gap: 3px; }
+  .stats-action-group { grid-template-columns: repeat(3, 1fr); gap: 3px; }
   .tile { width: 34px; height: 42px; font-size: 19px; }
   .tile.blank input { font-size: 19px; }
 }

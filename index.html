@@ -97,41 +97,48 @@
         </div>
       </div>
       <div class="stats">
-        <div class="stat" id="btn-teacher-picker" style="cursor:pointer; display:none; background:rgba(108,76,224,0.08); border:1.5px solid rgba(108,76,224,0.3); border-radius:12px;" title="老師/管理員出題（可指定日期出題）">
-          <b class="tnum" style="color:var(--violet)">📝</b>
-          <span style="color:var(--violet); font-weight:700;">每日測驗出題</span>
+        <!-- 學生個人狀態群組（帳號、時間、護盾） -->
+        <div class="stats-group stats-status-group" aria-label="個人狀態">
+          <div class="stat user" id="stat-user" title="目前登入帳號">
+            <b id="s-user" class="tnum">-</b>
+            <span>登入帳號</span>
+          </div>
+          <div class="stat timer" id="stat-daily-timer" style="cursor:pointer; display:none;" title="今日剩餘練習時間（點擊查看說明）">
+            <b id="s-timer-val" class="tnum" style="color:var(--violet);">10:00</b>
+            <span>今日剩餘時間</span>
+          </div>
+          <div class="stat streak-freeze" id="stat-streak-freeze" style="cursor:pointer;" title="連勝護盾（點擊查看說明）：若當日未練習，自動消耗 1 個護盾守護連續紀錄，每達 50 題答對自動補充（上限 2 個）">
+            <b id="s-freeze-val" class="tnum" style="color:#94a3b8;">-</b>
+            <span>🛡️ 連勝護盾</span>
+          </div>
         </div>
-        <div class="stat" id="btn-time-management" style="cursor:pointer; display:none; background:rgba(47,180,124,0.1); border:1.5px solid rgba(47,180,124,0.35); border-radius:12px;" title="學生使用時間管理與解除限制">
-          <b class="tnum" style="color:var(--green)">⏰</b>
-          <span style="color:var(--green); font-weight:700;">使用時間管理</span>
-        </div>
-        <div class="stat upload" id="btn-upload" onclick="if(window.uploadLocalStorageData)window.uploadLocalStorageData(false);" style="cursor:pointer;" title="點擊上傳目前學習進度">
-          <b id="s-upload" class="tnum">🌱</b>
-          <span>上傳紀錄</span>
-        </div>
-        <div class="stat timer" id="stat-daily-timer" style="cursor:pointer; display:none;" title="今日剩餘練習時間（點擊查看說明）">
-          <b id="s-timer-val" class="tnum" style="color:var(--violet);">10:00</b>
-          <span>今日剩餘時間</span>
-        </div>
-        <div class="stat user" id="stat-user" title="目前登入帳號">
-          <b id="s-user" class="tnum">-</b>
-          <span>登入帳號</span>
-        </div>
-        <div class="stat streak-freeze" id="stat-streak-freeze" style="cursor:pointer;" title="連勝護盾（點擊查看說明）：若當日未練習，自動消耗 1 個護盾守護連續紀錄，每達 50 題答對自動補充（上限 2 個）">
-          <b id="s-freeze-val" class="tnum" style="color:#94a3b8;">-</b>
-          <span>🛡️ 連勝護盾</span>
-        </div>
-        <div class="stat theme" id="btn-theme-toggle" style="cursor:pointer; display:flex;" title="點擊切換深色/淺色模式">
-          <b id="s-theme-icon" class="tnum">🌙</b>
-          <span id="s-theme-text">深色</span>
-        </div>
-        <div class="stat font-size-btn" id="btn-font-dec" style="cursor:pointer;" title="縮小字體 (A-)">
-          <b class="tnum">A-</b>
-          <span>縮小</span>
-        </div>
-        <div class="stat font-size-btn" id="btn-font-inc" style="cursor:pointer;" title="放大字體 (A+)">
-          <b class="tnum">A+</b>
-          <span>放大</span>
+
+        <!-- 系統操作與偏好設定群組（存檔、顯示外觀、教師工具） -->
+        <div class="stats-group stats-action-group" aria-label="快捷操作">
+          <div class="stat" id="btn-teacher-picker" style="cursor:pointer; display:none; background:rgba(108,76,224,0.08); border:1.5px solid rgba(108,76,224,0.3); border-radius:12px;" title="老師/管理員出題（可指定日期出題）">
+            <b class="tnum" style="color:var(--violet)">📝</b>
+            <span style="color:var(--violet); font-weight:700;">每日測驗出題</span>
+          </div>
+          <div class="stat" id="btn-time-management" style="cursor:pointer; display:none; background:rgba(47,180,124,0.1); border:1.5px solid rgba(47,180,124,0.35); border-radius:12px;" title="學生使用時間管理與解除限制">
+            <b class="tnum" style="color:var(--green)">⏰</b>
+            <span style="color:var(--green); font-weight:700;">使用時間管理</span>
+          </div>
+          <div class="stat upload" id="btn-upload" onclick="if(window.uploadLocalStorageData)window.uploadLocalStorageData(false);" style="cursor:pointer;" title="點擊上傳目前學習進度">
+            <b id="s-upload" class="tnum">🌱</b>
+            <span>上傳紀錄</span>
+          </div>
+          <div class="stat theme" id="btn-theme-toggle" style="cursor:pointer; display:flex;" title="點擊切換深色/淺色模式">
+            <b id="s-theme-icon" class="tnum">🌙</b>
+            <span id="s-theme-text">深色</span>
+          </div>
+          <div class="stat font-size-btn" id="btn-font-dec" style="cursor:pointer;" title="縮小字體 (A-)">
+            <b class="tnum">A-</b>
+            <span>縮小</span>
+          </div>
+          <div class="stat font-size-btn" id="btn-font-inc" style="cursor:pointer;" title="放大字體 (A+)">
+            <b class="tnum">A+</b>
+            <span>放大</span>
+          </div>
         </div>
       </div>
     </header>

@@ -110,6 +110,7 @@ export function renderRound(word, mode, { onAnswer, onCheck }) {
   el.fb.textContent = ""; el.fb.className = "feedback";
   el.checkBtn.style.display = ""; el.checkBtn.disabled = false;
   el.checkBtn.textContent = "檢查 Check"; el.checkBtn.className = "btn primary";
+  el.checkBtn.classList.remove("ready");
 
   el.catlabel.textContent = `Level ${word.level}`;
   el.catlabel.style.background = levelColor(word.level);
@@ -235,6 +236,10 @@ export function renderRound(word, mode, { onAnswer, onCheck }) {
 function renderListen(word, onCheck) {
   el.stage.innerHTML = "";
   const inp = textInput("在這裡拼字…", onCheck);
+  inp.addEventListener("input", () => {
+    if (inp.value.trim().length > 0) el.checkBtn.classList.add("ready");
+    else el.checkBtn.classList.remove("ready");
+  });
   el.stage.append(inp);
   say(word.word);
   setTimeout(() => inp.focus(), 50);
@@ -256,6 +261,7 @@ function renderPick(word, onAnswer) {
     b.className = "opt"; b.textContent = choice;
     b.onclick = () => {
       if (done) return; done = true;
+      opts.querySelectorAll(".opt").forEach(o => { o.style.pointerEvents = "none"; });
       const ok = choice === word.word;
       b.classList.add(ok ? "ok" : "bad");
       if (!ok) opts.querySelectorAll(".opt").forEach((o) => { if (o.textContent === word.word) o.classList.add("ok"); });
@@ -290,7 +296,14 @@ function renderTrap(word, onCheck) {
       inp.oninput = () => {
         const ins = [...wrap.querySelectorAll("input")];
         const cu = ins.indexOf(inp);
-        if (inp.value && cu < ins.length - 1) ins[cu + 1].focus();
+        if (inp.value && cu < ins.length - 1) {
+          ins[cu + 1].focus();
+        } else if (ins.every(i => i.value.trim())) {
+          el.checkBtn.classList.add("ready");
+          try { el.checkBtn.focus(); } catch(_) {}
+        } else {
+          el.checkBtn.classList.remove("ready");
+        }
       };
       inp.onkeydown = (e) => {
         if (e.key === "Enter") onCheck();
@@ -381,7 +394,10 @@ function renderScramble(word, onCheck) {
         inp.focus();
       }
       if (selectedIndices.length === shuffled.length) {
+        el.checkBtn.classList.add("ready");
         try { el.checkBtn.focus(); } catch(_) {}
+      } else {
+        el.checkBtn.classList.remove("ready");
       }
     };
 
