@@ -319,10 +319,10 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 .sumtable{width:100%;border-collapse:collapse;font-size:13px}
 .sumtable td{padding:5px 0;border-bottom:1px solid var(--line);color:var(--ink2);font-weight:700}
 .sumtable td:last-child{text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
-.streakline{font-size:13.5px;font-weight:800;color:var(--ink2);margin-bottom:10px;display:flex;align-items:center;justify-content:flex-start;flex-wrap:nowrap;gap:10px}
-.streakline > span:first-child{white-space:nowrap;flex-shrink:0}
+.streakline{font-size:13.5px;font-weight:800;color:var(--ink2);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px 12px}
+.streakline > span:first-child{white-space:nowrap;flex:0 1 auto}
 .streakline b{color:var(--catD);font-variant-numeric:tabular-nums}
-.heat-day-info{display:inline-flex !important;align-items:center;justify-content:center;gap:6px;width:215px;min-width:215px;max-width:215px;height:34px;padding:0 12px;box-sizing:border-box;border-radius:9px;font-size:13px;font-weight:800;line-height:1;white-space:nowrap;flex-shrink:0;background:#ECFDF5;color:#065F46;border:2px solid #10B981;box-shadow:0 2px 6px rgba(16,185,129,.14);font-variant-numeric:tabular-nums}
+.heat-day-info{display:inline-flex !important;align-items:center;justify-content:center;gap:6px;width:auto;min-width:180px;max-width:100%;height:32px;padding:0 10px;box-sizing:border-box;border-radius:9px;font-size:12.5px;font-weight:800;line-height:1;white-space:nowrap;flex-shrink:0;margin-left:auto;background:#ECFDF5;color:#065F46;border:2px solid #10B981;box-shadow:0 2px 6px rgba(16,185,129,.14);font-variant-numeric:tabular-nums}
 .heat-day-info b{font-weight:900}
 /* 1. 無作答紀錄：高對比清晰文字，絕不變淡 */
 .heat-day-info.tier-gray,.heat-day-info.empty{background:#F1F5F9 !important;color:#1E293B !important;border:2px solid #CBD5E1 !important;box-shadow:0 2px 5px rgba(100,116,139,.12) !important}
