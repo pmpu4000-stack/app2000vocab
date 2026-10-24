@@ -4239,6 +4239,12 @@
       cursor: wait !important;
       transform: none !important;
     }
+    .export-dl-btn.preview-btn {
+      background: linear-gradient(135deg, #0284C7, #38BDF8) !important;
+      color: #FFFFFF !important;
+      border: 1px solid #0369A1 !important;
+      box-shadow: 0 3px 8px rgba(2, 132, 199, 0.25) !important;
+    }
     .export-dl-btn.pdf-btn {
       background: linear-gradient(135deg, #6C4CE0, #8A6BF0) !important;
       color: #FFFFFF !important;
@@ -5671,7 +5677,10 @@
               <span class="date-nav-title"><span>📄</span> 輸出格式：</span>
             </div>
             <div class="export-btn-group">
-              <button type="button" id="btn-export-download-pdf" class="export-dl-btn pdf-btn" title="下載 PDF 格式作答歷程記錄">
+              <button type="button" id="btn-export-preview-web" class="export-dl-btn preview-btn" title="A4 寬長幅網頁版型即時預覽檢視">
+                📜 一頁檢視
+              </button>
+              <button type="button" id="btn-export-download-pdf" class="export-dl-btn pdf-btn" title="下載標準 A4 分頁列印 PDF 格式">
                 📄 下載 PDF 格式
               </button>
             </div>
@@ -5679,6 +5688,17 @@
         </div>
       </div>
       <div class="defs" id="export-status-msg" style="margin-top:8px; display:none;"></div>
+      <!-- 網頁長幅檢視區域 (A4 寬無限長) -->
+      <div id="export-web-preview-container" style="display:none; margin-top:14px; border-top:1.5px dashed var(--line, #E7E9F5); padding-top:14px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <div style="font-size:13.5px; font-weight:800; color:var(--violet, #6C4CE0); display:flex; align-items:center; gap:6px;">
+            <span>📜 一頁檢視</span>
+            <span style="font-size:11px; font-weight:700; color:var(--ink3); background:rgba(108,76,224,0.08); padding:2px 8px; border-radius:999px;">一頁捲軸到底</span>
+          </div>
+          <button type="button" id="btn-close-web-preview" style="background:#F1F5F9; border:1px solid #CBD5E1; border-radius:8px; padding:3px 10px; font-size:12px; font-weight:700; cursor:pointer; color:var(--ink2);">✖ 收起檢視</button>
+        </div>
+        <div id="export-web-preview-body" style="background:#FFFFFF; border:1.5px solid var(--line, #E7E9F5); border-radius:16px; padding:18px 20px; box-shadow:0 4px 14px rgba(0,0,0,0.05); overflow-x:auto;"></div>
+      </div>
     </section>
   </div>
 
@@ -19099,8 +19119,7 @@ async function _exportStudentRecordToExcel(payload) {
   }
 }
 
-async function _exportStudentRecordToPdf(payload) {
-  const fileName = `學習歷程_使用紀錄_${payload.studentId}_${payload.fileScopeTag}.pdf`;
+function _buildStudentReportHtml(payload) {
   const ov = payload.overall;
   const ps = payload.periodSummary;
   const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -19368,6 +19387,12 @@ async function _exportStudentRecordToPdf(payload) {
       </div>
     </div>
   `;
+  return reportHtml;
+}
+
+async function _exportStudentRecordToPdf(payload) {
+  const fileName = `學習歷程_使用紀錄_${payload.studentId}_${payload.fileScopeTag}.pdf`;
+  const reportHtml = _buildStudentReportHtml(payload);
 
   const overlay = document.createElement("div");
   overlay.id = "pdf-export-temp-overlay";
@@ -19604,6 +19629,36 @@ function initStudentExportRecordsCard(resp) {
 
   if (btnDlPdf) btnDlPdf.onclick = () => runDownload("pdf");
   if (btnDlExcel) btnDlExcel.onclick = () => runDownload("excel");
+
+  const btnPreviewWeb = document.getElementById("btn-export-preview-web");
+  const btnCloseWeb = document.getElementById("btn-close-web-preview");
+  const previewContainer = document.getElementById("export-web-preview-container");
+  const previewBody = document.getElementById("export-web-preview-body");
+
+  if (btnPreviewWeb) {
+    btnPreviewWeb.onclick = () => {
+      const sDate = (currentMode === "single")
+        ? (inputSingle && inputSingle.value ? inputSingle.value : todayDash)
+        : (inputStart && inputStart.value ? inputStart.value : sevenDaysAgo);
+      const eDate = (currentMode === "single")
+        ? sDate
+        : (inputEnd && inputEnd.value ? inputEnd.value : todayDash);
+
+      const payload = _buildStudentExportPayload(_latestStudentExportResp || window.cachedStudentExportResp || {}, currentMode, sDate, eDate);
+      if (previewBody) {
+        previewBody.innerHTML = _buildStudentReportHtml(payload);
+      }
+      if (previewContainer) {
+        previewContainer.style.display = "block";
+        previewContainer.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    };
+  }
+  if (btnCloseWeb && previewContainer) {
+    btnCloseWeb.onclick = () => {
+      previewContainer.style.display = "none";
+    };
+  }
 }
 
 function renderStudentFreePractice(resp, summaryMeta) {
