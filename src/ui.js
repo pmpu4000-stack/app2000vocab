@@ -117,7 +117,7 @@ export function renderRound(word, mode, { onAnswer, onCheck }) {
   el.modehint.textContent = MHINT[mode];
 
   const phon = word.ph ? ` <span class="phon">[${word.ph}]</span>` : "";
-  const catTag = word.featured && word.cat ? ` <span style="color:var(--ink3)">（${CATS[word.cat].name}）</span>` : "";
+  const catTag = "";
   let zhText = `<span style="color:var(--ink3)">聽發音，拼出這個字</span>`;
   if (word.zh) {
     const posMap = {

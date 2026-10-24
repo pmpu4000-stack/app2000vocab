@@ -80,7 +80,7 @@ export function loadWordBank() {
           level: entry.lv,
           mask: feat ? feat.mask : maskFromTrap(word.length, entry.t),
           featured: !!feat,
-          zh: feat ? feat.zh : (m.zh || null),
+          zh: (m && m.zh) ? m.zh : (feat ? feat.zh : null),
           sent: feat ? feat.sent : (m.sent || null),
           sentZh: feat ? (feat.sentZh || null) : (m.sentZh || null),
           sentSrc: feat ? "Curated" : (m.sentSrc || null),
