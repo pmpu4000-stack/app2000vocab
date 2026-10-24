@@ -696,31 +696,7 @@ body.daily-limit-reached #btn-upload {
 .word-split-title.advice-title{color:#475569}
 
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-@media (max-width:820px){
-  header{flex-wrap:wrap;gap:10px}
-  .stats{width:100%;margin:6px 0 0;flex-wrap:wrap;gap:6px;justify-content:stretch}
-  .stat, .stat.ok, .stat.user, .stat.upload, .stat.score, .stat.rate, .stat.timer, .stat.theme, .stat.streak-freeze, .stat.font-size-btn{
-    flex:1 1 calc(20% - 6px);
-    min-width:52px;
-    height:50px;
-  }
-}
-@media (max-width:580px){
-  .stats{width:100%;margin:6px 0 0;flex-wrap:wrap;gap:6px}
-  .stat, .stat.ok, .stat.user, .stat.upload, .stat.score, .stat.rate, .stat.timer, .stat.theme, .stat.streak-freeze{
-    flex:1 1 calc(33.333% - 6px);
-    min-width:54px;
-    height:48px;
-    padding:4px 6px;
-  }
-  .stat.font-size-btn{
-    flex:1 1 calc(50% - 6px) !important;
-    min-width:54px;
-    height:48px;
-    padding:4px 6px;
-  }
-  .stat b{font-size:15px}
-  .stat span{font-size:9.5px}
+@media (max-width:820px){\n  header{flex-wrap:wrap;gap:10px}\n  .stats{width:100%;margin:6px 0 0;display:grid;grid-template-columns:repeat(auto-fit, minmax(70px, 1fr));gap:6px}\n  .stat, .stat.ok, .stat.user, .stat.upload, .stat.score, .stat.rate, .stat.timer, .stat.theme, .stat.streak-freeze, .stat.font-size-btn{\n    flex:none;\n    width:100%;\n    min-width:0;\n    height:50px;\n    padding:6px 4px;\n  }\n}\n@media (max-width:580px){\n  .stats{width:100%;margin:6px 0 0;display:grid;grid-template-columns:repeat(4, 1fr);gap:6px}\n  .stat, .stat.ok, .stat.user, .stat.upload, .stat.score, .stat.rate, .stat.timer, .stat.theme, .stat.streak-freeze{\n    flex:none;\n    width:100%;\n    min-width:0;\n    height:48px;\n    padding:4px 2px;\n  }\n  .stat.font-size-btn{\n    flex:none !important;\n    width:100% !important;\n    min-width:0 !important;\n    height:48px;\n    padding:4px 2px;\n  }\n  .stat b{font-size:15px}\n  .stat span{font-size:9.5px}
   .title h1{font-size:20px} .tile{width:40px;height:48px;font-size:22px}
   .modes{gap:8px}
   .mode{flex:1 1 calc(50% - 8px);min-width:115px;padding:10px 6px;font-size:13px}
