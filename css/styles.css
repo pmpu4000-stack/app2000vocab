@@ -2447,37 +2447,39 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 .word-pill-tag.conquer-pill {
   display: inline-flex !important;
   align-items: center !important;
-  gap: 5px !important;
-  padding: 5px 12px !important;
-  border-radius: 999px !important;
-  font-size: 13px !important;
+  gap: 4px !important;
+  padding: 5px 10px !important;
+  border-radius: 8px !important;
+  font-size: 12.5px !important;
   font-weight: 700 !important;
-  background: #FFFFFF !important;
+  margin: 3px !important;
+  line-height: 1.4 !important;
+  background: #F1F5F9 !important;
   border: 1.5px solid #CBD5E1 !important;
   color: #334155 !important;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
   cursor: pointer !important;
   user-select: none !important;
-  transition: all .16s ease !important;
+  transition: transform .12s, box-shadow .12s !important;
 }
 .word-pill-tag.conquer-pill:hover {
-  background: #F8FAFC !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08) !important;
   border-color: #94A3B8 !important;
   color: #0F172A !important;
-  transform: translateY(-1.5px) !important;
-  box-shadow: 0 3px 8px rgba(15, 23, 42, 0.08) !important;
+}
+.word-pill-tag.conquer-pill:active {
+  transform: scale(0.96) !important;
 }
 [data-theme="dark"] .word-pill-tag.conquer-pill {
-  background: rgba(255, 255, 255, 0.08) !important;
-  border-color: rgba(255, 255, 255, 0.24) !important;
-  color: #F8FAFC !important;
+  background: rgba(148, 163, 184, 0.16) !important;
+  border-color: rgba(148, 163, 184, 0.38) !important;
+  color: #E2E8F0 !important;
   box-shadow: none !important;
 }
 [data-theme="dark"] .word-pill-tag.conquer-pill:hover {
-  background: rgba(255, 255, 255, 0.16) !important;
-  border-color: rgba(255, 255, 255, 0.45) !important;
+  background: rgba(148, 163, 184, 0.26) !important;
+  border-color: rgba(226, 232, 240, 0.55) !important;
   color: #FFFFFF !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
 }
 .conquer-level-groups {
   display: flex;
