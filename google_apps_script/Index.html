@@ -5527,7 +5527,7 @@
               <span>連續 <b id="stTaskHeatStreak">0</b> 天 · 最佳 <b id="stTaskHeatBest">0</b> 天 · 累計練習 <b id="stTaskHeatTotal">0</b> 天</span>
               <span id="stTaskHeatDayInfo" class="heat-day-info"></span>
             </div>
-            <div class="heatmap heatmap-yellow" id="stTaskHeatmapGrid"></div>
+            <div class="heatmap heatmap-task" id="stTaskHeatmapGrid"></div>
           </div>
         </div>
 
@@ -17533,9 +17533,6 @@ function renderStudentSummary(resp) {
   if (todayTask && todayTask.date && todayTask.hasDone && todayTask.taskName !== "自主練習" && !todayTask.taskName.includes("未指派")) {
     const nk = normalizeDayKey(todayTask.date);
     if (nk && getTaskDayStatForHeat(nk, nk).a > 0) allTaskActiveDates.add(nk);
-  }
-  for (const nk of respDataTaskMap.keys()) {
-    if (getTaskDayStatForHeat(nk, nk).a > 0) allTaskActiveDates.add(nk);
   }
   const taskTotalActive = allTaskActiveDates.size;
   let taskStreak = 0;
