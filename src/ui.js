@@ -54,6 +54,7 @@ function miniBtn(label, onClick) {
 function textInput(placeholder, onCheck) {
   const inp = document.createElement("input");
   inp.type = "text";
+  inp.inputMode = "url";
   inp.className = "spellbox";
   inp.setAttribute("autocomplete", "off");
   inp.setAttribute("autocorrect", "off");
@@ -451,7 +452,7 @@ export function showResult(correct, word, info, guessVal = "", onRepairComplete 
           <span><b>親手更正</b>：請鍵入正確單字加深神經連結</span>
         </div>
         <div class="active-repair-input-wrap">
-          <input type="text" id="active-repair-input" class="active-repair-input" placeholder="請輸入「${word.word}」..." autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" data-gramm="false" data-enable-grammarly="false" aria-autocomplete="none" />
+          <input type="text" id="active-repair-input" class="active-repair-input" inputmode="url" placeholder="請輸入「${word.word}」..." autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" data-gramm="false" data-enable-grammarly="false" aria-autocomplete="none" />
           <button type="button" id="active-repair-btn" class="active-repair-btn">更正確認 ↵</button>
         </div>
         <div id="active-repair-msg" class="active-repair-msg"></div>
