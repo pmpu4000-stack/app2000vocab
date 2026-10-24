@@ -4561,25 +4561,25 @@ function _buildReportHtml(payload) {
           <span style="color:${color}; font-size:14px; margin-right:4px;">●</span> Level ${L.level}「${esc(L.name)}」
         </td>
         <td style="padding:7px 10px; border-bottom:1px solid #E7E9F5; text-align:right;">
-          <div style="display:inline-flex; align-items:center; gap:6px; font-size:12px;">
-            <span style="display:inline-flex; align-items:center; gap:3px;">
-              <span style="color:#5A6183; font-weight:700;">學習中</span>
-              <b style="color:#4F46E5; font-weight:900;">${L.learn || 0}</b>字
+          <div style="display:inline-flex; align-items:center; white-space:nowrap; font-size:12.5px; font-variant-numeric:tabular-nums; font-feature-settings:'tnum';">
+            <span style="display:inline-flex; align-items:center; color:#232A4D; font-weight:650;">
+              <span style="color:#5A6183;">學習中</span>
+              <b style="display:inline-block; width:25px; text-align:right; font-weight:800; margin-right:1px; color:#4F46E5;">${L.learn || 0}</b>字
             </span>
-            <span style="color:#CBD5E1; font-weight:700;">/</span>
-            <span style="display:inline-flex; align-items:center; gap:3px;">
-              <span style="color:#5A6183; font-weight:700;">練習中</span>
-              <b style="color:#0284C7; font-weight:900;">${L.prac || 0}</b>字
+            <span style="display:inline-block; width:16px; text-align:center; color:#94A3B8; font-weight:600; margin:0 4px; user-select:none;">/</span>
+            <span style="display:inline-flex; align-items:center; color:#232A4D; font-weight:650;">
+              <span style="color:#5A6183;">練習中</span>
+              <b style="display:inline-block; width:25px; text-align:right; font-weight:800; margin-right:1px; color:#0369A1;">${L.prac || 0}</b>字
             </span>
-            <span style="color:#CBD5E1; font-weight:700;">/</span>
-            <span style="display:inline-flex; align-items:center; gap:3px;">
-              <span style="color:#5A6183; font-weight:700;">精通</span>
-              <b style="color:#059669; font-weight:900;">${L.mast || 0}</b>字
+            <span style="display:inline-block; width:16px; text-align:center; color:#94A3B8; font-weight:600; margin:0 4px; user-select:none;">/</span>
+            <span style="display:inline-flex; align-items:center; color:#232A4D; font-weight:650;">
+              <span style="color:#5A6183;">精通</span>
+              <b style="display:inline-block; width:25px; text-align:right; font-weight:800; margin-right:1px; color:#047857;">${L.mast || 0}</b>字
             </span>
-            <span style="color:#CBD5E1; font-weight:700;">/</span>
-            <span style="display:inline-flex; align-items:center; gap:3px; background:#F1EDFF; padding:2px 8px; border-radius:6px; border:1px solid rgba(108,76,224,0.25);">
-              <span style="color:#6C4CE0; font-weight:700;">共答對</span>
-              <b style="color:#573BC4; font-weight:900;">${totCorr}</b>字
+            <span style="display:inline-block; width:16px; text-align:center; color:#94A3B8; font-weight:600; margin:0 4px; user-select:none;">/</span>
+            <span style="display:inline-flex; align-items:center; color:#232A4D; font-weight:650;">
+              <span style="color:#5A6183;">共答對</span>
+              <b style="display:inline-block; width:25px; text-align:right; font-weight:800; margin-right:1px; color:#D97706;">${totCorr}</b>字
             </span>
           </div>
         </td>
