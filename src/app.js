@@ -512,10 +512,13 @@ function refreshChrome() {
     if (bannerEl) bannerEl.style.display = "none";
   }
 
-  // 作答開始或題目切換時，自動將題卡卡片滾動至可視區域置中，確保完整呈現頂端提示與底部檢查按鈕
+  // 作答開始或題目切換時，讓題卡上緣距離螢幕邊界與左右兩邊距離螢幕邊界相等
   const cardEl = document.getElementById("card");
-  if (cardEl && typeof cardEl.scrollIntoView === "function") {
-    cardEl.scrollIntoView({ behavior: "smooth", block: "center" });
+  if (cardEl) {
+    const rect = cardEl.getBoundingClientRect();
+    const sideMargin = Math.max(0, rect.left);
+    const targetY = window.pageYOffset + rect.top - sideMargin;
+    window.scrollTo({ top: Math.max(0, targetY), behavior: "smooth" });
   }
 }
 
@@ -552,10 +555,13 @@ function renderCurrent() {
     if (bannerEl) bannerEl.style.display = "none";
   }
 
-  // 作答開始或題目切換時，自動將題卡卡片滾動至可視區域置中，確保完整呈現頂端提示與底部檢查按鈕
+  // 作答開始或題目切換時，讓題卡上緣距離螢幕邊界與左右兩邊距離螢幕邊界相等
   const cardEl = document.getElementById("card");
-  if (cardEl && typeof cardEl.scrollIntoView === "function") {
-    cardEl.scrollIntoView({ behavior: "smooth", block: "center" });
+  if (cardEl) {
+    const rect = cardEl.getBoundingClientRect();
+    const sideMargin = Math.max(0, rect.left);
+    const targetY = window.pageYOffset + rect.top - sideMargin;
+    window.scrollTo({ top: Math.max(0, targetY), behavior: "smooth" });
   }
 }
 
