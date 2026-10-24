@@ -3760,6 +3760,8 @@ function _buildExportPayload(d, mode, startDate, endDate) {
   let periodUnanswered = 0;
   let periodFreeAttempts = 0;
   let periodFreeCorrect = 0;
+  let periodTaskAssignedTotal = 0;
+  let periodTaskCorrectTotal = 0;
 
   const dailyRecords = targetDates.map(dt => {
     let tRec = historyList.find(item => normalizeDateStr(item.date) === dt && (!item.taskName || item.taskName !== "自主練習")) || null;
@@ -3868,6 +3870,10 @@ function _buildExportPayload(d, mode, startDate, endDate) {
         periodAssigned += assignedTotWords;
         periodWrong += actualWrong;
         periodUnanswered += actualUnanswered;
+        if (!isUntested) {
+          periodTaskAssignedTotal += assignedTotWords;
+          periodTaskCorrectTotal += tCor;
+        }
       }
     }
 
@@ -3935,9 +3941,15 @@ function _buildExportPayload(d, mode, startDate, endDate) {
   const pracCount = d ? (d.levels || []).reduce((acc, L) => acc + (L.prac || 0), 0) : 0;
   const mastCount = d ? (d.levels || []).reduce((acc, L) => acc + (L.mast || 0), 0) : 0;
 
-  const periodAvgRate = periodAssigned > 0 
-    ? Math.round((periodCorrect / periodAssigned) * 100) 
-    : (periodAttempts > 0 ? Math.round((periodCorrect / periodAttempts) * 100) : 0);
+  // 指定測驗平均成績：僅計算學校指定測驗（排除自由練習干擾）
+  const periodTaskAvgRate = periodTaskAssignedTotal > 0 
+    ? Math.round((periodTaskCorrectTotal / periodTaskAssignedTotal) * 100) 
+    : 0;
+
+  // 區間整體平均正確率：總答對題數 (指定測驗+自由練習) / 總實際作答題數
+  const periodOverallAvgRate = periodAttempts > 0 
+    ? Math.round((periodCorrect / periodAttempts) * 100) 
+    : 0;
 
   return {
     studentId: currentUser,
@@ -3954,7 +3966,10 @@ function _buildExportPayload(d, mode, startDate, endDate) {
       totalAssigned: periodAssigned,
       totalWrong: periodWrong,
       totalUnanswered: periodUnanswered,
-      avgRate: periodAvgRate,
+      avgRate: periodOverallAvgRate,
+      taskAvgRate: periodTaskAvgRate,
+      taskAssignedTotal: periodTaskAssignedTotal,
+      taskCorrectTotal: periodTaskCorrectTotal,
       taskDoneCount: periodTaskDone,
       freeActiveDays: periodFreeDays,
       freeTotalAttempts: periodFreeAttempts,
@@ -4149,7 +4164,7 @@ async function _exportRecordToExcel(payload) {
       [
         "📌 學習活躍天數", `${payload.periodSummary.activeDaysCount} 天`,
         "🎯 學校指定測驗完成", `${payload.periodSummary.taskDoneCount} 次`,
-        "⭐ 指定測驗平均成績", `${payload.periodSummary.avgRate}%`,
+        "⭐ 指定測驗平均成績", `${payload.periodSummary.taskAvgRate || payload.periodSummary.avgRate}%`,
         "🎮 自由自學練習累積", `${payload.periodSummary.freeTotalAttempts || 0} 題`,
         "❌ 需加強錯題單字", `${payload.uniqueWrongWords.length} 字`
       ],
@@ -4261,8 +4276,8 @@ async function _exportRecordToExcel(payload) {
       "【區間整體成果合計】",
       "",
       `活躍練習 ${payload.periodSummary.activeDaysCount} 天`,
-      `測驗總成績 ${payload.periodSummary.totalCorrect} / ${payload.periodSummary.totalAssigned || payload.periodSummary.totalAttempts} 題`,
-      `平均正確率 ${payload.periodSummary.avgRate}%`,
+      `測驗總成績 ${payload.periodSummary.taskCorrectTotal || payload.periodSummary.totalCorrect} / ${payload.periodSummary.taskAssignedTotal || payload.periodSummary.totalAssigned || payload.periodSummary.totalAttempts} 題`,
+      `平均正確率 ${payload.periodSummary.taskAvgRate || payload.periodSummary.avgRate}%`,
       `累計錯題 ${payload.periodSummary.totalWrong || 0} 題次`,
       "",
       `未作答 ${payload.periodSummary.totalUnanswered || 0} 題次`,
