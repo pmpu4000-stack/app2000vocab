@@ -5543,7 +5543,7 @@
               <span id="stHeatDayInfo" class="heat-day-info"></span>
             </div>
             <div class="heatmap" id="stHeatmapGrid"></div>
-            <div class="heat-legend"><b>連續</b>：目前不中斷、每天練習的天數。<br><b>最佳</b>：該生最長連續練習紀錄。<br><b>累計</b>：歷來有練習的總天數。<br><b>熱力圖</b>：顏色越鮮豔代表當天正確率越高（灰色為無練習）。</div>
+            <div class="heat-legend"><b>連續</b>：目前不中斷、每天練習的天數。<br><b>最佳</b>：個人最長連續練習紀錄。<br><b>累計</b>：歷來有練習的總天數。<br><b>熱力圖</b>：顏色越鮮豔代表當天正確率越高（灰色為無練習）。</div>
         </div>
       </div>
     </section>
@@ -16218,6 +16218,8 @@ function buildFreeDetailsHtml(record, selectedDate, agent) {
     wrongContentHtml = `<span class="perfect-score-msg">🎉 太棒了！當日自由練習全數答對，無任何答錯單字！</span>`;
   }
 
+  const freeRateColor = wordRate >= 100 ? "#059669" : (wordRate >= 80 ? "#16a34a" : (wordRate >= 60 ? "#ca8a04" : "#ea580c"));
+
   return `
     <div>
       <div class="task-history-header">
@@ -16241,7 +16243,7 @@ function buildFreeDetailsHtml(record, selectedDate, agent) {
         </div>
         <div class="task-score-item">
           <div class="task-score-label">正確率</div>
-          <div class="task-score-val" style="color:${wordRate >= 80 ? '#16a34a' : '#ea580c'};">${wordRate}%</div>
+          <div class="task-score-val" style="color:${freeRateColor};">${wordRate}%</div>
         </div>
       </div>
 
@@ -17681,16 +17683,12 @@ function renderStudentSummary(resp) {
     }
     const th = dthAllMap.get(keyDash) || (keyShort ? dthAllMap.get(keyShort) : null) || null;
     if (th) {
-      let tAtt = parseInt(th.attempts) || 0;
-      let tCorr = parseInt(th.correct) || 0;
-      if (!tAtt && th.score && th.score !== "—" && String(th.score).includes("/")) {
-        const p = String(th.score).split("/");
-        tCorr = parseInt(p[0]) || 0;
-        tAtt = parseInt(p[1]) || 0;
-      }
-      if (tAtt > 0) {
-        a = Math.max(a, tAtt);
-        c = Math.max(c, tCorr);
+      const isSelf = (th.taskName === "自主練習");
+      const thFreeAtt = parseInt(th.freeTested !== undefined ? th.freeTested : (isSelf ? th.attempts : 0)) || 0;
+      const thFreeCor = parseInt(th.freeCorrect !== undefined ? th.freeCorrect : (isSelf ? th.correct : 0)) || 0;
+      if (thFreeAtt > 0) {
+        a = Math.max(a, thFreeAtt);
+        c = Math.max(c, thFreeCor);
       }
     }
     const res = { a, c };
@@ -17707,19 +17705,27 @@ function renderStudentSummary(resp) {
     const keySlash = keyDash.replace(/-/g, "/");
     const { a: att, c: cor } = getDayStatForHeat(keyDash, keyShort, keySlash);
     const rate = att > 0 ? Math.round((cor / att) * 100) : 0;
-    const lvl = att === 0 ? 0 : att < 10 ? 1 : att < 20 ? 2 : 3;
+    const lvl = att === 0 ? 0 : rate < 60 ? 1 : rate < 70 ? 2 : rate < 80 ? 3 : rate < 90 ? 4 : rate < 100 ? 5 : 6;
     days.push({ key: keyDash, dateNum: d.getDate(), a: att, c: cor, rate: rate, level: lvl });
   }
 
   const allActiveDates = new Set();
-  Object.keys(historyData).forEach(k => { if (historyData[k] && historyData[k].a > 0) allActiveDates.add(normalizeDayKey(k)); });
-  Object.keys(dpMap).forEach(k => { if (dpMap[k] && dpMap[k].attempts > 0) allActiveDates.add(normalizeDayKey(k)); });
+  const candidateDates = new Set();
+  Object.keys(historyData).forEach(k => candidateDates.add(normalizeDayKey(k)));
+  Object.keys(dpMap).forEach(k => candidateDates.add(normalizeDayKey(k)));
   if (Array.isArray(dailyTaskHistory)) {
     dailyTaskHistory.forEach(th => {
-      if (th && th.date && (th.attempts > 0 || (th.score && th.score !== "—"))) {
-        allActiveDates.add(normalizeDayKey(th.date));
-      }
+      if (th && th.date) candidateDates.add(normalizeDayKey(th.date));
     });
+  }
+  for (const dKey of candidateDates) {
+    if (!dKey) continue;
+    const parts = dKey.split("-");
+    const kShort = parts.length === 3 ? `${parts[0]}-${parseInt(parts[1], 10)}-${parseInt(parts[2], 10)}` : dKey;
+    const kSlash = dKey.replace(/-/g, "/");
+    if (getDayStatForHeat(dKey, kShort, kSlash).a > 0) {
+      allActiveDates.add(dKey);
+    }
   }
   const attempts = unifiedWords.size || ((agent && agent.attempts) ? Number(agent.attempts) : 0);
   let totalActive = allActiveDates.size;
