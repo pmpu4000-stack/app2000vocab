@@ -4135,8 +4135,8 @@ async function _exportRecordToExcel(payload) {
   try {
     const XLSX = await _ensureScriptLoaded(
       "XLSX",
-      "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js",
-      "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"
+      "https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js",
+      "https://unpkg.com/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"
     );
     const wb = XLSX.utils.book_new();
 
@@ -4402,6 +4402,49 @@ async function _exportRecordToExcel(payload) {
       { wch: 30 }, // 攻克狀態
       { wch: 45 }  // 在家複習記憶口訣
     ];
+    // 🎨 美化設計：套用標楷體字型、溫和柔色表頭與護眼對比邊框
+    const applyKaiTiStyle = (ws, headerRows = [4]) => {
+      if (!ws || !ws["!ref"]) return;
+      const range = XLSX.utils.decode_range(ws["!ref"]);
+      for (let R = range.s.r; R <= range.e.r; ++R) {
+        const isMainTitle = (R === 0);
+        const isHeader = headerRows.includes(R);
+        for (let C = range.s.c; C <= range.e.c; ++C) {
+          const addr = XLSX.utils.encode_cell({ r: R, c: C });
+          if (!ws[addr]) continue;
+          const cell = ws[addr];
+          if (!cell.s) cell.s = {};
+          cell.s.font = {
+            name: "標楷體",
+            sz: isMainTitle ? 14 : (isHeader ? 11 : 10.5),
+            bold: isMainTitle || isHeader,
+            color: isMainTitle ? { rgb: "1E1B4B" } : (isHeader ? { rgb: "FFFFFF" } : { rgb: "1F2937" })
+          };
+          cell.s.alignment = {
+            vertical: "center",
+            horizontal: (C === 0 || C === 1 || C === 3 || C === 4) ? "center" : "left",
+            wrapText: true
+          };
+          cell.s.border = {
+            top: { style: "thin", color: { rgb: "E2E8F0" } },
+            bottom: { style: "thin", color: { rgb: "E2E8F0" } },
+            left: { style: "thin", color: { rgb: "E2E8F0" } },
+            right: { style: "thin", color: { rgb: "E2E8F0" } }
+          };
+          if (isMainTitle) {
+            cell.s.fill = { fgColor: { rgb: "EEF2FF" } };
+          } else if (isHeader) {
+            cell.s.fill = { fgColor: { rgb: "4F46E5" } };
+          } else if (R % 2 === 1) {
+            cell.s.fill = { fgColor: { rgb: "F8FAFC" } };
+          }
+        }
+      }
+    };
+    applyKaiTiStyle(ws1, [4]);
+    applyKaiTiStyle(ws2, [4]);
+    applyKaiTiStyle(ws3, [1]);
+
     XLSX.utils.book_append_sheet(wb, ws3, "待攻克單字清單(可列印)");
 
     try {
