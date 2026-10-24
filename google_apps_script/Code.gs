@@ -2407,6 +2407,11 @@ function doPost(e) {
 
     const action = params.action || "login";
 
+    // ── 0. 快速 Ping / 預先喚醒（零試算表讀取，毫秒級秒回） ──
+    if (action === "ping") {
+      return jsonResponse({ status: "success", pong: true, time: Date.now() });
+    }
+
     // ── 1. 學生 / 教師登入 ──
     if (action === "login") {
       const auth = authenticateUser(ss, params.username, params.password);

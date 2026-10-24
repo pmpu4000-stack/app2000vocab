@@ -338,6 +338,8 @@
 
     const scriptUrl = "https://script.google.com/macros/s/AKfycbx1hyCNJxqFMoaJgIxfZqLYIYH00NegI1Yd8NJP6gRjqwOndWGkmr-H9tGvVwK_axM9/exec";
     window.__SCRIPT_URL = scriptUrl;
+    // 🚀 預先喚醒 GAS 容器：學生進入登入畫面時立即預熱，消滅冷啟動延遲
+    try { fetch(scriptUrl, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "ping" }) }).catch(() => {}); } catch(_) {}
 
     function updateAccountDisplay(username, role) {
       const sUser = document.getElementById("s-user");
