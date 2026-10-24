@@ -635,22 +635,24 @@ body.daily-limit-reached #btn-upload {
 
 /* 平板裝置 (641px ~ 1023px)：最適網格排版與自適應間距 */
 @media (max-width: 1023px) and (min-width: 641px) {
-  .app { max-width: 100%; padding: 0 4px; }
+  .app { max-width: 100%; padding: 0 8px; }
   header { gap: 10px; }
-  .stats { width: 100%; margin-top: 8px; display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 8px; }
+  .stats { width: 100%; margin-top: 8px; display: grid; grid-template-columns: repeat(auto-fit, minmax(85px, 1fr)); gap: 8px; }
   .stat, .stat.ok, .stat.user, .stat.upload, .stat.score, .stat.rate, .stat.timer, .stat.theme, .stat.streak-freeze, .stat.font-size-btn {
     flex: none; width: 100%; min-width: 0; height: 50px; padding: 6px 4px;
   }
+  .opts { grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; }
+  .opt { min-height: 54px; font-size: 19px; }
 }
 
 /* 手機與小型裝置 (<=640px)：觸控熱區人體工學、全幅自適應 */
 @media (max-width: 640px) {
-  body { padding: 10px 8px 32px; }
+  body { padding: 8px 6px 36px; }
   header { flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
-  .brand { gap: 10px; }
-  .logo { width: 44px; height: 44px; font-size: 22px; flex: 0 0 44px; border-radius: 13px; }
-  .title h1 { font-size: 19px; }
-  .title p { font-size: 11.5px; }
+  .brand { gap: 8px; }
+  .logo { width: 42px; height: 42px; font-size: 20px; flex: 0 0 42px; border-radius: 12px; }
+  .title h1 { font-size: 18px; }
+  .title p { font-size: 11px; }
   .stats { width: 100%; margin: 4px 0 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
   .stat, .stat.ok, .stat.user, .stat.upload, .stat.score, .stat.rate, .stat.timer, .stat.theme, .stat.streak-freeze {
     flex: none; width: 100%; min-width: 0; height: 46px; padding: 3px 2px; border-radius: 10px;
@@ -661,10 +663,15 @@ body.daily-limit-reached #btn-upload {
   .stat b { font-size: 14px; height: 20px; line-height: 20px; }
   .stat span { font-size: 9px; height: 13px; line-height: 13px; margin-top: 1px; }
   .stat.user b { font-size: 12px; }
+  .card { padding: 16px 12px 14px; border-radius: 18px; min-height: 320px; }
+  .stage { gap: 10px; padding: 4px 0; }
   .tiles { gap: 5px; }
   .tile { width: 38px; height: 46px; font-size: 21px; border-radius: 9px; }
   .tile.blank input { font-size: 21px; }
+  .opts { grid-template-columns: 1fr !important; gap: 8px !important; margin: 6px 0; }
+  .opt { min-height: 48px; font-size: 18px; padding: 10px 8px; border-radius: 12px; }
   .word-pill-tag { padding: 4px 8px; font-size: 12px; margin: 2px; }
+  .modal-dialog, #teacherTaskModal > div, #timeManagementModal > div { width: 95% !important; margin: 10px auto; padding: 16px 14px !important; border-radius: 16px !important; }
 }
 
 @media (max-width: 380px) {
