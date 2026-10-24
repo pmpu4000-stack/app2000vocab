@@ -4903,13 +4903,21 @@ async function _exportRecordToPdf(payload) {
       "https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"
     );
     const paperEl = overlay.querySelector("#pdf-export-paper");
+    // 計算自適應單頁超長長度：固定 A4 寬度 (210mm)，依網頁元素實際渲染高度計算對應之自訂 mm 高度
+    const elWidthPx = paperEl.offsetWidth || 720;
+    const elHeightPx = paperEl.scrollHeight || paperEl.offsetHeight || 1200;
+    const targetWidthMm = 210;
+    const marginMm = 8;
+    const contentWidthMm = targetWidthMm - (marginMm * 2);
+    const contentHeightMm = (elHeightPx / elWidthPx) * contentWidthMm;
+    const totalHeightMm = Math.max(297, Math.ceil(contentHeightMm + (marginMm * 2)));
+
     const opt = {
-      margin: [8, 8, 8, 8],
+      margin: [marginMm, marginMm, marginMm, marginMm],
       filename: fileName,
       image: { type: "jpeg", quality: 0.98 },
       html2canvas: { scale: 2, useCORS: true, backgroundColor: "#FFFFFF", scrollY: 0 },
-      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-      pagebreak: { mode: ["avoid-all", "css", "legacy"] }
+      jsPDF: { unit: "mm", format: [targetWidthMm, totalHeightMm], orientation: "portrait" }
     };
     let downloaded = false;
     try {
