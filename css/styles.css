@@ -2158,7 +2158,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   color: var(--sky) !important;
   transform: none !important;
 }
-.export-navigator-card .date-nav-btn.today-btn {
+.export-navigator-card .date-nav-btn.today-btn, .export-navigator-card .date-nav-btn.active {
   background: #EDF8FD !important;
   border-color: rgba(45, 156, 219, 0.4) !important;
   color: var(--sky) !important;
@@ -2177,7 +2177,8 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   border-color: var(--sky) !important;
   color: #38BDF8 !important;
 }
-[data-theme="dark"] .export-navigator-card .date-nav-btn.today-btn {
+[data-theme="dark"] .export-navigator-card .date-nav-btn.today-btn,
+[data-theme="dark"] .export-navigator-card .date-nav-btn.active {
   background: rgba(45, 156, 219, 0.18) !important;
   border-color: rgba(45, 156, 219, 0.4) !important;
   color: #38BDF8 !important;

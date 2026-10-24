@@ -4810,9 +4810,24 @@ export function initExportRecordsCard(getSummaryFn) {
   if (btnModeSingle) btnModeSingle.onclick = () => setExportMode("single");
   if (btnModeRange) btnModeRange.onclick = () => setExportMode("range");
 
+  const presetBtns = [
+    document.getElementById("btn-export-preset-today"),
+    document.getElementById("btn-export-preset-7d"),
+    document.getElementById("btn-export-preset-30d"),
+    document.getElementById("btn-export-preset-all")
+  ].filter(Boolean);
+
+  const setActivePresetBtn = (targetBtn) => {
+    presetBtns.forEach(b => {
+      b.classList.remove("active", "today-btn");
+    });
+    if (targetBtn) targetBtn.classList.add("active");
+  };
+
   const btnPresetToday = document.getElementById("btn-export-preset-today");
   if (btnPresetToday) {
     btnPresetToday.onclick = () => {
+      setActivePresetBtn(btnPresetToday);
       if (inputStart) inputStart.value = todayDash;
       if (inputEnd) inputEnd.value = todayDash;
     };
@@ -4820,6 +4835,7 @@ export function initExportRecordsCard(getSummaryFn) {
   const btnPreset7d = document.getElementById("btn-export-preset-7d");
   if (btnPreset7d) {
     btnPreset7d.onclick = () => {
+      setActivePresetBtn(btnPreset7d);
       setExportMode("range");
       if (inputStart) inputStart.value = sevenDaysAgo;
       if (inputEnd) inputEnd.value = todayDash;
@@ -4828,6 +4844,7 @@ export function initExportRecordsCard(getSummaryFn) {
   const btnPreset30d = document.getElementById("btn-export-preset-30d");
   if (btnPreset30d) {
     btnPreset30d.onclick = () => {
+      setActivePresetBtn(btnPreset30d);
       setExportMode("range");
       if (inputStart) inputStart.value = thirtyDaysAgo;
       if (inputEnd) inputEnd.value = todayDash;
@@ -4836,6 +4853,7 @@ export function initExportRecordsCard(getSummaryFn) {
   const btnPresetAll = document.getElementById("btn-export-preset-all");
   if (btnPresetAll) {
     btnPresetAll.onclick = () => {
+      setActivePresetBtn(btnPresetAll);
       setExportMode("range");
       const d = _latestSummaryGetter ? _latestSummaryGetter() : null;
       const hist = getCombinedTaskHistory();
