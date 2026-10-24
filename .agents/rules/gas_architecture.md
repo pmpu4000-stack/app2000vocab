@@ -1,11 +1,11 @@
 ---
 trigger: model_decision
-description: 修改或查詢 google_apps_script/（Code.gs、Index.html、teacher_history.html）或前端拼字遊戲（index.html、src/*.js、css/styles.css）時讀取：全專案檔案與函式行號索引。
+description: 修改或查詢 google_apps_script/（Code.gs、Index.html、teacher_history.html）或前端拼字遊戲（index.html、src/*.js、css/styles.css）時讀取：全專案檔案、函式行號與 CSS 區段精準索引。
 ---
 # 全專案架構與行號索引 (app2000vocab-repo)
 
 ## ⚡ 極致省 Token 守則（必讀）
-1. **零探勘**：本檔已含全專案行號索引，**直接依下方行號用 `read_file`（StartLine/EndLine 範圍 ≤120 行）讀取目標函式**；除非行號漂移找不到，否則禁止跑 `Select-String`。
+1. **零探勘**：本檔已含全專案函式與 CSS 行號索引，**直接依下方行號用 `read_file`（StartLine/EndLine 範圍 ≤120 行）讀取目標函式**；除非行號漂移找不到，否則嚴禁跑 `Select-String` 或全目錄搜尋。
 2. **禁讀巨檔/巨行**：
    - 禁讀 `data/meanings.json`（2MB）、`data/words2000.json`（65KB）。
    - `google_apps_script/Index.html`（與根目錄鏡像 `teacher_history.html`）的 **第 8080–8090 行**含 50KB 單行單字庫，讀取範圍絕對不可跨過該區。
@@ -48,23 +48,31 @@ description: 修改或查詢 google_apps_script/（Code.gs、Index.html、teache
 ---
 
 ## 二、GAS 查詢系統前端：`google_apps_script/Index.html`（~21,083 行，鏡像 `teacher_history.html`）
-- **CSS**：16–4535
-- **HTML Body**（4537–6779）：`login-overlay`(4539) · `mainControlCard`(4595: `loginSection` 4610 / `querySection` 4613) · `teacherBackBar`(4648) · `teacherOverviewCard`(4660: `teacherOverviewMainView` 4695 / `teacherAnalyticsView` 4850 / `teacherRangePerformanceView` 4978 / `teacherTimeSettingsView` 5107) · 學生卡片：`studentSummaryCard`(5330) / `studentProgressCard`(5332) / `studentLearningRecordCard`(5362) / `export-records-section`(5483) / `kpiSection`(5545) / `studentDailyTaskCard`(5559) / `studentFreePracticeCard`(5707) / `rankingCard`(5819) / `goalsCard`(5919) / `forecastCard`(6014) / `frequencyCard`(6077) / `weaknessCard`(6174) / `wordFlowCard`(6286) / `heatmapCard`(6382) / `chartCard`(6456) / `resultCard`(6548) · Modals：`taskModal`(6579) / `passwordModal`(6738) / `errorLogModal`(6754)
-- **JS 區段**（6780–20925）：
-  - 6782 狀態變數 · 6832 CSV 防護 · 6844 初始化 · 6882 主題 · 6963 字體縮放 · 7003 Toast/Loading · 7031 登入 · 7045 登出/返回
-  - 7108 資料抓取 (`checkAndGetData`) · 7206 教師班級總覽 · 8024 清理分頁 · 8051 密碼 Modal
-  - **8067 2000 單字庫內嵌（⚠️ L8083-8086 含 50KB 巨行，勿讀）**
-  - 8072 指定測驗出題 Modal · 8528 教師成果與錯題分析 · 8581 教師時間管制設定 · 9804 日期區間比較表 · 10589 匯出班級 CSV · 10622 錯誤日誌 Modal
-  - 10790 學生視圖顯隱 · 10845 篩選控制 · 10882 KPI 動畫 · 10905 差分與解析 · 11057 篩選與渲染 · 11193 KPI 更新 · 11267 Chart.js 圖表 · 11446 雷達圖 · 11629 學生 CSV
-  - 11647 熱力圖 · 11999 學習目標 · 12303 曲線預測 · 12704 練習頻率 · 13164 弱點診斷 · 13603 單字流轉 · 14010 工具函式 · 14079 圖表下載 · 14207 報告列印 · 14737 正確率格式化
-  - 14769 單字測驗與自由練習按日期查詢 · 17569 底部紀錄匯出 (PDF/Excel：18315 Sheet1 聯絡簿 / 18462 Sheet2 總進度 / 18534 Sheet3 待攻克) · 19327 精通與訂正單字檢視器 · 19767 每日任務成果渲染 · 20302 LINE 親師快報 · 20389 任務報告列印/PDF · 20653 班內排行榜
+### CSS 樣式區塊行號（16–4535）
+- 33 色彩變數(淺色) · 39 Progress Bar色彩 · 68 深色色彩變數 · 162 主控制卡片 · 225 輸入框 · 248 日曆圖示 · 334 快捷日期 · 338 KPI卡片 · 394 Toast · 410 差分標籤 · 434 教師班級表格 · 446 教師總覽樣式 · 474 空狀態 · 486 教師手機卡片 · 510 Spinner · 520 密碼Modal · 550 錯誤日誌Modal · 617 學習活動熱力圖(626統計/635框/654Tooltip/664星期分佈) · 670 學習目標與里程碑(733設定Modal) · 760 班內排名與榮譽榜(864橫幅/893頒獎台)
+
+### HTML Body（4537–6779）
+`login-overlay`(4539) · `mainControlCard`(4595: `loginSection` 4610 / `querySection` 4613) · `teacherBackBar`(4648) · `teacherOverviewCard`(4660: `teacherOverviewMainView` 4695 / `teacherAnalyticsView` 4850 / `teacherRangePerformanceView` 4978 / `teacherTimeSettingsView` 5107) · 學生卡片：`studentSummaryCard`(5330) / `studentProgressCard`(5332) / `studentLearningRecordCard`(5362) / `export-records-section`(5483) / `kpiSection`(5545) / `studentDailyTaskCard`(5559) / `studentFreePracticeCard`(5707) / `rankingCard`(5819) / `goalsCard`(5919) / `forecastCard`(6014) / `frequencyCard`(6077) / `weaknessCard`(6174) / `wordFlowCard`(6286) / `heatmapCard`(6382) / `chartCard`(6456) / `resultCard`(6548) · Modals：`taskModal`(6579) / `passwordModal`(6738) / `errorLogModal`(6754)
+
+### JS 核心函式精準行號（6780–20925）
+- **基礎/驗證**：`safeCsvCell`(6850)、`applyPageThemeBackground`(6900)、`toggleTheme`(6951)、`adjustHistoryFont`(6998)、`showToast`(7021)、`login`(7049)、`logout`(7063)、`handleLogoutOrBack`(7115)、`fetchData`(7128)
+- **教師總覽**：`initTeacherDashboard`(7224)、`populateTeacherClassSelector`(7270)、`refreshClassOverview`(7299)、`renderTeacherKpis`(7327)、`renderTeacherCharts`(7382)、`getFilteredAndSortedOverview`(7573)、`renderTodayTaskBadge`(7639)、`renderClassOverviewTable`(7730)、`viewStudentAsTeacher`(7961)、`backToClassOverview`(8024)、`triggerCleanupUnusedSheets`(8042)
+- **指定測驗出題 Modal**：`openTaskModal`(8134)、`closeTaskModal`(8236)、`setWordPickerLevel`(8252)、`renderWordPickerGrid`(8280)、`toggleWordSelection`(8331)、`quickPickRandomWords`(8342)、`submitTaskData`(8476)
+  *(⚠️ 8080–8090 行含 50KB 巨行，勿讀！)*
+- **教師時間管制**：`switchTeacherSubView`(8550)、`loadTeacherTimeSettings`(8633)、`renderTeacherStudentRulesList`(8808)、`renderTeacherDateRulesList`(8866)、`saveTeacherGlobalTimeSetting`(8929)、`saveTeacherStudentTimeSetting`(8980)、`saveTeacherDateRestriction`(9068)、`duSaveStudentMinutes`(9191)、`duExtend`(9197)、`duUnlock`(9202)、`toggleTeacherTodayUnlock`(9211)
+- **教師大數據與區間比較**：`loadDailyTaskAnalytics`(9310)、`renderErrorRanking`(9444)、`renderAnalyticsTable`(9535)、`exportAnalyticsCsv`(9760)、`loadDateRangePerformance`(9924)、`renderRangePerformance`(10015)、`renderRangeTableOnly`(10152)、`exportRangePerformanceCsv`(10382)
+- **密碼與錯誤日誌 Modal**：`openPasswordModal`(10489)、`renderPasswordModal`(10504)、`saveSinglePassword`(10570)、`exportAllCsv`(10607)、`openErrorLogModal`(10642)、`renderErrorLogs`(10682)、`confirmClearErrorLogs`(10735)
+- **學生圖表/數據處理**：`processHistoryWithDiffs`(10923)、`renderTableAndCards`(11113)、`updateKpis`(11211)、`updateCharts`(11285)、`updateRadarChart`(11464)、`exportToCsv`(11647)
+- **高階分析**：`renderHeatmap`(11665)、`setupHeatmapTooltips`(11931)、`renderWeekdayBars`(11990)、`updateGoalsProgress`(12025)、`openGoalModal`(12207)、`renderForecast`(12321)、`renderFrequencyAnalysis`(12722)、`renderWeaknessAnalysis`(13182)、`renderWordFlowTracking`(13621)
+- **列印與匯出**：`openPrintReportModal`(14227)、`renderPrintReportContent`(14336)、`resolveTaskWords`(14790)、`renderSingleTaskCardHtml`(15142)、`renderUntestedTaskCardHtml`(15627)、`buildTaskDetailsHtml`(15737)、`buildFreeDetailsHtml`(15949)、`renderStudentDailyTaskAndFreeSections`(16146)、`renderStudentSummary`(16700)、`_buildStudentExportPayload`(17832)、`_exportStudentRecordToExcel`(18332)、`_exportStudentRecordToPdf`(18641)、`initStudentExportRecordsCard`(18955)
+- **單字檢視/成果/排行榜**：`initMasteredChipsComponent`(19519)、`renderMasteredChipsUI`(19572)、`initFixedChipsComponent`(19695)、`renderFixedChipsUI`(19714)、`renderStudentDailyTask`(19808)、`copyStudentDailyReport`(20334)、`exportStudentDailyReportPdf`(20421)、`updateLeaderboardUI`(20685)、`renderPodiumAndTable`(20782)
 
 ---
 
 ## 三、學生拼字遊戲前端（GitHub Pages 根目錄）
 ### `index.html`（3,437 行）
-- 1–312：HTML 介面与樣式（含登入、遊戲畫面、摘要）
-- 313–3016：內嵌 `<script type="module">`
+- 1–312：HTML 介面與樣式
+- 313–3016：`<script type="module">`
   - 321 `updateAccountDisplay` · 392 `applyAppTheme` · 456 `applyAppFontScale` · 623 `purgeAllStudentSessionAndLocalData` · 683 `openStreakFreezeModal`
   - 750–1140 登入驗證、初始化雲端資料與遊戲模組載入
   - 1151 `uploadLocalStorageData`（雲端同步 `saveRecord`）
@@ -74,8 +82,11 @@ description: 修改或查詢 google_apps_script/（Code.gs、Index.html、teache
   - 2146 `openTimeModal` / 2174 `loadTimeRestrictions` / 2368 `renderStudentRulesList` / 2444 `renderDateRulesList` / 2530 `initTimeManagementEvents` / 2856 `triggerExtendUsageTime` / 2897 `triggerToggleUnlock`（教師時間管理 Modal）
 - 3021 `teacherTaskModal` HTML · 3155 `timeManagementModal` HTML
 
+### `css/styles.css`（2,752 行）
+- 48 字體調整 · 101 category chips · 115 mode tabs · 127 practice card · 222 tiles · 249 actions · 263 progress · 300 summary panel · 358 熱力圖顏色階層 · 393 指定測驗邊框 · 456 指定測驗特殊狀態 · 506 today's session · 509 level bar · 525 每日結束隱藏區塊 · 572 quiz screen · 614 Date Navigator Bar
+
 ### `src/` 模組
-- **`src/app.js`**（1,773 行，核心控制器）：35 `scheduleCloudTaskSync` · 45 `persistTaskProgress` · 94 `getSaturdayRemedyRecord` · 163 `getVacationInfo` · 185 `recordSundayRemainingMistakes` · 207 `markWordLearnedInFreePractice` · 269 `getVacationDayAssignedWords` · 296 `recordTaskMistake` · 324 `getMonToFriUnfinishedWords` · 431 `levelInfo` · 441 `refreshChrome` · 508 `renderCurrent` · 543 `isCurfewActive` · 580 `newRound` · 625 `check` · 640 `answer` · 728 `pickLevel` · 784 `startPlacement` · 814 `startChallenge` · 856 `isDesignatedTaskPendingToday` · 933 `checkAndStartDailyTask` · 1162 `showTaskIntroScreen` · 1337 `startTaskExecution` · 1358 `finishTaskMode`
-- **`src/store.js`**（1,038 行，LocalStorage 與 SRS 狀態）：11 `normalizeDateStr` · 47 `getWeekRangeDates` · 64 `getBiweeklyCycleInfo` · 136 `load` · 218 `save` · 226 `grade` · 359 `historyData` · 575 `levelStats` · 625 `stats` · 678 `getDailyPractice` · 742 `summary` · 988 `getPrecomputedSummary`
-- **`src/ui.js`**（4,961 行，DOM 渲染與匯出）：74 `setScreen` · 108 `renderRound` · 234 `renderListen` · 246 `renderPick` · 271 `renderTrap` · 327 `renderScramble` · 446 `showResult` · 545 `renderProgress` · 670 `getCombinedTaskHistory` · 1049 `resolveTaskWords` · 1271 `renderSingleTaskCardHtml` · 1783 `renderUntestedTaskCardHtml` · 1885 `buildTaskDetailsHtml` · 2093 `buildFreeDetailsHtml` · 2324 `resolveDailyPracticeRecord` · 2445 `getWeekPendingConquerWords` · 2636 `buildWeekPendingConquerHtml` · 2844 `renderSummary` · 3588 底部紀錄匯出模組（3685 `_buildExportPayload` / 4100 `_exportRecordToExcel` / 4443 `_exportRecordToPdf` / 4673 `initExportRecordsCard`） · 4909 `initProgressCard` · 4932 `initConquerCard`
-- **小型模組**：`css/styles.css`(114KB) · `src/audio.js`(405L 發音) · `src/wordbank.js`(108L 題庫載入) · `src/levels.js`(101L 關卡與干擾項) · `src/data.js`(77L) · `src/diagnostics.js`(55L) · `src/srs.js`(39L) · `src/confetti.js`(8L) · `src/anticheat.js`(6L)
+- **`src/app.js`**（1,773 行）：35 `scheduleCloudTaskSync` · 45 `persistTaskProgress` · 94 `getSaturdayRemedyRecord` · 163 `getVacationInfo` · 185 `recordSundayRemainingMistakes` · 207 `markWordLearnedInFreePractice` · 269 `getVacationDayAssignedWords` · 296 `recordTaskMistake` · 324 `getMonToFriUnfinishedWords` · 431 `levelInfo` · 441 `refreshChrome` · 508 `renderCurrent` · 543 `isCurfewActive` · 580 `newRound` · 625 `check` · 640 `answer` · 728 `pickLevel` · 784 `startPlacement` · 814 `startChallenge` · 856 `isDesignatedTaskPendingToday` · 933 `checkAndStartDailyTask` · 1162 `showTaskIntroScreen` · 1337 `startTaskExecution` · 1358 `finishTaskMode`
+- **`src/store.js`**（1,038 行）：11 `normalizeDateStr` · 47 `getWeekRangeDates` · 64 `getBiweeklyCycleInfo` · 136 `load` · 218 `save` · 226 `grade` · 359 `historyData` · 575 `levelStats` · 625 `stats` · 678 `getDailyPractice` · 742 `summary` · 988 `getPrecomputedSummary`
+- **`src/ui.js`**（4,961 行）：74 `setScreen` · 108 `renderRound` · 234 `renderListen` · 246 `renderPick` · 271 `renderTrap` · 327 `renderScramble` · 446 `showResult` · 545 `renderProgress` · 670 `getCombinedTaskHistory` · 1049 `resolveTaskWords` · 1271 `renderSingleTaskCardHtml` · 1783 `renderUntestedTaskCardHtml` · 1885 `buildTaskDetailsHtml` · 2093 `buildFreeDetailsHtml` · 2324 `resolveDailyPracticeRecord` · 2445 `getWeekPendingConquerWords` · 2636 `buildWeekPendingConquerHtml` · 2844 `renderSummary` · 3588 底部紀錄匯出模組（3685 `_buildExportPayload` / 4100 `_exportRecordToExcel` / 4443 `_exportRecordToPdf` / 4673 `initExportRecordsCard`） · 4909 `initProgressCard` · 4932 `initConquerCard`
+- **輔助模組**：`src/audio.js`(405L) · `src/wordbank.js`(108L) · `src/levels.js`(101L) · `src/data.js`(77L) · `src/diagnostics.js`(55L) · `src/srs.js`(39L) · `src/confetti.js`(8L) · `src/anticheat.js`(6L)
