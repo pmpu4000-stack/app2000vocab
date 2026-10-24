@@ -2719,39 +2719,40 @@ export function buildWeekPendingConquerHtml(words, d = null, cycleParam = _activ
 
   // 週期選擇導覽列（支援第 1~20 週週次切換與本週雙週魔王戰提示）
   const curSemWeek = cycleInfo.semesterWeek || 1;
-  const isSelectedCurrent = (cycleParam === "current" || cycleParam === ("week_" + curSemWeek));
+  let activeW = curSemWeek;
+  if (typeof cycleParam === "string" && cycleParam.startsWith("week_")) {
+    activeW = parseInt(cycleParam.replace("week_", ""), 10) || curSemWeek;
+  } else if (cycleParam === "prevWeek" || cycleParam === "previous") {
+    activeW = Math.max(1, curSemWeek - 1);
+  } else if (cycleParam === "nextWeek") {
+    activeW = Math.min(20, curSemWeek + 1);
+  }
 
   let weekOptionsHtml = "";
   for (let w = 1; w <= 20; w++) {
     const isWCurrent = (w === curSemWeek);
     const isWBoss = (w % 2 === 0);
     const val = "week_" + w;
-    const selected = (cycleParam === val) || (isSelectedCurrent && isWCurrent);
+    const selected = (activeW === w);
     let label = `第 ${w} 週`;
     if (isWCurrent) label += `（本週${isWBoss ? " · 雙週魔王週" : ""}）`;
     else if (isWBoss) label += `（雙週大消滅）`;
     weekOptionsHtml += `<option value="${val}" ${selected ? 'selected' : ''}>${label}</option>`;
   }
 
+  const isCurrentActive = (activeW === curSemWeek);
   const cycleSelectBarHtml = `
     <div class="conquer-cycle-nav-bar" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; padding:8px 12px; background:var(--bar-track, rgba(148,163,184,0.08)); border:1px solid rgba(148,163,184,0.18); border-radius:10px; margin-bottom:4px;">
       <div style="display:flex; align-items:center; gap:6px; font-size:12.5px; font-weight:750; color:var(--ink);">
         <span>📅 查看週次：</span>
         <select id="conquer-cycle-select" class="task-date-selector" style="font-size:12px; padding:4px 9px; border-radius:6px; border:1.5px solid rgba(148,163,184,0.35); background:var(--card, #fff); color:var(--ink); font-weight:700; cursor:pointer;" title="選擇查看待攻克學期週次">
-          <option value="current" ${cycleParam === 'current' ? 'selected' : ''}>${cycleInfo.isBiweeklyBossWeek ? '本週（第 ' + curSemWeek + ' 週 · 雙週魔王儲備池）' : '本週（第 ' + curSemWeek + ' 週平日）'}</option>
-          <optgroup label="── 學期各週次（第 1 ~ 20 週）──">
-            ${weekOptionsHtml}
-          </optgroup>
-          <optgroup label="── 快捷週期 ──">
-            <option value="prevWeek" ${(cycleParam === 'prevWeek' || cycleParam === 'previous') ? 'selected' : ''}>上一週平日測驗</option>
-            <option value="prevBiweekly" ${cycleParam === 'prevBiweekly' ? 'selected' : ''}>上一回完整雙週（過去14天）</option>
-          </optgroup>
+          ${weekOptionsHtml}
         </select>
       </div>
-      <div class="conquer-cycle-toggle-group" style="display:inline-flex; align-items:center; gap:4px;">
-        <button type="button" id="btn-conquer-cycle-prev" class="date-nav-btn ${(cycleParam === 'prevWeek' || cycleParam === 'previous') ? 'active' : ''}" style="font-size:11.5px; padding:3px 8px; border-radius:6px; height:auto; line-height:1.2;" title="查看上一週遺留待攻克單字">上一週</button>
-        <button type="button" id="btn-conquer-cycle-current" class="date-nav-btn ${isSelectedCurrent ? 'active' : ''}" style="font-size:11.5px; padding:3px 8px; border-radius:6px; height:auto; line-height:1.2;">本週</button>
-        <button type="button" id="btn-conquer-cycle-next" class="date-nav-btn ${cycleParam === 'nextWeek' ? 'active' : ''}" style="font-size:11.5px; padding:3px 8px; border-radius:6px; height:auto; line-height:1.2;" title="查看下一週預定或遺留待攻克單字">下一週</button>
+      <div class="conquer-cycle-toggle-group date-nav-btn-group" style="display:inline-flex; align-items:center; gap:4px;">
+        <button type="button" id="btn-conquer-cycle-prev" class="date-nav-btn" ${activeW <= 1 ? 'disabled' : ''} style="font-size:11.5px; padding:3px 8px; border-radius:6px; height:auto; line-height:1.2;" title="查看上一週（第 ${Math.max(1, activeW - 1)} 週）待攻克單字">◀ 上一週</button>
+        <button type="button" id="btn-conquer-cycle-current" class="date-nav-btn today-btn ${isCurrentActive ? 'active' : ''}" style="font-size:11.5px; padding:3px 8px; border-radius:6px; height:auto; line-height:1.2;" title="切換回本週（第 ${curSemWeek} 週）">📍 本週</button>
+        <button type="button" id="btn-conquer-cycle-next" class="date-nav-btn" ${activeW >= 20 ? 'disabled' : ''} style="font-size:11.5px; padding:3px 8px; border-radius:6px; height:auto; line-height:1.2;" title="查看下一週（第 ${Math.min(20, activeW + 1)} 週）待攻克單字">下一週 ▶</button>
       </div>
     </div>
   `;
@@ -2875,9 +2876,28 @@ export function updateWeekConquerSection(cycleParam = _activeConquerCycle) {
   const btnCur = detailsEl.querySelector("#btn-conquer-cycle-current");
   const btnPrev = detailsEl.querySelector("#btn-conquer-cycle-prev");
   const btnNext = detailsEl.querySelector("#btn-conquer-cycle-next");
-  if (btnPrev) btnPrev.onclick = (e) => { e.stopPropagation(); updateWeekConquerSection("prevWeek"); };
-  if (btnCur) btnCur.onclick = (e) => { e.stopPropagation(); updateWeekConquerSection("current"); };
-  if (btnNext) btnNext.onclick = (e) => { e.stopPropagation(); updateWeekConquerSection("nextWeek"); };
+  const cycleInfo = getBiweeklyCycleInfo();
+  const curSemWeek = cycleInfo.semesterWeek || 1;
+  const getActiveW = () => {
+    if (typeof _activeConquerCycle === "string" && _activeConquerCycle.startsWith("week_")) {
+      return parseInt(_activeConquerCycle.replace("week_", ""), 10) || curSemWeek;
+    }
+    return curSemWeek;
+  };
+  if (btnPrev) btnPrev.onclick = (e) => {
+    e.stopPropagation();
+    const targetW = Math.max(1, getActiveW() - 1);
+    updateWeekConquerSection("week_" + targetW);
+  };
+  if (btnCur) btnCur.onclick = (e) => {
+    e.stopPropagation();
+    updateWeekConquerSection("week_" + curSemWeek);
+  };
+  if (btnNext) btnNext.onclick = (e) => {
+    e.stopPropagation();
+    const targetW = Math.min(20, getActiveW() + 1);
+    updateWeekConquerSection("week_" + targetW);
+  };
 
   // 綁定待攻克單字卡片內部的發音點擊
   detailsEl.querySelectorAll(".word-pill-tag").forEach(pill => {
@@ -3591,22 +3611,33 @@ export function renderSummary(d) {
   const btnConquerCur = $("#btn-conquer-cycle-current");
   const btnConquerPrev = $("#btn-conquer-cycle-prev");
   const btnConquerNext = $("#btn-conquer-cycle-next");
+  const getSummaryActiveW = () => {
+    const cycleInfo = getBiweeklyCycleInfo();
+    const curSemWeek = cycleInfo.semesterWeek || 1;
+    if (typeof _activeConquerCycle === "string" && _activeConquerCycle.startsWith("week_")) {
+      return parseInt(_activeConquerCycle.replace("week_", ""), 10) || curSemWeek;
+    }
+    return curSemWeek;
+  };
   if (btnConquerPrev) {
     btnConquerPrev.onclick = (e) => {
       e.stopPropagation();
-      updateWeekConquerSection("prevWeek");
+      const targetW = Math.max(1, getSummaryActiveW() - 1);
+      updateWeekConquerSection("week_" + targetW);
     };
   }
   if (btnConquerCur) {
     btnConquerCur.onclick = (e) => {
       e.stopPropagation();
-      updateWeekConquerSection("current");
+      const cycleInfo = getBiweeklyCycleInfo();
+      updateWeekConquerSection("week_" + (cycleInfo.semesterWeek || 1));
     };
   }
   if (btnConquerNext) {
     btnConquerNext.onclick = (e) => {
       e.stopPropagation();
-      updateWeekConquerSection("nextWeek");
+      const targetW = Math.min(20, getSummaryActiveW() + 1);
+      updateWeekConquerSection("week_" + targetW);
     };
   }
 
