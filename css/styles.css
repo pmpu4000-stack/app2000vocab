@@ -343,14 +343,19 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 [data-theme="dark"] .heat-day-info.tier-red{background:rgba(239,68,68,.20) !important;color:#FCA5A5 !important;border:2px solid #F87171 !important;box-shadow:0 2px 8px rgba(0,0,0,.35) !important}
 [data-theme="dark"] .heat-day-info.tier-red b{color:#FECACA !important}
 @media(max-width:640px){.streakline{flex-wrap:wrap;gap:8px}.heat-day-info{width:100%;min-width:0;max-width:100%}}
-.heatmap{display:grid !important;grid-template-columns:repeat(14,1fr) !important;gap:5px !important;width:100% !important;max-width:100% !important;margin:10px 0 12px !important}
+/* 熱力圖：電腦桌機上控制方塊適中（每格最大約 22px），手機與平板則維持現狀 */
+.heatmap{display:grid !important;grid-template-columns:repeat(14,minmax(0, 22px)) !important;justify-content:start !important;gap:4.5px !important;width:100% !important;max-width:100% !important;margin:10px 0 12px !important}
+@media(max-width:820px){
+  /* 手機與平板維持現狀：寬度 100% 滿版比例與充裕觸控高度 */
+  .heatmap{grid-template-columns:repeat(14,1fr) !important;justify-content:normal !important;gap:5px !important;}
+}
 @media(max-width:640px){
   /* 行動裝置/手機環境：自動切換為 7 欄週曆佈局 (4週 x 7天)，觸控熱區倍增至 36~40px，符合觸控標準 */
-  .heatmap{grid-template-columns:repeat(7,1fr) !important;gap:6px !important;margin:8px 0 10px !important;}
+  .heatmap{grid-template-columns:repeat(7,1fr) !important;justify-content:normal !important;gap:6px !important;margin:8px 0 10px !important;}
   .hc{min-height:36px !important;border-radius:6px !important;}
   .word-pill-tag{padding:5px 12px !important;font-size:13px !important;margin:2px 2px !important;line-height:1.35 !important;}
 }
-.hc{width:100% !important;aspect-ratio:1 !important;border-radius:5px !important;background:#F1F5F9;border:1px solid #E2E8F0;display:block !important;cursor:pointer;transition:transform .15s ease,box-shadow .15s ease;-webkit-tap-highlight-color:transparent;}
+.hc{width:100% !important;aspect-ratio:1 !important;border-radius:4.5px !important;background:#F1F5F9;border:1px solid #E2E8F0;display:block !important;cursor:pointer;transition:transform .15s ease,box-shadow .15s ease;-webkit-tap-highlight-color:transparent;}
 .hc:hover{transform:scale(1.14);z-index:2}
 .hc.hc-active{outline:2.5px solid #059669;outline-offset:1px;transform:scale(1.08);z-index:2}
 [data-theme="dark"] .hc{background:#1E293B;border-color:#334155}
