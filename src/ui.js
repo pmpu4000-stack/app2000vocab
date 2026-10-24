@@ -414,19 +414,7 @@ function renderScramble(word, onCheck) {
     });
   };
 
-  // 4. 輔助提示文字
-  const actWrap = document.createElement("div");
-  actWrap.className = "scramble-actions";
-  actWrap.style.cssText = "display:flex;gap:10px;justify-content:center;margin-top:10px;align-items:center;flex-wrap:wrap;";
-
-  const tipText = document.createElement("span");
-  tipText.className = "scramble-tip-text";
-  tipText.textContent = "💡 可點擊字母填入，或直接用鍵盤打字";
-  tipText.style.cssText = "font-size:12px;color:var(--ink3,#94a3b8);text-align:center;";
-
-  actWrap.append(tipText);
-
-  el.stage.append(scr, inp, actWrap);
+  el.stage.append(scr, inp);
   say(word.word);
   setTimeout(() => inp.focus(), 60);
 
