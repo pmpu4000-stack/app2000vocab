@@ -1,4 +1,4 @@
-*{box-sizing:border-box;margin:0;padding:0}
+﻿*{box-sizing:border-box;margin:0;padding:0}
 :root{
   --paper:#F6F7FB; --card:#FFFFFF; --ink:#232A4D; --ink2:#5A6183; --ink3:#9AA0BD;
   --violet:#6C4CE0; --violet-d:#573BC4; --marker:#FFD84D; --marker-soft:#FFF0B3;
@@ -263,8 +263,8 @@ header{display:flex; align-items:center; justify-content:space-between; flex-wra
 /* progress footer */
 .progress{margin:0 0 14px;background:var(--card);border:1.5px solid var(--line);border-radius:20px;padding:16px 18px;box-shadow:var(--shadow)}
 .progress h3{font-size:15px;font-weight:800;letter-spacing:.3px;color:var(--ink);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
-.progress h3 a{color:var(--sky,#2D9CDB);font-size:12px;cursor:pointer;text-decoration:underline;font-weight:700;display:inline-flex;align-items:center;gap:4px}
-[data-theme="dark"] .progress h3 a{color:var(--sky,#38bdf8)}
+.progress h3 a:not(.sum-toggle-btn){color:var(--sky,#2D9CDB);font-size:12px;cursor:pointer;text-decoration:underline;font-weight:700;display:inline-flex;align-items:center;gap:4px}
+[data-theme="dark"] .progress h3 a:not(.sum-toggle-btn){color:var(--sky,#38bdf8)}
 
 .bar{height:16px;border-radius:10px;background:var(--bar-track,#E8EBF5);overflow:hidden;display:flex;border:1.5px solid var(--bar-border,rgba(35,42,77,0.12));box-shadow:inset 0 2px 4px rgba(0,0,0,0.08);position:relative}
 [data-theme="dark"] .bar{background:var(--bar-track,#0D111E) !important;border-color:var(--bar-border,#262C42) !important;box-shadow:inset 0 2px 5px rgba(0,0,0,0.5) !important}
