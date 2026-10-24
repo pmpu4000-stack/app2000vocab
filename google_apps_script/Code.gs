@@ -4656,6 +4656,19 @@ function _getStudentData(ss, username) {
         sanitizeStudentRecordsObj_(parsed, dHist);
         const raw = parsed["spellAgent.v2"] || (parsed.box || parsed.stat || parsed.attempts !== undefined ? parsed : null);
         agentData = (typeof raw === "string") ? JSON.parse(raw) : (raw || {});
+        const taskRecords = {};
+        for (const k in parsed) {
+          if (k.startsWith("task_words_") || k.startsWith("task_summary_") || k.startsWith("today_task_") || k === "student_task_history" || k === "today_task_summary" || k.startsWith("weekend_remedy_") || k === "assigned_task") {
+            try {
+              taskRecords[k] = (typeof parsed[k] === "string") ? JSON.parse(parsed[k]) : parsed[k];
+            } catch(_) {
+              taskRecords[k] = parsed[k];
+            }
+          }
+        }
+        if (agentData) {
+          agentData._taskRecords = taskRecords;
+        }
         const stat = agentData.stat || {};
         for (const w in stat) {
           const {c=0, a=0} = stat[w];
@@ -4694,7 +4707,7 @@ function _getStudentData(ss, username) {
     rawData[i][1] = "";
   }
 
-  return { status: "success", username: cleanU, headers, data: rawData, wordList, agentData };
+  return { status: "success", username: cleanU, headers, data: rawData, wordList, agentData, dailyTaskHistory: (typeof dHist !== "undefined" ? dHist : []), taskWordsMap: getTaskWordsDictCached_(ss) };
 }
 
 function _getLeaderboard(ss, targetUsername, mode, isTeacher) {
