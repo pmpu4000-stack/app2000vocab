@@ -4052,9 +4052,26 @@ function _buildExportPayload(d, mode, startDate, endDate) {
   const scopeTitle = (mode === "single" || sDate === eDate) ? `指定日期：${sDate}` : `指定範圍：${sDate} 至 ${eDate}`;
   const fileScopeTag = (mode === "single" || sDate === eDate) ? sDate : `${sDate}_至_${eDate}`;
 
-  const learnCount = d ? (d.levels || []).reduce((acc, L) => acc + (L.learn || 0), 0) : 0;
-  const pracCount = d ? (d.levels || []).reduce((acc, L) => acc + (L.prac || 0), 0) : 0;
-  const mastCount = d ? (d.levels || []).reduce((acc, L) => acc + (L.mast || 0), 0) : 0;
+  // 優先直接讀取上方「整體進度 Progress」卡片呈現之即時權威數值，確保 100% 絕對完全一致
+  const domLearn = parseInt(document.getElementById("n-learn")?.textContent || "", 10);
+  const domPrac = parseInt(document.getElementById("n-prac")?.textContent || "", 10);
+  const domMast = parseInt(document.getElementById("n-mast")?.textContent || "", 10);
+  const domCorrect = parseInt(document.getElementById("n-correct")?.textContent || "", 10);
+  const domTotal = parseInt(document.getElementById("n-total")?.textContent || "", 10) || 2055;
+  const domRate = parseInt((document.getElementById("n-rate")?.textContent || "").replace("%", ""), 10);
+  const domScore = parseInt(document.getElementById("n-score")?.textContent || "", 10);
+
+  const fallbackLearn = d ? (d.levels || []).reduce((acc, L) => acc + (L.learn || 0), 0) : 0;
+  const fallbackPrac = d ? (d.levels || []).reduce((acc, L) => acc + (L.prac || 0), 0) : 0;
+  const fallbackMast = d ? (d.levels || []).reduce((acc, L) => acc + (L.mast || 0), 0) : 0;
+
+  const learnCount = !isNaN(domLearn) ? domLearn : (typeof d?.learn === "number" ? d.learn : fallbackLearn);
+  const pracCount = !isNaN(domPrac) ? domPrac : (typeof d?.prac === "number" ? d.prac : fallbackPrac);
+  const mastCount = !isNaN(domMast) ? domMast : (typeof d?.mast === "number" ? d.mast : fallbackMast);
+  const finalDistinctCorrect = !isNaN(domCorrect) ? domCorrect : ((d && d.distinctCorrect) || (learnCount + pracCount + mastCount));
+  const finalTotalVocab = !isNaN(domTotal) ? domTotal : ((d && d.total) || 2055);
+  const finalPassRate = !isNaN(domRate) ? domRate : ((d && d.passRate) || Math.round((finalDistinctCorrect / finalTotalVocab) * 100));
+  const finalPoints = !isNaN(domScore) ? domScore : ((d && d.points !== undefined) ? d.points : ((d && d.history && d.history.points) || 0));
 
   // 指定測驗平均成績：僅計算學校指定測驗（排除自由練習干擾）
   const periodTaskAvgRate = periodTaskAssignedTotal > 0 
@@ -4093,10 +4110,10 @@ function _buildExportPayload(d, mode, startDate, endDate) {
     overall: {
       attempts: (d && d.attempts) || 0,
       correct: (d && d.correct) || 0,
-      passRate: (d && d.passRate) || 0,
-      distinctCorrect: (d && d.distinctCorrect) || 0,
-      totalVocab: (d && d.total) || 2055,
-      points: (d && d.points !== undefined) ? d.points : ((d && d.history && d.history.points) || 0),
+      passRate: finalPassRate,
+      distinctCorrect: finalDistinctCorrect,
+      totalVocab: finalTotalVocab,
+      points: finalPoints,
       learn: learnCount,
       prac: pracCount,
       mast: mastCount,
