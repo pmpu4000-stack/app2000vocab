@@ -476,11 +476,9 @@ export function showResult(correct, word, info, guessVal = "", onRepairComplete 
     `;
     pulse("shake"); say(word.word, 0.8);
 
-    // 鎖定「下一個 Next」按鈕，直到親手更正完成
-    el.checkBtn.style.display = "";
+    // 隱藏「下一個 Next」按鈕，直到訂正完成再顯示解鎖
+    el.checkBtn.style.display = "none";
     el.checkBtn.disabled = true;
-    el.checkBtn.textContent = "✍️ 請先完成訂正";
-    el.checkBtn.className = "btn ghost locked";
 
     const repairInp = document.getElementById("active-repair-input");
     const repairBtn = document.getElementById("active-repair-btn");
