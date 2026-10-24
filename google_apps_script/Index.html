@@ -18768,13 +18768,17 @@ function _buildStudentExportPayload(resp, mode, startDate, endDate) {
     };
   });
 
-  // 取得畫面上的整體學習進度與關卡進度
+  // 取得畫面上的整體學習進度與關卡進度 (精準同步遊戲網頁核心指標)
   const getNum = (id) => parseInt(String((document.getElementById(id) || {}).textContent || "0").replace(/,/g, ""), 10) || 0;
   const learnCount = getNum("n-learn");
   const pracCount = getNum("n-prac");
   const mastCount = getNum("n-mast");
+  const distinctCorrect = getNum("n-correct") || (learnCount + pracCount + mastCount);
   const totalVocab = getNum("n-total") || 2055;
-  const streak = getNum("stHeatStreak");
+  const rawRateText = (document.getElementById("n-rate") || {}).textContent || "";
+  const vocabPassRate = parseInt(rawRateText.replace("%", ""), 10) || (totalVocab > 0 ? Math.round((distinctCorrect / totalVocab) * 100) : 0);
+  const points = getNum("n-score") || ((agent && agent.points !== undefined) ? agent.points : 0);
+  const streak = getNum("stHeatStreak") || getNum("s-streak");
   const best = getNum("stHeatBest");
   const totalDays = getNum("stHeatTotal");
 
@@ -18786,10 +18790,30 @@ function _buildStudentExportPayload(resp, mode, startDate, endDate) {
     trs.forEach((tr, idx) => {
       const tds = tr.querySelectorAll("td");
       const rightTxt = tds[1] ? tds[1].textContent.trim() : "";
+      let learn = parseInt(tr.querySelector(".st-num-learn")?.textContent || "0", 10) || 0;
+      let prac = parseInt(tr.querySelector(".st-num-prac")?.textContent || "0", 10) || 0;
+      let mast = parseInt(tr.querySelector(".st-num-mast")?.textContent || "0", 10) || 0;
+      let correct = parseInt(tr.querySelector(".st-num-total")?.textContent || "0", 10) || 0;
+      if (!learn && !prac && !mast && rightTxt) {
+        const mLearn = rightTxt.match(/學習中\s*(\d+)/);
+        const mPrac = rightTxt.match(/練習中\s*(\d+)/);
+        const mMast = rightTxt.match(/精通\s*(\d+)/);
+        const mTotal = rightTxt.match(/共答對\s*(\d+)/);
+        if (mLearn) learn = parseInt(mLearn[1], 10) || 0;
+        if (mPrac) prac = parseInt(mPrac[1], 10) || 0;
+        if (mMast) mast = parseInt(mMast[1], 10) || 0;
+        if (mTotal) correct = parseInt(mTotal[1], 10) || 0;
+      }
+      if (!correct) correct = learn + prac + mast;
       levels.push({
         level: idx + 1,
         name: lvNames[idx] || "",
-        summaryText: rightTxt
+        summaryText: rightTxt,
+        learn,
+        prac,
+        mast,
+        correct,
+        total: 411
       });
     });
   }
@@ -18802,13 +18826,13 @@ function _buildStudentExportPayload(resp, mode, startDate, endDate) {
 
   const totalAttemptsAll = (agent && agent.attempts) || 0;
   const totalCorrectAll = (agent && agent.correct) || 0;
-  const passRateAll = totalAttemptsAll > 0 ? Math.round((totalCorrectAll / totalAttemptsAll) * 100) : 0;
 
   const uniqueWrongWords = Array.from(uniqueWrongMap.values());
 
-  const periodAvgRate = periodAssigned > 0 
-    ? Math.round((periodCorrect / periodAssigned) * 100) 
-    : (periodAttempts > 0 ? Math.round((periodCorrect / periodAttempts) * 100) : 0);
+  // 區間整體平均正確率：區間總答對題數 (指定測驗+自由練習) / 區間總施測題數
+  const periodOverallAvgRate = periodAttempts > 0 
+    ? Math.round((periodCorrect / periodAttempts) * 100) 
+    : 0;
 
   return {
     studentId,
@@ -18825,7 +18849,7 @@ function _buildStudentExportPayload(resp, mode, startDate, endDate) {
       totalAssigned: periodAssigned,
       totalWrong: periodWrong,
       totalUnanswered: periodUnanswered,
-      avgRate: periodAvgRate,
+      avgRate: periodOverallAvgRate,
       attemptedRate: periodAttempts > 0 ? Math.round((periodCorrect / periodAttempts) * 100) : 0,
       taskDoneCount: periodTaskDone,
       freeActiveDays: periodFreeDays,
@@ -18836,8 +18860,10 @@ function _buildStudentExportPayload(resp, mode, startDate, endDate) {
     overall: {
       attempts: totalAttemptsAll,
       correct: totalCorrectAll,
-      passRate: passRateAll,
+      passRate: vocabPassRate,
+      distinctCorrect,
       totalVocab,
+      points,
       learn: learnCount,
       prac: pracCount,
       mast: mastCount,
@@ -19519,7 +19545,7 @@ function _buildStudentReportHtml(payload) {
       <div style="border:1.5px solid #E7E9F5; border-radius:14px; padding:12px 14px; margin-bottom:14px; background:#FFFFFF; page-break-inside:avoid; box-shadow:0 2px 6px rgba(0,0,0,0.03);">
         <div style="font-size:13.5px; font-weight:800; color:#232A4D; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #E7E9F5; padding-bottom:8px;">
           <span>📊 各關卡進度</span>
-          <span style="font-size:12px; color:#5A6183; font-weight:700;">全書掌握 ${ov.distinctCorrect} 字 / 2055 字（掌握率 ${ov.passRate}%）</span>
+          <span style="font-size:12px; color:#5A6183; font-weight:700;">全書掌握 ${ov.distinctCorrect || ((ov.learn || 0) + (ov.prac || 0) + (ov.mast || 0))} 字 / 2055 字（掌握率 ${ov.passRate || 0}%）</span>
         </div>
         <table style="width:100%; border-collapse:collapse; font-size:12px;">
           ${lvRowsHtml}
