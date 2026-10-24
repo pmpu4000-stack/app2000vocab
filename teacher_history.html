@@ -2468,14 +2468,15 @@
       justify-content: space-between !important;
       flex-wrap: wrap !important;
       gap: 8px !important;
-      border-left: 2.5px solid rgba(108, 76, 224, 0.45) !important;
-      padding-left: 7px !important;
+      border-left: none !important;
+      padding-left: 0 !important;
       line-height: 1.4 !important;
       text-transform: none !important;
     }
     [data-theme="dark"] .subh-child {
       color: #E2E8F0 !important;
-      border-left-color: rgba(139, 107, 240, 0.5) !important;
+      border-left: none !important;
+      padding-left: 0 !important;
     }
 
     /* 各關卡進度表格排版優化 (Level 不換行、斜線絕對垂直對齊、窄螢幕自適應換行) */
@@ -3365,6 +3366,14 @@
     }
     [data-theme="dark"] .task-card-title {
       color: #F0F3FA !important;
+    }
+    .task-card-title.task-title-assigned,
+    .task-card-title.task-title-free {
+      color: #B45309 !important;
+    }
+    [data-theme="dark"] .task-card-title.task-title-assigned,
+    [data-theme="dark"] .task-card-title.task-title-free {
+      color: #FBBF24 !important;
     }
     .task-score-grid {
       display: grid !important;
@@ -15546,7 +15555,7 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
       }
       wrongContentHtml = `<div style="display:flex; flex-direction:column; width:100%;"><div style="display:flex; flex-wrap:wrap; gap:6px;">${wrongPills}</div>${unansExtraHtml}</div>`;
     } else if (isTrulyPerfect) {
-      wrongContentHtml = `<span class="perfect-score-msg">🎉 太棒了！本次測驗全數答對，無任何答錯單字！</span>`;
+      wrongContentHtml = `<span class="perfect-score-msg">🎉 全數答對，無答錯單字！</span>`;
     } else if (missedCount > 0) {
       const unmastered = (rawWords.length > 0)
         ? rawWords.filter(w => !correctList.includes(String(w).toLowerCase()))
@@ -15712,7 +15721,7 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
     <div class="task-single-record-block" style="${blockStyle}">
       <div class="task-history-header">
         <div>
-          <span class="task-card-title">${formattedTaskName}</span>
+          <span class="task-card-title task-title-assigned">${formattedTaskName}</span>
         </div>
       </div>
 
@@ -15796,7 +15805,7 @@ function renderUntestedTaskCardHtml(info, agent) {
     <div class="task-single-record-block">
       <div class="task-history-header">
         <div>
-          <span class="task-card-title">${formattedTaskName}</span>
+          <span class="task-card-title task-title-assigned">${formattedTaskName}</span>
           <span style="margin-left:8px; font-size:11.5px; font-weight:700; color:${statusColor}; background:${statusBg}; padding:2px 8px; border-radius:999px;">${statusLabel}</span>
         </div>
       </div>
@@ -16213,8 +16222,7 @@ function buildFreeDetailsHtml(record, selectedDate, agent) {
     <div>
       <div class="task-history-header">
         <div>
-          <span class="task-card-title">🎮 自由練習成果</span>
-          <span style="margin-left:8px; font-size:11.5px; font-weight:700; color:#0284c7; background:rgba(2,132,199,0.12); padding:2px 8px; border-radius:999px;">自主訓練</span>
+          <span class="task-card-title task-title-free">🎮 自由練習成果</span>
         </div>
       </div>
 
@@ -17553,9 +17561,8 @@ function renderStudentSummary(resp) {
 
   const elTaskStreakLine = document.getElementById("stTaskStreakLine");
   if (elTaskStreakLine) {
-    const sFreezes = (agent && typeof agent.streakFreezes === 'number') ? agent.streakFreezes : 0;
     elTaskStreakLine.innerHTML = `
-      <span>連續 <b id="stTaskHeatStreak">${taskStreak}</b> 天 · 最佳 <b id="stTaskHeatBest">${taskBest}</b> 天 · 累計練習 <b id="stTaskHeatTotal">${taskTotalActive}</b> 天 <span class="streak-freeze-badge" title="連勝守護護盾：偶爾請假缺席時，系統自動消耗 1 個護盾守護連續紀錄！每累積 50 題答對可補充（上限 2 個）。">🛡️ 護盾: <b>${sFreezes === 0 ? '已用完' : (sFreezes >= 2 ? '2 個(滿)' : `剩 ${sFreezes} 個`)}</b></span></span>
+      <span>連續 <b id="stTaskHeatStreak">${taskStreak}</b> 天 · 最佳 <b id="stTaskHeatBest">${taskBest}</b> 天 · 累計練習 <b id="stTaskHeatTotal">${taskTotalActive}</b> 天</span>
       <span id="stTaskHeatDayInfo" class="heat-day-info"></span>
     `;
   }
@@ -17748,9 +17755,8 @@ function renderStudentSummary(resp) {
 
   const elStreakLine = document.getElementById("stStreakLine");
   if (elStreakLine) {
-    const sFreezes = (agent && typeof agent.streakFreezes === 'number') ? agent.streakFreezes : 0;
     elStreakLine.innerHTML = `
-      <span>連續 <b id="stHeatStreak">${streak}</b> 天 · 最佳 <b id="stHeatBest">${best}</b> 天 · 累計練習 <b id="stHeatTotal">${totalActive}</b> 天 <span class="streak-freeze-badge" title="連勝守護護盾：偶爾請假缺席時，系統自動消耗 1 個護盾守護連續紀錄！每累積 50 題答對可補充（上限 2 個）。">🛡️ 護盾: <b>${sFreezes === 0 ? '已用完' : (sFreezes >= 2 ? '2 個(滿)' : `剩 ${sFreezes} 個`)}</b></span></span>
+      <span>連續 <b id="stHeatStreak">${streak}</b> 天 · 最佳 <b id="stHeatBest">${best}</b> 天 · 累計練習 <b id="stHeatTotal">${totalActive}</b> 天</span>
       <span id="stHeatDayInfo" class="heat-day-info"></span>
     `;
   }
