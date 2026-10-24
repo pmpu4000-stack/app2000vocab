@@ -1,4 +1,4 @@
-﻿*{box-sizing:border-box;margin:0;padding:0}
+*{box-sizing:border-box;margin:0;padding:0}
 :root{
   --paper:#F6F7FB; --card:#FFFFFF; --ink:#232A4D; --ink2:#5A6183; --ink3:#9AA0BD;
   --violet:#6C4CE0; --violet-d:#573BC4; --marker:#FFD84D; --marker-soft:#FFF0B3;
@@ -144,7 +144,9 @@ header{display:flex; align-items:center; justify-content:space-between; flex-wra
 .word-speech-btn:active,.word-speech-btn.playing{transform:scale(.92)}
 .zh-text{font-size:15px;color:var(--ink2);font-weight:700;line-height:1.4}
 .zh-text b{color:var(--ink)}
-.zh .phon{color:var(--sky);font-weight:700;font-size:13px;font-family:ui-monospace,"SF Mono",monospace}
+.zh-text .zh-def{font-size:18px;font-weight:800;color:var(--ink);letter-spacing:0.2px}
+.zh-text .zh-pos{color:#10B981;font-weight:700;font-size:12.5px;margin:0 5px;padding:1.5px 7px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.3);border-radius:6px;display:inline-block;vertical-align:middle}
+.zh .phon{color:var(--sky);font-weight:700;font-size:13.5px;font-family:ui-monospace,"SF Mono",monospace;margin-left:4px}
 
 .sent{font-size:14px;color:var(--ink3);font-weight:600;min-height:20px;margin-top:6px}
 .sents-vertical-list{display:flex;flex-direction:column;gap:8px;margin:4px 0 10px;width:100%}

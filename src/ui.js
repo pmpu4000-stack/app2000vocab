@@ -1,4 +1,4 @@
-﻿// =====================================================================
+// =====================================================================
 // ui.js — the view. All DOM rendering lives here. It renders from plain
 // data and reports intent through callbacks; it never touches the store.
 // =====================================================================
@@ -118,9 +118,38 @@ export function renderRound(word, mode, { onAnswer, onCheck }) {
 
   const phon = word.ph ? ` <span class="phon">[${word.ph}]</span>` : "";
   const catTag = word.featured && word.cat ? ` <span style="color:var(--ink3)">（${CATS[word.cat].name}）</span>` : "";
-  const zhText = word.zh
-    ? `意思：<b>${word.zh}</b>${phon}${catTag}`
-    : `<span style="color:var(--ink3)">聽發音，拼出這個字</span>`;
+  let zhText = `<span style="color:var(--ink3)">聽發音，拼出這個字</span>`;
+  if (word.zh) {
+    const posMap = {
+      n: '名詞', v: '動詞', vt: '及物動詞', vi: '不及物動詞',
+      a: '形容詞', adj: '形容詞', adv: '副詞', prep: '介系詞',
+      conj: '連接詞', pron: '代名詞', num: '數詞', aux: '助動詞',
+      art: '冠詞', int: '感嘆詞', interj: '感嘆詞'
+    };
+    const parts = word.zh.split('；');
+    const transList = [];
+    const posList = [];
+
+    for (const part of parts) {
+      const trimmed = part.trim();
+      const m = trimmed.match(/^([a-zA-Z\.\s\/]+?)[\s]+([\u4e00-\u9fa5（(].*)$/);
+      if (m) {
+        const posStr = m[1].trim();
+        const defStr = m[2].trim();
+        transList.push(defStr);
+        const tags = posStr.split(/[\/\s]+/).map(p => p.replace(/\./g, '').trim()).filter(Boolean);
+        tags.forEach(t => {
+          const zhPos = posMap[t.toLowerCase()] || t;
+          if (!posList.includes(zhPos)) posList.push(zhPos);
+        });
+      } else {
+        transList.push(trimmed);
+      }
+    }
+    const defHtml = `<b class="zh-def">${transList.join('； ')}</b>`;
+    const posHtml = posList.length > 0 ? ` <span class="zh-pos">${posList.join(' · ')}</span>` : '';
+    zhText = `${defHtml}${posHtml}${phon}${catTag}`;
+  }
 
   el.zh.innerHTML = `
     <div class="zh-row">
