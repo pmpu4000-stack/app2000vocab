@@ -16674,6 +16674,167 @@ function renderStudentDailyTaskAndFreeSections(resp) {
       </div>
     `;
 
+    const dNow = new Date();
+    const day = dNow.getDay();
+    const diff = dNow.getDate() - day + (day === 0 ? -6 : 1);
+    let monday, friday;
+    if (isPrevBiweekly) {
+      monday = new Date(dNow.getFullYear(), dNow.getMonth(), diff - 14);
+      friday = new Date(dNow.getFullYear(), dNow.getMonth(), diff - 3);
+    } else if (isPrevious) {
+      monday = new Date(dNow.getFullYear(), dNow.getMonth(), diff - 7);
+      friday = new Date(dNow.getFullYear(), dNow.getMonth(), diff - 3);
+    } else {
+      monday = new Date(dNow.getFullYear(), dNow.getMonth(), diff);
+      friday = new Date(dNow.getFullYear(), dNow.getMonth(), diff + 4);
+    }
+    const formatD = (dt) => dt.getFullYear() + "-" + String(dt.getMonth() + 1).padStart(2, "0") + "-" + String(dt.getDate()).padStart(2, "0");
+    const mondayStr = formatD(monday);
+    const fridayStr = formatD(friday);
+
+    const normalizeCleanWord = (w) => {
+      if (!w) return "";
+      return String(w).replace(/\(.*?\)/g, "").trim().toLowerCase();
+    };
+
+    const unfinishedWords = new Set();
+    const learnedWords = new Set();
+    const allStudentTasks = [];
+    const curResp = window._currentTeacherConquerResp || {};
+    const curAgent = window._currentTeacherConquerAgent || null;
+
+    if (Array.isArray(curResp.dailyTaskHistory)) allStudentTasks.push(...curResp.dailyTaskHistory);
+    if (curResp.todayTaskResult) allStudentTasks.push(curResp.todayTaskResult);
+    if (Array.isArray(window.cachedStudentDailyHistory)) allStudentTasks.push(...window.cachedStudentDailyHistory);
+    if (Array.isArray(window.cachedBackupTaskHistory)) allStudentTasks.push(...window.cachedBackupTaskHistory);
+    if (curResp.data && Array.isArray(curResp.data)) {
+      for (const r of curResp.data) {
+        if (!r || !r[0]) continue;
+        const info = extractRowTaskInfo(r, curResp.headers);
+        if (info && info.taskName && info.taskName !== "自主練習" && !info.taskName.includes("自由練習")) {
+          allStudentTasks.push({
+            date: normalizeDateKey(r[0]),
+            taskName: info.taskName,
+            status: info.status || "",
+            score: info.score || "",
+            words: info.words || [],
+            wrongWords: info.wrongWords || [],
+            correctWords: info.correctWords || []
+          });
+        }
+      }
+    }
+
+    allStudentTasks.forEach(item => {
+      if (!item || !item.date) return;
+      const iDate = String(item.date).trim().split(" ")[0].replace(/\//g, "-");
+      if (iDate >= mondayStr && iDate <= fridayStr) {
+        const tName = String(item.taskName || "").trim();
+        if (tName === "自主練習" || tName.includes("自由練習")) return;
+
+        const correctSet = new Set();
+        if (Array.isArray(item.correctWords)) {
+          item.correctWords.forEach(w => {
+            const cw = normalizeCleanWord(w);
+            if (cw) correctSet.add(cw);
+          });
+        }
+
+        if (Array.isArray(item.wrongWords)) {
+          item.wrongWords.forEach(w => {
+            const cw = normalizeCleanWord(w);
+            if (cw && !correctSet.has(cw)) unfinishedWords.add(cw);
+          });
+        }
+
+        const status = String(item.status || "");
+        const score = String(item.score || "");
+        const isTotallyUntested = status.includes("未受測") || status.includes("缺席") || status.includes("缺考") || score === "—" || score === "尚未開始";
+        
+        if (Array.isArray(item.words)) {
+          if (isTotallyUntested && correctSet.size === 0 && (!item.wrongWords || item.wrongWords.length === 0)) {
+            item.words.forEach(w => {
+              const cw = normalizeCleanWord(w);
+              if (cw) unfinishedWords.add(cw);
+            });
+          } else if (!isTotallyUntested) {
+            const wrongSet = new Set((item.wrongWords || []).map(normalizeCleanWord));
+            item.words.forEach(w => {
+              const cw = normalizeCleanWord(w);
+              if (cw && !correctSet.has(cw) && !wrongSet.has(cw)) {
+                unfinishedWords.add(cw);
+              }
+            });
+          }
+        }
+      }
+    });
+
+    if (curAgent && curAgent.dailyPractice) {
+      Object.values(curAgent.dailyPractice).forEach(dp => {
+        if (dp && dp.words) {
+          Object.entries(dp.words).forEach(([wKey, info]) => {
+            if (info && (info.correct > 0 || info.passed) && info.lastResult !== "wrong") {
+              const cw = normalizeCleanWord(wKey);
+              if (cw) learnedWords.add(cw);
+            }
+          });
+        }
+      });
+    }
+
+    const pendingWords = Array.from(unfinishedWords).filter(w => !learnedWords.has(w)).sort();
+    const count = pendingWords.length;
+
+    if (conquerBadge) {
+      if (count > 0) {
+        conquerBadge.style.display = "inline-block";
+        conquerBadge.textContent = `待攻克 ${count} 字`;
+        conquerBadge.style.cssText = 'font-size:11.5px; font-weight:700; padding:2px 10px; border-radius:999px; background:rgba(255,255,255,0.12); color:var(--ink); border:1px solid rgba(148,163,184,0.38);';
+      } else {
+        conquerBadge.style.display = "none";
+      }
+    }
+
+    // Level 1~5 分級標準與特徵對照表 HTML
+    const levelStandardPanelHtml = `
+      <div class="level-standard-panel">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
+          <span style="font-size:12.5px; font-weight:800; color:var(--ink); display:flex; align-items:center; gap:5px;">
+            <span>📊</span><span>Level 1~5 單字分級標準與特徵一覽</span>
+          </span>
+          <span style="font-size:11px; color:var(--ink3);">全書 2,055 字 · 5 大關卡階梯</span>
+        </div>
+        <div class="level-standard-grid">
+          <div class="level-standard-item" style="border-left:3px solid #2FB47C;">
+            <div class="level-standard-head" style="color:#2FB47C;"><span>🟢</span><span>Lv.1 入門</span></div>
+            <div class="level-standard-sub">約 3.4 字母 · 411 字</div>
+            <div class="level-standard-trap">自然拼讀、CVC極短字、單母音、生活高頻詞</div>
+          </div>
+          <div class="level-standard-item" style="border-left:3px solid #2D9CDB;">
+            <div class="level-standard-head" style="color:#2D9CDB;"><span>🔵</span><span>Lv.2 基礎</span></div>
+            <div class="level-standard-sub">約 4.7 字母 · 411 字</div>
+            <div class="level-standard-trap">短單母音/合音、Magic e、基本長母音、常用字詞</div>
+          </div>
+          <div class="level-standard-item" style="border-left:3px solid #6C4CE0;">
+            <div class="level-standard-head" style="color:#6C4CE0;"><span>🟣</span><span>Lv.3 進階</span></div>
+            <div class="level-standard-sub">約 5.2 字母 · 411 字</div>
+            <div class="level-standard-trap">雙音節中長字、複合字、弱化母音Schwa、詞類變化</div>
+          </div>
+          <div class="level-standard-item" style="border-left:3px solid #E8892B;">
+            <div class="level-standard-head" style="color:#E8892B;"><span>🟠</span><span>Lv.4 挑戰</span></div>
+            <div class="level-standard-sub">約 6.7 字母 · 411 字</div>
+            <div class="level-standard-trap">雙子音/不規則母音、不發音字母、抽象觀念與學術名詞</div>
+          </div>
+          <div class="level-standard-item" style="border-left:3px solid #E0567B;">
+            <div class="level-standard-head" style="color:#E0567B;"><span>🔴</span><span>Lv.5 精熟</span></div>
+            <div class="level-standard-sub">約 9.0 字母 · 411 字</div>
+            <div class="level-standard-trap">多音節長字、字根字首派生、多重拼寫陷阱、高階字彙</div>
+          </div>
+        </div>
+      </div>
+    `;
+
     if (count === 0) {
       const emptyTitle = isPrevious ? "太棒了！上週平日測驗無遺留待攻克單字" : "太棒了！本週目前無待攻克單字";
       const emptyDesc = isPrevious
