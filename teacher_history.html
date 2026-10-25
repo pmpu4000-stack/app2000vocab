@@ -16211,10 +16211,12 @@ function buildTaskDetailsHtml(records, selectedDate, agent) {
     }
   }
 
-  // 若週日且週六已全數消滅，徹底過濾 list 中的週末測驗紀錄
+  // 若週日且週六已全數消滅，僅過濾尚未受測之佔位項目，絕不可抹除已完成之真實作答紀錄
   if (isSatClearedOnSunday) {
     for (let i = list.length - 1; i >= 0; i--) {
-      if (String(list[i].taskName || "").includes("週末") || list[i].isWeekend) {
+      const item = list[i];
+      const isDone = item && item.status && (item.status.includes("已完成") || item.status.includes("●") || item.status.includes("🟢")) && item.score && item.score !== "—";
+      if (!isDone && (String(item.taskName || "").includes("週末") || item.isWeekend)) {
         list.splice(i, 1);
       }
     }
@@ -16224,7 +16226,7 @@ function buildTaskDetailsHtml(records, selectedDate, agent) {
     // 檢查是否有當日已完成的 task_summary 或 weekend_remedy
     try {
     const ts = getRecordJson("task_summary_" + sDateNorm);
-      if (ts && !isSatClearedOnSunday) {
+      if (ts) {
       // already parsed
         if (ts && ts.completed && ts.taskName && ts.taskName !== "自主練習") {
           list.push({
@@ -16252,7 +16254,7 @@ function buildTaskDetailsHtml(records, selectedDate, agent) {
           if (rem) {
       // already parsed
             const satClearedAll = rem && rem.satCompleted && (!rem.satWrongWords || rem.satWrongWords.length === 0);
-            if (rem && ((day === 6 && rem.satCompleted) || (day === 0 && rem.sunCompleted && !satClearedAll))) {
+            if (rem && ((day === 6 && rem.satCompleted) || (day === 0 && rem.sunCompleted))) {
               const corr = day === 6 ? (rem.satCorrectWords || []) : (rem.sunCorrectWords || []);
               const wrg = day === 6 ? (rem.satWrongWords || []) : (rem.sunWrongWords || []);
               const sc = day === 6 ? rem.satScore : rem.sunScore;
@@ -16862,7 +16864,7 @@ function renderStudentDailyTaskAndFreeSections(resp) {
       if (!rem) { try { const raw = localStorage.getItem("weekend_remedy_" + monKey); if (raw) rem = JSON.parse(raw); } catch(_) {} }
       if (rem) {
         const satClearedAll = rem.satCompleted && (!rem.satWrongWords || rem.satWrongWords.length === 0);
-        if ((dtDay === 6 && rem.satCompleted) || (dtDay === 0 && rem.sunCompleted && !satClearedAll)) {
+        if ((dtDay === 6 && rem.satCompleted) || (dtDay === 0 && rem.sunCompleted)) {
           const corr = dtDay === 6 ? (rem.satCorrectWords || []) : (rem.sunCorrectWords || []);
           const wrg = dtDay === 6 ? (rem.satWrongWords || []) : (rem.sunWrongWords || []);
           const sc = dtDay === 6 ? rem.satScore : rem.sunScore;
@@ -17828,7 +17830,7 @@ function renderStudentSummary(resp) {
             const satClearedAll = rem.satCompleted && (!rem.satWrongWords || rem.satWrongWords.length === 0);
             const sunD = new Date(mDate.getFullYear(), mDate.getMonth(), mDate.getDate() + 6);
             const sunKey = normalizeDateKey(formatDateYMD(sunD));
-            if (rem.sunCompleted && !satClearedAll) {
+            if (rem.sunCompleted) {
               const sunCorr = Array.isArray(rem.sunCorrectWords) ? rem.sunCorrectWords : [];
               const sunWrong = Array.isArray(rem.sunWrongWords) ? rem.sunWrongWords : [];
               const sunWords = Array.from(new Set([...sunCorr, ...sunWrong]));
