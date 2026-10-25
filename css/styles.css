@@ -2883,3 +2883,28 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   color: var(--ink3);
   margin-top: 2px;
 }
+
+/* 待攻克單字卡切換檢視器互動樣式 */
+.conquer-tab-chip:hover {
+  filter: brightness(0.96);
+}
+.conquer-tab-chip.is-active {
+  box-shadow: 0 0 0 1px #E8892B;
+}
+[data-theme="dark"] .conquer-tab-chip.is-active {
+  border-color: #F59E0B !important;
+  background: rgba(245, 158, 11, 0.22) !important;
+  color: #FBBF24 !important;
+  box-shadow: 0 0 0 1px #F59E0B;
+}
+.conquer-pill.is-active {
+  border: 2px solid #E8892B !important;
+  background: rgba(232, 137, 43, 0.16) !important;
+  font-weight: 800 !important;
+  color: #B45309 !important;
+}
+[data-theme="dark"] .conquer-pill.is-active {
+  border-color: #F59E0B !important;
+  background: rgba(245, 158, 11, 0.24) !important;
+  color: #FBBF24 !important;
+}

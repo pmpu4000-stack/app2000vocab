@@ -2745,6 +2745,7 @@ function _resolveConquerWordLevel(wordStr, d) {
 }
 
 let _activeConquerCycle = "current";
+let _currentConquerIndex = 0;
 
 function _renderConquerWordCard(wordStr, d) {
   const clean = String(wordStr || "").trim().toLowerCase();
@@ -2761,12 +2762,9 @@ function _renderConquerWordCard(wordStr, d) {
     obj = {
       word: clean,
       display: clean.charAt(0).toUpperCase() + clean.slice(1),
-      ph: "əˈbɪləti",
-      zh: "n. 能力；才能",
+      zh: "a. 能夠的",
       sents: [
-        { level: "simple", levelName: "簡單", sent: "She has the ability to speak three languages.", sentZh: "她有說三種語言的能力。" },
-        { level: "normal", levelName: "普通", sent: "Regular exercise improves your physical ability.", sentZh: "規律運動能增進你的體能。" },
-        { level: "advanced", levelName: "進階", sent: "His remarkable analytical ability impressed the entire committee.", sentZh: "他出色的分析能力給整個委員會留下了深刻的印象。" }
+        { level: "simple", levelName: "簡單", sent: "I'm able to swim.", sentZh: "我會游泳。" }
       ]
     };
   }
@@ -2775,24 +2773,32 @@ function _renderConquerWordCard(wordStr, d) {
     n: "名詞", v: "動詞", vt: "及物動詞", vi: "不及物動詞",
     adj: "形容詞", a: "形容詞", adv: "副詞", ad: "副詞",
     prep: "介系詞", conj: "連接詞", pron: "代名詞",
-    interj: "感嘆詞", int: "感嘆詞", art: "冠詞", num: "數詞"
+    interj: "感嘆詞", int: "感嘆詞", art: "冠詞", num: "數詞",
+    phr: "片語", aux: "助動詞"
   };
   let posList = [];
   let defText = "";
   const rawZh = obj.zh || "";
   if (rawZh) {
-    const m = rawZh.match(/^\s*([a-zA-Z\.\/\s]+)\s*[\.．]\s*(.+)$/);
-    if (m) {
-      const posStr = m[1].trim();
-      defText = m[2].trim();
-      const tags = posStr.split(/[\/\s]+/).map(p => p.replace(/\./g, "").trim()).filter(Boolean);
-      tags.forEach(t => {
-        const zhPos = posMap[t.toLowerCase()] || t;
-        if (!posList.includes(zhPos)) posList.push(zhPos);
-      });
-    } else {
-      defText = rawZh;
+    const parts = rawZh.split('；');
+    const transList = [];
+    for (const part of parts) {
+      const trimmed = part.trim();
+      const m = trimmed.match(/^([a-zA-Z\.\s\/]+?)[\s\.\．]+(.*)$/);
+      if (m) {
+        const posStr = m[1].trim();
+        const defStr = m[2].trim();
+        if (defStr && !transList.includes(defStr)) transList.push(defStr);
+        const tags = posStr.split(/[\/\s]+/).map(p => p.replace(/\./g, "").trim()).filter(Boolean);
+        tags.forEach(t => {
+          const zhPos = posMap[t.toLowerCase()] || t;
+          if (!posList.includes(zhPos)) posList.push(zhPos);
+        });
+      } else {
+        if (trimmed && !transList.includes(trimmed)) transList.push(trimmed);
+      }
     }
+    defText = transList.join("；");
   }
   if (obj.pos && posList.length === 0) {
     const p = posMap[String(obj.pos).toLowerCase().replace(/\./g, "")] || obj.pos;
@@ -2800,56 +2806,51 @@ function _renderConquerWordCard(wordStr, d) {
   }
 
   const wordDisplay = obj.display || obj.word || clean;
-  const cleanPh = String(obj.ph || "").replace(/^[/\[\s]+|[\/\]\s]+$/g, "");
   const posHtml = posList.length > 0 ? `<span class="zh-pos">${posList.join(" · ")}</span>` : "";
-  const phonHtml = cleanPh ? `<span class="phon">/${cleanPh}/</span>` : "";
   const defHtml = defText ? `<b class="zh-def">${defText}</b>` : "";
 
   let sentsList = (Array.isArray(obj.sents) && obj.sents.length > 0)
     ? [...obj.sents]
-    : (obj.sent ? [{ level: "normal", levelName: "普通", sent: obj.sent, sentZh: obj.sentZh || "" }] : []);
+    : (obj.sent ? [{ level: "simple", levelName: "簡單", sent: obj.sent, sentZh: obj.sentZh || "" }] : []);
 
   if (sentsList.length === 0) {
     sentsList = [
-      { level: "normal", levelName: "普通", sent: "Practice using \"" + wordDisplay + "\" in daily communication.", sentZh: "在日常溝通中練習使用「" + wordDisplay + "」。" }
+      { level: "simple", levelName: "簡單", sent: "Practice using \"" + wordDisplay + "\" in daily communication.", sentZh: "在日常溝通中練習使用「" + wordDisplay + "」。" }
     ];
   }
 
   const levelOrder = { simple: 1, normal: 2, advanced: 3, dialogue: 4 };
   sentsList.sort((a, b) => (levelOrder[a.level] || 9) - (levelOrder[b.level] || 9));
 
-  const sentsHtml = sentsList.slice(0, 3).map((s, idx) => {
-    const levelCls = s.level === "simple" ? "level-simple" : s.level === "advanced" ? "level-advanced" : s.level === "dialogue" ? "level-dialogue" : "level-normal";
-    const levelText = s.levelName || (idx === 0 ? "簡單" : idx === 1 ? "普通" : "進階");
-    const safeSent = (s.sent || "").replace(/'/g, "\\'");
-    const escapedWord = clean.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const regex = new RegExp("\\b(" + escapedWord + ")\\b", "gi");
-    const highlightedSent = (s.sent || "").replace(regex, `<b class="conquer-sent-word task-title-free" style="font-weight:800;">$1</b>`);
+  // 待攻克單字卡僅保留最簡單的第一個例句
+  const firstSent = sentsList[0] || {};
+  const safeSent = (firstSent.sent || "").replace(/'/g, "\\'");
+  const escapedWord = clean.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const regex = new RegExp("\\b(" + escapedWord + ")\\b", "gi");
+  const highlightedSent = (firstSent.sent || "").replace(regex, `<b class="conquer-sent-word task-title-free" style="font-weight:800;">$1</b>`);
 
-    return `
-      <div class="sent-row" onclick="window.__saySentence('${safeSent}')" style="cursor:pointer;">
-        <button type="button" class="sent-speaker-btn ${levelCls}" onclick="event.stopPropagation(); window.__saySentence('${safeSent}')" aria-label="${levelText}例句朗讀" title="${levelText}例句朗讀">🔊</button>
-        <div class="sent-text-wrap">
-          <div class="sent-en">${highlightedSent}</div>
-          ${s.sentZh ? `<div class="sent-zh">${s.sentZh}</div>` : ""}
-        </div>
+  const sentHtml = `
+    <div class="sent-row" onclick="window.__saySentence('${safeSent}')" style="cursor:pointer;">
+      <button type="button" class="sent-speaker-btn level-simple" onclick="event.stopPropagation(); window.__saySentence('${safeSent}')" aria-label="簡單例句朗讀" title="簡單例句朗讀">🔊</button>
+      <div class="sent-text-wrap">
+        <div class="sent-en">${highlightedSent}</div>
+        ${firstSent.sentZh ? `<div class="sent-zh">${firstSent.sentZh}</div>` : ""}
       </div>
-    `;
-  }).join("");
+    </div>
+  `;
 
   return `
-    <div class="conquer-word-card" style="width:100%; box-sizing:border-box; background:var(--card, #fff); border:1.5px solid var(--line, #e2e8f0); border-radius:12px; padding:12px 14px; margin-bottom:8px; box-shadow:0 1px 4px rgba(0,0,0,0.03);">
-      <div class="zh-row" style="margin-bottom:10px;">
+    <div class="conquer-word-card" style="width:100%; box-sizing:border-box; background:var(--card, #fff); border:1.5px solid var(--line, #e2e8f0); border-radius:12px; padding:12px 14px; margin-bottom:4px; box-shadow:0 1px 4px rgba(0,0,0,0.03);">
+      <div class="zh-row" style="margin-bottom:8px;">
         <button type="button" class="word-speech-btn" onclick="window.__sayWord('${clean}')" aria-label="播放單字發音" title="播放單字發音">🔊</button>
-        <div class="zh-text" style="display:flex; align-items:baseline; gap:8px; flex-wrap:wrap;">
+        <div class="zh-text" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
           <span class="conquer-card-word task-title-free">${wordDisplay}</span>
           ${defHtml}
           ${posHtml}
-          ${phonHtml}
         </div>
       </div>
       <div class="sents-vertical-list" style="margin:0;">
-        ${sentsHtml}
+        ${sentHtml}
       </div>
     </div>
   `;
@@ -2901,7 +2902,7 @@ export function buildWeekPendingConquerHtml(words, d = null, cycleParam = _activ
     </div>
   `;
 
-  // 週期選擇導覽列（支援第 1~20 週週次切換與本週雙週魔王戰提示）
+  // 週期選擇導覽列
   const curSemWeek = cycleInfo.semesterWeek || 1;
   let activeW = curSemWeek;
   if (typeof cycleParam === "string" && cycleParam.startsWith("week_")) {
@@ -2968,13 +2969,55 @@ export function buildWeekPendingConquerHtml(words, d = null, cycleParam = _activ
         </div>
         <div style="margin-top:6px;">
           <div style="font-size:13px; font-weight:800; color:var(--ink); margin-bottom:8px; display:flex; align-items:center; gap:6px;">
-            <span>📇 待攻克單字卡展示範例（以 ability 為例）：</span>
+            <span>📇 待攻克單字卡展示範例（以 2000 單字 able 為例）：</span>
           </div>
-          ${_renderConquerWordCard('ability', d)}
+          ${_renderConquerWordCard('able', d)}
         </div>
       </div>
     `;
   }
+
+  // 確保當前選中的單字索引在合理範圍內
+  if (_currentConquerIndex < 0 || _currentConquerIndex >= count) {
+    _currentConquerIndex = 0;
+  }
+  const activeWord = pendingWords[_currentConquerIndex] || pendingWords[0];
+  const activeWordLv = _resolveConquerWordLevel(activeWord, d);
+
+  // 頂部單字卡切換檢視器
+  const viewerHtml = `
+    <div class="conquer-viewer-card" style="background:var(--card, #fff); border:1.5px solid var(--line, #e2e8f0); border-radius:14px; padding:12px 14px; margin-bottom:12px; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+      <div class="conquer-viewer-nav" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:10px; border-bottom:1px solid var(--line, #e2e8f0); padding-bottom:8px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:13px; font-weight:800; color:var(--ink); display:flex; align-items:center; gap:5px;">
+            <span>📇</span><span>待攻克單字卡檢視</span>
+          </span>
+          <span class="conquer-nav-counter" style="font-size:11.5px; font-weight:800; color:var(--ink2); background:var(--bar-track, rgba(148,163,184,0.12)); padding:2px 8px; border-radius:999px;">
+            單字 ${_currentConquerIndex + 1} / ${count} · Level ${activeWordLv}
+          </span>
+        </div>
+        <div class="conquer-stepper-btns" style="display:inline-flex; align-items:center; gap:6px;">
+          <button type="button" id="btn-conquer-prev-word" class="date-nav-btn" style="font-size:12px; padding:3px 9px; border-radius:6px;" title="檢視上一個待攻克單字">◀ 上一個</button>
+          <button type="button" id="btn-conquer-next-word" class="date-nav-btn" style="font-size:12px; padding:3px 9px; border-radius:6px;" title="檢視下一個待攻克單字">下一個 ▶</button>
+        </div>
+      </div>
+
+      <!-- 單字橫向快速跳轉標籤列 -->
+      <div class="conquer-tabs-wrap" style="display:flex; align-items:center; gap:6px; overflow-x:auto; padding:2px 2px 8px; margin-bottom:10px; scrollbar-width:thin;">
+        ${pendingWords.map((w, idx) => {
+          const isAct = (idx === _currentConquerIndex);
+          const wLv = _resolveConquerWordLevel(w, d);
+          return `<button type="button" class="conquer-tab-chip ${isAct ? 'is-active' : ''}" data-word-idx="${idx}" data-word="${w}" style="flex-shrink:0; cursor:pointer; font-size:12px; font-weight:${isAct ? '800' : '600'}; padding:3px 10px; border-radius:999px; border:${isAct ? '2px solid #E8892B' : '1px solid var(--line, #e2e8f0)'}; background:${isAct ? 'rgba(232,137,43,0.14)' : 'var(--bar-track, #f8f9fa)'}; color:${isAct ? '#B45309' : 'var(--ink)'}; transition:all .15s ease;" title="切換檢視單字 ${w}">
+            <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:${levelColor(wLv)}; margin-right:4px;"></span>${w}
+          </button>`;
+        }).join("")}
+      </div>
+
+      <div id="conquer-active-card-container">
+        ${_renderConquerWordCard(activeWord, d)}
+      </div>
+    </div>
+  `;
 
   // 依五個等級 (Level 1 ~ 5) 分類待攻克單字
   const byLv = { 1: [], 2: [], 3: [], 4: [], 5: [] };
@@ -2992,7 +3035,6 @@ export function buildWeekPendingConquerHtml(words, d = null, cycleParam = _activ
     5: "精熟 · 8 字母以上多音節長字/字根字首"
   };
 
-  let firstCardRendered = false;
   const levelSectionsHtml = [1, 2, 3, 4, 5].map(lv => {
     const list = byLv[lv] || [];
     const lvDotColor = levelColor(lv);
@@ -3000,18 +3042,10 @@ export function buildWeekPendingConquerHtml(words, d = null, cycleParam = _activ
     const lvFeatureSub = lvFeatures[lv] || "";
     let contentHtml = "";
     if (list.length > 0) {
-      if (!firstCardRendered) {
-        firstCardRendered = true;
-        const firstW = list[0];
-        const otherWords = list.slice(1);
-        const cardHtml = _renderConquerWordCard(firstW, d);
-        const othersHtml = otherWords.length > 0
-          ? `<div class="conquer-word-list" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;">${otherWords.map(w => `<span class="word-pill-tag conquer-pill" data-word="${w}" style="cursor:pointer;" title="待攻克單字 (點擊聆聽發音)">${w}</span>`).join("")}</div>`
-          : "";
-        contentHtml = cardHtml + othersHtml;
-      } else {
-        contentHtml = `<div class="conquer-word-list" style="display:flex; flex-wrap:wrap; gap:8px; padding:2px 4px 2px 0;">${list.map(w => `<span class="word-pill-tag conquer-pill" data-word="${w}" style="cursor:pointer;" title="待攻克單字 (點擊聆聽發音)">${w}</span>`).join("")}</div>`;
-      }
+      contentHtml = `<div class="conquer-word-list" style="display:flex; flex-wrap:wrap; gap:8px; padding:2px 4px 2px 0;">${list.map(w => {
+        const isAct = (w === activeWord);
+        return `<span class="word-pill-tag conquer-pill ${isAct ? 'is-active' : ''}" data-word="${w}" style="cursor:pointer;" title="點擊檢視單字卡並朗讀發音">${w}</span>`;
+      }).join("")}</div>`;
     } else {
       contentHtml = `<div style="font-size:12px; color:var(--ink3); font-style:italic; padding:1px 0;">（本關卡目前無待攻克單字）</div>`;
     }
@@ -3047,6 +3081,7 @@ export function buildWeekPendingConquerHtml(words, d = null, cycleParam = _activ
           ${tipText}
         </div>
       </div>
+      ${viewerHtml}
       <div class="conquer-level-groups">
         ${levelSectionsHtml}
       </div>
@@ -3073,6 +3108,7 @@ export function updateWeekConquerSection(cycleParam = _activeConquerCycle) {
   const selectEl = detailsEl.querySelector("#conquer-cycle-select");
   if (selectEl) {
     selectEl.onchange = (e) => {
+      _currentConquerIndex = 0;
       updateWeekConquerSection(e.target.value);
     };
   }
@@ -3089,30 +3125,74 @@ export function updateWeekConquerSection(cycleParam = _activeConquerCycle) {
   };
   if (btnPrev) btnPrev.onclick = (e) => {
     e.stopPropagation();
+    _currentConquerIndex = 0;
     const targetW = Math.max(1, getActiveW() - 1);
     updateWeekConquerSection("week_" + targetW);
   };
   if (btnCur) btnCur.onclick = (e) => {
     e.stopPropagation();
+    _currentConquerIndex = 0;
     updateWeekConquerSection("week_" + curSemWeek);
   };
   if (btnNext) btnNext.onclick = (e) => {
     e.stopPropagation();
+    _currentConquerIndex = 0;
     const targetW = Math.min(20, getActiveW() + 1);
     updateWeekConquerSection("week_" + targetW);
   };
 
-  // 綁定待攻克單字卡片內部的發音點擊
-  detailsEl.querySelectorAll(".word-pill-tag").forEach(pill => {
+  // 綁定單字卡檢視器上一字 / 下一字切換
+  const btnPrevWord = detailsEl.querySelector("#btn-conquer-prev-word");
+  const btnNextWord = detailsEl.querySelector("#btn-conquer-next-word");
+  if (btnPrevWord && count > 0) {
+    btnPrevWord.onclick = (e) => {
+      e.stopPropagation();
+      _currentConquerIndex = (_currentConquerIndex - 1 + count) % count;
+      const targetWord = words[_currentConquerIndex];
+      if (targetWord) sayWord(targetWord);
+      updateWeekConquerSection(_activeConquerCycle);
+    };
+  }
+  if (btnNextWord && count > 0) {
+    btnNextWord.onclick = (e) => {
+      e.stopPropagation();
+      _currentConquerIndex = (_currentConquerIndex + 1) % count;
+      const targetWord = words[_currentConquerIndex];
+      if (targetWord) sayWord(targetWord);
+      updateWeekConquerSection(_activeConquerCycle);
+    };
+  }
+
+  // 綁定橫向標籤列點擊切換
+  detailsEl.querySelectorAll(".conquer-tab-chip").forEach(chip => {
+    chip.onclick = (e) => {
+      e.stopPropagation();
+      const idx = parseInt(chip.getAttribute("data-word-idx"), 10);
+      if (!isNaN(idx) && idx >= 0 && idx < count) {
+        _currentConquerIndex = idx;
+        const w = chip.getAttribute("data-word") || "";
+        if (w) sayWord(w);
+        updateWeekConquerSection(_activeConquerCycle);
+      }
+    };
+  });
+
+  // 綁定下方關卡單字膠囊點擊（發音 + 同步切換檢視器至該單字）
+  detailsEl.querySelectorAll(".conquer-pill").forEach(pill => {
     pill.onclick = (e) => {
       e.stopPropagation();
       const w = pill.getAttribute("data-word") || pill.textContent || "";
-      if (w) sayWord(w);
+      if (w) {
+        sayWord(w);
+        const targetIdx = words.findIndex(x => x.toLowerCase() === w.toLowerCase());
+        if (targetIdx !== -1) {
+          _currentConquerIndex = targetIdx;
+          updateWeekConquerSection(_activeConquerCycle);
+        }
+      }
     };
   });
 }
-
-// 暴露至 window，確保在 HTML onclick 或全域呼叫皆能正常執行
 if (typeof window !== "undefined") {
   window.updateWeekConquerSection = updateWeekConquerSection;
   window.getWeekPendingConquerWords = getWeekPendingConquerWords;
