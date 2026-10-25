@@ -2854,59 +2854,48 @@ function _renderConquerWordCard(wordStr, d) {
   const levelOrder = { simple: 1, normal: 2, advanced: 3, dialogue: 4 };
   sentsList.sort((a, b) => (levelOrder[a.level] || 9) - (levelOrder[b.level] || 9));
 
-  // 依單字熟練度自動決定預設例句難度（未曾答對/學習中: 簡單；練習中: 普通；精通: 進階）
-  let wordId = (obj && obj.id) ? obj.id : null;
-  if (!wordId && typeof window !== "undefined" && window.__WORDS && window.__WORDS._byWord) {
+  // 依單字關卡階段自動判斷並顯示對應例句（1~2 入門基礎: 簡單；3 進階: 普通；4~5 挑戰精熟: 進階）
+  let wordLevel = (obj && obj.level) ? obj.level : 1;
+  if (typeof window !== "undefined" && window.__WORDS && window.__WORDS._byWord) {
     const wObj = window.__WORDS._byWord.get(clean);
-    if (wObj && wObj.id) wordId = wObj.id;
+    if (wObj && wObj.level) wordLevel = wObj.level;
   }
-  const b = (typeof box === "function" && wordId) ? box(wordId) : 0;
-  const targetLevel = (b >= 3) ? 'advanced' : (b === 2) ? 'normal' : 'simple';
+  const lv = Number(wordLevel) || 1;
+  const targetLevel = (lv >= 4) ? 'advanced' : (lv === 3) ? 'normal' : 'simple';
   let defaultIdx = sentsList.findIndex(s => s.level === targetLevel);
   if (defaultIdx === -1) {
-    if (targetLevel === 'advanced') defaultIdx = sentsList.findIndex(s => s.level === 'normal');
-    else if (targetLevel === 'normal') defaultIdx = sentsList.findIndex(s => s.level === 'simple');
+    if (targetLevel === 'advanced') {
+      defaultIdx = sentsList.findIndex(s => s.level === 'normal');
+      if (defaultIdx === -1) defaultIdx = sentsList.findIndex(s => s.level === 'simple');
+    } else if (targetLevel === 'normal') {
+      defaultIdx = sentsList.findIndex(s => s.level === 'simple');
+      if (defaultIdx === -1) defaultIdx = sentsList.findIndex(s => s.level === 'advanced');
+    } else {
+      defaultIdx = sentsList.findIndex(s => s.level === 'normal');
+      if (defaultIdx === -1) defaultIdx = sentsList.findIndex(s => s.level === 'advanced');
+    }
   }
   if (defaultIdx === -1) defaultIdx = 0;
 
   const escapedWord = clean.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const regex = new RegExp("\\b(" + escapedWord + ")\\b", "gi");
 
-  let tabsHtml = '';
-  if (sentsList.length > 1) {
-    tabsHtml = `
-      <div class="sent-tabs-header" style="margin:2px 0 4px;">
-        <div class="sent-tab-bar" role="tablist" style="padding-left:10px;">
-          ${sentsList.map((s, i) => {
-            const isDlg = Boolean(parseDialogue(s.sent) || s.level === 'dialogue');
-            const levelCls = s.level === 'simple' ? 'level-simple' : s.level === 'advanced' ? 'level-advanced' : isDlg ? 'level-dialogue' : 'level-normal';
-            const levelText = s.levelName || (isDlg ? '對話' : s.level === 'simple' ? '簡單' : s.level === 'advanced' ? '進階' : '普通');
-            const isAct = i === defaultIdx ? 'active' : '';
-            return `<button type="button" class="sent-tab-btn ${levelCls} ${isAct}" onclick="event.stopPropagation(); window.__switchConquerSent(this, ${i})">${levelText}</button>`;
-          }).join('')}
-        </div>
-      </div>
-    `;
-  }
+  const s = sentsList[defaultIdx];
+  const isDlg = Boolean(parseDialogue(s.sent) || s.level === 'dialogue');
+  const levelCls = s.level === 'simple' ? 'level-simple' : s.level === 'advanced' ? 'level-advanced' : isDlg ? 'level-dialogue' : 'level-normal';
+  const levelText = s.levelName || (isDlg ? '對話' : s.level === 'simple' ? '簡單' : s.level === 'advanced' ? '進階' : '普通');
+  const safeSent = (s.sent || "").replace(/'/g, "\\'");
+  const highlightedSent = (s.sent || "").replace(regex, `<b class="conquer-sent-word task-title-free" style="font-weight:800;">$1</b>`);
 
-  const sentsHtml = sentsList.map((s, i) => {
-    const isDlg = Boolean(parseDialogue(s.sent) || s.level === 'dialogue');
-    const levelCls = s.level === 'simple' ? 'level-simple' : s.level === 'advanced' ? 'level-advanced' : isDlg ? 'level-dialogue' : 'level-normal';
-    const levelText = s.levelName || (isDlg ? '對話' : s.level === 'simple' ? '簡單' : s.level === 'advanced' ? '進階' : '普通');
-    const safeSent = (s.sent || "").replace(/'/g, "\\'");
-    const highlightedSent = (s.sent || "").replace(regex, `<b class="conquer-sent-word task-title-free" style="font-weight:800;">$1</b>`);
-    const isVisible = (i === defaultIdx);
-
-    return `
-      <div class="sent-row conquer-sent-variant" data-idx="${i}" onclick="window.__saySentence('${safeSent}')" style="cursor:pointer; display:${isVisible ? 'flex' : 'none'};">
-        <button type="button" class="sent-speaker-btn ${levelCls}" onclick="event.stopPropagation(); window.__saySentence('${safeSent}')" aria-label="${levelText}例句朗讀" title="${levelText}例句朗讀">🔊</button>
-        <div class="sent-text-wrap">
-          <div class="sent-en">${highlightedSent}</div>
-          ${s.sentZh ? `<div class="sent-zh">${s.sentZh}</div>` : ""}
-        </div>
+  const sentsHtml = `
+    <div class="sent-row conquer-sent-variant" data-idx="${defaultIdx}" onclick="window.__saySentence('${safeSent}')" style="cursor:pointer; display:flex;">
+      <button type="button" class="sent-speaker-btn ${levelCls}" onclick="event.stopPropagation(); window.__saySentence('${safeSent}')" aria-label="${levelText}例句朗讀" title="${levelText}例句朗讀">🔊</button>
+      <div class="sent-text-wrap">
+        <div class="sent-en">${highlightedSent}</div>
+        ${s.sentZh ? `<div class="sent-zh">${s.sentZh}</div>` : ""}
       </div>
-    `;
-  }).join('');
+    </div>
+  `;
 
   return `
     <div class="conquer-word-card" style="width:100%; box-sizing:border-box; background:var(--card, #fff); border:1.5px solid var(--line, #e2e8f0); border-radius:12px; padding:10px 12px; margin-bottom:6px; box-shadow:0 1px 4px rgba(0,0,0,0.03);">
@@ -2918,7 +2907,6 @@ function _renderConquerWordCard(wordStr, d) {
           ${posHtml}
         </div>
       </div>
-      ${tabsHtml}
       <div class="sents-vertical-list" style="margin:0;">
         ${sentsHtml}
       </div>
