@@ -15200,6 +15200,26 @@ function resolveStudentTaskWords(record, selectedDate, agent) {
 // ════════════════════════════════════════
 // 📝 單字測驗與自由練習按日期查詢模組 (比照拼字遊戲網頁)
 // ════════════════════════════════════════
+function normalizeDateKey(ds) {
+  if (!ds) return "";
+  const clean = String(ds).trim().split(" ")[0].replace(/\//g, "-");
+  const parts = clean.split("-");
+  if (parts.length === 3) {
+    return `${parts[0]}-${String(parts[1]).padStart(2, "0")}-${String(parts[2]).padStart(2, "0")}`;
+  }
+  return clean;
+}
+
+function unpadDateKey(ds) {
+  if (!ds) return "";
+  const clean = String(ds).trim().split(" ")[0].replace(/\//g, "-");
+  const parts = clean.split("-");
+  if (parts.length === 3) {
+    return `${parts[0]}-${parseInt(parts[1], 10)}-${parseInt(parts[2], 10)}`;
+  }
+  return clean;
+}
+
 const _resolveWordsCache = new Map();
 function clearResolveWordsCache() { _resolveWordsCache.clear(); }
 
