@@ -260,7 +260,7 @@ header{display:flex; align-items:center; justify-content:space-between; flex-wra
   transition:transform .12s cubic-bezier(0.16, 1, 0.3, 1),box-shadow .12s cubic-bezier(0.16, 1, 0.3, 1),background .15s ease}
 .btn.ready{animation:btnPulseFocus 1.4s infinite ease-in-out;box-shadow:0 0 0 4px rgba(108,76,224,0.25),0 8px 20px -6px var(--violet)}
 @keyframes btnPulseFocus{0%,100%{transform:scale(1)}50%{transform:scale(1.02);box-shadow:0 0 0 6px rgba(108,76,224,0.35),0 10px 22px -6px var(--violet)}}
-.tile.blank input:focus{border-color:var(--violet);box-shadow:0 0 0 3px rgba(108,76,224,0.2);background:#FAF8FF}
+.tile.blank input:focus{border-color:var(--violet);box-shadow:0 0 0 3px rgba(108,76,224,0.2);background:#FAF8FF;border-radius:8px}
 .btn:active{transform:translateY(1px)}
 .btn.primary{background:linear-gradient(135deg,var(--violet),#8a6bf0);color:#fff;box-shadow:0 8px 18px -8px var(--violet)}
 .btn.go{background:linear-gradient(135deg,var(--green),#41c98a);color:#fff;box-shadow:0 8px 18px -8px var(--green)}
@@ -879,6 +879,37 @@ body[data-theme="dark"],
   border-color: #2D354E !important;
   color: #F0F3FA !important;
   box-shadow: 0 3px 0 #131724 !important;
+}
+[data-theme="dark"] .tile.blank {
+  background: rgba(245, 158, 11, 0.12) !important;
+  border: 2.5px dashed #F59E0B !important;
+  box-shadow: none !important;
+}
+[data-theme="dark"] .tile.blank input {
+  color: #FDE68A !important;
+  background: transparent !important;
+}
+[data-theme="dark"] .tile.blank input:focus {
+  background: rgba(108, 76, 224, 0.35) !important;
+  color: #FFFFFF !important;
+  border-color: #A78BFA !important;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.45) !important;
+  border-radius: 8px;
+}
+[data-theme="dark"] .tile.trap {
+  background: rgba(234, 179, 8, 0.25) !important;
+  border-color: #EAB308 !important;
+  box-shadow: 0 3px 0 #854D0E !important;
+}
+[data-theme="dark"] .tile.ok {
+  background: rgba(16, 185, 129, 0.22) !important;
+  border-color: #10B981 !important;
+  color: #6EE7B7 !important;
+}
+[data-theme="dark"] .tile.bad {
+  background: rgba(239, 68, 68, 0.22) !important;
+  border-color: #EF4444 !important;
+  color: #FCA5A5 !important;
 }
 [data-theme="dark"] .spellbox {
   background: #131624 !important;
