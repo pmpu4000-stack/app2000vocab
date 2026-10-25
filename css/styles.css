@@ -520,13 +520,13 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 .session{display:none !important;}
 
 /* ---------- level bar ---------- */
-.levelbar{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px;padding:0 0 2px}
-.lvchip{flex:1 1 110px;min-width:95px;border:1.5px solid var(--line);background:var(--card);border-radius:11px;
-  padding:6px 9px;cursor:pointer;text-align:left;transition:transform .12s,box-shadow .12s;position:relative;box-shadow:0 2px 0 var(--line);box-sizing:border-box}
+.levelbar{display:flex;flex-wrap:wrap;gap:5px;margin:0 0 8px;padding:0 0 2px}
+.lvchip{flex:1 1 calc(20% - 5px);min-width:60px;border:1.5px solid var(--line);background:var(--card);border-radius:8px;
+  padding:4px 6px;cursor:pointer;text-align:left;transition:transform .12s,box-shadow .12s;position:relative;box-shadow:0 1.5px 0 var(--line);box-sizing:border-box}
 .lvchip:hover{transform:translateY(-1px)}
-.lvchip .lvn{font-size:10px;font-weight:800;letter-spacing:.3px;color:var(--ink3)}
-.lvchip .lvname{font-size:13px;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:4px;white-space:nowrap}
-.lvchip .lvbar{height:4px;border-radius:2px;background:#EEEFF7;margin-top:4px;overflow:hidden}
+.lvchip .lvn{font-size:9px;font-weight:800;letter-spacing:.2px;color:var(--ink3);line-height:1.1}
+.lvchip .lvname{font-size:11.5px;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:3px;white-space:nowrap;line-height:1.2}
+.lvchip .lvbar{height:3px;border-radius:2px;background:#EEEFF7;margin-top:3px;overflow:hidden}
 .lvchip .lvbar i{display:block;height:100%;background:var(--green)}
 .lvchip[data-state="current"]{border-color:transparent;box-shadow:0 6px 18px -8px rgba(35,42,77,.4);color:#fff}
 .lvchip[data-state="current"] .lvn,.lvchip[data-state="current"] .lvname{color:#fff}
@@ -736,8 +736,11 @@ body.daily-limit-reached #btn-upload {
   .modes{gap:5px}
   .mode{flex:1 1 calc(25% - 5px);min-width:60px;padding:5px 2px;font-size:11px}
   .mode .ic{font-size:14px;margin-bottom:1px}
-  .levelbar{gap:8px}
-  .lvchip{flex:1 1 calc(33.333% - 8px);min-width:100px;padding:8px 10px}
+  .levelbar{gap:4px;margin:0 0 6px}
+  .lvchip{flex:1 1 calc(20% - 4px);min-width:54px;padding:3px 5px}
+  .lvchip .lvn{font-size:8.5px}
+  .lvchip .lvname{font-size:11px}
+  .lvchip .lvbar{height:2.5px;margin-top:2px}
   .banner .gate{flex-wrap:wrap} .banner .challenge{margin-left:0;width:100%}
   .sent-row{padding:6px 10px;gap:8px;min-height:48px;height:auto;box-sizing:border-box}
   .sent-speaker-btn{width:34px;height:34px;min-width:34px;font-size:15px}
@@ -750,8 +753,9 @@ body.daily-limit-reached #btn-upload {
 @media (max-width:420px){
   .mode{flex:1 1 calc(25% - 4px);min-width:55px;font-size:10.5px;padding:4px 1px}
   .mode .ic{font-size:13px}
-  .lvchip{flex:1 1 calc(50% - 6px);min-width:100px;padding:8px 10px}
-  .lvchip .lvname{font-size:13px}
+  .lvchip{flex:1 1 calc(20% - 4px);min-width:48px;padding:3px 4px}
+  .lvchip .lvn{font-size:8px}
+  .lvchip .lvname{font-size:10.5px}
 }
 @media (max-width:360px){
   .opts{grid-template-columns:1fr;gap:8px}
@@ -760,7 +764,7 @@ body.daily-limit-reached #btn-upload {
 @media (max-width:320px){
   .mode{flex:1 1 calc(50% - 4px);min-width:48px;font-size:11px;padding:5px 2px}
   .mode .ic{font-size:13.5px}
-  .lvchip{flex:1 1 100%}
+  .lvchip{flex:1 1 calc(33.333% - 4px);min-width:44px;padding:3px 3px}
 }
 
 /* ============================================================
