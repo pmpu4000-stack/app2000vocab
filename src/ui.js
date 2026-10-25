@@ -2958,7 +2958,7 @@ export function buildWeekPendingConquerHtml(words, d = null, cycleParam = _activ
       : (isBoss ? "週末無須進行雙週大魔王消滅戰！" : "週末無須進行錯題補強測驗！");
 
     return `
-      <div class="week-conquer-wrap" style="display:flex; flex-direction:column; gap:10px;">
+      <div class="week-conquer-wrap" style="display:flex; flex-direction:column; gap:8px;">
         ${cycleSelectBarHtml}
         <div class="task-empty-notice" style="padding:14px 16px; margin:0; background:rgba(30,154,102,0.06); border:1.5px solid rgba(30,154,102,0.22); border-radius:12px; display:flex; flex-direction:column; gap:6px;">
           <div style="display:flex; align-items:center; gap:8px;">
@@ -3067,7 +3067,7 @@ export function buildWeekPendingConquerHtml(words, d = null, cycleParam = _activ
       : `本週（雙週週期第 1 週）累積 <b>${count}</b> 個待攻克單字。在<b>自由練習</b>中只要拼對該單字，系統即判定為已學會並自動移除！<b>自由練習答錯不計入待攻克</b>，週末未消滅之單字將滾入雙週大魔王儲備池。`);
 
   return `
-    <div class="week-conquer-wrap" style="display:flex; flex-direction:column; gap:10px;">
+    <div class="week-conquer-wrap" style="display:flex; flex-direction:column; gap:8px;">
       ${cycleSelectBarHtml}
       <div class="week-conquer-tip" style="display:flex; align-items:flex-start; gap:8px; padding:4px 2px 4px; font-size:12.5px; line-height:1.55; color:var(--ink2);">
         <span style="font-size:15px; flex-shrink:0; line-height:1.3;">💡</span>
