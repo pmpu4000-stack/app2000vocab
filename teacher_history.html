@@ -17925,9 +17925,33 @@ function renderStudentSummary(resp) {
   }
 
   const taskDayStatCache = new Map();
+  const checkSatCleared = (normDateStr) => {
+    const dt = new Date(normDateStr.replace(/-/g, "/"));
+    if (dt.getDay() !== 0) return false;
+    const diffMon = dt.getDate() - 6;
+    const mObj = new Date(dt.getFullYear(), dt.getMonth(), diffMon);
+    const monKey = mObj.getFullYear() + "-" + String(mObj.getMonth() + 1).padStart(2, "0") + "-" + String(mObj.getDate()).padStart(2, "0");
+    let rem = taskRecords["weekend_remedy_" + monKey];
+    if (typeof rem === "string") { try { rem = JSON.parse(rem); } catch(_) {} }
+    if (!rem) {
+      try { const raw = localStorage.getItem("weekend_remedy_" + monKey); if (raw) rem = JSON.parse(raw); } catch(_) {}
+    }
+    return !!(rem && rem.satCompleted && (!rem.satWrongWords || rem.satWrongWords.length === 0));
+  };
   const getTaskDayStat = (dateKey) => {
     const norm = normalizeDateKey(dateKey);
     if (taskDayStatCache.has(norm)) return taskDayStatCache.get(norm);
+    if (checkSatCleared(norm)) {
+      const res = {
+        a: 0, c: 0, rate: 0,
+        statusType: "unassigned",
+        statusLabel: "未指派測驗",
+        levelClass: "h0",
+        badgeTier: "tier-gray"
+      };
+      taskDayStatCache.set(norm, res);
+      return res;
+    }
 
     const tArr = taskByDateMap.get(norm);
     const tRec = (tArr && (tArr.find(r => r && r.status && r.status.includes("已完成")) || tArr.find(r => r && r.score && r.score !== "—" && r.score !== "尚未開始") || tArr[0])) || null;
