@@ -476,7 +476,7 @@ function refreshChrome() {
   }
 
   ui.renderSession(sessionS, sessionGoal, onSessionStart, onSessionEnd, sessionTitle);
-  ui.renderProgress(store.stats(WORDS));
+  ui.renderProgress(store.summary(WORDS));
   ui.renderLevelBar(levelInfo(), pickLevel);
   const cur = store.progress().current;
   const ls = store.levelStats(cur, WORDS);

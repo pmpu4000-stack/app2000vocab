@@ -641,6 +641,41 @@ export function renderProgress(s) {
   if (nMast) nMast.textContent = s.mast || 0;
   const nTotal = el.nTotal || (el.nTotal = $("#n-total"));
   if (nTotal) nTotal.textContent = total;
+
+  if (s.levels && Array.isArray(s.levels)) {
+    renderProgressLevelsTable(s.levels);
+  }
+  if (s.modeStats) {
+    renderProgressModeStats(s.modeStats);
+  }
+}
+
+export function renderProgressLevelsTable(levels) {
+  const tbody = document.getElementById("progress-level-tbody");
+  if (!tbody || !Array.isArray(levels)) return;
+  tbody.innerHTML = levels
+    .map((L) => {
+      const totCorr = (L.learn || 0) + (L.prac || 0) + (L.mast || 0);
+      return `<tr><td class="st-level-name"><span style="color:${levelColor(L.level)}">●</span> Level ${L.level}「${levelName(L.level)}」</td><td class="st-level-stats"><div class="level-stats-grid"><span class="st-item st-learn"><span class="st-lbl">學習中</span><b class="tnum st-num st-num-learn">${L.learn || 0}</b>字</span><span class="st-sep">/</span><span class="st-item st-prac"><span class="st-lbl">練習中</span><b class="tnum st-num st-num-prac">${L.prac || 0}</b>字</span><span class="st-sep">/</span><span class="st-item st-mast"><span class="st-lbl">精通</span><b class="tnum st-num st-num-mast">${L.mast}</b>字</span><span class="st-sep">/</span><span class="st-item st-total"><span class="st-lbl">共答對</span><b class="tnum st-num st-num-total">${totCorr}</b>字</span></div></td></tr>`;
+    })
+    .join("");
+}
+
+export function renderProgressModeStats(ms) {
+  if (!ms) return;
+  const modes = ["listen", "pick", "scramble", "trap"];
+  modes.forEach(m => {
+    const numEl = document.getElementById(`p-mode-${m}-num`);
+    const subEl = document.getElementById(`p-mode-${m}-sub`);
+    const data = ms[m] || { a: 0, c: 0 };
+    if (numEl) numEl.textContent = `${data.c || 0} 字`;
+    if (subEl) {
+      const a = data.a || 0;
+      const c = data.c || 0;
+      const pct = a > 0 ? Math.round((c / a) * 100) : 0;
+      subEl.textContent = `受測 ${a} 字 (${pct}%)`;
+    }
+  });
 }
 
 export function renderSession(s, goal, onStart, onEnd, customTitle) {
@@ -3233,46 +3268,12 @@ export function renderSummary(d) {
   const conquerCount = pendingConquerWords.length;
   const initialConquerHtml = buildWeekPendingConquerHtml(pendingConquerWords, d);
 
-  el.summary.innerHTML = `
-    <div class="bigrate" style="margin-top:2px;">
-      <b class="tnum">${d.passRate}%</b>
-      <span>受測單字掌握率<br><small>答對 ${d.distinctCorrect} 字 / 受測 ${d.testedVocab || d.attempts} 字</small></span>
-      <span style="margin-left:auto;text-align:right">
-        <b class="tnum" style="font-size:30px;color:var(--violet)">${d.distinctCorrect}</b><br>
-        <small>共答對單字 ／ 全書 ${d.total} 字</small></span>
-    </div>
-    <div class="subh">各關卡進度</div>
-    <table class="sumtable">${lvRows}</table>
-    <div class="subh">🎮 四大練習模式答對單字數</div>
-    <div class="mode-stat-grid">
-      <div class="mode-stat-card mode-card-listen">
-        <div class="mode-stat-title">🎧 聽與拼</div>
-        <div class="mode-stat-num">${(d.modeStats?.listen?.c || 0)} 字</div>
-        <div class="mode-stat-sub">受測 ${(d.modeStats?.listen?.a || 0)} 字 (${d.modeStats?.listen?.a ? Math.round((d.modeStats.listen.c / d.modeStats.listen.a)*100) : 0}%)</div>
-      </div>
-      <div class="mode-stat-card mode-card-pick">
-        <div class="mode-stat-title">✅ 選拼法</div>
-        <div class="mode-stat-num">${(d.modeStats?.pick?.c || 0)} 字</div>
-        <div class="mode-stat-sub">受測 ${(d.modeStats?.pick?.a || 0)} 字 (${d.modeStats?.pick?.a ? Math.round((d.modeStats.pick.c / d.modeStats.pick.a)*100) : 0}%)</div>
-      </div>
-      <div class="mode-stat-card mode-card-scramble">
-        <div class="mode-stat-title">🧩 重組</div>
-        <div class="mode-stat-num">${(d.modeStats?.scramble?.c || 0)} 字</div>
-        <div class="mode-stat-sub">受測 ${(d.modeStats?.scramble?.a || 0)} 字 (${d.modeStats?.scramble?.a ? Math.round((d.modeStats.scramble.c / d.modeStats.scramble.a)*100) : 0}%)</div>
-      </div>
-      <div class="mode-stat-card mode-card-trap">
-        <div class="mode-stat-title">🖍️ 填陷阱</div>
-        <div class="mode-stat-num">${(d.modeStats?.trap?.c || 0)} 字</div>
-        <div class="mode-stat-sub">受測 ${(d.modeStats?.trap?.a || 0)} 字 (${d.modeStats?.trap?.a ? Math.round((d.modeStats.trap.c / d.modeStats.trap.a)*100) : 0}%)</div>
-      </div>
-    </div>
-    <div class="formula-note-box" style="margin-top:-4px; margin-bottom:14px; font-size:12px; display:flex; align-items:center; gap:8px; padding:10px 14px;">
-      <span style="font-size:15px; flex-shrink:0; line-height:1;">💡</span>
-      <div style="flex:1; line-height:1.55;"><b>小提示</b>：同一個單字若在不同玩法答對會各自累計，因此四項加總會大於上方的「共答對單字數」。</div>
-    </div>
+  if (d.levels) renderProgressLevelsTable(d.levels);
+  if (d.modeStats) renderProgressModeStats(d.modeStats);
 
+  el.summary.innerHTML = `
     <!-- 📅 每日作答紀錄（大區塊標題，同等層級） -->
-    <div class="subh">📅 每日作答紀錄</div>
+    <div class="subh" style="margin-top:2px;">📅 每日作答紀錄</div>
     <div class="date-navigator-card">
       <!-- 左欄：快速跳轉（歷程紀錄選單） -->
       <div class="date-nav-col date-nav-col-quick">
