@@ -7,7 +7,7 @@ import { loadWordBank, wordsAtLevel } from "./wordbank.js?v=20261025_1618";
 import * as store from "./store.js?v=20261019_v228";
 import { normalizeDateStr } from "./store.js?v=20261019_v228";
 import { nextWord } from "./srs.js?v=20261019_v228";
-import * as ui from "./ui.js?v=20261025_2049";
+import * as ui from "./ui.js?v=20261025_2103";
 import { burst } from "./confetti.js?v=20261019_v228";
 import {
   LEVELS, levelColor, levelName, sample,
