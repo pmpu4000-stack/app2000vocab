@@ -2917,27 +2917,26 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   margin-top: 2px;
 }
 
-/* 待攻克單字卡切換檢視器互動樣式 */
-.conquer-tab-chip:hover {
+/* 待攻克單字卡各關卡內就地切換互動樣式 */
+.conquer-word-tab:hover {
   filter: brightness(0.96);
+  transform: translateY(-1px);
 }
-.conquer-tab-chip.is-active {
+.conquer-word-tab.is-active {
   box-shadow: 0 0 0 1px #E8892B;
 }
-[data-theme="dark"] .conquer-tab-chip.is-active {
+[data-theme="dark"] .conquer-word-tab {
+  background: rgba(148, 163, 184, 0.1) !important;
+  color: #CBD5E1 !important;
+  border-color: rgba(148, 163, 184, 0.25) !important;
+}
+[data-theme="dark"] .conquer-word-tab.is-active {
   border-color: #F59E0B !important;
   background: rgba(245, 158, 11, 0.22) !important;
   color: #FBBF24 !important;
   box-shadow: 0 0 0 1px #F59E0B;
 }
-.conquer-pill.is-active {
-  border: 2px solid #E8892B !important;
-  background: rgba(232, 137, 43, 0.16) !important;
-  font-weight: 800 !important;
-  color: #B45309 !important;
-}
-[data-theme="dark"] .conquer-pill.is-active {
-  border-color: #F59E0B !important;
-  background: rgba(245, 158, 11, 0.24) !important;
-  color: #FBBF24 !important;
+.conquer-mode-toggle-btn:hover {
+  background: var(--bar-track, rgba(148, 163, 184, 0.12)) !important;
+  color: var(--ink) !important;
 }
