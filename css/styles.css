@@ -146,7 +146,7 @@ header{display:flex; align-items:center; justify-content:space-between; flex-wra
 .zh-text b{color:var(--ink)}
 .zh-text .zh-def{font-size:18px;font-weight:800;color:var(--ink);letter-spacing:0.2px}
 .zh-text .zh-pos{color:#10B981;font-weight:700;font-size:12.5px;margin:0 5px;padding:1.5px 7px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.3);border-radius:6px;display:inline-block;vertical-align:middle}
-.zh .phon{color:var(--sky);font-weight:700;font-size:13.5px;font-family:ui-monospace,"SF Mono",monospace;margin-left:4px}
+.zh .phon, .conquer-word-card .phon{color:var(--sky);font-weight:700;font-size:13.5px;font-family:ui-monospace,"SF Mono",monospace;margin-left:4px}
 
 .sent{font-size:14px;color:var(--ink3);font-weight:600;min-height:20px;margin-top:6px}
 .sents-vertical-list{display:flex;flex-direction:column;gap:8px;margin:4px 0 10px;width:100%}
@@ -2775,4 +2775,13 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 }
 .conquer-word-list::-webkit-scrollbar-thumb:hover {
   background: rgba(148, 163, 184, 0.6);
+}
+
+.conquer-card-word,
+.conquer-sent-word {
+  color: #B45309 !important;
+}
+[data-theme="dark"] .conquer-card-word,
+[data-theme="dark"] .conquer-sent-word {
+  color: #FBBF24 !important;
 }

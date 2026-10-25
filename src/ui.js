@@ -2763,73 +2763,94 @@ function _renderConquerWordCard(wordStr, d) {
       ph: "əˈbɪləti",
       zh: "n. 能力；才能",
       sents: [
-        { level: 'simple', levelName: '簡單', sent: 'She has the ability to speak three languages.', sentZh: '她有說三種語言的能力。' },
-        { level: 'normal', levelName: '普通', sent: 'Regular exercise improves your physical ability.', sentZh: '規律運動能增進你的體能。' },
-        { level: 'advanced', levelName: '進階', sent: 'His remarkable analytical ability impressed the entire committee.', sentZh: '他出色的分析能力給整個委員會留下了深刻的印象。' }
+        { level: "simple", levelName: "簡單", sent: "She has the ability to speak three languages.", sentZh: "她有說三種語言的能力。" },
+        { level: "normal", levelName: "普通", sent: "Regular exercise improves your physical ability.", sentZh: "規律運動能增進你的體能。" },
+        { level: "advanced", levelName: "進階", sent: "His remarkable analytical ability impressed the entire committee.", sentZh: "他出色的分析能力給整個委員會留下了深刻的印象。" }
       ]
     };
   }
 
+  const posMap = {
+    n: "名詞", v: "動詞", vt: "及物動詞", vi: "不及物動詞",
+    adj: "形容詞", a: "形容詞", adv: "副詞", ad: "副詞",
+    prep: "介系詞", conj: "連接詞", pron: "代名詞",
+    interj: "感嘆詞", int: "感嘆詞", art: "冠詞", num: "數詞"
+  };
+  let posList = [];
+  let defText = "";
+  const rawZh = obj.zh || "";
+  if (rawZh) {
+    const m = rawZh.match(/^\s*([a-zA-Z\.\/\s]+)\s*[\.．]\s*(.+)$/);
+    if (m) {
+      const posStr = m[1].trim();
+      defText = m[2].trim();
+      const tags = posStr.split(/[\/\s]+/).map(p => p.replace(/\./g, "").trim()).filter(Boolean);
+      tags.forEach(t => {
+        const zhPos = posMap[t.toLowerCase()] || t;
+        if (!posList.includes(zhPos)) posList.push(zhPos);
+      });
+    } else {
+      defText = rawZh;
+    }
+  }
+  if (obj.pos && posList.length === 0) {
+    const p = posMap[String(obj.pos).toLowerCase().replace(/\./g, "")] || obj.pos;
+    posList.push(p);
+  }
+
   const wordDisplay = obj.display || obj.word || clean;
-  const phHtml = obj.ph ? ('<span style="font-size:13px; font-family:serif; color:var(--ink2, #64748b); background:rgba(148,163,184,0.12); padding:1px 6px; border-radius:4px;">/' + obj.ph + '/</span>') : '';
-  const zhHtml = obj.zh ? ('<span style="font-size:13.5px; font-weight:700; color:var(--ink, #334155);">' + obj.zh + '</span>') : '';
+  const posHtml = posList.length > 0 ? `<span class="zh-pos">${posList.join(" · ")}</span>` : "";
+  const phonHtml = obj.ph ? `<span class="phon">[${obj.ph}]</span>` : "";
+  const defHtml = defText ? `<b class="zh-def">${defText}</b>` : "";
 
   let sentsList = (Array.isArray(obj.sents) && obj.sents.length > 0)
     ? [...obj.sents]
-    : (obj.sent ? [{ level: 'normal', levelName: '普通', sent: obj.sent, sentZh: obj.sentZh || '' }] : []);
+    : (obj.sent ? [{ level: "normal", levelName: "普通", sent: obj.sent, sentZh: obj.sentZh || "" }] : []);
 
   if (sentsList.length === 0) {
     sentsList = [
-      { level: 'normal', levelName: '例句', sent: 'Practice using "' + wordDisplay + '" in daily communication.', sentZh: '在日常溝通中練習使用「' + wordDisplay + '」。' }
+      { level: "normal", levelName: "普通", sent: "Practice using \"" + wordDisplay + "\" in daily communication.", sentZh: "在日常溝通中練習使用「" + wordDisplay + "」。" }
     ];
   }
 
-  const badgeStyles = {
-    simple: 'background:#ECFDF5; color:#065F46; border:1px solid #A7F3D0;',
-    normal: 'background:#EFF6FF; color:#1E40AF; border:1px solid #BFDBFE;',
-    advanced: 'background:#F5F3FF; color:#5B21B6; border:1px solid #DDD6FE;',
-    dialogue: 'background:#FFFBEB; color:#92400E; border:1px solid #FDE68A;'
-  };
+  const levelOrder = { simple: 1, normal: 2, advanced: 3, dialogue: 4 };
+  sentsList.sort((a, b) => (levelOrder[a.level] || 9) - (levelOrder[b.level] || 9));
 
   const sentsHtml = sentsList.slice(0, 3).map((s, idx) => {
-    const bStyle = badgeStyles[s.level] || badgeStyles.normal;
-    const lName = s.levelName || (idx === 0 ? '簡單' : idx === 1 ? '普通' : '進階');
+    const levelCls = s.level === "simple" ? "level-simple" : s.level === "advanced" ? "level-advanced" : s.level === "dialogue" ? "level-dialogue" : "level-normal";
+    const levelText = s.levelName || (idx === 0 ? "簡單" : idx === 1 ? "普通" : "進階");
     const safeSent = (s.sent || "").replace(/'/g, "\\'");
-    const escapedWord = clean.replace(/[.*+?^${}()|[\]\\]/g, '\\export function buildWeekPendingConquerHtml');
-    const regex = new RegExp('\\b(' + escapedWord + ')\\b', 'gi');
-    const highlightedSent = (s.sent || "").replace(regex, '<b style="color:var(--violet, #6C4CE0); text-decoration:underline;">$1</b>');
+    const escapedWord = clean.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regex = new RegExp("\\b(" + escapedWord + ")\\b", "gi");
+    const highlightedSent = (s.sent || "").replace(regex, `<b class="conquer-sent-word task-title-free" style="font-weight:800;">$1</b>`);
 
-    return (
-      '<div style="display:flex; align-items:flex-start; gap:8px; padding:7px 9px; border-radius:8px; background:var(--bar-track, rgba(148,163,184,0.06)); font-size:12.5px;">' +
-        '<span style="font-size:11px; font-weight:800; padding:2px 6px; border-radius:4px; flex-shrink:0; margin-top:2px; ' + bStyle + '">' + lName + '</span>' +
-        '<button type="button" onclick="window.__saySentence(\'' + safeSent + '\')" style="cursor:pointer; background:none; border:none; padding:2px; font-size:14px; line-height:1; flex-shrink:0; margin-top:1px;" title="朗讀此例句">🔊</button>' +
-        '<div style="flex:1; line-height:1.5;">' +
-          '<div style="color:var(--ink, #1e293b);">' + highlightedSent + '</div>' +
-          (s.sentZh ? '<div style="color:var(--ink2, #64748b); font-size:12px; margin-top:2px;">' + s.sentZh + '</div>' : '') +
-        '</div>' +
-      '</div>'
-    );
-  }).join('');
+    return `
+      <div class="sent-row" onclick="window.__saySentence('${safeSent}')" style="cursor:pointer;">
+        <button type="button" class="sent-speaker-btn ${levelCls}" onclick="event.stopPropagation(); window.__saySentence('${safeSent}')" aria-label="${levelText}例句朗讀" title="${levelText}例句朗讀">🔊</button>
+        <div class="sent-text-wrap">
+          <div class="sent-en">${highlightedSent}</div>
+          ${s.sentZh ? `<div class="sent-zh">${s.sentZh}</div>` : ""}
+        </div>
+      </div>
+    `;
+  }).join("");
 
-  return (
-    '<div class="conquer-word-card" style="width:100%; box-sizing:border-box; background:var(--card, #fff); border:1.5px solid var(--line, #e2e8f0); border-radius:12px; padding:12px 14px; margin-bottom:8px; box-shadow:0 1px 4px rgba(0,0,0,0.03);">' +
-      '<div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:8px;">' +
-        '<div style="display:flex; align-items:baseline; gap:8px; flex-wrap:wrap;">' +
-          '<span style="font-size:18px; font-weight:900; color:var(--ink, #1e293b); letter-spacing:0.3px;">' + wordDisplay + '</span>' +
-          phHtml +
-          zhHtml +
-        '</div>' +
-        '<div style="display:flex; align-items:center; gap:6px;">' +
-          '<button type="button" class="btn-audio-pill" onclick="window.__sayWord(\'' + clean + '\')" style="cursor:pointer; display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:16px; border:1px solid rgba(108,76,224,0.3); background:rgba(108,76,224,0.08); color:var(--violet, #6C4CE0); font-weight:800; font-size:12px;" title="聆聽單字發音">' +
-            '🔊 發音' +
-          '</button>' +
-        '</div>' +
-      '</div>' +
-      '<div style="display:flex; flex-direction:column; gap:6px;">' +
-        sentsHtml +
-      '</div>' +
-    '</div>'
-  );
+  return `
+    <div class="conquer-word-card" style="width:100%; box-sizing:border-box; background:var(--card, #fff); border:1.5px solid var(--line, #e2e8f0); border-radius:12px; padding:12px 14px; margin-bottom:8px; box-shadow:0 1px 4px rgba(0,0,0,0.03);">
+      <div class="zh-row" style="margin-bottom:10px;">
+        <button type="button" class="word-speech-btn" onclick="window.__sayWord('${clean}')" aria-label="播放單字發音" title="播放單字發音">🔊</button>
+        <div class="zh-text" style="display:flex; align-items:baseline; gap:8px; flex-wrap:wrap;">
+          <span class="conquer-card-word task-title-free" style="font-size:20px; font-weight:900; letter-spacing:0.3px;">${wordDisplay}</span>
+          ${posHtml}
+          ${phonHtml}
+          ${defHtml}
+        </div>
+      </div>
+      <div class="sents-vertical-list" style="margin:0;">
+        ${sentsHtml}
+      </div>
+    </div>
+  `;
 }
 
 export function buildWeekPendingConquerHtml(words, d = null, cycleParam = _activeConquerCycle) {
