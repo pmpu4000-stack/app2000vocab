@@ -529,11 +529,13 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 .lvchip .lvn{font-size:8.5px;font-weight:800;letter-spacing:.2px;color:var(--ink3);line-height:1.1;margin-bottom:1px}
 .lvchip .lvname{font-size:11.5px;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:3px;white-space:nowrap;line-height:1.2}
 .lvchip .lvbar{height:3px;border-radius:2px;background:#EEEFF7;margin-top:3px;overflow:hidden}
-.lvchip .lvbar i{display:block;height:100%;background:var(--green)}
-.lvchip[data-state="current"]{border-color:transparent;box-shadow:0 6px 18px -8px rgba(35,42,77,.4);color:#fff}
-.lvchip[data-state="current"] .lvn,.lvchip[data-state="current"] .lvname{color:#fff}
-.lvchip[data-state="current"] .lvbar{background:rgba(255,255,255,.35)}
-.lvchip[data-state="current"] .lvbar i{background:#fff}
+.lvchip .lvbar i{display:block;height:100%;transition:width .3s}
+.lvchip[data-lv="1"] .lvbar i{background:#2FB47C !important}
+.lvchip[data-lv="2"] .lvbar i{background:#2D9CDB !important}
+.lvchip[data-lv="3"] .lvbar i{background:#6C4CE0 !important}
+.lvchip[data-lv="4"] .lvbar i{background:#E8892B !important}
+.lvchip[data-lv="5"] .lvbar i{background:#E0567B !important}
+.lvchip[data-state="current"]{box-shadow:0 6px 18px -8px rgba(35,42,77,.4)}
 .lvchip[data-state="locked"]{opacity:.5;cursor:not-allowed;background:#F4F4F8}
 .lvchip[data-state="locked"] .lvname{color:var(--ink3)}
 
@@ -1021,6 +1023,16 @@ body[data-theme="dark"],
 [data-theme="dark"] .lvchip .lvbar {
   background: #23293D !important;
 }
+[data-theme="dark"] .lvchip[data-lv="1"] .lvbar i{background:#2FB47C !important}
+[data-theme="dark"] .lvchip[data-lv="2"] .lvbar i{background:#2D9CDB !important}
+[data-theme="dark"] .lvchip[data-lv="3"] .lvbar i{background:#6C4CE0 !important}
+[data-theme="dark"] .lvchip[data-lv="4"] .lvbar i{background:#E8892B !important}
+[data-theme="dark"] .lvchip[data-lv="5"] .lvbar i{background:#E0567B !important}
+[data-theme="dark"] .lvchip[data-lv="1"][data-state="current"]{border-color:#2FB47C !important; box-shadow:0 0 10px rgba(47,180,124,0.3) !important}
+[data-theme="dark"] .lvchip[data-lv="2"][data-state="current"]{border-color:#2D9CDB !important; box-shadow:0 0 10px rgba(45,156,219,0.3) !important}
+[data-theme="dark"] .lvchip[data-lv="3"][data-state="current"]{border-color:#6C4CE0 !important; box-shadow:0 0 10px rgba(108,76,224,0.3) !important}
+[data-theme="dark"] .lvchip[data-lv="4"][data-state="current"]{border-color:#E8892B !important; box-shadow:0 0 10px rgba(232,137,43,0.3) !important}
+[data-theme="dark"] .lvchip[data-lv="5"][data-state="current"]{border-color:#E0567B !important; box-shadow:0 0 10px rgba(224,86,123,0.3) !important}
 [data-theme="dark"] .banner .challenge:disabled {
   background: #22273A !important;
   color: #555E7C !important;

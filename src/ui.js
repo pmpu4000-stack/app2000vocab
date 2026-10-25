@@ -82,12 +82,13 @@ export function setScreen(name) {
 export function renderLevelBar(levelInfo, onPick) {
   el.levelbar.innerHTML = levelInfo
     .map((L) => {
-      const bg = L.state === "current" ? `style="background:${L.color}"` : "";
+      const isCur = L.state === "current";
+      const bg = isCur ? `style="border-color:${L.color}; box-shadow:0 0 0 1.5px ${L.color};"` : "";
       const lock = L.state === "locked" ? " 🔒" : "";
       return `<button class="lvchip" data-lv="${L.n}" data-state="${L.state}" ${bg} ${L.state === "locked" ? "disabled" : ""}>
         <div class="lvn">LEVEL ${L.n}</div>
         <div class="lvname">${L.name}${lock}</div>
-        <div class="lvbar"><i style="width:${L.pct}%"></i></div>
+        <div class="lvbar"><i style="width:${L.pct}%; background:${L.color};"></i></div>
       </button>`;
     })
     .join("");
