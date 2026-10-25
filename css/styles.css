@@ -2777,6 +2777,11 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   background: rgba(148, 163, 184, 0.6);
 }
 
+.conquer-card-word {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+}
 .conquer-card-word,
 .conquer-sent-word {
   color: #B45309 !important;
