@@ -3044,13 +3044,16 @@ export function buildWeekPendingConquerHtml(words, d = null, cycleParam = _activ
     const lvDotColor = levelColor(lv);
     const lvTitle = `Level ${lv}「${levelName(lv)}」`;
     let contentHtml = "";
+    const isAllMode = (_conquerViewModeByLevel[lv] === "all");
+    const toggleBtnHtml = (list.length > 1)
+      ? `<button type="button" class="conquer-mode-toggle-btn" data-lv="${lv}" title="${isAllMode ? '收合單字卡' : '展開全部單字卡'}">${isAllMode ? '收合' : '展開'}</button>`
+      : "";
 
     if (list.length > 0) {
       if (!_conquerActiveWordByLevel[lv] || !list.includes(_conquerActiveWordByLevel[lv])) {
         _conquerActiveWordByLevel[lv] = list[0];
       }
       const activeWord = _conquerActiveWordByLevel[lv];
-      const isAllMode = (_conquerViewModeByLevel[lv] === "all");
 
       if (list.length === 1) {
         // 只有 1 個單字，直接展示卡片
@@ -3062,30 +3065,22 @@ export function buildWeekPendingConquerHtml(words, d = null, cycleParam = _activ
       } else if (isAllMode) {
         // 展開全部模式
         contentHtml = `
-          <div style="display:flex; justify-content:flex-end; margin:4px 0 6px;">
-            <button type="button" class="conquer-mode-toggle-btn" data-lv="${lv}" style="font-size:11px; font-weight:700; padding:2px 8px; border-radius:6px; border:1px solid var(--line); background:var(--card); color:var(--ink2); cursor:pointer;" title="收合回逐字點選切換">
-              📌 逐字點選檢視
-            </button>
-          </div>
-          <div class="conquer-all-cards-wrap" style="display:flex; flex-direction:column; gap:6px;">
+          <div class="conquer-all-cards-wrap" style="display:flex; flex-direction:column; gap:6px; margin-top:6px;">
             ${list.map(w => _renderConquerWordCard(w, d)).join("")}
           </div>
         `;
       } else {
-        // 逐字點選切換模式（在該關卡內直接點選單字膠囊，即時切換下方單字卡）
+        // 逐字點選切換模式（比照學習足跡單字方塊設計，移除手指符號）
         contentHtml = `
-          <div class="conquer-level-nav" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px; margin:6px 0 8px;">
-            <div class="conquer-chip-list" style="display:flex; flex-wrap:wrap; gap:6px; align-items:center;">
+          <div class="conquer-level-nav" style="display:flex; align-items:center; flex-wrap:wrap; gap:6px; margin:6px 0 8px;">
+            <div class="conquer-chip-list" style="display:flex; flex-wrap:wrap; gap:5px; align-items:center;">
               ${list.map(w => {
                 const isAct = (w === activeWord);
-                return `<button type="button" class="conquer-word-tab ${isAct ? 'is-active' : ''}" data-lv="${lv}" data-word="${w}" style="cursor:pointer; font-size:12px; font-weight:${isAct ? '800' : '600'}; padding:3px 10px; border-radius:999px; border:${isAct ? '2px solid #E8892B' : '1px solid var(--line, #e2e8f0)'}; background:${isAct ? 'rgba(232,137,43,0.15)' : 'var(--bar-track, #f8f9fa)'}; color:${isAct ? '#B45309' : 'var(--ink)'}; transition:all .12s ease;" title="點擊檢視單字卡並朗讀發音">
-                  ${isAct ? '👉 ' : ''}${w}
+                return `<button type="button" class="conquer-word-tab ${isAct ? 'is-active' : ''}" data-lv="${lv}" data-word="${w}" title="點擊檢視單字卡並朗讀發音">
+                  ${w}
                 </button>`;
               }).join("")}
             </div>
-            <button type="button" class="conquer-mode-toggle-btn" data-lv="${lv}" style="font-size:11px; font-weight:700; padding:2px 8px; border-radius:6px; border:1px solid var(--line); background:var(--card); color:var(--ink2); cursor:pointer;" title="展開本關卡全部 ${list.length} 個單字卡">
-              📜 展開全部 (${list.length})
-            </button>
           </div>
           <div class="conquer-active-card-wrap" data-lv="${lv}">
             ${_renderConquerWordCard(activeWord, d)}
@@ -3103,12 +3098,14 @@ export function buildWeekPendingConquerHtml(words, d = null, cycleParam = _activ
             <span style="color:${lvDotColor};">●</span>
             <b>${lvTitle}</b>
           </span>
-          <span class="conquer-level-count">${list.length} 字</span>
+          <div style="display:inline-flex; align-items:center; gap:6px;">
+            ${toggleBtnHtml}
+            <span class="conquer-level-count">${list.length} 字</span>
+          </div>
         </div>
         ${contentHtml}
       </div>
-    `;
-  }).join("");
+    `;  }).join("");
 
   const tipText = isPrevious
     ? `檢視<b>上週平日測驗</b>遺留的 <b>${count}</b> 個待攻克單字。在<b>自由練習</b>中只要拼對該單字，系統即判定為已學會並自動移除！`
