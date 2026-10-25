@@ -7,7 +7,7 @@ import { loadWordBank, wordsAtLevel } from "./wordbank.js?v=20261025_1618";
 import * as store from "./store.js?v=20261019_v228";
 import { normalizeDateStr } from "./store.js?v=20261019_v228";
 import { nextWord } from "./srs.js?v=20261019_v228";
-import * as ui from "./ui.js?v=20261025_2011";
+import * as ui from "./ui.js?v=20261025_2016";
 import { burst } from "./confetti.js?v=20261019_v228";
 import {
   LEVELS, levelColor, levelName, sample,
@@ -440,9 +440,9 @@ function levelInfo() {
   const prog = store.progress();
   return LEVELS.map((L) => {
     const ws = wordsAt(L.n);
-    const mast = ws.filter((w) => store.box(w.id) >= 3).length;
+    const learned = ws.filter((w) => store.correctCount(w.id) > 0 || store.box(w.id) >= 1).length;
     const st = L.n > prog.unlocked ? "locked" : L.n === prog.current ? "current" : "open";
-    return { n: L.n, name: L.name, color: L.color, state: st, pct: ws.length ? Math.round((mast / ws.length) * 100) : 0 };
+    return { n: L.n, name: L.name, color: L.color, state: st, pct: ws.length ? Math.round((learned / ws.length) * 100) : 0 };
   });
 }
 
