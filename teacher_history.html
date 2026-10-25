@@ -16049,6 +16049,60 @@ function renderUntestedTaskCardHtml(info, agent) {
   `;
 }
 
+function extractRowTaskInfo(row, headers) {
+  if (!row || !Array.isArray(row)) return null;
+  let tNameIdx = -1, scoreIdx = -1, rateIdx = -1, statusIdx = -1, wrongIdx = -1;
+  if (headers && Array.isArray(headers)) {
+    headers.forEach((h, i) => {
+      const s = String(h || "");
+      if (s.includes("任務名稱") || s.includes("指定測驗名稱")) tNameIdx = i;
+      else if (s.includes("指定測驗成績")) scoreIdx = i;
+      else if (s.includes("指定測驗正確率")) rateIdx = i;
+      else if (s.includes("練習狀態")) statusIdx = i;
+      else if (s.includes("測驗錯題") || (s.includes("錯題") && !s.includes("自由"))) wrongIdx = i;
+    });
+  }
+  if (tNameIdx === -1) {
+    if (row.length >= 30) { tNameIdx = 21; scoreIdx = 22; rateIdx = 23; statusIdx = 24; wrongIdx = 25; }
+    else if (row.length === 26) { tNameIdx = 21; scoreIdx = 22; rateIdx = 23; statusIdx = 24; wrongIdx = 25; }
+    else if (row.length === 25) { tNameIdx = 20; scoreIdx = 21; rateIdx = 22; statusIdx = 23; wrongIdx = 24; }
+    else { tNameIdx = 18; scoreIdx = 19; rateIdx = 20; statusIdx = 21; wrongIdx = 22; }
+  }
+  const taskName = String(row[tNameIdx] || "").trim();
+  const score = String(row[scoreIdx] || "—").trim();
+  const rate = String(row[rateIdx] || "—").trim();
+  const status = String(row[statusIdx] || "").trim();
+  const wrongStr = String(row[wrongIdx] || "").trim();
+  const wrongWords = wrongStr ? wrongStr.split(/[,、\s]+/).filter(Boolean) : [];
+  return { taskName, score, rate, status, wrongWords };
+}
+
+function extractRowFreeInfo(row, headers) {
+  if (!row || !Array.isArray(row)) return null;
+  let testIdx = -1, corrIdx = -1, rateIdx = -1, wrongIdx = -1;
+  if (headers && Array.isArray(headers)) {
+    headers.forEach((h, i) => {
+      const s = String(h || "");
+      if (s.includes("自由練習受測") || s.includes("自由練習題數")) testIdx = i;
+      else if (s.includes("自由練習答對")) corrIdx = i;
+      else if (s.includes("自由練習正確率")) rateIdx = i;
+      else if (s.includes("自由練習錯題")) wrongIdx = i;
+    });
+  }
+  if (testIdx === -1 && row.length >= 30) {
+    testIdx = 26; corrIdx = 27; rateIdx = 28; wrongIdx = 29;
+  }
+  if (testIdx === -1) return null;
+  const attempts = parseInt(row[testIdx], 10) || 0;
+  const correct = parseInt(row[corrIdx], 10) || 0;
+  const rate = String(row[rateIdx] || "—").trim();
+  const wrongStr = String(row[wrongIdx] || "").trim();
+  const wrongWords = wrongStr ? wrongStr.split(/[,、\s]+/).filter(Boolean) : [];
+  const wordsMap = {};
+  wrongWords.forEach(w => { wordsMap[w] = { word: w, correct: 0, wrong: 1, attempts: 1 }; });
+  return { attempts, correct, wrong: Math.max(0, attempts - correct), rate, wrongWords, wordsMap };
+}
+
 function buildTaskDetailsHtml(records, selectedDate, agent) {
   const list = (Array.isArray(records) ? records : (records ? [records] : []))
     .filter(r => {
@@ -16473,8 +16527,8 @@ function renderStudentDailyTaskAndFreeSections(resp) {
   const historyData = agent.history || {};
   const dpMap = (agent && agent.dailyPractice) ? agent.dailyPractice : {};
   const dailyTaskHistory = (resp.dailyTaskHistory && Array.isArray(resp.dailyTaskHistory)) 
-    ? resp.dailyTaskHistory 
-    : (window.cachedStudentDailyHistory || []);
+    ? [...resp.dailyTaskHistory]
+    : [...(window.cachedStudentDailyHistory || [])];
   const todayTask = resp.todayTaskResult || window.cachedStudentTodayTaskResult || null;
 
   // 1. 整理所有有紀錄日期
@@ -16501,6 +16555,34 @@ function renderStudentDailyTaskAndFreeSections(resp) {
   const todayDash = formatDateYMD(new Date());
   dateSet.add(todayDash);
 
+  // 匯入 agentData._taskRecords 與備份歷程
+  const taskRecords = (agent && agent._taskRecords) ? agent._taskRecords : {};
+  if (Array.isArray(taskRecords.student_task_history)) {
+    taskRecords.student_task_history.forEach(h => {
+      if (h && h.date) {
+        const d = normalizeDateKey(h.date);
+        if (d) {
+          dateSet.add(d);
+          if (!dailyTaskHistory.some(existing => normalizeDateKey(existing.date) === d)) {
+            dailyTaskHistory.push(h);
+          }
+        }
+      }
+    });
+  }
+  if (taskRecords.today_task_summary && taskRecords.today_task_summary.date) {
+    const d = normalizeDateKey(taskRecords.today_task_summary.date);
+    if (d) dateSet.add(d);
+  }
+  for (const k in taskRecords) {
+    if (k.startsWith("task_words_") || k.startsWith("task_summary_") || k.startsWith("today_task_")) {
+      const parts = k.split("_");
+      const ds = parts.slice(2).join("-");
+      const d = normalizeDateKey(ds);
+      if (d && /^\d{4}-\d{2}-\d{2}$/.test(d)) dateSet.add(d);
+    }
+  }
+
   dailyTaskHistory.forEach(h => {
     if (h && h.date) {
       const d = normalizeDateKey(h.date);
@@ -16515,14 +16597,14 @@ function renderStudentDailyTaskAndFreeSections(resp) {
   Object.keys(historyData).forEach(k => {
     if (historyData[k] && historyData[k].a > 0) {
       const d = normalizeDateKey(k);
-      if (d) dateSet.add(d);
+      if (d && /^\d{4}-\d{2}-\d{2}$/.test(d)) dateSet.add(d);
     }
   });
 
   Object.keys(dpMap).forEach(k => {
     if (dpMap[k] && (dpMap[k].attempts > 0 || (dpMap[k].words && Object.keys(dpMap[k].words).length > 0))) {
       const d = normalizeDateKey(k);
-      if (d) dateSet.add(d);
+      if (d && /^\d{4}-\d{2}-\d{2}$/.test(d)) dateSet.add(d);
     }
   });
 
@@ -16530,7 +16612,7 @@ function renderStudentDailyTaskAndFreeSections(resp) {
     resp.data.forEach(r => {
       if (r && r[0]) {
         const d = normalizeDateKey(r[0]);
-        if (d && d.match(/^\d{4}-\d{2}-\d{2}$/)) dateSet.add(d);
+        if (d && /^\d{4}-\d{2}-\d{2}$/.test(d)) dateSet.add(d);
       }
     });
   }
@@ -16595,10 +16677,10 @@ function renderStudentDailyTaskAndFreeSections(resp) {
     return `${norm}${isToday ? " (今日)" : ""}${tag}`;
   };
 
-  // 產生 1:1 比照截圖的快速跳轉選單標籤
+  // 產生 1:1 比照遊戲網頁的快速跳轉選單標籤 (預設選中 defaultSelectedDate)
   if (quickSelect) {
     quickSelect.innerHTML = allDates.map(dateStr => {
-      return `<option value="${dateStr}">${buildOptionTag(dateStr)}</option>`;
+      return `<option value="${dateStr}" ${dateStr === defaultSelectedDate ? "selected" : ""}>${buildOptionTag(dateStr)}</option>`;
     }).join("");
   }
 
@@ -16611,11 +16693,17 @@ function renderStudentDailyTaskAndFreeSections(resp) {
 
     if (datePicker && datePicker.value !== targetDate) datePicker.value = targetDate;
     if (quickSelect) {
-      const hasOpt = Array.from(quickSelect.options).some(opt => opt.value === targetDate);
+      Array.from(quickSelect.options).forEach(opt => {
+        if (opt.getAttribute("data-temp-unrecorded") === "1" && opt.value !== targetDate) {
+          opt.remove();
+        }
+      });
+      let hasOpt = Array.from(quickSelect.options).some(opt => opt.value === targetDate);
       if (!hasOpt) {
         const newOpt = document.createElement("option");
         newOpt.value = targetDate;
         newOpt.textContent = buildOptionTag(targetDate);
+        newOpt.setAttribute("data-temp-unrecorded", "1");
         quickSelect.appendChild(newOpt);
       }
       if (quickSelect.value !== targetDate) quickSelect.value = targetDate;
