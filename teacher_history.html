@@ -18117,10 +18117,19 @@ function renderStudentSummary(resp) {
   // 渲染指定測驗連續/最佳/累計天數
   const elTaskStreakLine = document.getElementById("stTaskStreakLine");
   if (elTaskStreakLine) {
-    elTaskStreakLine.innerHTML = `
-      <span>連續 <b id="stTaskHeatStreak">${taskStreak}</b> 天 · 最佳 <b id="stTaskHeatBest">${taskBest}</b> 天 · 累計練習 <b id="stTaskHeatTotal">${taskTotal}</b> 天</span>
-      <span id="stTaskHeatDayInfo" class="heat-day-info"></span>
-    `;
+    const elTaskStreak = document.getElementById("stTaskHeatStreak");
+    const elTaskBest = document.getElementById("stTaskHeatBest");
+    const elTaskTotal = document.getElementById("stTaskHeatTotal");
+    if (elTaskStreak && elTaskBest && elTaskTotal) {
+      elTaskStreak.textContent = taskStreak;
+      elTaskBest.textContent = taskBest;
+      elTaskTotal.textContent = taskTotal;
+    } else {
+      elTaskStreakLine.innerHTML = `
+        <span>連續 <b id="stTaskHeatStreak">${taskStreak}</b> 天 · 最佳 <b id="stTaskHeatBest">${taskBest}</b> 天 · 累計練習 <b id="stTaskHeatTotal">${taskTotal}</b> 天</span>
+        <span id="stTaskHeatDayInfo" class="heat-day-info"></span>
+      `;
+    }
   }
 
   // 渲染指定測驗純綠色熱力圖方格
@@ -18140,13 +18149,14 @@ function renderStudentSummary(resp) {
     }
 
     const renderTaskHeatBadgeContent = (dateKey, activeCellIdx) => {
-      if (!taskHeatDayInfoEl) return;
+      const badgeEl = document.getElementById("stTaskHeatDayInfo") || taskHeatDayInfoEl;
+      if (!badgeEl) return;
       const stat = getTaskDayStat(dateKey);
-      taskHeatDayInfoEl.className = `heat-day-info ${stat.badgeTier}`;
+      badgeEl.className = `heat-day-info ${stat.badgeTier}`;
       if (stat.statusType === "completed") {
-        taskHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 正確率 <b>${stat.rate}%</b>`;
+        badgeEl.innerHTML = `<b>${dateKey}</b> ｜ 正確率 <b>${stat.rate}%</b>`;
       } else {
-        taskHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ <b>${stat.statusLabel}</b>`;
+        badgeEl.innerHTML = `<b>${dateKey}</b> ｜ <b>${stat.statusLabel}</b>`;
       }
       taskHeatGrid.querySelectorAll(".hc").forEach((cell, cIdx) => {
         cell.classList.toggle("hc-active", cIdx === activeCellIdx);
@@ -18200,7 +18210,6 @@ function renderStudentSummary(resp) {
 
   // --- B. 自由練習作答紀錄熱力圖 ---
   const freeHeatGrid = document.getElementById("stHeatmapGrid");
-  const freeHeatDayInfoEl = document.getElementById("stHeatDayInfo");
   const freeDayStatCache = new Map();
   const getFreeDayStat = (dateStr) => {
     const norm = normalizeDateKey(dateStr);
@@ -18211,8 +18220,11 @@ function renderStudentSummary(resp) {
     const dp = dpMap[norm] || dpMap[unpad] || dpMap[slash];
     if (dp) {
       if (dp.words && Object.keys(dp.words).length > 0) {
-        a = Object.keys(dp.words).length;
-        c = Object.values(dp.words).filter(w => w && (w.correct > 0 || w.passed)).length;
+        const wList = Object.values(dp.words).filter(Boolean);
+        const isWordCurrentlyWrong = (w) => (w.lastResult === 'wrong') || (w.wrong > 0 && (!w.correct || w.correct === 0));
+        const isWordCurrentlyCorrect = (w) => !isWordCurrentlyWrong(w) && (w.lastResult === 'correct' || (w.correct > 0 && !w.wrong) || w.passed);
+        a = wList.length;
+        c = wList.filter(isWordCurrentlyCorrect).length;
       } else if (dp.attempts > 0) {
         a = dp.attempts || 0;
         c = dp.correct || 0;
@@ -18220,8 +18232,24 @@ function renderStudentSummary(resp) {
     }
     const h = agentHistoryData[norm] || agentHistoryData[unpad] || agentHistoryData[slash];
     if (h && (h.a > 0 || h.attempts > 0)) {
-      a = Math.max(a, h.a || h.attempts || 0);
-      c = Math.max(c, h.c || h.correct || 0);
+      if (a === 0) {
+        a = h.a || h.attempts || 0;
+        c = h.c || h.correct || 0;
+      }
+    }
+    if (a === 0 && resp.data && Array.isArray(resp.data)) {
+      for (const r of resp.data) {
+        if (!r) continue;
+        const rDate = normalizeDateKey(r[0]);
+        if (rDate === norm || unpadDateKey(r[0]) === unpad) {
+          const fInfo = extractRowFreeInfo(r, resp.headers);
+          if (fInfo && fInfo.attempts > 0) {
+            a = fInfo.attempts;
+            c = fInfo.correct;
+            break;
+          }
+        }
+      }
     }
     const res = { a, c, rate: a > 0 ? Math.round((c / a) * 100) : 0 };
     freeDayStatCache.set(norm, res);
@@ -18268,10 +18296,19 @@ function renderStudentSummary(resp) {
 
   const elStreakLine = document.getElementById("stStreakLine");
   if (elStreakLine) {
-    elStreakLine.innerHTML = `
-      <span>連續 <b id="stHeatStreak">${freeStreak}</b> 天 · 最佳 <b id="stHeatBest">${freeBest}</b> 天 · 累計練習 <b id="stHeatTotal">${freeTotal}</b> 天</span>
-      <span id="stHeatDayInfo" class="heat-day-info"></span>
-    `;
+    const elStreak = document.getElementById("stHeatStreak");
+    const elBest = document.getElementById("stHeatBest");
+    const elTotal = document.getElementById("stHeatTotal");
+    if (elStreak && elBest && elTotal) {
+      elStreak.textContent = freeStreak;
+      elBest.textContent = freeBest;
+      elTotal.textContent = freeTotal;
+    } else {
+      elStreakLine.innerHTML = `
+        <span>連續 <b id="stHeatStreak">${freeStreak}</b> 天 · 最佳 <b id="stHeatBest">${freeBest}</b> 天 · 累計練習 <b id="stHeatTotal">${freeTotal}</b> 天</span>
+        <span id="stHeatDayInfo" class="heat-day-info"></span>
+      `;
+    }
   }
 
   if (freeHeatGrid) {
@@ -18288,14 +18325,15 @@ function renderStudentSummary(resp) {
     }
 
     const renderFreeHeatBadgeContent = (dateKey, att, rate, activeCellIdx) => {
-      if (!freeHeatDayInfoEl) return;
+      const badgeEl = document.getElementById("stHeatDayInfo");
+      if (!badgeEl) return;
       if (att > 0) {
         const tierClass = rate >= 100 ? "tier-green-perfect" : (rate >= 80 ? "tier-green-high" : (rate >= 60 ? "tier-green-mid" : "tier-green-low"));
-        freeHeatDayInfoEl.className = `heat-day-info ${tierClass}`;
-        freeHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 正確率 <b>${rate}%</b>`;
+        badgeEl.className = `heat-day-info ${tierClass}`;
+        badgeEl.innerHTML = `<b>${dateKey}</b> ｜ 正確率 <b>${rate}%</b>`;
       } else {
-        freeHeatDayInfoEl.className = "heat-day-info tier-gray";
-        freeHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 無自由練習紀錄`;
+        badgeEl.className = "heat-day-info tier-gray";
+        badgeEl.innerHTML = `<b>${dateKey}</b> ｜ 無自由練習紀錄`;
       }
       freeHeatGrid.querySelectorAll(".hc").forEach((cell, cIdx) => {
         cell.classList.toggle("hc-active", cIdx === activeCellIdx);
