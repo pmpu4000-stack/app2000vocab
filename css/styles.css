@@ -115,10 +115,10 @@ header{display:flex; align-items:center; justify-content:space-between; flex-wra
 .chip[data-c="E"][aria-pressed="true"]{background:var(--catE)} .chip[data-c="F"][aria-pressed="true"]{background:var(--catF)}
 
 /* ---------- mode tabs ---------- */
-.modes{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px}
-.mode{flex:1 1 125px;min-width:95px;border:1.5px solid var(--line);background:var(--card);border-radius:10px;padding:6px 6px;cursor:pointer;
-  text-align:center;font-weight:800;color:var(--ink2);font-size:12px;transition:transform .12s,border-color .12s,background .12s;box-sizing:border-box}
-.mode .ic{font-size:16px;display:block;line-height:1.15;margin-bottom:1px}
+.modes{display:flex;flex-wrap:wrap;gap:5px;margin:0 0 8px}
+.mode{flex:1 1 calc(25% - 5px);min-width:62px;border:1.5px solid var(--line);background:var(--card);border-radius:9px;padding:5px 4px;cursor:pointer;
+  text-align:center;font-weight:800;color:var(--ink2);font-size:11.5px;white-space:nowrap;transition:transform .12s,border-color .12s,background .12s;box-sizing:border-box}
+.mode .ic{font-size:15px;display:block;line-height:1.15;margin-bottom:1px}
 .mode:hover{transform:translateY(-1px)}
 .mode[aria-pressed="true"]{border-color:var(--violet);background:#F1EDFF;color:var(--violet-d)}
 .mode[data-m="listen"][aria-pressed="true"]{border-color:#6C4CE0;background:linear-gradient(145deg,#F5F3FF,#FAF9FF);color:#4C1D95;box-shadow:0 2px 8px rgba(108,76,224,.15)}
@@ -733,8 +733,9 @@ body.daily-limit-reached #btn-upload {
   .stat b{font-size:15px}
   .stat span{font-size:9.5px}
   .title h1{font-size:20px} .tile{width:40px;height:48px;font-size:22px}
-  .modes{gap:8px}
-  .mode{flex:1 1 calc(50% - 8px);min-width:115px;padding:10px 6px;font-size:13px}
+  .modes{gap:5px}
+  .mode{flex:1 1 calc(25% - 5px);min-width:60px;padding:5px 2px;font-size:11px}
+  .mode .ic{font-size:14px;margin-bottom:1px}
   .levelbar{gap:8px}
   .lvchip{flex:1 1 calc(33.333% - 8px);min-width:100px;padding:8px 10px}
   .banner .gate{flex-wrap:wrap} .banner .challenge{margin-left:0;width:100%}
@@ -747,7 +748,8 @@ body.daily-limit-reached #btn-upload {
   .word-speech-btn{width:34px;height:34px;min-width:34px;font-size:16px}
 }
 @media (max-width:420px){
-  .mode{flex:1 1 calc(50% - 6px);font-size:12.5px;padding:9px 4px}
+  .mode{flex:1 1 calc(25% - 4px);min-width:55px;font-size:10.5px;padding:4px 1px}
+  .mode .ic{font-size:13px}
   .lvchip{flex:1 1 calc(50% - 6px);min-width:100px;padding:8px 10px}
   .lvchip .lvname{font-size:13px}
 }
@@ -756,7 +758,8 @@ body.daily-limit-reached #btn-upload {
   .opt{font-size:16.5px;padding:10px 4px;min-height:44px}
 }
 @media (max-width:320px){
-  .mode{flex:1 1 100%}
+  .mode{flex:1 1 calc(50% - 4px);min-width:48px;font-size:11px;padding:5px 2px}
+  .mode .ic{font-size:13.5px}
   .lvchip{flex:1 1 100%}
 }
 
