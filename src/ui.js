@@ -6,7 +6,7 @@ import { CATS } from "./data.js?v=20261013_1225";
 import { say, sayWord, spellOut, playContestSentence, stopAudio, parseDialogue } from "./audio.js?v=20261013_2225";
 import { LEVELS, levelColor, levelName, misspellings, shuffle } from "./levels.js?v=20261013_1225";
 import { diagnoseWordMistake } from "./diagnostics.js";
-import { normalizeDateStr, formatDateYMD, getWeekRangeDates, getBiweeklyCycleInfo } from "./store.js?v=20261019_v228";
+import { box, normalizeDateStr, formatDateYMD, getWeekRangeDates, getBiweeklyCycleInfo } from "./store.js?v=20261019_v228";
 
 if (typeof window !== "undefined") {
   window.__say = say;
@@ -15,7 +15,6 @@ if (typeof window !== "undefined") {
 }
 
 const $ = (s) => document.querySelector(s);
-let activeSentLevel = "simple";
 const el = {
   playScreen: $("#screen-play"), quizScreen: $("#screen-quiz"),
   levelbar: $("#levelbar"), modes: $("#modes"), stage: $("#stage"), fb: $("#feedback"),
@@ -178,7 +177,17 @@ export function renderRound(word, mode, { onAnswer, onCheck }) {
     const levelOrder = { simple: 1, normal: 2, advanced: 3, dialogue: 4 };
     sentsList.sort((a, b) => (levelOrder[a.level] || 9) - (levelOrder[b.level] || 9));
 
-    let currentIdx = sentsList.findIndex(s => s.level === activeSentLevel);
+    // 依單字熟練度自動決定預設例句難度（未曾答對/學習中: 簡單；練習中: 普通；精通: 進階）
+    const b = (typeof box === "function" && word && word.id) ? box(word.id) : 0;
+    const targetLevel = (b >= 3) ? 'advanced' : (b === 2) ? 'normal' : 'simple';
+    let currentIdx = sentsList.findIndex(s => s.level === targetLevel);
+    if (currentIdx === -1) {
+      if (targetLevel === 'advanced') {
+        currentIdx = sentsList.findIndex(s => s.level === 'normal');
+      } else if (targetLevel === 'normal') {
+        currentIdx = sentsList.findIndex(s => s.level === 'simple');
+      }
+    }
     if (currentIdx === -1) currentIdx = 0;
 
     const renderSentContent = (idx) => {
@@ -285,8 +294,7 @@ export function renderRound(word, mode, { onAnswer, onCheck }) {
           const newIdx = parseInt(btn.dataset.idx, 10);
           if (newIdx === currentIdx) return;
           currentIdx = newIdx;
-          activeSentLevel = sentsList[newIdx].level || 'simple';
-
+          
           el.sent.querySelectorAll(".sent-tab-btn").forEach((b, bi) => {
             b.classList.toggle("active", bi === newIdx);
             b.setAttribute("aria-selected", bi === newIdx ? "true" : "false");
