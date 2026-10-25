@@ -2891,7 +2891,12 @@ function _renderConquerWordCard(wordStr, d) {
   sentsList.sort((a, b) => (levelOrder[a.level] || 9) - (levelOrder[b.level] || 9));
 
   // 依單字熟練度自動決定預設例句難度（未曾答對/學習中: 簡單；練習中: 普通；精通: 進階）
-  const b = (typeof box === "function" && obj && obj.id) ? box(obj.id) : 0;
+  let wordId = (obj && obj.id) ? obj.id : null;
+  if (!wordId && typeof window !== "undefined" && window.__WORDS && window.__WORDS._byWord) {
+    const wObj = window.__WORDS._byWord.get(clean);
+    if (wObj && wObj.id) wordId = wObj.id;
+  }
+  const b = (typeof box === "function" && wordId) ? box(wordId) : 0;
   const targetLevel = (b >= 3) ? 'advanced' : (b === 2) ? 'normal' : 'simple';
   let defaultIdx = sentsList.findIndex(s => s.level === targetLevel);
   if (defaultIdx === -1) {
