@@ -42,8 +42,8 @@ header{display:flex; align-items:center; justify-content:space-between; flex-wra
 .stats{margin-left:auto;display:flex;gap:6px;align-items:stretch;flex-wrap:wrap}
 .stats-group{display:inline-flex;align-items:center;gap:4px;padding:2px 4px;border-radius:12px;background:rgba(35,42,77,0.03);border:1px solid rgba(35,42,77,0.06);box-sizing:border-box}
 [data-theme="dark"] .stats-group{background:rgba(255,255,255,0.03);border-color:rgba(255,255,255,0.08)}
-.stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:4px 9px;text-align:center;min-width:52px;width:auto;box-shadow:0 2px 0 var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;box-sizing:border-box;flex:0 0 auto;height:44px}
-.stat b{display:flex;align-items:center;justify-content:center;height:20px;font-size:16.5px;font-weight:800;line-height:20px;white-space:nowrap}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:3px 8px;text-align:center;min-width:52px;width:auto;box-shadow:0 2px 0 var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;box-sizing:border-box;flex:0 0 auto;height:46px}
+.stat b{display:flex;align-items:center;justify-content:center;height:19px;font-size:16px;font-weight:800;line-height:19px;white-space:nowrap}
 .stat span{display:flex;align-items:center;justify-content:center;height:12px;margin-top:1px;font-size:9.5px;color:var(--ink3);font-weight:700;letter-spacing:.4px;text-transform:uppercase;white-space:nowrap;line-height:12px}
 .stat.upload b{font-size:16.5px}
 
@@ -116,7 +116,8 @@ header{display:flex; align-items:center; justify-content:space-between; flex-wra
 
 /* ---------- mode tabs ---------- */
 .modes{display:flex;flex-wrap:wrap;gap:5px;margin:0 0 8px}
-.mode{flex:1 1 calc(25% - 5px);min-width:62px;border:1.5px solid var(--line);background:var(--card);border-radius:9px;padding:5px 4px;cursor:pointer;
+.mode{flex:1 1 calc(25% - 5px);min-width:62px;height:46px;border:1.5px solid var(--line);background:var(--card);border-radius:9px;padding:4px 3px;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
   text-align:center;font-weight:800;color:var(--ink2);font-size:11.5px;white-space:nowrap;transition:transform .12s,border-color .12s,background .12s;box-sizing:border-box}
 .mode .ic{font-size:15px;display:block;line-height:1.15;margin-bottom:1px}
 .mode:hover{transform:translateY(-1px)}
@@ -521,10 +522,11 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 
 /* ---------- level bar ---------- */
 .levelbar{display:flex;flex-wrap:wrap;gap:5px;margin:0 0 8px;padding:0 0 2px}
-.lvchip{flex:1 1 calc(20% - 5px);min-width:60px;border:1.5px solid var(--line);background:var(--card);border-radius:8px;
-  padding:4px 6px;cursor:pointer;text-align:left;transition:transform .12s,box-shadow .12s;position:relative;box-shadow:0 1.5px 0 var(--line);box-sizing:border-box}
+.lvchip{flex:1 1 calc(20% - 5px);min-width:60px;height:46px;border:1.5px solid var(--line);background:var(--card);border-radius:8px;
+  padding:4px 6px;cursor:pointer;text-align:left;transition:transform .12s,box-shadow .12s;position:relative;box-shadow:0 1.5px 0 var(--line);box-sizing:border-box;
+  display:flex;flex-direction:column;justify-content:center}
 .lvchip:hover{transform:translateY(-1px)}
-.lvchip .lvn{font-size:9px;font-weight:800;letter-spacing:.2px;color:var(--ink3);line-height:1.1}
+.lvchip .lvn{font-size:8.5px;font-weight:800;letter-spacing:.2px;color:var(--ink3);line-height:1.1;margin-bottom:1px}
 .lvchip .lvname{font-size:11.5px;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:3px;white-space:nowrap;line-height:1.2}
 .lvchip .lvbar{height:3px;border-radius:2px;background:#EEEFF7;margin-top:3px;overflow:hidden}
 .lvchip .lvbar i{display:block;height:100%;background:var(--green)}
@@ -734,10 +736,10 @@ body.daily-limit-reached #btn-upload {
   .stat span{font-size:9.5px}
   .title h1{font-size:20px} .tile{width:40px;height:48px;font-size:22px}
   .modes{gap:5px}
-  .mode{flex:1 1 calc(25% - 5px);min-width:60px;padding:5px 2px;font-size:11px}
+  .mode{flex:1 1 calc(25% - 5px);min-width:60px;height:46px;padding:3px 2px;font-size:11px}
   .mode .ic{font-size:14px;margin-bottom:1px}
   .levelbar{gap:4px;margin:0 0 6px}
-  .lvchip{flex:1 1 calc(20% - 4px);min-width:54px;padding:3px 5px}
+  .lvchip{flex:1 1 calc(20% - 4px);min-width:54px;height:46px;padding:3px 5px}
   .lvchip .lvn{font-size:8.5px}
   .lvchip .lvname{font-size:11px}
   .lvchip .lvbar{height:2.5px;margin-top:2px}
@@ -751,9 +753,9 @@ body.daily-limit-reached #btn-upload {
   .word-speech-btn{width:34px;height:34px;min-width:34px;font-size:16px}
 }
 @media (max-width:420px){
-  .mode{flex:1 1 calc(25% - 4px);min-width:55px;font-size:10.5px;padding:4px 1px}
+  .mode{flex:1 1 calc(25% - 4px);min-width:55px;height:46px;font-size:10.5px;padding:3px 1px}
   .mode .ic{font-size:13px}
-  .lvchip{flex:1 1 calc(20% - 4px);min-width:48px;padding:3px 4px}
+  .lvchip{flex:1 1 calc(20% - 4px);min-width:48px;height:46px;padding:3px 4px}
   .lvchip .lvn{font-size:8px}
   .lvchip .lvname{font-size:10.5px}
 }
@@ -762,9 +764,9 @@ body.daily-limit-reached #btn-upload {
   .opt{font-size:16.5px;padding:10px 4px;min-height:44px}
 }
 @media (max-width:320px){
-  .mode{flex:1 1 calc(50% - 4px);min-width:48px;font-size:11px;padding:5px 2px}
+  .mode{flex:1 1 calc(50% - 4px);min-width:48px;height:46px;font-size:11px;padding:4px 2px}
   .mode .ic{font-size:13.5px}
-  .lvchip{flex:1 1 calc(33.333% - 4px);min-width:44px;padding:3px 3px}
+  .lvchip{flex:1 1 calc(33.333% - 4px);min-width:44px;height:46px;padding:3px 3px}
 }
 
 /* ============================================================
