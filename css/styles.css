@@ -1611,29 +1611,31 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   color: #CBD5E1 !important;
 }
 
-/* 4 大練習模式統計區塊 */
+/* 4 大練習模式統計區塊（預設四個並列成一排，彈性寬度；窄螢幕擠不下時折為兩排） */
 .mode-stat-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
   margin: 10px 0 16px;
 }
-@media (max-width: 720px) {
+@media (max-width: 520px) {
   .mode-stat-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 8px !important;
   }
 }
-@media (max-width: 340px) {
+@media (max-width: 280px) {
   .mode-stat-grid {
     grid-template-columns: 1fr !important;
   }
 }
 .mode-stat-card {
+  min-width: 0;
+  box-sizing: border-box;
   background: #F8F9FD;
   border: 1.5px solid var(--line);
   border-radius: 13px;
-  padding: 10px 10px;
+  padding: 10px 6px;
   text-align: center;
   transition: transform .12s, box-shadow .12s;
   box-shadow: 0 2px 6px rgba(35,42,77,0.03);
