@@ -187,15 +187,20 @@ export function renderRound(word, mode, { onAnswer, onCheck }) {
     const levelOrder = { simple: 1, normal: 2, advanced: 3, dialogue: 4 };
     sentsList.sort((a, b) => (levelOrder[a.level] || 9) - (levelOrder[b.level] || 9));
 
-    // 依單字熟練度自動決定預設例句難度（未曾答對/學習中: 簡單；練習中: 普通；精通: 進階）
-    const b = (typeof box === "function" && word && word.id) ? box(word.id) : 0;
-    const targetLevel = (b >= 3) ? 'advanced' : (b === 2) ? 'normal' : 'simple';
+    // 依單字關卡階段自動判斷並顯示對應例句（1~2 入門基礎: 簡單；3 進階: 普通；4~5 挑戰精熟: 進階）
+    const lv = Number(word.level) || 1;
+    const targetLevel = (lv >= 4) ? 'advanced' : (lv === 3) ? 'normal' : 'simple';
     let currentIdx = sentsList.findIndex(s => s.level === targetLevel);
     if (currentIdx === -1) {
       if (targetLevel === 'advanced') {
         currentIdx = sentsList.findIndex(s => s.level === 'normal');
+        if (currentIdx === -1) currentIdx = sentsList.findIndex(s => s.level === 'simple');
       } else if (targetLevel === 'normal') {
         currentIdx = sentsList.findIndex(s => s.level === 'simple');
+        if (currentIdx === -1) currentIdx = sentsList.findIndex(s => s.level === 'advanced');
+      } else {
+        currentIdx = sentsList.findIndex(s => s.level === 'normal');
+        if (currentIdx === -1) currentIdx = sentsList.findIndex(s => s.level === 'advanced');
       }
     }
     if (currentIdx === -1) currentIdx = 0;
@@ -247,26 +252,7 @@ export function renderRound(word, mode, { onAnswer, onCheck }) {
       `;
     };
 
-    let html = '';
-    if (sentsList.length > 1) {
-      html += `
-        <div class="sent-tabs-header">
-          <div class="sent-tab-bar" role="tablist" aria-label="例句難度選擇">
-            ${sentsList.map((s, i) => {
-              const dlg = parseDialogue(s.sent);
-              const isDlg = Boolean(dlg || s.level === 'dialogue');
-              const levelCls = s.level === 'simple' ? 'level-simple' : s.level === 'advanced' ? 'level-advanced' : isDlg ? 'level-dialogue' : 'level-normal';
-              const levelText = s.levelName || (isDlg ? '對話' : s.level === 'simple' ? '簡單' : s.level === 'advanced' ? '進階' : '普通');
-              const isAct = i === currentIdx ? 'active' : '';
-              return `<button type="button" class="sent-tab-btn ${levelCls} ${isAct}" data-idx="${i}" aria-selected="${i === currentIdx}">${levelText}</button>`;
-            }).join('')}
-          </div>
-        </div>
-      `;
-    }
-    html += `<div class="sent-display-body">${renderSentContent(currentIdx)}</div>`;
-
-    el.sent.innerHTML = html;
+    el.sent.innerHTML = `<div class="sent-display-body">${renderSentContent(currentIdx)}</div>`;
     el.sent.style.cursor = "default";
 
     const bindSentAudio = () => {
@@ -296,28 +282,6 @@ export function renderRound(word, mode, { onAnswer, onCheck }) {
     };
 
     bindSentAudio();
-
-    if (sentsList.length > 1) {
-      el.sent.querySelectorAll(".sent-tab-btn").forEach(btn => {
-        btn.onclick = (e) => {
-          e.stopPropagation();
-          const newIdx = parseInt(btn.dataset.idx, 10);
-          if (newIdx === currentIdx) return;
-          currentIdx = newIdx;
-          
-          el.sent.querySelectorAll(".sent-tab-btn").forEach((b, bi) => {
-            b.classList.toggle("active", bi === newIdx);
-            b.setAttribute("aria-selected", bi === newIdx ? "true" : "false");
-          });
-
-          const bodyEl = el.sent.querySelector(".sent-display-body");
-          if (bodyEl) {
-            bodyEl.innerHTML = renderSentContent(newIdx);
-            bindSentAudio();
-          }
-        };
-      });
-    }
   } else {
     el.sent.innerHTML = "";
     el.sent.style.cursor = "";
