@@ -15200,6 +15200,56 @@ function resolveStudentTaskWords(record, selectedDate, agent) {
 // ════════════════════════════════════════
 // 📝 單字測驗與自由練習按日期查詢模組 (比照拼字遊戲網頁)
 // ════════════════════════════════════════
+function isSatClearedOnSundayDate(dateStr, taskRecords = {}, histList = []) {
+  if (!dateStr) return false;
+  const norm = normalizeDateKey(dateStr);
+  const dt = new Date(norm.replace(/-/g, "/"));
+  if (dt.getDay() !== 0) return false;
+
+  const satDt = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate() - 1);
+  const satKey = normalizeDateKey(formatDateYMD(satDt));
+  const monDt = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate() - 6);
+  const monKey = normalizeDateKey(formatDateYMD(monDt));
+
+  // 1. 從 weekend_remedy 查
+  let rem = taskRecords["weekend_remedy_" + monKey];
+  if (typeof rem === "string") { try { rem = JSON.parse(rem); } catch(_) {} }
+  if (!rem) {
+    try { const raw = localStorage.getItem("weekend_remedy_" + monKey); if (raw) rem = JSON.parse(raw); } catch(_) {}
+  }
+  if (rem && rem.satCompleted && (!rem.satWrongWords || rem.satWrongWords.length === 0)) {
+    return true;
+  }
+
+  // 2. 從 task_summary 查
+  let sum = taskRecords["task_summary_" + satKey];
+  if (typeof sum === "string") { try { sum = JSON.parse(sum); } catch(_) {} }
+  if (!sum) {
+    try { const raw = localStorage.getItem("task_summary_" + satKey); if (raw) sum = JSON.parse(raw); } catch(_) {}
+  }
+  if (sum && sum.completed && (!sum.wrongWords || sum.wrongWords.length === 0)) {
+    return true;
+  }
+
+  // 3. 從 historyList / dailyTaskHistory / 週六紀錄查
+  if (Array.isArray(histList)) {
+    const satItem = histList.find(item => item && normalizeDateKey(item.date) === satKey && (
+      String(item.taskName || "").includes("週末") ||
+      String(item.taskName || "").includes("消滅") ||
+      String(item.taskName || "").includes("待攻克") ||
+      String(item.taskName || "").includes("雙週") ||
+      item.isWeekend
+    ));
+    if (satItem) {
+      const isDone = satItem.status && (satItem.status.includes("已完成") || satItem.status.includes("●") || satItem.status.includes("🟢"));
+      const noWrong = (!satItem.wrongWords || satItem.wrongWords.length === 0);
+      if (isDone && noWrong) return true;
+    }
+  }
+
+  return false;
+}
+
 function normalizeDateKey(ds) {
   if (!ds) return "";
   const clean = String(ds).trim().split(" ")[0].replace(/\//g, "-");
@@ -16179,38 +16229,7 @@ function buildTaskDetailsHtml(records, selectedDate, agent) {
     try { const raw = localStorage.getItem(k); if (raw) return JSON.parse(raw); } catch(_) {}
     return null;
   };
-  let isSatClearedOnSunday = false;
-  const dObjCheck = new Date(sDateNorm.replace(/-/g, "/"));
-  if (dObjCheck && dObjCheck.getDay() === 0) {
-    const diff = dObjCheck.getDate() - 1; // 週六
-    const satObj = new Date(dObjCheck.getFullYear(), dObjCheck.getMonth(), diff);
-    const satKey = satObj.getFullYear() + "-" + String(satObj.getMonth() + 1).padStart(2, "0") + "-" + String(satObj.getDate()).padStart(2, "0");
-    const mDiff = dObjCheck.getDate() - 6; // 週一
-    const mObj = new Date(dObjCheck.getFullYear(), dObjCheck.getMonth(), mDiff);
-    const monKey = mObj.getFullYear() + "-" + String(mObj.getMonth() + 1).padStart(2, "0") + "-" + String(mObj.getDate()).padStart(2, "0");
-
-    try {
-    const rem = getRecordJson("weekend_remedy_" + monKey);
-      if (rem) {
-      // already parsed
-        if (rem && rem.satCompleted && (!rem.satWrongWords || rem.satWrongWords.length === 0)) {
-          isSatClearedOnSunday = true;
-        }
-      }
-    } catch(_) {}
-    if (!isSatClearedOnSunday) {
-      try {
-    const sum = getRecordJson("task_summary_" + satKey);
-        if (sum) {
-      // already parsed
-          if (sum && sum.completed && (!sum.wrongWords || sum.wrongWords.length === 0)) {
-            isSatClearedOnSunday = true;
-          }
-        }
-      } catch(_) {}
-    }
-  }
-
+  const isSatClearedOnSunday = isSatClearedOnSundayDate(sDateNorm, tRecords, (agent && agent.dailyTaskHistory) || window.cachedStudentDailyHistory || []);
   // 若週日且週六已全數消滅，徹底過濾 list 中的週末測驗紀錄
   if (isSatClearedOnSunday) {
     for (let i = list.length - 1; i >= 0; i--) {
@@ -17925,23 +17944,10 @@ function renderStudentSummary(resp) {
   }
 
   const taskDayStatCache = new Map();
-  const checkSatCleared = (normDateStr) => {
-    const dt = new Date(normDateStr.replace(/-/g, "/"));
-    if (dt.getDay() !== 0) return false;
-    const diffMon = dt.getDate() - 6;
-    const mObj = new Date(dt.getFullYear(), dt.getMonth(), diffMon);
-    const monKey = mObj.getFullYear() + "-" + String(mObj.getMonth() + 1).padStart(2, "0") + "-" + String(mObj.getDate()).padStart(2, "0");
-    let rem = taskRecords["weekend_remedy_" + monKey];
-    if (typeof rem === "string") { try { rem = JSON.parse(rem); } catch(_) {} }
-    if (!rem) {
-      try { const raw = localStorage.getItem("weekend_remedy_" + monKey); if (raw) rem = JSON.parse(raw); } catch(_) {}
-    }
-    return !!(rem && rem.satCompleted && (!rem.satWrongWords || rem.satWrongWords.length === 0));
-  };
   const getTaskDayStat = (dateKey) => {
     const norm = normalizeDateKey(dateKey);
     if (taskDayStatCache.has(norm)) return taskDayStatCache.get(norm);
-    if (checkSatCleared(norm)) {
+    if (isSatClearedOnSundayDate(norm, taskRecords, historyList)) {
       const res = {
         a: 0, c: 0, rate: 0,
         statusType: "unassigned",
