@@ -16169,6 +16169,16 @@ function buildTaskDetailsHtml(records, selectedDate, agent) {
   }
 
   // 判定是否為週日，且週六已全數消滅錯題（100% / 0 錯題）
+  const tRecords = (agent && agent._taskRecords) || (window.currentStudentData && window.currentStudentData.agentData && window.currentStudentData.agentData._taskRecords) || {};
+  const getRecordJson = (k) => {
+    let val = tRecords[k];
+    if (val) {
+      if (typeof val === "string") { try { val = JSON.parse(val); } catch(_) {} }
+      return val;
+    }
+    try { const raw = localStorage.getItem(k); if (raw) return JSON.parse(raw); } catch(_) {}
+    return null;
+  };
   let isSatClearedOnSunday = false;
   const dObjCheck = new Date(sDateNorm.replace(/-/g, "/"));
   if (dObjCheck && dObjCheck.getDay() === 0) {
@@ -16180,9 +16190,9 @@ function buildTaskDetailsHtml(records, selectedDate, agent) {
     const monKey = mObj.getFullYear() + "-" + String(mObj.getMonth() + 1).padStart(2, "0") + "-" + String(mObj.getDate()).padStart(2, "0");
 
     try {
-      const rawRem = localStorage.getItem("weekend_remedy_" + monKey);
-      if (rawRem) {
-        const rem = JSON.parse(rawRem);
+    const rem = getRecordJson("weekend_remedy_" + monKey);
+      if (rem) {
+      // already parsed
         if (rem && rem.satCompleted && (!rem.satWrongWords || rem.satWrongWords.length === 0)) {
           isSatClearedOnSunday = true;
         }
@@ -16190,9 +16200,9 @@ function buildTaskDetailsHtml(records, selectedDate, agent) {
     } catch(_) {}
     if (!isSatClearedOnSunday) {
       try {
-        const rawSum = localStorage.getItem("task_summary_" + satKey);
-        if (rawSum) {
-          const sum = JSON.parse(rawSum);
+    const sum = getRecordJson("task_summary_" + satKey);
+        if (sum) {
+      // already parsed
           if (sum && sum.completed && (!sum.wrongWords || sum.wrongWords.length === 0)) {
             isSatClearedOnSunday = true;
           }
@@ -16213,9 +16223,9 @@ function buildTaskDetailsHtml(records, selectedDate, agent) {
   if (list.length === 0) {
     // 檢查是否有當日已完成的 task_summary 或 weekend_remedy
     try {
-      const rawTS = localStorage.getItem("task_summary_" + sDateNorm);
-      if (rawTS && !isSatClearedOnSunday) {
-        const ts = JSON.parse(rawTS);
+    const ts = getRecordJson("task_summary_" + sDateNorm);
+      if (ts && !isSatClearedOnSunday) {
+      // already parsed
         if (ts && ts.completed && ts.taskName && ts.taskName !== "自主練習") {
           list.push({
             date: sDateNorm,
@@ -16238,9 +16248,9 @@ function buildTaskDetailsHtml(records, selectedDate, agent) {
           const diff = dObj.getDate() - day + (day === 0 ? -6 : 1);
           const mObj = new Date(dObj.getFullYear(), dObj.getMonth(), diff);
           const monKey = mObj.getFullYear() + "-" + String(mObj.getMonth() + 1).padStart(2, "0") + "-" + String(mObj.getDate()).padStart(2, "0");
-          const rawRem = localStorage.getItem("weekend_remedy_" + monKey);
-          if (rawRem) {
-            const rem = JSON.parse(rawRem);
+    const rem = getRecordJson("weekend_remedy_" + monKey);
+          if (rem) {
+      // already parsed
             const satClearedAll = rem && rem.satCompleted && (!rem.satWrongWords || rem.satWrongWords.length === 0);
             if (rem && ((day === 6 && rem.satCompleted) || (day === 0 && rem.sunCompleted && !satClearedAll))) {
               const corr = day === 6 ? (rem.satCorrectWords || []) : (rem.sunCorrectWords || []);
@@ -16595,7 +16605,25 @@ function renderStudentDailyTaskAndFreeSections(resp) {
     if (d) dateSet.add(d);
   }
   for (const k in taskRecords) {
-    if (k.startsWith("task_words_") || k.startsWith("task_summary_") || k.startsWith("today_task_")) {
+    if (k.startsWith("weekend_remedy_")) {
+      const monStr = k.slice("weekend_remedy_".length);
+      const mDate = new Date(monStr.replace(/-/g, "/"));
+      if (!isNaN(mDate.getTime())) {
+        const satD = new Date(mDate.getFullYear(), mDate.getMonth(), mDate.getDate() + 5);
+        const sunD = new Date(mDate.getFullYear(), mDate.getMonth(), mDate.getDate() + 6);
+        const satKey = formatDateYMD(satD);
+        const sunKey = formatDateYMD(sunD);
+        let rem = taskRecords[k];
+        if (typeof rem === "string") {
+          try { rem = JSON.parse(rem); } catch(_) {}
+        }
+        if (rem) {
+          const satCleared = rem.satCompleted && (!rem.satWrongWords || rem.satWrongWords.length === 0);
+          if (rem.satCompleted) dateSet.add(satKey);
+          if (rem.sunCompleted && !satCleared) dateSet.add(sunKey);
+        }
+      }
+    } else if (k.startsWith("task_words_") || k.startsWith("task_summary_") || k.startsWith("today_task_")) {
       const parts = k.split("_");
       const ds = parts.slice(2).join("-");
       const d = normalizeDateKey(ds);
@@ -16819,6 +16847,38 @@ function renderStudentDailyTaskAndFreeSections(resp) {
               });
             }
           }
+        }
+      }
+    }
+    // 檢查 taskRecords 中的 weekend_remedy_ 作答紀錄
+    const dtObj = new Date(targetDate.replace(/-/g, "/"));
+    const dtDay = dtObj.getDay();
+    if (dtDay === 0 || dtDay === 6) {
+      const diffMon = dtObj.getDate() - dtDay + (dtDay === 0 ? -6 : 1);
+      const mObj = new Date(dtObj.getFullYear(), dtObj.getMonth(), diffMon);
+      const monKey = mObj.getFullYear() + "-" + String(mObj.getMonth() + 1).padStart(2, "0") + "-" + String(mObj.getDate()).padStart(2, "0");
+      let rem = taskRecords["weekend_remedy_" + monKey];
+      if (typeof rem === "string") { try { rem = JSON.parse(rem); } catch(_) {} }
+      if (!rem) { try { const raw = localStorage.getItem("weekend_remedy_" + monKey); if (raw) rem = JSON.parse(raw); } catch(_) {} }
+      if (rem) {
+        const satClearedAll = rem.satCompleted && (!rem.satWrongWords || rem.satWrongWords.length === 0);
+        if ((dtDay === 6 && rem.satCompleted) || (dtDay === 0 && rem.sunCompleted && !satClearedAll)) {
+          const corr = dtDay === 6 ? (rem.satCorrectWords || []) : (rem.sunCorrectWords || []);
+          const wrg = dtDay === 6 ? (rem.satWrongWords || []) : (rem.sunWrongWords || []);
+          const sc = dtDay === 6 ? rem.satScore : rem.sunScore;
+          const rt = dtDay === 6 ? rem.satRate : rem.sunRate;
+          const wList = Array.from(new Set([...corr, ...wrg]));
+          mergeOrPushTask({
+            date: targetDate,
+            taskName: `🎯 ${formatWeekendTaskDate(targetDate)} 週末待攻克測驗作答紀錄`,
+            score: sc || (wList.length ? `${corr.length}/${wList.length}` : "已完成"),
+            rate: rt || "100%",
+            status: "● 已完成",
+            wrongWords: wrg,
+            correctWords: corr,
+            words: wList,
+            isWeekend: true
+          });
         }
       }
     }
@@ -17769,6 +17829,40 @@ function renderStudentSummary(resp) {
     }
     if (!matchedTask) {
       matchedTask = respDataTaskMap.get(keyDash) || null;
+    if (!matchedTask) {
+      const dtHeat = new Date(keyDash.replace(/-/g, "/"));
+      const dayHeat = dtHeat.getDay();
+      if (dayHeat === 0 || dayHeat === 6) {
+        const diffMon = dtHeat.getDate() - dayHeat + (dayHeat === 0 ? -6 : 1);
+        const mObj = new Date(dtHeat.getFullYear(), dtHeat.getMonth(), diffMon);
+        const monKey = mObj.getFullYear() + "-" + String(mObj.getMonth() + 1).padStart(2, "0") + "-" + String(mObj.getDate()).padStart(2, "0");
+        const tRecords = (agent && agent._taskRecords) ? agent._taskRecords : {};
+        let rem = tRecords["weekend_remedy_" + monKey];
+        if (typeof rem === "string") { try { rem = JSON.parse(rem); } catch(_) {} }
+        if (!rem) { try { const raw = localStorage.getItem("weekend_remedy_" + monKey); if (raw) rem = JSON.parse(raw); } catch(_) {} }
+        if (rem) {
+          const satClearedAll = rem.satCompleted && (!rem.satWrongWords || rem.satWrongWords.length === 0);
+          if ((dayHeat === 6 && rem.satCompleted) || (dayHeat === 0 && rem.sunCompleted && !satClearedAll)) {
+            const corr = dayHeat === 6 ? (rem.satCorrectWords || []) : (rem.sunCorrectWords || []);
+            const wrg = dayHeat === 6 ? (rem.satWrongWords || []) : (rem.sunWrongWords || []);
+            const sc = dayHeat === 6 ? rem.satScore : rem.sunScore;
+            const rt = dayHeat === 6 ? rem.satRate : rem.sunRate;
+            const wList = Array.from(new Set([...corr, ...wrg]));
+            matchedTask = {
+              date: keyDash,
+              taskName: `🎯 ${formatWeekendTaskDate(keyDash)} 週末待攻克測驗作答紀錄`,
+              score: sc || (wList.length ? `${corr.length}/${wList.length}` : "已完成"),
+              rate: rt || "100%",
+              status: "● 已完成",
+              wrongWords: wrg,
+              correctWords: corr,
+              words: wList,
+              isWeekend: true
+            };
+          }
+        }
+      }
+    }
     }
     if (!matchedTask) {
       const empty = { a: 0, c: 0, rate: 0 };
