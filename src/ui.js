@@ -596,7 +596,19 @@ export function renderProgress(s) {
   const nScore = el.nScore || (el.nScore = $("#n-score"));
   if (nScore) nScore.textContent = pts;
 
-  const totCorr = (s.learn || 0) + (s.prac || 0) + (s.mast || 0);
+  let learn = s.learn;
+  let prac = s.prac;
+  let mast = s.mast;
+  if ((learn === undefined || prac === undefined || mast === undefined) && s.levels && Array.isArray(s.levels)) {
+    learn = s.levels.reduce((acc, l) => acc + (l.learn || 0), 0);
+    prac = s.levels.reduce((acc, l) => acc + (l.prac || 0), 0);
+    mast = s.levels.reduce((acc, l) => acc + (l.mast || 0), 0);
+  }
+  learn = learn || 0;
+  prac = prac || 0;
+  mast = mast || 0;
+
+  const totCorr = learn + prac + mast;
   const distinctCorr = totCorr > 0 ? totCorr : (s.distinctCorrect !== undefined ? s.distinctCorrect : 0);
   const sCorr = el.sCorrect || (el.sCorrect = $("#s-correct"));
   if (sCorr) sCorr.textContent = distinctCorr;
@@ -627,18 +639,18 @@ export function renderProgress(s) {
   if (nRate) nRate.textContent = vocabRate + "%";
 
   const bLearn = el.bLearn || (el.bLearn = $("#b-learn"));
-  if (bLearn) bLearn.style.width = Math.min(100, Math.max(0, ((s.learn || 0) / total * 100))) + "%";
+  if (bLearn) bLearn.style.width = Math.min(100, Math.max(0, (learn / total * 100))) + "%";
   const bPrac = el.bPrac || (el.bPrac = $("#b-prac"));
-  if (bPrac) bPrac.style.width = Math.min(100, Math.max(0, ((s.prac || 0) / total * 100))) + "%";
+  if (bPrac) bPrac.style.width = Math.min(100, Math.max(0, (prac / total * 100))) + "%";
   const bMast = el.bMast || (el.bMast = $("#b-mast"));
-  if (bMast) bMast.style.width = Math.min(100, Math.max(0, ((s.mast || 0) / total * 100))) + "%";
+  if (bMast) bMast.style.width = Math.min(100, Math.max(0, (mast / total * 100))) + "%";
 
   const nLearn = el.nLearn || (el.nLearn = $("#n-learn"));
-  if (nLearn) nLearn.textContent = s.learn || 0;
+  if (nLearn) nLearn.textContent = learn;
   const nPrac = el.nPrac || (el.nPrac = $("#n-prac"));
-  if (nPrac) nPrac.textContent = s.prac || 0;
+  if (nPrac) nPrac.textContent = prac;
   const nMast = el.nMast || (el.nMast = $("#n-mast"));
-  if (nMast) nMast.textContent = s.mast || 0;
+  if (nMast) nMast.textContent = mast;
   const nTotal = el.nTotal || (el.nTotal = $("#n-total"));
   if (nTotal) nTotal.textContent = total;
 

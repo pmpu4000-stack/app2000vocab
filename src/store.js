@@ -840,6 +840,27 @@ export function summary(words) {
     }
   }
 
+  // 若單字庫尚未完成載入，直接由 DB.stat 與 DB.box 統計關卡進度
+  if ((!words || words.length === 0) && DB && DB.stat) {
+    for (const id in DB.stat) {
+      const st = DB.stat[id];
+      if (!st) continue;
+      const b = DB.box[id] || 0;
+      const hasC = !!(st.c > 0);
+      const hasA = !!(st.a > 0);
+      const lv = getWordLevel(id);
+      const la = lvAcc[lv];
+      if (la) {
+        if (hasA) la.testedCount++;
+        if (hasC) {
+          if (b >= 3) la.mast++;
+          else if (b === 2) la.prac++;
+          else la.learn++;
+        }
+      }
+    }
+  }
+
   const levels = [1, 2, 3, 4, 5].map((lv) => {
     const la = lvAcc[lv];
     const correctWordCount = la.learn + la.prac + la.mast;
@@ -1007,6 +1028,13 @@ export function summary(words) {
   if (changed) save();
 
   return {
+    ...s,
+    learn: s.learn,
+    prac: s.prac,
+    mast: s.mast,
+    points: s.points,
+    streak: s.streak,
+    currentLevel: s.currentLevel,
     passRate: s.passRate, distinctCorrect: s.distinctCorrect,
     attempts: s.attempts, correct: s.correct, total: s.total,
     mastered, fixed, levels, catCounts, history: historyData(28, taskHistory),
