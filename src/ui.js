@@ -2841,7 +2841,7 @@ function _renderConquerWordCard(wordStr, d) {
       <div class="zh-row" style="margin-bottom:10px;">
         <button type="button" class="word-speech-btn" onclick="window.__sayWord('${clean}')" aria-label="播放單字發音" title="播放單字發音">🔊</button>
         <div class="zh-text" style="display:flex; align-items:baseline; gap:8px; flex-wrap:wrap;">
-          <span class="conquer-card-word task-title-free" style="font-size:18px; font-weight:800; letter-spacing:0.2px;">${wordDisplay}</span>
+          <span class="conquer-card-word task-title-free">${wordDisplay}</span>
           ${defHtml}
           ${posHtml}
           ${phonHtml}

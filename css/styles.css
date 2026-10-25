@@ -2777,8 +2777,39 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   background: rgba(148, 163, 184, 0.6);
 }
 
+/* 待攻克單字卡片專用字體階層與版面比例 (比照全站易讀規則) */
+.conquer-word-card {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--card, #fff);
+  border: 1.5px solid var(--line, #e2e8f0);
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+}
+.conquer-word-card .zh-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.conquer-word-card .word-speech-btn {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  font-size: 15px;
+  border-radius: 9px;
+}
+.conquer-word-card .zh-text {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+  line-height: 1.4;
+}
 .conquer-card-word {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 800;
   letter-spacing: 0.2px;
 }
@@ -2789,4 +2820,66 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 [data-theme="dark"] .conquer-card-word,
 [data-theme="dark"] .conquer-sent-word {
   color: #FBBF24 !important;
+}
+.conquer-word-card .zh-def {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: 0.1px;
+}
+.conquer-word-card .zh-pos {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #10B981;
+  padding: 1px 6px;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 5px;
+  display: inline-block;
+}
+.conquer-word-card .phon {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--sky);
+  font-family: ui-monospace, "SF Mono", monospace;
+  margin-left: 2px;
+}
+.conquer-word-card .sents-vertical-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  width: 100%;
+}
+.conquer-word-card .sent-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 9px;
+  background: #F8F9FD;
+  border: 1px solid var(--line);
+  min-height: 44px;
+}
+[data-theme="dark"] .conquer-word-card .sent-row {
+  background: rgba(255, 255, 255, 0.03);
+}
+.conquer-word-card .sent-speaker-btn {
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  font-size: 14px;
+  border-radius: 8px;
+}
+.conquer-word-card .sent-en {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--ink);
+  font-weight: 600;
+}
+.conquer-word-card .sent-zh {
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--ink3);
+  margin-top: 2px;
 }
