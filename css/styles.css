@@ -2573,55 +2573,6 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   display: none !important;
 }
 
-/* Level 1~5 分級標準與特徵對照表卡片 */
-.level-standard-panel {
-  background: rgba(148, 163, 184, 0.05);
-  border: 1px solid rgba(148, 163, 184, 0.20);
-  border-radius: 10px;
-  padding: 6px 8px;
-  margin-bottom: 6px;
-}
-[data-theme="dark"] .level-standard-panel {
-  background: rgba(255, 255, 255, 0.03);
-  border-color: rgba(255, 255, 255, 0.12);
-}
-.level-standard-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-  gap: 8px;
-  margin-top: 6px;
-}
-.level-standard-item {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 6px 8px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(148, 163, 184, 0.25);
-  font-size: 11.5px;
-}
-[data-theme="dark"] .level-standard-item {
-  background: rgba(30, 41, 59, 0.7);
-  border-color: rgba(255, 255, 255, 0.1);
-}
-.level-standard-head {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-weight: 800;
-  font-size: 12px;
-}
-.level-standard-sub {
-  color: var(--ink2);
-  font-size: 11px;
-  line-height: 1.35;
-}
-.level-standard-trap {
-  color: var(--ink3);
-  font-size: 10.5px;
-  line-height: 1.3;
-}
 
 
 

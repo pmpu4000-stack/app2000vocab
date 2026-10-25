@@ -2864,45 +2864,6 @@ export function buildWeekPendingConquerHtml(words, d = null, cycleParam = _activ
   const isPrevious = (cycleParam === "previous");
   const isBoss = cycleInfo.isBiweeklyBossWeek && !isPrevious;
 
-  // Level 1~5 分級標準與特徵對照表 HTML
-  const levelStandardPanelHtml = `
-    <div class="level-standard-panel">
-      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
-        <span style="font-size:12.5px; font-weight:800; color:var(--ink); display:flex; align-items:center; gap:5px;">
-          <span>📊</span><span>Level 1~5 單字分級標準與特徵一覽</span>
-        </span>
-        <span style="font-size:11px; color:var(--ink3);">全書 2,055 字 · 5 大關卡階梯</span>
-      </div>
-      <div class="level-standard-grid">
-        <div class="level-standard-item" style="border-left:3px solid #2FB47C;">
-          <div class="level-standard-head" style="color:#2FB47C;"><span>🟢</span><span>Lv.1 入門</span></div>
-          <div class="level-standard-sub">3~4 字母極短字 · 411 字</div>
-          <div class="level-standard-trap">自然發音基礎、CVC短單字、生活高頻必備詞</div>
-        </div>
-        <div class="level-standard-item" style="border-left:3px solid #2D9CDB;">
-          <div class="level-standard-head" style="color:#2D9CDB;"><span>🔵</span><span>Lv.2 基礎</span></div>
-          <div class="level-standard-sub">4~5 字母常用字 · 411 字</div>
-          <div class="level-standard-trap">常見長母音、Magic e字尾、基礎日常詞彙</div>
-        </div>
-        <div class="level-standard-item" style="border-left:3px solid #6C4CE0;">
-          <div class="level-standard-head" style="color:#6C4CE0;"><span>🟣</span><span>Lv.3 進階</span></div>
-          <div class="level-standard-sub">5~6 字母雙音節 · 411 字</div>
-          <div class="level-standard-trap">雙音節單字、複合名詞、常見詞類衍生變化</div>
-        </div>
-        <div class="level-standard-item" style="border-left:3px solid #E8892B;">
-          <div class="level-standard-head" style="color:#E8892B;"><span>🟠</span><span>Lv.4 挑戰</span></div>
-          <div class="level-standard-sub">6~8 字母中長字 · 411 字</div>
-          <div class="level-standard-trap">雙子音/不發音字母、連音變化、學科核心詞彙</div>
-        </div>
-        <div class="level-standard-item" style="border-left:3px solid #E0567B;">
-          <div class="level-standard-head" style="color:#E0567B;"><span>🔴</span><span>Lv.5 精熟</span></div>
-          <div class="level-standard-sub">8 字母以上長單字 · 411 字</div>
-          <div class="level-standard-trap">多音節長單字、字根字首派生、進階易混淆字</div>
-        </div>
-      </div>
-    </div>
-  `;
-
   // 週期選擇導覽列
   const curSemWeek = cycleInfo.semesterWeek || 1;
   let activeW = curSemWeek;
@@ -2957,7 +2918,6 @@ export function buildWeekPendingConquerHtml(words, d = null, cycleParam = _activ
     return `
       <div class="week-conquer-wrap" style="display:flex; flex-direction:column; gap:10px;">
         ${cycleSelectBarHtml}
-        ${levelStandardPanelHtml}
         <div class="task-empty-notice" style="padding:14px 16px; margin:0; background:rgba(30,154,102,0.06); border:1.5px solid rgba(30,154,102,0.22); border-radius:12px; display:flex; flex-direction:column; gap:6px;">
           <div style="display:flex; align-items:center; gap:8px;">
             <span style="font-size:18px; line-height:1; flex-shrink:0;">✨</span>
@@ -2986,19 +2946,10 @@ export function buildWeekPendingConquerHtml(words, d = null, cycleParam = _activ
     byLv[targetLv].push(w);
   });
 
-  const lvFeatures = {
-    1: "入門 · 3~4 字母極短字/自然發音",
-    2: "基礎 · 4~5 字母常用字/Magic e",
-    3: "進階 · 5~6 字母雙音節/複合字",
-    4: "挑戰 · 6~8 字母中長字/不發音字母",
-    5: "精熟 · 8 字母以上多音節長字/字根字首"
-  };
-
   const levelSectionsHtml = [1, 2, 3, 4, 5].map(lv => {
     const list = byLv[lv] || [];
     const lvDotColor = levelColor(lv);
     const lvTitle = `Level ${lv}「${levelName(lv)}」`;
-    const lvFeatureSub = lvFeatures[lv] || "";
     let contentHtml = "";
 
     if (list.length > 0) {
@@ -3058,7 +3009,6 @@ export function buildWeekPendingConquerHtml(words, d = null, cycleParam = _activ
           <span style="display:inline-flex; align-items:center; gap:6px;">
             <span style="color:${lvDotColor};">●</span>
             <b>${lvTitle}</b>
-            <small style="font-size:11px; font-weight:normal; color:var(--ink3); opacity:0.85;">(${lvFeatureSub})</small>
           </span>
           <span class="conquer-level-count">${list.length} 字</span>
         </div>
@@ -3076,7 +3026,6 @@ export function buildWeekPendingConquerHtml(words, d = null, cycleParam = _activ
   return `
     <div class="week-conquer-wrap" style="display:flex; flex-direction:column; gap:10px;">
       ${cycleSelectBarHtml}
-      ${levelStandardPanelHtml}
       <div class="week-conquer-tip" style="display:flex; align-items:flex-start; gap:8px; padding:4px 2px 4px; font-size:12.5px; line-height:1.55; color:var(--ink2);">
         <span style="font-size:15px; flex-shrink:0; line-height:1.3;">💡</span>
         <div style="flex:1; line-height:1.55;">
