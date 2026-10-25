@@ -51,6 +51,11 @@ async function fetchWithCache(url, isOptional = false) {
   return await r.json();
 }
 
+const IPA_OVERRIDE = {
+  flu: 'fluː', go: 'ɡoʊ', gold: 'ɡoʊld', hold: 'hoʊld', host: 'hoʊst',
+  most: 'moʊst', no: 'noʊ', old: 'oʊld', ski: 'skiː', so: 'soʊ'
+};
+
 let _wordBankPromise = null;
 
 // A word object:
@@ -85,7 +90,7 @@ export function loadWordBank() {
           sentZh: feat ? (feat.sentZh || null) : (m.sentZh || null),
           sentSrc: feat ? "Curated" : (m.sentSrc || null),
           sents: (Array.isArray(m.sents) && m.sents.length > 0) ? m.sents : (m.sent ? [{ level: 'normal', levelName: '普通', sent: m.sent, sentZh: m.sentZh || '', src: m.sentSrc || '' }] : []),
-          ph: m.ph || null,
+          ph: IPA_OVERRIDE[word] || m.ph || null,
           cat: feat ? feat.cat : null,
         };
         if (byLevel[obj.level]) byLevel[obj.level].push(obj);

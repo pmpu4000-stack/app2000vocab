@@ -1,13 +1,13 @@
-﻿// =====================================================================
+// =====================================================================
 // app.js — the controller. Boots the word bank, runs the placement test,
 // drives level-based practice, gates progression behind challenges,
 // and manages teacher-assigned tasks & weekend mistake remediation.
 // =====================================================================
-import { loadWordBank, wordsAtLevel } from "./wordbank.js?v=20261019_v228";
+import { loadWordBank, wordsAtLevel } from "./wordbank.js?v=20261025_1618";
 import * as store from "./store.js?v=20261019_v228";
 import { normalizeDateStr } from "./store.js?v=20261019_v228";
 import { nextWord } from "./srs.js?v=20261019_v228";
-import * as ui from "./ui.js?v=20261019_v230";
+import * as ui from "./ui.js?v=20261025_1618";
 import { burst } from "./confetti.js?v=20261019_v228";
 import {
   LEVELS, levelColor, levelName, sample,
