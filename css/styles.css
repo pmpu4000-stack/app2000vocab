@@ -2821,7 +2821,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
    ===================================================================== */
 .active-repair-card {
   margin: 0 auto 8px;
-  padding: 12px 14px;
+  padding: 10px 14px 8px;
   background: var(--card, #ffffff);
   border: 1.5px solid rgba(239, 68, 68, 0.25);
   border-radius: 14px;
@@ -2908,6 +2908,11 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   margin-top: 6px;
   min-height: 18px;
   line-height: 1.4;
+}
+.active-repair-msg:empty {
+  display: none;
+  min-height: 0;
+  margin: 0;
 }
 
 .diag-tag-chip {
