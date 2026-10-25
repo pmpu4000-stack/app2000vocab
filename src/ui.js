@@ -2799,8 +2799,9 @@ function _renderConquerWordCard(wordStr, d) {
   }
 
   const wordDisplay = obj.display || obj.word || clean;
+  const cleanPh = String(obj.ph || "").replace(/^[/\[\s]+|[\/\]\s]+$/g, "");
   const posHtml = posList.length > 0 ? `<span class="zh-pos">${posList.join(" · ")}</span>` : "";
-  const phonHtml = obj.ph ? `<span class="phon">[${obj.ph}]</span>` : "";
+  const phonHtml = cleanPh ? `<span class="phon">/${cleanPh}/</span>` : "";
   const defHtml = defText ? `<b class="zh-def">${defText}</b>` : "";
 
   let sentsList = (Array.isArray(obj.sents) && obj.sents.length > 0)
@@ -2841,9 +2842,9 @@ function _renderConquerWordCard(wordStr, d) {
         <button type="button" class="word-speech-btn" onclick="window.__sayWord('${clean}')" aria-label="播放單字發音" title="播放單字發音">🔊</button>
         <div class="zh-text" style="display:flex; align-items:baseline; gap:8px; flex-wrap:wrap;">
           <span class="conquer-card-word task-title-free" style="font-size:20px; font-weight:900; letter-spacing:0.3px;">${wordDisplay}</span>
+          ${defHtml}
           ${posHtml}
           ${phonHtml}
-          ${defHtml}
         </div>
       </div>
       <div class="sents-vertical-list" style="margin:0;">
