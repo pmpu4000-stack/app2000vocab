@@ -2970,12 +2970,6 @@ export function buildWeekPendingConquerHtml(words, d = null, cycleParam = _activ
             <div style="margin-top:2px;">${emptySub}</div>
           </div>
         </div>
-        <div style="margin-top:6px;">
-          <div style="font-size:13px; font-weight:800; color:var(--ink); margin-bottom:8px; display:flex; align-items:center; gap:6px;">
-            <span>📇 待攻克單字卡展示範例（以 2000 單字 able 為例）：</span>
-          </div>
-          ${_renderConquerWordCard('able', d)}
-        </div>
         ${levelStandardDetailsHtml}
       </div>
     `;

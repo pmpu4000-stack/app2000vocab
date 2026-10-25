@@ -143,11 +143,11 @@ header{display:flex; align-items:center; justify-content:space-between; flex-wra
   user-select:none;flex-shrink:0}
 .word-speech-btn:hover{transform:scale(1.05);box-shadow:0 4px 12px rgba(45,156,219,.4)}
 .word-speech-btn:active,.word-speech-btn.playing{transform:scale(.92)}
-.zh-text{font-size:14.5px;color:var(--ink2);font-weight:700;line-height:1.35;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.zh-text{font-size:14.5px;color:var(--ink2);font-weight:700;line-height:1.45;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .zh-text b{color:var(--ink)}
-.zh-text .zh-def{font-size:16.5px;font-weight:800;color:var(--ink);letter-spacing:0.2px;line-height:1.3}
-.zh-text .zh-pos{color:#10B981;font-weight:700;font-size:11.5px;margin:0;padding:1px 6px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.3);border-radius:5px;display:inline-flex;align-items:center;line-height:1.2}
-.zh .phon, .conquer-word-card .phon{color:var(--sky);font-weight:700;font-size:13px;font-family:"Lucida Sans Unicode","Segoe UI",Arial,sans-serif;margin:0;line-height:1.25}
+.zh-text .zh-def{font-size:16.5px;font-weight:800;color:var(--ink);letter-spacing:0.2px;line-height:1.45}
+.zh-text .zh-pos{color:#10B981;font-weight:700;font-size:11.5px;margin:0;padding:1px 6px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.3);border-radius:5px;display:inline-flex;align-items:center;line-height:1.3}
+.zh .phon, .conquer-word-card .phon{color:var(--sky);font-weight:700;font-size:13px;font-family:"Lucida Sans Unicode","Segoe UI",Arial,sans-serif;margin:0;line-height:1.35}
 
 .sent{font-size:13.5px;color:var(--ink3);font-weight:600;min-height:18px;margin-top:4px}
 .sents-vertical-list{display:flex;flex-direction:column;gap:5px;margin:3px 0 6px;width:100%}
@@ -168,10 +168,10 @@ header{display:flex; align-items:center; justify-content:space-between; flex-wra
 .sent-speaker-btn.level-dialogue{background:rgba(224,86,123,.12);border-color:rgba(224,86,123,.5);color:#D83A6F}
 
 .sent-text-wrap{flex:1;min-width:0;text-align:left;display:flex;flex-direction:column;justify-content:center;cursor:pointer;padding-left:2px}
-.sent-en{font-size:13.5px;line-height:1.35;color:var(--ink);font-weight:600;word-break:break-word;text-align:left}
-.sent-en u{display:inline-block;text-decoration:none;min-width:44px;height:18px;line-height:18px;margin:0 3px;padding:0 5px;vertical-align:-2px;overflow:hidden;background:rgba(108,76,224,.10);border:1px solid rgba(108,76,224,.28);border-radius:4px;position:relative;box-sizing:border-box}
+.sent-en{font-size:13.5px;line-height:1.5;color:var(--ink);font-weight:600;word-break:break-word;text-align:left}
+.sent-en u{display:inline-block;text-decoration:none;min-width:44px;height:19px;line-height:19px;margin:0 3px;padding:0 5px;vertical-align:-2px;overflow:hidden;background:rgba(108,76,224,.10);border:1px solid rgba(108,76,224,.28);border-radius:4px;position:relative;box-sizing:border-box}
 .sent-en u::after{content:"";position:absolute;left:4px;right:4px;bottom:2px;height:2px;background:var(--violet);border-radius:1px}
-.sent-zh{font-size:12px;line-height:1.25;color:var(--ink3);margin-top:2px;font-weight:normal;text-align:left}
+.sent-zh{font-size:12px;line-height:1.45;color:var(--ink3);margin-top:3px;font-weight:normal;text-align:left}
 .sent-dialogue-turn{display:flex;align-items:flex-start;gap:5px;margin:1px 0}
 .dlg-badge{display:inline-flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;padding:1px 5px;border-radius:4px;flex-shrink:0;line-height:1.3;letter-spacing:0.2px;margin-top:1px}
 .dlg-badge.dlg-a{background:rgba(224,86,123,.12);border:1px solid rgba(224,86,123,.3);color:#D83A6F}
@@ -748,10 +748,10 @@ body.daily-limit-reached #btn-upload {
   .banner .gate{flex-wrap:wrap} .banner .challenge{margin-left:0;width:100%}
   .sent-row{padding:6px 10px;gap:8px;min-height:48px;height:auto;box-sizing:border-box}
   .sent-speaker-btn{width:34px;height:34px;min-width:34px;font-size:15px}
-  .sent-en{font-size:13px;line-height:1.42}
+  .sent-en{font-size:13px;line-height:1.5}
   .sent-en u{min-width:42px;height:18px;line-height:18px;vertical-align:-2px;overflow:hidden}
   .sent-en u::after{bottom:2px}
-  .sent-zh{font-size:11.5px;margin-top:2px}
+  .sent-zh{font-size:11.5px;line-height:1.45;margin-top:3px}
   .word-speech-btn{width:34px;height:34px;min-width:34px;font-size:16px}
 }
 @media (max-width:420px){
@@ -2640,12 +2640,12 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 .level-standard-sub {
   color: var(--ink2);
   font-size: 11px;
-  line-height: 1.35;
+  line-height: 1.45;
 }
 .level-standard-trap {
   color: var(--ink3);
   font-size: 10.5px;
-  line-height: 1.3;
+  line-height: 1.45;
 }
 
 
@@ -2932,15 +2932,15 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 }
 .conquer-word-card .sent-en {
   font-size: 13px;
-  line-height: 1.45;
+  line-height: 1.5;
   color: var(--ink);
   font-weight: 600;
 }
 .conquer-word-card .sent-zh {
   font-size: 12px;
-  line-height: 1.35;
+  line-height: 1.45;
   color: var(--ink3);
-  margin-top: 2px;
+  margin-top: 3px;
 }
 
 /* 待攻克單字卡各關卡內就地切換互動樣式 */
