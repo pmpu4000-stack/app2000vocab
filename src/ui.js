@@ -519,7 +519,7 @@ export function showResult(correct, word, info, guessVal = "", onRepairComplete 
     const diag = diagnoseWordMistake(word.word, guessVal);
     el.fb.className = "feedback bad";
     el.fb.innerHTML = `
-      <div style="display:flex;align-items:center;justify-content:center;margin-bottom:8px;font-size:16px;">
+      <div style="display:flex;align-items:center;justify-content:center;margin-bottom:8px;font-size:16px;width:100%;line-height:1.4;">
         <span>正確拼法：<span class="reveal" style="display:inline">${revealHtml(word)}</span></span>
       </div>
       <div class="active-repair-card" id="active-repair-card">
