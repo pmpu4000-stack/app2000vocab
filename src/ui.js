@@ -15,6 +15,7 @@ if (typeof window !== "undefined") {
 }
 
 const $ = (s) => document.querySelector(s);
+let activeSentLevel = "simple";
 const el = {
   playScreen: $("#screen-play"), quizScreen: $("#screen-quiz"),
   levelbar: $("#levelbar"), modes: $("#modes"), stage: $("#stage"), fb: $("#feedback"),
@@ -177,12 +178,15 @@ export function renderRound(word, mode, { onAnswer, onCheck }) {
     const levelOrder = { simple: 1, normal: 2, advanced: 3, dialogue: 4 };
     sentsList.sort((a, b) => (levelOrder[a.level] || 9) - (levelOrder[b.level] || 9));
 
-    let html = '<div class="sents-vertical-list">';
-    sentsList.forEach((s, i) => {
+    let currentIdx = sentsList.findIndex(s => s.level === activeSentLevel);
+    if (currentIdx === -1) currentIdx = 0;
+
+    const renderSentContent = (idx) => {
+      const s = sentsList[idx];
       const dlg = parseDialogue(s.sent);
       const isDlg = Boolean(dlg || s.level === 'dialogue');
       const levelCls = s.level === 'simple' ? 'level-simple' : s.level === 'advanced' ? 'level-advanced' : isDlg ? 'level-dialogue' : 'level-normal';
-      const levelText = s.levelName || (isDlg ? '對話' : i === 0 ? '簡單' : i === 1 ? '普通' : '進階');
+      const levelText = s.levelName || (isDlg ? '對話' : s.level === 'simple' ? '簡單' : s.level === 'advanced' ? '進階' : '普通');
 
       let enHtml = '';
       let zhHtml = '';
@@ -211,25 +215,44 @@ export function renderRound(word, mode, { onAnswer, onCheck }) {
         zhHtml = s.sentZh || '';
       }
 
-      html += `
-        <div class="sent-row" data-idx="${i}">
-          <button type="button" class="sent-speaker-btn ${levelCls}" data-idx="${i}" aria-label="${levelText}例句朗讀">
+      return `
+        <div class="sent-row" data-idx="${idx}">
+          <button type="button" class="sent-speaker-btn ${levelCls}" data-idx="${idx}" aria-label="${levelText}例句朗讀">
             🔊
           </button>
-          <div class="sent-text-wrap" data-idx="${i}">
+          <div class="sent-text-wrap" data-idx="${idx}">
             <div class="sent-en">${enHtml}</div>
             ${zhHtml ? `<div class="sent-zh">${zhHtml}</div>` : ''}
           </div>
         </div>
       `;
-    });
-    html += '</div>';
+    };
+
+    let html = '';
+    if (sentsList.length > 1) {
+      html += `
+        <div class="sent-tabs-header">
+          <div class="sent-tab-bar" role="tablist" aria-label="例句難度選擇">
+            ${sentsList.map((s, i) => {
+              const dlg = parseDialogue(s.sent);
+              const isDlg = Boolean(dlg || s.level === 'dialogue');
+              const levelCls = s.level === 'simple' ? 'level-simple' : s.level === 'advanced' ? 'level-advanced' : isDlg ? 'level-dialogue' : 'level-normal';
+              const levelText = s.levelName || (isDlg ? '對話' : s.level === 'simple' ? '簡單' : s.level === 'advanced' ? '進階' : '普通');
+              const isAct = i === currentIdx ? 'active' : '';
+              return `<button type="button" class="sent-tab-btn ${levelCls} ${isAct}" data-idx="${i}" aria-selected="${i === currentIdx}">${levelText}</button>`;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+    html += `<div class="sent-display-body">${renderSentContent(currentIdx)}</div>`;
 
     el.sent.innerHTML = html;
     el.sent.style.cursor = "default";
 
-    // 例句方塊依自身內容行數自適應高度（不強制齊高膨脹）
-    el.sent.querySelectorAll(".sent-row").forEach(row => {
+    const bindSentAudio = () => {
+      const row = el.sent.querySelector(".sent-row");
+      if (!row) return;
       const idx = parseInt(row.dataset.idx, 10);
       const targetSent = sentsList[idx];
       if (!targetSent) return;
@@ -251,7 +274,32 @@ export function renderRound(word, mode, { onAnswer, onCheck }) {
 
       const textWrap = row.querySelector(".sent-text-wrap");
       if (textWrap) textWrap.onclick = playFn;
-    });
+    };
+
+    bindSentAudio();
+
+    if (sentsList.length > 1) {
+      el.sent.querySelectorAll(".sent-tab-btn").forEach(btn => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          const newIdx = parseInt(btn.dataset.idx, 10);
+          if (newIdx === currentIdx) return;
+          currentIdx = newIdx;
+          activeSentLevel = sentsList[newIdx].level || 'simple';
+
+          el.sent.querySelectorAll(".sent-tab-btn").forEach((b, bi) => {
+            b.classList.toggle("active", bi === newIdx);
+            b.setAttribute("aria-selected", bi === newIdx ? "true" : "false");
+          });
+
+          const bodyEl = el.sent.querySelector(".sent-display-body");
+          if (bodyEl) {
+            bodyEl.innerHTML = renderSentContent(newIdx);
+            bindSentAudio();
+          }
+        };
+      });
+    }
   } else {
     el.sent.innerHTML = "";
     el.sent.style.cursor = "";
