@@ -1657,20 +1657,25 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   color: #CBD5E1 !important;
 }
 
-/* 4 大練習模式統計區塊（預設四個並列成一排，彈性寬度；窄螢幕擠不下時折為兩排） */
+/* 4 大練習模式統計區塊（四個並列成同一排；僅在螢幕過窄時折為兩排） */
 .mode-stat-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
+  gap: 8px;
   margin: 10px 0 16px;
 }
-@media (max-width: 520px) {
+@media (max-width: 580px) {
   .mode-stat-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 8px !important;
+    gap: 5px;
   }
 }
-@media (max-width: 280px) {
+@media (max-width: 360px) {
+  .mode-stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+  }
+}
+@media (max-width: 240px) {
   .mode-stat-grid {
     grid-template-columns: 1fr !important;
   }
@@ -1680,8 +1685,8 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   box-sizing: border-box;
   background: #F8F9FD;
   border: 1.5px solid var(--line);
-  border-radius: 13px;
-  padding: 10px 6px;
+  border-radius: 11px;
+  padding: 8px 4px;
   text-align: center;
   transition: transform .12s, box-shadow .12s;
   box-shadow: 0 2px 6px rgba(35,42,77,0.03);
@@ -1762,23 +1767,41 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 [data-theme="dark"] .mode-card-trap .mode-stat-sub { color: #FBBF24 !important; }
 
 .mode-stat-title {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--ink2);
   font-weight: 800;
-  letter-spacing: 0.2px;
+  letter-spacing: 0.1px;
+  white-space: nowrap;
 }
 .mode-stat-num {
-  font-size: 19px;
+  font-size: 17px;
   font-weight: 900;
   color: var(--ink);
-  margin: 3px 0 2px;
+  margin: 2px 0 1px;
   font-variant-numeric: tabular-nums;
   line-height: 1.2;
+  white-space: nowrap;
 }
 .mode-stat-sub {
-  font-size: 11.5px;
+  font-size: 10.5px;
   font-weight: 700;
   color: var(--green);
+  white-space: nowrap;
+  letter-spacing: -0.2px;
+}
+@media (max-width: 480px) {
+  .mode-stat-card {
+    padding: 6px 2px;
+  }
+  .mode-stat-title {
+    font-size: 11px;
+  }
+  .mode-stat-num {
+    font-size: 15px;
+  }
+  .mode-stat-sub {
+    font-size: 9.5px;
+  }
 }
 
 /* 4. 描述說明文字 (Explanations & Helper Descriptions) */
