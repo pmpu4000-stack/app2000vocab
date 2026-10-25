@@ -616,7 +616,10 @@ export function levelStats(level, words) {
   if (Array.isArray(words) && words.length > 0) {
     const ws = (words._byLevel && words._byLevel[level]) || words.filter(w => w.level === level);
     for (let i = 0; i < ws.length; i++) {
-      const st = DB.stat[ws[i].id];
+      const w = ws[i];
+      const id = w.id;
+      const word = (w.word || "").toLowerCase();
+      const st = (id && DB.stat[id]) || (word && DB.stat[word]);
       if (st) {
         if (st.a > 0) a++;
         if (st.c > 0) c++;
@@ -664,19 +667,23 @@ export function promote() {
 export function stats(words) {
   const wList = (Array.isArray(words) && words.length > 0) ? words : [];
   let learn = 0, prac = 0, mast = 0;
-  for (let i = 0; i < wList.length; i++) {
-    const id = wList[i].id;
-    const st = DB.stat[id];
-    // 嚴格準則：單字必須實際曾答對過 (st && st.c > 0)，方能計入學習成果
-    if (st && st.c > 0) {
-      const b = DB.box[id] || 0;
-      if (b >= 3) mast++;
-      else if (b === 2) prac++;
-      else learn++;
+  if (wList.length > 0) {
+    for (let i = 0; i < wList.length; i++) {
+      const w = wList[i];
+      const id = w.id;
+      const word = (w.word || "").toLowerCase();
+      const st = (id && DB.stat[id]) || (word && DB.stat[word]);
+      // 嚴格準則：單字必須實際曾答對過 (st && st.c > 0)，方能計入學習成果
+      if (st && st.c > 0) {
+        const b = (id && DB.box[id]) || (word && DB.box[word]) || 0;
+        if (b >= 3) mast++;
+        else if (b === 2) prac++;
+        else learn++;
+      }
     }
   }
-  // 若單字庫尚未完全載入完成，直接由 DB.stat 與 DB.box 統計
-  if (wList.length === 0 && DB && DB.stat) {
+  // 若單字庫尚未完全載入完成或鍵值未完全比對，直接由 DB.stat 與 DB.box 全量統計
+  if ((learn === 0 && prac === 0 && mast === 0) && DB && DB.stat) {
     for (const id in DB.stat) {
       const st = DB.stat[id];
       if (st && st.c > 0) {
@@ -802,15 +809,16 @@ export function summary(words) {
   for (let i = 0; i < words.length; i++) {
     const w = words[i];
     const id = w.id;
-    const st = DB.stat[id];
-    const b = DB.box[id] || 0;
+    const word = (w.word || "").toLowerCase();
+    const st = (id && DB.stat[id]) || (word && DB.stat[word]);
+    const b = (id && DB.box[id]) || (word && DB.box[word]) || 0;
     const hasC = !!(st && st.c > 0);
     const hasA = !!(st && st.a > 0);
     const isMast = (b >= 3 && hasC);
 
     if (isMast) {
       mastered.push(w);
-      if (st.ew) fixed.push(w);
+      if (st && st.ew) fixed.push(w);
     }
 
     const la = lvAcc[w.level];
@@ -829,7 +837,7 @@ export function summary(words) {
       if (isMast) catAcc[w.cat].mast++;
     }
 
-    if (hasA) {
+    if (hasA && st) {
       allPracticedWords.push({
         word: w.word,
         attempts: st.a,

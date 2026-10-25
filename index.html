@@ -612,10 +612,35 @@
             distinctCorrect = Object.values(sa.box).filter(b => b >= 1).length;
           }
         }
+        // 🚀 若快取無細項，直接由本機 sa.stat 與 sa.box 統計學習中、練習中、精通
+        if (learning === 0 && practicing === 0 && mastered === 0) {
+          if (sa.stat) {
+            for (const k in sa.stat) {
+              const st = sa.stat[k];
+              if (st && st.c > 0) {
+                const b = sa.box ? (sa.box[k] || 0) : 0;
+                if (b >= 3) mastered++;
+                else if (b === 2) practicing++;
+                else learning++;
+              }
+            }
+          } else if (sa.box) {
+            for (const k in sa.box) {
+              const b = sa.box[k] || 0;
+              if (b >= 3) mastered++;
+              else if (b === 2) practicing++;
+              else if (b >= 1) learning++;
+            }
+          }
+        }
+        if (distinctCorrect === 0) {
+          distinctCorrect = learning + practicing + mastered;
+        }
+
         if (sc) sc.textContent = String(distinctCorrect);
         if (nc) nc.textContent = String(distinctCorrect);
 
-        // 🚀 極速秒開：直接以 cached_summary 更新整體進度條與數值，免除額外等待計算
+        // 🚀 極速秒開：即時更新整體進度條與數值，免除額外等待計算
         const nLearn = document.getElementById("n-learn");
         const nPrac = document.getElementById("n-prac");
         const nMast = document.getElementById("n-mast");
@@ -623,12 +648,12 @@
         const bPrac = document.getElementById("b-prac");
         const bMast = document.getElementById("b-mast");
         const totalWords = 2055;
-        if (nLearn && learning) nLearn.textContent = learning;
-        if (nPrac && practicing) nPrac.textContent = practicing;
-        if (nMast && mastered) nMast.textContent = mastered;
-        if (bLearn && learning) bLearn.style.width = Math.min(100, (learning / totalWords * 100)) + "%";
-        if (bPrac && practicing) bPrac.style.width = Math.min(100, (practicing / totalWords * 100)) + "%";
-        if (bMast && mastered) bMast.style.width = Math.min(100, (mastered / totalWords * 100)) + "%";
+        if (nLearn) nLearn.textContent = String(learning);
+        if (nPrac) nPrac.textContent = String(practicing);
+        if (nMast) nMast.textContent = String(mastered);
+        if (bLearn) bLearn.style.width = Math.min(100, (learning / totalWords * 100)) + "%";
+        if (bPrac) bPrac.style.width = Math.min(100, (practicing / totalWords * 100)) + "%";
+        if (bMast) bMast.style.width = Math.min(100, (mastered / totalWords * 100)) + "%";
 
         if (ss) ss.textContent = String(sa.streak !== undefined ? sa.streak : 0);
         const vocabRateStr = Math.round((distinctCorrect / totalWords) * 100) + "%";
