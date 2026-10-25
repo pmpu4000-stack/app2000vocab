@@ -17744,230 +17744,338 @@ function renderStudentSummary(resp) {
   const elTrapSub = document.getElementById("stModeTrapSub");
   if (elTrapSub) elTrapSub.innerText = `受測 ${mTrap.a} 字 (${rTrap}%)`;
 
-  // 5. 📅 練習紀錄（最近 4 週）熱力圖（指定測驗黃色熱力圖 + 自由練習綠色熱力圖）
-  const historyData = (agent && agent.history) ? agent.history : {};
+  // 5. 📅 練習紀錄（最近 4 週）熱力圖（100% 比照遊戲網站演算法）
+  const agentHistoryData = (agent && agent.history) ? agent.history : {};
   const dpMap = (agent && agent.dailyPractice) ? agent.dailyPractice : {};
-  const dailyTaskHistory = (resp.dailyTaskHistory && Array.isArray(resp.dailyTaskHistory))
-    ? resp.dailyTaskHistory
-    : (window.cachedStudentDailyHistory || []);
-  const todayTask = resp.todayTaskResult || window.cachedStudentTodayTaskResult || null;
-  const taskHeatGrid = document.getElementById("stTaskHeatmapGrid");
-  const heatGrid = document.getElementById("stHeatmapGrid");
+  const taskRecords = (agent && agent._taskRecords) ? agent._taskRecords : {};
+  const historyList = [];
 
-  const normalizeDayKey = (ds) => {
-    const parts = String(ds || "").trim().split(" ")[0].replace(/\//g, "-").split("-");
-    if (parts.length === 3) {
-      return `${parts[0]}-${String(parts[1]).padStart(2, "0")}-${String(parts[2]).padStart(2, "0")}`;
-    }
-    return String(ds || "").trim();
-  };
-
-  const toDayIdx = (ds) => {
-    const [y, m, d] = normalizeDayKey(ds).split("-").map(Number);
-    if (isNaN(y) || isNaN(m) || isNaN(d)) return null;
-    return Math.round(new Date(y, m - 1, d).getTime() / 86400000);
-  };
-
-  const getStHeatBadgeTierClass = (att, rate) => {
-    if (!att || att <= 0) return "heat-day-info tier-gray";
-    if (rate >= 100) return "heat-day-info tier-red";
-    if (rate >= 80) return "heat-day-info tier-yellow";
-    if (rate >= 60) return "heat-day-info tier-green";
-    return "heat-day-info tier-white";
-  };
-
-  // Pre-index dailyTaskHistory & resp.data for O(1) heatmap lookups
-  const dthTaskMap = new Map();
-  const dthAllMap = new Map();
-  if (Array.isArray(dailyTaskHistory)) {
-    for (let i = 0; i < dailyTaskHistory.length; i++) {
-      const item = dailyTaskHistory[i];
-      if (!item || !item.date) continue;
-      const dNorm = normalizeDayKey(item.date);
-      if (!dNorm) continue;
-      if (!dthAllMap.has(dNorm)) dthAllMap.set(dNorm, item);
-      const st = String(item.status || "");
-      const isExpUntested = st.includes("未受測") || st.includes("缺席") || st.includes("缺考") || st.includes("未作答");
-      if ((!item.taskName || item.taskName !== "自主練習" || isExpUntested) && !dthTaskMap.has(dNorm)) {
-        dthTaskMap.set(dNorm, isExpUntested && (!item.taskName || item.taskName === "自主練習" || item.taskName.includes("未指派")) ? { ...item, taskName: "每日指定測驗" } : item);
+  // 彙整學生所有指定測驗與週末測驗紀錄 (完全對齊遊戲端 getCombinedTaskHistory)
+  let stHistory = taskRecords["student_task_history"];
+  if (typeof stHistory === "string") { try { stHistory = JSON.parse(stHistory); } catch(_) {} }
+  if (!Array.isArray(stHistory)) stHistory = resp.dailyTaskHistory || window.cachedStudentDailyHistory || [];
+  if (Array.isArray(stHistory)) {
+    stHistory.forEach(item => {
+      if (item && item.date) {
+        const st = String(item.status || "");
+        const isExpUntested = st.includes("未受測") || st.includes("缺席") || st.includes("缺考") || st.includes("未作答");
+        if (!item.taskName || item.taskName !== "自主練習" || isExpUntested) {
+          historyList.push({
+            ...item,
+            date: normalizeDateKey(item.date),
+            taskName: (isExpUntested && (!item.taskName || item.taskName === "自主練習" || String(item.taskName).includes("未指派")))
+              ? "每日指定測驗"
+              : item.taskName
+          });
+        }
       }
+    });
+  }
+
+  let todaySum = taskRecords["today_task_summary"] || resp.todayTaskResult || window.cachedStudentTodayTaskResult || null;
+  if (typeof todaySum === "string") { try { todaySum = JSON.parse(todaySum); } catch(_) {} }
+  if (todaySum && todaySum.date && todaySum.taskName && todaySum.taskName !== "自主練習") {
+    const sNormDate = normalizeDateKey(todaySum.date);
+    const existIdx = historyList.findIndex(item => item && normalizeDateKey(item.date) === sNormDate);
+    const item = {
+      date: sNormDate,
+      taskName: todaySum.taskName,
+      score: (todaySum.score !== undefined && todaySum.total !== undefined) ? `${todaySum.score}/${todaySum.total}` : (todaySum.score || "—"),
+      rate: todaySum.rate || "—",
+      status: todaySum.completed ? "🟢 已完成" : "🟡 作答中",
+      wrongWords: todaySum.wrongWords || [],
+      words: todaySum.words || []
+    };
+    if (existIdx >= 0) {
+      if (!historyList[existIdx].status || !historyList[existIdx].status.includes("已完成") || todaySum.completed) {
+        historyList[existIdx] = { ...historyList[existIdx], ...item };
+      }
+    } else {
+      historyList.push(item);
     }
   }
 
-  const respDataTaskMap = new Map();
-  if (resp.data && Array.isArray(resp.data)) {
-    for (let i = 0; i < resp.data.length; i++) {
-      const r = resp.data[i];
-      if (!r || !r[0]) continue;
-      const nk = normalizeDayKey(r[0]);
-      if (!nk || respDataTaskMap.has(nk)) continue;
-      const info = extractRowTaskInfo(r, resp.headers);
-      if (info && info.taskName && info.taskName !== "自主練習" && !info.taskName.includes("自由練習") && !info.taskName.includes("未指派") && !info.status.includes("未受測") && ((info.score && info.score !== "—") || info.status.includes("已完成"))) {
-        respDataTaskMap.set(nk, {
-          date: nk,
-          taskName: info.taskName || "教師指定測驗",
-          score: info.score || "—",
-          rate: info.rate || "—",
-          status: info.status || "● 已完成",
-          words: [],
-          wrongWords: info.wrongWords
-        });
-      }
-    }
-  }
-
-  const taskHeatStatCache = new Map();
-  // --- A. 指定測驗作答紀錄（最近 4 週黃色熱力圖） ---
-  const getTaskDayStatForHeat = (keyDash, keyShort) => {
-    if (taskHeatStatCache.has(keyDash)) return taskHeatStatCache.get(keyDash);
-    let matchedTask = dthTaskMap.get(keyDash) || (keyShort ? dthTaskMap.get(keyShort) : null) || null;
-    if (!matchedTask && todayTask && todayTask.date && todayTask.hasDone && todayTask.taskName !== "自主練習") {
-      const tNorm = normalizeDayKey(todayTask.date);
-      if (tNorm === keyDash || tNorm === keyShort) {
-        matchedTask = todayTask;
-      }
-    }
-    if (!matchedTask) {
-      matchedTask = respDataTaskMap.get(keyDash) || null;
-    if (!matchedTask) {
-      const dtHeat = new Date(keyDash.replace(/-/g, "/"));
-      const dayHeat = dtHeat.getDay();
-      if (dayHeat === 0 || dayHeat === 6) {
-        const diffMon = dtHeat.getDate() - dayHeat + (dayHeat === 0 ? -6 : 1);
-        const mObj = new Date(dtHeat.getFullYear(), dtHeat.getMonth(), diffMon);
-        const monKey = mObj.getFullYear() + "-" + String(mObj.getMonth() + 1).padStart(2, "0") + "-" + String(mObj.getDate()).padStart(2, "0");
-        const tRecords = (agent && agent._taskRecords) ? agent._taskRecords : {};
-        let rem = tRecords["weekend_remedy_" + monKey];
+  for (const k in taskRecords) {
+    if (k.startsWith("weekend_remedy_")) {
+      const mondayStr = normalizeDateKey(k.slice("weekend_remedy_".length));
+      if (mondayStr) {
+        let rem = taskRecords[k];
         if (typeof rem === "string") { try { rem = JSON.parse(rem); } catch(_) {} }
-        if (!rem) { try { const raw = localStorage.getItem("weekend_remedy_" + monKey); if (raw) rem = JSON.parse(raw); } catch(_) {} }
         if (rem) {
-          const satClearedAll = rem.satCompleted && (!rem.satWrongWords || rem.satWrongWords.length === 0);
-          if ((dayHeat === 6 && rem.satCompleted) || (dayHeat === 0 && rem.sunCompleted && !satClearedAll)) {
-            const corr = dayHeat === 6 ? (rem.satCorrectWords || []) : (rem.sunCorrectWords || []);
-            const wrg = dayHeat === 6 ? (rem.satWrongWords || []) : (rem.sunWrongWords || []);
-            const sc = dayHeat === 6 ? rem.satScore : rem.sunScore;
-            const rt = dayHeat === 6 ? rem.satRate : rem.sunRate;
-            const wList = Array.from(new Set([...corr, ...wrg]));
-            matchedTask = {
-              date: keyDash,
-              taskName: `🎯 ${formatWeekendTaskDate(keyDash)} 週末待攻克測驗作答紀錄`,
-              score: sc || (wList.length ? `${corr.length}/${wList.length}` : "已完成"),
-              rate: rt || "100%",
-              status: "● 已完成",
-              wrongWords: wrg,
-              correctWords: corr,
-              words: wList,
-              isWeekend: true
-            };
+          const mDate = new Date(mondayStr.replace(/-/g, "/"));
+          if (!isNaN(mDate.getTime())) {
+            const satD = new Date(mDate.getFullYear(), mDate.getMonth(), mDate.getDate() + 5);
+            const satKey = normalizeDateKey(formatDateYMD(satD));
+            if (rem.satCompleted) {
+              const satCorr = Array.isArray(rem.satCorrectWords) ? rem.satCorrectWords : [];
+              const satWrong = Array.isArray(rem.satWrongWords) ? rem.satWrongWords : [];
+              const satWords = Array.from(new Set([...satCorr, ...satWrong]));
+              const satItem = {
+                date: satKey,
+                taskName: `🎯 ${formatWeekendTaskDate(satKey)} 週末待攻克測驗作答紀錄`,
+                score: rem.satScore || (satWords.length ? `${satCorr.length}/${satWords.length}` : "已完成"),
+                rate: rem.satRate || (satWords.length ? `${Math.round((satCorr.length / satWords.length) * 100)}%` : "100%"),
+                status: "🟢 已完成",
+                wrongWords: satWrong,
+                correctWords: satCorr,
+                words: satWords,
+                isWeekend: true
+              };
+              const existIdx = historyList.findIndex(item => item && normalizeDateKey(item.date) === satKey);
+              if (existIdx >= 0) historyList[existIdx] = { ...historyList[existIdx], ...satItem };
+              else historyList.push(satItem);
+            }
+            const satClearedAll = rem.satCompleted && (!rem.satWrongWords || rem.satWrongWords.length === 0);
+            const sunD = new Date(mDate.getFullYear(), mDate.getMonth(), mDate.getDate() + 6);
+            const sunKey = normalizeDateKey(formatDateYMD(sunD));
+            if (rem.sunCompleted && !satClearedAll) {
+              const sunCorr = Array.isArray(rem.sunCorrectWords) ? rem.sunCorrectWords : [];
+              const sunWrong = Array.isArray(rem.sunWrongWords) ? rem.sunWrongWords : [];
+              const sunWords = Array.from(new Set([...sunCorr, ...sunWrong]));
+              const sunItem = {
+                date: sunKey,
+                taskName: `🎯 ${formatWeekendTaskDate(sunKey)} 週末待攻克測驗作答紀錄`,
+                score: rem.sunScore || (sunWords.length ? `${sunCorr.length}/${sunWords.length}` : "已完成"),
+                rate: rem.sunRate || (sunWords.length ? `${Math.round((sunCorr.length / sunWords.length) * 100)}%` : "100%"),
+                status: "🟢 已完成",
+                wrongWords: sunWrong,
+                correctWords: sunCorr,
+                words: sunWords,
+                isWeekend: true
+              };
+              const existIdx = historyList.findIndex(item => item && normalizeDateKey(item.date) === sunKey);
+              if (existIdx >= 0) historyList[existIdx] = { ...historyList[existIdx], ...sunItem };
+              else historyList.push(sunItem);
+            }
           }
         }
       }
-    }
-    }
-    if (!matchedTask) {
-      const empty = { a: 0, c: 0, rate: 0 };
-      taskHeatStatCache.set(keyDash, empty);
-      return empty;
-    }
-
-    let tAtt = parseInt(matchedTask.attempts) || 0;
-    let tCor = parseInt(matchedTask.correct) || 0;
-    if (!tAtt && matchedTask.score && matchedTask.score !== "—" && String(matchedTask.score).includes("/")) {
-      const p = String(matchedTask.score).split("/");
-      tCor = parseInt(p[0]) || 0;
-      tAtt = parseInt(p[1]) || 0;
-    }
-
-    // 解析該測驗的詳細單字清單 (rawWords, wrongList, correctList)
-    const { rawWords, wrongList, correctList } = resolveTaskWords(matchedTask, keyDash, agent);
-    if (correctList && correctList.length > 0) {
-      tCor = Math.max(tCor, correctList.length);
-    }
-    const answeredWordsCount = (correctList.length + wrongList.length) > 0 ? (correctList.length + wrongList.length) : tAtt;
-    if (tAtt === 0) {
-      tAtt = answeredWordsCount;
-    }
-
-    // 全卷應測總單字數（優先採 rawWords 清單長度，若無則採 score 的分母或已作答題數）
-    let assignedTotWords = (rawWords && rawWords.length > 0) ? rawWords.length : answeredWordsCount;
-    if (matchedTask.score && String(matchedTask.score).includes("/")) {
-      const p = String(matchedTask.score).split("/");
-      const sTot = parseInt(p[1], 10);
-      if (!isNaN(sTot) && sTot > assignedTotWords) assignedTotWords = sTot;
-    }
-    if (assignedTotWords < answeredWordsCount) assignedTotWords = answeredWordsCount;
-    if (assignedTotWords < tAtt) assignedTotWords = tAtt;
-
-    // 全卷正確率：以全卷應測總單字數 (assignedTotWords) 為分母計算之正確率，作為熱力圖的依據
-    let tRate = 0;
-    if (assignedTotWords > 0) {
-      tRate = Math.round((tCor / assignedTotWords) * 100);
-    } else if (tAtt > 0) {
-      tRate = Math.round((tCor / tAtt) * 100);
-    } else {
-      tRate = parseInt(matchedTask.rate) || 0;
-    }
-
-    const isInc = String(matchedTask.status || "").includes("作答中") || String(matchedTask.status || "").includes("中斷") || String(matchedTask.status || "").includes("未完成") || matchedTask.inProgress === true;
-    let isLoginUntested = false;
-    let isAbsent = false;
-    if (tAtt === 0 && !isInc && matchedTask.taskName && !matchedTask.taskName.includes("未指派")) {
-      const sStr = String(matchedTask.status || "");
-      if (sStr.includes("登入未受測") || sStr.includes("登入未作答")) {
-        isLoginUntested = true;
-      } else if (sStr.includes("缺席") || sStr.includes("缺考") || sStr.includes("未受測") || matchedTask.score === "—" || matchedTask.score === "尚未開始") {
-        isAbsent = true;
+    } else if (k.startsWith("task_summary_")) {
+      const kDate = normalizeDateKey(k.slice("task_summary_".length));
+      if (kDate && /^\d{4}-\d{2}-\d{2}$/.test(kDate)) {
+        let ts = taskRecords[k];
+        if (typeof ts === "string") { try { ts = JSON.parse(ts); } catch(_) {} }
+        if (ts && ts.completed && ts.taskName && ts.taskName !== "自主練習") {
+          const tsItem = {
+            date: kDate,
+            taskName: ts.taskName,
+            score: (ts.score !== undefined && ts.total !== undefined) ? `${ts.score}/${ts.total}` : (ts.score || "已完成"),
+            rate: ts.rate || "100%",
+            status: "🟢 已完成",
+            wrongWords: ts.wrongWords || [],
+            words: ts.words || []
+          };
+          const existIdx = historyList.findIndex(item => item && normalizeDateKey(item.date) === kDate);
+          if (existIdx >= 0) historyList[existIdx] = { ...historyList[existIdx], ...tsItem };
+          else historyList.push(tsItem);
+        }
       }
     }
-    const res = { a: tAtt, c: tCor, rate: tRate, wordsCount: assignedTotWords, isIncomplete: isInc, isLoginUntested: isLoginUntested, isAbsent: isAbsent };
-    taskHeatStatCache.set(keyDash, res);
+  }
+
+  if (resp.data && Array.isArray(resp.data)) {
+    resp.data.forEach(r => {
+      if (!r || !r[0]) return;
+      const rDate = normalizeDateKey(r[0]);
+      if (!rDate || !/^\d{4}-\d{2}-\d{2}$/.test(rDate)) return;
+      const info = extractRowTaskInfo(r, resp.headers);
+      if (info) {
+        const st = String(info.status || "");
+        const isExpUntested = st.includes("未受測") || st.includes("缺席") || st.includes("缺考") || st.includes("未作答");
+        if (isExpUntested || (info.taskName && info.taskName !== "自主練習" && !info.taskName.includes("自由練習") && !info.taskName.includes("未指派") && ((info.score && info.score !== "—") || st.includes("已完成")))) {
+          const existIdx = historyList.findIndex(item => item && normalizeDateKey(item.date) === rDate);
+          const rItem = {
+            date: rDate,
+            taskName: (isExpUntested && (!info.taskName || info.taskName === "自主練習" || info.taskName.includes("未指派"))) ? "每日指定測驗" : (info.taskName || "指定測驗"),
+            score: info.score || "—",
+            rate: info.rate || "—",
+            status: isExpUntested ? "⚪ 未受測" : "● 已完成",
+            wrongWords: info.wrongWords || [],
+            words: []
+          };
+          if (existIdx >= 0) {
+            const old = historyList[existIdx];
+            if (!old.status || !old.status.includes("已完成")) {
+              historyList[existIdx] = { ...old, ...rItem };
+            }
+          } else {
+            historyList.push(rItem);
+          }
+        }
+      }
+    });
+  }
+
+  // Pre-index historyList by normalized date -> O(1) lookup
+  const taskByDateMap = new Map();
+  for (let i = 0; i < historyList.length; i++) {
+    const item = historyList[i];
+    if (item && item.date) {
+      const st = String(item.status || "");
+      const isExpUntested = st.includes("未受測") || st.includes("缺席") || st.includes("缺考") || st.includes("未作答");
+      if (!item.taskName || item.taskName !== "自主練習" || isExpUntested) {
+        const nd = normalizeDateKey(item.date);
+        if (nd) {
+          let arr = taskByDateMap.get(nd);
+          if (!arr) { arr = []; taskByDateMap.set(nd, arr); }
+          arr.push(item);
+        }
+      }
+    }
+  }
+
+  const taskDayStatCache = new Map();
+  const getTaskDayStat = (dateKey) => {
+    const norm = normalizeDateKey(dateKey);
+    if (taskDayStatCache.has(norm)) return taskDayStatCache.get(norm);
+
+    const tArr = taskByDateMap.get(norm);
+    const tRec = (tArr && (tArr.find(r => r && r.status && r.status.includes("已完成")) || tArr.find(r => r && r.score && r.score !== "—" && r.score !== "尚未開始") || tArr[0])) || null;
+    const isExplicitUntested = tRec && tRec.status && (tRec.status.includes("未受測") || tRec.status.includes("缺席") || tRec.status.includes("缺考") || tRec.status.includes("未作答"));
+    const isUnassignedTask = !tRec || (!isExplicitUntested && (!tRec.taskName || tRec.taskName === "⚪ 未指派" || tRec.taskName === "未指派" || tRec.taskName === "自主練習" || String(tRec.taskName).includes("未指派") || (tRec.status && tRec.status.includes("未指派"))));
+    if (isUnassignedTask) {
+      const res = {
+        a: 0, c: 0, rate: 0,
+        statusType: "unassigned",
+        statusLabel: "未指派測驗",
+        levelClass: "h0",
+        badgeTier: "tier-gray"
+      };
+      taskDayStatCache.set(norm, res);
+      return res;
+    }
+
+    let tAtt = parseInt(tRec.attempts) || 0;
+    let tCor = parseInt(tRec.correct) || 0;
+    if (!tAtt && tRec.score && String(tRec.score).includes("/")) {
+      const sp = String(tRec.score).split("/");
+      tCor = parseInt(sp[0], 10) || 0;
+      tAtt = parseInt(sp[1], 10) || 0;
+    }
+
+    const statusStr = String(tRec.status || "");
+    const resolved = resolveTaskWords(tRec, norm, agent);
+    const resolvedRaw = resolved.rawWords || [];
+    const resolvedCorr = resolved.correctList || [];
+    const resolvedWrong = resolved.wrongList || [];
+    const resolvedAnsCount = resolvedCorr.length + resolvedWrong.length;
+    let taskWordsCount = resolvedRaw.length || (Array.isArray(tRec.words) && tRec.words.length) || tAtt || 5;
+
+    if (!tAtt && resolvedAnsCount > 0) {
+      tAtt = resolvedAnsCount;
+      tCor = resolvedCorr.length;
+    }
+    if (resolvedCorr.length > 0) {
+      tCor = Math.max(tCor, resolvedCorr.length);
+    }
+    if (tRec.score && String(tRec.score).includes("/")) {
+      const sp = String(tRec.score).split("/");
+      const sTot = parseInt(sp[1], 10);
+      if (!isNaN(sTot) && sTot > taskWordsCount) taskWordsCount = sTot;
+    }
+    if (taskWordsCount < resolvedAnsCount) taskWordsCount = resolvedAnsCount;
+    if (taskWordsCount < tAtt) taskWordsCount = tAtt;
+
+    let tRate = taskWordsCount > 0 ? Math.round((tCor / taskWordsCount) * 100) : (tAtt > 0 ? Math.round((tCor / tAtt) * 100) : (parseInt(tRec.rate) || 0));
+    const isFinished = statusStr.includes("已完成") || (!statusStr.includes("未受測") && !statusStr.includes("尚未開始") && ((tAtt > 0 && tAtt >= taskWordsCount) || (resolvedAnsCount > 0 && resolvedAnsCount >= taskWordsCount)));
+
+    const isUnfinishedAttempt = !isFinished && (
+      (taskWordsCount > 0 && resolvedAnsCount > 0 && resolvedAnsCount < taskWordsCount && resolvedWrong.length === 0) ||
+      (taskWordsCount > 0 && tAtt > 0 && tAtt < taskWordsCount && resolvedWrong.length === 0)
+    );
+
+    const isIncomplete = !isFinished && (
+      isUnfinishedAttempt ||
+      statusStr.includes("作答中") ||
+      statusStr.includes("中斷") ||
+      statusStr.includes("未完成") ||
+      tRec.inProgress === true
+    );
+
+    const shortD = unpadDateKey(norm);
+    const slashD = norm.replace(/-/g, "/");
+    const dpF = dpMap[norm] || dpMap[shortD] || dpMap[slashD];
+    const hF = agentHistoryData[norm] || agentHistoryData[shortD] || agentHistoryData[slashD];
+    const hasLoggedInOrFree = !!((dpF && (dpF.attempts > 0 || (dpF.words && Object.keys(dpF.words).length > 0))) || (hF && hF.a > 0) || (tRec.freeTested > 0) || statusStr.includes("登入未受測") || statusStr.includes("登入未作答"));
+
+    let res;
+    if (isFinished) {
+      const level = tRate < 60 ? 1 : tRate < 70 ? 2 : tRate < 80 ? 3 : tRate < 90 ? 4 : tRate < 100 ? 5 : 6;
+      const badgeTier = tRate === 100 ? "tier-green-perfect" : (tRate >= 80 ? "tier-green-high" : (tRate >= 60 ? "tier-green-mid" : "tier-green-low"));
+      res = {
+        a: tAtt, c: tCor, rate: tRate,
+        wordsCount: taskWordsCount,
+        statusType: "completed",
+        statusLabel: `正確率 ${tRate}%`,
+        levelClass: `h${level}`,
+        badgeTier: badgeTier
+      };
+    } else if (isIncomplete) {
+      const curCorr = resolvedCorr.length || tCor;
+      const curTot = taskWordsCount || tAtt || 5;
+      res = {
+        a: tAtt, c: tCor, rate: tRate,
+        wordsCount: taskWordsCount,
+        statusType: "incomplete",
+        statusLabel: `作答中斷 (${curCorr}/${curTot})`,
+        levelClass: "h-status-purple",
+        badgeTier: "tier-status-purple"
+      };
+    } else if (hasLoggedInOrFree) {
+      res = {
+        a: 0, c: 0, rate: 0,
+        wordsCount: taskWordsCount,
+        statusType: "login_untested",
+        statusLabel: "登入未受測",
+        levelClass: "h-status-yellow",
+        badgeTier: "tier-status-yellow"
+      };
+    } else {
+      res = {
+        a: 0, c: 0, rate: 0,
+        wordsCount: taskWordsCount,
+        statusType: "absent_untested",
+        statusLabel: "缺席未受測",
+        levelClass: "h-status-red",
+        badgeTier: "tier-status-red"
+      };
+    }
+    taskDayStatCache.set(norm, res);
     return res;
   };
 
-  const now = new Date();
-  const taskDays = [];
+  const nowDt = new Date();
+  const taskHeatDays = [];
   for (let i = 27; i >= 0; i--) {
-    const d = new Date(now);
-    d.setDate(d.getDate() - i);
-    const keyDash  = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
-    const keyShort = d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
-    const { a: att, c: cor, rate, isIncomplete, isLoginUntested, isAbsent } = getTaskDayStatForHeat(keyDash, keyShort);
-    const lvl = att === 0 ? 0 : rate < 60 ? 1 : rate < 70 ? 2 : rate < 80 ? 3 : rate < 90 ? 4 : rate < 100 ? 5 : 6;
-    let lvlClass = "h" + lvl;
-    if (isIncomplete) {
-      lvlClass = "h-status-purple";
-    } else if (isLoginUntested) {
-      lvlClass = "h-status-yellow";
-    } else if (isAbsent) {
-      lvlClass = "h-status-red";
-    }
-    taskDays.push({ key: keyDash, dateNum: d.getDate(), a: att, c: cor, rate: rate, level: lvl, levelClass: lvlClass, isIncomplete: isIncomplete, isLoginUntested: isLoginUntested, isAbsent: isAbsent });
+    const dt = new Date(nowDt);
+    dt.setDate(dt.getDate() - i);
+    const kDash = formatDateYMD(dt);
+    const stat = getTaskDayStat(kDash);
+    taskHeatDays.push({ key: kDash, ...stat });
   }
 
-  const allTaskActiveDates = new Set();
-  for (const [nk, th] of dthTaskMap.entries()) {
-    if (!th.taskName || !th.taskName.includes("未指派")) {
-      if (getTaskDayStatForHeat(nk, nk).a > 0) allTaskActiveDates.add(nk);
-    }
+  const activeTaskDateSet = new Set();
+  for (const norm of taskByDateMap.keys()) {
+    if (norm && getTaskDayStat(norm).a > 0) activeTaskDateSet.add(norm);
   }
-  if (todayTask && todayTask.date && todayTask.hasDone && todayTask.taskName !== "自主練習" && !todayTask.taskName.includes("未指派")) {
-    const nk = normalizeDayKey(todayTask.date);
-    if (nk && getTaskDayStatForHeat(nk, nk).a > 0) allTaskActiveDates.add(nk);
-  }
-  const taskTotalActive = allTaskActiveDates.size;
+  const taskTotal = activeTaskDateSet.size;
   let taskStreak = 0;
   const hasTaskDayOff = (off) => {
-    const d = new Date(now);
-    d.setDate(d.getDate() - off);
-    const kDash = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
-    return allTaskActiveDates.has(kDash);
+    const dt = new Date(nowDt);
+    dt.setDate(dt.getDate() - off);
+    return activeTaskDateSet.has(formatDateYMD(dt));
   };
   const taskStartOff = hasTaskDayOff(0) ? 0 : hasTaskDayOff(1) ? 1 : null;
   if (taskStartOff !== null) {
     let k = taskStartOff;
     while (hasTaskDayOff(k)) { taskStreak++; k++; }
   }
-  const taskDayIdxs = Array.from(allTaskActiveDates).map(toDayIdx).filter(x => x !== null && !isNaN(x)).sort((x, y) => x - y);
+  const toDayIdx = (ds) => {
+    const [y, m, day] = String(ds || "").split("-").map(Number);
+    if (isNaN(y) || isNaN(m) || isNaN(day)) return null;
+    return Math.round(new Date(y, m - 1, day).getTime() / 86400000);
+  };
+  const taskDayIdxs = Array.from(activeTaskDateSet).map(toDayIdx).filter(x => x !== null && !isNaN(x)).sort((x, y) => x - y);
   let taskBest = 0, curTaskRun = 0, prevTaskDayIdx = null;
   for (const idxVal of taskDayIdxs) {
     curTaskRun = (prevTaskDayIdx !== null && idxVal === prevTaskDayIdx + 1) ? curTaskRun + 1 : 1;
@@ -17976,298 +18084,238 @@ function renderStudentSummary(resp) {
   }
   taskBest = Math.max(taskBest, taskStreak);
 
+  // 渲染指定測驗連續/最佳/累計天數
   const elTaskStreakLine = document.getElementById("stTaskStreakLine");
   if (elTaskStreakLine) {
     elTaskStreakLine.innerHTML = `
-      <span>連續 <b id="stTaskHeatStreak">${taskStreak}</b> 天 · 最佳 <b id="stTaskHeatBest">${taskBest}</b> 天 · 累計練習 <b id="stTaskHeatTotal">${taskTotalActive}</b> 天</span>
+      <span>連續 <b id="stTaskHeatStreak">${taskStreak}</b> 天 · 最佳 <b id="stTaskHeatBest">${taskBest}</b> 天 · 累計練習 <b id="stTaskHeatTotal">${taskTotal}</b> 天</span>
       <span id="stTaskHeatDayInfo" class="heat-day-info"></span>
     `;
   }
 
+  // 渲染指定測驗純綠色熱力圖方格
+  const taskHeatGrid = document.getElementById("stTaskHeatmapGrid");
+  const taskHeatDayInfoEl = document.getElementById("stTaskHeatDayInfo");
   if (taskHeatGrid) {
-    taskHeatGrid.innerHTML = taskDays.map((day, idx) => {
-      return `<i class="hc ${day.levelClass || ('h' + day.level)}" data-idx="${idx}" data-key="${day.key}" data-a="${day.a || 0}" data-rate="${day.rate || 0}"></i>`;
+    taskHeatGrid.innerHTML = taskHeatDays.map((x, idx) => {
+      return `<i class="hc ${x.levelClass}" role="button" tabindex="0" aria-label="${x.key}，${x.statusLabel || ''}" data-idx="${idx}" data-key="${x.key}" data-a="${x.a || 0}" data-rate="${x.rate || 0}"></i>`;
     }).join("");
 
-    const taskHeatDayInfoEl = document.getElementById("stTaskHeatDayInfo");
-    if (taskHeatDayInfoEl && taskDays.length > 0) {
-      let pinnedTaskIdx = taskDays.length - 1;
-      const targetInitKey = window.__activeStSelectedDate || "";
-      if (targetInitKey) {
-        const found = taskDays.findIndex(x => x && x.key === targetInitKey);
-        if (found !== -1) pinnedTaskIdx = found;
-      } else {
-        for (let i = taskDays.length - 1; i >= 0; i--) {
-          if (taskDays[i] && taskDays[i].a > 0) {
-            pinnedTaskIdx = i;
-            break;
-          }
-        }
+    let pinnedTaskIdx = taskHeatDays.length > 0 ? taskHeatDays.length - 1 : 0;
+    for (let i = taskHeatDays.length - 1; i >= 0; i--) {
+      if (taskHeatDays[i] && taskHeatDays[i].key === (window.__activeStSelectedDate || formatDateYMD(nowDt))) {
+        pinnedTaskIdx = i;
+        break;
       }
-
-      const renderStTaskHeatBadgeContent = (dateKey, att, rate, activeCellIdx) => {
-        if (!taskHeatDayInfoEl) return;
-        const parts = String(dateKey || "").split("-");
-        const shortK = parts.length === 3 ? `${parts[0]}-${parseInt(parts[1], 10)}-${parseInt(parts[2], 10)}` : dateKey;
-        const currentItem = (activeCellIdx >= 0 && taskDays[activeCellIdx]) ? taskDays[activeCellIdx] : getTaskDayStatForHeat(dateKey, shortK);
-        if (currentItem && currentItem.isIncomplete) {
-          taskHeatDayInfoEl.className = "heat-day-info tier-status-purple";
-          taskHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ <b>作答中斷</b>`;
-        } else if (currentItem && currentItem.isLoginUntested) {
-          taskHeatDayInfoEl.className = "heat-day-info tier-status-yellow";
-          taskHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ <b>登入未受測</b>`;
-        } else if (currentItem && currentItem.isAbsent) {
-          taskHeatDayInfoEl.className = "heat-day-info tier-status-red";
-          taskHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ <b>缺席未受測</b>`;
-        } else if (att > 0) {
-          const tierClass = rate >= 100 ? "tier-blue-perfect" : (rate >= 80 ? "tier-blue-high" : (rate >= 60 ? "tier-blue-mid" : "tier-blue-low"));
-          taskHeatDayInfoEl.className = `heat-day-info ${tierClass}`;
-          taskHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 正確率 <b>${rate}%</b>`;
-        } else {
-          taskHeatDayInfoEl.className = "heat-day-info tier-gray";
-          taskHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 無作答紀錄`;
-        }
-        taskHeatGrid.querySelectorAll(".hc").forEach((cell, cIdx) => {
-          cell.classList.toggle("hc-active", cIdx === activeCellIdx);
-        });
-      };
-
-      const updateStTaskHeatDayBadge = (idx) => {
-        const item = taskDays[idx];
-        if (!item) return;
-        renderStTaskHeatBadgeContent(item.key, item.a || 0, item.rate || 0, idx);
-      };
-
-      window.__updateStTaskHeatDayBadgeByDate = (dateStr) => {
-        const normKey = normalizeDayKey(dateStr);
-        if (!normKey) return;
-        const foundIdx = taskDays.findIndex(x => x && x.key === normKey);
-        if (foundIdx !== -1) {
-          pinnedTaskIdx = foundIdx;
-          updateStTaskHeatDayBadge(foundIdx);
-          return;
-        }
-        const parts = normKey.split("-");
-        const shortKey = parts.length === 3 ? `${parts[0]}-${parseInt(parts[1], 10)}-${parseInt(parts[2], 10)}` : normKey;
-        const { a: att, rate } = getTaskDayStatForHeat(normKey, shortKey);
-        renderStTaskHeatBadgeContent(normKey, att, rate, -1);
-      };
-
-      updateStTaskHeatDayBadge(pinnedTaskIdx);
-
-      taskHeatGrid.querySelectorAll(".hc").forEach((cell) => {
-        const idx = parseInt(cell.getAttribute("data-idx"), 10);
-        cell.addEventListener("mouseenter", () => {
-          if (!isNaN(idx)) {
-            // 僅預覽該日資料，絕不覆寫選定的 pinnedTaskIdx
-            updateStTaskHeatDayBadge(idx);
-          }
-        });
-        cell.addEventListener("click", () => {
-          if (!isNaN(idx)) {
-            pinnedTaskIdx = idx;
-            updateStTaskHeatDayBadge(idx);
-            if (taskDays[idx] && taskDays[idx].key && typeof window.__switchStRecordDate === "function") {
-              window.__switchStRecordDate(taskDays[idx].key);
-            }
-          }
-        });
-      });
-      taskHeatGrid.onmouseleave = () => {
-        // 滑鼠離開時，穩定還原回當前選定的日期
-        if (typeof window.__updateStTaskHeatDayBadgeByDate === "function") {
-          window.__updateStTaskHeatDayBadgeByDate(window.__activeStSelectedDate || (taskDays[pinnedTaskIdx] ? taskDays[pinnedTaskIdx].key : ""));
-        } else {
-          updateStTaskHeatDayBadge(pinnedTaskIdx);
-        }
-      };
     }
+
+    const renderTaskHeatBadgeContent = (dateKey, activeCellIdx) => {
+      if (!taskHeatDayInfoEl) return;
+      const stat = getTaskDayStat(dateKey);
+      taskHeatDayInfoEl.className = `heat-day-info ${stat.badgeTier}`;
+      if (stat.statusType === "completed") {
+        taskHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 正確率 <b>${stat.rate}%</b>`;
+      } else {
+        taskHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ <b>${stat.statusLabel}</b>`;
+      }
+      taskHeatGrid.querySelectorAll(".hc").forEach((cell, cIdx) => {
+        cell.classList.toggle("hc-active", cIdx === activeCellIdx);
+      });
+    };
+
+    const updateTaskHeatDayBadge = (idx) => {
+      const item = taskHeatDays[idx];
+      if (!item) return;
+      renderTaskHeatBadgeContent(item.key, idx);
+    };
+
+    window.__updateStTaskHeatDayBadgeByDate = (dateStr) => {
+      const normDate = normalizeDateKey(dateStr);
+      if (!normDate) return;
+      const foundIdx = taskHeatDays.findIndex(x => x && x.key === normDate);
+      if (foundIdx !== -1) {
+        pinnedTaskIdx = foundIdx;
+        updateTaskHeatDayBadge(foundIdx);
+        return;
+      }
+      renderTaskHeatBadgeContent(normDate, -1);
+    };
+
+    updateTaskHeatDayBadge(pinnedTaskIdx);
+
+    taskHeatGrid.querySelectorAll(".hc").forEach((cell) => {
+      const idx = parseInt(cell.getAttribute("data-idx"), 10);
+      cell.addEventListener("mouseenter", () => {
+        if (!isNaN(idx)) updateTaskHeatDayBadge(idx);
+      });
+      cell.addEventListener("click", () => {
+        if (!isNaN(idx)) {
+          pinnedTaskIdx = idx;
+          updateTaskHeatDayBadge(idx);
+          if (taskHeatDays[idx] && taskHeatDays[idx].key && typeof window.__switchStRecordDate === "function") {
+            window.__switchStRecordDate(taskHeatDays[idx].key);
+          }
+        }
+      });
+    });
+
+    taskHeatGrid.onmouseleave = () => {
+      if (typeof window.__updateStTaskHeatDayBadgeByDate === "function") {
+        window.__updateStTaskHeatDayBadgeByDate(window.__activeStSelectedDate || (taskHeatDays[pinnedTaskIdx] ? taskHeatDays[pinnedTaskIdx].key : ""));
+      } else {
+        updateTaskHeatDayBadge(pinnedTaskIdx);
+      }
+    };
   }
 
-  // --- B. 自由練習作答紀錄（最近 4 週綠色熱力圖） ---
-  const freeHeatStatCache = new Map();
-  const getDayStatForHeat = (keyDash, keyShort, keySlash) => {
-    if (freeHeatStatCache.has(keyDash)) return freeHeatStatCache.get(keyDash);
+  // --- B. 自由練習作答紀錄熱力圖 ---
+  const freeHeatGrid = document.getElementById("stHeatmapGrid");
+  const freeHeatDayInfoEl = document.getElementById("stHeatDayInfo");
+  const freeDayStatCache = new Map();
+  const getFreeDayStat = (dateStr) => {
+    const norm = normalizeDateKey(dateStr);
+    if (freeDayStatCache.has(norm)) return freeDayStatCache.get(norm);
+    const unpad = unpadDateKey(dateStr);
+    const slash = norm.replace(/-/g, "/");
     let a = 0, c = 0;
-    const dpItem = dpMap[keyDash] || dpMap[keyShort] || dpMap[keySlash] || null;
-    if (dpItem && dpItem.attempts > 0) {
-      a = Math.max(a, dpItem.attempts || 0);
-      c = Math.max(c, dpItem.correct || 0);
-    }
-    const h = historyData[keyDash] || historyData[keyShort] || historyData[keySlash] || null;
-    if (h && h.a > 0) {
-      a = Math.max(a, h.a || 0);
-      c = Math.max(c, h.c || 0);
-    }
-    const th = dthAllMap.get(keyDash) || (keyShort ? dthAllMap.get(keyShort) : null) || null;
-    if (th) {
-      const isSelf = (th.taskName === "自主練習");
-      const thFreeAtt = parseInt(th.freeTested !== undefined ? th.freeTested : (isSelf ? th.attempts : 0)) || 0;
-      const thFreeCor = parseInt(th.freeCorrect !== undefined ? th.freeCorrect : (isSelf ? th.correct : 0)) || 0;
-      if (thFreeAtt > 0) {
-        a = Math.max(a, thFreeAtt);
-        c = Math.max(c, thFreeCor);
+    const dp = dpMap[norm] || dpMap[unpad] || dpMap[slash];
+    if (dp) {
+      if (dp.words && Object.keys(dp.words).length > 0) {
+        a = Object.keys(dp.words).length;
+        c = Object.values(dp.words).filter(w => w && (w.correct > 0 || w.passed)).length;
+      } else if (dp.attempts > 0) {
+        a = dp.attempts || 0;
+        c = dp.correct || 0;
       }
     }
-    const res = { a, c };
-    freeHeatStatCache.set(keyDash, res);
+    const h = agentHistoryData[norm] || agentHistoryData[unpad] || agentHistoryData[slash];
+    if (h && (h.a > 0 || h.attempts > 0)) {
+      a = Math.max(a, h.a || h.attempts || 0);
+      c = Math.max(c, h.c || h.correct || 0);
+    }
+    const res = { a, c, rate: a > 0 ? Math.round((c / a) * 100) : 0 };
+    freeDayStatCache.set(norm, res);
     return res;
   };
 
-  const days = [];
+  const freeHeatDays = [];
   for (let i = 27; i >= 0; i--) {
-    const d = new Date(now);
-    d.setDate(d.getDate() - i);
-    const keyDash  = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
-    const keyShort = d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
-    const keySlash = keyDash.replace(/-/g, "/");
-    const { a: att, c: cor } = getDayStatForHeat(keyDash, keyShort, keySlash);
-    const rate = att > 0 ? Math.round((cor / att) * 100) : 0;
-    const lvl = att === 0 ? 0 : rate < 60 ? 1 : rate < 70 ? 2 : rate < 80 ? 3 : rate < 90 ? 4 : rate < 100 ? 5 : 6;
-    days.push({ key: keyDash, dateNum: d.getDate(), a: att, c: cor, rate: rate, level: lvl });
+    const dt = new Date(nowDt);
+    dt.setDate(dt.getDate() - i);
+    const kDash = formatDateYMD(dt);
+    const { a, c, rate } = getFreeDayStat(kDash);
+    const level = a === 0 ? 0 : rate < 60 ? 1 : rate < 70 ? 2 : rate < 80 ? 3 : rate < 90 ? 4 : rate < 100 ? 5 : 6;
+    freeHeatDays.push({ key: kDash, a, c, rate, level });
   }
 
-  const allActiveDates = new Set();
-  const candidateDates = new Set();
-  Object.keys(historyData).forEach(k => candidateDates.add(normalizeDayKey(k)));
-  Object.keys(dpMap).forEach(k => candidateDates.add(normalizeDayKey(k)));
-  if (Array.isArray(dailyTaskHistory)) {
-    dailyTaskHistory.forEach(th => {
-      if (th && th.date) candidateDates.add(normalizeDayKey(th.date));
-    });
+  const activeFreeDateSet = new Set();
+  for (let i = 0; i < 365; i++) {
+    const dt = new Date(nowDt);
+    dt.setDate(dt.getDate() - i);
+    const kDash = formatDateYMD(dt);
+    if (getFreeDayStat(kDash).a > 0) activeFreeDateSet.add(kDash);
   }
-  for (const dKey of candidateDates) {
-    if (!dKey) continue;
-    const parts = dKey.split("-");
-    const kShort = parts.length === 3 ? `${parts[0]}-${parseInt(parts[1], 10)}-${parseInt(parts[2], 10)}` : dKey;
-    const kSlash = dKey.replace(/-/g, "/");
-    if (getDayStatForHeat(dKey, kShort, kSlash).a > 0) {
-      allActiveDates.add(dKey);
-    }
-  }
-  const attempts = unifiedWords.size || ((agent && agent.attempts) ? Number(agent.attempts) : 0);
-  let totalActive = allActiveDates.size;
-  if (totalActive === 0 && attempts > 0) totalActive = 1;
-
-  // 計算連續天數 (streak) 與最佳連續天數 (best) - 1:1 對齊 store.js
-  let streak = 0;
-  const hasDayOff = (off) => {
-    const d = new Date(now);
-    d.setDate(d.getDate() - off);
-    const kDash = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
-    return allActiveDates.has(kDash);
+  const freeTotal = activeFreeDateSet.size;
+  let freeStreak = 0;
+  const hasFreeDayOff = (off) => {
+    const dt = new Date(nowDt);
+    dt.setDate(dt.getDate() - off);
+    return activeFreeDateSet.has(formatDateYMD(dt));
   };
-  let startOff = hasDayOff(0) ? 0 : hasDayOff(1) ? 1 : null;
-  if (startOff !== null) {
-    let k = startOff;
-    while (hasDayOff(k)) { streak++; k++; }
+  const freeStartOff = hasFreeDayOff(0) ? 0 : hasFreeDayOff(1) ? 1 : null;
+  if (freeStartOff !== null) {
+    let k = freeStartOff;
+    while (hasFreeDayOff(k)) { freeStreak++; k++; }
   }
-
-  const dayIdxs = Array.from(allActiveDates).map(toDayIdx).filter(x => x !== null && !isNaN(x)).sort((x, y) => x - y);
-  let best = 0, curRun = 0, prevDayIdx = null;
-  for (const idxVal of dayIdxs) {
-    curRun = (prevDayIdx !== null && idxVal === prevDayIdx + 1) ? curRun + 1 : 1;
-    best = Math.max(best, curRun);
-    prevDayIdx = idxVal;
+  const freeDayIdxs = Array.from(activeFreeDateSet).map(toDayIdx).filter(x => x !== null && !isNaN(x)).sort((x, y) => x - y);
+  let freeBest = 0, curFreeRun = 0, prevFreeDayIdx = null;
+  for (const idxVal of freeDayIdxs) {
+    curFreeRun = (prevFreeDayIdx !== null && idxVal === prevFreeDayIdx + 1) ? curFreeRun + 1 : 1;
+    freeBest = Math.max(freeBest, curFreeRun);
+    prevFreeDayIdx = idxVal;
   }
-  best = Math.max(best, streak);
-  if (streak === 0 && attempts > 0 && totalActive === 1) streak = 1;
-  if (best === 0 && totalActive > 0) best = Math.max(1, streak);
+  freeBest = Math.max(freeBest, freeStreak);
 
   const elStreakLine = document.getElementById("stStreakLine");
   if (elStreakLine) {
     elStreakLine.innerHTML = `
-      <span>連續 <b id="stHeatStreak">${streak}</b> 天 · 最佳 <b id="stHeatBest">${best}</b> 天 · 累計練習 <b id="stHeatTotal">${totalActive}</b> 天</span>
+      <span>連續 <b id="stHeatStreak">${freeStreak}</b> 天 · 最佳 <b id="stHeatBest">${freeBest}</b> 天 · 累計練習 <b id="stHeatTotal">${freeTotal}</b> 天</span>
       <span id="stHeatDayInfo" class="heat-day-info"></span>
     `;
   }
 
-  if (heatGrid) {
-    heatGrid.innerHTML = days.map((day, idx) => {
-      return `<i class="hc h${day.level}" data-idx="${idx}" data-key="${day.key}" data-a="${day.a || 0}" data-rate="${day.rate || 0}"></i>`;
+  if (freeHeatGrid) {
+    freeHeatGrid.innerHTML = freeHeatDays.map((x, idx) => {
+      return `<i class="hc h${x.level}" role="button" tabindex="0" aria-label="${x.key}，正確率 ${x.rate || 0}%" data-idx="${idx}" data-key="${x.key}" data-a="${x.a || 0}" data-rate="${x.rate || 0}"></i>`;
     }).join("");
 
-    const heatDayInfoEl = document.getElementById("stHeatDayInfo");
-    if (heatDayInfoEl && days.length > 0) {
-      let pinnedIdx = days.length - 1;
-      const targetInitKey = window.__activeStSelectedDate || "";
-      if (targetInitKey) {
-        const found = days.findIndex(x => x && x.key === targetInitKey);
-        if (found !== -1) pinnedIdx = found;
-      } else {
-        for (let i = days.length - 1; i >= 0; i--) {
-          if (days[i] && days[i].a > 0) {
-            pinnedIdx = i;
-            break;
-          }
-        }
+    let pinnedFreeIdx = freeHeatDays.length > 0 ? freeHeatDays.length - 1 : 0;
+    for (let i = freeHeatDays.length - 1; i >= 0; i--) {
+      if (freeHeatDays[i] && freeHeatDays[i].key === (window.__activeStSelectedDate || formatDateYMD(nowDt))) {
+        pinnedFreeIdx = i;
+        break;
       }
-
-      const renderStHeatBadgeContent = (dateKey, att, rate, activeCellIdx) => {
-        if (!heatDayInfoEl) return;
-        heatDayInfoEl.className = (!att || att <= 0) ? "heat-day-info tier-gray" : "heat-day-info tier-green";
-        if (att > 0) {
-          heatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 正確率 <b>${rate}%</b>`;
-        } else {
-          heatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 無作答紀錄`;
-        }
-        heatGrid.querySelectorAll(".hc").forEach((cell, cIdx) => {
-          cell.classList.toggle("hc-active", cIdx === activeCellIdx);
-        });
-      };
-
-      const updateStHeatDayBadge = (idx) => {
-        const item = days[idx];
-        if (!item) return;
-        renderStHeatBadgeContent(item.key, item.a || 0, item.rate || 0, idx);
-      };
-
-      window.__updateStHeatDayBadgeByDate = (dateStr) => {
-        const normKey = normalizeDayKey(dateStr);
-        if (!normKey) return;
-        const foundIdx = days.findIndex(x => x && x.key === normKey);
-        if (foundIdx !== -1) {
-          pinnedIdx = foundIdx;
-          updateStHeatDayBadge(foundIdx);
-          return;
-        }
-        const parts = normKey.split("-");
-        const shortKey = parts.length === 3 ? `${parts[0]}-${parseInt(parts[1], 10)}-${parseInt(parts[2], 10)}` : normKey;
-        const slashKey = normKey.replace(/-/g, "/");
-        const { a: att, c: cor } = getDayStatForHeat(normKey, shortKey, slashKey);
-        const rate = att > 0 ? Math.round((cor / att) * 100) : 0;
-        renderStHeatBadgeContent(normKey, att, rate, -1);
-      };
-
-      updateStHeatDayBadge(pinnedIdx);
-
-      heatGrid.querySelectorAll(".hc").forEach((cell) => {
-        const idx = parseInt(cell.getAttribute("data-idx"), 10);
-        cell.addEventListener("mouseenter", () => {
-          if (!isNaN(idx)) {
-            // 僅預覽該日資料，絕不覆寫選定的 pinnedIdx
-            updateStHeatDayBadge(idx);
-          }
-        });
-        cell.addEventListener("click", () => {
-          if (!isNaN(idx)) {
-            pinnedIdx = idx;
-            updateStHeatDayBadge(idx);
-            if (days[idx] && days[idx].key && typeof window.__switchStRecordDate === "function") {
-              window.__switchStRecordDate(days[idx].key);
-            }
-          }
-        });
-      });
-      heatGrid.onmouseleave = () => {
-        // 滑鼠離開時，穩定還原回當前選定的日期
-        if (typeof window.__updateStHeatDayBadgeByDate === "function") {
-          window.__updateStHeatDayBadgeByDate(window.__activeStSelectedDate || (days[pinnedIdx] ? days[pinnedIdx].key : ""));
-        } else {
-          updateStHeatDayBadge(pinnedIdx);
-        }
-      };
     }
+
+    const renderFreeHeatBadgeContent = (dateKey, att, rate, activeCellIdx) => {
+      if (!freeHeatDayInfoEl) return;
+      if (att > 0) {
+        const tierClass = rate >= 100 ? "tier-green-perfect" : (rate >= 80 ? "tier-green-high" : (rate >= 60 ? "tier-green-mid" : "tier-green-low"));
+        freeHeatDayInfoEl.className = `heat-day-info ${tierClass}`;
+        freeHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 正確率 <b>${rate}%</b>`;
+      } else {
+        freeHeatDayInfoEl.className = "heat-day-info tier-gray";
+        freeHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 無自由練習紀錄`;
+      }
+      freeHeatGrid.querySelectorAll(".hc").forEach((cell, cIdx) => {
+        cell.classList.toggle("hc-active", cIdx === activeCellIdx);
+      });
+    };
+
+    const updateFreeHeatDayBadge = (idx) => {
+      const item = freeHeatDays[idx];
+      if (!item) return;
+      renderFreeHeatBadgeContent(item.key, item.a || 0, item.rate || 0, idx);
+    };
+
+    window.__updateStHeatDayBadgeByDate = (dateStr) => {
+      const normDate = normalizeDateKey(dateStr);
+      if (!normDate) return;
+      const foundIdx = freeHeatDays.findIndex(x => x && x.key === normDate);
+      if (foundIdx !== -1) {
+        pinnedFreeIdx = foundIdx;
+        updateFreeHeatDayBadge(foundIdx);
+        return;
+      }
+      const { a, rate } = getFreeDayStat(normDate);
+      renderFreeHeatBadgeContent(normDate, a, rate, -1);
+    };
+
+    updateFreeHeatDayBadge(pinnedFreeIdx);
+
+    freeHeatGrid.querySelectorAll(".hc").forEach((cell) => {
+      const idx = parseInt(cell.getAttribute("data-idx"), 10);
+      cell.addEventListener("mouseenter", () => {
+        if (!isNaN(idx)) updateFreeHeatDayBadge(idx);
+      });
+      cell.addEventListener("click", () => {
+        if (!isNaN(idx)) {
+          pinnedFreeIdx = idx;
+          updateFreeHeatDayBadge(idx);
+          if (freeHeatDays[idx] && freeHeatDays[idx].key && typeof window.__switchStRecordDate === "function") {
+            window.__switchStRecordDate(freeHeatDays[idx].key);
+          }
+        }
+      });
+    });
+
+    freeHeatGrid.onmouseleave = () => {
+      if (typeof window.__updateStHeatDayBadgeByDate === "function") {
+        window.__updateStHeatDayBadgeByDate(window.__activeStSelectedDate || (freeHeatDays[pinnedFreeIdx] ? freeHeatDays[pinnedFreeIdx].key : ""));
+      } else {
+        updateFreeHeatDayBadge(pinnedFreeIdx);
+      }
+    };
   }
 
   // 6. 渲染日期查詢、教師指定測驗作答紀錄與自由練習作答紀錄
