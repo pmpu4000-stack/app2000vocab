@@ -2900,38 +2900,7 @@ function _renderConquerWordCard(wordStr, d) {
   }
   if (defaultIdx === -1) defaultIdx = 0;
 
-  const escapedWord = clean.replace(/[.*+?^${}()|[\]\\]/g, "\\  // 待攻克單字卡僅保留最簡單的第一個例句
-  const firstSent = sentsList[0] || {};
-  const safeSent = (firstSent.sent || "").replace(/'/g, "\\'");
   const escapedWord = clean.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const regex = new RegExp("\\b(" + escapedWord + ")\\b", "gi");
-  const highlightedSent = (firstSent.sent || "").replace(regex, `<b class="conquer-sent-word task-title-free" style="font-weight:800;">$1</b>`);
-
-  const sentHtml = `
-    <div class="sent-row" onclick="window.__saySentence('${safeSent}')" style="cursor:pointer;">
-      <button type="button" class="sent-speaker-btn level-simple" onclick="event.stopPropagation(); window.__saySentence('${safeSent}')" aria-label="簡單例句朗讀" title="簡單例句朗讀">🔊</button>
-      <div class="sent-text-wrap">
-        <div class="sent-en">${highlightedSent}</div>
-        ${firstSent.sentZh ? `<div class="sent-zh">${firstSent.sentZh}</div>` : ""}
-      </div>
-    </div>
-  `;
-
-  return `
-    <div class="conquer-word-card" style="width:100%; box-sizing:border-box; background:var(--card, #fff); border:1.5px solid var(--line, #e2e8f0); border-radius:12px; padding:10px 12px; margin-bottom:6px; box-shadow:0 1px 4px rgba(0,0,0,0.03);">
-      <div class="zh-row" style="margin-bottom:6px;">
-        <button type="button" class="word-speech-btn" onclick="window.__sayWord('${clean}')" aria-label="播放單字發音" title="播放單字發音">🔊</button>
-        <div class="zh-text" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-          <span class="conquer-card-word task-title-free">${wordDisplay}</span>
-          ${defHtml}
-          ${posHtml}
-        </div>
-      </div>
-      <div class="sents-vertical-list" style="margin:0;">
-        ${sentHtml}
-      </div>
-    </div>
-  `;");
   const regex = new RegExp("\\b(" + escapedWord + ")\\b", "gi");
 
   let tabsHtml = '';
