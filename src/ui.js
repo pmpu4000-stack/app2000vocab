@@ -117,7 +117,8 @@ export function renderRound(word, mode, { onAnswer, onCheck }) {
   el.catlabel.style.background = levelColor(word.level);
   el.modehint.textContent = MHINT[mode];
 
-  const phon = word.ph ? ` <span class="phon">[${word.ph}]</span>` : "";
+  const cleanPh = String(word.ph || "").replace(/^[\/\[\s]+|[\/\]\s]+$/g, "");
+  const phon = cleanPh ? `<span class="phon">/${cleanPh}/</span>` : "";
   const catTag = "";
   let zhText = `<span style="color:var(--ink3)">聽發音，拼出這個字</span>`;
   if (word.zh) {
@@ -148,7 +149,7 @@ export function renderRound(word, mode, { onAnswer, onCheck }) {
       }
     }
     const defHtml = `<b class="zh-def">${transList.join('； ')}</b>`;
-    const posHtml = posList.length > 0 ? ` <span class="zh-pos">${posList.join(' · ')}</span>` : '';
+    const posHtml = posList.length > 0 ? `<span class="zh-pos">${posList.join(' · ')}</span>` : '';
     zhText = `${defHtml}${posHtml}${phon}${catTag}`;
   }
 

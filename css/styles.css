@@ -142,11 +142,11 @@ header{display:flex; align-items:center; justify-content:space-between; flex-wra
   user-select:none;flex-shrink:0}
 .word-speech-btn:hover{transform:scale(1.05);box-shadow:0 4px 12px rgba(45,156,219,.4)}
 .word-speech-btn:active,.word-speech-btn.playing{transform:scale(.92)}
-.zh-text{font-size:15px;color:var(--ink2);font-weight:700;line-height:1.4}
+.zh-text{font-size:15px;color:var(--ink2);font-weight:700;line-height:1.45;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
 .zh-text b{color:var(--ink)}
 .zh-text .zh-def{font-size:18px;font-weight:800;color:var(--ink);letter-spacing:0.2px}
-.zh-text .zh-pos{color:#10B981;font-weight:700;font-size:12.5px;margin:0 5px;padding:1.5px 7px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.3);border-radius:6px;display:inline-block;vertical-align:middle}
-.zh .phon, .conquer-word-card .phon{color:var(--sky);font-weight:700;font-size:13.5px;font-family:"Lucida Sans Unicode","Segoe UI",Arial,sans-serif;margin-left:4px}
+.zh-text .zh-pos{color:#10B981;font-weight:700;font-size:12px;margin:0;padding:1.5px 7px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.3);border-radius:6px;display:inline-block;vertical-align:baseline}
+.zh .phon, .conquer-word-card .phon{color:var(--sky);font-weight:700;font-size:13.5px;font-family:"Lucida Sans Unicode","Segoe UI",Arial,sans-serif;margin:0}
 
 .sent{font-size:14px;color:var(--ink3);font-weight:600;min-height:20px;margin-top:6px}
 .sents-vertical-list{display:flex;flex-direction:column;gap:8px;margin:4px 0 10px;width:100%}
