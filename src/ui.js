@@ -3503,9 +3503,7 @@ export function renderSummary(d) {
   if (d.levels) renderProgressLevelsTable(d.levels);
   if (d.modeStats) renderProgressModeStats(d.modeStats);
 
-  el.summary.innerHTML = `
-    <!-- 📅 每日作答紀錄（大區塊標題，同等層級） -->
-    <div class="subh" style="margin-top:2px;">📅 每日作答紀錄</div>
+    el.summary.innerHTML = `
     <div class="date-navigator-card">
       <!-- 左欄：快速跳轉（歷程紀錄選單） -->
       <div class="date-nav-col date-nav-col-quick">
@@ -3541,7 +3539,7 @@ export function renderSummary(d) {
     </div>
 
     <!-- 子標題 1：平日指定測驗 / 週末待攻克測驗作答紀錄 -->
-    <div class="subh-child">
+    <div class="subh" style="margin-top:10px;">
       <span id="task-subh-title">${isWeekend(defaultSelectedDate) ? (getBiweeklyCycleInfo(defaultSelectedDate).isBiweeklyBossWeek ? `🎯 ${formatWeekendTaskDate(defaultSelectedDate)} 雙週指定單字大消滅戰作答紀錄` : `🎯 ${formatWeekendTaskDate(defaultSelectedDate)} 週末待攻克測驗作答紀錄`) : "📝 平日指定測驗作答紀錄"}</span>
     </div>
     <div class="task-history-card">
@@ -3559,7 +3557,7 @@ export function renderSummary(d) {
     </div>
 
     <!-- 子標題 2：自由練習作答紀錄 -->
-    <div class="subh-child" style="margin-top:16px;">
+    <div class="subh" style="margin-top:14px;">
       <span>🎮 自由練習作答紀錄</span>
     </div>
     <div class="task-history-card">
@@ -3573,7 +3571,7 @@ export function renderSummary(d) {
         </div>
         <div class="heatmap" id="heatmap-grid">${d.history.days.map((x, idx) =>
           `<i class="hc h${x.level}" role="button" tabindex="0" aria-label="${x.key}，正確率 ${x.rate || 0}%" data-idx="${idx}" data-key="${x.key}" data-a="${x.a || 0}" data-rate="${x.rate || 0}"></i>`).join("")}</div>
-        <div class="heat-legend"><b>連續</b>：目前不中斷、每天練習的天數。<br><b>最佳</b>：個人最長連續練習紀錄。<br><b>累計</b>：歷來有練習的總天數。<br><b>熱力圖</b>：顏色越鮮豔代表當天正確率越高（灰色為無練習）。</div>
+        <p class="defs heat-legend" style="margin-top:8px;">熱力圖說明：<b>連續</b>＝目前不中斷練習天數 · <b>最佳</b>＝最長連續天天練習紀錄 · <b>累計</b>＝有練習的總天數 · <b>方格顏色</b>＝愈鮮豔當日正確率愈高（灰色代表未練習）</p>
       </div>
     </div>`;
 
