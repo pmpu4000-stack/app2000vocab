@@ -3494,6 +3494,212 @@
       color: #94A3B8 !important;
     }
 
+    /* 待攻克單字卡片專用字體階層與版面比例 (比照全站易讀規則) */
+    .conquer-word-card {
+      width: 100%;
+      box-sizing: border-box;
+      background: var(--card, #fff);
+      border: 1.5px solid var(--line, #e2e8f0);
+      border-radius: 12px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+    }
+    .conquer-word-card .zh-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+      padding-left: 10px;
+    }
+    .conquer-word-card .word-speech-btn {
+      width: 28px;
+      height: 28px;
+      min-width: 28px;
+      font-size: 13.5px;
+      border-radius: 7px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #F1F5F9;
+      border: 1px solid #CBD5E1;
+    }
+    .conquer-word-card .zh-text {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      flex-wrap: wrap;
+      line-height: 1.4;
+    }
+    .conquer-card-word {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 0.2px;
+    }
+    .conquer-card-word,
+    .conquer-sent-word {
+      color: #B45309 !important;
+    }
+    [data-theme="dark"] .conquer-card-word,
+    [data-theme="dark"] .conquer-sent-word {
+      color: #FBBF24 !important;
+    }
+    .conquer-word-card .zh-def {
+      font-size: 14.5px;
+      font-weight: 700;
+      color: var(--ink);
+      letter-spacing: 0.1px;
+    }
+    .conquer-word-card .zh-pos {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #10B981;
+      padding: 1px 6px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: 5px;
+      display: inline-block;
+    }
+    .conquer-word-card .phon {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--sky);
+      font-family: "Lucida Sans Unicode", "Segoe UI", Arial, sans-serif;
+      margin-left: 2px;
+    }
+    .conquer-word-card .sents-vertical-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin: 0;
+      width: 100%;
+    }
+    .conquer-word-card .sent-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 9px;
+      background: #F8F9FD;
+      border: 1px solid var(--line);
+      min-height: 44px;
+    }
+    [data-theme="dark"] .conquer-word-card .sent-row {
+      background: rgba(255, 255, 255, 0.03);
+    }
+    .conquer-word-card .sent-speaker-btn {
+      width: 30px;
+      height: 30px;
+      min-width: 30px;
+      font-size: 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #F1F5F9;
+      border: 1px solid #CBD5E1;
+    }
+    .conquer-word-card .sent-en {
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--ink);
+      font-weight: 600;
+    }
+    .conquer-word-card .sent-zh {
+      font-size: 12px;
+      line-height: 1.45;
+      color: var(--ink3);
+      margin-top: 3px;
+    }
+
+    /* 待攻克單字方塊樣式（比照學習足跡 word-pill-tag 設計） */
+    .conquer-word-tab {
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 4px !important;
+      padding: 3.5px 8.5px !important;
+      border-radius: 6px !important;
+      font-size: 12.5px !important;
+      font-weight: 700 !important;
+      margin: 1.5px 2px !important;
+      line-height: 1.25 !important;
+      cursor: pointer !important;
+      transition: transform .12s, box-shadow .12s, border-color .12s, background .12s !important;
+      user-select: none !important;
+      background: #F1F5F9 !important;
+      border: 1.5px solid #CBD5E1 !important;
+      color: #334155 !important;
+      font-family: inherit !important;
+    }
+    .conquer-word-tab:hover {
+      transform: translateY(-1px) !important;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08) !important;
+      border-color: #94A3B8 !important;
+      color: #0F172A !important;
+    }
+    .conquer-word-tab:active {
+      transform: scale(0.96) !important;
+    }
+    .conquer-word-tab.is-active {
+      border: 1.5px solid #E8892B !important;
+      background: rgba(232, 137, 43, 0.15) !important;
+      color: #B45309 !important;
+      font-weight: 800 !important;
+      box-shadow: 0 0 0 1px #E8892B;
+    }
+    [data-theme="dark"] .conquer-word-tab {
+      background: rgba(148, 163, 184, 0.16) !important;
+      border-color: rgba(148, 163, 184, 0.38) !important;
+      color: #E2E8F0 !important;
+    }
+    [data-theme="dark"] .conquer-word-tab:hover {
+      background: rgba(148, 163, 184, 0.26) !important;
+      border-color: rgba(226, 232, 240, 0.55) !important;
+      color: #FFFFFF !important;
+    }
+    [data-theme="dark"] .conquer-word-tab.is-active {
+      border-color: #F59E0B !important;
+      background: rgba(245, 158, 11, 0.2) !important;
+      color: #FBBF24 !important;
+      box-shadow: 0 0 0 1px #F59E0B;
+    }
+    .conquer-mode-toggle-btn {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      text-align: center !important;
+      font-size: 11.5px !important;
+      font-weight: 700 !important;
+      min-width: 44px !important;
+      height: 22px !important;
+      padding: 0 8px !important;
+      border-radius: 6px !important;
+      border: 1px solid rgba(148, 163, 184, 0.35) !important;
+      background: var(--card, #ffffff) !important;
+      color: var(--ink2, #64748b) !important;
+      cursor: pointer !important;
+      transition: all 0.15s ease !important;
+      line-height: 1 !important;
+      box-sizing: border-box !important;
+      vertical-align: middle !important;
+    }
+    .conquer-mode-toggle-btn:hover {
+      background: rgba(148, 163, 184, 0.12) !important;
+      border-color: rgba(148, 163, 184, 0.6) !important;
+      color: var(--ink, #0f172a) !important;
+    }
+    [data-theme="dark"] .conquer-mode-toggle-btn {
+      background: #1e293b !important;
+      border-color: rgba(148, 163, 184, 0.4) !important;
+      color: #94a3b8 !important;
+    }
+    [data-theme="dark"] .conquer-mode-toggle-btn:hover {
+      background: #334155 !important;
+      color: #f8fafc !important;
+    }
+
     .task-history-header {
       display: flex !important;
       justify-content: space-between !important;
@@ -5708,7 +5914,7 @@
           <span id="stWeekConquerTitle">待攻克單字 Conquer</span>
         </span>
         <span style="display:flex; gap:14px; align-items:center;">
-          <a id="btn-toggle-st-conquer-card" class="sum-toggle-btn" title="展開或收合待攻克單字">展開</a>
+          <a id="btn-toggle-st-conquer-card" class="sum-toggle-btn" style="display:inline-flex; align-items:center; justify-content:center; text-align:center; min-width:44px;" title="展開或收合待攻克單字">展開</a>
         </span>
       </h3>
       <div class="week-conquer-container" id="st-week-conquer-container" style="display:none; margin-top:8px;">
@@ -17017,6 +17223,176 @@ function renderStudentDailyTaskAndFreeSections(resp) {
   // 渲染「🎯 本週待攻克單字」區塊（支援切換第 1~20 週）
   window._currentTeacherConquerResp = resp;
   window._currentTeacherConquerAgent = agent;
+
+// ════════════════════════════════════════
+// 待攻克單字卡渲染與例句對齊 (與拼字遊戲首頁 1:1 鏡像)
+// ════════════════════════════════════════
+window._conquerActiveWordByLevel = window._conquerActiveWordByLevel || { 1: null, 2: null, 3: null, 4: null, 5: null };
+window._conquerViewModeByLevel = window._conquerViewModeByLevel || { 1: "single", 2: "single", 3: "single", 4: "single", 5: "single" };
+window.__sayWord = function(w) { speakMasteredWord(w); };
+window.__saySentence = function(s) { speakMasteredWord(s); };
+
+function parseDialogue(text) {
+  if (!text) return null;
+  const raw = String(text).trim();
+  const match = raw.match(/^(?:A|甲):\s*(.+?)\s*(?:\n|\/|\s{1,4})\s*(?:B|乙):\s*(.+)$/is);
+  if (match) {
+    return { partA: match[1].trim(), partB: match[2].trim(), isDialogue: true };
+  }
+  return null;
+}
+
+if (!window._meaningsCachePromise && typeof fetch !== "undefined") {
+  window._meaningsCachePromise = fetch('https://pmpu4000-stack.github.io/app2000vocab/data/meanings.json')
+    .then(r => r.json())
+    .then(data => {
+      window._meaningsData = data;
+      const detailsEl = document.getElementById("st-week-conquer-details");
+      if (detailsEl && detailsEl.innerHTML && typeof window.renderTeacherStudentConquerSection === "function") {
+        window.renderTeacherStudentConquerSection(window._teacherActiveConquerCycle || "current");
+      }
+    }).catch(() => {});
+}
+
+function _renderConquerWordCard(wordStr) {
+  const clean = String(wordStr || "").trim().toLowerCase();
+  let obj = null;
+  if (window._meaningsData) {
+    if (window._meaningsData[clean]) {
+      obj = window._meaningsData[clean];
+    } else if (Array.isArray(window._meaningsData)) {
+      obj = window._meaningsData.find(x => x && (x.word === clean || (x.display && x.display.toLowerCase() === clean)));
+    }
+  }
+  if (!obj && window._wordBankObjMap && window._wordBankObjMap.has(clean)) {
+    obj = window._wordBankObjMap.get(clean);
+  }
+  if (!obj && typeof WORD_BANK_2000 !== "undefined" && Array.isArray(WORD_BANK_2000)) {
+    const found = WORD_BANK_2000.find(x => x && String(x[0]).toLowerCase() === clean);
+    if (found) {
+      obj = { word: clean, display: found[0], zh: found[1] || "", level: found[2] || 1 };
+    }
+  }
+  if (!obj) {
+    obj = {
+      word: clean,
+      display: clean.charAt(0).toUpperCase() + clean.slice(1),
+      zh: "a. 能夠的",
+      sents: [
+        { level: "simple", levelName: "簡單", sent: "I'm able to swim.", sentZh: "我會游泳。" }
+      ]
+    };
+  }
+
+  const posMap = {
+    n: "名詞", v: "動詞", vt: "及物動詞", vi: "不及物動詞",
+    adj: "形容詞", a: "形容詞", adv: "副詞", ad: "副詞",
+    prep: "介系詞", conj: "連接詞", pron: "代名詞",
+    interj: "感嘆詞", int: "感嘆詞", art: "冠詞", num: "數詞",
+    phr: "片語", aux: "助動詞"
+  };
+  let posList = [];
+  let defText = "";
+  const rawZh = obj.zh || "";
+  if (rawZh) {
+    const parts = rawZh.split('；');
+    const transList = [];
+    for (const part of parts) {
+      const trimmed = part.trim();
+      const m = trimmed.match(/^([a-zA-Z\.\s\/]+?)[\s\.\．]+(.*)$/);
+      if (m) {
+        const posStr = m[1].trim();
+        const defStr = m[2].trim();
+        if (defStr && !transList.includes(defStr)) transList.push(defStr);
+        const tags = posStr.split(/[\/\s]+/).map(p => p.replace(/\./g, "").trim()).filter(Boolean);
+        tags.forEach(t => {
+          const zhPos = posMap[t.toLowerCase()] || t;
+          if (!posList.includes(zhPos)) posList.push(zhPos);
+        });
+      } else {
+        if (trimmed && !transList.includes(trimmed)) transList.push(trimmed);
+      }
+    }
+    defText = transList.join("；");
+  }
+  if (obj.pos && posList.length === 0) {
+    const p = posMap[String(obj.pos).toLowerCase().replace(/\./g, "")] || obj.pos;
+    posList.push(p);
+  }
+
+  const wordDisplay = obj.display || obj.word || clean;
+  const posHtml = posList.length > 0 ? `<span class="zh-pos">${posList.join(" · ")}</span>` : "";
+  const defHtml = defText ? `<b class="zh-def">${defText}</b>` : "";
+
+  let sentsList = (Array.isArray(obj.sents) && obj.sents.length > 0)
+    ? [...obj.sents]
+    : (obj.sent ? [{ level: "simple", levelName: "簡單", sent: obj.sent, sentZh: obj.sentZh || "" }] : []);
+
+  if (sentsList.length === 0) {
+    sentsList = [
+      { level: "simple", levelName: "簡單", sent: "Practice using \"" + wordDisplay + "\" in daily communication.", sentZh: "在日常溝通中練習使用「" + wordDisplay + "」。" }
+    ];
+  }
+
+  const levelOrder = { simple: 1, normal: 2, advanced: 3, dialogue: 4 };
+  sentsList.sort((a, b) => (levelOrder[a.level] || 9) - (levelOrder[b.level] || 9));
+
+  let wordLevel = (obj && obj.level) ? obj.level : 1;
+  const lv = Number(wordLevel) || 1;
+  const targetLevel = (lv >= 4) ? 'advanced' : (lv === 3) ? 'normal' : 'simple';
+  let defaultIdx = sentsList.findIndex(s => s.level === targetLevel);
+  if (defaultIdx === -1) {
+    if (targetLevel === 'advanced') {
+      defaultIdx = sentsList.findIndex(s => s.level === 'normal');
+      if (defaultIdx === -1) defaultIdx = sentsList.findIndex(s => s.level === 'simple');
+    } else if (targetLevel === 'normal') {
+      defaultIdx = sentsList.findIndex(s => s.level === 'simple');
+      if (defaultIdx === -1) defaultIdx = sentsList.findIndex(s => s.level === 'advanced');
+    } else {
+      defaultIdx = sentsList.findIndex(s => s.level === 'normal');
+      if (defaultIdx === -1) defaultIdx = sentsList.findIndex(s => s.level === 'advanced');
+    }
+  }
+  if (defaultIdx === -1) defaultIdx = 0;
+
+  const escapedWord = clean.replace(/[.*+?^${}()|[\]\\]/g, "\\  window._teacherActiveConquerCycle = "current";
+  window.renderTeacherStudentConquerSection = function(cycleParam = window._teacherActiveConquerCycle || "current") {");
+  const regex = new RegExp("\\b(" + escapedWord + ")\\b", "gi");
+
+  const s = sentsList[defaultIdx];
+  const isDlg = Boolean(parseDialogue(s.sent) || s.level === 'dialogue');
+  const levelCls = s.level === 'simple' ? 'level-simple' : s.level === 'advanced' ? 'level-advanced' : isDlg ? 'level-dialogue' : 'level-normal';
+  const levelText = s.levelName || (isDlg ? '對話' : s.level === 'simple' ? '簡單' : s.level === 'advanced' ? '進階' : '普通');
+  const safeSent = (s.sent || "").replace(/'/g, "\\'");
+  const highlightedSent = (s.sent || "").replace(regex, `<b class="conquer-sent-word task-title-free" style="font-weight:800;">$1</b>`);
+
+  const sentsHtml = `
+    <div class="sent-row conquer-sent-variant" data-idx="${defaultIdx}" onclick="speakMasteredWord('${safeSent}')" style="cursor:pointer; display:flex;">
+      <button type="button" class="sent-speaker-btn ${levelCls}" onclick="event.stopPropagation(); speakMasteredWord('${safeSent}')" aria-label="${levelText}例句朗讀" title="${levelText}例句朗讀">🔊</button>
+      <div class="sent-text-wrap">
+        <div class="sent-en">${highlightedSent}</div>
+        ${s.sentZh ? `<div class="sent-zh">${s.sentZh}</div>` : ""}
+      </div>
+    </div>
+  `;
+
+  return `
+    <div class="conquer-word-card" style="width:100%; box-sizing:border-box; background:var(--card, #fff); border:1.5px solid var(--line, #e2e8f0); border-radius:12px; padding:10px 12px; margin-bottom:6px; box-shadow:0 1px 4px rgba(0,0,0,0.03);">
+      <div class="zh-row" style="margin-bottom:6px;">
+        <button type="button" class="word-speech-btn" onclick="speakMasteredWord('${clean}')" aria-label="播放單字發音" title="播放單字發音">🔊</button>
+        <div class="zh-text" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+          <span class="conquer-card-word task-title-free">${wordDisplay}</span>
+          ${defHtml}
+          ${posHtml}
+        </div>
+      </div>
+      <div class="sents-vertical-list" style="margin:0;">
+        ${sentsHtml}
+      </div>
+    </div>
+  `;
+}
+
   window._teacherActiveConquerCycle = "current";
   window.renderTeacherStudentConquerSection = function(cycleParam = window._teacherActiveConquerCycle || "current") {
     window._teacherActiveConquerCycle = cycleParam;
@@ -17270,23 +17646,54 @@ function renderStudentDailyTaskAndFreeSections(resp) {
 
       const lvNames  = ["入門", "基礎", "進階", "挑戰", "精熟"];
       const lvColors = ["#2FB47C", "#2D9CDB", "#6C4CE0", "#E8892B", "#E0567B"];
-      const lvFeatures = {
-        1: "入門 · 3~4 字母極短字/自然發音",
-        2: "基礎 · 4~5 字母常用字/Magic e",
-        3: "進階 · 5~6 字母雙音節/複合字",
-        4: "挑戰 · 6~8 字母中長字/不發音字母",
-        5: "精熟 · 8 字母以上多音節長字/字根字首"
-      };
       const levelSectionsHtml = [1, 2, 3, 4, 5].map(lv => {
         const list = byLv[lv] || [];
         const lvDotColor = lvColors[lv - 1];
         const lvTitle = `Level ${lv}「${lvNames[lv - 1]}」`;
-        const lvFeatureSub = lvFeatures[lv] || "";
-        const pillsOrEmpty = list.length > 0
-          ? `<div class="conquer-word-list" style="display:flex; flex-wrap:wrap; gap:8px; padding:2px 4px 2px 0; max-height:148px; overflow-y:auto; overscroll-behavior:contain;">${list.map(w => {
-              return `<span class="word-pill-tag conquer-pill" data-word="${w}" onclick="event.stopPropagation(); speakMasteredWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="待攻克單字 (點擊聆聽發音)">${w}</span>`;
-            }).join("")}</div>`
-          : `<div style="font-size:12px; color:var(--ink3); font-style:italic; padding:1px 0;">（本關卡目前無待攻克單字）</div>`;
+        let contentHtml = "";
+        const isAllMode = (window._conquerViewModeByLevel[lv] === "all");
+        const toggleBtnHtml = (list.length > 1)
+          ? `<button type="button" class="conquer-mode-toggle-btn" data-lv="${lv}" style="display:inline-flex; align-items:center; justify-content:center; text-align:center; min-width:44px; height:22px; padding:0 8px; line-height:1;" title="${isAllMode ? '收合單字卡' : '展開全部單字卡'}">${isAllMode ? '收合' : '展開'}</button>`
+          : "";
+
+        if (list.length > 0) {
+          if (!window._conquerActiveWordByLevel[lv] || !list.includes(window._conquerActiveWordByLevel[lv])) {
+            window._conquerActiveWordByLevel[lv] = list[0];
+          }
+          const activeWord = window._conquerActiveWordByLevel[lv];
+
+          if (list.length === 1) {
+            contentHtml = `
+              <div style="margin-top:6px;">
+                ${_renderConquerWordCard(list[0])}
+              </div>
+            `;
+          } else if (isAllMode) {
+            contentHtml = `
+              <div class="conquer-all-cards-wrap" style="display:flex; flex-direction:column; gap:6px; margin-top:6px;">
+                ${list.map(w => _renderConquerWordCard(w)).join("")}
+              </div>
+            `;
+          } else {
+            contentHtml = `
+              <div class="conquer-level-nav" style="display:flex; align-items:center; flex-wrap:wrap; gap:6px; margin:6px 0 8px;">
+                <div class="conquer-chip-list" style="display:flex; flex-wrap:wrap; gap:5px; align-items:center;">
+                  ${list.map(w => {
+                    const isAct = (w === activeWord);
+                    return `<button type="button" class="conquer-word-tab ${isAct ? 'is-active' : ''}" data-lv="${lv}" data-word="${w}" title="點擊檢視單字卡並朗讀發音">
+                      ${w}
+                    </button>`;
+                  }).join("")}
+                </div>
+              </div>
+              <div class="conquer-active-card-wrap" data-lv="${lv}">
+                ${_renderConquerWordCard(activeWord)}
+              </div>
+            `;
+          }
+        } else {
+          contentHtml = `<div style="font-size:12px; color:var(--ink3); font-style:italic; padding:1px 0;">（本關卡目前無待攻克單字）</div>`;
+        }
 
         return `
           <div class="conquer-level-row">
@@ -17294,14 +17701,16 @@ function renderStudentDailyTaskAndFreeSections(resp) {
               <span style="display:inline-flex; align-items:center; gap:6px;">
                 <span style="color:${lvDotColor};">●</span>
                 <b>${lvTitle}</b>
-                <small style="font-size:11px; font-weight:normal; color:var(--ink3); opacity:0.85;">(${lvFeatureSub})</small>
               </span>
-              <span class="conquer-level-count" style="font-size:11.5px; font-weight:700; color:#94A3B8; background:rgba(148,163,184,0.16); border:1px solid rgba(148,163,184,0.28); padding:1.5px 8px; border-radius:999px; display:inline-flex; align-items:center; justify-content:center; line-height:1.3;">${list.length} 字</span>
+              <div style="display:inline-flex; align-items:center; gap:6px;">
+                ${toggleBtnHtml}
+                <span class="conquer-level-count">${list.length} 字</span>
+              </div>
             </div>
-            ${pillsOrEmpty}
+            ${contentHtml}
           </div>
         `;
-      }).join("");
+      }).join("");("");
 
       const tipText = isPrevious
         ? `檢視該生<b>上週平日測驗</b>遺留的 <b>${count}</b> 個待攻克單字。在自由練習中只要拼對該單字，系統即判定為已學會並自動移除！`
@@ -17325,6 +17734,32 @@ function renderStudentDailyTaskAndFreeSections(resp) {
         </div>
       `;
     }
+
+    // 綁定各關卡內的單字標籤點擊（即時就地切換卡片並朗讀）
+    conquerDetailsContainer.querySelectorAll(".conquer-word-tab").forEach(tab => {
+      tab.onclick = (e) => {
+        e.stopPropagation();
+        const lv = tab.getAttribute("data-lv");
+        const w = tab.getAttribute("data-word");
+        if (lv && w) {
+          window._conquerActiveWordByLevel[lv] = w;
+          speakMasteredWord(w);
+          window.renderTeacherStudentConquerSection(window._teacherActiveConquerCycle);
+        }
+      };
+    });
+
+    // 綁定關卡展開全部 / 逐字檢視模式切換按鈕
+    conquerDetailsContainer.querySelectorAll(".conquer-mode-toggle-btn").forEach(btn => {
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        const lv = btn.getAttribute("data-lv");
+        if (lv) {
+          window._conquerViewModeByLevel[lv] = (window._conquerViewModeByLevel[lv] === "all" ? "single" : "all");
+          window.renderTeacherStudentConquerSection(window._teacherActiveConquerCycle);
+        }
+      };
+    });
 
     // 綁定教師端待攻克週次切換事件
     const selectEl = conquerDetailsContainer.querySelector("#st-conquer-cycle-select");
