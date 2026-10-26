@@ -7339,6 +7339,40 @@
 
 <script>
 // ════════════════════════════════════════
+// Google Apps Script client shim (供本機預覽或非 GAS 容器環境容錯)
+// ════════════════════════════════════════
+if (typeof google === "undefined" || !google.script || !google.script.run) {
+  window.google = window.google || {};
+  window.google.script = window.google.script || {};
+  window.google.script.run = (function() {
+    function makeRunner(onSuccess, onFailure) {
+      const runner = {
+        withSuccessHandler: function(fn) { return makeRunner(fn, onFailure); },
+        withFailureHandler: function(fn) { return makeRunner(onSuccess, fn); }
+      };
+      return new Proxy(runner, {
+        get: function(target, prop) {
+          if (prop in target) return target[prop];
+          return function(...args) {
+            const gasUrl = "https:\x2F\x2Fscript.google.com/macros/s/AKfycbx1hyCNJxqFMoaJgIxfZqLYIYH00NegI1Yd8NJP6gRjqwOndWGkmr-H9tGvVwK_axM9/exec";
+            const payload = Object.assign({ action: prop }, args[0] || {});
+            fetch(gasUrl, {
+              method: "POST",
+              headers: { "Content-Type": "text/plain;charset=utf-8" },
+              body: JSON.stringify(payload)
+            })
+            .then(r => r.json())
+            .then(data => { if (onSuccess) onSuccess(data); })
+            .catch(err => { if (onFailure) onFailure(err); });
+          };
+        }
+      });
+    }
+    return makeRunner(null, null);
+  })();
+}
+
+// ════════════════════════════════════════
 // 狀態變數
 // ════════════════════════════════════════
 let currentUser = null;
@@ -17353,7 +17387,7 @@ function parseDialogue(text) {
 }
 
 if (!window._meaningsCachePromise && typeof fetch !== "undefined") {
-  window._meaningsCachePromise = fetch('https://pmpu4000-stack.github.io/app2000vocab/data/meanings.json')
+  window._meaningsCachePromise = fetch('https:\x2F\x2Fpmpu4000-stack.github.io/app2000vocab/data/meanings.json')
     .then(r => r.json())
     .then(data => {
       window._meaningsData = data;
@@ -19728,8 +19762,8 @@ async function _exportStudentRecordToExcel(payload) {
   try {
     const XLSX = await _ensureExternalScript(
       "XLSX",
-      "https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js",
-      "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"
+      "https:\x2F\x2Fcdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js",
+      "https:\x2F\x2Fcdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"
     );
     const wb = XLSX.utils.book_new();
 
@@ -20386,8 +20420,8 @@ async function _exportStudentRecordToPdf(payload) {
   try {
     const html2pdfLib = await _ensureExternalScript(
       "html2pdf",
-      "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js",
-      "https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"
+      "https:\x2F\x2Fcdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js",
+      "https:\x2F\x2Fcdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"
     );
     const paperEl = overlay.querySelector("#pdf-export-paper");
     const opt = {
@@ -20722,7 +20756,7 @@ function renderStudentFreePractice(resp, summaryMeta) {
               連續練習：<strong style="color:#ea580c;">${streak} 天</strong>
             </div>
           </div>
-          <a href="https://pmpu4000-stack.github.io/app2000vocab/" target="_blank" rel="noopener noreferrer" class="btn-primary" style="text-decoration:none; padding:8px 16px; font-size:13px; border-radius:8px; display:inline-flex; align-items:center; gap:6px; font-weight:700;">
+          <a href="https:\x2F\x2Fpmpu4000-stack.github.io/app2000vocab/" target="_blank" rel="noopener noreferrer" class="btn-primary" style="text-decoration:none; padding:8px 16px; font-size:13px; border-radius:8px; display:inline-flex; align-items:center; gap:6px; font-weight:700;">
             <span>🚀 繼續自主刷題練習</span>
           </a>
         </div>
@@ -20740,7 +20774,7 @@ function renderStudentFreePractice(resp, summaryMeta) {
               自由練習不受次數限制，可隨意挑戰 4 大練習模式闖關、消滅生字、累積滿分星數！
             </div>
           </div>
-          <a href="https://pmpu4000-stack.github.io/app2000vocab/" target="_blank" rel="noopener noreferrer" style="text-decoration:none; padding:8px 16px; border-radius:8px; font-weight:800; font-size:13px; background:linear-gradient(135deg, #10b981 0%, #059669 100%); color:#fff; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 8px rgba(16,185,129,0.3);">
+          <a href="https:\x2F\x2Fpmpu4000-stack.github.io/app2000vocab/" target="_blank" rel="noopener noreferrer" style="text-decoration:none; padding:8px 16px; border-radius:8px; font-weight:800; font-size:13px; background:linear-gradient(135deg, #10b981 0%, #059669 100%); color:#fff; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 8px rgba(16,185,129,0.3);">
             <span>📖 前往自主單字練習</span>
           </a>
         </div>
@@ -20976,7 +21010,7 @@ function speakMasteredWord(text) {
   const singleWordMatch = cleanText.match(/^[A-Za-z]{2,25}$/);
   if (singleWordMatch && typeof Audio !== "undefined") {
     const wordLower = singleWordMatch[0].toLowerCase();
-    const dictUrl = `https://ssl.gstatic.com/dictionary/static/sounds/20200429/${wordLower}--_us_1.mp3`;
+    const dictUrl = `https:\x2F\x2Fssl.gstatic.com/dictionary/static/sounds/20200429/${wordLower}--_us_1.mp3`;
 
     if (_historyWordAudioCache.get(wordLower) !== false) {
       try {
@@ -21398,7 +21432,7 @@ function renderStudentDailyTask(todayTaskResult, dailyTaskHistory, assignedTask)
             </div>
           </div>
           <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-            <a href="https://pmpu4000-stack.github.io/app2000vocab/" target="_blank" rel="noopener noreferrer" class="btn-secondary" style="text-decoration:none; padding:7px 14px; font-size:13px; border-radius:8px; display:inline-flex; align-items:center; gap:6px; font-weight:700;">
+            <a href="https:\x2F\x2Fpmpu4000-stack.github.io/app2000vocab/" target="_blank" rel="noopener noreferrer" class="btn-secondary" style="text-decoration:none; padding:7px 14px; font-size:13px; border-radius:8px; display:inline-flex; align-items:center; gap:6px; font-weight:700;">
               <span>🔄 前往自主單字練習</span>
             </a>
             <button class="btn-primary" onclick="copyStudentDailyReport()" style="padding:7px 14px; font-size:13px; border-radius:8px; display:inline-flex; align-items:center; gap:6px; box-shadow:0 2px 6px rgba(99,102,241,0.25); cursor:pointer;">
@@ -21430,7 +21464,7 @@ function renderStudentDailyTask(todayTaskResult, dailyTaskHistory, assignedTask)
               上次存檔：<span>${escapeHtml(today.updatedAt || '—')}</span>（作答每題皆已自動同步至雲端，進度安全不丟失）
             </div>
           </div>
-          <a href="https://pmpu4000-stack.github.io/app2000vocab/" target="_blank" rel="noopener noreferrer" style="text-decoration:none; padding:8px 18px; border-radius:8px; font-weight:800; font-size:13.5px; background:linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color:#fff; display:inline-flex; align-items:center; gap:6px; box-shadow:0 3px 10px rgba(245,158,11,0.3); transition:all 0.15s ease;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">
+          <a href="https:\x2F\x2Fpmpu4000-stack.github.io/app2000vocab/" target="_blank" rel="noopener noreferrer" style="text-decoration:none; padding:8px 18px; border-radius:8px; font-weight:800; font-size:13.5px; background:linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color:#fff; display:inline-flex; align-items:center; gap:6px; box-shadow:0 3px 10px rgba(245,158,11,0.3); transition:all 0.15s ease;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">
             <span>▶️ 繼續未完成之測驗</span>
           </a>
         </div>
@@ -21475,7 +21509,7 @@ function renderStudentDailyTask(todayTaskResult, dailyTaskHistory, assignedTask)
                 請點擊右側按鈕立即前往測驗挑戰，完成後將自動同步登錄成績與錯題弱點診斷！
               </div>
             </div>
-            <a href="https://pmpu4000-stack.github.io/app2000vocab/" target="_blank" rel="noopener noreferrer" style="text-decoration:none; padding:9px 18px; border-radius:8px; font-weight:800; font-size:14px; background:linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color:#fff; display:inline-flex; align-items:center; gap:6px; box-shadow:0 3px 12px rgba(99,102,241,0.35); transition:all 0.15s ease;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">
+            <a href="https:\x2F\x2Fpmpu4000-stack.github.io/app2000vocab/" target="_blank" rel="noopener noreferrer" style="text-decoration:none; padding:9px 18px; border-radius:8px; font-weight:800; font-size:14px; background:linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color:#fff; display:inline-flex; align-items:center; gap:6px; box-shadow:0 3px 12px rgba(99,102,241,0.35); transition:all 0.15s ease;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">
               <span>🚀 立即前往測驗挑戰</span>
             </a>
           </div>
@@ -21492,7 +21526,7 @@ function renderStudentDailyTask(todayTaskResult, dailyTaskHistory, assignedTask)
                 老師今日未指派全班指定測驗，可自由前往測驗區進行自主單字練習！每天堅持 5~10 分鐘，字彙力即刻穩步提升！
               </div>
             </div>
-            <a href="https://pmpu4000-stack.github.io/app2000vocab/" target="_blank" rel="noopener noreferrer" style="text-decoration:none; padding:8px 16px; border-radius:8px; font-weight:800; font-size:13.5px; background:linear-gradient(135deg, #10b981 0%, #059669 100%); color:#fff; display:inline-flex; align-items:center; gap:6px; box-shadow:0 3px 10px rgba(16,185,129,0.3); transition:all 0.15s ease;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">
+            <a href="https:\x2F\x2Fpmpu4000-stack.github.io/app2000vocab/" target="_blank" rel="noopener noreferrer" style="text-decoration:none; padding:8px 16px; border-radius:8px; font-weight:800; font-size:13.5px; background:linear-gradient(135deg, #10b981 0%, #059669 100%); color:#fff; display:inline-flex; align-items:center; gap:6px; box-shadow:0 3px 10px rgba(16,185,129,0.3); transition:all 0.15s ease;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">
               <span>📖 前往自主單字練習</span>
             </a>
           </div>
