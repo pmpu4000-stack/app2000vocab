@@ -2221,9 +2221,9 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
     return `
       <div>
         <div class="task-empty-notice-box">
-          <div style="font-size:30px; margin-bottom:8px; line-height:1;">🎮</div>
-          <div style="font-size:14px; font-weight:700; color:var(--ink2); margin-bottom:6px;">該指定日期 ( ${selectedDate} ) 尚無自由練習受測紀錄</div>
-          <div style="font-size:12.5px; color:var(--ink3); max-width:380px; margin:0 auto; line-height:1.5;">可從上方日曆選擇器或快速按鈕切換至其他日期查看作答狀況</div>
+          <div class="task-empty-notice-icon">🎮</div>
+          <div class="task-empty-notice-title">該指定日期（${selectedDate}）尚無自由練習受測紀錄</div>
+          <div class="task-empty-notice-desc">可從上方日曆選擇器或快速按鈕切換至其他日期查看作答狀況</div>
         </div>
       </div>
     `;

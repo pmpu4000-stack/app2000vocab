@@ -1792,9 +1792,9 @@
     #free-record-details,
     #st-task-record-details,
     #st-free-record-details {
-      height: 410px !important;
-      min-height: 410px !important;
-      max-height: 410px !important;
+      height: 340px !important;
+      min-height: 340px !important;
+      max-height: 340px !important;
       box-sizing: border-box !important;
       display: flex !important;
       flex-direction: column !important;
@@ -3850,11 +3850,21 @@
     }
     .word-split-content,
     .word-split-box > div:not(.word-split-title) {
-      flex: 1 1 auto !important;
-      height: 0 !important;
-      min-height: 0 !important;
-      max-height: 100% !important;
+      display: flex !important;
+      flex-wrap: wrap !important;
+      align-items: flex-start !important;
+      align-content: flex-start !important;
+      gap: 6px !important;
+      height: 170px !important;
+      min-height: 170px !important;
+      max-height: 170px !important;
       overflow-y: auto !important;
+      overscroll-behavior: contain !important;
+      padding-right: 6px !important;
+      scrollbar-gutter: stable !important;
+      scrollbar-width: thin !important;
+      scrollbar-color: rgba(100, 116, 139, 0.45) transparent !important;
+      box-sizing: border-box !important;
     }
     .word-split-box.correct-box {
       background: #F0F9FF !important;
@@ -3955,13 +3965,17 @@
       flex-direction: column !important;
       align-items: center !important;
       justify-content: center !important;
-      height: 100% !important;
-      min-height: 100% !important;
-      max-height: 100% !important;
+      height: 301px !important;
+      min-height: 301px !important;
+      max-height: 301px !important;
+      background: #F8FAFC !important;
+      border: 1.5px dashed #CBD5E1 !important;
+      border-radius: 12px !important;
+      margin-top: 12px !important;
       padding: 20px 14px !important;
       text-align: center !important;
       box-sizing: border-box !important;
-      overflow: hidden !important;
+      transition: background .2s, border-color .2s !important;
     }
     [data-theme="dark"] .task-empty-notice-box {
       background: rgba(148, 163, 184, 0.05) !important;
@@ -16653,9 +16667,9 @@ function buildTaskDetailsHtml(records, selectedDate, agent) {
     return `
       <div class="task-single-record-block">
         <div class="task-empty-notice-box">
-          <div style="font-size:32px; margin-bottom:10px; line-height:1;">☕</div>
-          <div style="font-size:14.5px; font-weight:700; color:var(--ink2); margin-bottom:6px;">${isSatClearedOnSunday ? "本日無指定單字測驗" : `該日未指派指定測驗 ( ${selectedDate} )`}</div>
-          <div style="font-size:12.5px; color:var(--ink3); max-width:380px; margin:0 auto; line-height:1.5;">${isSatClearedOnSunday ? "本週待攻克單字已於週六全數消滅，今日無須再測驗！已全面開放自由闖關升級。" : "老師當日未指派指定測驗，可切換至其他日期查看紀錄"}</div>
+          <div class="task-empty-notice-icon">☕</div>
+          <div class="task-empty-notice-title">${isSatClearedOnSunday ? "本日無指定單字測驗" : `該日未指派指定測驗（${selectedDate}）`}</div>
+          <div class="task-empty-notice-desc">${isSatClearedOnSunday ? "本週待攻克單字已於週六全數消滅，今日無須再測驗！已全面開放自由闖關升級。" : "老師當天未安排全班指定隨堂測驗，可切換至其他日期查看紀錄"}</div>
         </div>
       </div>
     `;
@@ -16669,9 +16683,9 @@ function buildFreeDetailsHtml(record, selectedDate, agent) {
     return `
       <div>
         <div class="task-empty-notice-box">
-          <div style="font-size:30px; margin-bottom:8px; line-height:1;">🎮</div>
-          <div style="font-size:14px; font-weight:700; color:var(--ink2); margin-bottom:6px;">該指定日期 ( ${selectedDate} ) 尚無自由練習受測紀錄</div>
-          <div style="font-size:12.5px; color:var(--ink3); max-width:380px; margin:0 auto; line-height:1.5;">可從上方日曆選擇器或快速按鈕切換至其他日期查看作答狀況</div>
+          <div class="task-empty-notice-icon">🎮</div>
+          <div class="task-empty-notice-title">該指定日期（${selectedDate}）尚無自由練習受測紀錄</div>
+          <div class="task-empty-notice-desc">可從上方日曆選擇器或快速按鈕切換至其他日期查看作答狀況</div>
         </div>
       </div>
     `;

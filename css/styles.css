@@ -2504,12 +2504,12 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   }
 }
 
-/* 固定方塊高度：平日指定測驗與自由作答紀錄統一固定 290px，零跳動，內部介面自適應佈局 */
+/* 固定方塊高度：平日指定測驗與自由作答紀錄統一固定 340px，零跳動，內部介面自適應佈局 */
 #task-record-details,
 #free-record-details {
-  height: 290px !important;
-  min-height: 290px !important;
-  max-height: 290px !important;
+  height: 340px !important;
+  min-height: 340px !important;
+  max-height: 340px !important;
   box-sizing: border-box !important;
   display: flex !important;
   flex-direction: column !important;
