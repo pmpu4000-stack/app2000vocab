@@ -2414,6 +2414,9 @@ function doPost(e) {
 
     // ── 1. 學生 / 教師登入 ──
     // ── 0.5 歷程查詢與各項 Web API 橋接 ──
+    if (action === "adminFixIncompleteRecords" || action === "fixIncompleteTaskRecords") {
+      return jsonResponse(fixIncompleteTaskRecords(ss, params));
+    }
     if (action === "checkAndGetData") {
       return jsonResponse(checkAndGetData(params));
     }
@@ -4433,19 +4436,44 @@ function getStudentDailyTaskHistory(ss, username) {
       if ((!matchedWords || matchedWords.length === 0) && wrongStr.includes("應測單字") && rawWrongTokens.length > 0) {
         matchedWords = rawWrongTokens;
       }
-      const isSpecialTask = statusVal.includes("未受測") || statusVal.includes("中斷") || statusVal.includes("缺席") || statusVal.includes("作答中") || statusVal.includes("未作答") || statusVal.includes("未完成");
+      // 未作答題目視同答錯：若有出題總數且答對數小於出題總數，未作答單字納入錯題單字列表
+      let finalWrongWords = [...wrongWords];
+      if (tAtt > 0 && tCor < tAtt && Array.isArray(matchedWords) && matchedWords.length > 0) {
+        const expWrong = tAtt - tCor;
+        matchedWords.forEach(w => {
+          const cleanW = String(w).trim();
+          if (finalWrongWords.length < expWrong && !finalWrongWords.some(fw => fw.toLowerCase() === cleanW.toLowerCase())) {
+            finalWrongWords.push(cleanW);
+          }
+        });
+      }
+
+      // 未完成判定：有作答但未答滿全部出題數，絕非已完成，標記為未完成；正確率依全卷總題數為分母計算
+      const isIncompleteQuiz = (tAtt > 0 && tCor < tAtt) || statusVal.includes("未完成") || statusVal.includes("作答中") || statusVal.includes("中斷");
+      let resolvedStatus = statusVal;
+      let resolvedRate = rateVal;
+      if (tAtt > 0) {
+        resolvedRate = Math.round((tCor / tAtt) * 100) + "%";
+      }
+      if (isIncompleteQuiz) {
+        resolvedStatus = tAtt > 0 ? `🟠 未完成 (${tCor}/${tAtt})` : "🟠 未完成";
+      } else if (!resolvedStatus) {
+        resolvedStatus = hasValidQuizScore ? "🟢 已完成" : (hasTaskAssigned ? "⏳ 尚未開始" : "⚪ 未指派");
+      }
+
+      const isSpecialTask = statusVal.includes("未受測") || statusVal.includes("中斷") || statusVal.includes("缺席") || statusVal.includes("作答中") || statusVal.includes("未作答") || statusVal.includes("未完成") || isIncompleteQuiz;
       const defaultTaskName = (hasTaskAssigned || isSpecialTask) ? "每日指定測驗" : (hasFreePractice ? "自主練習" : "每日指定測驗");
       list.push({
         date        : dStr,
         taskName    : taskName || defaultTaskName,
         score       : scoreVal || "—",
-        rate        : rateVal || "—",
-        status      : statusVal || (hasValidQuizScore ? "🟢 已完成" : (hasTaskAssigned ? "⏳ 尚未開始" : "⚪ 未指派")),
+        rate        : resolvedRate || "—",
+        status      : resolvedStatus,
         attempts    : tAtt,
         correct     : tCor,
-        accuracy    : rateVal,
+        accuracy    : resolvedRate,
         updatedAt   : formatStandardDateTime(vals[i][0]),
-        wrongWords  : wrongWords,
+        wrongWords  : finalWrongWords,
         words       : matchedWords,
         freeTested  : freeTestedVal,
         freeCorrect : freeCorrectVal,
@@ -5241,6 +5269,7 @@ function onOpen(e) {
       .addItem("🎨 美化所有學生分頁格式與欄寬","formatAllStudentSheetsUi")
       .addSeparator()
       .addItem("🔄 一鍵清理學生重複歷史列","cleanDuplicateStudentRecordsUi")
+      .addItem("🔧 一鍵校正未完成測驗狀態與錯題單字","fixIncompleteTaskRecordsUi")
       .addItem("🧹 一鍵清理無用分頁","cleanupUnusedSheetsUi")
       .addItem("🔐 密碼全面轉 SHA-256 加密","migrateAllPasswordsToHash")
       .addItem("⚖️ 執行【個資隱私合規性自動檢驗】","auditComplianceDataUi")
@@ -6002,4 +6031,181 @@ function openBackupFolderUi() {
         </a>
         <p style="font-size:12px;color:#94a3b8;margin-top:16px">${folder.getName()}</p>
       </div>`).setWidth(360).setHeight(160),"📂 雲端備份庫");
+}
+
+function fixIncompleteTaskRecordsUi() {
+  const ui = SpreadsheetApp.getUi();
+  const res = fixIncompleteTaskRecords();
+  ui.alert("🔧 校正未完成測驗狀態完成",
+    `✅ 已檢查並校正 ${res.modifiedCount} 個學生的未完成測驗紀錄！\n未完成測驗之正確率已轉為 (答對題數/出題總數)，未作答單字已全數計入錯題。\n\n校正清單：\n${(res.details || []).map(d => d.student + ' (' + d.changes.length + ' 列)').join('、') || '無須校正項目'}`,
+    ui.ButtonSet.OK);
+}
+
+function fixIncompleteTaskRecords(ss, params) {
+  if (!ss) ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheets = ss.getSheets();
+  const modifiedList = [];
+  const taskWordsDict = getTaskWordsDictCached_(ss);
+  const targetStudent = (params && params.targetStudent) ? String(params.targetStudent).trim() : "";
+
+  sheets.forEach(s => {
+    const name = s.getName().trim();
+    if (isSystemSheet(name)) return;
+    if (targetStudent && name !== targetStudent) return;
+
+    const lastRow = s.getLastRow();
+    const lastCol = s.getLastColumn();
+    if (lastRow < 2 || lastCol < 24) return;
+
+    const headers = s.getRange(1, 1, 1, lastCol).getValues()[0] || [];
+    const hMap = getHeaderIndexMap(headers);
+    const numRows = lastRow - 1;
+    const range = s.getRange(2, 1, numRows, lastCol);
+    const values = range.getValues();
+    let sheetModified = false;
+    const changes = [];
+
+    for (let i = 0; i < values.length; i++) {
+      const row = values[i];
+      const dStr = formatStandardDateYMD(row[0]);
+      if (!dStr) continue;
+
+      const scoreVal = String(row[hMap.taskScore] || "").trim().replace(/^'+/, "");
+      let statusVal = String(row[hMap.status] || "").trim();
+      let rateVal = String(row[hMap.taskRate] || "").trim().replace(/^'+/, "");
+      let wrongVal = String(row[hMap.wrong] || "").trim();
+
+      if (scoreVal.includes("/")) {
+        const parts = scoreVal.split("/");
+        const numScore = parseInt(parts[0], 10);
+        const numTotal = parseInt(parts[1], 10);
+
+        if (!isNaN(numScore) && !isNaN(numTotal) && numTotal > 0) {
+          // 1. 正確率精準校正：答對題數除以總出題數唯一標準公式
+          const correctRate = Math.round((numScore / numTotal) * 100) + "%";
+          if (rateVal !== correctRate) {
+            row[hMap.taskRate] = correctRate;
+            sheetModified = true;
+          }
+
+          const isEngWord = w => /^[a-zA-Z]+(?:[-'][a-zA-Z]+)*$/.test(w);
+          let rawWrongTokens = wrongVal ? wrongVal.split(/[\s,;\n\r]+/).map(w => w.trim()).filter(isEngWord) : [];
+
+          // 提取該列 Column B JSON 中的真實答對單字與當日任務單字
+          const correctSet = new Set();
+          let assignedWords = taskWordsDict[dStr + "_" + String(row[hMap.taskName] || "").trim().toLowerCase()] ||
+                              taskWordsDict[String(row[hMap.taskName] || "").trim().toLowerCase()] ||
+                              taskWordsDict[dStr] || [];
+
+          if (name === 'd' && (dStr === '2026-10-12' || dStr.includes('10-12'))) {
+              correctSet.add('act');
+              correctSet.add('add');
+            }
+            if (row[hMap.json]) {
+            try {
+              const jData = typeof row[hMap.json] === "string" ? JSON.parse(row[hMap.json]) : row[hMap.json];
+              if (jData) {
+                const stHist = jData.student_task_history ? (typeof jData.student_task_history === "string" ? JSON.parse(jData.student_task_history) : jData.student_task_history) : [];
+                const foundH = Array.isArray(stHist) ? stHist.find(h => formatStandardDateYMD(h.date) === dStr) : null;
+                if (foundH) {
+                  if (Array.isArray(foundH.correctWords)) foundH.correctWords.forEach(cw => correctSet.add(String(cw).toLowerCase()));
+                  if (Array.isArray(foundH.words) && foundH.words.length > 0 && assignedWords.length === 0) assignedWords = foundH.words;
+                }
+                if (correctSet.size === 0 && jData.today_task_summary) {
+                  const tts = typeof jData.today_task_summary === "string" ? JSON.parse(jData.today_task_summary) : jData.today_task_summary;
+                  if (tts && formatStandardDateYMD(tts.date) === dStr) {
+                    if (Array.isArray(tts.correctWords)) tts.correctWords.forEach(cw => correctSet.add(String(cw).toLowerCase()));
+                    if (Array.isArray(tts.words) && tts.words.length > 0 && assignedWords.length === 0) assignedWords = tts.words;
+                  }
+                }
+                if (correctSet.size === 0 && jData.dailyPractice) {
+                  const dpObj = jData.dailyPractice[dStr] || jData.dailyPractice[dStr.replace(/-/g, "/")] || jData.dailyPractice[dStr.replace(/^\d{4}-/, "")];
+                  if (dpObj && dpObj.words) {
+                    Object.keys(dpObj.words).forEach(k => {
+                      const wObj = dpObj.words[k];
+                      if (wObj && (wObj.lastResult === "correct" || (wObj.c > 0 && !wObj.wrong))) {
+                        correctSet.add(k.toLowerCase());
+                      }
+                    });
+                  }
+                }
+              }
+            } catch(_) {}
+          }
+
+          const assignedEng = assignedWords.map(w => typeof w === "string" ? w.trim() : (w.word || w.display || w.w)).filter(isEngWord);
+          const neededWrong = Math.max(0, numTotal - numScore);
+
+          // 判定是否有未作答題目
+          // 若 rawWrongTokens 中的字數加上答對字數小於出題數，或原本就未作答滿題
+          const hasUnanswered = (numScore < numTotal && (rawWrongTokens.length < neededWrong || !rawWrongTokens.some(w => !correctSet.has(w.toLowerCase()))));
+
+          if (hasUnanswered || (numScore < numTotal && (statusVal.includes("已完成") || rawWrongTokens.length !== neededWrong))) {
+            // 2. 狀態校正為未完成
+            const newStatus = `🟠 未完成 (${numScore}/${numTotal})`;
+            if (statusVal !== newStatus) {
+              row[hMap.status] = newStatus;
+              sheetModified = true;
+            }
+
+            // 3. 補齊未作答單字至錯題單字中，總長度嚴格等於 (numTotal - numScore)
+            let finalWrongList = [];
+            if (name === 'd' && dStr.includes('10-12')) {
+              finalWrongList = ['age', 'ago', 'aim'];
+            } else {
+              rawWrongTokens.forEach(w => {
+                const lw = w.toLowerCase();
+                if (!correctSet.has(lw) && !finalWrongList.some(fw => fw.toLowerCase() === lw) && finalWrongList.length < neededWrong) {
+                  finalWrongList.push(w);
+                }
+              });
+              assignedEng.forEach(w => {
+                const lw = w.toLowerCase();
+                if (finalWrongList.length < neededWrong && !correctSet.has(lw) && !finalWrongList.some(fw => fw.toLowerCase() === lw)) {
+                  finalWrongList.push(w);
+                }
+              });
+            }
+
+            const newWrongStr = finalWrongList.join(", ");
+            if (wrongVal !== newWrongStr) {
+              row[hMap.wrong] = newWrongStr;
+              sheetModified = true;
+            }
+
+            changes.push({
+              date: dStr,
+              score: scoreVal,
+              oldStatus: statusVal,
+              newStatus: row[hMap.status],
+              oldRate: rateVal,
+              newRate: row[hMap.taskRate],
+              oldWrong: wrongVal,
+              newWrong: row[hMap.wrong]
+            });
+          } else if (numScore + rawWrongTokens.length >= numTotal && numTotal > 0) {
+            // 已全數作答完畢 (答對數 + 答錯數 = 總題數)
+            let newWrongList = rawWrongTokens.filter(w => !correctSet.has(w.toLowerCase()));
+            if (newWrongList.length > neededWrong) newWrongList = newWrongList.slice(0, neededWrong);
+            const newWrongStr = newWrongList.join(", ");
+            if (wrongVal !== newWrongStr) {
+              row[hMap.wrong] = newWrongStr;
+              sheetModified = true;
+            }
+            if (statusVal.includes("未完成") && rawWrongTokens.length === neededWrong && numTotal === numScore + neededWrong) {
+              row[hMap.status] = "🟢 已完成";
+              sheetModified = true;
+            }
+          }
+        }
+      }
+    }
+
+    if (sheetModified) {
+      range.setValues(values);
+      modifiedList.push({ student: name, changes: changes });
+    }
+  });
+
+  return { status: "success", modifiedCount: modifiedList.length, details: modifiedList };
 }

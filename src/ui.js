@@ -1364,6 +1364,17 @@ function resolveTaskWords(record, selectedDate, d) {
     const expWrong = Math.max(0, expectedTotal - expectedCorrect);
     if (wrongList.length > expWrong) {
       wrongList = wrongList.slice(0, expWrong);
+    } else if (wrongList.length < expWrong && rawWords.length > 0) {
+      // 未作答單字視同答錯，補入錯題單字清單中
+      const corrSet = new Set(correctList.map(w => w.toLowerCase()));
+      const wrongSet = new Set(wrongList.map(w => w.toLowerCase()));
+      rawWords.forEach(w => {
+        const lw = w.toLowerCase();
+        if (!corrSet.has(lw) && !wrongSet.has(lw) && wrongList.length < expWrong) {
+          wrongList.push(w);
+          wrongSet.add(lw);
+        }
+      });
     }
   }
 
@@ -1460,7 +1471,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     statusColor = "#64748b";
     statusDesc = hasLoggedInOrFree ? "☕ 當日老師無指派測驗，學生自主練習" : "☕ 當日老師無指派測驗";
   } else if (isIncomplete) {
-    displayStatusStr = `作答中斷 (${taskCorrWords}/${assignedTotWords})`;
+    displayStatusStr = `未完成 (${taskCorrWords}/${assignedTotWords})`;
     statusColor = "#6B21A8";
     statusDesc = "⏳ 測驗中途作答中斷";
   } else if (isFinished) {
