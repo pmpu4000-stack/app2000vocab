@@ -1799,6 +1799,28 @@
       display: flex !important;
       flex-direction: column !important;
       overflow-y: auto !important;
+      scrollbar-gutter: stable;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(100, 116, 139, 0.45) transparent;
+    }
+    #task-record-details::-webkit-scrollbar,
+    #free-record-details::-webkit-scrollbar,
+    #st-task-record-details::-webkit-scrollbar,
+    #st-free-record-details::-webkit-scrollbar {
+      width: 6px;
+    }
+    #task-record-details::-webkit-scrollbar-track,
+    #free-record-details::-webkit-scrollbar-track,
+    #st-task-record-details::-webkit-scrollbar-track,
+    #st-free-record-details::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    #task-record-details::-webkit-scrollbar-thumb,
+    #free-record-details::-webkit-scrollbar-thumb,
+    #st-task-record-details::-webkit-scrollbar-thumb,
+    #st-free-record-details::-webkit-scrollbar-thumb {
+      background: rgba(100, 116, 139, 0.45);
+      border-radius: 999px;
     }
 
     #task-record-details > div,
@@ -1806,12 +1828,13 @@
     #st-task-record-details > div,
     #st-free-record-details > div,
     .task-single-record-block {
-      width: 100% !important;
-      box-sizing: border-box !important;
+      height: 100% !important;
+      min-height: 100% !important;
+      max-height: 100% !important;
       display: flex !important;
       flex-direction: column !important;
-      flex: 1 1 auto !important;
-      min-height: 0 !important;
+      box-sizing: border-box !important;
+      width: 100% !important;
     }
 
     /* ── 列印專用樣式 (@media print) ── */
@@ -3330,9 +3353,11 @@
     .task-history-card {
       background: #F8F9FD !important;
       border: 1px solid var(--line) !important;
-      border-radius: 14px !important;
-      padding: 14px 16px !important;
-      margin: 10px 0 16px !important;
+      border-radius: 12px !important;
+      padding: 10px 12px !important;
+      margin: 0 0 8px !important;
+      overflow: hidden !important;
+      box-sizing: border-box !important;
       box-shadow: none !important;
     }
     .task-history-card:last-child {
@@ -3833,8 +3858,10 @@
       justify-content: space-between !important;
       align-items: center !important;
       flex-wrap: wrap !important;
-      gap: 8px !important;
-      margin-bottom: 12px !important;
+      gap: 6px !important;
+      margin-bottom: 6px !important;
+      min-height: 24px !important;
+      flex: 0 0 auto !important;
     }
     .task-card-title {
       font-size: 12px !important;
@@ -3859,8 +3886,11 @@
     .task-score-grid {
       display: grid !important;
       grid-template-columns: repeat(2, 1fr) !important;
-      gap: 10px !important;
-      margin-bottom: 12px !important;
+      gap: 8px !important;
+      margin-bottom: 6px !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+      flex: 0 0 auto !important;
     }
     .task-score-subgrid {
       display: grid !important;
@@ -3897,10 +3927,12 @@
     .task-score-item {
       background: #FFFFFF !important;
       border: 1px solid var(--line) !important;
-      border-radius: 12px !important;
-      padding: 10px !important;
+      border-radius: 10px !important;
+      padding: 8px !important;
       text-align: center !important;
       box-shadow: 0 1px 3px rgba(35, 42, 77, 0.03) !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
     }
     [data-theme="dark"] .task-score-item {
       background: #181C2A !important;
@@ -3969,9 +4001,28 @@
         padding-right: 4px !important;
       }
     }
+    .word-split-grid,
+    .word-split-grid.grid-2 {
+      flex: 1 1 auto !important;
+      height: 0 !important;
+      min-height: 0 !important;
+      max-height: 100% !important;
+      display: grid !important;
+      grid-template-columns: 1fr 1fr !important;
+      gap: 8px !important;
+      margin-top: 0 !important;
+      box-sizing: border-box !important;
+    }
     .word-split-box {
-      border-radius: 12px !important;
-      padding: 12px 14px !important;
+      height: 100% !important;
+      min-height: 0 !important;
+      max-height: 100% !important;
+      display: flex !important;
+      flex-direction: column !important;
+      padding: 8px 10px !important;
+      border-radius: 10px !important;
+      box-sizing: border-box !important;
+      overflow: hidden !important;
     }
     .word-split-box.correct-box {
       background: #F0F9FF !important;
@@ -4030,9 +4081,9 @@
       text-align: center !important;
       line-height: 1 !important;
     }
-    .word-split-title.correct-title { color: #065F46 !important; }
+    .word-split-title.correct-title { color: #0284C7 !important; }
     .word-split-title.wrong-title { color: #475569 !important; }
-    [data-theme="dark"] .word-split-title.correct-title { color: #38C78B !important; }
+    [data-theme="dark"] .word-split-title.correct-title { color: #38BDF8 !important; }
     [data-theme="dark"] .word-split-title.wrong-title { color: #94A3B8 !important; }
 
     .word-split-content,
@@ -4041,15 +4092,17 @@
       flex-wrap: wrap !important;
       align-items: flex-start !important;
       align-content: flex-start !important;
-      gap: 5px !important;
-      height: 160px !important;
-      min-height: 160px !important;
-      max-height: 160px !important;
+      gap: 4px !important;
+      flex: 1 1 auto !important;
+      height: 0 !important;
+      min-height: 0 !important;
       overflow-y: auto !important;
       overscroll-behavior: contain !important;
       padding-right: 4px !important;
+      scrollbar-gutter: stable !important;
       scrollbar-width: thin !important;
-      scrollbar-color: rgba(100, 116, 139, 0.35) transparent !important;
+      scrollbar-color: rgba(100, 116, 139, 0.45) transparent !important;
+      box-sizing: border-box !important;
     }
     .task-empty-notice-box {
       flex: 1 1 auto !important;
@@ -4170,12 +4223,12 @@
       display: inline-flex !important;
       align-items: center !important;
       gap: 4px !important;
-      padding: 5px 10px !important;
-      border-radius: 8px !important;
+      padding: 3.5px 8.5px !important;
+      border-radius: 6px !important;
       font-size: 12.5px !important;
       font-weight: 700 !important;
-      margin: 3px !important;
-      line-height: 1.4 !important;
+      margin: 1.5px 2px !important;
+      line-height: 1.25 !important;
       cursor: pointer !important;
       transition: transform .12s, box-shadow .12s !important;
       user-select: none !important;
@@ -4264,15 +4317,16 @@
 
     /* 練習紀錄熱力圖與連續天數 */
     .streakline {
-      font-size: 13.5px !important;
+      font-size: 13px !important;
       font-weight: 800 !important;
       color: var(--ink2) !important;
-      margin-bottom: 10px !important;
+      margin-bottom: 6px !important;
       display: flex !important;
       align-items: center !important;
-      justify-content: flex-start !important;
-      flex-wrap: nowrap !important;
-      gap: 10px !important;
+      justify-content: space-between !important;
+      flex-wrap: wrap !important;
+      gap: 6px 10px !important;
+      line-height: 1.5 !important;
     }
     .streakline > span:first-child {
       white-space: nowrap !important;
@@ -4293,18 +4347,19 @@
       align-items: center !important;
       justify-content: center !important;
       gap: 6px !important;
-      width: 215px !important;
-      min-width: 215px !important;
-      max-width: 215px !important;
-      height: 34px !important;
-      padding: 0 12px !important;
+      width: auto !important;
+      min-width: 180px !important;
+      max-width: 100% !important;
+      height: 32px !important;
+      padding: 0 10px !important;
       box-sizing: border-box !important;
       border-radius: 9px !important;
-      font-size: 13px !important;
+      font-size: 12.5px !important;
       font-weight: 800 !important;
       line-height: 1 !important;
       white-space: nowrap !important;
       flex-shrink: 0 !important;
+      margin-left: auto !important;
       background: #ECFDF5 !important;
       color: #065F46 !important;
       border: 2px solid #10B981 !important;
@@ -4708,11 +4763,12 @@
 
     .heatmap {
       display: grid !important;
-      grid-template-columns: repeat(14, 1fr) !important;
+      grid-template-columns: repeat(14, minmax(0, 1fr)) !important;
+      justify-content: normal !important;
       gap: 5px !important;
       width: 100% !important;
       max-width: 100% !important;
-      margin: 10px 0 12px !important;
+      margin: 6px 0 8px !important;
     }
     .hc {
       width: 100% !important;
@@ -4846,8 +4902,8 @@
     [data-theme="dark"] .heat-day-info.tier-green-perfect b, [data-theme="dark"] .heat-day-info.tier-blue-perfect b { color: #E0F2FE !important; }
 
     .embedded-heatmap-sec {
-      margin-top: 14px !important;
-      padding-top: 12px !important;
+      margin-top: 8px !important;
+      padding-top: 8px !important;
       border-top: 1px dashed var(--line) !important;
     }
     [data-theme="dark"] .embedded-heatmap-sec {
@@ -16251,7 +16307,8 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
   let formattedTaskName = "";
   if (isWeekendTask) {
     const cleanDate = formatWeekendTaskDate(dateStr || selectedDate, record.taskName);
-    formattedTaskName = cleanDate ? `🎯 ${cleanDate} 週末待攻克測驗作答紀錄` : "🎯 週末待攻克測驗作答紀錄";
+    const isBoss = String(record.taskName || "").includes("雙週") || (typeof getBiweeklyCycleInfo === "function" && getBiweeklyCycleInfo(dateStr || selectedDate).isBiweeklyBossWeek);
+    formattedTaskName = cleanDate ? `🎯 ${cleanDate} ${isBoss ? "雙週指定單字大消滅戰" : "週末待攻克測驗"}作答紀錄` : (isBoss ? "🎯 雙週指定單字大消滅戰作答紀錄" : "🎯 週末待攻克測驗作答紀錄");
   } else {
     let cleanTaskName = String(record.taskName || "平日指定測驗").trim().replace(/^[📝📑\s]+/, "");
     cleanTaskName = cleanTaskName.replace(/指定單字隨堂測驗/g, "平日指定測驗作答紀錄").replace(/隨堂測驗/g, "測驗結果");
@@ -17299,7 +17356,8 @@ function renderStudentDailyTaskAndFreeSections(resp) {
     })(targetDate);
     const subhTitleEl = document.getElementById("st-task-subh-title");
     if (subhTitleEl) {
-      subhTitleEl.textContent = isWk ? `🎯 ${formatWeekendTaskDate(targetDate)} 週末待攻克測驗作答紀錄` : "📝 平日指定測驗作答紀錄";
+      const isBoss = (typeof getBiweeklyCycleInfo === "function" && getBiweeklyCycleInfo(targetDate).isBiweeklyBossWeek);
+      subhTitleEl.textContent = isWk ? `🎯 ${formatWeekendTaskDate(targetDate)} ${isBoss ? "雙週指定單字大消滅戰" : "週末待攻克測驗"}作答紀錄` : "📝 平日指定測驗作答紀錄";
     }
 
     // B. 匹配自由練習紀錄 (相容 padded, unpadded, slash 鍵名，並支援從 Sheet 專屬欄位讀取)
