@@ -3109,11 +3109,26 @@
       color: var(--sky) !important;
     }
 
-    /* 待攻克單字週次切換群組與下拉式選單 (淺色與深色模式完全支援，比照遊戲網頁設定) */
+    /* 待攻克單字週次切換群組與下拉式選單 (100% 完整複製遊戲網頁介面設定) */
+    .conquer-cycle-nav-bar {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      flex-wrap: wrap !important;
+      gap: 8px !important;
+      padding: 0 !important;
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      margin-bottom: 6px !important;
+    }
     #st-conquer-cycle-select {
       font-size: 12px !important;
-      padding: 4px 9px !important;
-      border-radius: 6px !important;
+      height: 30px !important;
+      min-height: 30px !important;
+      max-height: 30px !important;
+      padding: 0 8px !important;
+      border-radius: 8px !important;
       border: 1.5px solid rgba(148, 163, 184, 0.35) !important;
       background: var(--card, #FFFFFF) !important;
       color: var(--ink, #232A4D) !important;
@@ -3124,24 +3139,32 @@
     }
     [data-theme="dark"] #st-conquer-cycle-select {
       background: #1C2234 !important;
-      border-color: #2B354E !important;
-      color: #FFFFFF !important;
+      border-color: #2B334E !important;
+      color: #F0F3FA !important;
+    }
+    .conquer-cycle-toggle-group {
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 6px !important;
     }
     .conquer-cycle-toggle-group .date-nav-btn {
       display: inline-flex !important;
       align-items: center !important;
       justify-content: center !important;
       gap: 4px !important;
-      font-size: 11.5px !important;
+      font-size: 12px !important;
       font-weight: 700 !important;
-      padding: 3px 8px !important;
-      border-radius: 6px !important;
-      height: auto !important;
+      padding: 0 10px !important;
+      border-radius: 8px !important;
+      height: 30px !important;
+      min-height: 30px !important;
+      max-height: 30px !important;
       line-height: 1.2 !important;
       white-space: nowrap !important;
-      background: var(--card, #FFFFFF) !important;
-      border: 1px solid var(--line, #CBD5E1) !important;
+      background: #FFFFFF !important;
+      border: 1.5px solid #CBD5E1 !important;
       color: var(--ink, #232A4D) !important;
+      box-sizing: border-box !important;
       transition: all .15s !important;
     }
     .conquer-cycle-toggle-group .date-nav-btn:hover {
@@ -3151,8 +3174,8 @@
     }
     .conquer-cycle-toggle-group .date-nav-btn.today-btn {
       background: #EDF8FD !important;
-      border-color: rgba(45, 156, 219, 0.45) !important;
-      color: var(--sky, #0284C7) !important;
+      border-color: #0284C7 !important;
+      color: #0284C7 !important;
       font-weight: 800 !important;
     }
     .conquer-cycle-toggle-group .date-nav-btn.today-btn:hover {
@@ -3161,18 +3184,19 @@
     }
     [data-theme="dark"] .conquer-cycle-toggle-group .date-nav-btn {
       background: #1C2234 !important;
-      border-color: #2B354E !important;
-      color: #FFFFFF !important;
+      border-color: #2B334E !important;
+      color: #F0F3FA !important;
     }
     [data-theme="dark"] .conquer-cycle-toggle-group .date-nav-btn:hover {
       background: #2B334D !important;
-      border-color: var(--sky, #38BDF8) !important;
+      border-color: #38BDF8 !important;
       color: #38BDF8 !important;
     }
     [data-theme="dark"] .conquer-cycle-toggle-group .date-nav-btn.today-btn {
       background: rgba(45, 156, 219, 0.18) !important;
       border-color: #0284C7 !important;
       color: #38BDF8 !important;
+      font-weight: 800 !important;
     }
 
     /* 歷程檔案匯出卡片：完全保留上一版精緻、緊湊、對齊的原始設計 */
@@ -17668,17 +17692,17 @@ function _renderConquerWordCard(wordStr) {
 
     const isCurrentActive = (activeW === curSemWeek);
     const cycleSelectBarHtml = `
-      <div class="conquer-cycle-nav-bar" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; padding:8px 12px; background:var(--bar-track, rgba(148,163,184,0.08)); border:1px solid rgba(148,163,184,0.18); border-radius:10px; margin-bottom:4px;">
+      <div class="conquer-cycle-nav-bar" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; padding:0; background:transparent; border:none; margin-bottom:6px;">
         <div style="display:flex; align-items:center; gap:6px; font-size:12.5px; font-weight:750; color:var(--ink); white-space:nowrap; flex-shrink:0;">
           <span style="white-space:nowrap; flex-shrink:0;">📅 查看週次：</span>
-          <select id="st-conquer-cycle-select" class="task-date-selector" style="font-size:12px; padding:4px 9px; border-radius:6px; border:1.5px solid rgba(148,163,184,0.35); background:var(--card, #fff); color:var(--ink); font-weight:700; cursor:pointer; width:auto !important; max-width:240px !important; min-width:130px !important; flex-shrink:0;" title="選擇查看待攻克學期週次">
+          <select id="st-conquer-cycle-select" class="task-date-selector" style="font-size:12px; height:30px; min-height:30px; padding:0 8px; border-radius:8px; border:1.5px solid rgba(148,163,184,0.35); background:var(--card, #fff); color:var(--ink); font-weight:700; cursor:pointer; width:auto !important; max-width:240px !important; min-width:130px !important; flex-shrink:0; box-sizing:border-box;" title="選擇查看待攻克學期週次">
             ${weekOptionsHtml}
           </select>
         </div>
-        <div class="conquer-cycle-toggle-group date-nav-btn-group" style="display:inline-flex; align-items:center; gap:4px; flex:0 0 auto;">
-          <button type="button" id="btn-st-conquer-cycle-prev" class="date-nav-btn" ${activeW <= 1 ? 'disabled' : ''} style="font-size:11.5px; padding:3px 8px; border-radius:6px; height:auto; line-height:1.2; cursor:${activeW <= 1 ? 'not-allowed' : 'pointer'}; opacity:${activeW <= 1 ? '0.45' : '1'}; flex:0 0 auto;" title="查看上一週（第 ${Math.max(1, activeW - 1)} 週）待攻克單字">◀ 上一週</button>
-          <button type="button" id="btn-st-conquer-cycle-current" class="date-nav-btn today-btn ${isCurrentActive ? 'active' : ''}" style="font-size:11.5px; padding:3px 8px; border-radius:6px; height:auto; line-height:1.2; cursor:pointer; flex:0 0 auto;" title="切換回本週（第 ${curSemWeek} 週）">📍 本週</button>
-          <button type="button" id="btn-st-conquer-cycle-next" class="date-nav-btn" ${activeW >= 20 ? 'disabled' : ''} style="font-size:11.5px; padding:3px 8px; border-radius:6px; height:auto; line-height:1.2; cursor:${activeW >= 20 ? 'not-allowed' : 'pointer'}; opacity:${activeW >= 20 ? '0.45' : '1'}; flex:0 0 auto;" title="查看下一週（第 ${Math.min(20, activeW + 1)} 週）待攻克單字">下一週 ▶</button>
+        <div class="conquer-cycle-toggle-group" style="display:inline-flex; align-items:center; gap:6px; flex:0 0 auto;">
+          <button type="button" id="btn-st-conquer-cycle-prev" class="date-nav-btn" ${activeW <= 1 ? 'disabled' : ''} style="font-size:12px; height:30px; min-height:30px; padding:0 10px; border-radius:8px; cursor:${activeW <= 1 ? 'not-allowed' : 'pointer'}; opacity:${activeW <= 1 ? '0.45' : '1'}; flex:0 0 auto; box-sizing:border-box;" title="查看上一週（第 ${Math.max(1, activeW - 1)} 週）待攻克單字">◀ 上一週</button>
+          <button type="button" id="btn-st-conquer-cycle-current" class="date-nav-btn today-btn ${isCurrentActive ? 'active' : ''}" style="font-size:12px; height:30px; min-height:30px; padding:0 10px; border-radius:8px; cursor:pointer; flex:0 0 auto; box-sizing:border-box;" title="切換回本週（第 ${curSemWeek} 週）">📍 本週</button>
+          <button type="button" id="btn-st-conquer-cycle-next" class="date-nav-btn" ${activeW >= 20 ? 'disabled' : ''} style="font-size:12px; height:30px; min-height:30px; padding:0 10px; border-radius:8px; cursor:${activeW >= 20 ? 'not-allowed' : 'pointer'}; opacity:${activeW >= 20 ? '0.45' : '1'}; flex:0 0 auto; box-sizing:border-box;" title="查看下一週（第 ${Math.min(20, activeW + 1)} 週）待攻克單字">下一週 ▶</button>
         </div>
       </div>
     `;
@@ -17840,13 +17864,13 @@ function _renderConquerWordCard(wordStr) {
     `;
 
     const isBoss = (activeW % 2 === 0);
-    const isPrevious = (activeW < curSemWeek);
+    const isPrevious = (cycleParam === "previous" || cycleParam === "prevWeek");
     if (count === 0) {
       const emptyTitle = isPrevious
         ? "太棒了！上週平日測驗無遺留待攻克單字"
         : `太棒了！${isBoss ? "雙週" : "本週"}目前無待攻克單字`;
       const emptyDesc = isPrevious
-        ? "該生上週平日測驗的所有單字皆已掌握或已於自由練習中全數攻克！"
+        ? "上週平日測驗的所有單字皆已掌握或已於自由練習中全數攻克！"
         : (isBoss ? "雙週平日測驗單字皆已掌握或已於自由練習中全數攻克，" : "本週平日測驗單字皆已掌握或已於自由練習中全數攻克，");
       const emptySub = isPrevious
         ? "上週的錯題庫已完全清空！"
@@ -17953,10 +17977,10 @@ function _renderConquerWordCard(wordStr) {
       }).join("");
 
       const tipText = isPrevious
-        ? `檢視該生<b>上週平日測驗</b>遺留的 <b>${count}</b> 個待攻克單字。在自由練習中只要拼對該單字，系統即判定為已學會並自動移除！`
+        ? `檢視上週平日測驗遺留的 <b>${count}</b> 個待攻克單字，在自由練習中只要拼對該單字，系統即判定為已學會並自動移除！`
         : (isBoss
-          ? `雙週（第 2 週大消滅週期）累積 <b>${count}</b> 個待攻克單字。在<b>自由練習</b>中只要拼對該單字，系統即判定為已學會並自動移除！<b>自由練習答錯不計入待攻克</b>，週末將進行雙週大魔王消滅戰。`
-          : `本週（雙週週期第 1 週）累積 <b>${count}</b> 個待攻克單字。在<b>自由練習</b>中只要拼對該單字，系統即判定為已學會並自動移除！<b>自由練習答錯不計入待攻克</b>，週末未消滅之單字將滾入雙週大魔王儲備池。`);
+          ? `雙週（第 2 週大消滅週期）累積 ${count} 個待攻克單字，在自由練習中只要拼對該單字，系統即判定為已學會並自動移除！自由練習答錯不計入待攻克，週末將進行雙週大魔王消滅戰。`
+          : `本週（雙週週期第 1 週）累積 ${count} 個待攻克單字，在自由練習中只要拼對該單字，系統即判定為已學會並自動移除！自由練習答錯不計入待攻克，週末未消滅之單字將滾入雙週大魔王儲備池。`);
 
       conquerDetailsContainer.innerHTML = `
         <div class="week-conquer-wrap" style="display:flex; flex-direction:column; gap:8px;">
