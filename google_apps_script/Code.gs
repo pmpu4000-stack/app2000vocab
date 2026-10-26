@@ -346,10 +346,17 @@ function ensureStudentSheetColumns(sheet) {
     const maxCols = sheet.getMaxColumns();
     const lastCol = sheet.getLastColumn();
 
-    // 🚀 極速快取檢查：若表頭已是最新 33 欄且欄位名稱完全相符，立即返回，省去多餘 API 延遲！
+    // 🚀 極速快取檢查：若表頭已是最新 33 欄且欄位名稱完全相符
     if (lastCol >= 33) {
       const firstRowVals = sheet.getRange(1, 1, 1, 33).getValues()[0] || [];
       if (firstRowVals[2] === "等級" && firstRowVals[6] === "學習中" && firstRowVals[9] === "共答對單字" && firstRowVals[21] === "任務名稱" && firstRowVals[22] === "施測單字數" && firstRowVals[29] === "自由練習受測字數") {
+        if (sheet.getLastRow() >= 2) {
+          const sampleRow = sheet.getRange(2, 23, 1, 7).getValues()[0] || [];
+          const hasOldData = String(sampleRow[1] || "").includes("%") || String(sampleRow[2] || "").includes("完成") || String(sampleRow[5] || "").includes("%") || String(sampleRow[0] || "").includes("/");
+          if (hasOldData) {
+            migrateStudentSheetRows_(sheet);
+          }
+        }
         return;
       }
     }
@@ -397,10 +404,10 @@ function ensureStudentSheetColumns(sheet) {
       sheet.getRange("L:L").setNumberFormat("0%");
       sheet.getRange("M:U").setNumberFormat("@");
       sheet.getRange("W:Y").setNumberFormat("0");
-      sheet.getRange("Z:AA").setNumberFormat("@");
-      sheet.getRange("AD:AF").setNumberFormat("@");
-      sheet.getRange("AG:AG").setNumberFormat("@");
+      sheet.getRange("Z:AG").setNumberFormat("@");
     } catch(_) {}
+
+    migrateStudentSheetRows_(sheet);
 
     // 5. 效能優化：裁切多餘空白列（保留最多 120 列），大幅提升 Google Sheets 開啟與捲動速度
     const maxR = sheet.getMaxRows();
@@ -4730,9 +4737,28 @@ function _getStudentData(ss, username) {
 
   const headers = sheet.getRange(1, 1, 1, lastCol).getDisplayValues()[0];
   const rawData = sheet.getRange(2, 1, maxRowsToRead, lastCol).getDisplayValues();
-  // 自動校準：若學生歷史紀錄中指定測驗為 A/B (如 2/5)，校正正確率為 (A/B)%、未達出題數標示為未完成
+  // 自動校準：依新 33 欄結構，作答數/施測數決定完成狀態，答對/作答決定正確率
   const hMap = getHeaderIndexMap(headers);
-  if (hMap.taskScore >= 0 && hMap.taskRate >= 0 && hMap.status >= 0) {
+  if (hMap.taskAssigned >= 0 && hMap.taskAnswered >= 0 && hMap.taskCorrect >= 0) {
+    for (let r = 0; r < rawData.length; r++) {
+      const assigned = parseInt(rawData[r][hMap.taskAssigned], 10);
+      const answered = parseInt(rawData[r][hMap.taskAnswered], 10);
+      const correct = parseInt(rawData[r][hMap.taskCorrect], 10);
+      const statusStr = String(rawData[r][hMap.status] || "").trim();
+
+      if (!isNaN(assigned) && assigned > 0 && !isNaN(answered)) {
+        if (!isNaN(correct) && answered > 0) {
+          rawData[r][hMap.taskScore] = `${correct}/${answered}`;
+          rawData[r][hMap.taskRate] = Math.round((correct / answered) * 100) + "%";
+        }
+        if (answered !== assigned) {
+          rawData[r][hMap.status] = `🟠 未完成 (${!isNaN(correct) ? correct : 0}/${assigned})`;
+        } else if (!statusStr.includes("已完成")) {
+          rawData[r][hMap.status] = "🟢 已完成";
+        }
+      }
+    }
+  } else if (hMap.taskScore >= 0 && hMap.taskRate >= 0 && hMap.status >= 0) {
     for (let r = 0; r < rawData.length; r++) {
       const scoreStr = String(rawData[r][hMap.taskScore] || "").trim().replace(/^'+/, "");
       const statusStr = String(rawData[r][hMap.status] || "").trim();
@@ -6060,11 +6086,167 @@ function fixIncompleteTaskRecordsUi() {
     ui.ButtonSet.OK);
 }
 
+/**
+ * 自動將學生工作表歷史資料列移位校準為 33 欄新結構，並修正施測/作答/答對單字數與測驗成績/正確率/狀態
+ */
+function migrateStudentSheetRows_(sheet) {
+  if (!sheet) return false;
+  const lastRow = sheet.getLastRow();
+  const lastCol = sheet.getLastColumn();
+  if (lastRow < 2) return false;
+
+  const numRows = lastRow - 1;
+  const range = sheet.getRange(2, 1, numRows, Math.max(lastCol, 33));
+  const values = range.getValues();
+  const name = sheet.getName().trim();
+  let sheetModified = false;
+
+  for (let i = 0; i < values.length; i++) {
+    const row = values[i];
+    while (row.length < 33) row.push("");
+    const dStr = formatStandardDateYMD(row[0]);
+    if (!dStr) continue;
+
+    const val22 = String(row[22] !== undefined ? row[22] : "").trim().replace(/^'+/, "");
+    const val23 = String(row[23] !== undefined ? row[23] : "").trim().replace(/^'+/, "");
+    const val24 = String(row[24] !== undefined ? row[24] : "").trim();
+    const val25 = String(row[25] !== undefined ? row[25] : "").trim();
+    const val26 = String(row[26] !== undefined ? row[26] : "").trim();
+    const val27 = String(row[27] !== undefined ? row[27] : "").trim();
+    const val28 = String(row[28] !== undefined ? row[28] : "").trim();
+    const val29 = String(row[29] !== undefined ? row[29] : "").trim();
+
+    const isOldStatusAt24 = val24.includes("完成") || val24.includes("中斷") || val24.includes("作答中") || val24.includes("未受測") || val24.includes("未指派") || val24.includes("缺席") || val24.includes("登入");
+    const isOldScoreAt22 = val22.includes("/") || /^\d{5}$/.test(val22);
+    const isOldRateAt28 = val28.includes("%");
+    const isOldRateAt23 = val23.includes("%");
+    const isNewStatusAt27 = val27.includes("完成") || val27.includes("中斷") || val27.includes("作答中") || val27.includes("未受測") || val27.includes("未指派") || val27.includes("缺席");
+    const isNewNumberAt24 = /^\d+$/.test(val24);
+
+    const isUnmigrated = (isOldStatusAt24 || isOldScoreAt22 || isOldRateAt28 || isOldRateAt23) && (!isNewStatusAt27 && !isNewNumberAt24);
+
+    if (isUnmigrated) {
+      const oldScore = val22;
+      const oldRate = val23;
+      const oldStatus = val24;
+      const oldWrong = val25;
+      const oldFreeTested = row[26] !== undefined && row[26] !== "" ? row[26] : "—";
+      const oldFreeCorrect = row[27] !== undefined && row[27] !== "" ? row[27] : "—";
+      const oldFreeRate = row[28] !== undefined && row[28] !== "" ? row[28] : "—";
+      const oldFreeWrong = row[29] !== undefined && row[29] !== "" ? row[29] : "—";
+
+      // 移位自由練習欄位至 29..32
+      row[29] = oldFreeTested;
+      row[30] = oldFreeCorrect;
+      row[31] = oldFreeRate;
+      row[32] = oldFreeWrong;
+
+      // 特殊學生歷史指定修正 (學生 d: 10-12 與 10-13)
+      if (name === 'd' && dStr.includes('10-12')) {
+        row[22] = 5;
+        row[23] = 2;
+        row[24] = 2;
+        row[25] = "2/2";
+        row[26] = "100%";
+        row[27] = "🟠 未完成 (2/5)";
+        row[28] = "age, ago, aim";
+        sheetModified = true;
+        continue;
+      }
+      if (name === 'd' && dStr.includes('10-13')) {
+        row[22] = 5;
+        row[23] = 5;
+        row[24] = 4;
+        row[25] = "4/5";
+        row[26] = "80%";
+        row[27] = "🟢 已完成";
+        row[28] = "advice";
+        sheetModified = true;
+        continue;
+      }
+
+      let numScore = null;
+      let numTotal = null;
+
+      if (oldScore.includes("/")) {
+        const parts = oldScore.split("/");
+        const s = parseInt(parts[0], 10);
+        const t = parseInt(parts[1], 10);
+        if (!isNaN(s) && !isNaN(t) && t > 0) {
+          numScore = s;
+          numTotal = t;
+        }
+      } else if (oldStatus.includes("(") && oldStatus.includes(")")) {
+        const m = oldStatus.match(/\((\d+)\/(\d+)\)/);
+        if (m) {
+          numScore = parseInt(m[1], 10);
+          numTotal = parseInt(m[2], 10);
+        }
+      }
+
+      if (numTotal !== null && numScore !== null) {
+        const assigned = numTotal;
+        const correct = numScore;
+        const answered = oldStatus.includes("未完成") ? correct : assigned;
+        row[22] = assigned;
+        row[23] = answered;
+        row[24] = correct;
+        row[25] = answered > 0 ? `${correct}/${answered}` : "—";
+        row[26] = answered > 0 ? Math.round((correct / answered) * 100) + "%" : "—";
+        row[27] = answered === assigned ? "🟢 已完成" : `🟠 未完成 (${correct}/${assigned})`;
+        row[28] = oldWrong || "—";
+      } else {
+        row[22] = "—";
+        row[23] = "—";
+        row[24] = "—";
+        row[25] = "—";
+        row[26] = "—";
+        row[27] = oldStatus || "—";
+        row[28] = oldWrong || "—";
+      }
+      sheetModified = true;
+    } else {
+      // 若已是 33 欄結構，檢查學生 d 10-12 與 10-13 及數值校準
+      if (name === 'd' && dStr.includes('10-12')) {
+        if (row[22] !== 5 || row[23] !== 2 || row[24] !== 2 || row[25] !== "2/2" || row[26] !== "100%" || row[27] !== "🟠 未完成 (2/5)" || row[28] !== "age, ago, aim") {
+          row[22] = 5;
+          row[23] = 2;
+          row[24] = 2;
+          row[25] = "2/2";
+          row[26] = "100%";
+          row[27] = "🟠 未完成 (2/5)";
+          row[28] = "age, ago, aim";
+          sheetModified = true;
+        }
+      } else if (name === 'd' && dStr.includes('10-13')) {
+        if (row[22] !== 5 || row[23] !== 5 || row[24] !== 4 || row[25] !== "4/5" || row[26] !== "80%" || row[27] !== "🟢 已完成" || row[28] !== "advice") {
+          row[22] = 5;
+          row[23] = 5;
+          row[24] = 4;
+          row[25] = "4/5";
+          row[26] = "80%";
+          row[27] = "🟢 已完成";
+          row[28] = "advice";
+          sheetModified = true;
+        }
+      }
+    }
+  }
+
+  if (sheetModified) {
+    try {
+      sheet.getRange("W:Y").setNumberFormat("0");
+      sheet.getRange("Z:AG").setNumberFormat("@");
+    } catch(_) {}
+    range.setValues(values);
+  }
+  return sheetModified;
+}
+
 function fixIncompleteTaskRecords(ss, params) {
   if (!ss) ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheets = ss.getSheets();
   const modifiedList = [];
-  const taskWordsDict = getTaskWordsDictCached_(ss);
   const targetStudent = (params && params.targetStudent) ? String(params.targetStudent).trim() : "";
 
   sheets.forEach(s => {
@@ -6072,91 +6254,34 @@ function fixIncompleteTaskRecords(ss, params) {
     if (isSystemSheet(name)) return;
     if (targetStudent && name !== targetStudent) return;
 
-    const lastRow = s.getLastRow();
-    const lastCol = s.getLastColumn();
-    if (lastRow < 2 || lastCol < 24) return;
-
-    const headers = s.getRange(1, 1, 1, lastCol).getValues()[0] || [];
-    const hMap = getHeaderIndexMap(headers);
-    const numRows = lastRow - 1;
-    const range = s.getRange(2, 1, numRows, lastCol);
-    const values = range.getValues();
-    let sheetModified = false;
-    const changes = [];
-
-    for (let i = 0; i < values.length; i++) {
-      const row = values[i];
-      const dStr = formatStandardDateYMD(row[0]);
-      if (!dStr) continue;
-
-      const scoreVal = String(row[hMap.taskScore] || "").trim().replace(/^'+/, "");
-      let statusVal = String(row[hMap.status] || "").trim();
-      let rateVal = String(row[hMap.taskRate] || "").trim().replace(/^'+/, "");
-      let wrongVal = String(row[hMap.wrong] || "").trim();
-
-      if (scoreVal.includes("/")) {
-        const parts = scoreVal.split("/");
-        const numScore = parseInt(parts[0], 10);
-        const numTotal = parseInt(parts[1], 10);
-
-        if (!isNaN(numScore) && !isNaN(numTotal) && numTotal > 0) {
-          // 1. 正確率唯一公式：答對題數除以總出題數
-          const correctRate = Math.round((numScore / numTotal) * 100) + "%";
-          if (rateVal !== correctRate) {
-            row[hMap.taskRate] = correctRate;
-            sheetModified = true;
-          }
-
-          const isEngWord = w => /^[a-zA-Z]+(?:[-'][a-zA-Z]+)*$/.test(w);
-          let rawWrongTokens = wrongVal ? wrongVal.split(/[\s,;\n\r]+/).map(w => w.trim()).filter(isEngWord) : [];
-
-          // 針對學生 d 的 10-12 與 10-13 特殊歷史修正：
-          if (name === 'd' && dStr.includes('10-12')) {
-            // 10-12：答對 2 題、3 題未作答，未作答視同答錯 (age, ago, aim)，狀態為未完成
-            const targetStatus = `🟠 未完成 (${numScore}/${numTotal})`;
-            const targetWrong = 'age, ago, aim';
-            if (row[hMap.status] !== targetStatus) { row[hMap.status] = targetStatus; sheetModified = true; }
-            if (row[hMap.wrong] !== targetWrong) { row[hMap.wrong] = targetWrong; sheetModified = true; }
-            changes.push({ date: dStr, score: scoreVal, status: row[hMap.status], rate: row[hMap.taskRate], wrong: row[hMap.wrong] });
-            continue;
-          }
-          if (name === 'd' && dStr.includes('10-13')) {
-            // 10-13：答對 4 題、答錯 1 題 (advice)，全卷 5 題全數作答完畢，狀態為已完成！
-            const targetStatus = '🟢 已完成';
-            const targetWrong = 'advice';
-            if (row[hMap.status] !== targetStatus) { row[hMap.status] = targetStatus; sheetModified = true; }
-            if (row[hMap.wrong] !== targetWrong) { row[hMap.wrong] = targetWrong; sheetModified = true; }
-            changes.push({ date: dStr, score: scoreVal, status: row[hMap.status], rate: row[hMap.taskRate], wrong: row[hMap.wrong] });
-            continue;
-          }
-
-          // 通用邏輯：
-          const neededWrong = Math.max(0, numTotal - numScore);
-          const isAllAnswered = (rawWrongTokens.length >= neededWrong && neededWrong > 0) || (numScore >= numTotal);
-
-          if (isAllAnswered) {
-            // 全數題目均已作答 (無未作答) -> 已完成
-            if (row[hMap.status] !== '🟢 已完成') {
-              row[hMap.status] = '🟢 已完成';
-              sheetModified = true;
-            }
-          } else {
-            // 尚有未作答單字 -> 未完成
-            const targetStatus = `🟠 未完成 (${numScore}/${numTotal})`;
-            if (row[hMap.status] !== targetStatus) {
-              row[hMap.status] = targetStatus;
-              sheetModified = true;
-            }
-          }
-        }
-      }
-    }
-
-    if (sheetModified) {
-      range.setValues(values);
-      modifiedList.push({ student: name, changes: changes });
+    ensureStudentSheetColumns(s);
+    const modified = migrateStudentSheetRows_(s);
+    if (modified) {
+      modifiedList.push({ student: name });
     }
   });
 
-  return { status: "success", modifiedCount: modifiedList.length, details: modifiedList };
+  let inspectedData = null;
+  if (params && params.inspectStudent) {
+    const target = ss.getSheetByName(String(params.inspectStudent).trim());
+    const list = [];
+    ss.getSheets().forEach(sh => {
+      const sName = sh.getName().trim();
+      if (!isSystemSheet(sName)) {
+        list.push({ name: sName, lastRow: sh.getLastRow(), lastCol: sh.getLastColumn() });
+      }
+    });
+    let rowsData = [];
+    if (target && target.getLastRow() >= 1) {
+      const h = target.getRange(1, 1, 1, target.getLastColumn()).getValues()[0] || [];
+      const numRows = target.getLastRow() - 1;
+      const allRows = numRows > 0 ? target.getRange(2, 1, numRows, target.getLastColumn()).getValues() : [];
+      rowsData = allRows.map(r => [r[0], ...r.slice(21)]);
+      inspectedData = { studentList: list, headers: h.slice(21), rows: rowsData };
+    } else {
+      inspectedData = { studentList: list };
+    }
+  }
+
+  return { status: "success", modifiedCount: modifiedList.length, details: modifiedList, inspected: inspectedData };
 }
