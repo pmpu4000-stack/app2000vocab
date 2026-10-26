@@ -16285,7 +16285,6 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
         `;
       }
       wrongContentHtml = `<div style="display:flex; flex-direction:column; width:100%;"><div style="display:flex; flex-wrap:wrap; gap:6px;">${wrongPills || '<span style="font-size:12px; color:var(--ink3); font-style:italic;">（受測題目無答錯）</span>'}</div>${unansAccordionHtml}</div>`;
-    }
     } else if (isTrulyPerfect) {
       wrongContentHtml = `<span class="perfect-score-msg">🎉 全數答對，無答錯單字！</span>`;
     } else if (missedCount > 0) {
