@@ -2504,16 +2504,16 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   }
 }
 
-/* 固定方塊高度：平日指定測驗與自由作答紀錄統一固定 340px，零跳動，內部介面自適應佈局 */
+/* 固定方塊高度：平日指定測驗與自由作答紀錄統一固定 290px，零跳動，內部介面自適應佈局 */
 #task-record-details,
 #free-record-details {
-  height: 340px !important;
-  min-height: 340px !important;
-  max-height: 340px !important;
+  height: 290px !important;
+  min-height: 290px !important;
+  max-height: 290px !important;
   box-sizing: border-box !important;
   display: flex !important;
   flex-direction: column !important;
-  overflow: hidden !important;
+  overflow-y: auto !important;
 }
 
 #task-record-details > div,
@@ -2606,7 +2606,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 
 .task-empty-notice-box {
   flex: 1 1 auto !important;
-  height: 0 !important;
+  height: 100% !important;
   min-height: 0 !important;
   max-height: 100% !important;
   display: flex !important;
@@ -2617,10 +2617,9 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   border: 1.5px dashed #CBD5E1 !important;
   border-radius: 12px !important;
   margin: 0 !important;
-  padding: 14px 14px !important;
+  padding: 16px 14px !important;
   text-align: center !important;
   box-sizing: border-box !important;
-  overflow: hidden !important;
 }
 
 [data-theme="dark"] .task-empty-notice-box {

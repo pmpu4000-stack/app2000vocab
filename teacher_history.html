@@ -1792,13 +1792,13 @@
     #free-record-details,
     #st-task-record-details,
     #st-free-record-details {
-      height: 340px !important;
-      min-height: 340px !important;
-      max-height: 340px !important;
+      height: 290px !important;
+      min-height: 290px !important;
+      max-height: 290px !important;
       box-sizing: border-box !important;
       display: flex !important;
       flex-direction: column !important;
-      overflow: hidden !important;
+      overflow-y: auto !important;
     }
 
     #task-record-details > div,
@@ -1806,12 +1806,12 @@
     #st-task-record-details > div,
     #st-free-record-details > div,
     .task-single-record-block {
-      height: 100% !important;
-      min-height: 100% !important;
-      max-height: 100% !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
       display: flex !important;
       flex-direction: column !important;
-      box-sizing: border-box !important;
+      flex: 1 1 auto !important;
+      min-height: 0 !important;
     }
 
     /* ── 列印專用樣式 (@media print) ── */
@@ -2269,11 +2269,11 @@
 
     #studentSummaryCard .progress,
     .progress {
-      margin: 0 0 8px !important;
+      margin: 0 0 14px !important;
       background: var(--card) !important;
       border: 1.5px solid var(--line) !important;
-      border-radius: 16px !important;
-      padding: 12px 14px !important;
+      border-radius: 20px !important;
+      padding: 16px 18px !important;
       box-shadow: var(--shadow) !important;
     }
     [data-theme="dark"] #studentSummaryCard .progress,
@@ -2850,13 +2850,13 @@
     .date-navigator-card {
       background: linear-gradient(135deg, #F1EDFF, #F8F9FD) !important;
       border: 1.5px solid #E4DFFa !important;
-      border-radius: 11px !important;
-      padding: 8px 12px !important;
-      margin: 0 0 8px !important;
+      border-radius: 14px !important;
+      padding: 12px 16px !important;
+      margin: 12px 0 16px !important;
       display: grid !important;
       grid-template-columns: 1fr auto 1fr !important;
       align-items: center !important;
-      gap: 10px !important;
+      gap: 16px !important;
       box-shadow: 0 2px 8px rgba(108, 76, 224, 0.05) !important;
     }
     [data-theme="dark"] .date-navigator-card {
@@ -3338,11 +3338,9 @@
     .task-history-card {
       background: #F8F9FD !important;
       border: 1px solid var(--line) !important;
-      border-radius: 12px !important;
-      padding: 10px 12px !important;
-      margin: 0 0 8px !important;
-      overflow: hidden !important;
-      box-sizing: border-box !important;
+      border-radius: 14px !important;
+      padding: 14px 16px !important;
+      margin: 10px 0 16px !important;
       box-shadow: none !important;
     }
     .task-history-card:last-child {
@@ -3726,10 +3724,8 @@
       justify-content: space-between !important;
       align-items: center !important;
       flex-wrap: wrap !important;
-      gap: 6px !important;
-      margin-bottom: 6px !important;
-      min-height: 24px !important;
-      flex: 0 0 auto !important;
+      gap: 8px !important;
+      margin-bottom: 12px !important;
     }
     .task-card-title {
       font-size: 12px !important;
@@ -3754,39 +3750,48 @@
     .task-score-grid {
       display: grid !important;
       grid-template-columns: repeat(2, 1fr) !important;
-      gap: 8px !important;
-      margin-bottom: 6px !important;
-      width: 100% !important;
-      box-sizing: border-box !important;
-      flex: 0 0 auto !important;
+      gap: 10px !important;
+      margin-bottom: 12px !important;
     }
     .task-score-subgrid {
       display: grid !important;
       grid-template-columns: repeat(2, 1fr) !important;
-      gap: 6px !important;
+      gap: 8px !important;
       width: 100% !important;
       box-sizing: border-box !important;
     }
     @media (max-width: 580px) {
-      .task-score-subgrid { gap: 6px !important; }
-      .task-score-subgrid .task-score-label { font-size: 10px !important; }
-      .task-score-subgrid .task-score-val { font-size: 18px !important; }
+      .task-score-subgrid {
+        gap: 6px !important;
+      }
+      .task-score-subgrid .task-score-label {
+        font-size: 10px !important;
+      }
+      .task-score-subgrid .task-score-val {
+        font-size: 18px !important;
+      }
     }
     @media (max-width: 480px) {
-      .task-score-grid { gap: 6px !important; }
-      .task-score-item { padding: 6px 4px !important; }
-      .task-score-label { font-size: 11px !important; }
-      .task-score-val { font-size: 18px !important; }
+      .task-score-grid {
+        gap: 6px !important;
+      }
+      .task-score-item {
+        padding: 8px 4px !important;
+      }
+      .task-score-label {
+        font-size: 11px !important;
+      }
+      .task-score-val {
+        font-size: 18px !important;
+      }
     }
     .task-score-item {
       background: #FFFFFF !important;
       border: 1px solid var(--line) !important;
-      border-radius: 10px !important;
-      padding: 8px !important;
+      border-radius: 12px !important;
+      padding: 10px !important;
       text-align: center !important;
       box-shadow: 0 1px 3px rgba(35, 42, 77, 0.03) !important;
-      width: 100% !important;
-      box-sizing: border-box !important;
     }
     [data-theme="dark"] .task-score-item {
       background: #181C2A !important;
@@ -3804,9 +3809,8 @@
     }
     .task-score-val {
       font-size: 20px !important;
-      font-weight: 900 !important;
+      font-weight: 800 !important;
       line-height: 1.2 !important;
-      font-variant-numeric: tabular-nums !important;
     }
 
     /* 比照熱力圖邏輯：數值純藍階層 (低溫灰藍 -> 頂溫電光蔚藍) */
@@ -3824,47 +3828,41 @@
     [data-theme="dark"] .heat-rate-val.tier-2 { color: #93C5FD !important; }
     [data-theme="dark"] .heat-rate-val.tier-1 { color: #94A3B8 !important; }
 
-    /* 答對/答錯單字雙欄盒與單字膠囊 (固定 290px 高度下的自適應 flex 容器) */
-    .word-split-grid,
-    .word-split-grid.grid-2 {
-      flex: 1 1 auto !important;
-      height: 0 !important;
-      min-height: 0 !important;
-      max-height: 100% !important;
+    /* 答對/答錯單字雙欄盒與單字膠囊 */
+    .word-split-grid {
       display: grid !important;
       grid-template-columns: 1fr 1fr !important;
-      gap: 8px !important;
-      margin-top: 0 !important;
-      box-sizing: border-box !important;
+      gap: 10px !important;
+      margin-top: 12px !important;
+    }
+    @media (max-width: 640px) {
+      .word-split-grid {
+        grid-template-columns: 1fr !important;
+        gap: 8px !important;
+        margin-top: 10px !important;
+      }
+      .word-split-box {
+        height: auto !important;
+        min-height: 154px !important;
+        max-height: none !important;
+        padding: 10px 12px !important;
+      }
+      .word-split-title {
+        font-size: 12px !important;
+        margin-bottom: 6px !important;
+      }
+      .word-split-content,
+      .word-split-box > div:not(.word-split-title) {
+        height: 120px !important;
+        min-height: 120px !important;
+        max-height: 120px !important;
+        gap: 5px !important;
+        padding-right: 4px !important;
+      }
     }
     .word-split-box {
-      height: 100% !important;
-      min-height: 0 !important;
-      max-height: 100% !important;
-      display: flex !important;
-      flex-direction: column !important;
-      padding: 8px 10px !important;
-      border-radius: 10px !important;
-      box-sizing: border-box !important;
-      overflow: hidden !important;
-    }
-    .word-split-content,
-    .word-split-box > div:not(.word-split-title) {
-      display: flex !important;
-      flex-wrap: wrap !important;
-      align-items: flex-start !important;
-      align-content: flex-start !important;
-      gap: 6px !important;
-      height: 170px !important;
-      min-height: 170px !important;
-      max-height: 170px !important;
-      overflow-y: auto !important;
-      overscroll-behavior: contain !important;
-      padding-right: 6px !important;
-      scrollbar-gutter: stable !important;
-      scrollbar-width: thin !important;
-      scrollbar-color: rgba(100, 116, 139, 0.45) transparent !important;
-      box-sizing: border-box !important;
+      border-radius: 12px !important;
+      padding: 12px 14px !important;
     }
     .word-split-box.correct-box {
       background: #F0F9FF !important;
@@ -3900,24 +3898,22 @@
       border-color: rgba(148, 163, 184, 0.28) !important;
     }
     .word-split-title {
-      flex: 0 0 auto !important;
-      margin-bottom: 5px !important;
-      font-size: 12px !important;
+      font-size: 13px !important;
       font-weight: 800 !important;
-      white-space: nowrap !important;
+      margin-bottom: 8px !important;
       display: flex !important;
       align-items: center !important;
-      gap: 5px !important;
+      gap: 6px !important;
     }
     .word-split-title > span {
       display: inline-flex !important;
       align-items: center !important;
-      gap: 5px !important;
+      gap: 6px !important;
     }
     .card-icon-slot {
-      width: 18px !important;
-      min-width: 18px !important;
-      max-width: 18px !important;
+      width: 20px !important;
+      min-width: 20px !important;
+      max-width: 20px !important;
       display: inline-flex !important;
       align-items: center !important;
       justify-content: center !important;
@@ -3925,117 +3921,44 @@
       text-align: center !important;
       line-height: 1 !important;
     }
-    .word-split-title.correct-title { color: #0284C7 !important; }
+    .word-split-title.correct-title { color: #065F46 !important; }
     .word-split-title.wrong-title { color: #475569 !important; }
     [data-theme="dark"] .word-split-title.correct-title { color: #38C78B !important; }
     [data-theme="dark"] .word-split-title.wrong-title { color: #94A3B8 !important; }
 
     .word-split-content,
     .word-split-box > div:not(.word-split-title) {
-      flex: 1 1 auto !important;
-      height: 0 !important;
-      min-height: 0 !important;
-      max-height: 100% !important;
       display: flex !important;
       flex-wrap: wrap !important;
       align-items: flex-start !important;
       align-content: flex-start !important;
-      gap: 4px !important;
+      gap: 5px !important;
+      height: 160px !important;
+      min-height: 160px !important;
+      max-height: 160px !important;
       overflow-y: auto !important;
       overscroll-behavior: contain !important;
       padding-right: 4px !important;
-      scrollbar-gutter: stable !important;
       scrollbar-width: thin !important;
-      scrollbar-color: rgba(100,116,139,0.45) transparent !important;
-      box-sizing: border-box !important;
-    }
-    .word-split-content > .perfect-score-msg,
-    .word-split-content > span:only-child:not(.word-pill-tag) {
-      margin: auto auto !important;
-      text-align: center !important;
-      font-size: 12px !important;
-    }
-    .word-split-content > span.word-pill-tag {
-      margin: 1.5px 2px !important;
-      text-align: left !important;
-      align-self: flex-start !important;
+      scrollbar-color: rgba(100, 116, 139, 0.35) transparent !important;
     }
     .task-empty-notice-box {
+      flex: 1 1 auto !important;
+      height: 100% !important;
+      min-height: 0 !important;
+      max-height: 100% !important;
       display: flex !important;
       flex-direction: column !important;
       align-items: center !important;
       justify-content: center !important;
-      height: 301px !important;
-      min-height: 301px !important;
-      max-height: 301px !important;
       background: #F8FAFC !important;
       border: 1.5px dashed #CBD5E1 !important;
       border-radius: 12px !important;
-      margin-top: 12px !important;
-      padding: 20px 14px !important;
+      margin: 0 !important;
+      padding: 16px 14px !important;
       text-align: center !important;
       box-sizing: border-box !important;
-      transition: background .2s, border-color .2s !important;
     }
-    [data-theme="dark"] .task-empty-notice-box {
-      background: rgba(148, 163, 184, 0.05) !important;
-      border-color: rgba(148, 163, 184, 0.22) !important;
-    }
-    .task-empty-notice-icon {
-      font-size: 34px !important;
-      line-height: 1 !important;
-      margin-bottom: 8px !important;
-      opacity: .95 !important;
-      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.06)) !important;
-    }
-    .task-empty-notice-title {
-      font-size: 15px !important;
-      font-weight: 800 !important;
-      color: var(--ink,#1E293B) !important;
-      margin-bottom: 6px !important;
-      line-height: 1.25 !important;
-    }
-    .task-empty-notice-desc {
-      font-size: 12.5px !important;
-      color: var(--ink2,#64748B) !important;
-      line-height: 1.5 !important;
-      max-width: 380px !important;
-      margin-bottom: 8px !important;
-    }
-    .task-empty-notice-btn {
-      padding: 7px 16px !important;
-      font-size: 12.5px !important;
-      border-radius: 8px !important;
-    }
-    @media (max-width: 640px) {
-      #task-record-details,
-      #free-record-details,
-      #st-task-record-details,
-      #st-free-record-details {
-        height: 290px !important;
-        min-height: 290px !important;
-        max-height: 290px !important;
-      }
-      .word-split-grid,
-      .word-split-grid.grid-2 {
-        grid-template-columns: 1fr 1fr !important;
-        gap: 6px !important;
-        margin-top: 0 !important;
-      }
-      .word-split-box {
-        padding: 6px 8px !important;
-      }
-      .word-split-title {
-        font-size: 11px !important;
-        margin-bottom: 4px !important;
-      }
-      .word-split-content,
-      .word-split-box > div:not(.word-split-title) {
-        gap: 3px !important;
-        padding-right: 2px !important;
-      }
-    }
-
     .word-split-content::-webkit-scrollbar,
     .word-split-box > div:not(.word-split-title)::-webkit-scrollbar {
       width: 5px !important;
@@ -4220,17 +4143,15 @@
 
     /* 練習紀錄熱力圖與連續天數 */
     .streakline {
-      font-size: 12px !important;
-      margin-bottom: 6px !important;
-      color: var(--ink) !important;
+      font-size: 13.5px !important;
+      font-weight: 800 !important;
+      color: var(--ink2) !important;
+      margin-bottom: 10px !important;
       display: flex !important;
-      justify-content: space-between !important;
       align-items: center !important;
-      height: 26px !important;
-      min-height: 26px !important;
-      max-height: 26px !important;
-      overflow: hidden !important;
-      box-sizing: border-box !important;
+      justify-content: flex-start !important;
+      flex-wrap: nowrap !important;
+      gap: 10px !important;
     }
     .streakline > span:first-child {
       white-space: nowrap !important;
@@ -4251,19 +4172,18 @@
       align-items: center !important;
       justify-content: center !important;
       gap: 6px !important;
-      width: auto !important;
-      min-width: 180px !important;
-      max-width: 100% !important;
-      height: 32px !important;
-      padding: 0 10px !important;
+      width: 215px !important;
+      min-width: 215px !important;
+      max-width: 215px !important;
+      height: 34px !important;
+      padding: 0 12px !important;
       box-sizing: border-box !important;
       border-radius: 9px !important;
-      font-size: 12.5px !important;
+      font-size: 13px !important;
       font-weight: 800 !important;
       line-height: 1 !important;
       white-space: nowrap !important;
       flex-shrink: 0 !important;
-      margin-left: auto !important;
       background: #ECFDF5 !important;
       color: #065F46 !important;
       border: 2px solid #10B981 !important;
@@ -4805,8 +4725,8 @@
     [data-theme="dark"] .heat-day-info.tier-green-perfect b, [data-theme="dark"] .heat-day-info.tier-blue-perfect b { color: #E0F2FE !important; }
 
     .embedded-heatmap-sec {
-      margin-top: 8px !important;
-      padding-top: 8px !important;
+      margin-top: 14px !important;
+      padding-top: 12px !important;
       border-top: 1px dashed var(--line) !important;
     }
     [data-theme="dark"] .embedded-heatmap-sec {
@@ -5981,7 +5901,7 @@
         </div>
 
         <!-- 子標題 1：平日指定測驗 / 週末待攻克測驗作答紀錄 -->
-        <div class="subh" style="margin-top:10px;">
+        <div class="subh" style="margin-top:8px;">
           <span id="st-task-subh-title">📝 平日指定測驗作答紀錄</span>
         </div>
         <div class="task-history-card">
@@ -5996,7 +5916,7 @@
         </div>
 
         <!-- 子標題 2：自由練習作答紀錄 -->
-        <div class="subh" style="margin-top:14px;">
+        <div class="subh" style="margin-top:8px;">
           <span>🎮 自由練習作答紀錄</span>
         </div>
         <div class="task-history-card">
@@ -16697,14 +16617,12 @@ function buildTaskDetailsHtml(records, selectedDate, agent) {
       }, agent);
     }
 
-        // 當日未指派指定測驗
+    // 當日未指派指定測驗
     return `
-      <div class="task-single-record-block">
-        <div class="task-empty-notice-box">
-          <div class="task-empty-notice-icon">☕</div>
-          <div class="task-empty-notice-title">${isSatClearedOnSunday ? "本日無指定單字測驗" : `該日未指派指定測驗（${selectedDate}）`}</div>
-          <div class="task-empty-notice-desc">${isSatClearedOnSunday ? "本週待攻克單字已於週六全數消滅，今日無須再測驗！已全面開放自由闖關升級。" : "老師當天未安排全班指定隨堂測驗，可切換至其他日期查看紀錄"}</div>
-        </div>
+      <div class="task-empty-notice-box">
+        <div style="font-size:28px; margin-bottom:8px; line-height:1;">☕</div>
+        <div style="font-size:14px; font-weight:700; color:var(--ink2); margin-bottom:6px;">${isSatClearedOnSunday ? "本日無指定單字測驗" : `該日未指派指定測驗（${selectedDate}）`}</div>
+        <div style="font-size:12px; margin-top:2px; color:var(--ink3); max-width:380px; margin-left:auto; margin-right:auto; line-height:1.5;">${isSatClearedOnSunday ? "本週待攻克單字已於週六全數消滅，今日無須再測驗！已全面開放自由闖關升級。" : "老師當日未指派指定測驗，可切換至其他日期查看紀錄"}</div>
       </div>
     `;
   }
@@ -16713,14 +16631,12 @@ function buildTaskDetailsHtml(records, selectedDate, agent) {
 }
 
 function buildFreeDetailsHtml(record, selectedDate, agent) {
-    if (!record || !record.attempts) {
+  if (!record || !record.attempts) {
     return `
-      <div>
-        <div class="task-empty-notice-box">
-          <div class="task-empty-notice-icon">🎮</div>
-          <div class="task-empty-notice-title">該指定日期（${selectedDate}）尚無自由練習受測紀錄</div>
-          <div class="task-empty-notice-desc">可從上方日曆選擇器或快速按鈕切換至其他日期查看作答狀況</div>
-        </div>
+      <div class="task-empty-notice-box">
+        <div style="font-size:26px; margin-bottom:6px; line-height:1;">🎮</div>
+        <div style="font-size:13.5px; font-weight:700; color:var(--ink2); margin-bottom:6px;">該指定日期（${selectedDate}）尚無自由練習受測紀錄</div>
+        <div style="font-size:12px; margin-top:2px; color:var(--ink3); max-width:380px; margin-left:auto; margin-right:auto; line-height:1.5;">可從上方日曆選擇器或快速按鈕切換至其他日期查看作答狀況</div>
       </div>
     `;
   }

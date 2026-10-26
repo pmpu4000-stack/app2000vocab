@@ -2185,21 +2185,6 @@ function buildTaskDetailsHtml(records, selectedDate, d, dayStat = null) {
           </div>
         </div>
 
-        <div class="task-score-grid">
-          <div class="task-score-item">
-            <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap;">
-              <span>施測單字數</span>
-            </div>
-            <div class="task-score-val" style="color:var(--ink3); display:flex; align-items:center; justify-content:center;">
-              <span>—</span>
-            </div>
-          </div>
-          <div class="task-score-item">
-            <div class="task-score-label">作答狀態</div>
-            <div class="task-score-val" style="color:var(--ink2); font-size:14.5px; font-weight:800; display:flex; align-items:center; justify-content:center;">☕ 本日未排定測驗</div>
-          </div>
-        </div>
-
         <div class="task-empty-notice-box">
           <div class="task-empty-notice-icon">☕</div>
           <div class="task-empty-notice-title">本日無指定單字測驗</div>
@@ -2218,12 +2203,21 @@ function buildTaskDetailsHtml(records, selectedDate, d, dayStat = null) {
 
 function buildFreeDetailsHtml(record, selectedDate, d) {
   if (!record || !record.attempts) {
+    const emptyFreeTitle = "🎮 自由練習";
     return `
       <div>
+        <div class="task-history-header">
+          <div>
+            <span class="task-card-title task-title-free">${emptyFreeTitle}</span>
+          </div>
+        </div>
+
         <div class="task-empty-notice-box">
           <div class="task-empty-notice-icon">🎮</div>
-          <div class="task-empty-notice-title">該指定日期（${selectedDate}）尚無自由練習受測紀錄</div>
-          <div class="task-empty-notice-desc">可從上方日曆選擇器或快速按鈕切換至其他日期查看作答狀況</div>
+          <div class="task-empty-notice-title">當日尚無自由練習紀錄</div>
+          <div class="task-empty-notice-desc">
+            尚未進行自由單字練習或複習。<br>每天動動手指挑戰 10~20 個單字，保持語感與連勝紀錄！
+          </div>
         </div>
       </div>
     `;
