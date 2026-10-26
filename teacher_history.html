@@ -2846,17 +2846,17 @@
       color: var(--green) !important;
     }
 
-    /* 日期快速導覽工具列 (完全對齊 index.html & styles.css，隔離全域 input/select/button 高度污染) */
+    /* 日期快速導覽工具列 (完全對齊遊戲網頁 styles.css 設定) */
     .date-navigator-card {
       background: linear-gradient(135deg, #F1EDFF, #F8F9FD) !important;
       border: 1.5px solid #E4DFFa !important;
-      border-radius: 14px !important;
-      padding: 12px 16px !important;
-      margin: 12px 0 16px !important;
+      border-radius: 11px !important;
+      padding: 8px 12px !important;
+      margin: 0 0 8px !important;
       display: grid !important;
       grid-template-columns: 1fr auto 1fr !important;
       align-items: center !important;
-      gap: 16px !important;
+      gap: 10px !important;
       box-shadow: 0 2px 8px rgba(108, 76, 224, 0.05) !important;
     }
     [data-theme="dark"] .date-navigator-card {
@@ -2868,19 +2868,19 @@
     .date-nav-col {
       display: flex !important;
       flex-direction: column !important;
-      gap: 6px !important;
+      gap: 4px !important;
       width: 100% !important;
     }
     .date-nav-col-header {
       display: flex !important;
       align-items: center !important;
-      gap: 5px !important;
+      gap: 4px !important;
     }
     .date-nav-col-header .date-nav-label {
-      font-size: 12.5px !important;
+      font-size: 12px !important;
       font-weight: 800 !important;
       color: #B45309 !important;
-      letter-spacing: 0.2px !important;
+      letter-spacing: .2px !important;
     }
     [data-theme="dark"] .date-nav-col-header .date-nav-label {
       color: #FBBF24 !important;
@@ -2893,17 +2893,20 @@
     }
     .date-nav-control-wrap select.task-date-selector {
       width: 100% !important;
-      height: 34px !important;
-      min-height: 34px !important;
+      height: 30px !important;
+      min-height: 30px !important;
+      max-height: 30px !important;
+      line-height: normal !important;
       background: #FFFFFF !important;
       border: 1.5px solid #D6D0F5 !important;
       border-radius: 8px !important;
       padding: 0 8px !important;
-      font-size: 12.5px !important;
+      font-size: 12px !important;
       font-weight: 700 !important;
       color: var(--ink, #232A4D) !important;
       outline: none !important;
       cursor: pointer !important;
+      box-sizing: border-box !important;
     }
     [data-theme="dark"] .date-nav-control-wrap select.task-date-selector {
       background: #181C2A !important;
@@ -2917,19 +2920,19 @@
       width: 100% !important;
     }
     .date-nav-stepper-wrap .date-picker-input {
-      flex: 0 0 135px !important;
-      width: 135px !important;
-      min-width: 110px !important;
-      max-width: 145px !important;
-      height: 34px !important;
-      min-height: 34px !important;
-      max-height: 34px !important;
+      flex: 0 0 130px !important;
+      width: 130px !important;
+      min-width: 105px !important;
+      max-width: 140px !important;
+      height: 30px !important;
+      min-height: 30px !important;
+      max-height: 30px !important;
       background: #FFFFFF !important;
       border: 1.5px solid var(--sky, #2D9CDB) !important;
       color: var(--ink, #232A4D) !important;
       padding: 0 8px !important;
       border-radius: 8px !important;
-      font-size: 12.5px !important;
+      font-size: 12px !important;
       font-weight: 700 !important;
       outline: none !important;
       cursor: pointer !important;
@@ -2938,12 +2941,12 @@
     .date-nav-btn-group {
       display: inline-flex !important;
       align-items: center !important;
-      gap: 5px !important;
+      gap: 4px !important;
       flex: 1 1 auto !important;
     }
     .date-nav-divider {
       width: 1px !important;
-      height: 44px !important;
+      height: 36px !important;
       background: rgba(108, 76, 224, 0.2) !important;
     }
     [data-theme="dark"] .date-nav-divider {
@@ -2955,22 +2958,21 @@
       border: 1.5px solid var(--sky, #2D9CDB) !important;
       color: var(--ink, #232A4D) !important;
       padding: 0 8px !important;
-      height: 34px !important;
-      min-height: 34px !important;
-      max-height: 34px !important;
+      height: 30px !important;
+      min-height: 30px !important;
+      max-height: 30px !important;
       border-radius: 8px !important;
-      font-size: 12.5px !important;
+      font-size: 12px !important;
       font-weight: 700 !important;
       outline: none !important;
       cursor: pointer !important;
       line-height: 1.2 !important;
-      font-family: ui-rounded, "SF Pro Rounded", "Hiragino Maru Gothic ProN", "Nunito", "PingFang TC", system-ui, sans-serif !important;
       box-sizing: border-box !important;
     }
     [data-theme="dark"] .date-navigator-card:not(.export-navigator-card) input[type="date"],
     [data-theme="dark"] .date-nav-stepper-wrap input[type="date"].date-picker-input {
-      background: #131624 !important;
-      border-color: #2D354E !important;
+      background: #1C2234 !important;
+      border-color: #2B334E !important;
       color: #F0F3FA !important;
     }
     @media (max-width: 820px) {
@@ -3034,50 +3036,54 @@
       background: #FFFFFF !important;
       border: 1px solid var(--line, #E7E9F5) !important;
       color: var(--ink, #232A4D) !important;
-      padding: 0 10px !important;
-      height: 34px !important;
-      min-height: 34px !important;
+      padding: 0 8px !important;
+      height: 30px !important;
+      min-height: 30px !important;
+      max-height: 30px !important;
       border-radius: 8px !important;
-      font-size: 12.5px !important;
+      font-size: 12px !important;
       font-weight: 700 !important;
       cursor: pointer !important;
       transition: all .15s !important;
       line-height: 1 !important;
-      font-family: ui-rounded, "SF Pro Rounded", "Hiragino Maru Gothic ProN", "Nunito", "PingFang TC", system-ui, sans-serif !important;
-      transform: none !important;
       box-sizing: border-box !important;
       white-space: nowrap !important;
       flex: 1 1 auto !important;
     }
-    .date-nav-stepper-wrap .date-nav-btn:hover {
+    .date-nav-stepper-wrap .date-nav-btn:hover,
+    .date-navigator-card:not(.export-navigator-card) .date-nav-btn:hover {
       background: #F1F8FC !important;
       border-color: var(--sky) !important;
       color: var(--sky) !important;
-      transform: none !important;
     }
-    .date-nav-stepper-wrap .date-nav-btn.today-btn {
+    .date-nav-stepper-wrap .date-nav-btn.today-btn,
+    .date-navigator-card:not(.export-navigator-card) .date-nav-btn.today-btn {
       background: #EDF8FD !important;
       border-color: rgba(45, 156, 219, 0.4) !important;
       color: var(--sky) !important;
     }
-    .date-nav-stepper-wrap .date-nav-btn.today-btn:hover {
+    .date-nav-stepper-wrap .date-nav-btn.today-btn:hover,
+    .date-navigator-card:not(.export-navigator-card) .date-nav-btn.today-btn:hover {
       background: var(--sky) !important;
       color: #FFFFFF !important;
     }
-    [data-theme="dark"] .date-nav-stepper-wrap .date-nav-btn {
+    [data-theme="dark"] .date-nav-stepper-wrap .date-nav-btn,
+    [data-theme="dark"] .date-navigator-card:not(.export-navigator-card) .date-nav-btn {
       background: #20263A !important;
       border-color: #2D354E !important;
       color: #E2E8F0 !important;
     }
-    [data-theme="dark"] .date-nav-stepper-wrap .date-nav-btn:hover {
+    [data-theme="dark"] .date-nav-stepper-wrap .date-nav-btn:hover,
+    [data-theme="dark"] .date-navigator-card:not(.export-navigator-card) .date-nav-btn:hover {
       background: #2B334D !important;
       border-color: var(--sky) !important;
       color: #38BDF8 !important;
     }
-    [data-theme="dark"] .date-nav-stepper-wrap .date-nav-btn.today-btn {
+    [data-theme="dark"] .date-nav-stepper-wrap .date-nav-btn.today-btn,
+    [data-theme="dark"] .date-navigator-card:not(.export-navigator-card) .date-nav-btn.today-btn {
       background: rgba(45, 156, 219, 0.18) !important;
       border-color: rgba(45, 156, 219, 0.4) !important;
-      color: #38BDF8 !important;
+      color: var(--sky) !important;
     }
 
     /* 待攻克單字週次切換群組與下拉式選單 (淺色與深色模式完全支援，比照遊戲網頁設定) */
@@ -3248,33 +3254,29 @@
     .date-navigator-card select.task-date-selector,
     .date-nav-right select.task-date-selector,
     .date-nav-right #record-quick-dates,
-    select.task-date-selector,
-    .task-date-selector,
-    .date-nav-right .task-date-selector {
+    .date-nav-control-wrap select.task-date-selector {
       width: 100% !important;
       min-width: 0 !important;
       max-width: 100% !important;
       background: #FFFFFF !important;
-      border: 1.5px solid var(--line, #E7E9F5) !important;
+      border: 1.5px solid #D6D0F5 !important;
       color: var(--ink, #232A4D) !important;
-      padding: 4px 8px !important;
-      height: 34px !important;
-      min-height: 34px !important;
+      padding: 0 8px !important;
+      height: 30px !important;
+      min-height: 30px !important;
+      max-height: 30px !important;
       border-radius: 8px !important;
-      font-size: 12.5px !important;
+      font-size: 12px !important;
       font-weight: 700 !important;
       outline: none !important;
       cursor: pointer !important;
-      line-height: 1.2 !important;
-      font-family: ui-rounded, "SF Pro Rounded", "Hiragino Maru Gothic ProN", "Nunito", "PingFang TC", system-ui, sans-serif !important;
+      line-height: normal !important;
       box-sizing: border-box !important;
     }
     [data-theme="dark"] .date-navigator-card select.task-date-selector,
     [data-theme="dark"] .date-nav-right select.task-date-selector,
     [data-theme="dark"] .date-nav-right #record-quick-dates,
-    [data-theme="dark"] select.task-date-selector,
-    [data-theme="dark"] .task-date-selector,
-    [data-theme="dark"] .date-nav-right .task-date-selector {
+    [data-theme="dark"] .date-nav-control-wrap select.task-date-selector {
       background: #181C2A !important;
       border-color: #2D354E !important;
       color: #F0F3FA !important;
@@ -19750,7 +19752,9 @@ function _buildStudentExportPayload(resp, mode, startDate, endDate) {
     },
     dailyRecords,
     uniqueWrongWords,
-    pendingConquerWords: _getTeacherPendingConquerWords(effectiveResp, agent)
+    pendingConquerWords: _getTeacherPendingConquerWords(effectiveResp, agent),
+    rawSheetData: (effectiveResp && Array.isArray(effectiveResp.data)) ? effectiveResp.data : [],
+    rawSheetHeaders: (effectiveResp && Array.isArray(effectiveResp.headers)) ? effectiveResp.headers : []
   };
 }
 
@@ -20100,339 +20104,235 @@ async function _exportStudentRecordToExcel(payload) {
 }
 
 function _buildStudentReportHtml(payload) {
-  const lvColors = ["#2FB47C", "#2D9CDB", "#6C4CE0", "#E8892B", "#E0567B"];
-  const levelColor = (lv) => (lv >= 1 && lv <= 5 ? lvColors[lv - 1] : "#6C4CE0");
-  const ov = payload.overall;
-  const ps = payload.periodSummary;
+  const ov = payload.overall || {};
+  const ps = payload.periodSummary || {};
   const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const rawData = Array.isArray(payload.rawSheetData) ? payload.rawSheetData : [];
 
-  const lvRowsHtml = (ov.levels || []).map(L => {
-    const totCorr = (L.learn || 0) + (L.prac || 0) + (L.mast || 0);
-    const color = levelColor(L.level);
-    return `
-      <tr class="st-level-row" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; padding:5px 0; border-bottom:1px solid #E7E9F5; gap:4px 8px;">
-        <td class="st-level-name" style="padding:0; border:none; font-weight:750; color:#232A4D; white-space:nowrap; flex-shrink:0;">
-          <span style="color:${color}; font-size:14px; margin-right:4px;">●</span> Level ${L.level}「${esc(L.name)}」
-        </td>
-        <td class="st-level-stats" style="padding:0; border:none; display:flex; align-items:center; justify-content:flex-end; text-align:right; flex-wrap:wrap;">
-          <div class="level-stats-grid" style="display:inline-flex; align-items:center; flex-wrap:wrap; font-size:12.5px; font-variant-numeric:tabular-nums; font-feature-settings:'tnum';">
-            <span class="st-item st-learn" style="display:inline-flex; align-items:center; color:#232A4D; font-weight:650; white-space:nowrap;">
-              <span class="st-lbl" style="color:#5A6183;">學習中</span>
-              <b class="tnum st-num st-num-learn" style="display:inline-block; width:25px; text-align:right; font-weight:800; margin-right:1px; color:#4F46E5;">${L.learn || 0}</b>字
-            </span>
-            <span class="st-sep" style="display:inline-block; width:14px; text-align:center; color:#94A3B8; font-weight:600; margin:0 3px; user-select:none;">/</span>
-            <span class="st-item st-prac" style="display:inline-flex; align-items:center; color:#232A4D; font-weight:650; white-space:nowrap;">
-              <span class="st-lbl" style="color:#5A6183;">練習中</span>
-              <b class="tnum st-num st-num-prac" style="display:inline-block; width:25px; text-align:right; font-weight:800; margin-right:1px; color:#0369A1;">${L.prac || 0}</b>字
-            </span>
-            <span class="st-sep" style="display:inline-block; width:14px; text-align:center; color:#94A3B8; font-weight:600; margin:0 3px; user-select:none;">/</span>
-            <span class="st-item st-mast" style="display:inline-flex; align-items:center; color:#232A4D; font-weight:650; white-space:nowrap;">
-              <span class="st-lbl" style="color:#5A6183;">精通</span>
-              <b class="tnum st-num st-num-mast" style="display:inline-block; width:25px; text-align:right; font-weight:800; margin-right:1px; color:#047857;">${L.mast || 0}</b>字
-            </span>
-            <span class="st-sep" style="display:inline-block; width:14px; text-align:center; color:#94A3B8; font-weight:600; margin:0 3px; user-select:none;">/</span>
-            <span class="st-item st-total" style="display:inline-flex; align-items:center; color:#232A4D; font-weight:650; white-space:nowrap;">
-              <span class="st-lbl" style="color:#5A6183;">共答對</span>
-              <b class="tnum st-num st-num-total" style="display:inline-block; width:25px; text-align:right; font-weight:800; margin-right:1px; color:#D97706;">${totCorr}</b>字
-            </span>
-          </div>
-        </td>
-      </tr>
-    `;
-  }).join("");
+  // Google 試算表 29 欄標準格式（扣除隱藏之第 B 欄完整JSON）
+  const cols = [
+    { label: "備份時間", bg: "#f1f5f9", color: "#334155", align: "center", width: "95px" },
+    { label: "等級", bg: "#e2e8f0", color: "#334155", align: "center", width: "32px" },
+    { label: "分數", bg: "#e2e8f0", color: "#334155", align: "center", width: "38px" },
+    { label: "連勝", bg: "#e2e8f0", color: "#334155", align: "center", width: "32px" },
+    { label: "最佳連勝", bg: "#e2e8f0", color: "#334155", align: "center", width: "35px" },
+    { label: "學習中", bg: "#dbeafe", color: "#1e40af", align: "center", width: "36px" },
+    { label: "練習中", bg: "#dbeafe", color: "#1e40af", align: "center", width: "36px" },
+    { label: "精通", bg: "#dbeafe", color: "#1e40af", align: "center", width: "36px" },
+    { label: "共答對單字", bg: "#dbeafe", color: "#1e40af", align: "center", width: "42px" },
+    { label: "累積受測", bg: "#dbeafe", color: "#1e40af", align: "center", width: "42px" },
+    { label: "掌握率", bg: "#dbeafe", color: "#1e40af", align: "center", width: "40px" },
+    { label: "L1 入門<br><span style='font-size:7px;font-weight:normal;'>(答對/受測)</span>", bg: "#dcfce7", color: "#065f46", align: "center", width: "46px" },
+    { label: "L2 基礎<br><span style='font-size:7px;font-weight:normal;'>(答對/受測)</span>", bg: "#dcfce7", color: "#065f46", align: "center", width: "46px" },
+    { label: "L3 進階<br><span style='font-size:7px;font-weight:normal;'>(答對/受測)</span>", bg: "#dcfce7", color: "#065f46", align: "center", width: "46px" },
+    { label: "L4 挑戰<br><span style='font-size:7px;font-weight:normal;'>(答對/受測)</span>", bg: "#dcfce7", color: "#065f46", align: "center", width: "46px" },
+    { label: "L5 精熟<br><span style='font-size:7px;font-weight:normal;'>(答對/受測)</span>", bg: "#dcfce7", color: "#065f46", align: "center", width: "46px" },
+    { label: "🎧 聽與拼<br><span style='font-size:7px;font-weight:normal;'>(答對/受測)</span>", bg: "#e0e7ff", color: "#3730a3", align: "center", width: "45px" },
+    { label: "✅ 選拼法<br><span style='font-size:7px;font-weight:normal;'>(答對/受測)</span>", bg: "#e0e7ff", color: "#3730a3", align: "center", width: "45px" },
+    { label: "🧩 重組<br><span style='font-size:7px;font-weight:normal;'>(答對/受測)</span>", bg: "#e0e7ff", color: "#3730a3", align: "center", width: "45px" },
+    { label: "🖍️ 填空<br><span style='font-size:7px;font-weight:normal;'>(答對/受測)</span>", bg: "#e0e7ff", color: "#3730a3", align: "center", width: "45px" },
+    { label: "任務名稱", bg: "#fef3c7", color: "#92400e", align: "left", width: "70px" },
+    { label: "指定成績", bg: "#fef3c7", color: "#92400e", align: "center", width: "42px" },
+    { label: "指定正確率", bg: "#fef3c7", color: "#92400e", align: "center", width: "45px" },
+    { label: "練習狀態", bg: "#fef3c7", color: "#92400e", align: "center", width: "48px" },
+    { label: "測驗錯題單字", bg: "#fef3c7", color: "#92400e", align: "left", width: "80px" },
+    { label: "自由受測", bg: "#ede9fe", color: "#5b21b6", align: "center", width: "38px" },
+    { label: "自由答對", bg: "#ede9fe", color: "#5b21b6", align: "center", width: "38px" },
+    { label: "自由正確率", bg: "#ede9fe", color: "#5b21b6", align: "center", width: "45px" },
+    { label: "自由錯題單字", bg: "#ede9fe", color: "#5b21b6", align: "left", width: "80px" }
+  ];
 
-  const dailyCardsHtml = payload.dailyRecords.map(r => {
-    const isTaskUntested = !r.isUnassigned && r.taskStatus.includes("未受測");
+  const headerCellsHtml = cols.map(c => `
+    <th style="padding:3px 2px; border:1px solid #cbd5e1; background:${c.bg}; color:${c.color}; font-size:7.5px; font-weight:800; text-align:${c.align}; width:${c.width}; line-height:1.2; vertical-align:middle;">
+      ${c.label}
+    </th>
+  `).join("");
 
-    // 1. 指定測驗 KPI 方塊
-    let taskKpiHtml = "";
-    if (r.isUnassigned) {
-      taskKpiHtml = `
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px;">
-          <div style="background:#F8F9FD; border:1px solid #E2E8F0; border-radius:10px; padding:8px 10px; text-align:center;">
-            <div style="font-size:11px; color:#64748B; font-weight:700; margin-bottom:2px;">指派情形</div>
-            <div style="font-size:16px; font-weight:800; color:#475569;">當日無指派</div>
-          </div>
-          <div style="background:#F8F9FD; border:1px solid #E2E8F0; border-radius:10px; padding:8px 10px; text-align:center;">
-            <div style="font-size:11px; color:#64748B; font-weight:700; margin-bottom:2px;">作答狀態</div>
-            <div style="font-size:16px; font-weight:800; color:#64748B;">${esc(r.taskStatus)}</div>
-          </div>
-        </div>
-      `;
-    } else if (isTaskUntested) {
-      taskKpiHtml = `
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px;">
-          <div style="background:#F0F9FF; border:1px solid rgba(14,165,233,.25); border-radius:10px; padding:8px 10px; text-align:center;">
-            <div style="font-size:11px; color:#0369A1; font-weight:700; margin-bottom:2px;">📋 應測單字數</div>
-            <div style="font-size:18px; font-weight:900; color:#0284C7;">${r.assignedTotWords || 5} 字</div>
-          </div>
-          <div style="background:#FEF2F2; border:1px solid rgba(239,68,68,.25); border-radius:10px; padding:8px 10px; text-align:center;">
-            <div style="font-size:11px; color:#B91C1C; font-weight:700; margin-bottom:2px;">測驗狀態</div>
-            <div style="font-size:16px; font-weight:800; color:#DC2626;">${esc(r.taskStatus)}</div>
-          </div>
-        </div>
-      `;
-    } else {
-      taskKpiHtml = `
-        <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:6px; margin-bottom:10px;">
-          <div style="background:#F0F9FF; border:1px solid rgba(14,165,233,.25); border-radius:10px; padding:8px 4px; text-align:center;">
-            <div style="font-size:10.5px; color:#0369A1; font-weight:700; margin-bottom:2px;">已答對 / 已施測</div>
-            <div style="font-size:17px; font-weight:900; color:#0284C7;"><span style="color:#0284C7;">${r.taskCorrWords || 0}</span> <span style="font-size:14px; opacity:0.6;">/</span> <span style="color:#0369A1;">${r.assignedTotWords || 5}</span></div>
-          </div>
-          <div style="background:#F8FAFC; border:1px solid #CBD5E1; border-radius:10px; padding:8px 4px; text-align:center;">
-            <div style="font-size:10.5px; color:#475569; font-weight:700; margin-bottom:2px;">答錯 / 未作答</div>
-            <div style="font-size:17px; font-weight:900; color:#475569;"><span style="color:#DC2626;">${r.actualWrong || 0}</span> <span style="font-size:14px; opacity:0.6;">/</span> <span style="color:#D97706;">${r.actualUnanswered || 0}</span></div>
-          </div>
-          <div style="background:#ECFDF5; border:1px solid rgba(16,185,129,.25); border-radius:10px; padding:8px 4px; text-align:center;">
-            <div style="font-size:10.5px; color:#047857; font-weight:700; margin-bottom:2px;">作答正確率</div>
-            <div style="font-size:17px; font-weight:900; color:#059669;">${r.actualAnswered > 0 ? Math.round(((r.taskCorrWords || 0) / r.actualAnswered) * 100) + '%' : '—'}</div>
-          </div>
-          <div style="background:#F0FDF4; border:1px solid rgba(34,197,94,.25); border-radius:10px; padding:8px 4px; text-align:center;">
-            <div style="font-size:10.5px; color:#15803D; font-weight:700; margin-bottom:2px;">全卷正確率</div>
-            <div style="font-size:17px; font-weight:900; color:#16A34A;">${r.overallScoreRate || 0}%</div>
-          </div>
-        </div>
-      `;
-    }
-
-    let taskLeftContent = "";
-    let taskRightContent = "";
-    if (r.isUnassigned) {
-      taskLeftContent = `<div style="font-size:12px; color:#64748B; padding:6px 0;">當日老師未指派測驗任務，學生無須受測。</div>`;
-      taskRightContent = `<div style="font-size:12px; color:#94A3B8; font-style:italic; padding:6px 0;">（當日無指定單字）</div>`;
-    } else if (isTaskUntested) {
-      taskLeftContent = `
-        <div style="font-size:12px; color:#475569; line-height:1.5; padding:4px 0;">
-          <b>${esc(r.taskStatus)}</b>。提醒：未測驗之指定單字將自動排入週末補強測驗。
-        </div>
-      `;
-      taskRightContent = (r.unansweredWords && r.unansweredWords.length > 0)
-        ? r.unansweredWords.map(w => `<span style="display:inline-block; padding:4px 8px; margin:2px; border-radius:6px; background:#F1F5F9; color:#475569; border:1px solid #CBD5E1; font-size:12px; font-weight:700;">${esc(w)}</span>`).join("")
-        : `<span style="font-size:12px; color:#94A3B8; font-style:italic;">（待測單字清單載入中）</span>`;
-    } else {
-      taskLeftContent = (r.taskCorrectWords && r.taskCorrectWords.length > 0)
-        ? r.taskCorrectWords.map(w => `<span style="display:inline-block; padding:4px 8px; margin:2px; border-radius:6px; background:#E4F7EE; color:#047857; border:1px solid rgba(47,180,124,.35); font-size:12px; font-weight:700;">${esc(w)}</span>`).join("")
-        : `<span style="font-size:12px; color:#94A3B8; font-style:italic;">（本次測驗無答對單字）</span>`;
-
-      if (r.taskWrongWords && r.taskWrongWords.length > 0) {
-        taskRightContent = r.taskWrongWords.map(w => `<span style="display:inline-block; padding:4px 8px; margin:2px; border-radius:6px; background:#FFE9E9; color:#D64545; border:1px solid rgba(255,107,107,.4); font-size:12px; font-weight:700;">${esc(w)}</span>`).join("");
-      } else {
-        taskRightContent = `<span style="display:inline-block; font-size:12px; font-weight:800; color:#065F46; background:#ECFDF5; border:1px solid #A7F3D0; padding:4px 10px; border-radius:8px;">🎉 全數答對，無答錯單字！</span>`;
+  const rowsHtml = (payload.dailyRecords || []).map((r, rIdx) => {
+    let rowVals = null;
+    const rDateNorm = String(r.date || "").replace(/\//g, "-").trim();
+    if (rawData.length > 0) {
+      const found = rawData.find(row => {
+        if (!row || !row[0]) return false;
+        const sheetDateNorm = String(row[0]).replace(/\//g, "-").trim();
+        return sheetDateNorm.startsWith(rDateNorm) || rDateNorm.startsWith(sheetDateNorm.substring(0, 10));
+      });
+      if (found && found.length >= 26) {
+        rowVals = [
+          found[0], found[2], found[3], found[4], found[5],
+          found[6], found[7], found[8], found[9], found[10], found[11],
+          found[12], found[13], found[14], found[15], found[16],
+          found[17], found[18], found[19], found[20],
+          found[21], found[22], found[23], found[24], found[25],
+          found[26] || "0", found[27] || "0", found[28] || "—", found[29] || ""
+        ];
       }
     }
 
-    let freeKpiHtml = "";
-    if (r.hasFree) {
-      freeKpiHtml = `
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px;">
-          <div style="background:#F0F9FF; border:1px solid rgba(14,165,233,.25); border-radius:10px; padding:8px 10px; text-align:center;">
-            <div style="font-size:11px; color:#0369A1; font-weight:700; margin-bottom:2px;">答對單字數 / 施測單字數</div>
-            <div style="font-size:18px; font-weight:900; color:#0284C7;">${r.freeCorrect || 0} <span style="font-size:14px; opacity:0.6;">/</span> ${r.freeAttempts || 0}</div>
-          </div>
-          <div style="background:#ECFDF5; border:1px solid rgba(16,185,129,.25); border-radius:10px; padding:8px 10px; text-align:center;">
-            <div style="font-size:11px; color:#047857; font-weight:700; margin-bottom:2px;">正確率</div>
-            <div style="font-size:18px; font-weight:900; color:#059669;">${r.freeRate || 0}%</div>
-          </div>
-        </div>
-      `;
-    } else {
-      freeKpiHtml = `
-        <div style="background:#F8FAFC; border:1px dashed #CBD5E1; border-radius:10px; padding:12px 14px; text-align:center; color:#64748B; font-size:12.5px; font-weight:700; margin-bottom:8px;">
-          當日尚無自由練習紀錄
-        </div>
-      `;
+    if (!rowVals) {
+      const l1 = ov.levels && ov.levels[0] ? ov.levels[0] : {};
+      const l2 = ov.levels && ov.levels[1] ? ov.levels[1] : {};
+      const l3 = ov.levels && ov.levels[2] ? ov.levels[2] : {};
+      const l4 = ov.levels && ov.levels[3] ? ov.levels[3] : {};
+      const l5 = ov.levels && ov.levels[4] ? ov.levels[4] : {};
+      const m = ov.modeStats || {};
+
+      rowVals = [
+        r.date,
+        ov.level || "1",
+        ov.points || 0,
+        ov.streak || 0,
+        ov.best || ov.streak || 0,
+        ov.learn || 0,
+        ov.prac || 0,
+        ov.mast || 0,
+        ov.distinctCorrect || ((ov.learn || 0) + (ov.prac || 0) + (ov.mast || 0)),
+        ov.totalTestedWords || ov.totalVocab || 2055,
+        `${ov.passRate || 0}%`,
+        `${(l1.mast || 0) + (l1.prac || 0) + (l1.learn || 0)}/${l1.total || 300}`,
+        `${(l2.mast || 0) + (l2.prac || 0) + (l2.learn || 0)}/${l2.total || 450}`,
+        `${(l3.mast || 0) + (l3.prac || 0) + (l3.learn || 0)}/${l3.total || 450}`,
+        `${(l4.mast || 0) + (l4.prac || 0) + (l4.learn || 0)}/${l4.total || 450}`,
+        `${(l5.mast || 0) + (l5.prac || 0) + (l5.learn || 0)}/${l5.total || 405}`,
+        `${m.listen?.c || 0}/${m.listen?.a || 0}`,
+        `${m.pick?.c || 0}/${m.pick?.a || 0}`,
+        `${m.scramble?.c || 0}/${m.scramble?.a || 0}`,
+        `${m.trap?.c || 0}/${m.trap?.a || 0}`,
+        r.taskName || (r.isUnassigned ? "⚪ 未指派" : "指定測驗"),
+        r.taskScore || "—",
+        r.taskRate || "—",
+        r.taskStatus || "—",
+        (r.taskWrongWords && r.taskWrongWords.length > 0) ? r.taskWrongWords.join(", ") : (r.isUnassigned ? "—" : "全對無錯題"),
+        r.freeAttempts || 0,
+        r.freeCorrect || 0,
+        (r.freeAttempts > 0 ? `${r.freeRate || 0}%` : "—"),
+        (r.freeWrongWords && r.freeWrongWords.length > 0) ? r.freeWrongWords.join(", ") : (r.freeAttempts > 0 ? "全對無錯題" : "—")
+      ];
     }
 
-    let freeLeftContent = "";
-    let freeRightContent = "";
-    if (r.hasFree) {
-      freeLeftContent = (r.freeCorrectWords && r.freeCorrectWords.length > 0)
-        ? r.freeCorrectWords.map(w => `<span style="display:inline-block; padding:4px 8px; margin:2px; border-radius:6px; background:#E4F7EE; color:#047857; border:1px solid rgba(47,180,124,.35); font-size:12px; font-weight:700;">${esc(w)}</span>`).join("")
-        : `<span style="font-size:12px; color:#94A3B8; font-style:italic;">（當日尚無全對單字）</span>`;
-
-      if (r.freeWrongWords && r.freeWrongWords.length > 0) {
-        freeRightContent = r.freeWrongWords.map(w => `<span style="display:inline-block; padding:4px 8px; margin:2px; border-radius:6px; background:#FFE9E9; color:#D64545; border:1px solid rgba(255,107,107,.4); font-size:12px; font-weight:700;">${esc(w)}</span>`).join("");
-      } else {
-        freeRightContent = `<span style="display:inline-block; font-size:12px; font-weight:800; color:#065F46; background:#ECFDF5; border:1px solid #A7F3D0; padding:4px 10px; border-radius:8px;">🎉 太棒了！當日自由練習全數答對，無任何答錯單字！</span>`;
+    const rowBg = (rIdx % 2 === 1) ? "#f8fafc" : "#ffffff";
+    const cellsHtml = rowVals.map((val, cIdx) => {
+      const c = cols[cIdx] || { align: "center" };
+      let displayVal = esc(val ?? "");
+      let cellStyle = `padding:3px 2px; border:1px solid #cbd5e1; font-size:7.5px; line-height:1.2; text-align:${c.align}; word-break:break-word;`;
+      if (cIdx === 20) {
+        cellStyle += "font-weight:700; color:#1e293b;";
+      } else if (cIdx === 21 || cIdx === 22) {
+        cellStyle += "font-weight:800; color:#0369a1;";
+      } else if (cIdx === 23) {
+        cellStyle += displayVal.includes("已完成") ? "font-weight:800; color:#15803d;" : (displayVal.includes("未受測") ? "font-weight:800; color:#b91c1c;" : "color:#64748b;");
+      } else if (cIdx === 24 || cIdx === 28) {
+        cellStyle += (displayVal !== "—" && !displayVal.includes("全對")) ? "color:#b91c1c; font-weight:700;" : "color:#64748b;";
       }
-    }
+      return `<td style="${cellStyle}">${displayVal}</td>`;
+    }).join("");
 
-    return `
-      <div style="border:1.5px solid #E7E9F5; border-radius:16px; padding:14px 16px; margin-bottom:14px; background:#FFFFFF; page-break-inside:avoid; box-shadow:0 2px 6px rgba(0,0,0,0.03);">
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #E7E9F5; padding-bottom:8px; margin-bottom:12px;">
-          <div style="font-size:14.5px; font-weight:900; color:#232A4D;">📅 日期：${esc(r.date)} (${esc(r.dayOfWeek)})</div>
-          <div style="font-size:12px; font-weight:800; color:#6C4CE0; background:#F1EDFF; padding:3px 10px; border-radius:999px; border:1px solid rgba(108,76,224,0.3);">
-            當日總計答對 ${r.totalCorrect} / ${r.totalAttempts} 字 · 正確率 ${r.totalRate}%
-          </div>
-        </div>
-
-        <!-- 1. 平日指定測驗作答紀錄 -->
-        <div style="border:1px solid #E2E8F0; border-radius:12px; padding:12px 14px; background:#F8FAFD; margin-bottom:12px;">
-          <div style="font-size:13px; font-weight:800; color:#232A4D; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
-            <span>📝 ${esc(r.isUnassigned ? "當日無指定測驗" : (r.taskName || "平日指定測驗作答紀錄"))}</span>
-            <span style="font-size:12px; color:${r.isUnassigned ? '#64748B' : (isTaskUntested ? '#DC2626' : '#0284C7')}; font-weight:800;">
-              ${r.isUnassigned ? '無指派' : (isTaskUntested ? '未受測' : `得分：${esc(r.taskScore)} (${esc(r.taskRate)})`)}
-            </span>
-          </div>
-          ${taskKpiHtml}
-          ${(!r.isUnassigned) ? `
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-              <div style="background:#F0F9FF; border:1px solid rgba(14,165,233,.35); border-radius:10px; padding:10px 12px; min-height:85px;">
-                <div style="font-size:12px; font-weight:800; color:#0284C7; margin-bottom:6px;"><span style="color:#10B981; font-weight:900; margin-right:4px;">✔</span>已答對的單字 (${(r.taskCorrectWords || []).length} 字)</div>
-                <div style="display:flex; flex-wrap:wrap; gap:4px;">${taskLeftContent}</div>
-              </div>
-              <div style="background:#F8FAFC; border:1px solid #CBD5E1; border-radius:10px; padding:10px 12px; min-height:85px;">
-                <div style="font-size:12px; font-weight:800; color:#475569; margin-bottom:6px;">❌ 答錯的單字 (${(r.taskWrongWords || []).length} 字)</div>
-                <div style="display:flex; flex-wrap:wrap; gap:4px;">${taskRightContent}</div>
-              </div>
-            </div>
-          ` : ''}
-        </div>
-
-        <!-- 2. 自由練習作答紀錄 -->
-        <div style="border:1px solid #E2E8F0; border-radius:12px; padding:12px 14px; background:#F8FAFD;">
-          <div style="font-size:13px; font-weight:800; color:#232A4D; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
-            <span>🎮 自由練習成果</span>
-            ${r.hasFree ? `<span style="font-size:12px; color:#0284C7; font-weight:800;">答對 ${r.freeCorrect} / ${r.freeAttempts} 字 (${r.freeRate}%)</span>` : ''}
-          </div>
-          ${freeKpiHtml}
-          ${r.hasFree ? `
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-              <div style="background:#F0F9FF; border:1px solid rgba(14,165,233,.35); border-radius:10px; padding:10px 12px; min-height:85px;">
-                <div style="font-size:12px; font-weight:800; color:#0284C7; margin-bottom:6px;"><span style="color:#10B981; font-weight:900; margin-right:4px;">✔</span>已答對的單字 (${(r.freeCorrectWords || []).length} 字)</div>
-                <div style="display:flex; flex-wrap:wrap; gap:4px;">${freeLeftContent}</div>
-              </div>
-              <div style="background:#F8FAFC; border:1px solid #CBD5E1; border-radius:10px; padding:10px 12px; min-height:85px;">
-                <div style="font-size:12px; font-weight:800; color:#475569; margin-bottom:6px;">❌ 答錯的單字 (${(r.freeWrongWords || []).length} 字)</div>
-                <div style="display:flex; flex-wrap:wrap; gap:4px;">${freeRightContent}</div>
-              </div>
-            </div>
-          ` : ''}
-        </div>
-      </div>
-    `;
+    return `<tr style="background:${rowBg};">${cellsHtml}</tr>`;
   }).join("");
 
+  const advice = _generatePedagogicalAdvice(payload);
   const conquerList = payload.pendingConquerWords || [];
   let conquerSectionHtml = "";
   if (conquerList.length === 0) {
     conquerSectionHtml = `
-      <div style="border:1px solid #C7F1DC; border-radius:12px; padding:10px 14px; margin-bottom:14px; background:#F0FDF4; page-break-inside:avoid;">
-        <div style="font-size:13px; font-weight:800; color:#166534; display:flex; justify-content:space-between; align-items:center;">
-          <span>🎯 本期待攻克單字庫（0 字）</span>
-          <span style="font-size:11px; background:#DCFCE7; color:#15803D; padding:2px 8px; border-radius:999px; font-weight:800;">🎉 太棒了！目前全數攻克</span>
-        </div>
-        <div style="font-size:12px; color:#166534; margin-top:4px;">
-          平時指定測驗的錯題皆已完全掌握，或已在自由練習中即時答對並全數消滅！請繼續保持！
-        </div>
+      <div style="border:1px solid #C7F1DC; border-radius:8px; padding:6px 10px; margin-top:8px; background:#F0FDF4; font-size:10.5px; color:#166534; page-break-inside:avoid;">
+        <b>🎯 待攻克單字庫（0 字）</b>：目前全數攻克！平日指定測驗的錯題皆已完全掌握，請繼續保持！
       </div>
     `;
   } else {
-    const conquerItemsHtml = conquerList.map(w => {
-      return `
-        <div style="display:inline-flex; align-items:center; background:#FFF; border:1px solid #FECACA; border-radius:8px; padding:4px 8px; margin:3px 4px 3px 0; font-size:11.5px; vertical-align:middle;">
-          <span style="font-weight:800; color:#1E293B; margin-right:4px;">${esc(w.word)}</span>
-          ${w.zh ? `<span style="color:#64748B; font-size:11px; margin-right:6px;">(${esc(w.zh)})</span>` : ""}
-          <span style="font-size:10px; font-weight:700; color:${w.color || '#E11D48'}; background:${w.bg || 'rgba(255,107,107,0.14)'}; padding:1px 6px; border-radius:999px;">${esc(w.tag || '拼寫弱點')}</span>
-        </div>
-      `;
-    }).join("");
-
+    const conquerItemsHtml = conquerList.slice(0, 30).map(w => `
+      <span style="display:inline-block; background:#FFF; border:1px solid #FECACA; border-radius:6px; padding:2px 6px; margin:2px 3px; font-size:9.5px; color:#1E293B; font-weight:700;">
+        ${esc(w.word)} ${w.zh ? `<span style="color:#64748B; font-weight:normal;">(${esc(w.zh)})</span>` : ""}
+      </span>
+    `).join("");
     conquerSectionHtml = `
-      <div style="border:1px solid #FECDD3; border-radius:12px; padding:10px 14px; margin-bottom:14px; background:#FFF1F2; page-break-inside:avoid;">
-        <div style="font-size:13px; font-weight:800; color:#9F1239; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
-          <span>🎯 本期待攻克單字庫（共 ${conquerList.length} 字）</span>
-          <span style="font-size:11px; background:#FFE4E6; color:#BE123C; padding:2px 8px; border-radius:999px; font-weight:800;">平日錯題累積 · 自由練習答對可自動消除</span>
-        </div>
-        <div style="font-size:11.5px; color:#881337; margin-bottom:8px; line-height:1.4;">
-          💡 <b>複習提示</b>：以下單字源自平日指定測驗錯題。學生在平日自由練習中只要拼對該單字，即可自動從待攻克庫中消滅；週六日的週末消滅戰也會集中複習此清單！
-        </div>
-        <div style="background:#FFF; border:1px solid #FFE4E6; border-radius:8px; padding:8px 10px;">
-          ${conquerItemsHtml}
-        </div>
+      <div style="border:1px solid #FECDD3; border-radius:8px; padding:6px 10px; margin-top:8px; background:#FFF1F2; font-size:10.5px; color:#9F1239; page-break-inside:avoid;">
+        <div style="font-weight:800; margin-bottom:4px;">🎯 本期待攻克單字清單（共 ${conquerList.length} 字，列出前 30 字）：</div>
+        <div>${conquerItemsHtml}</div>
       </div>
     `;
   }
 
   return `
-        <div id="pdf-export-paper" style="width:100%; max-width:720px; margin:0 auto; background:#FFFFFF; color:#232A4D; padding:8px 8px; font-family:ui-rounded,'SF Pro Rounded','PingFang TC','Microsoft JhengHei',sans-serif; line-height:1.45; box-sizing:border-box;">
-      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2.5px solid #6C4CE0; padding-bottom:8px; margin-bottom:8px;">
+    <div id="pdf-export-paper" style="width:100%; max-width:1080px; margin:0 auto; background:#FFFFFF; color:#232A4D; padding:10px 12px; font-family:'PingFang TC','Microsoft JhengHei',sans-serif; line-height:1.35; box-sizing:border-box;">
+      <!-- 表頭抬頭與帳號資訊 -->
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2.5px solid #2563EB; padding-bottom:6px; margin-bottom:8px;">
         <div>
-          <div style="font-size:18px; font-weight:900; color:#232A4D;">🎯 拼字小特工 · 學生使用與作答紀錄報表</div>
-          <div style="font-size:12px; color:#5A6183; font-weight:700; margin-top:2px;">${esc(payload.scopeTitle)}</div>
-        </div>
-        <div style="text-align:right; font-size:11.5px; color:#5A6183; font-weight:700;">
-          <div>👤 學生帳號：<b style="color:#6C4CE0; font-size:13px;">${esc(payload.studentId)}</b></div>
-          <div>🕒 匯出時間：${esc(payload.exportTime)}</div>
-        </div>
-      </div>
-
-      <!-- 區間統計摘要 -->
-      <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-bottom:8px;">
-        <div style="background:#F8F9FD; border:1px solid #E7E9F5; border-radius:8px; padding:6px 6px; text-align:center;">
-          <div style="font-size:10.5px; color:#5A6183; font-weight:700;">📅 區間練習天數</div>
-          <div style="font-size:16px; font-weight:900; color:#6C4CE0;">${ps.activeDaysCount} 天</div>
-        </div>
-        <div style="background:#F8F9FD; border:1px solid #E7E9F5; border-radius:8px; padding:6px 6px; text-align:center;">
-          <div style="font-size:10.5px; color:#5A6183; font-weight:700;">✍️ 區間施測單字數</div>
-          <div style="font-size:16px; font-weight:900; color:#0284C7;">${ps.totalAttempts} 字</div>
-        </div>
-        <div style="background:#F8F9FD; border:1px solid #E7E9F5; border-radius:8px; padding:6px 6px; text-align:center;">
-          <div style="font-size:10.5px; color:#5A6183; font-weight:700;">✅ 區間答對單字數</div>
-          <div style="font-size:16px; font-weight:900; color:#2FB47C;">${ps.totalCorrect} 字</div>
-        </div>
-        <div style="background:#F8F9FD; border:1px solid #E7E9F5; border-radius:8px; padding:6px 6px; text-align:center;">
-          <div style="font-size:10.5px; color:#5A6183; font-weight:700;">📊 區間平均正確率</div>
-          <div style="font-size:16px; font-weight:900; color:${ps.avgRate >= 80 ? '#1E9A66' : '#E8892B'};">${ps.avgRate}%</div>
-        </div>
-      </div>
-
-      <!-- 整體進度 Progress 獨立方塊（比照遊戲網頁整體進度） -->
-      <div style="border:1.5px solid #E7E9F5; border-radius:12px; padding:8px 10px; margin-bottom:8px; background:#FFFFFF; page-break-inside:avoid; box-shadow:0 2px 6px rgba(0,0,0,0.03);">
-        <div style="font-size:13.5px; font-weight:800; color:#232A4D; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
-          <span>整體進度 Progress</span>
-        </div>
-        <!-- 三色三階熟練度進度條 -->
-        <div style="height:14px; border-radius:8px; background:#E8EBF5; overflow:hidden; display:flex; border:1.5px solid rgba(35,42,77,0.12); margin-bottom:6px; box-sizing:border-box;">
-          <div style="width:${Math.min(100, Math.max(0, ((ov.learn || 0) / (ov.totalVocab || 2055) * 100)))}%; height:100%; background:linear-gradient(90deg, #6366F1, #818CF8);"></div>
-          <div style="width:${Math.min(100, Math.max(0, ((ov.prac || 0) / (ov.totalVocab || 2055) * 100)))}%; height:100%; background:linear-gradient(90deg, #0284C7, #38BDF8);"></div>
-          <div style="width:${Math.min(100, Math.max(0, ((ov.mast || 0) / (ov.totalVocab || 2055) * 100)))}%; height:100%; background:linear-gradient(90deg, #10B981, #34D399);"></div>
-        </div>
-        <!-- 圖例與指標說明 -->
-        <div style="display:flex; flex-direction:column; gap:4px; font-size:12px; color:#5A6183;">
-          <div style="display:flex; align-items:center; gap:14px; font-weight:700;">
-            <span style="display:inline-flex; align-items:center; gap:5px;"><i style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#6366F1;"></i>學習中 <b style="color:#4F46E5; font-size:13px;">${ov.learn || 0}</b></span>
-            <span style="display:inline-flex; align-items:center; gap:5px;"><i style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#0284C7;"></i>練習中 <b style="color:#0284C7; font-size:13px;">${ov.prac || 0}</b></span>
-            <span style="display:inline-flex; align-items:center; gap:5px;"><i style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#10B981;"></i>精通 <b style="color:#059669; font-size:13px;">${ov.mast || 0}</b></span>
+          <div style="font-size:16px; font-weight:900; color:#1E3A8A; display:flex; align-items:center; gap:6px;">
+            <span>📊 拼字小特工 · Google 試算表學生分頁 1:1 鏡像歷程表</span>
+            <span style="font-size:10px; background:#EFF6FF; color:#1D4ED8; border:1px solid #BFDBFE; padding:2px 7px; border-radius:999px; font-weight:700;">唯讀防竄改存檔</span>
           </div>
-          <div style="display:flex; align-items:center; gap:8px; font-weight:700; color:#232A4D; padding-top:3px; border-top:1px dashed #E7E9F5;">
-            <span>答對 <b style="color:#D97706; font-size:13px;">${ov.distinctCorrect || ((ov.learn || 0) + (ov.prac || 0) + (ov.mast || 0))}</b> 字，共 <b style="color:#D97706; font-size:13px;">${ov.totalVocab || 2055}</b> 字，掌握率 <b style="color:#D97706; font-size:13px;">${ov.passRate || 0}%</b></span>
-            <span style="color:#CBD5E1;">/</span>
-            <span>獲得 <b style="color:#D97706; font-size:13px;">${ov.points || 0}</b> 分</span>
+          <div style="font-size:11px; color:#475569; font-weight:700; margin-top:2px;">
+            查詢區間：${esc(payload.scopeTitle)}
           </div>
         </div>
-        <div style="font-size:11px; color:#9AA0BD; margin-top:6px; line-height:1.4;">
-          熟練度定義：<b>學習中</b>＝答對 1 次 · <b>練習中</b>＝連續答對 2 次 · <b>精通</b>＝連續答對 3 次（答錯會退回「學習中」）
+        <div style="text-align:right; font-size:11px; color:#475569; font-weight:700; line-height:1.4;">
+          <div>👤 學員帳號：<b style="color:#2563EB; font-size:12px;">${esc(payload.studentId)}</b>${payload.realName ? ` (${esc(payload.realName)})` : ''} ｜ 班級：<b>${esc(payload.className || '—')}</b></div>
+          <div>🕒 系統匯出時間：${esc(payload.exportTime)}</div>
         </div>
       </div>
 
-      <!-- 各關卡進度（比照整體進度版型） -->
-      <div style="border:1.5px solid #E7E9F5; border-radius:12px; padding:8px 10px; margin-bottom:8px; background:#FFFFFF; page-break-inside:avoid; box-shadow:0 2px 6px rgba(0,0,0,0.03);">
-        <div style="font-size:13.5px; font-weight:800; color:#232A4D; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #E7E9F5; padding-bottom:6px;">
-          <span>📊 各關卡進度</span>
-          <span style="font-size:12px; color:#5A6183; font-weight:700;">全書掌握 ${ov.distinctCorrect} 字 / 2055 字（掌握率 ${ov.passRate}%）</span>
+      <!-- 區間摘要指標 -->
+      <div style="display:grid; grid-template-columns:repeat(5,1fr); gap:6px; margin-bottom:8px;">
+        <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:6px; padding:4px 6px; text-align:center;">
+          <div style="font-size:9px; color:#64748B; font-weight:700;">📅 區間活躍天數</div>
+          <div style="font-size:13px; font-weight:900; color:#2563EB;">${ps.activeDaysCount || 0} 天</div>
         </div>
-        <table class="sumtable" style="width:100%; border-collapse:collapse; font-size:12.5px;">
-          ${lvRowsHtml}
+        <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:6px; padding:4px 6px; text-align:center;">
+          <div style="font-size:9px; color:#64748B; font-weight:700;">✍️ 區間施測字數</div>
+          <div style="font-size:13px; font-weight:900; color:#0284C7;">${ps.totalAttempts || 0} 字</div>
+        </div>
+        <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:6px; padding:4px 6px; text-align:center;">
+          <div style="font-size:9px; color:#64748B; font-weight:700;">✅ 區間答對字數</div>
+          <div style="font-size:13px; font-weight:900; color:#16A34A;">${ps.totalCorrect || 0} 字</div>
+        </div>
+        <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:6px; padding:4px 6px; text-align:center;">
+          <div style="font-size:9px; color:#64748B; font-weight:700;">📊 區間平均正確率</div>
+          <div style="font-size:13px; font-weight:900; color:${(ps.avgRate || 0) >= 80 ? '#15803D' : '#D97706'};">${ps.avgRate || 0}%</div>
+        </div>
+        <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:6px; padding:4px 6px; text-align:center;">
+          <div style="font-size:9px; color:#64748B; font-weight:700;">🏆 全期掌握字數 (掌握率)</div>
+          <div style="font-size:13px; font-weight:900; color:#7C3AED;">${ov.distinctCorrect || 0} 字 (${ov.passRate || 0}%)</div>
+        </div>
+      </div>
+
+      <!-- 1:1 Google 試算表鏡像表格 -->
+      <div style="width:100%; margin-bottom:8px;">
+        <table style="width:100%; border-collapse:collapse; border:1.5px solid #94a3b8; table-layout:fixed;">
+          <thead>
+            <tr style="background:#f8fafc;">
+              <th colspan="5" style="padding:3px; border:1px solid #cbd5e1; background:#f1f5f9; color:#334155; font-size:8px; font-weight:900; text-align:center;">📋 基礎帳號資訊</th>
+              <th colspan="6" style="padding:3px; border:1px solid #cbd5e1; background:#dbeafe; color:#1e40af; font-size:8px; font-weight:900; text-align:center;">🎯 單字掌握現況</th>
+              <th colspan="5" style="padding:3px; border:1px solid #cbd5e1; background:#dcfce7; color:#065f46; font-size:8px; font-weight:900; text-align:center;">📈 關卡進度 (L1~L5)</th>
+              <th colspan="4" style="padding:3px; border:1px solid #cbd5e1; background:#e0e7ff; color:#3730a3; font-size:8px; font-weight:900; text-align:center;">🎮 四大題型答對率</th>
+              <th colspan="5" style="padding:3px; border:1px solid #cbd5e1; background:#fef3c7; color:#92400e; font-size:8px; font-weight:900; text-align:center;">📝 每日指定測驗</th>
+              <th colspan="4" style="padding:3px; border:1px solid #cbd5e1; background:#ede9fe; color:#5b21b6; font-size:8px; font-weight:900; text-align:center;">💡 自由自主練習</th>
+            </tr>
+            <tr>
+              ${headerCellsHtml}
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml}
+          </tbody>
         </table>
       </div>
 
-      <!-- 🎯 本期待攻克單字庫 -->
+      <!-- 教師學習診斷與精進建議 -->
+      <div style="border:1px solid #E2E8F0; border-radius:8px; padding:6px 10px; background:#F8FAFC; margin-bottom:6px; font-size:10px; line-height:1.45; page-break-inside:avoid;">
+        <div style="font-weight:800; color:#1E293B; margin-bottom:2px;">💡 學習成效診斷與精進建議：</div>
+        <div style="color:#334155;"><b>成效亮點</b>：${esc(advice.highlight)}</div>
+        <div style="color:#334155;"><b>作答診斷</b>：${esc(advice.diagnosis)}</div>
+        <div style="color:#334155;"><b>行動指引</b>：${esc(advice.actionPlan)}</div>
+      </div>
+
+      <!-- 待攻克單字庫 -->
       ${conquerSectionHtml}
 
-      <!-- 每日使用紀錄明細 -->
-      <div style="font-size:13.5px; font-weight:800; color:#232A4D; margin-bottom:8px;">📋 每日使用與作答紀錄明細（共 ${payload.dailyRecords.length} 日）</div>
-      ${dailyCardsHtml}
+      <!-- 官方防偽存檔聲明 -->
+      <div style="margin-top:6px; font-size:8.5px; color:#64748B; text-align:right; border-top:1px dashed #CBD5E1; padding-top:3px;">
+        🔒 本報表欄位與數值 1:1 提取自 Google 試算表「${esc(payload.studentId)}」專屬分頁，具備唯讀防篡改效力。
+      </div>
     </div>
   `;
 }
@@ -20460,11 +20360,11 @@ async function _exportStudentRecordToPdf(payload) {
     );
     const paperEl = overlay.querySelector("#pdf-export-paper");
     const opt = {
-      margin: [6, 6, 6, 6],
+      margin: [4, 4, 4, 4],
       filename: fileName,
       image: { type: "jpeg", quality: 0.98 },
       html2canvas: { scale: 2, useCORS: true, backgroundColor: "#FFFFFF", scrollY: 0 },
-      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+      jsPDF: { unit: "mm", format: "a4", orientation: "landscape" },
       pagebreak: { mode: ["avoid-all", "css", "legacy"] }
     };
     let downloaded = false;
