@@ -6261,27 +6261,5 @@ function fixIncompleteTaskRecords(ss, params) {
     }
   });
 
-  let inspectedData = null;
-  if (params && params.inspectStudent) {
-    const target = ss.getSheetByName(String(params.inspectStudent).trim());
-    const list = [];
-    ss.getSheets().forEach(sh => {
-      const sName = sh.getName().trim();
-      if (!isSystemSheet(sName)) {
-        list.push({ name: sName, lastRow: sh.getLastRow(), lastCol: sh.getLastColumn() });
-      }
-    });
-    let rowsData = [];
-    if (target && target.getLastRow() >= 1) {
-      const h = target.getRange(1, 1, 1, target.getLastColumn()).getValues()[0] || [];
-      const numRows = target.getLastRow() - 1;
-      const allRows = numRows > 0 ? target.getRange(2, 1, numRows, target.getLastColumn()).getValues() : [];
-      rowsData = allRows.map(r => [r[0], ...r.slice(21)]);
-      inspectedData = { studentList: list, headers: h.slice(21), rows: rowsData };
-    } else {
-      inspectedData = { studentList: list };
-    }
-  }
-
-  return { status: "success", modifiedCount: modifiedList.length, details: modifiedList, inspected: inspectedData };
+  return { status: "success", modifiedCount: modifiedList.length, details: modifiedList };
 }
