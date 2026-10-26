@@ -2185,6 +2185,21 @@ function buildTaskDetailsHtml(records, selectedDate, d, dayStat = null) {
           </div>
         </div>
 
+        <div class="task-score-grid">
+          <div class="task-score-item">
+            <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap;">
+              <span>施測單字數</span>
+            </div>
+            <div class="task-score-val" style="color:var(--ink3); display:flex; align-items:center; justify-content:center;">
+              <span>—</span>
+            </div>
+          </div>
+          <div class="task-score-item">
+            <div class="task-score-label">作答狀態</div>
+            <div class="task-score-val" style="color:var(--ink2); font-size:14.5px; font-weight:800; display:flex; align-items:center; justify-content:center;">☕ 本日未排定測驗</div>
+          </div>
+        </div>
+
         <div class="task-empty-notice-box">
           <div class="task-empty-notice-icon">☕</div>
           <div class="task-empty-notice-title">本日無指定單字測驗</div>
@@ -2209,6 +2224,25 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
         <div class="task-history-header">
           <div>
             <span class="task-card-title task-title-free">${emptyFreeTitle}</span>
+          </div>
+        </div>
+
+        <div class="task-score-grid">
+          <div class="task-score-item">
+            <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap;">
+              <span style="flex:1; text-align:right;">答對單字數</span>
+              <span style="padding:0 6px; opacity:0.6;">/</span>
+              <span style="flex:1; text-align:left;">施測單字數</span>
+            </div>
+            <div class="task-score-val" style="color:var(--ink3); display:flex; align-items:center; justify-content:center;">
+              <span style="flex:1; text-align:right;">0</span>
+              <span style="padding:0 6px; font-weight:700; color:var(--ink3); opacity:0.6; font-size:18px;">/</span>
+              <span style="flex:1; text-align:left;">0</span>
+            </div>
+          </div>
+          <div class="task-score-item">
+            <div class="task-score-label">正確率</div>
+            <div class="task-score-val" style="color:var(--ink3);">—</div>
           </div>
         </div>
 

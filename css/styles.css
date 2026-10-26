@@ -2513,7 +2513,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   box-sizing: border-box !important;
   display: flex !important;
   flex-direction: column !important;
-  overflow-y: auto !important;
+  overflow: hidden !important;
 }
 
 #task-record-details > div,
@@ -2606,7 +2606,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 
 .task-empty-notice-box {
   flex: 1 1 auto !important;
-  height: 100% !important;
+  height: 0 !important;
   min-height: 0 !important;
   max-height: 100% !important;
   display: flex !important;
@@ -2617,9 +2617,10 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   border: 1.5px dashed #CBD5E1 !important;
   border-radius: 12px !important;
   margin: 0 !important;
-  padding: 16px 14px !important;
+  padding: 14px 14px !important;
   text-align: center !important;
   box-sizing: border-box !important;
+  overflow: hidden !important;
 }
 
 [data-theme="dark"] .task-empty-notice-box {

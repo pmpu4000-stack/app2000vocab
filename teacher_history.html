@@ -1798,7 +1798,7 @@
       box-sizing: border-box !important;
       display: flex !important;
       flex-direction: column !important;
-      overflow-y: auto !important;
+      overflow: hidden !important;
     }
 
     #task-record-details > div,
@@ -3944,20 +3944,21 @@
     }
     .task-empty-notice-box {
       flex: 1 1 auto !important;
-      height: 100% !important;
+      height: 0 !important;
       min-height: 0 !important;
       max-height: 100% !important;
       display: flex !important;
       flex-direction: column !important;
       align-items: center !important;
-      justify-content: flex-start !important;
+      justify-content: center !important;
       background: #F8FAFC !important;
       border: 1.5px dashed #CBD5E1 !important;
       border-radius: 12px !important;
       margin: 0 !important;
-      padding: 28px 14px 16px !important;
+      padding: 14px 14px !important;
       text-align: center !important;
       box-sizing: border-box !important;
+      overflow: hidden !important;
     }
     [data-theme="dark"] .task-empty-notice-box {
       background: rgba(148, 163, 184, 0.05) !important;
@@ -4208,6 +4209,11 @@
       display: flex !important;
       justify-content: space-between !important;
       align-items: center !important;
+      height: 26px !important;
+      min-height: 26px !important;
+      max-height: 26px !important;
+      overflow: hidden !important;
+      box-sizing: border-box !important;
     }
     .streakline > span:first-child {
       white-space: nowrap !important;
@@ -16651,6 +16657,21 @@ function buildTaskDetailsHtml(records, selectedDate, agent) {
           </div>
         </div>
 
+        <div class="task-score-grid">
+          <div class="task-score-item">
+            <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap;">
+              <span>施測單字數</span>
+            </div>
+            <div class="task-score-val" style="color:var(--ink3); display:flex; align-items:center; justify-content:center;">
+              <span>—</span>
+            </div>
+          </div>
+          <div class="task-score-item">
+            <div class="task-score-label">作答狀態</div>
+            <div class="task-score-val" style="color:var(--ink2); font-size:14.5px; font-weight:800; display:flex; align-items:center; justify-content:center;">☕ 本日未排定測驗</div>
+          </div>
+        </div>
+
         <div class="task-empty-notice-box">
           <div class="task-empty-notice-icon">☕</div>
           <div class="task-empty-notice-title">本日無指定單字測驗</div>
@@ -16675,6 +16696,25 @@ function buildFreeDetailsHtml(record, selectedDate, agent) {
         <div class="task-history-header">
           <div>
             <span class="task-card-title task-title-free">${emptyFreeTitle}</span>
+          </div>
+        </div>
+
+        <div class="task-score-grid">
+          <div class="task-score-item">
+            <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap;">
+              <span style="flex:1; text-align:right;">答對單字數</span>
+              <span style="padding:0 6px; opacity:0.6;">/</span>
+              <span style="flex:1; text-align:left;">施測單字數</span>
+            </div>
+            <div class="task-score-val" style="color:var(--ink3); display:flex; align-items:center; justify-content:center;">
+              <span style="flex:1; text-align:right;">0</span>
+              <span style="padding:0 6px; font-weight:700; color:var(--ink3); opacity:0.6; font-size:18px;">/</span>
+              <span style="flex:1; text-align:left;">0</span>
+            </div>
+          </div>
+          <div class="task-score-item">
+            <div class="task-score-label">正確率</div>
+            <div class="task-score-val" style="color:var(--ink3);">—</div>
           </div>
         </div>
 
