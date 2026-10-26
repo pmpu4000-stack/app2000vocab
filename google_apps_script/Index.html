@@ -20576,8 +20576,8 @@ async function _exportStudentRecordToPdf(payload) {
   try {
     const html2pdfLib = await _ensureExternalScript(
       "html2pdf",
-      "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js",
-      "https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"
+      "https:\x2F\x2Fcdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js",
+      "https:\x2F\x2Fcdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"
     );
     const paperEl = overlay.querySelector("#pdf-export-paper");
     const opt = {
