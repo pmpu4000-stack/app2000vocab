@@ -17299,7 +17299,10 @@ function renderStudentDailyTaskAndFreeSections(resp) {
     })(targetDate);
     const subhTitleEl = document.getElementById("st-task-subh-title");
     if (subhTitleEl) {
-      subhTitleEl.textContent = isWk ? `🎯 ${formatWeekendTaskDate(targetDate)} 週末待攻克測驗作答紀錄` : "📝 平日指定測驗作答紀錄";
+      const cycleInfo = (typeof getBiweeklyCycleInfo === "function") ? getBiweeklyCycleInfo(targetDate) : { isBiweeklyBossWeek: false };
+      const isBoss = cycleInfo && cycleInfo.isBiweeklyBossWeek;
+      const wkTitle = isBoss ? `🎯 ${formatWeekendTaskDate(targetDate)} 雙週指定單字大消滅戰作答紀錄` : `🎯 ${formatWeekendTaskDate(targetDate)} 週末待攻克測驗作答紀錄`;
+      subhTitleEl.textContent = isWk ? wkTitle : "📝 平日指定測驗作答紀錄";
     }
 
     // B. 匹配自由練習紀錄 (相容 padded, unpadded, slash 鍵名，並支援從 Sheet 專屬欄位讀取)

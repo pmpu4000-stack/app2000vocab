@@ -2472,11 +2472,11 @@
       font-weight: 800 !important;
       color: var(--violet) !important;
       letter-spacing: 0.3px !important;
-      margin: 18px 0 10px !important;
+      margin: 8px 0 6px !important;
       display: flex !important;
       align-items: center !important;
       gap: 6px !important;
-      border-left: 3.5px solid var(--violet) !important;
+      border-left: 3px solid var(--violet) !important;
       padding-left: 8px !important;
       line-height: 1.4 !important;
       text-transform: none !important;
@@ -6022,7 +6022,7 @@
         </div>
 
         <!-- 子標題 1：平日指定測驗 / 週末待攻克測驗作答紀錄 -->
-        <div class="subh" style="margin-top:8px;">
+        <div class="subh" style="margin-top:10px;">
           <span id="st-task-subh-title">📝 平日指定測驗作答紀錄</span>
         </div>
         <div class="task-history-card">
@@ -6037,7 +6037,7 @@
         </div>
 
         <!-- 子標題 2：自由練習作答紀錄 -->
-        <div class="subh" style="margin-top:8px;">
+        <div class="subh" style="margin-top:14px;">
           <span>🎮 自由練習作答紀錄</span>
         </div>
         <div class="task-history-card">
@@ -17299,7 +17299,10 @@ function renderStudentDailyTaskAndFreeSections(resp) {
     })(targetDate);
     const subhTitleEl = document.getElementById("st-task-subh-title");
     if (subhTitleEl) {
-      subhTitleEl.textContent = isWk ? `🎯 ${formatWeekendTaskDate(targetDate)} 週末待攻克測驗作答紀錄` : "📝 平日指定測驗作答紀錄";
+      const cycleInfo = (typeof getBiweeklyCycleInfo === "function") ? getBiweeklyCycleInfo(targetDate) : { isBiweeklyBossWeek: false };
+      const isBoss = cycleInfo && cycleInfo.isBiweeklyBossWeek;
+      const wkTitle = isBoss ? `🎯 ${formatWeekendTaskDate(targetDate)} 雙週指定單字大消滅戰作答紀錄` : `🎯 ${formatWeekendTaskDate(targetDate)} 週末待攻克測驗作答紀錄`;
+      subhTitleEl.textContent = isWk ? wkTitle : "📝 平日指定測驗作答紀錄";
     }
 
     // B. 匹配自由練習紀錄 (相容 padded, unpadded, slash 鍵名，並支援從 Sheet 專屬欄位讀取)
