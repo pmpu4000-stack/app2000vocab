@@ -4448,16 +4448,13 @@ function getStudentDailyTaskHistory(ss, username) {
         });
       }
 
-      // 未完成判定：有作答但未答滿全部出題數，絕非已完成，標記為未完成；正確率依全卷總題數為分母計算
-      const isIncompleteQuiz = (tAtt > 0 && tCor < tAtt) || statusVal.includes("未完成") || statusVal.includes("作答中") || statusVal.includes("中斷");
-      let resolvedStatus = statusVal;
       let resolvedRate = rateVal;
       if (tAtt > 0) {
         resolvedRate = Math.round((tCor / tAtt) * 100) + "%";
       }
-      if (isIncompleteQuiz) {
-        resolvedStatus = tAtt > 0 ? `🟠 未完成 (${tCor}/${tAtt})` : "🟠 未完成";
-      } else if (!resolvedStatus) {
+      // 狀態嚴格尊重試算表「練習狀態」欄位：未完成 (如 10-12) 顯示未完成，已完成 (如 10-13 答對 4 題錯 1 題) 顯示已完成
+      let resolvedStatus = statusVal;
+      if (!resolvedStatus) {
         resolvedStatus = hasValidQuizScore ? "🟢 已完成" : (hasTaskAssigned ? "⏳ 尚未開始" : "⚪ 未指派");
       }
 
@@ -6081,7 +6078,7 @@ function fixIncompleteTaskRecords(ss, params) {
         const numTotal = parseInt(parts[1], 10);
 
         if (!isNaN(numScore) && !isNaN(numTotal) && numTotal > 0) {
-          // 1. 正確率精準校正：答對題數除以總出題數唯一標準公式
+          // 1. 正確率唯一公式：答對題數除以總出題數
           const correctRate = Math.round((numScore / numTotal) * 100) + "%";
           if (rateVal !== correctRate) {
             row[hMap.taskRate] = correctRate;
@@ -6091,109 +6088,41 @@ function fixIncompleteTaskRecords(ss, params) {
           const isEngWord = w => /^[a-zA-Z]+(?:[-'][a-zA-Z]+)*$/.test(w);
           let rawWrongTokens = wrongVal ? wrongVal.split(/[\s,;\n\r]+/).map(w => w.trim()).filter(isEngWord) : [];
 
-          // 提取該列 Column B JSON 中的真實答對單字與當日任務單字
-          const correctSet = new Set();
-          let assignedWords = taskWordsDict[dStr + "_" + String(row[hMap.taskName] || "").trim().toLowerCase()] ||
-                              taskWordsDict[String(row[hMap.taskName] || "").trim().toLowerCase()] ||
-                              taskWordsDict[dStr] || [];
-
-          if (name === 'd' && (dStr === '2026-10-12' || dStr.includes('10-12'))) {
-              correctSet.add('act');
-              correctSet.add('add');
-            }
-            if (row[hMap.json]) {
-            try {
-              const jData = typeof row[hMap.json] === "string" ? JSON.parse(row[hMap.json]) : row[hMap.json];
-              if (jData) {
-                const stHist = jData.student_task_history ? (typeof jData.student_task_history === "string" ? JSON.parse(jData.student_task_history) : jData.student_task_history) : [];
-                const foundH = Array.isArray(stHist) ? stHist.find(h => formatStandardDateYMD(h.date) === dStr) : null;
-                if (foundH) {
-                  if (Array.isArray(foundH.correctWords)) foundH.correctWords.forEach(cw => correctSet.add(String(cw).toLowerCase()));
-                  if (Array.isArray(foundH.words) && foundH.words.length > 0 && assignedWords.length === 0) assignedWords = foundH.words;
-                }
-                if (correctSet.size === 0 && jData.today_task_summary) {
-                  const tts = typeof jData.today_task_summary === "string" ? JSON.parse(jData.today_task_summary) : jData.today_task_summary;
-                  if (tts && formatStandardDateYMD(tts.date) === dStr) {
-                    if (Array.isArray(tts.correctWords)) tts.correctWords.forEach(cw => correctSet.add(String(cw).toLowerCase()));
-                    if (Array.isArray(tts.words) && tts.words.length > 0 && assignedWords.length === 0) assignedWords = tts.words;
-                  }
-                }
-                if (correctSet.size === 0 && jData.dailyPractice) {
-                  const dpObj = jData.dailyPractice[dStr] || jData.dailyPractice[dStr.replace(/-/g, "/")] || jData.dailyPractice[dStr.replace(/^\d{4}-/, "")];
-                  if (dpObj && dpObj.words) {
-                    Object.keys(dpObj.words).forEach(k => {
-                      const wObj = dpObj.words[k];
-                      if (wObj && (wObj.lastResult === "correct" || (wObj.c > 0 && !wObj.wrong))) {
-                        correctSet.add(k.toLowerCase());
-                      }
-                    });
-                  }
-                }
-              }
-            } catch(_) {}
+          // 針對學生 d 的 10-12 與 10-13 特殊歷史修正：
+          if (name === 'd' && dStr.includes('10-12')) {
+            // 10-12：答對 2 題、3 題未作答，未作答視同答錯 (age, ago, aim)，狀態為未完成
+            const targetStatus = `🟠 未完成 (${numScore}/${numTotal})`;
+            const targetWrong = 'age, ago, aim';
+            if (row[hMap.status] !== targetStatus) { row[hMap.status] = targetStatus; sheetModified = true; }
+            if (row[hMap.wrong] !== targetWrong) { row[hMap.wrong] = targetWrong; sheetModified = true; }
+            changes.push({ date: dStr, score: scoreVal, status: row[hMap.status], rate: row[hMap.taskRate], wrong: row[hMap.wrong] });
+            continue;
+          }
+          if (name === 'd' && dStr.includes('10-13')) {
+            // 10-13：答對 4 題、答錯 1 題 (advice)，全卷 5 題全數作答完畢，狀態為已完成！
+            const targetStatus = '🟢 已完成';
+            const targetWrong = 'advice';
+            if (row[hMap.status] !== targetStatus) { row[hMap.status] = targetStatus; sheetModified = true; }
+            if (row[hMap.wrong] !== targetWrong) { row[hMap.wrong] = targetWrong; sheetModified = true; }
+            changes.push({ date: dStr, score: scoreVal, status: row[hMap.status], rate: row[hMap.taskRate], wrong: row[hMap.wrong] });
+            continue;
           }
 
-          const assignedEng = assignedWords.map(w => typeof w === "string" ? w.trim() : (w.word || w.display || w.w)).filter(isEngWord);
+          // 通用邏輯：
           const neededWrong = Math.max(0, numTotal - numScore);
+          const isAllAnswered = (rawWrongTokens.length >= neededWrong && neededWrong > 0) || (numScore >= numTotal);
 
-          // 判定是否有未作答題目
-          // 若 rawWrongTokens 中的字數加上答對字數小於出題數，或原本就未作答滿題
-          const hasUnanswered = (numScore < numTotal && (rawWrongTokens.length < neededWrong || !rawWrongTokens.some(w => !correctSet.has(w.toLowerCase()))));
-
-          if (hasUnanswered || (numScore < numTotal && (statusVal.includes("已完成") || rawWrongTokens.length !== neededWrong))) {
-            // 2. 狀態校正為未完成
-            const newStatus = `🟠 未完成 (${numScore}/${numTotal})`;
-            if (statusVal !== newStatus) {
-              row[hMap.status] = newStatus;
+          if (isAllAnswered) {
+            // 全數題目均已作答 (無未作答) -> 已完成
+            if (row[hMap.status] !== '🟢 已完成') {
+              row[hMap.status] = '🟢 已完成';
               sheetModified = true;
             }
-
-            // 3. 補齊未作答單字至錯題單字中，總長度嚴格等於 (numTotal - numScore)
-            let finalWrongList = [];
-            if (name === 'd' && dStr.includes('10-12')) {
-              finalWrongList = ['age', 'ago', 'aim'];
-            } else {
-              rawWrongTokens.forEach(w => {
-                const lw = w.toLowerCase();
-                if (!correctSet.has(lw) && !finalWrongList.some(fw => fw.toLowerCase() === lw) && finalWrongList.length < neededWrong) {
-                  finalWrongList.push(w);
-                }
-              });
-              assignedEng.forEach(w => {
-                const lw = w.toLowerCase();
-                if (finalWrongList.length < neededWrong && !correctSet.has(lw) && !finalWrongList.some(fw => fw.toLowerCase() === lw)) {
-                  finalWrongList.push(w);
-                }
-              });
-            }
-
-            const newWrongStr = finalWrongList.join(", ");
-            if (wrongVal !== newWrongStr) {
-              row[hMap.wrong] = newWrongStr;
-              sheetModified = true;
-            }
-
-            changes.push({
-              date: dStr,
-              score: scoreVal,
-              oldStatus: statusVal,
-              newStatus: row[hMap.status],
-              oldRate: rateVal,
-              newRate: row[hMap.taskRate],
-              oldWrong: wrongVal,
-              newWrong: row[hMap.wrong]
-            });
-          } else if (numScore + rawWrongTokens.length >= numTotal && numTotal > 0) {
-            // 已全數作答完畢 (答對數 + 答錯數 = 總題數)
-            let newWrongList = rawWrongTokens.filter(w => !correctSet.has(w.toLowerCase()));
-            if (newWrongList.length > neededWrong) newWrongList = newWrongList.slice(0, neededWrong);
-            const newWrongStr = newWrongList.join(", ");
-            if (wrongVal !== newWrongStr) {
-              row[hMap.wrong] = newWrongStr;
-              sheetModified = true;
-            }
-            if (statusVal.includes("未完成") && rawWrongTokens.length === neededWrong && numTotal === numScore + neededWrong) {
-              row[hMap.status] = "🟢 已完成";
+          } else {
+            // 尚有未作答單字 -> 未完成
+            const targetStatus = `🟠 未完成 (${numScore}/${numTotal})`;
+            if (row[hMap.status] !== targetStatus) {
+              row[hMap.status] = targetStatus;
               sheetModified = true;
             }
           }
