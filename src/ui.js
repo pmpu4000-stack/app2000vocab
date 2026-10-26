@@ -2218,40 +2218,12 @@ function buildTaskDetailsHtml(records, selectedDate, d, dayStat = null) {
 
 function buildFreeDetailsHtml(record, selectedDate, d) {
   if (!record || !record.attempts) {
-    const emptyFreeTitle = "🎮 自由練習";
     return `
       <div>
-        <div class="task-history-header">
-          <div>
-            <span class="task-card-title task-title-free">${emptyFreeTitle}</span>
-          </div>
-        </div>
-
-        <div class="task-score-grid">
-          <div class="task-score-item">
-            <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap;">
-              <span style="flex:1; text-align:right;">答對單字數</span>
-              <span style="padding:0 6px; opacity:0.6;">/</span>
-              <span style="flex:1; text-align:left;">施測單字數</span>
-            </div>
-            <div class="task-score-val" style="color:var(--ink3); display:flex; align-items:center; justify-content:center;">
-              <span style="flex:1; text-align:right;">0</span>
-              <span style="padding:0 6px; font-weight:700; color:var(--ink3); opacity:0.6; font-size:18px;">/</span>
-              <span style="flex:1; text-align:left;">0</span>
-            </div>
-          </div>
-          <div class="task-score-item">
-            <div class="task-score-label">正確率</div>
-            <div class="task-score-val" style="color:var(--ink3);">—</div>
-          </div>
-        </div>
-
         <div class="task-empty-notice-box">
-          <div class="task-empty-notice-icon">🎮</div>
-          <div class="task-empty-notice-title">當日尚無自由練習紀錄</div>
-          <div class="task-empty-notice-desc">
-            尚未進行自由單字練習或複習。<br>每天動動手指挑戰 10~20 個單字，保持語感與連勝紀錄！
-          </div>
+          <div style="font-size:30px; margin-bottom:8px; line-height:1;">🎮</div>
+          <div style="font-size:14px; font-weight:700; color:var(--ink2); margin-bottom:6px;">該指定日期 ( ${selectedDate} ) 尚無自由練習受測紀錄</div>
+          <div style="font-size:12.5px; color:var(--ink3); max-width:380px; margin:0 auto; line-height:1.5;">可從上方日曆選擇器或快速按鈕切換至其他日期查看作答狀況</div>
         </div>
       </div>
     `;
