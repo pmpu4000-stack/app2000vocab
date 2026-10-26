@@ -685,7 +685,7 @@ body.daily-limit-reached #btn-upload {
 .word-split-content,
 .word-split-box > div:not(.word-split-title){display:flex;flex-wrap:wrap;align-items:flex-start;align-content:flex-start;gap:4px;flex:1 1 auto;height:0;min-height:0;overflow-y:auto !important;overscroll-behavior:contain;padding-right:4px;scrollbar-gutter:stable;scrollbar-width:thin;scrollbar-color:rgba(100,116,139,0.45) transparent;box-sizing:border-box}
 #task-record-details, #free-record-details{box-sizing:border-box}
-.task-empty-notice-box{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1 1 auto;height:100% !important;min-height:0 !important;max-height:100% !important;background:#F8FAFC;border:1.5px dashed #CBD5E1;border-radius:12px;margin:0 !important;padding:16px 14px;text-align:center;box-sizing:border-box;transition:background .2s,border-color .2s}
+.task-empty-notice-box{display:flex;flex-direction:column;align-items:center;justify-content:flex-start !important;flex:1 1 auto;height:100% !important;min-height:0 !important;max-height:100% !important;background:#F8FAFC;border:1.5px dashed #CBD5E1;border-radius:12px;margin:0 !important;padding:28px 14px 16px !important;text-align:center;box-sizing:border-box;transition:background .2s,border-color .2s}
 .task-empty-notice-icon{font-size:38px;line-height:1;margin-bottom:12px;opacity:.95;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.06))}
 .task-empty-notice-title{font-size:15px;font-weight:800;color:var(--ink,#1E293B);margin-bottom:6px}
 .task-empty-notice-desc{font-size:13px;color:var(--ink2,#64748B);line-height:1.6;max-width:380px;margin-bottom:0}
