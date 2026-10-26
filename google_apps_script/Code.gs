@@ -4641,6 +4641,49 @@ function _getStudentData(ss, username) {
 
   const headers = sheet.getRange(1, 1, 1, lastCol).getDisplayValues()[0];
   const rawData = sheet.getRange(2, 1, maxRowsToRead, lastCol).getDisplayValues();
+  // 自動校準與修復：若學生歷史紀錄中指定測驗為 A/B (如 2/5)，校正正確率為 (A/B)%、未達出題數標示為未完成
+  const hMap = getHeaderIndexMap(headers);
+  if (hMap.taskScore >= 0 && hMap.taskRate >= 0 && hMap.status >= 0) {
+    let sheetNeedsUpdate = false;
+    for (let r = 0; r < rawData.length; r++) {
+      const scoreStr = String(rawData[r][hMap.taskScore] || "").trim().replace(/^'+/, "");
+      const statusStr = String(rawData[r][hMap.status] || "").trim();
+      if (scoreStr.includes("/")) {
+        const m = scoreStr.match(/^(\d+)\s*\/\s*(\d+)$/);
+        if (m) {
+          const numScore = parseInt(m[1], 10);
+          const numTotal = parseInt(m[2], 10);
+          if (numTotal > 0) {
+            const expectedRate = Math.round((numScore / numTotal) * 100) + "%";
+            const currentRate = String(rawData[r][hMap.taskRate] || "").trim().replace(/^'+/, "");
+            if (currentRate !== expectedRate) {
+              rawData[r][hMap.taskRate] = expectedRate;
+              sheetNeedsUpdate = true;
+            }
+            if (numScore < numTotal) {
+              if (statusStr.includes("已完成") || !statusStr.includes("未完成")) {
+                const expectedStatus = `🟠 未完成 (${numScore}/${numTotal})`;
+                rawData[r][hMap.status] = expectedStatus;
+                sheetNeedsUpdate = true;
+              }
+            }
+          }
+        }
+      }
+    }
+    if (sheetNeedsUpdate) {
+      try {
+        const writeData = sheet.getRange(2, 1, rawData.length, lastCol).getValues();
+        for (let r = 0; r < rawData.length; r++) {
+          writeData[r][hMap.taskRate] = rawData[r][hMap.taskRate];
+          writeData[r][hMap.status] = rawData[r][hMap.status];
+        }
+        sheet.getRange(2, 1, rawData.length, lastCol).setValues(writeData);
+      } catch(errUpdate) {
+        Logger.log("Auto-calibrate student sheet error: " + errUpdate);
+      }
+    }
+  }
 
   // 取得 Column B 的原始資料 (使用 getValues() 防止 getDisplayValues() 字元長度截斷或隱藏欄空白)
   let rawBVals = [];

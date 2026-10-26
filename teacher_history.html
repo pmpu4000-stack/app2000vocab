@@ -11781,11 +11781,28 @@ function processHistoryWithDiffs(originalHeaders, originalRows) {
     const cellsHtml = [];
     for (let c = 0; c < displayHeaders.length; c++) {
       const valStr = String(curr[c] || "").trim();
+      const colHeader = String(displayHeaders[c] || "");
       if (c === accCol) {
         const accClass = dAcc >= 80 ? "acc-high" : (dAcc < 50 ? "acc-low" : "acc-mid");
         cellsHtml.push(`
           <div class="cum-val">${escapeHtml(valStr || "0%")}</div>
           <div class="accuracy-pill ${accClass}" title="單日作答正確率">單日: ${dAtt > 0 ? dAcc.toFixed(1)+"%" : "0.0%"}</div>
+        `);
+      } else if (colHeader.includes("指定測驗成績") || colHeader.includes("測驗成績")) {
+        cellsHtml.push(`
+          <div class="cum-val" style="font-size:14px; font-weight:800; color:var(--primary);">${escapeHtml(valStr || "—")}</div>
+        `);
+      } else if (colHeader.includes("自由練習")) {
+        cellsHtml.push(`
+          <div class="cum-val" style="font-size:13px; font-weight:700;">${escapeHtml(valStr || "—")}</div>
+        `);
+      } else if (colHeader.includes("狀態")) {
+        let statusColor = "var(--ink)";
+        if (valStr.includes("已完成")) statusColor = "#15803d";
+        else if (valStr.includes("未完成") || valStr.includes("中斷")) statusColor = "#c2410c";
+        else if (valStr.includes("未受測") || valStr.includes("缺席")) statusColor = "#dc2626";
+        cellsHtml.push(`
+          <span style="font-weight:750; color:${statusColor};">${escapeHtml(valStr)}</span>
         `);
       } else if (valStr.includes("/")) {
         const currR = parseRatio(valStr);
