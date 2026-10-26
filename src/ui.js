@@ -3046,7 +3046,7 @@ export function buildWeekPendingConquerHtml(words, d = null, cycleParam = _activ
     let contentHtml = "";
     const isAllMode = (_conquerViewModeByLevel[lv] === "all");
     const toggleBtnHtml = (list.length > 1)
-      ? `<button type="button" class="conquer-mode-toggle-btn" data-lv="${lv}" title="${isAllMode ? '收合單字卡' : '展開全部單字卡'}">${isAllMode ? '收合' : '展開'}</button>`
+      ? `<button type="button" class="conquer-mode-toggle-btn" data-lv="${lv}" style="display:inline-flex; align-items:center; justify-content:center; text-align:center; min-width:44px; height:22px; padding:0 8px; line-height:1;" title="${isAllMode ? '收合單字卡' : '展開全部單字卡'}">${isAllMode ? '收合' : '展開'}</button>`
       : "";
 
     if (list.length > 0) {
