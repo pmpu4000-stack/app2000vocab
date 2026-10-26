@@ -4066,6 +4066,18 @@
       text-align: center !important;
       box-sizing: border-box !important;
     }
+    [data-theme="dark"] .task-empty-notice-box {
+      background: rgba(148, 163, 184, 0.05) !important;
+      border-color: rgba(148, 163, 184, 0.22) !important;
+    }
+    [data-theme="dark"] .task-empty-notice-box .task-empty-notice-title,
+    [data-theme="dark"] .task-empty-notice-title {
+      color: #F0F3FA !important;
+    }
+    [data-theme="dark"] .task-empty-notice-box .task-empty-notice-desc,
+    [data-theme="dark"] .task-empty-notice-desc {
+      color: #94A3B8 !important;
+    }
     .word-split-content::-webkit-scrollbar,
     .word-split-box > div:not(.word-split-title)::-webkit-scrollbar {
       width: 5px !important;
@@ -16727,9 +16739,9 @@ function buildTaskDetailsHtml(records, selectedDate, agent) {
     // 當日未指派指定測驗
     return `
       <div class="task-empty-notice-box">
-        <div style="font-size:28px; margin-bottom:8px; line-height:1;">☕</div>
-        <div style="font-size:14px; font-weight:700; color:var(--ink2); margin-bottom:6px;">${isSatClearedOnSunday ? "本日無指定單字測驗" : `該日未指派指定測驗（${selectedDate}）`}</div>
-        <div style="font-size:12px; margin-top:2px; color:var(--ink3); max-width:380px; margin-left:auto; margin-right:auto; line-height:1.5;">${isSatClearedOnSunday ? "本週待攻克單字已於週六全數消滅，今日無須再測驗！已全面開放自由闖關升級。" : "老師當日未指派指定測驗，可切換至其他日期查看紀錄"}</div>
+        <div class="task-empty-notice-icon" style="font-size:28px; margin-bottom:8px; line-height:1;">☕</div>
+        <div class="task-empty-notice-title" style="font-size:14px; font-weight:700; color:var(--ink2); margin-bottom:6px;">${isSatClearedOnSunday ? "本日無指定單字測驗" : `該日未指派指定測驗（${selectedDate}）`}</div>
+        <div class="task-empty-notice-desc" style="font-size:12px; margin-top:2px; color:var(--ink3); max-width:380px; margin-left:auto; margin-right:auto; line-height:1.5;">${isSatClearedOnSunday ? "本週待攻克單字已於週六全數消滅，今日無須再測驗！已全面開放自由闖關升級。" : "老師當日未指派指定測驗，可切換至其他日期查看紀錄"}</div>
       </div>
     `;
   }
@@ -16741,9 +16753,9 @@ function buildFreeDetailsHtml(record, selectedDate, agent) {
   if (!record || !record.attempts) {
     return `
       <div class="task-empty-notice-box">
-        <div style="font-size:26px; margin-bottom:6px; line-height:1;">🎮</div>
-        <div style="font-size:13.5px; font-weight:700; color:var(--ink2); margin-bottom:6px;">該指定日期（${selectedDate}）尚無自由練習受測紀錄</div>
-        <div style="font-size:12px; margin-top:2px; color:var(--ink3); max-width:380px; margin-left:auto; margin-right:auto; line-height:1.5;">可從上方日曆選擇器或快速按鈕切換至其他日期查看作答狀況</div>
+        <div class="task-empty-notice-icon" style="font-size:26px; margin-bottom:6px; line-height:1;">🎮</div>
+        <div class="task-empty-notice-title" style="font-size:13.5px; font-weight:700; color:var(--ink2); margin-bottom:6px;">該指定日期（${selectedDate}）尚無自由練習受測紀錄</div>
+        <div class="task-empty-notice-desc" style="font-size:12px; margin-top:2px; color:var(--ink3); max-width:380px; margin-left:auto; margin-right:auto; line-height:1.5;">可從上方日曆選擇器或快速按鈕切換至其他日期查看作答狀況</div>
       </div>
     `;
   }
