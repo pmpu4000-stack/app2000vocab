@@ -4458,6 +4458,7 @@ function getStudentDailyTaskHistory(ss, username) {
         resolvedStatus = hasValidQuizScore ? "🟢 已完成" : (hasTaskAssigned ? "⏳ 尚未開始" : "⚪ 未指派");
       }
 
+      const isIncompleteQuiz = (tAtt > 0 && tCor < tAtt) || statusVal.includes("未完成") || statusVal.includes("作答中") || statusVal.includes("中斷");
       const isSpecialTask = statusVal.includes("未受測") || statusVal.includes("中斷") || statusVal.includes("缺席") || statusVal.includes("作答中") || statusVal.includes("未作答") || statusVal.includes("未完成") || isIncompleteQuiz;
       const defaultTaskName = (hasTaskAssigned || isSpecialTask) ? "每日指定測驗" : (hasFreePractice ? "自主練習" : "每日指定測驗");
       list.push({
