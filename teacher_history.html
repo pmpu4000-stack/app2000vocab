@@ -19559,6 +19559,12 @@ function _buildStudentExportPayload(resp, mode, startDate, endDate) {
           ...taskWrongWords.map(w => String(w).toLowerCase())
         ]);
         unansweredWords = rawWords.filter(w => !answeredSet.has(String(w).toLowerCase())).sort((a, b) => a.localeCompare(b));
+        // 測驗者有參與但未作答之單字，視同錯字納入錯題清單（並滾入週末消滅戰）
+        if (unansweredWords.length > 0 && (actualAnswered > 0 || !isUntested)) {
+          unansweredWords.forEach(uw => {
+            if (!taskWrongWords.includes(uw)) taskWrongWords.push(uw);
+          });
+        }
 
         tAtt = parseInt(matchedTask.attempts) || 0;
         tCor = parseInt(matchedTask.correct) || 0;

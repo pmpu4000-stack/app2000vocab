@@ -3187,31 +3187,36 @@ function handleSaveRecord(ss, params, auth) {
   const hasTaskAssignedToday = activeTaskObj && activeTaskObj.hasTask;
 
   let taskName      = (sum && sum.taskName) ? sum.taskName : (hasTaskAssignedToday ? (activeTaskObj.taskName || "指定測驗") : "⚪ 未指派");
-  let taskScore     = (isCompleted && sum.score !== undefined && sum.total !== undefined) ? `'${sum.score}/${sum.total}` : "—";
-  let taskRate      = "—";
-  if (isCompleted) {
-    if (sum.rate) {
-      taskRate = String(sum.rate).includes("%") ? String(sum.rate) : Math.round(parseFloat(sum.rate) <= 1 ? parseFloat(sum.rate)*100 : parseFloat(sum.rate)) + "%";
-    } else if (sum.score !== undefined && sum.total && sum.total > 0) {
-      taskRate = Math.round((sum.score / sum.total) * 100) + "%";
-    }
+  // 整理答對單字與錯題單字（有參與測驗但未作答之單字，視同錯字納入錯題單字與消滅戰）
+  let taskCorrectWordsList = (sum && sum.correctWords && Array.isArray(sum.correctWords))
+    ? sum.correctWords
+    : [];
+  let wrongWordsList = (sum && sum.wrongWords && Array.isArray(sum.wrongWords))
+    ? [...sum.wrongWords]
+    : (sum && typeof sum.wrongWords === "string" && sum.wrongWords.trim() ? sum.wrongWords.split(",").map(w => w.trim()).filter(Boolean) : []);
+
+  if (hasTaskAssignedToday && activeTaskObj && Array.isArray(activeTaskObj.words) && activeTaskObj.words.length > 0) {
+    const assignedW = activeTaskObj.words;
+    assignedW.forEach(w => {
+      const cleanW = String(w).trim().toLowerCase();
+      const inCorr = taskCorrectWordsList.some(cw => String(cw).trim().toLowerCase() === cleanW);
+      const inWrong = wrongWordsList.some(ww => String(ww).trim().toLowerCase() === cleanW);
+      if (!inCorr && !inWrong && (isCompleted || (sum && (sum.inProgress || sum.attempts > 0)))) {
+        wrongWordsList.push(w);
+      }
+    });
   }
 
-  let status = "⚪ 未指派";
-  if (isCompleted) {
-    status = "🟢 已完成";
-  } else if (sum && sum.inProgress) {
-    const cur = (sum.score !== undefined && sum.total !== undefined) ? `(${sum.score}/${sum.total})` : "";
-    status = `🟡 測驗作答中${cur}`;
-  } else if (hasTaskAssignedToday) {
-    status = "⚪ 未受測";
-  } else {
-    status = "⚪ 未指派";
-  }
+  let wrongWordsStr = wrongWordsList.length > 0 ? wrongWordsList.join(", ") : (isCompleted ? "全對無錯題" : "—");
 
-  let wrongWordsStr = (sum && sum.wrongWords && Array.isArray(sum.wrongWords))
-    ? sum.wrongWords.join(", ")
-    : (sum && typeof sum.wrongWords === "string" ? sum.wrongWords : "");
+  // 指定測驗答對題數除以出題數，為指定正確率唯一標準公式
+  let numScore = taskCorrectWordsList.length;
+  let numTotal = (activeTaskObj && activeTaskObj.words && activeTaskObj.words.length > 0) ? activeTaskObj.words.length : (sum && sum.total ? Number(sum.total) : 0);
+  if (sum && sum.score !== undefined) numScore = Math.max(numScore, Number(sum.score));
+  if (sum && sum.total !== undefined) numTotal = Math.max(numTotal, Number(sum.total));
+
+  let taskScore = (isCompleted && numTotal > 0) ? `'${numScore}/${numTotal}` : "—";
+  let taskRate = (isCompleted && numTotal > 0) ? `${Math.round((numScore / numTotal) * 100)}%` : "—";
 
   // 檢查試算表目前第 2 列是否已經是今日或過往的紀錄
   let shouldInsertNewRow = false;
@@ -4240,8 +4245,8 @@ function parseScoreAndRate(rawScore, rawRate) {
     }
   }
 
-  // 3. 智慧反推：若 rateStr 為 "—" 但 scoreStr 符合 "A/B"，自動推算百分比 (防除以零)
-  if ((rateStr === "—" || rateStr === "") && scoreStr.includes("/")) {
+  // 3. 智慧校驗與精準計算：指定測驗答對題數除以出題數，為指定正確率唯一標準公式
+  if (scoreStr.includes("/")) {
     const m = scoreStr.match(/^(\d+)\s*\/\s*(\d+)$/);
     if (m) {
       const numScore = parseInt(m[1], 10);
