@@ -3251,23 +3251,11 @@ function handleSaveRecord(ss, params, auth) {
     ? [...sum.wrongWords]
     : (sum && typeof sum.wrongWords === "string" && sum.wrongWords.trim() ? sum.wrongWords.split(",").map(w => w.trim()).filter(Boolean) : []);
 
-  if (hasTaskAssignedToday && activeTaskObj && Array.isArray(activeTaskObj.words) && activeTaskObj.words.length > 0) {
-    const assignedW = activeTaskObj.words;
-    assignedW.forEach(w => {
-      const cleanW = String(w).trim().toLowerCase();
-      const inCorr = taskCorrectWordsList.some(cw => String(cw).trim().toLowerCase() === cleanW);
-      const inWrong = wrongWordsList.some(ww => String(ww).trim().toLowerCase() === cleanW);
-      if (!inCorr && !inWrong && (isCompleted || (sum && (sum.inProgress || sum.attempts > 0)))) {
-        wrongWordsList.push(w);
-      }
-    });
-  }
-
-  let wrongWordsStr = wrongWordsList.length > 0 ? wrongWordsList.join(", ") : (isCompleted ? "全對無錯題" : "—");
+// 舊版全題庫錯字填充已移除，改由後續僅鎖定被抽出考題
 
   // 依據新規則：施測單字數(出題數)、作答單字數、答對單字數
-  let assignedWordsCount = (activeTaskObj && activeTaskObj.words && activeTaskObj.words.length > 0) ? activeTaskObj.words.length : (sum && sum.total ? Number(sum.total) : 0);
-  if (sum && sum.total !== undefined) assignedWordsCount = Math.max(assignedWordsCount, Number(sum.total));
+  // 出題數以老師訂之出題數(count/total)為準，而非題庫總字數
+  let assignedWordsCount = (sum && sum.total) ? Number(sum.total) : (activeTaskObj && activeTaskObj.count ? Number(activeTaskObj.count) : (activeTaskObj && activeTaskObj.words ? activeTaskObj.words.length : 0));
 
   let correctWordsCount = taskCorrectWordsList.length;
   if (sum && sum.score !== undefined) correctWordsCount = Math.max(correctWordsCount, Number(sum.score));
@@ -3280,6 +3268,27 @@ function handleSaveRecord(ss, params, auth) {
   if (isCompleted && answeredWordsCount < assignedWordsCount && rawWrongList.length === 0) {
     answeredWordsCount = assignedWordsCount;
   }
+  if (assignedWordsCount > 0) {
+    answeredWordsCount = Math.min(answeredWordsCount, assignedWordsCount);
+  }
+
+  // 測驗答錯單字：僅記錄被抽出來考的單字中，答錯或未作答的單字
+  const quizSampledWords = (sum && Array.isArray(sum.words) && sum.words.length > 0)
+    ? sum.words
+    : ((activeTaskObj && Array.isArray(activeTaskObj.words) && activeTaskObj.words.length <= assignedWordsCount) ? activeTaskObj.words : []);
+
+  if (quizSampledWords.length > 0) {
+    quizSampledWords.forEach(w => {
+      const cleanW = String(w).trim().toLowerCase();
+      const inCorr = taskCorrectWordsList.some(cw => String(cw).trim().toLowerCase() === cleanW);
+      const inWrong = wrongWordsList.some(ww => String(ww).trim().toLowerCase() === cleanW);
+      if (!inCorr && !inWrong && (isCompleted || (sum && (sum.inProgress || sum.attempts > 0)))) {
+        wrongWordsList.push(w);
+      }
+    });
+  }
+
+  let wrongWordsStr = wrongWordsList.length > 0 ? wrongWordsList.join(", ") : (isCompleted ? "全對無錯題" : "—");
 
   // 檢查作答進度與未完成狀態
   const hasTaskActivity = isCompleted || !!(sum && (sum.inProgress || sum.attempts > 0)) || (taskCorrectWordsList.length > 0) || (wrongWordsList.length > 0);
@@ -3289,7 +3298,7 @@ function handleSaveRecord(ss, params, auth) {
     if (answeredWordsCount === assignedWordsCount && assignedWordsCount > 0) {
       status = "🟢 已完成";
     } else {
-      status = answeredWordsCount > 0 ? `🟠 未完成 (${correctWordsCount}/${answeredWordsCount})` : (assignedWordsCount > 0 ? `🟠 未完成 (0/${assignedWordsCount})` : "🟠 未完成");
+      status = `🟠 未完成 (${correctWordsCount}/${assignedWordsCount})`;
     }
   } else if (hasTaskAssignedToday) {
     status = "🔴 未受測";
@@ -3297,14 +3306,16 @@ function handleSaveRecord(ss, params, auth) {
     status = "⚪ 未指派";
   }
 
-  // 指定測驗成績：答對單字數/作答單字數；若作答數為 0 則顯示出題數備援或 —
+  // 指定測驗成績：答對單字數/作答單字數 (如 3/4)
+  // 指定測驗正確率：答對單字數/施測出題數 * 100% (如 3/5 = 60%)
   let taskScore = "—";
   let taskRate = "—";
   if (hasTaskActivity && answeredWordsCount > 0) {
     taskScore = `'${correctWordsCount}/${answeredWordsCount}`;
-    taskRate = `${Math.round((correctWordsCount / answeredWordsCount) * 100)}%`;
   } else if (isCompleted && assignedWordsCount > 0) {
     taskScore = `'${correctWordsCount}/${assignedWordsCount}`;
+  }
+  if (hasTaskActivity && assignedWordsCount > 0) {
     taskRate = `${Math.round((correctWordsCount / assignedWordsCount) * 100)}%`;
   }
 
@@ -4403,9 +4414,10 @@ function getStudentTodayTaskResult(ss, username, todayStr) {
   }
 
   if (primaryTask) {
-    primaryTask.allTodayTasks = allTodayTasks;
-    primaryTask.todayCount = allTodayTasks.length;
-    return primaryTask;
+    const res = Object.assign({}, primaryTask);
+    res.allTodayTasks = allTodayTasks.map(t => Object.assign({}, t));
+    res.todayCount = allTodayTasks.length;
+    return res;
   }
   return { hasDone: false, inProgress: false, allTodayTasks: [] };
 }
@@ -4747,9 +4759,11 @@ function _getStudentData(ss, username) {
       const statusStr = String(rawData[r][hMap.status] || "").trim();
 
       if (!isNaN(assigned) && assigned > 0 && !isNaN(answered)) {
-        if (!isNaN(correct) && answered > 0) {
-          rawData[r][hMap.taskScore] = `${correct}/${answered}`;
-          rawData[r][hMap.taskRate] = Math.round((correct / answered) * 100) + "%";
+        if (!isNaN(correct)) {
+          if (answered > 0) {
+            rawData[r][hMap.taskScore] = `${correct}/${answered}`;
+          }
+          rawData[r][hMap.taskRate] = Math.round((correct / assigned) * 100) + "%";
         }
         if (answered !== assigned) {
           rawData[r][hMap.status] = `🟠 未完成 (${!isNaN(correct) ? correct : 0}/${assigned})`;
@@ -6147,7 +6161,7 @@ function migrateStudentSheetRows_(sheet) {
         row[23] = 2;
         row[24] = 2;
         row[25] = "2/2";
-        row[26] = "100%";
+        row[26] = "40%";
         row[27] = "🟠 未完成 (2/5)";
         row[28] = "age, ago, aim";
         sheetModified = true;
@@ -6192,7 +6206,7 @@ function migrateStudentSheetRows_(sheet) {
         row[23] = answered;
         row[24] = correct;
         row[25] = answered > 0 ? `${correct}/${answered}` : "—";
-        row[26] = answered > 0 ? Math.round((correct / answered) * 100) + "%" : "—";
+        row[26] = assigned > 0 ? Math.round((correct / assigned) * 100) + "%" : "—";
         row[27] = answered === assigned ? "🟢 已完成" : `🟠 未完成 (${correct}/${assigned})`;
         row[28] = oldWrong || "—";
       } else {
@@ -6206,14 +6220,35 @@ function migrateStudentSheetRows_(sheet) {
       }
       sheetModified = true;
     } else {
-      // 若已是 33 欄結構，檢查學生 d 10-12 與 10-13 及數值校準
+      // 若已是 33 欄結構，依新邏輯校準正確率 (答對/施測) 與完成狀態
+      const assigned = parseInt(row[22], 10);
+      const answered = parseInt(row[23], 10);
+      const correct = parseInt(row[24], 10);
+      const statusStr = String(row[27] || "").trim();
+
+      if (!isNaN(assigned) && assigned > 0 && !isNaN(correct)) {
+        if (!isNaN(answered) && answered > 0) {
+          const expectedScore = `${correct}/${answered}`;
+          if (row[25] !== expectedScore) { row[25] = expectedScore; sheetModified = true; }
+        }
+        const expectedRate = Math.round((correct / assigned) * 100) + "%";
+        if (row[26] !== expectedRate) { row[26] = expectedRate; sheetModified = true; }
+
+        if (answered === assigned) {
+          if (!statusStr.includes("已完成")) { row[27] = "🟢 已完成"; sheetModified = true; }
+        } else {
+          const expectedStatus = `🟠 未完成 (${correct}/${assigned})`;
+          if (row[27] !== expectedStatus) { row[27] = expectedStatus; sheetModified = true; }
+        }
+      }
+
       if (name === 'd' && dStr.includes('10-12')) {
-        if (row[22] !== 5 || row[23] !== 2 || row[24] !== 2 || row[25] !== "2/2" || row[26] !== "100%" || row[27] !== "🟠 未完成 (2/5)" || row[28] !== "age, ago, aim") {
+        if (row[22] !== 5 || row[23] !== 2 || row[24] !== 2 || row[25] !== "2/2" || row[26] !== "40%" || row[27] !== "🟠 未完成 (2/5)" || row[28] !== "age, ago, aim") {
           row[22] = 5;
           row[23] = 2;
           row[24] = 2;
           row[25] = "2/2";
-          row[26] = "100%";
+          row[26] = "40%";
           row[27] = "🟠 未完成 (2/5)";
           row[28] = "age, ago, aim";
           sheetModified = true;

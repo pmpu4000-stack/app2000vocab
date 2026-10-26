@@ -16655,16 +16655,20 @@ function extractRowTaskInfo(row, headers) {
   const answeredWords = answeredIdx >= 0 && row[answeredIdx] !== undefined && row[answeredIdx] !== "" && row[answeredIdx] !== "—" ? parseInt(row[answeredIdx], 10) : 0;
   const correctWords = correctIdx >= 0 && row[correctIdx] !== undefined && row[correctIdx] !== "" && row[correctIdx] !== "—" ? parseInt(row[correctIdx], 10) : 0;
 
-  // 若存在作答單字數且已計算，自動以答對數/作答數計算成績與正確率，且作答數!=出題數為未完成
+  // 若存在作答單字數且已計算，成績為答對/作答，正確率為答對/施測，且作答數!=出題數為未完成
   if (assignedIdx >= 0 && answeredIdx >= 0 && (assignedWords > 0 || answeredWords > 0)) {
     if (answeredWords > 0) {
       score = `${correctWords}/${answeredWords}`;
+    }
+    if (assignedWords > 0) {
+      rate = `${Math.round((correctWords / assignedWords) * 100)}%`;
+    } else if (answeredWords > 0) {
       rate = `${Math.round((correctWords / answeredWords) * 100)}%`;
     }
     if (answeredWords === assignedWords && assignedWords > 0) {
       status = "🟢 已完成";
     } else if (answeredWords < assignedWords && assignedWords > 0) {
-      status = answeredWords > 0 ? `🟠 未完成 (${correctWords}/${answeredWords})` : `🟠 未完成 (0/${assignedWords})`;
+      status = `🟠 未完成 (${correctWords}/${assignedWords})`;
     }
   }
 
