@@ -2413,6 +2413,48 @@ function doPost(e) {
     }
 
     // ── 1. 學生 / 教師登入 ──
+    // ── 0.5 歷程查詢與各項 Web API 橋接 ──
+    if (action === "checkAndGetData") {
+      return jsonResponse(checkAndGetData(params));
+    }
+    if (action === "getStudentPasswords") {
+      const auth = authenticateUser(ss, params.username, params.password);
+      if (!auth.success || auth.role !== "teacher") return jsonResponse({status:"error", message:"僅教師可查閱學生密碼"});
+      return jsonResponse(getStudentPasswords(ss, auth.className, auth.isAdmin));
+    }
+    if (action === "changeStudentPassword") {
+      const auth = authenticateUser(ss, params.username, params.password);
+      if (!auth.success || auth.role !== "teacher") return jsonResponse({status:"error", message:"僅教師可重設學生密碼"});
+      return jsonResponse(changeStudentPassword(ss, params.targetUsername, params.newPassword, auth.className, auth.isAdmin));
+    }
+    if (action === "changeOwnPassword") {
+      const auth = authenticateUser(ss, params.username, params.oldPassword);
+      if (!auth.success) return jsonResponse({status:"error", message:"舊密碼驗證失敗"});
+      return jsonResponse(changeOwnPassword(ss, params.username, params.oldPassword, params.newPassword));
+    }
+    if (action === "getErrorLogs") {
+      const auth = authenticateUser(ss, params.username, params.password);
+      if (!auth.success || auth.role !== "teacher") return jsonResponse({status:"error", message:"僅教師可查閱日誌"});
+      return jsonResponse(getErrorLogs(ss));
+    }
+    if (action === "clearErrorLogs") {
+      const auth = authenticateUser(ss, params.username, params.password);
+      if (!auth.success || auth.role !== "teacher") return jsonResponse({status:"error", message:"僅教師可清空日誌"});
+      return jsonResponse(clearErrorLogs(ss));
+    }
+    if (action === "reportClientError") {
+      return jsonResponse(reportClientError(params));
+    }
+    if (action === "getStudentGoals") {
+      return jsonResponse(getStudentGoals(ss, params.username));
+    }
+    if (action === "saveStudentGoals") {
+      return jsonResponse(saveStudentGoals(ss, params.username, params.goals));
+    }
+    if (action === "getStudentLeaderboard") {
+      return jsonResponse(getStudentLeaderboard(ss, params.username, params.rankingMode, params.isTeacher));
+    }
+
     if (action === "login") {
       const auth = authenticateUser(ss, params.username, params.password);
       if (!auth.success) {
@@ -4641,10 +4683,9 @@ function _getStudentData(ss, username) {
 
   const headers = sheet.getRange(1, 1, 1, lastCol).getDisplayValues()[0];
   const rawData = sheet.getRange(2, 1, maxRowsToRead, lastCol).getDisplayValues();
-  // 自動校準與修復：若學生歷史紀錄中指定測驗為 A/B (如 2/5)，校正正確率為 (A/B)%、未達出題數標示為未完成
+  // 自動校準：若學生歷史紀錄中指定測驗為 A/B (如 2/5)，校正正確率為 (A/B)%、未達出題數標示為未完成
   const hMap = getHeaderIndexMap(headers);
   if (hMap.taskScore >= 0 && hMap.taskRate >= 0 && hMap.status >= 0) {
-    let sheetNeedsUpdate = false;
     for (let r = 0; r < rawData.length; r++) {
       const scoreStr = String(rawData[r][hMap.taskScore] || "").trim().replace(/^'+/, "");
       const statusStr = String(rawData[r][hMap.status] || "").trim();
@@ -4654,38 +4695,15 @@ function _getStudentData(ss, username) {
           const numScore = parseInt(m[1], 10);
           const numTotal = parseInt(m[2], 10);
           if (numTotal > 0) {
-            const expectedRate = Math.round((numScore / numTotal) * 100) + "%";
-            const currentRate = String(rawData[r][hMap.taskRate] || "").trim().replace(/^'+/, "");
-            if (currentRate !== expectedRate) {
-              rawData[r][hMap.taskRate] = expectedRate;
-              sheetNeedsUpdate = true;
-            }
-            if (numScore < numTotal) {
-              if (statusStr.includes("已完成") || !statusStr.includes("未完成")) {
-                const expectedStatus = `🟠 未完成 (${numScore}/${numTotal})`;
-                rawData[r][hMap.status] = expectedStatus;
-                sheetNeedsUpdate = true;
-              }
+            rawData[r][hMap.taskRate] = Math.round((numScore / numTotal) * 100) + "%";
+            if (numScore < numTotal && (statusStr.includes("已完成") || !statusStr.includes("未完成"))) {
+              rawData[r][hMap.status] = `🟠 未完成 (${numScore}/${numTotal})`;
             }
           }
         }
       }
     }
-    if (sheetNeedsUpdate) {
-      try {
-        const writeData = sheet.getRange(2, 1, rawData.length, lastCol).getValues();
-        for (let r = 0; r < rawData.length; r++) {
-          writeData[r][hMap.taskRate] = rawData[r][hMap.taskRate];
-          writeData[r][hMap.status] = rawData[r][hMap.status];
-        }
-        sheet.getRange(2, 1, rawData.length, lastCol).setValues(writeData);
-      } catch(errUpdate) {
-        Logger.log("Auto-calibrate student sheet error: " + errUpdate);
-      }
-    }
   }
-
-  // 取得 Column B 的原始資料 (使用 getValues() 防止 getDisplayValues() 字元長度截斷或隱藏欄空白)
   let rawBVals = [];
   try {
     rawBVals = sheet.getRange(2, 2, maxRowsToRead, 1).getValues();
