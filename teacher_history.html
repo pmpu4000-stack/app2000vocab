@@ -19459,25 +19459,47 @@ function _buildStudentExportPayload(resp, mode, startDate, endDate) {
     const dObj = new Date(slashDt);
     const dayOfWeek = isNaN(dObj.getTime()) ? "" : dayNames[dObj.getDay()];
 
-    let dpFree = dpMap[dt] || dpMap[unpadDt] || dpMap[slashDt] || null;
-    let hFree = historyData[dt] || historyData[unpadDt] || historyData[slashDt] || null;
+    // 優先從 Excel / 試算表該學生分頁對應列提取自由練習紀錄
     let matchedFree = null;
-    if (dpFree && (dpFree.attempts > 0 || (dpFree.words && Object.keys(dpFree.words).length > 0))) {
-      matchedFree = {
-        date: dt,
-        attempts: dpFree.attempts || 0,
-        correct: dpFree.correct || 0,
-        wrong: (dpFree.wrong !== undefined) ? dpFree.wrong : Math.max(0, (dpFree.attempts || 0) - (dpFree.correct || 0)),
-        words: dpFree.words || {}
-      };
-    } else if (hFree && (hFree.a || hFree.c || hFree.words)) {
-      matchedFree = {
-        date: dt,
-        attempts: hFree.a || 0,
-        correct: hFree.c || 0,
-        wrong: (hFree.a && hFree.c) ? Math.max(0, hFree.a - hFree.c) : 0,
-        words: hFree.words || {}
-      };
+    if (effectiveResp && Array.isArray(effectiveResp.data)) {
+      for (const r of effectiveResp.data) {
+        if (!r) continue;
+        if (normKey(r[0]) === dt) {
+          const rowFree = extractRowFreeInfo(r, effectiveResp.headers);
+          if (rowFree && (rowFree.attempts > 0 || (rowFree.wrongWords && rowFree.wrongWords.length > 0))) {
+            matchedFree = {
+              date: dt,
+              attempts: rowFree.attempts || 0,
+              correct: rowFree.correct || 0,
+              wrong: rowFree.wrong !== undefined ? rowFree.wrong : Math.max(0, (rowFree.attempts || 0) - (rowFree.correct || 0)),
+              words: rowFree.wordsMap || {}
+            };
+            break;
+          }
+        }
+      }
+    }
+
+    if (!matchedFree) {
+      let dpFree = dpMap[dt] || dpMap[unpadDt] || dpMap[slashDt] || null;
+      let hFree = historyData[dt] || historyData[unpadDt] || historyData[slashDt] || null;
+      if (dpFree && (dpFree.attempts > 0 || (dpFree.words && Object.keys(dpFree.words).length > 0))) {
+        matchedFree = {
+          date: dt,
+          attempts: dpFree.attempts || 0,
+          correct: dpFree.correct || 0,
+          wrong: (dpFree.wrong !== undefined) ? dpFree.wrong : Math.max(0, (dpFree.attempts || 0) - (dpFree.correct || 0)),
+          words: dpFree.words || {}
+        };
+      } else if (hFree && (hFree.a || hFree.c || hFree.words)) {
+        matchedFree = {
+          date: dt,
+          attempts: hFree.a || 0,
+          correct: hFree.c || 0,
+          wrong: (hFree.a && hFree.c) ? Math.max(0, hFree.a - hFree.c) : 0,
+          words: hFree.words || {}
+        };
+      }
     }
 
     if (!matchedFree && window.fullProcessedData && Array.isArray(window.fullProcessedData)) {
@@ -19501,19 +19523,9 @@ function _buildStudentExportPayload(resp, mode, startDate, endDate) {
       periodFreeCorrect += fInfo.correctCount;
     }
 
-    let matchedTask = dailyTaskHistory.find(h => normKey(h.date) === dt && (!h.taskName || h.taskName !== "自主練習")) || null;
-    if (!matchedTask && todayTask && normKey(todayTask.date) === dt && todayTask.hasDone && todayTask.taskName !== "自主練習") {
-      matchedTask = {
-        date: dt,
-        taskName: todayTask.taskName || "每日指定測驗",
-        score: todayTask.score || "—",
-        rate: formatRatePercentage(todayTask.rate, todayTask.score),
-        status: "已完成",
-        words: todayTask.words || [],
-        wrongWords: todayTask.wrongWords || []
-      };
-    }
-    if (!matchedTask && effectiveResp && Array.isArray(effectiveResp.data)) {
+    // 優先從 Excel / 試算表該學生分頁對應列提取指定測驗紀錄
+    let matchedTask = null;
+    if (effectiveResp && Array.isArray(effectiveResp.data)) {
       for (const r of effectiveResp.data) {
         if (!r) continue;
         if (normKey(r[0]) === dt) {
@@ -19532,6 +19544,21 @@ function _buildStudentExportPayload(resp, mode, startDate, endDate) {
           }
         }
       }
+    }
+
+    if (!matchedTask) {
+      matchedTask = dailyTaskHistory.find(h => normKey(h.date) === dt && (!h.taskName || h.taskName !== "自主練習")) || null;
+    }
+    if (!matchedTask && todayTask && normKey(todayTask.date) === dt && todayTask.hasDone && todayTask.taskName !== "自主練習") {
+      matchedTask = {
+        date: dt,
+        taskName: todayTask.taskName || "每日指定測驗",
+        score: todayTask.score || "—",
+        rate: formatRatePercentage(todayTask.rate, todayTask.score),
+        status: "已完成",
+        words: todayTask.words || [],
+        wrongWords: todayTask.wrongWords || []
+      };
     }
     let isUntestedAssigned = false;
     if (!matchedTask && Array.isArray(window.cachedBackupTaskHistory)) {
