@@ -5797,12 +5797,12 @@
         </div>
         <p class="defs">熟練度定義：<b>學習中</b>＝答對 1 次 · <b>練習中</b>＝連續答對 2 次 · <b>精通</b>＝連續答對 3 次（答錯會退回「學習中」）</p>
 
-        <div class="subh" style="margin-top:14px;">各關卡進度</div>
+        <div class="subh" style="margin-top:8px;">各關卡進度</div>
         <table class="sumtable">
           <tbody id="stLevelProgressTbody"></tbody>
         </table>
 
-        <div class="subh">🎮 4 大練習模式答對單字數</div>
+        <div class="subh">🎮 四大練習模式答對單字數</div>
         <div class="mode-stat-grid">
           <div class="mode-stat-card mode-card-listen">
             <div class="mode-stat-title">🎧 聽與拼</div>
@@ -5825,7 +5825,7 @@
             <div class="mode-stat-sub" id="stModeTrapSub">受測 0 字 (0%)</div>
           </div>
         </div>
-        <div class="formula-note-box" style="margin-top:-4px; margin-bottom:14px; font-size:12px; display:flex; align-items:center; gap:8px; padding:10px 14px;">
+        <div class="formula-note-box" style="margin-top:0; margin-bottom:8px; font-size:12px; display:flex; align-items:center; gap:8px; padding:8px 12px;">
           <span style="font-size:15px; flex-shrink:0; line-height:1;">💡</span>
           <div style="flex:1; line-height:1.55;"><b>小提示</b>：同一個單字若在不同玩法答對會各自累計，因此四項加總會大於上方的「共答對單字數」。</div>
         </div>
@@ -5875,7 +5875,7 @@
         </div>
 
         <!-- 子標題 1：平日指定測驗 / 週末待攻克測驗作答紀錄 -->
-        <div class="subh" style="margin-top:10px;">
+        <div class="subh" style="margin-top:8px;">
           <span id="st-task-subh-title">📝 平日指定測驗作答紀錄</span>
         </div>
         <div class="task-history-card">
@@ -5890,7 +5890,7 @@
         </div>
 
         <!-- 子標題 2：自由練習作答紀錄 -->
-        <div class="subh" style="margin-top:14px;">
+        <div class="subh" style="margin-top:8px;">
           <span>🎮 自由練習作答紀錄</span>
         </div>
         <div class="task-history-card">
@@ -17355,8 +17355,7 @@ function _renderConquerWordCard(wordStr) {
   }
   if (defaultIdx === -1) defaultIdx = 0;
 
-  const escapedWord = clean.replace(/[.*+?^${}()|[\]\\]/g, "\\  window._teacherActiveConquerCycle = "current";
-  window.renderTeacherStudentConquerSection = function(cycleParam = window._teacherActiveConquerCycle || "current") {");
+  const escapedWord = clean.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const regex = new RegExp("\\b(" + escapedWord + ")\\b", "gi");
 
   const s = sentsList[defaultIdx];
@@ -17560,16 +17559,18 @@ function _renderConquerWordCard(wordStr) {
       }
     }
 
-    // Level 1~5 分級標準與特徵對照表 HTML
-    const levelStandardPanelHtml = `
-      <div class="level-standard-panel">
-        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
-          <span style="font-size:12.5px; font-weight:800; color:var(--ink); display:flex; align-items:center; gap:5px;">
-            <span>📊</span><span>Level 1~5 單字分級標準與特徵一覽</span>
+    // Level 1~5 分級標準與特徵對照表 HTML（底部展開收合）
+    const levelStandardDetailsHtml = `
+      <details class="level-standard-panel">
+        <summary style="display:flex; align-items:center; justify-content:space-between; cursor:pointer; user-select:none; font-size:12px; font-weight:700; color:var(--ink2); list-style:none;">
+          <span style="display:flex; align-items:center; gap:5px;">
+            <span style="font-size:13px;">📊</span>
+            <span style="font-weight:800; color:var(--ink);">Level 1~5 單字分級標準與特徵一覽</span>
+            <span style="font-size:11px; color:var(--ink3); font-weight:normal;">(點擊展開/收合)</span>
           </span>
-          <span style="font-size:11px; color:var(--ink3);">全書 2,055 字 · 5 大關卡階梯</span>
-        </div>
-        <div class="level-standard-grid">
+          <span style="font-size:11px; color:var(--ink3);">全書 2,055 字 · 5 大關卡階梯 ▾</span>
+        </summary>
+        <div class="level-standard-grid" style="margin-top:8px;">
           <div class="level-standard-item" style="border-left:3px solid #2FB47C;">
             <div class="level-standard-head" style="color:#2FB47C;"><span>🟢</span><span>Lv.1 入門</span></div>
             <div class="level-standard-sub">3~4 字母極短字 · 411 字</div>
@@ -17596,7 +17597,7 @@ function _renderConquerWordCard(wordStr) {
             <div class="level-standard-trap">多音節長單字、字根字首派生、進階易混淆字</div>
           </div>
         </div>
-      </div>
+      </details>
     `;
 
     const isBoss = (activeW % 2 === 0);
@@ -17613,9 +17614,8 @@ function _renderConquerWordCard(wordStr) {
         : (isBoss ? "週末無須進行雙週大魔王消滅戰！" : "週末無須進行錯題補強測驗！");
 
       conquerDetailsContainer.innerHTML = `
-        <div class="week-conquer-wrap" style="display:flex; flex-direction:column; gap:10px;">
+        <div class="week-conquer-wrap" style="display:flex; flex-direction:column; gap:8px;">
           ${cycleSelectBarHtml}
-          ${levelStandardPanelHtml}
           <div class="task-empty-notice" style="padding:14px 16px; margin:0; background:rgba(30,154,102,0.06); border:1.5px solid rgba(30,154,102,0.22); border-radius:12px; display:flex; flex-direction:column; gap:6px;">
             <div style="display:flex; align-items:center; gap:8px;">
               <span style="font-size:18px; line-height:1; flex-shrink:0;">✨</span>
@@ -17626,6 +17626,7 @@ function _renderConquerWordCard(wordStr) {
               <div style="margin-top:2px;">${emptySub}</div>
             </div>
           </div>
+          ${levelStandardDetailsHtml}
         </div>
       `;
     } else {
@@ -17719,9 +17720,8 @@ function _renderConquerWordCard(wordStr) {
           : `本週（雙週週期第 1 週）累積 <b>${count}</b> 個待攻克單字。在<b>自由練習</b>中只要拼對該單字，系統即判定為已學會並自動移除！<b>自由練習答錯不計入待攻克</b>，週末未消滅之單字將滾入雙週大魔王儲備池。`);
 
       conquerDetailsContainer.innerHTML = `
-        <div class="week-conquer-wrap" style="display:flex; flex-direction:column; gap:10px;">
+        <div class="week-conquer-wrap" style="display:flex; flex-direction:column; gap:8px;">
           ${cycleSelectBarHtml}
-          ${levelStandardPanelHtml}
           <div class="week-conquer-tip" style="display:flex; align-items:flex-start; gap:8px; padding:4px 2px 4px; font-size:12.5px; line-height:1.55; color:var(--ink2);">
             <span style="font-size:15px; flex-shrink:0; line-height:1.3;">💡</span>
             <div style="flex:1; line-height:1.55;">
@@ -17731,6 +17731,7 @@ function _renderConquerWordCard(wordStr) {
           <div class="conquer-level-groups">
             ${levelSectionsHtml}
           </div>
+          ${levelStandardDetailsHtml}
         </div>
       `;
     }
@@ -17821,6 +17822,8 @@ function _renderConquerWordCard(wordStr) {
 }
 
 function renderStudentSummary(resp) {
+  window._currentTeacherConquerResp = resp;
+  window._currentTeacherConquerAgent = resp.agentData || null;
   if (typeof _resolveWordsCache !== "undefined" && _resolveWordsCache) _resolveWordsCache.clear();
   const sumCard = document.getElementById("studentSummaryCard");
   if (!sumCard) return;
