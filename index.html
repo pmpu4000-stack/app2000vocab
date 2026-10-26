@@ -1357,11 +1357,13 @@
               taskName   : prog.task ? prog.task.taskName : "今日指定練習",
               score      : prog.correct || 0,
               total      : prog.pool.length,
+              attempts   : prog.index !== undefined ? prog.index : ((prog.correct || 0) + (prog.wrongWords ? prog.wrongWords.length : 0)),
               rate       : "—",
               completed  : false,
               inProgress : true,
               date       : progDate,
               wrongWords : prog.wrongWords || [],
+              correctWords: prog.correctWords || [],
               words      : progWords
             };
           }

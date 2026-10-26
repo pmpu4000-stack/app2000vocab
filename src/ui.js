@@ -1365,16 +1365,8 @@ function resolveTaskWords(record, selectedDate, d) {
     if (wrongList.length > expWrong) {
       wrongList = wrongList.slice(0, expWrong);
     } else if (wrongList.length < expWrong && rawWords.length > 0) {
-      // 未作答單字視同答錯，補入錯題單字清單中
-      const corrSet = new Set(correctList.map(w => w.toLowerCase()));
-      const wrongSet = new Set(wrongList.map(w => w.toLowerCase()));
-      rawWords.forEach(w => {
-        const lw = w.toLowerCase();
-        if (!corrSet.has(lw) && !wrongSet.has(lw) && wrongList.length < expWrong) {
-          wrongList.push(w);
-          wrongSet.add(lw);
-        }
-      });
+      // 僅保留受測抽考中答錯之單字，未作答或題庫候選字保留至未受測清單
+    
     }
   }
 
@@ -1417,18 +1409,46 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
   const totalAnswered = correctList.length + wrongList.length;
 
   // 方案 A 關鍵統計：全卷應測總單字數 vs 實際已作答單字數
-  const assignedTotWords = (rawWords && rawWords.length > 0) ? rawWords.length : taskTotWords;
-  const actualAnswered = totalAnswered > 0 ? totalAnswered : (taskCorrWords + wrongList.length);
-  const actualWrong = wrongList.length > 0 ? wrongList.length : Math.max(0, actualAnswered - taskCorrWords);
-  const actualUnanswered = (unansweredList && unansweredList.length > 0)
-    ? unansweredList.length
-    : Math.max(0, assignedTotWords - actualAnswered);
-  const hasUnanswered = actualUnanswered > 0 && assignedTotWords > actualAnswered;
+  // 計算全卷預設應測題數 (quizTotal)：優先取 record.testedCount，或 status 中的 (X/Y) 分母，或 record.total
+  let quizTotal = 0;
+  if (record.testedCount && !isNaN(parseInt(record.testedCount, 10)) && parseInt(record.testedCount, 10) > 0) {
+    quizTotal = parseInt(record.testedCount, 10);
+  } else if (record.status && /\/\s*(\d+)\s*\)/.test(record.status)) {
+    const m = record.status.match(/\/\s*(\d+)\s*\)/);
+    if (m) quizTotal = parseInt(m[1], 10);
+  } else if (record.total && !isNaN(parseInt(record.total, 10)) && parseInt(record.total, 10) > 0) {
+    quizTotal = parseInt(record.total, 10);
+  } else if (taskTotWords > 0) {
+    quizTotal = taskTotWords;
+  } else if (rawWords && rawWords.length > 0) {
+    quizTotal = rawWords.length;
+  }
+  if (quizTotal <= 0) quizTotal = 5;
 
-  // (A) 實作命中率 (針對有作答題目的答對比例，如 4/5 = 80%)
+  // 使用者受測/已作答單字數 (actualAnswered)
+  let actualAnswered = 0;
+  if (record.answeredCount && !isNaN(parseInt(record.answeredCount, 10)) && parseInt(record.answeredCount, 10) > 0) {
+    actualAnswered = parseInt(record.answeredCount, 10);
+  } else if (scoreVal && String(scoreVal).includes("/")) {
+    const parts = String(scoreVal).split("/");
+    const sTot = parseInt(parts[1], 10);
+    if (!isNaN(sTot) && sTot > 0) actualAnswered = sTot;
+  } else if (record.attempts !== undefined && !isNaN(parseInt(record.attempts, 10)) && parseInt(record.attempts, 10) > 0) {
+    actualAnswered = parseInt(record.attempts, 10);
+  } else {
+    actualAnswered = totalAnswered > 0 ? totalAnswered : (taskCorrWords + wrongList.length);
+  }
+  if (actualAnswered <= 0 && taskCorrWords > 0) actualAnswered = taskCorrWords;
+
+  const assignedTotWords = quizTotal;
+  const actualWrong = wrongList.length > 0 ? wrongList.length : Math.max(0, actualAnswered - taskCorrWords);
+  const actualUnanswered = Math.max(0, quizTotal - actualAnswered);
+  const hasUnanswered = actualUnanswered > 0 || (quizTotal > actualAnswered && actualAnswered > 0);
+
+  // (A) 作答正確率 (針對實際受測有作答題目的答對率，如 3/4 = 75%)
   const attemptedRate = actualAnswered > 0 ? Math.round((taskCorrWords / actualAnswered) * 100) : 0;
-  // (B) 整體得分率 / 總掌握率 (未作答視同 0 分，分母採全卷應測單字數，如 4/20 = 20%)
-  const overallScoreRate = assignedTotWords > 0 ? Math.round((taskCorrWords / assignedTotWords) * 100) : 0;
+  // (B) 全卷正確率 (預設有 5 題施測，以全卷應測總題數為分母，答錯與未作答均視為失分，如 3/5 = 60%)
+  const overallScoreRate = quizTotal > 0 ? Math.round((taskCorrWords / quizTotal) * 100) : 0;
 
   const taskRate = hasUnanswered ? overallScoreRate : (taskTotWords > 0 ? Math.round((taskCorrWords / taskTotWords) * 100) : (parseInt(rateVal) || 0));
 
@@ -1472,7 +1492,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     statusDesc = hasLoggedInOrFree ? "☕ 當日老師無指派測驗，學生自主練習" : "☕ 當日老師無指派測驗";
   } else if (isIncomplete) {
     displayStatusStr = `未完成 (${taskCorrWords}/${assignedTotWords})`;
-    statusColor = "#6B21A8";
+    statusColor = "#0284c7";
     statusDesc = "⏳ 測驗中途作答中斷";
   } else if (isFinished) {
     statusColor = "#047857";
@@ -1597,61 +1617,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     rightTitleText = `<span class="card-icon-slot">❌</span><span>答錯的單字 (${wrongList.length} 字)</span>`;
     
     let wrongPillsHtml = "";
-    if (wrongList.length > 0) {
-      wrongPillsHtml = wrongList.map(w => {
-        return `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`;
-      }).join("");
-    }
-
-    let unansAccordionHtml = "";
-    if (unansweredList.length > 0) {
-      const unansId = `unans-box-${Math.random().toString(36).substr(2, 7)}`;
-      const unansPills = unansweredList.map(w => `<span class="word-pill-tag neutral" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="未測單字 (點擊聆聽發音)">${w}</span>`).join("");
-      const unansTopStyle = wrongList.length > 0 ? "margin-top:10px; padding-top:8px; border-top:1px dashed var(--line, rgba(148,163,184,0.25));" : "";
-      unansAccordionHtml = `
-        <div style="${unansTopStyle} width:100%;">
-          <div onclick="const el=document.getElementById('${unansId}'); const arrow=this.querySelector('.accordion-arrow'); if(el){ const isHidden=el.style.display==='none'; el.style.display=isHidden?'flex':'none'; if(arrow) arrow.textContent=isHidden?'▲':'▼'; }" 
-               style="cursor:pointer; display:flex; align-items:center; font-size:12px; font-weight:700; color:var(--ink2); padding:4px 0; gap:6px; user-select:none; width:100%;">
-            <span class="card-icon-slot">⏳</span>
-            <span style="flex:1;">尚有 ${unansweredList.length} 個單字未受測（點擊查看清單）</span>
-            <span class="accordion-arrow" style="font-size:10px; color:var(--ink3); margin-left:auto;">▼</span>
-          </div>
-          <div id="${unansId}" style="display:none; flex-wrap:wrap; gap:6px; margin-top:8px; padding:8px; background:rgba(148,163,184,0.08); border-radius:8px; border:1px solid rgba(148,163,184,0.18);">
-            ${unansPills}
-          </div>
-          <div style="display:flex; align-items:flex-start; font-size:11px; color:var(--ink3); margin-top:5px; line-height:1.45; gap:6px; width:100%; padding:0;">
-            <span class="card-icon-slot" style="margin-top:1px;">💡</span>
-            <div style="flex:1; display:flex; align-items:flex-start;">
-              <span style="white-space:nowrap; flex-shrink:0;">提示：</span>
-              <span style="flex:1;">本次測驗中途作答中斷，未完成之單字將自動排入週末補強測驗。</span>
-            </div>
-          </div>
-        </div>
-      `;
-    }
-
-    wrongContentHtml = `
-      <div style="display:flex; flex-direction:column; width:100%;">
-        <div style="display:flex; flex-wrap:wrap; gap:6px;">${wrongPillsHtml}</div>
-        ${unansAccordionHtml}
-      </div>
-    `;
-  } else {
-    // 1. 答對的單字
-    if (correctList.length > 0) {
-      correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
-    } else if (isFinished) {
-      if (taskCorrWords > 0) {
-        correctContentHtml = `<div style="font-size:12.5px; font-weight:700; color:#047857; padding:4px 0;">🎉 本次測驗全數答對（共 ${taskCorrWords} 字），表現完美！</div>`;
-      } else {
-        correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（本次測驗無答對單字）</span>`;
-      }
-    } else {
-      correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（測驗待完成，尚未答對單字）</span>`;
-    }
-
-    // 2. 答錯的單字與未作答單字
-    if (wrongList.length > 0) {
+    if (wrongList.length > 0 || actualUnanswered > 0) {
       const normDate = normalizeDateStr(selectedDate);
       const slashDate = normDate.replace(/-/g, "/");
       const dpDay = d && d.dailyPractice && (d.dailyPractice[normDate] || d.dailyPractice[slashDate] || d.dailyPractice[selectedDate]);
@@ -1665,21 +1631,30 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
         return `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`;
       }).join("");
 
-      const remainingUnanswered = (rawWords.length > 0)
+      const untestedWords = (rawWords.length > 0)
         ? rawWords.filter(w => !correctList.includes(String(w).toLowerCase()) && !wrongList.includes(String(w).toLowerCase()))
         : (unansweredList.length > 0 ? unansweredList : []);
 
-      let unansExtraHtml = "";
-      if (remainingUnanswered.length > 0) {
-        const unansPills = remainingUnanswered.map(w => `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="未作答單字 (點擊聆聽發音)">${w} <span class="diag-bubble-tag" title="未作答">未作答</span></span>`).join("");
-        unansExtraHtml = `
-          <div style="margin-top:10px; padding-top:8px; border-top:1px dashed var(--line, rgba(148,163,184,0.25)); width:100%;">
-            <div style="font-size:12px; font-weight:700; color:var(--ink2); margin-bottom:6px; display:flex; align-items:center; gap:6px;"><span class="card-icon-slot">🔘</span><span>未作答單字 (${remainingUnanswered.length} 字)：</span></div>
-            <div style="display:flex; flex-wrap:wrap; gap:6px;">${unansPills}</div>
+      let unansAccordionHtml = "";
+      if (untestedWords.length > 0 || actualUnanswered > 0) {
+        const unansId = `unans-${Math.random().toString(36).substr(2, 7)}`;
+        const unansPills = untestedWords.map(w => `<span class="word-pill-tag neutral" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="未受測單字 (點擊聆聽發音)">${w}</span>`).join("");
+        unansAccordionHtml = `
+          <div style="${wrongList.length > 0 ? 'margin-top:10px; padding-top:8px; border-top:1px dashed var(--line, rgba(148,163,184,0.25));' : ''} width:100%;">
+            <div onclick="const el=document.getElementById('${unansId}'); const arrow=this.querySelector('.accordion-arrow'); if(el){ const isHidden=el.style.display==='none'; el.style.display=isHidden?'flex':'none'; if(arrow) arrow.textContent=isHidden?'▲':'▼'; }" 
+                 style="cursor:pointer; display:flex; align-items:center; font-size:12px; font-weight:700; color:var(--ink2); padding:4px 0; gap:6px; user-select:none; width:100%;">
+              <span class="card-icon-slot">⏳</span>
+              <span style="flex:1;">未受測的清單 (${untestedWords.length > 0 ? untestedWords.length : actualUnanswered} 字，點擊查看)</span>
+              <span class="accordion-arrow" style="font-size:10px; color:var(--ink3); margin-left:auto;">▼</span>
+            </div>
+            <div id="${unansId}" style="display:none; flex-wrap:wrap; gap:6px; margin-top:8px; padding:8px; background:rgba(2,132,199,0.06); border-radius:8px; border:1px solid rgba(2,132,199,0.18);">
+              ${unansPills || '<span style="font-size:11.5px; color:var(--ink3);">（包含抽題未作答之題目）</span>'}
+            </div>
           </div>
         `;
       }
-      wrongContentHtml = `<div style="display:flex; flex-direction:column; width:100%;"><div style="display:flex; flex-wrap:wrap; gap:6px;">${wrongPills}</div>${unansExtraHtml}</div>`;
+      wrongContentHtml = `<div style="display:flex; flex-direction:column; width:100%;"><div style="display:flex; flex-wrap:wrap; gap:6px;">${wrongPills || '<span style="font-size:12px; color:var(--ink3); font-style:italic;">（受測題目無答錯）</span>'}</div>${unansAccordionHtml}</div>`;
+    }
     } else if (isTrulyPerfect) {
       wrongContentHtml = `<span class="perfect-score-msg">🎉 全數答對，無答錯單字！</span>`;
     } else if (missedCount > 0) {
@@ -1797,7 +1772,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
             <div class="task-score-val heat-rate-val ${getHeatmapRateClass(attemptedRate)}" style="display:flex; align-items:center; justify-content:center; color:${actualAnswered > 0 ? getHeatmapRateColor(attemptedRate) : 'var(--ink3)'};">
               <span class="task-score-num-corr" style="flex:1; text-align:right;">${taskCorrWords}</span>
               <span style="padding:0 4px; font-weight:700; color:var(--ink3); opacity:0.6; font-size:18px;">/</span>
-              <span class="task-score-num-tot" style="flex:1; text-align:left;">${assignedTotWords}</span>
+              <span class="task-score-num-tot" style="flex:1; text-align:left;">${actualAnswered}</span>
             </div>
           </div>
           <div class="task-score-item" style="display:flex; flex-direction:column; justify-content:center; padding:10px 4px;">
@@ -1809,7 +1784,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
             <div class="task-score-val" style="display:flex; align-items:center; justify-content:center;">
               <span style="flex:1; text-align:right; color:${actualWrong > 0 ? '#ef4444' : 'var(--ink3)'};">${actualWrong}</span>
               <span style="padding:0 4px; font-weight:700; color:var(--ink3); opacity:0.6; font-size:18px;">/</span>
-              <span style="flex:1; text-align:left; color:${actualUnanswered > 0 ? '#ea580c' : 'var(--ink3)'};">${actualUnanswered}</span>
+              <span style="flex:1; text-align:left; color:${actualUnanswered > 0 ? '#0284c7' : 'var(--ink3)'};">${actualUnanswered}</span>
             </div>
           </div>
         </div>
@@ -3427,8 +3402,8 @@ export function renderSummary(d) {
         wordsCount: taskWordsCount,
         statusType: "incomplete",
         statusLabel: `作答中斷 (${curCorr}/${curTot})`,
-        levelClass: "h-status-purple",
-        badgeTier: "tier-status-purple"
+        levelClass: "h-status-blue",
+        badgeTier: "tier-status-blue"
       };
     } else if (hasLoggedInOrFree) {
       // 登入未受測 (方格清新綠色，右側綠色框)

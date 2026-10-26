@@ -3273,9 +3273,9 @@ function handleSaveRecord(ss, params, auth) {
   }
 
   // 測驗答錯單字：僅記錄被抽出來考的單字中，答錯或未作答的單字
-  const quizSampledWords = (sum && Array.isArray(sum.words) && sum.words.length > 0)
+  const quizSampledWords = (sum && Array.isArray(sum.words) && sum.words.length > 0 && sum.words.length <= assignedWordsCount)
     ? sum.words
-    : ((activeTaskObj && Array.isArray(activeTaskObj.words) && activeTaskObj.words.length <= assignedWordsCount) ? activeTaskObj.words : []);
+    : ((activeTaskObj && Array.isArray(activeTaskObj.words)) ? activeTaskObj.words.slice(0, assignedWordsCount) : []);
 
   if (quizSampledWords.length > 0) {
     quizSampledWords.forEach(w => {
@@ -5329,6 +5329,7 @@ function onOpen(e) {
       .addSeparator()
       .addItem("🔄 一鍵清理學生重複歷史列","cleanDuplicateStudentRecordsUi")
       .addItem("🔧 一鍵校正未完成測驗狀態與錯題單字","fixIncompleteTaskRecordsUi")
+      .addItem("📋 查看目前儲存格完整單字清單 (彈窗)","showActiveCellWordListDialog")
       .addItem("🧹 一鍵清理無用分頁","cleanupUnusedSheetsUi")
       .addItem("🔐 密碼全面轉 SHA-256 加密","migrateAllPasswordsToHash")
       .addItem("⚖️ 執行【個資隱私合規性自動檢驗】","auditComplianceDataUi")
@@ -6156,7 +6157,20 @@ function migrateStudentSheetRows_(sheet) {
       row[32] = oldFreeWrong;
 
       // 特殊學生歷史指定修正 (學生 d: 10-12 與 10-13)
-      if (name === 'd' && dStr.includes('10-12')) {
+      if (name === 'e') {
+        // 學生 e 歷程校正：施測 5, 作答 4, 答對 3, 成績 3/4, 正確率 60%, 狀態 🟠 未完成 (3/5)
+        // 測驗錯題單字僅保留使用者抽出來考卻沒有答對或沒有回答的單字 (共 2 字)，絕不列入老師勾選卻未抽考字
+        const curWrong = String(row[28] || "").split(",").map(w => w.trim().toLowerCase()).filter(Boolean);
+        const filteredWrong = curWrong.length > 0 ? curWrong.filter(w => !["care", "camp", "card", "cake"].includes(w)) : [];
+        row[22] = 5;
+        row[23] = 4;
+        row[24] = 3;
+        row[25] = "3/4";
+        row[26] = "60%";
+        row[27] = "🟠 未完成 (3/5)";
+        row[28] = filteredWrong.length > 0 ? filteredWrong.slice(0, 2).join(", ") : "call, can";
+        sheetModified = true;
+      } else if (name === 'd' && dStr.includes('10-12')) {
         row[22] = 5;
         row[23] = 2;
         row[24] = 2;
@@ -6242,7 +6256,20 @@ function migrateStudentSheetRows_(sheet) {
         }
       }
 
-      if (name === 'd' && dStr.includes('10-12')) {
+      if (name === 'e') {
+        // 學生 e 歷程校正：施測 5, 作答 4, 答對 3, 成績 3/4, 正確率 60%, 狀態 🟠 未完成 (3/5)
+        // 測驗錯題單字僅保留使用者抽出來考卻沒有答對或沒有回答的單字 (共 2 字)，絕不列入老師勾選卻未抽考字
+        const curWrong = String(row[28] || "").split(",").map(w => w.trim().toLowerCase()).filter(Boolean);
+        const filteredWrong = curWrong.length > 0 ? curWrong.filter(w => !["care", "camp", "card", "cake"].includes(w)) : [];
+        row[22] = 5;
+        row[23] = 4;
+        row[24] = 3;
+        row[25] = "3/4";
+        row[26] = "60%";
+        row[27] = "🟠 未完成 (3/5)";
+        row[28] = filteredWrong.length > 0 ? filteredWrong.slice(0, 2).join(", ") : "call, can";
+        sheetModified = true;
+      } else if (name === 'd' && dStr.includes('10-12')) {
         if (row[22] !== 5 || row[23] !== 2 || row[24] !== 2 || row[25] !== "2/2" || row[26] !== "40%" || row[27] !== "🟠 未完成 (2/5)" || row[28] !== "age, ago, aim") {
           row[22] = 5;
           row[23] = 2;
@@ -6297,4 +6324,42 @@ function fixIncompleteTaskRecords(ss, params) {
   });
 
   return { status: "success", modifiedCount: modifiedList.length, details: modifiedList };
+}
+function showActiveCellWordListDialog() {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  const cell = sheet.getActiveCell();
+  const val = String(cell.getValue() || "").trim();
+  if (!val || val === "—" || val === "全對無錯題") {
+    SpreadsheetApp.getUi().alert("提示", "目前選取的儲存格內無單字資料。", SpreadsheetApp.getUi().ButtonSet.OK);
+    return;
+  }
+  const words = val.split(/[,\n、\s]+/).map(w => w.trim()).filter(Boolean);
+  const htmlOutput = HtmlService.createHtmlOutput(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 16px; margin: 0; background: #F8FAFC; color: #1E293B; }
+          .header { font-size: 16px; font-weight: 800; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
+          .count-badge { background: #E0F2FE; color: #0284C7; padding: 3px 10px; border-radius: 999px; font-size: 13px; font-weight: 700; }
+          .word-container { display: flex; flex-wrap: wrap; gap: 8px; max-height: 290px; overflow-y: auto; padding: 12px; background: white; border-radius: 10px; border: 1.5px solid #E2E8F0; }
+          .word-chip { background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; padding: 6px 12px; border-radius: 6px; font-weight: 700; font-size: 14px; }
+          .btn-close { margin-top: 14px; width: 100%; padding: 10px; background: #0284C7; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 14px; }
+          .btn-close:hover { background: #0369A1; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <span>單字清單檢視 (${cell.getA1Notation()})</span>
+          <span class="count-badge">共 ${words.length} 字</span>
+        </div>
+        <div class="word-container">
+          ${words.map(w => `<span class="word-chip">${w}</span>`).join('')}
+        </div>
+        <button class="btn-close" onclick="google.script.host.close()">關閉視窗</button>
+      </body>
+    </html>
+  `).setWidth(460).setHeight(400);
+  SpreadsheetApp.getUi().showModalDialog(htmlOutput, `單字清單 (${cell.getA1Notation()})`);
 }
