@@ -286,7 +286,7 @@ header{display:flex; align-items:center; justify-content:space-between; flex-wra
 .btn:disabled{opacity:.4;cursor:default}
 
 /* progress footer */
-.progress{margin:0 0 8px;background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:12px 14px;box-shadow:var(--shadow)}
+.progress{margin:0 0 8px;background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:10px 12px;box-shadow:var(--shadow)}
 .progress h3{font-size:14px;font-weight:800;letter-spacing:.3px;color:var(--ink);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
 .progress h3 a:not(.sum-toggle-btn){color:var(--sky,#2D9CDB);font-size:12px;cursor:pointer;text-decoration:underline;font-weight:700;display:inline-flex;align-items:center;gap:4px}
 [data-theme="dark"] .progress h3 a:not(.sum-toggle-btn){color:var(--sky,#38bdf8)}
@@ -607,11 +607,11 @@ body.daily-limit-reached #btn-upload {
 .result .sub{font-size:15px;color:var(--ink2);font-weight:700}
 .result .lvpill{font-size:20px;font-weight:800;color:#fff;padding:8px 20px;border-radius:999px}
 
-.task-history-card{background:#F8F9FD;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:0 0 8px;overflow:hidden;box-sizing:border-box;}
+.task-history-card{background:#F8F9FD;border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin:0 0 8px;overflow:hidden;box-sizing:border-box;}
 .task-history-card:last-child{margin-bottom:0 !important}
 .task-history-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:8px;min-height:24px}
 .task-date-selector{background:#FFFFFF;border:1.5px solid var(--line);color:var(--ink);padding:3px 8px;height:30px;min-height:30px;line-height:1.2;border-radius:8px;font-size:12px;font-weight:700;outline:none;cursor:pointer;box-sizing:border-box}
-.task-score-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:8px;width:100%;box-sizing:border-box}
+.task-score-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:6px;width:100%;box-sizing:border-box}
 .task-score-subgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;width:100%;box-sizing:border-box}
 @media (max-width:580px){
   .task-score-subgrid{gap:6px}
@@ -624,7 +624,7 @@ body.daily-limit-reached #btn-upload {
   .task-score-label{font-size:11px !important}
   .task-score-val{font-size:18px !important}
 }
-.task-score-item{background:#FFFFFF;border:1px solid var(--line);border-radius:10px;padding:8px;text-align:center;box-shadow:0 1px 3px rgba(35,42,77,0.03);width:100%;box-sizing:border-box}
+.task-score-item{background:#FFFFFF;border:1px solid var(--line);border-radius:8px;padding:6px 4px !important;text-align:center;box-shadow:0 1px 3px rgba(35,42,77,0.03);width:100%;height:62px !important;min-height:62px !important;max-height:62px !important;display:flex !important;flex-direction:column !important;justify-content:center !important;box-sizing:border-box}
 .task-score-val{font-size:20px;font-weight:900;line-height:1.2;font-variant-numeric:tabular-nums}
 .task-words-container{margin-top:8px}
 .word-pill-tag{display:inline-flex;align-items:center;gap:4px;padding:3.5px 8.5px;border-radius:6px;font-size:12.5px;font-weight:700;margin:1.5px 2px;line-height:1.25;cursor:pointer;transition:transform .12s,box-shadow .12s;user-select:none}
@@ -636,7 +636,7 @@ body.daily-limit-reached #btn-upload {
 .word-pill-tag.neutral{background:#F1F1F8;color:var(--ink2);border:1px solid var(--line)}
 
 /* Date Navigator Bar & Word Split Areas */
-.date-navigator-card{background:linear-gradient(135deg,#F1EDFF,#F8F9FD);border:1.5px solid #E4DFFa;border-radius:11px;padding:8px 12px;margin:0 0 8px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;box-shadow:0 2px 8px rgba(108,76,224,.05)}
+.date-navigator-card{background:linear-gradient(135deg,#F1EDFF,#F8F9FD);border:1.5px solid #E4DFFa;border-radius:10px;padding:8px 10px;margin:0 0 8px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;box-shadow:0 2px 8px rgba(108,76,224,.05)}
 .date-nav-col{display:flex;flex-direction:column;gap:4px;width:100%}
 .date-nav-col-header{display:flex;align-items:center;gap:4px}
 .date-nav-col-header .date-nav-label{font-size:12px;font-weight:800;color:#B45309;letter-spacing:.2px}
@@ -651,16 +651,16 @@ body.daily-limit-reached #btn-upload {
 .date-nav-btn.today-btn{background:#EDF8FD;border-color:rgba(45,156,219,.4);color:var(--sky)}
 .date-nav-btn.today-btn:hover{background:var(--sky);color:#FFFFFF}
 @media (max-width:820px){
-  .date-navigator-card:not(.export-navigator-card){grid-template-columns:1fr;gap:12px;padding:12px 14px}
+  .date-navigator-card:not(.export-navigator-card){grid-template-columns:1fr;gap:8px;padding:8px 10px}
   .date-nav-divider{display:none}
 }
 @media (max-width:640px){
-  .date-navigator-card:not(.export-navigator-card){padding:10px 12px;gap:10px}
-  .date-nav-control-wrap select.task-date-selector{height:38px !important;min-height:38px !important;max-height:38px !important;font-size:13px}
+  .date-navigator-card:not(.export-navigator-card){padding:8px 10px;gap:8px}
+  .date-nav-control-wrap select.task-date-selector{height:32px !important;min-height:32px !important;max-height:32px !important;font-size:12px}
   .date-nav-stepper-wrap{flex-direction:column;gap:8px;width:100%}
-  .date-nav-stepper-wrap .date-picker-input{flex:none !important;width:100% !important;max-width:100% !important;height:38px !important;min-height:38px !important;max-height:38px !important;font-size:13.5px !important;box-sizing:border-box !important}
+  .date-nav-stepper-wrap .date-picker-input{flex:none !important;width:100% !important;max-width:100% !important;height:32px !important;min-height:32px !important;max-height:32px !important;font-size:12px !important;box-sizing:border-box !important}
   .date-nav-btn-group{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;width:100%}
-  .date-nav-stepper-wrap .date-nav-btn{height:38px !important;min-height:38px !important;max-height:38px !important;font-size:13px !important;width:100%;padding:0 4px}
+  .date-nav-stepper-wrap .date-nav-btn{height:32px !important;min-height:32px !important;max-height:32px !important;font-size:12px !important;width:100%;padding:0 4px}
 }
 .word-split-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
 @media (max-width:640px){
@@ -1688,8 +1688,8 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 .mode-stat-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
-  margin: 10px 0 16px;
+  gap: 6px !important;
+  margin: 8px 0 10px !important;
 }
 @media (max-width: 580px) {
   .mode-stat-grid {
@@ -2198,9 +2198,9 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 .export-navigator-card {
   background: linear-gradient(135deg, #F1EDFF, #F8F9FD) !important;
   border: 1.5px solid #E4DFFa !important;
-  border-radius: 14px !important;
+  border-radius: 10px !important;
   margin: 6px 0 0 0 !important;
-  padding: 12px 14px !important;
+  padding: 8px 10px !important;
   display: flex !important;
   flex-direction: column !important;
   align-items: stretch !important;
@@ -2507,9 +2507,9 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 /* 固定方塊高度：平日指定測驗與自由作答紀錄統一固定 290px，零跳動，內部介面自適應佈局 */
 #task-record-details,
 #free-record-details {
-  height: 290px !important;
-  min-height: 290px !important;
-  max-height: 290px !important;
+  height: 220px !important;
+  min-height: 220px !important;
+  max-height: 220px !important;
   box-sizing: border-box !important;
   display: flex !important;
   flex-direction: column !important;
@@ -2660,18 +2660,22 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 @media (max-width: 640px) {
   #task-record-details,
   #free-record-details {
-    height: 290px !important;
-    min-height: 290px !important;
-    max-height: 290px !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
   }
   .word-split-grid,
   .word-split-grid.grid-2 {
-    grid-template-columns: 1fr 1fr !important;
+    grid-template-columns: 1fr !important;
     gap: 6px !important;
     margin-top: 0 !important;
   }
   .word-split-box {
+    min-height: 90px !important;
+    max-height: 160px !important;
+    height: auto !important;
     padding: 6px 8px !important;
+    border-radius: 8px !important;
   }
   .word-split-title {
     font-size: 11px !important;
@@ -2735,7 +2739,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: 10px 12px;
+  padding: 8px 10px;
   border-radius: 10px;
   background: rgba(148, 163, 184, 0.06);
   border: 1px solid rgba(148, 163, 184, 0.18);
