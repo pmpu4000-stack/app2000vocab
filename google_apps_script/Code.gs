@@ -3215,8 +3215,29 @@ function handleSaveRecord(ss, params, auth) {
   if (sum && sum.score !== undefined) numScore = Math.max(numScore, Number(sum.score));
   if (sum && sum.total !== undefined) numTotal = Math.max(numTotal, Number(sum.total));
 
-  let taskScore = (isCompleted && numTotal > 0) ? `'${numScore}/${numTotal}` : "—";
-  let taskRate = (isCompleted && numTotal > 0) ? `${Math.round((numScore / numTotal) * 100)}%` : "—";
+  // 檢查作答進度與未完成狀態
+  const hasTaskActivity = isCompleted || !!(sum && (sum.inProgress || sum.attempts > 0)) || (taskCorrectWordsList.length > 0) || (wrongWordsList.length > 0);
+  const rawWrongList = (sum && sum.wrongWords && Array.isArray(sum.wrongWords))
+    ? sum.wrongWords
+    : (sum && typeof sum.wrongWords === "string" && sum.wrongWords.trim() ? sum.wrongWords.split(",").map(w => w.trim()).filter(Boolean) : []);
+  const actualAnsweredCount = taskCorrectWordsList.length + rawWrongList.length;
+  const hasUnanswered = (numTotal > 0 && actualAnsweredCount < numTotal);
+
+  let status = "⚪ 未指派";
+  if (hasTaskActivity) {
+    if (isCompleted && !hasUnanswered) {
+      status = "🟢 已完成";
+    } else {
+      status = numTotal > 0 ? `🟠 未完成 (${numScore}/${numTotal})` : "🟠 未完成";
+    }
+  } else if (hasTaskAssignedToday) {
+    status = "🔴 未受測";
+  } else {
+    status = "⚪ 未指派";
+  }
+
+  let taskScore = (hasTaskActivity && numTotal > 0) ? `'${numScore}/${numTotal}` : (isCompleted ? `'${numScore}/${numTotal}` : "—");
+  let taskRate = (hasTaskActivity && numTotal > 0) ? `${Math.round((numScore / numTotal) * 100)}%` : (isCompleted ? `${Math.round((numScore / numTotal) * 100)}%` : "—");
 
   // 檢查試算表目前第 2 列是否已經是今日或過往的紀錄
   let shouldInsertNewRow = false;
@@ -4288,8 +4309,8 @@ function getStudentTodayTaskResult(ss, username, todayStr) {
       const wrongWords = (wrongStr && !wrongStr.includes("應測單字") && !wrongStr.includes("未完成"))
         ? wrongStr.split(/[\s,;\n\r]+/).map(w => w.trim()).filter(isEngWord)
         : [];
-      const hasDone = (statusVal.includes("已完成") || (scoreVal !== "—" && scoreVal !== "" && scoreVal.includes("/"))) && !statusVal.includes("作答中") && !statusVal.includes("中斷");
-      const inProgress = (statusVal.includes("作答中") || statusVal.includes("中斷")) && !hasDone;
+      const hasDone = (statusVal.includes("已完成") || (scoreVal !== "—" && scoreVal !== "" && scoreVal.includes("/"))) && !statusVal.includes("作答中") && !statusVal.includes("中斷") && !statusVal.includes("未完成");
+      const inProgress = (statusVal.includes("作答中") || statusVal.includes("中斷") || statusVal.includes("未完成")) && !hasDone;
 
       if (hasDone || inProgress) {
         const item = {
@@ -4354,7 +4375,7 @@ function getStudentDailyTaskHistory(ss, username) {
     // 嚴格過濾：納入有指定測驗紀錄、已排定任務列、或有自由練習之列
     const isUntestedOrUnassigned = !taskName || taskName === "⚪ 未指派" || taskName === "自主練習" || taskName.includes("自由練習");
     const hasValidQuizScore = scoreVal && scoreVal !== "—" && scoreVal !== "" && scoreVal.includes("/");
-    const isQuizCompleted = statusVal.includes("已完成") || statusVal.includes("測驗作答中") || statusVal.includes("中斷") || statusVal.includes("未受測") || statusVal.includes("缺席");
+    const isQuizCompleted = statusVal.includes("已完成") || statusVal.includes("測驗作答中") || statusVal.includes("中斷") || statusVal.includes("未受測") || statusVal.includes("缺席") || statusVal.includes("未完成");
     const hasTaskAssigned = !isUntestedOrUnassigned && (taskName.length > 0);
     
     if (dStr && (hasValidQuizScore || isQuizCompleted || hasTaskAssigned || hasFreePractice)) {
@@ -4370,7 +4391,7 @@ function getStudentDailyTaskHistory(ss, username) {
       if ((!matchedWords || matchedWords.length === 0) && wrongStr.includes("應測單字") && rawWrongTokens.length > 0) {
         matchedWords = rawWrongTokens;
       }
-      const isSpecialTask = statusVal.includes("未受測") || statusVal.includes("中斷") || statusVal.includes("缺席") || statusVal.includes("作答中") || statusVal.includes("未作答");
+      const isSpecialTask = statusVal.includes("未受測") || statusVal.includes("中斷") || statusVal.includes("缺席") || statusVal.includes("作答中") || statusVal.includes("未作答") || statusVal.includes("未完成");
       const defaultTaskName = (hasTaskAssigned || isSpecialTask) ? "每日指定測驗" : (hasFreePractice ? "自主練習" : "每日指定測驗");
       list.push({
         date        : dStr,

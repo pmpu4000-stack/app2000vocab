@@ -19631,7 +19631,7 @@ function _buildStudentExportPayload(resp, mode, startDate, endDate) {
           taskWrongWords = [];
           unansweredWords = rawWords;
         } else if (isIncomplete) {
-          taskStatus = `🟣 作答中斷 (${tCor}/${assignedTotWords})`;
+          taskStatus = `🟠 未完成 (${tCor}/${assignedTotWords})`;
           taskScore = `${tCor}/${assignedTotWords}`;
           taskRate = `${overallScoreRate}%`;
         } else {
@@ -19941,8 +19941,8 @@ async function _exportStudentRecordToExcel(payload) {
         if (r.taskStatus.includes("未受測")) {
           scoreText = `🔴 缺席未測驗 (0/${r.assignedTotWords} 題)`;
           rateText = "0%";
-        } else if (r.hasUnanswered || r.taskStatus.includes("中斷")) {
-          scoreText = `🟣 中途離開 (${r.taskCorrWords}/${r.assignedTotWords} 題)`;
+        } else if (r.hasUnanswered || r.taskStatus.includes("中斷") || r.taskStatus.includes("未完成")) {
+          scoreText = `🟠 未完成 (${r.taskCorrWords}/${r.assignedTotWords} 題)`;
           rateText = `${r.overallScoreRate}%`;
         } else if (r.actualWrong === 0 && r.taskCorrWords > 0) {
           scoreText = `🌟 ${r.taskCorrWords} / ${r.assignedTotWords} 題 (全對！)`;
