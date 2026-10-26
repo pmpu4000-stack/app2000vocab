@@ -20190,7 +20190,7 @@ function _buildStudentReportHtml(payload) {
   const rawData = Array.isArray(payload.rawSheetData) ? payload.rawSheetData : [];
   const ov = payload.overall || {};
 
-  // Google 試算表 30 欄標準格式（扣除隱藏之第 B 欄完整JSON，含「測驗答對單字」與「測驗錯題單字」）
+  // Google 試算表 29 欄標準格式（1:1 對齊 Google 試算表使用者分頁，扣除隱藏之第 B 欄完整JSON）
   const cols = [
     { label: "備份時間", bg: "#f1f5f9", color: "#334155", align: "center", minWidth: "125px" },
     { label: "等級", bg: "#e2e8f0", color: "#334155", align: "center", minWidth: "45px" },
@@ -20216,7 +20216,6 @@ function _buildStudentReportHtml(payload) {
     { label: "指定成績", bg: "#e0e7ff", color: "#3730a3", align: "center", minWidth: "60px" },
     { label: "指定正確率", bg: "#e0e7ff", color: "#3730a3", align: "center", minWidth: "65px" },
     { label: "練習狀態", bg: "#e0e7ff", color: "#3730a3", align: "center", minWidth: "75px" },
-    { label: "測驗答對單字", bg: "#e0e7ff", color: "#3730a3", align: "left", minWidth: "130px" },
     { label: "測驗錯題單字", bg: "#e0e7ff", color: "#3730a3", align: "left", minWidth: "130px" },
     { label: "自由受測", bg: "#fef3c7", color: "#92400e", align: "center", minWidth: "55px" },
     { label: "自由答對", bg: "#fef3c7", color: "#92400e", align: "center", minWidth: "55px" },
@@ -20234,28 +20233,14 @@ function _buildStudentReportHtml(payload) {
   if (rawData.length > 0) {
     // 1:1 提取 Google 試算表使用者分頁上所有完整資料（全部複製，扣除隱藏之第 B 欄完整JSON）
     rowsToRender = rawData.map(found => {
-      const hasCorrectWordsCol = (found.length >= 31);
       const scoreRaw = String(found[22] || "").trim().replace(/^'+/, "");
       let rateRaw = String(found[23] || "").trim().replace(/^'+/, "");
-      // 正確率計算公式：指定測驗答對題數除以出題數
+      // 正確率精準公式：指定測驗答對題數除以出題數 (若成績為 A/B，一律以 A/B 計算，避免答對兩題共五題卻出現100%的狀況)
       if (scoreRaw.includes("/")) {
         const m = scoreRaw.match(/^(\d+)\s*\/\s*(\d+)$/);
         if (m && Number(m[2]) > 0) {
           rateRaw = Math.round((Number(m[1]) / Number(m[2])) * 100) + "%";
         }
-      }
-
-      let taskCorWords = "—";
-      let taskWrongWords = "—";
-      let freeStartIndex = 26;
-
-      if (hasCorrectWordsCol) {
-        taskCorWords = found[25] || "—";
-        taskWrongWords = found[26] || "—";
-        freeStartIndex = 27;
-      } else {
-        taskWrongWords = found[25] || "—";
-        freeStartIndex = 26;
       }
 
       return [
@@ -20264,11 +20249,11 @@ function _buildStudentReportHtml(payload) {
         found[12], found[13], found[14], found[15], found[16],
         found[17], found[18], found[19], found[20],
         found[21], scoreRaw || "—", rateRaw || "—", found[24] || "—",
-        taskCorWords, taskWrongWords,
-        found[freeStartIndex] || "0",
-        found[freeStartIndex + 1] || "0",
-        found[freeStartIndex + 2] || "—",
-        found[freeStartIndex + 3] || ""
+        found[25] || "—",
+        found[26] || "0",
+        found[27] || "0",
+        found[28] || "—",
+        found[29] || ""
       ];
     });
   } else if (payload.dailyRecords && payload.dailyRecords.length > 0) {
@@ -20296,10 +20281,6 @@ function _buildStudentReportHtml(payload) {
           rateVal = Math.round((Number(sm[1]) / Number(sm[2])) * 100) + "%";
         }
       }
-
-      const corWordsStr = (r.taskCorrectWords && r.taskCorrectWords.length > 0)
-        ? r.taskCorrectWords.join(", ")
-        : (r.isUnassigned ? "—" : "—");
 
       const wrongWordsStr = allWrong.length > 0
         ? allWrong.join(", ")
@@ -20330,7 +20311,6 @@ function _buildStudentReportHtml(payload) {
         scoreVal,
         rateVal,
         r.taskStatus || "—",
-        corWordsStr,
         wrongWordsStr,
         r.freeAttempts || 0,
         r.freeCorrect || 0,
@@ -20346,7 +20326,7 @@ function _buildStudentReportHtml(payload) {
       const c = cols[cIdx] || { align: "center" };
       let displayVal = esc(val ?? "");
       let cellStyle = `padding:5px 6px; border:1px solid #cbd5e1; font-size:11px; line-height:1.35; text-align:${c.align}; white-space:nowrap;`;
-      if (cIdx === 20 || cIdx === 24 || cIdx === 25 || cIdx === 29) {
+      if (cIdx === 20 || cIdx === 24 || cIdx === 28) {
         cellStyle += "white-space:normal; min-width:" + (c.minWidth || "120px") + "; word-break:break-word;";
       }
       if (cIdx === 20) {
@@ -20355,9 +20335,7 @@ function _buildStudentReportHtml(payload) {
         cellStyle += "font-weight:800; color:#0369a1;";
       } else if (cIdx === 23) {
         cellStyle += displayVal.includes("已完成") ? "font-weight:800; color:#15803d;" : (displayVal.includes("未受測") ? "font-weight:800; color:#b91c1c;" : "color:#64748b;");
-      } else if (cIdx === 24) {
-        cellStyle += (displayVal !== "—" && displayVal !== "") ? "color:#15803d; font-weight:700;" : "color:#64748b;";
-      } else if (cIdx === 25 || cIdx === 29) {
+      } else if (cIdx === 24 || cIdx === 28) {
         cellStyle += (displayVal !== "—" && !displayVal.includes("全對") && displayVal !== "") ? "color:#b91c1c; font-weight:700;" : "color:#64748b;";
       }
       return `<td style="${cellStyle}">${displayVal}</td>`;
@@ -20375,7 +20353,7 @@ function _buildStudentReportHtml(payload) {
             <th colspan="6" style="padding:6px 4px; border:1px solid #cbd5e1; background:#dcfce7; color:#065f46; font-size:11px; font-weight:800; text-align:center;">🎯 單字掌握現況</th>
             <th colspan="5" style="padding:6px 4px; border:1px solid #cbd5e1; background:#f3e8ff; color:#6b21a8; font-size:11px; font-weight:800; text-align:center;">📈 關卡進度 (L1~L5)</th>
             <th colspan="4" style="padding:6px 4px; border:1px solid #cbd5e1; background:#ccfbf1; color:#0f766e; font-size:11px; font-weight:800; text-align:center;">🎮 四大題型答對率</th>
-            <th colspan="6" style="padding:6px 4px; border:1px solid #cbd5e1; background:#e0e7ff; color:#3730a3; font-size:11px; font-weight:800; text-align:center;">📝 每日指定測驗</th>
+            <th colspan="5" style="padding:6px 4px; border:1px solid #cbd5e1; background:#e0e7ff; color:#3730a3; font-size:11px; font-weight:800; text-align:center;">📝 每日指定測驗</th>
             <th colspan="4" style="padding:6px 4px; border:1px solid #cbd5e1; background:#fef3c7; color:#92400e; font-size:11px; font-weight:800; text-align:center;">💡 自由自主練習</th>
           </tr>
           <tr>
@@ -20383,7 +20361,7 @@ function _buildStudentReportHtml(payload) {
           </tr>
         </thead>
         <tbody>
-          ${rowsHtml || '<tr><td colspan="30" style="text-align:center; padding:16px; color:#64748b;">暫無試算表歷程資料</td></tr>'}
+          ${rowsHtml || '<tr><td colspan="29" style="text-align:center; padding:16px; color:#64748b;">暫無試算表歷程資料</td></tr>'}
         </tbody>
       </table>
     </div>
