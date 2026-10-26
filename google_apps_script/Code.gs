@@ -339,25 +339,25 @@ function ensureStudentSheetColumns(sheet) {
       "LEVEL 1 入門\n(答對/受測字數)", "LEVEL 2 基礎\n(答對/受測字數)",
       "LEVEL 3 進階\n(答對/受測字數)", "LEVEL 4 挑戰\n(答對/受測字數)", "LEVEL 5 精熟\n(答對/受測字數)",
       "🎧 聽與拼\n(答對/受測字數)", "✅ 選拼法\n(答對/受測字數)", "🧩 字母重組\n(答對/受測字數)", "🖍️ 填空陷阱\n(答對/受測字數)",
-      "任務名稱", "指定測驗成績", "指定測驗正確率", "練習狀態", "測驗錯題單字",
+      "任務名稱", "施測單字數", "作答單字數", "答對單字數", "指定測驗成績", "指定測驗正確率", "練習狀態", "測驗錯題單字",
       "自由練習受測字數", "自由練習答對字數", "自由練習正確率", "自由練習錯題單字"
     ];
 
     const maxCols = sheet.getMaxColumns();
     const lastCol = sheet.getLastColumn();
 
-    // 🚀 極速快取檢查：若表頭已是最新 30 欄且欄位名稱完全相符，立即返回，省去多餘 API 延遲！
-    if (lastCol >= 30) {
-      const firstRowVals = sheet.getRange(1, 1, 1, 30).getValues()[0] || [];
-      if (firstRowVals[2] === "等級" && firstRowVals[6] === "學習中" && firstRowVals[9] === "共答對單字" && firstRowVals[21] === "任務名稱" && firstRowVals[26] === "自由練習受測字數") {
+    // 🚀 極速快取檢查：若表頭已是最新 33 欄且欄位名稱完全相符，立即返回，省去多餘 API 延遲！
+    if (lastCol >= 33) {
+      const firstRowVals = sheet.getRange(1, 1, 1, 33).getValues()[0] || [];
+      if (firstRowVals[2] === "等級" && firstRowVals[6] === "學習中" && firstRowVals[9] === "共答對單字" && firstRowVals[21] === "任務名稱" && firstRowVals[22] === "施測單字數" && firstRowVals[29] === "自由練習受測字數") {
         return;
       }
     }
 
-    if (maxCols < 30) {
-      sheet.insertColumnsAfter(maxCols, 30 - maxCols);
-    } else if (maxCols > 30 && sheet.getLastRow() <= 1) {
-      sheet.deleteColumns(31, maxCols - 30);
+    if (maxCols < 33) {
+      sheet.insertColumnsAfter(maxCols, 33 - maxCols);
+    } else if (maxCols > 33 && sheet.getLastRow() <= 1) {
+      sheet.deleteColumns(34, maxCols - 33);
     }
 
     sheet.getRange(1, 1, 1, studentHdr.length).setValues([studentHdr]);
@@ -377,8 +377,8 @@ function ensureStudentSheetColumns(sheet) {
     sheet.getRange("G1:L1").setBackground("#dcfce7").setFontColor("#065f46").setFontWeight("bold"); // 整體進度 (學習中、練習中、精通、共答對、受測、掌握率)
     sheet.getRange("M1:Q1").setBackground("#f3e8ff").setFontColor("#6b21a8").setFontWeight("bold"); // 關卡進度 (LEVEL 1~5)
     sheet.getRange("R1:U1").setBackground("#ccfbf1").setFontColor("#0f766e").setFontWeight("bold"); // 四大練習模式
-    sheet.getRange("V1:Z1").setBackground("#e0e7ff").setFontColor("#3730a3").setFontWeight("bold"); // 指定測驗專屬區塊 (靛青色)
-    sheet.getRange("AA1:AD1").setBackground("#fef3c7").setFontColor("#92400e").setFontWeight("bold"); // 自由練習專屬區塊 (琥珀黃色)
+    sheet.getRange("V1:AC1").setBackground("#e0e7ff").setFontColor("#3730a3").setFontWeight("bold"); // 指定測驗專屬區塊 (靛青色，含施測/作答/答對)
+    sheet.getRange("AD1:AG1").setBackground("#fef3c7").setFontColor("#92400e").setFontWeight("bold"); // 自由練習專屬區塊 (琥珀黃色)
 
     sheet.getRange("1:1").setWrap(true).setHorizontalAlignment("center").setVerticalAlignment("middle");
 
@@ -388,7 +388,7 @@ function ensureStudentSheetColumns(sheet) {
       75, 75, 75, 95, 105, 95,
       115, 115, 115, 115, 115,
       115, 115, 115, 115,
-      130, 95, 95, 110, 200,
+      130, 95, 95, 95, 95, 95, 110, 200,
       115, 115, 95, 200
     ];
     widths.forEach((w, idx) => sheet.setColumnWidth(idx + 1, w));
@@ -396,9 +396,10 @@ function ensureStudentSheetColumns(sheet) {
       sheet.getRange("G:K").setNumberFormat("0");
       sheet.getRange("L:L").setNumberFormat("0%");
       sheet.getRange("M:U").setNumberFormat("@");
-      sheet.getRange("W:X").setNumberFormat("@");
-      sheet.getRange("AA:AC").setNumberFormat("@");
-      sheet.getRange("AD:AD").setNumberFormat("@");
+      sheet.getRange("W:Y").setNumberFormat("0");
+      sheet.getRange("Z:AA").setNumberFormat("@");
+      sheet.getRange("AD:AF").setNumberFormat("@");
+      sheet.getRange("AG:AG").setNumberFormat("@");
     } catch(_) {}
 
     // 5. 效能優化：裁切多餘空白列（保留最多 120 列），大幅提升 Google Sheets 開啟與捲動速度
@@ -421,8 +422,8 @@ function getHeaderIndexMap(headers) {
     learning: 6, practicing: 7, mastered: 8, correct: 9, attempts: 10, accuracy: 11,
     l1: 12, l2: 13, l3: 14, l4: 15, l5: 16,
     mListen: 17, mPick: 18, mScramble: 19, mTrap: 20,
-    taskName: 21, taskScore: 22, taskRate: 23, status: 24, wrong: 25,
-    freeTested: 26, freeCorrect: 27, freeRate: 28, freeWrong: 29
+    taskName: 21, taskAssigned: 22, taskAnswered: 23, taskCorrect: 24, taskScore: 25, taskRate: 26, status: 27, wrong: 28,
+    freeTested: 29, freeCorrect: 30, freeRate: 31, freeWrong: 32
   };
   (headers || []).forEach((h, idx) => {
     const s = String(h || "").trim();
@@ -431,13 +432,16 @@ function getHeaderIndexMap(headers) {
     else if (s.includes("自由練習正確率")) map.freeRate = idx;
     else if (s.includes("自由練習錯題")) map.freeWrong = idx;
     else if (s.includes("任務名稱")) map.taskName = idx;
+    else if (s.includes("施測單字數")) map.taskAssigned = idx;
+    else if (s.includes("作答單字數")) map.taskAnswered = idx;
+    else if (s.includes("答對單字數") && !s.includes("自由")) map.taskCorrect = idx;
     else if (s.includes("指定測驗成績")) map.taskScore = idx;
     else if (s.includes("指定測驗正確率")) map.taskRate = idx;
     else if (s.includes("練習狀態")) map.status = idx;
-    else if (s.includes("測驗錯題") || s.includes("錯題單字") || s.includes("錯題")) map.wrong = idx;
+    else if (s.includes("測驗錯題") || (s.includes("錯題") && !s.includes("自由"))) map.wrong = idx;
     else if (s.includes("受測單字") || s.includes("作答題數")) map.attempts = idx;
-    else if (s.includes("共答對單字") || s.includes("答對單字") || s.includes("答對題數")) map.correct = idx;
-    else if (s.includes("掌握率") || s.includes("正確率")) map.accuracy = idx;
+    else if (s.includes("共答對單字") || s.includes("答對題數")) map.correct = idx;
+    else if (s.includes("掌握率") || (s.includes("正確率") && !s.includes("指定") && !s.includes("自由"))) map.accuracy = idx;
     else if (s.includes("精通")) map.mastered = idx;
     else if (s.includes("練習中")) map.practicing = idx;
     else if (s.includes("學習中")) map.learning = idx;
@@ -3254,26 +3258,31 @@ function handleSaveRecord(ss, params, auth) {
 
   let wrongWordsStr = wrongWordsList.length > 0 ? wrongWordsList.join(", ") : (isCompleted ? "全對無錯題" : "—");
 
-  // 指定測驗答對題數除以出題數，為指定正確率唯一標準公式
-  let numScore = taskCorrectWordsList.length;
-  let numTotal = (activeTaskObj && activeTaskObj.words && activeTaskObj.words.length > 0) ? activeTaskObj.words.length : (sum && sum.total ? Number(sum.total) : 0);
-  if (sum && sum.score !== undefined) numScore = Math.max(numScore, Number(sum.score));
-  if (sum && sum.total !== undefined) numTotal = Math.max(numTotal, Number(sum.total));
+  // 依據新規則：施測單字數(出題數)、作答單字數、答對單字數
+  let assignedWordsCount = (activeTaskObj && activeTaskObj.words && activeTaskObj.words.length > 0) ? activeTaskObj.words.length : (sum && sum.total ? Number(sum.total) : 0);
+  if (sum && sum.total !== undefined) assignedWordsCount = Math.max(assignedWordsCount, Number(sum.total));
 
-  // 檢查作答進度與未完成狀態
-  const hasTaskActivity = isCompleted || !!(sum && (sum.inProgress || sum.attempts > 0)) || (taskCorrectWordsList.length > 0) || (wrongWordsList.length > 0);
+  let correctWordsCount = taskCorrectWordsList.length;
+  if (sum && sum.score !== undefined) correctWordsCount = Math.max(correctWordsCount, Number(sum.score));
+
   const rawWrongList = (sum && sum.wrongWords && Array.isArray(sum.wrongWords))
     ? sum.wrongWords
     : (sum && typeof sum.wrongWords === "string" && sum.wrongWords.trim() ? sum.wrongWords.split(",").map(w => w.trim()).filter(Boolean) : []);
-  const actualAnsweredCount = taskCorrectWordsList.length + rawWrongList.length;
-  const hasUnanswered = (numTotal > 0 && actualAnsweredCount < numTotal);
+  let answeredWordsCount = taskCorrectWordsList.length + rawWrongList.length;
+  if (sum && sum.attempts !== undefined) answeredWordsCount = Math.max(answeredWordsCount, Number(sum.attempts));
+  if (isCompleted && answeredWordsCount < assignedWordsCount && rawWrongList.length === 0) {
+    answeredWordsCount = assignedWordsCount;
+  }
+
+  // 檢查作答進度與未完成狀態
+  const hasTaskActivity = isCompleted || !!(sum && (sum.inProgress || sum.attempts > 0)) || (taskCorrectWordsList.length > 0) || (wrongWordsList.length > 0);
 
   let status = "⚪ 未指派";
   if (hasTaskActivity) {
-    if (isCompleted && !hasUnanswered) {
+    if (answeredWordsCount === assignedWordsCount && assignedWordsCount > 0) {
       status = "🟢 已完成";
     } else {
-      status = numTotal > 0 ? `🟠 未完成 (${numScore}/${numTotal})` : "🟠 未完成";
+      status = answeredWordsCount > 0 ? `🟠 未完成 (${correctWordsCount}/${answeredWordsCount})` : (assignedWordsCount > 0 ? `🟠 未完成 (0/${assignedWordsCount})` : "🟠 未完成");
     }
   } else if (hasTaskAssignedToday) {
     status = "🔴 未受測";
@@ -3281,8 +3290,16 @@ function handleSaveRecord(ss, params, auth) {
     status = "⚪ 未指派";
   }
 
-  let taskScore = (hasTaskActivity && numTotal > 0) ? `'${numScore}/${numTotal}` : (isCompleted ? `'${numScore}/${numTotal}` : "—");
-  let taskRate = (hasTaskActivity && numTotal > 0) ? `${Math.round((numScore / numTotal) * 100)}%` : (isCompleted ? `${Math.round((numScore / numTotal) * 100)}%` : "—");
+  // 指定測驗成績：答對單字數/作答單字數；若作答數為 0 則顯示出題數備援或 —
+  let taskScore = "—";
+  let taskRate = "—";
+  if (hasTaskActivity && answeredWordsCount > 0) {
+    taskScore = `'${correctWordsCount}/${answeredWordsCount}`;
+    taskRate = `${Math.round((correctWordsCount / answeredWordsCount) * 100)}%`;
+  } else if (isCompleted && assignedWordsCount > 0) {
+    taskScore = `'${correctWordsCount}/${assignedWordsCount}`;
+    taskRate = `${Math.round((correctWordsCount / assignedWordsCount) * 100)}%`;
+  }
 
   // 檢查試算表目前第 2 列是否已經是今日或過往的紀錄
   let shouldInsertNewRow = false;
@@ -3415,7 +3432,11 @@ function handleSaveRecord(ss, params, auth) {
     pureCorrect, testedWordsCount, pureRate,
     l1Str, l2Str, l3Str, l4Str, l5Str,
     mListenStr, mPickStr, mScrambleStr, mTrapStr,
-    taskName, taskScore, taskRate, status, wrongWordsStr,
+    taskName,
+    hasTaskActivity || hasTaskAssignedToday ? assignedWordsCount : "—",
+    hasTaskActivity ? answeredWordsCount : (hasTaskAssignedToday ? 0 : "—"),
+    hasTaskActivity ? correctWordsCount : (hasTaskAssignedToday ? 0 : "—"),
+    taskScore, taskRate, status, wrongWordsStr,
     freeTested > 0 ? freeTested : (hasTodayPractice ? 0 : "—"),
     freeTested > 0 ? freeCorrect : (hasTodayPractice ? 0 : "—"),
     freeRate,
@@ -4694,7 +4715,7 @@ function _getStudentData(ss, username) {
     return {
       status: "success",
       username: cleanU,
-      headers: ["備份時間","完整JSON","等級","分數","連勝","最佳連勝","學習中","練習中","精通","共答對單字","累積受測單字","單字掌握率","LEVEL 1 入門\n(答對/受測字數)","LEVEL 2 基礎\n(答對/受測字數)","LEVEL 3 進階\n(答對/受測字數)","LEVEL 4 挑戰\n(答對/受測字數)","LEVEL 5 精熟\n(答對/受測字數)","🎧 聽與拼\n(答對/受測字數)","✅ 選拼法\n(答對/受測字數)","🧩 字母重組\n(答對/受測字數)","🖍️ 填空陷阱\n(答對/受測字數)","任務名稱","指定測驗成績","指定測驗正確率","練習狀態","測驗錯題單字","自由練習受測字數","自由練習答對字數","自由練習正確率","自由練習錯題單字"],
+      headers: ["備份時間","完整JSON","等級","分數","連勝","最佳連勝","學習中","練習中","精通","共答對單字","累積受測單字","單字掌握率","LEVEL 1 入門\n(答對/受測字數)","LEVEL 2 基礎\n(答對/受測字數)","LEVEL 3 進階\n(答對/受測字數)","LEVEL 4 挑戰\n(答對/受測字數)","LEVEL 5 精熟\n(答對/受測字數)","🎧 聽與拼\n(答對/受測字數)","✅ 選拼法\n(答對/受測字數)","🧩 字母重組\n(答對/受測字數)","🖍️ 填空陷阱\n(答對/受測字數)","任務名稱","施測單字數","作答單字數","答對單字數","指定測驗成績","指定測驗正確率","練習狀態","測驗錯題單字","自由練習受測字數","自由練習答對字數","自由練習正確率","自由練習錯題單字"],
       data: [],
       wordList: [],
       agentData: null,

@@ -16617,11 +16617,14 @@ function renderUntestedTaskCardHtml(info, agent) {
 
 function extractRowTaskInfo(row, headers) {
   if (!row || !Array.isArray(row)) return null;
-  let tNameIdx = -1, scoreIdx = -1, rateIdx = -1, statusIdx = -1, wrongIdx = -1;
+  let tNameIdx = -1, assignedIdx = -1, answeredIdx = -1, correctIdx = -1, scoreIdx = -1, rateIdx = -1, statusIdx = -1, wrongIdx = -1;
   if (headers && Array.isArray(headers)) {
     headers.forEach((h, i) => {
       const s = String(h || "");
       if (s.includes("任務名稱") || s.includes("指定測驗名稱")) tNameIdx = i;
+      else if (s.includes("施測單字數")) assignedIdx = i;
+      else if (s.includes("作答單字數")) answeredIdx = i;
+      else if (s.includes("答對單字數") && !s.includes("自由")) correctIdx = i;
       else if (s.includes("指定測驗成績")) scoreIdx = i;
       else if (s.includes("指定測驗正確率")) rateIdx = i;
       else if (s.includes("練習狀態")) statusIdx = i;
@@ -16629,18 +16632,43 @@ function extractRowTaskInfo(row, headers) {
     });
   }
   if (tNameIdx === -1) {
-    if (row.length >= 30) { tNameIdx = 21; scoreIdx = 22; rateIdx = 23; statusIdx = 24; wrongIdx = 25; }
-    else if (row.length === 26) { tNameIdx = 21; scoreIdx = 22; rateIdx = 23; statusIdx = 24; wrongIdx = 25; }
-    else if (row.length === 25) { tNameIdx = 20; scoreIdx = 21; rateIdx = 22; statusIdx = 23; wrongIdx = 24; }
-    else { tNameIdx = 18; scoreIdx = 19; rateIdx = 20; statusIdx = 21; wrongIdx = 22; }
+    if (row.length >= 33) {
+      tNameIdx = 21; assignedIdx = 22; answeredIdx = 23; correctIdx = 24; scoreIdx = 25; rateIdx = 26; statusIdx = 27; wrongIdx = 28;
+    } else if (row.length >= 30) {
+      tNameIdx = 21; scoreIdx = 22; rateIdx = 23; statusIdx = 24; wrongIdx = 25;
+    } else if (row.length === 26) {
+      tNameIdx = 21; scoreIdx = 22; rateIdx = 23; statusIdx = 24; wrongIdx = 25;
+    } else if (row.length === 25) {
+      tNameIdx = 20; scoreIdx = 21; rateIdx = 22; statusIdx = 23; wrongIdx = 24;
+    } else {
+      tNameIdx = 18; scoreIdx = 19; rateIdx = 20; statusIdx = 21; wrongIdx = 22;
+    }
   }
   const taskName = String(row[tNameIdx] || "").trim();
-  const score = String(row[scoreIdx] || "—").trim();
-  const rate = String(row[rateIdx] || "—").trim();
-  const status = String(row[statusIdx] || "").trim();
+  let score = String(row[scoreIdx] || "—").trim();
+  let rate = String(row[rateIdx] || "—").trim();
+  let status = String(row[statusIdx] || "").trim();
   const wrongStr = String(row[wrongIdx] || "").trim();
   const wrongWords = wrongStr ? wrongStr.split(/[,、\s]+/).filter(Boolean) : [];
-  return { taskName, score, rate, status, wrongWords };
+
+  const assignedWords = assignedIdx >= 0 && row[assignedIdx] !== undefined && row[assignedIdx] !== "" && row[assignedIdx] !== "—" ? parseInt(row[assignedIdx], 10) : 0;
+  const answeredWords = answeredIdx >= 0 && row[answeredIdx] !== undefined && row[answeredIdx] !== "" && row[answeredIdx] !== "—" ? parseInt(row[answeredIdx], 10) : 0;
+  const correctWords = correctIdx >= 0 && row[correctIdx] !== undefined && row[correctIdx] !== "" && row[correctIdx] !== "—" ? parseInt(row[correctIdx], 10) : 0;
+
+  // 若存在作答單字數且已計算，自動以答對數/作答數計算成績與正確率，且作答數!=出題數為未完成
+  if (assignedIdx >= 0 && answeredIdx >= 0 && (assignedWords > 0 || answeredWords > 0)) {
+    if (answeredWords > 0) {
+      score = `${correctWords}/${answeredWords}`;
+      rate = `${Math.round((correctWords / answeredWords) * 100)}%`;
+    }
+    if (answeredWords === assignedWords && assignedWords > 0) {
+      status = "🟢 已完成";
+    } else if (answeredWords < assignedWords && assignedWords > 0) {
+      status = answeredWords > 0 ? `🟠 未完成 (${correctWords}/${answeredWords})` : `🟠 未完成 (0/${assignedWords})`;
+    }
+  }
+
+  return { taskName, score, rate, status, wrongWords, assignedWords, answeredWords, correctWords };
 }
 
 function extractRowFreeInfo(row, headers) {
@@ -16655,8 +16683,12 @@ function extractRowFreeInfo(row, headers) {
       else if (s.includes("自由練習錯題")) wrongIdx = i;
     });
   }
-  if (testIdx === -1 && row.length >= 30) {
-    testIdx = 26; corrIdx = 27; rateIdx = 28; wrongIdx = 29;
+  if (testIdx === -1) {
+    if (row.length >= 33) {
+      testIdx = 29; corrIdx = 30; rateIdx = 31; wrongIdx = 32;
+    } else if (row.length >= 30) {
+      testIdx = 26; corrIdx = 27; rateIdx = 28; wrongIdx = 29;
+    }
   }
   if (testIdx === -1) return null;
   const attempts = parseInt(row[testIdx], 10) || 0;
