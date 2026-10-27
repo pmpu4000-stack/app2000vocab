@@ -3265,6 +3265,8 @@ function handleSaveRecord(ss, params, auth) {
     : (sum && typeof sum.wrongWords === "string" && sum.wrongWords.trim() ? sum.wrongWords.split(",").map(w => w.trim()).filter(Boolean) : []);
   let answeredWordsCount = taskCorrectWordsList.length + rawWrongList.length;
   if (sum && sum.attempts !== undefined) answeredWordsCount = Math.max(answeredWordsCount, Number(sum.attempts));
+  // 防呆：作答單字數絕不可小於答對單字數
+  answeredWordsCount = Math.max(answeredWordsCount, correctWordsCount + rawWrongList.length, correctWordsCount);
   if (isCompleted && answeredWordsCount < assignedWordsCount && rawWrongList.length === 0) {
     answeredWordsCount = assignedWordsCount;
   }
@@ -6157,7 +6159,19 @@ function migrateStudentSheetRows_(sheet) {
       row[32] = oldFreeWrong;
 
       // 特殊學生歷史指定修正 (學生 d: 10-12 與 10-13)
-      if (name === 'e') {
+      if (name === 'd' && dStr.includes('10-26')) {
+        // 學生 d 10-26 歷程校正：施測 5, 受測作答 4, 答對 3, 成績 3/4, 正確率 60%, 狀態 🟠 未完成 (3/5)
+        const curWrong = String(row[28] || "").split(",").map(w => w.trim().toLowerCase()).filter(Boolean);
+        const filteredWrong = curWrong.length > 0 ? curWrong.filter(w => !["care", "camp", "card", "cake"].includes(w)) : [];
+        row[22] = 5;
+        row[23] = 4;
+        row[24] = 3;
+        row[25] = "3/4";
+        row[26] = "60%";
+        row[27] = "🟠 未完成 (3/5)";
+        row[28] = filteredWrong.length > 0 ? filteredWrong.slice(0, 2).join(", ") : "cage, can";
+        sheetModified = true;
+      } else if (name === 'e') {
         // 學生 e 歷程校正：施測 5, 作答 4, 答對 3, 成績 3/4, 正確率 60%, 狀態 🟠 未完成 (3/5)
         // 測驗錯題單字僅保留使用者抽出來考卻沒有答對或沒有回答的單字 (共 2 字)，絕不列入老師勾選卻未抽考字
         const curWrong = String(row[28] || "").split(",").map(w => w.trim().toLowerCase()).filter(Boolean);
@@ -6236,11 +6250,17 @@ function migrateStudentSheetRows_(sheet) {
     } else {
       // 若已是 33 欄結構，依新邏輯校準正確率 (答對/施測) 與完成狀態
       const assigned = parseInt(row[22], 10);
-      const answered = parseInt(row[23], 10);
+      let answered = parseInt(row[23], 10);
       const correct = parseInt(row[24], 10);
       const statusStr = String(row[27] || "").trim();
 
       if (!isNaN(assigned) && assigned > 0 && !isNaN(correct)) {
+        // 核心邏輯防呆：作答單字數絕不可能小於答對單字數
+        if (isNaN(answered) || answered < correct) {
+          answered = correct;
+          row[23] = answered;
+          sheetModified = true;
+        }
         if (!isNaN(answered) && answered > 0) {
           const expectedScore = `${correct}/${answered}`;
           if (row[25] !== expectedScore) { row[25] = expectedScore; sheetModified = true; }
@@ -6256,7 +6276,19 @@ function migrateStudentSheetRows_(sheet) {
         }
       }
 
-      if (name === 'e') {
+      if (name === 'd' && dStr.includes('10-26')) {
+        // 學生 d 10-26 歷程校正：施測 5, 受測作答 4, 答對 3, 成績 3/4, 正確率 60%, 狀態 🟠 未完成 (3/5)
+        const curWrong = String(row[28] || "").split(",").map(w => w.trim().toLowerCase()).filter(Boolean);
+        const filteredWrong = curWrong.length > 0 ? curWrong.filter(w => !["care", "camp", "card", "cake"].includes(w)) : [];
+        row[22] = 5;
+        row[23] = 4;
+        row[24] = 3;
+        row[25] = "3/4";
+        row[26] = "60%";
+        row[27] = "🟠 未完成 (3/5)";
+        row[28] = filteredWrong.length > 0 ? filteredWrong.slice(0, 2).join(", ") : "cage, can";
+        sheetModified = true;
+      } else if (name === 'e') {
         // 學生 e 歷程校正：施測 5, 作答 4, 答對 3, 成績 3/4, 正確率 60%, 狀態 🟠 未完成 (3/5)
         // 測驗錯題單字僅保留使用者抽出來考卻沒有答對或沒有回答的單字 (共 2 字)，絕不列入老師勾選卻未抽考字
         const curWrong = String(row[28] || "").split(",").map(w => w.trim().toLowerCase()).filter(Boolean);
