@@ -1714,11 +1714,11 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
       <div class="task-score-grid">
         <div class="task-score-item">
           <div class="task-score-label">指派情形</div>
-          <div class="task-score-val" style="color:var(--ink2); font-size:16px; font-weight:700;">當日無指派</div>
+          <div class="task-score-val" style="color:var(--ink2); font-size:15px; font-weight:700;">當日無指派</div>
         </div>
         <div class="task-score-item">
           <div class="task-score-label">作答狀態</div>
-          <div class="task-score-val" style="color:${statusColor}; font-size:16px; font-weight:800;">${displayStatusStr}</div>
+          <div class="task-score-val" style="color:${statusColor}; font-size:15px; font-weight:800;">${displayStatusStr}</div>
         </div>
       </div>
     `;
@@ -1736,7 +1736,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
         </div>
         <div class="task-score-item">
           <div class="task-score-label">測驗狀態</div>
-          <div class="task-score-val" style="color:${statusColor}; font-size:17px; font-weight:800;">${displayStatusStr}</div>
+          <div class="task-score-val" style="color:${statusColor}; font-size:15.5px; font-weight:800;">${displayStatusStr}</div>
         </div>
       </div>
     `;
@@ -1762,41 +1762,41 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     scoreGridHtml = `
       <div class="task-score-grid">
         <div class="task-score-subgrid">
-          <div class="task-score-item" style="display:flex; flex-direction:column; justify-content:center; padding:10px 4px;">
+          <div class="task-score-item">
             <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap; font-size:11px;" title="已答對單字 / 已施測單字">
               <span style="flex:1; text-align:right;">已答對</span>
               <span style="padding:0 2px; opacity:0.6;">/</span>
               <span style="flex:1; text-align:left;">已施測</span>
             </div>
-            <div class="task-score-val heat-rate-val ${getHeatmapRateClass(attemptedRate)}" style="display:flex; align-items:center; justify-content:center; color:${actualAnswered > 0 ? getHeatmapRateColor(attemptedRate) : 'var(--ink3)'};">
+            <div class="task-score-val heat-rate-val ${getHeatmapRateClass(attemptedRate)}" style="display:flex; align-items:center; justify-content:center; color:${actualAnswered > 0 ? getHeatmapRateColor(attemptedRate) : 'var(--ink3)'}; font-size:20px; font-weight:800;">
               <span class="task-score-num-corr" style="flex:1; text-align:right;">${taskCorrWords}</span>
-              <span style="padding:0 4px; font-weight:700; color:var(--ink3); opacity:0.6; font-size:18px;">/</span>
+              <span style="padding:0 3px; font-weight:700; color:var(--ink3); opacity:0.6; font-size:16px;">/</span>
               <span class="task-score-num-tot" style="flex:1; text-align:left;">${actualAnswered}</span>
             </div>
           </div>
-          <div class="task-score-item" style="display:flex; flex-direction:column; justify-content:center; padding:10px 4px;">
+          <div class="task-score-item">
             <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap; font-size:11px;" title="答錯單字 / 未作答單字">
               <span style="flex:1; text-align:right; color:var(--ink2);">答錯</span>
               <span style="padding:0 2px; opacity:0.6;">/</span>
               <span style="flex:1; text-align:left; color:var(--ink2);">未作答</span>
             </div>
-            <div class="task-score-val" style="display:flex; align-items:center; justify-content:center;">
+            <div class="task-score-val" style="display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:800;">
               <span style="flex:1; text-align:right; color:${actualWrong > 0 ? '#ef4444' : 'var(--ink3)'};">${actualWrong}</span>
-              <span style="padding:0 4px; font-weight:700; color:var(--ink3); opacity:0.6; font-size:18px;">/</span>
+              <span style="padding:0 3px; font-weight:700; color:var(--ink3); opacity:0.6; font-size:16px;">/</span>
               <span style="flex:1; text-align:left; color:${actualUnanswered > 0 ? '#0284c7' : 'var(--ink3)'};">${actualUnanswered}</span>
             </div>
           </div>
         </div>
         <div class="task-score-subgrid">
-          <div class="task-score-item" style="display:flex; flex-direction:column; justify-content:center; padding:10px 4px;">
+          <div class="task-score-item">
             <div class="task-score-label" style="font-size:11px;" title="實際有作答題目的答對率">作答正確率</div>
-            <div class="task-score-val heat-rate-val ${getHeatmapRateClass(attemptedRate)}" style="color:${actualAnswered > 0 ? getHeatmapRateColor(attemptedRate) : 'var(--ink3)'}; font-size:22px; font-weight:800; line-height:1.2;">
+            <div class="task-score-val heat-rate-val ${getHeatmapRateClass(attemptedRate)}" style="color:${actualAnswered > 0 ? getHeatmapRateColor(attemptedRate) : 'var(--ink3)'}; font-size:20px; font-weight:800; line-height:1.2;">
               ${actualAnswered > 0 ? attemptedRate + '%' : '—'}
             </div>
           </div>
-          <div class="task-score-item" style="display:flex; flex-direction:column; justify-content:center; padding:10px 4px;">
+          <div class="task-score-item">
             <div class="task-score-label" style="font-size:11px;" title="以全卷應測總單字數為分母計算之正確率">全卷正確率</div>
-            <div class="task-score-val heat-rate-val ${getHeatmapRateClass(overallScoreRate)}" style="color:${getHeatmapRateColor(overallScoreRate)}; font-size:22px; font-weight:800; line-height:1.2;">
+            <div class="task-score-val heat-rate-val ${getHeatmapRateClass(overallScoreRate)}" style="color:${getHeatmapRateColor(overallScoreRate)}; font-size:20px; font-weight:800; line-height:1.2;">
               ${overallScoreRate}%
             </div>
           </div>
@@ -1830,15 +1830,15 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
             <span style="padding:0 6px; opacity:0.6;">/</span>
             <span style="flex:1; text-align:left;">已施測單字</span>
           </div>
-          <div class="task-score-val heat-rate-val ${getHeatmapRateClass(taskRate)}" style="display:flex; align-items:center; justify-content:center; color:${getHeatmapRateColor(taskRate)};">
+          <div class="task-score-val heat-rate-val ${getHeatmapRateClass(taskRate)}" style="display:flex; align-items:center; justify-content:center; color:${getHeatmapRateColor(taskRate)}; font-size:20px; font-weight:800;">
             <span class="task-score-num-corr" style="flex:1; text-align:right;">${taskCorrWords}</span>
-            <span style="padding:0 6px; font-weight:700; color:var(--ink3); opacity:0.6; font-size:18px;">/</span>
+            <span style="padding:0 6px; font-weight:700; color:var(--ink3); opacity:0.6; font-size:16px;">/</span>
             <span class="task-score-num-tot" style="flex:1; text-align:left;">${taskTotWords}</span>
           </div>
         </div>
         <div class="task-score-item">
           <div class="task-score-label">正確率</div>
-          <div class="task-score-val heat-rate-val ${getHeatmapRateClass(taskRate)}" style="color:${getHeatmapRateColor(taskRate)}; font-size:22px; font-weight:800;">${taskRate}%</div>
+          <div class="task-score-val heat-rate-val ${getHeatmapRateClass(taskRate)}" style="color:${getHeatmapRateColor(taskRate)}; font-size:20px; font-weight:800;">${taskRate}%</div>
         </div>
       </div>
     `;

@@ -611,8 +611,8 @@ body.daily-limit-reached #btn-upload {
 .task-history-card:last-child{margin-bottom:0 !important}
 .task-history-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:8px;min-height:24px}
 .task-date-selector{background:#FFFFFF;border:1.5px solid var(--line);color:var(--ink);padding:3px 8px;height:30px;min-height:30px;line-height:1.2;border-radius:8px;font-size:12px;font-weight:700;outline:none;cursor:pointer;box-sizing:border-box}
-.task-score-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:8px;width:100%;box-sizing:border-box}
-.task-score-subgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;width:100%;box-sizing:border-box}
+.task-score-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:8px;width:100%;box-sizing:border-box;min-height:60px}
+.task-score-subgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;width:100%;box-sizing:border-box;height:60px}
 @media (max-width:580px){
   .task-score-subgrid{gap:6px}
   .task-score-subgrid .task-score-label{font-size:10px !important}
@@ -620,11 +620,11 @@ body.daily-limit-reached #btn-upload {
 }
 @media (max-width:480px){
   .task-score-grid{gap:6px}
-  .task-score-item{padding:6px 4px !important}
+  .task-score-item{padding:4px 3px !important;height:60px !important;min-height:60px !important;max-height:60px !important}
   .task-score-label{font-size:11px !important}
   .task-score-val{font-size:18px !important}
 }
-.task-score-item{background:#FFFFFF;border:1px solid var(--line);border-radius:10px;padding:8px;text-align:center;box-shadow:0 1px 3px rgba(35,42,77,0.03);width:100%;box-sizing:border-box}
+.task-score-item{background:#FFFFFF;border:1px solid var(--line);border-radius:10px;padding:4px 6px;height:60px;min-height:60px;max-height:60px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;box-shadow:0 1px 3px rgba(35,42,77,0.03);width:100%;box-sizing:border-box}
 .task-score-val{font-size:20px;font-weight:900;line-height:1.2;font-variant-numeric:tabular-nums}
 .task-words-container{margin-top:8px}
 .word-pill-tag{display:inline-flex;align-items:center;gap:4px;padding:3.5px 8.5px;border-radius:6px;font-size:12.5px;font-weight:700;margin:1.5px 2px;line-height:1.25;cursor:pointer;transition:transform .12s,box-shadow .12s;user-select:none}
