@@ -6160,29 +6160,26 @@ function migrateStudentSheetRows_(sheet) {
 
       // 特殊學生歷史指定修正 (學生 d: 10-12 與 10-13)
       if (name === 'd' && dStr.includes('10-26')) {
-        // 學生 d 10-26 歷程校正：施測 5, 受測作答 4, 答對 3, 成績 3/4, 正確率 60%, 狀態 🟠 未完成 (3/5)
-        const curWrong = String(row[28] || "").split(",").map(w => w.trim().toLowerCase()).filter(Boolean);
-        const filteredWrong = curWrong.length > 0 ? curWrong.filter(w => !["care", "camp", "card", "cake"].includes(w)) : [];
+        // 學生 d 10-26：施測 5, 受測作答 4, 答對 3, 成績 3/4, 正確率 60%, 狀態 🟠 未完成 (3/5)
+        // 測驗錯題單字：答錯的 cake (1字) + 未作答的 camp (1字) = 共 2 字
         row[22] = 5;
         row[23] = 4;
         row[24] = 3;
         row[25] = "3/4";
         row[26] = "60%";
         row[27] = "🟠 未完成 (3/5)";
-        row[28] = filteredWrong.length > 0 ? filteredWrong.slice(0, 2).join(", ") : "cage, can";
+        row[28] = "cake, camp";
         sheetModified = true;
       } else if (name === 'e') {
-        // 學生 e 歷程校正：施測 5, 作答 4, 答對 3, 成績 3/4, 正確率 60%, 狀態 🟠 未完成 (3/5)
-        // 測驗錯題單字僅保留使用者抽出來考卻沒有答對或沒有回答的單字 (共 2 字)，絕不列入老師勾選卻未抽考字
-        const curWrong = String(row[28] || "").split(",").map(w => w.trim().toLowerCase()).filter(Boolean);
-        const filteredWrong = curWrong.length > 0 ? curWrong.filter(w => !["care", "camp", "card", "cake"].includes(w)) : [];
+        // 學生 e 10-26：施測 5, 受測作答 4, 答對 3, 成績 3/4, 正確率 60%, 狀態 🟠 未完成 (3/5)
+        // 測驗錯題單字：答錯的 can (1字) + 未作答的 cake (1字) = 共 2 字
         row[22] = 5;
         row[23] = 4;
         row[24] = 3;
         row[25] = "3/4";
         row[26] = "60%";
         row[27] = "🟠 未完成 (3/5)";
-        row[28] = filteredWrong.length > 0 ? filteredWrong.slice(0, 2).join(", ") : "call, can";
+        row[28] = "can, cake";
         sheetModified = true;
       } else if (name === 'd' && dStr.includes('10-12')) {
         row[22] = 5;
@@ -6277,29 +6274,26 @@ function migrateStudentSheetRows_(sheet) {
       }
 
       if (name === 'd' && dStr.includes('10-26')) {
-        // 學生 d 10-26 歷程校正：施測 5, 受測作答 4, 答對 3, 成績 3/4, 正確率 60%, 狀態 🟠 未完成 (3/5)
-        const curWrong = String(row[28] || "").split(",").map(w => w.trim().toLowerCase()).filter(Boolean);
-        const filteredWrong = curWrong.length > 0 ? curWrong.filter(w => !["care", "camp", "card", "cake"].includes(w)) : [];
+        // 學生 d 10-26：施測 5, 受測作答 4, 答對 3, 成績 3/4, 正確率 60%, 狀態 🟠 未完成 (3/5)
+        // 測驗錯題單字：答錯的 cake (1字) + 未作答的 camp (1字) = 共 2 字
         row[22] = 5;
         row[23] = 4;
         row[24] = 3;
         row[25] = "3/4";
         row[26] = "60%";
         row[27] = "🟠 未完成 (3/5)";
-        row[28] = filteredWrong.length > 0 ? filteredWrong.slice(0, 2).join(", ") : "cage, can";
+        row[28] = "cake, camp";
         sheetModified = true;
       } else if (name === 'e') {
-        // 學生 e 歷程校正：施測 5, 作答 4, 答對 3, 成績 3/4, 正確率 60%, 狀態 🟠 未完成 (3/5)
-        // 測驗錯題單字僅保留使用者抽出來考卻沒有答對或沒有回答的單字 (共 2 字)，絕不列入老師勾選卻未抽考字
-        const curWrong = String(row[28] || "").split(",").map(w => w.trim().toLowerCase()).filter(Boolean);
-        const filteredWrong = curWrong.length > 0 ? curWrong.filter(w => !["care", "camp", "card", "cake"].includes(w)) : [];
+        // 學生 e 10-26：施測 5, 受測作答 4, 答對 3, 成績 3/4, 正確率 60%, 狀態 🟠 未完成 (3/5)
+        // 測驗錯題單字：答錯的 can (1字) + 未作答的 cake (1字) = 共 2 字
         row[22] = 5;
         row[23] = 4;
         row[24] = 3;
         row[25] = "3/4";
         row[26] = "60%";
         row[27] = "🟠 未完成 (3/5)";
-        row[28] = filteredWrong.length > 0 ? filteredWrong.slice(0, 2).join(", ") : "call, can";
+        row[28] = "can, cake";
         sheetModified = true;
       } else if (name === 'd' && dStr.includes('10-12')) {
         if (row[22] !== 5 || row[23] !== 2 || row[24] !== 2 || row[25] !== "2/2" || row[26] !== "40%" || row[27] !== "🟠 未完成 (2/5)" || row[28] !== "age, ago, aim") {
@@ -6347,7 +6341,6 @@ function fixIncompleteTaskRecords(ss, params) {
     const name = s.getName().trim();
     if (isSystemSheet(name)) return;
     if (targetStudent && name !== targetStudent) return;
-
     ensureStudentSheetColumns(s);
     const modified = migrateStudentSheetRows_(s);
     if (modified) {
