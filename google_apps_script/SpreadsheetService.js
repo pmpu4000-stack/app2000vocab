@@ -352,6 +352,13 @@ function handleSaveRecord(ss, params, auth) {
     uSheet.getRange(2, 1, 1, rowData.length).setNumberFormats(numFormats);
   } catch(_) {}
 
+  // 🚀 同步安全寫入【學生歷程總庫】（單一資料庫表集中架構）
+  try {
+    saveToCentralPortfolio(ss, username, rowData, shouldInsertNewRow, todayStr, taskName);
+  } catch(errCP) {
+    Logger.log("[CentralPortfolio] save error: " + errCP.message);
+  }
+
   // 【自動清理防護】：僅清理同日且「完全相同任務名稱」的多餘重複暫存列，絕不誤刪已完成的指定測驗列
   try {
     if (uSheet.getLastRow() > 2) {
@@ -533,16 +540,24 @@ function parseScoreAndRate(rawScore, rawRate) {
 
 function getStudentTodayTaskResult(ss, username, todayStr) {
   if (!username) return { hasDone: false, inProgress: false, allTodayTasks: [] };
-  const sheet = getStudentSheet(ss, username);
-  if (!sheet || sheet.getLastRow() < 2) return { hasDone: false, inProgress: false, allTodayTasks: [] };
   const targetDateStr = formatStandardDateYMD(todayStr);
-  const maxRows = Math.min(sheet.getLastRow() - 1, 15);
-  const maxCols = sheet.getLastColumn();
-  if (maxCols < 1) return { hasDone: false, inProgress: false, allTodayTasks: [] };
 
-  const headers = sheet.getRange(1, 1, 1, maxCols).getValues()[0] || [];
+  let headers = [], vals = [];
+  const cpRes = getStudentRowsFromCentralPortfolio(ss, username, 15);
+  if (cpRes && cpRes.rawData && cpRes.rawData.length > 0) {
+    headers = cpRes.headers;
+    vals = cpRes.rawData;
+  } else {
+    const sheet = getStudentSheet(ss, username);
+    if (!sheet || sheet.getLastRow() < 2) return { hasDone: false, inProgress: false, allTodayTasks: [] };
+    const maxRows = Math.min(sheet.getLastRow() - 1, 15);
+    const maxCols = sheet.getLastColumn();
+    if (maxCols < 1) return { hasDone: false, inProgress: false, allTodayTasks: [] };
+    headers = sheet.getRange(1, 1, 1, maxCols).getValues()[0] || [];
+    vals = sheet.getRange(2, 1, maxRows, maxCols).getValues();
+  }
+
   const hMap = getHeaderIndexMap(headers);
-  const vals = sheet.getRange(2, 1, maxRows, maxCols).getValues();
   const allTodayTasks = [];
   let primaryTask = null;
 
@@ -591,16 +606,23 @@ function getStudentTodayTaskResult(ss, username, todayStr) {
 function getStudentDailyTaskHistory(ss, username) {
   if (!username) return [];
 
-  const sheet = getStudentSheet(ss, username);
-  if (!sheet || sheet.getLastRow() < 2) return [];
-  const maxRows = Math.min(sheet.getLastRow() - 1, 60);
-  const maxCols = sheet.getLastColumn();
-  if (maxCols < 1) return [];
-
   const taskWordsDict = getTaskWordsDictCached_(ss);
-  const headers = sheet.getRange(1, 1, 1, maxCols).getValues()[0] || [];
+  let headers = [], vals = [];
+  const cpRes = getStudentRowsFromCentralPortfolio(ss, username, 60);
+  if (cpRes && cpRes.rawData && cpRes.rawData.length > 0) {
+    headers = cpRes.headers;
+    vals = cpRes.rawData;
+  } else {
+    const sheet = getStudentSheet(ss, username);
+    if (!sheet || sheet.getLastRow() < 2) return [];
+    const maxRows = Math.min(sheet.getLastRow() - 1, 60);
+    const maxCols = sheet.getLastColumn();
+    if (maxCols < 1) return [];
+    headers = sheet.getRange(1, 1, 1, maxCols).getValues()[0] || [];
+    vals = sheet.getRange(2, 1, maxRows, maxCols).getValues();
+  }
+
   const hMap = getHeaderIndexMap(headers);
-  const vals = sheet.getRange(2, 1, maxRows, maxCols).getValues();
   const list = [];
   const isEngWord = w => /^[a-zA-Z]+(?:[-'][a-zA-Z]+)*$/.test(w);
   for (let i = 0; i < vals.length; i++) {
@@ -807,33 +829,57 @@ function getClassOverviewRaw(ss, forceRefresh) {
   if (studentMeta.length === 0) return [];
 
   let rowsMap = {};
+  let cpCoveredCount = 0;
+  // 🚀 優先從【學生歷程總庫】一次性批量提取所有學生最新紀錄 (零 API 浪費、超高速)
   try {
-    const ssId  = ss.getId();
-    const ranges = studentMeta.map(m => `'${m.username}'!A1:Z2`);
-    const resp  = Sheets.Spreadsheets.Values.batchGet(ssId, {
-      ranges               : ranges,
-      valueRenderOption    : "FORMATTED_VALUE",
-      majorDimension       : "ROWS"
-    });
-    (resp.valueRanges || []).forEach((vr, idx) => {
-      const vals = vr.values || [];
-      rowsMap[studentMeta[idx].username] = vals.length >= 2 ? vals : [];
-    });
-  } catch(batchErr) {
-    Logger.log("[batchGet 降級] " + batchErr.message);
-    const sheetMap = {};
-    ss.getSheets().forEach(s => {
-      sheetMap[s.getName()] = s;
-      sheetMap[s.getName().trim().toLowerCase()] = s;
-    });
-    studentMeta.forEach(meta => {
-      const s = sheetMap[meta.username] || sheetMap[meta.username.trim().toLowerCase()];
-      rowsMap[meta.username] = (s && s.getLastRow() >= 2) ? s.getRange(1,1,2,26).getDisplayValues() : [];
-    });
+    const cpSheet = getCentralPortfolioSheet(ss, false);
+    if (cpSheet && cpSheet.getLastRow() >= 2) {
+      const lastRow = cpSheet.getLastRow();
+      const lastCol = Math.min(cpSheet.getLastColumn(), 35);
+      const cpVals = cpSheet.getRange(2, 1, lastRow - 1, lastCol).getDisplayValues();
+      const cpHdrs = cpSheet.getRange(1, 2, 1, lastCol - 1).getDisplayValues()[0];
+      for (let i = 0; i < cpVals.length; i++) {
+        const u = String(cpVals[i][0] || "").trim().toLowerCase();
+        if (u && !rowsMap[u]) {
+          rowsMap[u] = [cpHdrs, cpVals[i].slice(1)];
+          cpCoveredCount++;
+        }
+      }
+    }
+  } catch(errCP) {
+    Logger.log("[CentralPortfolio] batch overview error: " + errCP.message);
+  }
+
+  // 若仍有學生未在總庫覆蓋，才對未覆蓋學生執行 batchGet 或舊表讀取
+  const uncoveredMeta = studentMeta.filter(m => !rowsMap[m.username.toLowerCase()]);
+  if (uncoveredMeta.length > 0 && cpCoveredCount < studentMeta.length) {
+    try {
+      const ssId  = ss.getId();
+      const ranges = uncoveredMeta.map(m => `'${m.username}'!A1:Z2`);
+      const resp  = Sheets.Spreadsheets.Values.batchGet(ssId, {
+        ranges               : ranges,
+        valueRenderOption    : "FORMATTED_VALUE",
+        majorDimension       : "ROWS"
+      });
+      (resp.valueRanges || []).forEach((vr, idx) => {
+        const vals = vr.values || [];
+        rowsMap[uncoveredMeta[idx].username.toLowerCase()] = vals.length >= 2 ? vals : [];
+      });
+    } catch(batchErr) {
+      Logger.log("[batchGet 降級] " + batchErr.message);
+      const sheetMap = {};
+      ss.getSheets().forEach(s => {
+        sheetMap[s.getName().trim().toLowerCase()] = s;
+      });
+      uncoveredMeta.forEach(meta => {
+        const s = sheetMap[meta.username.trim().toLowerCase()];
+        rowsMap[meta.username.toLowerCase()] = (s && s.getLastRow() >= 2) ? s.getRange(1,1,2,26).getDisplayValues() : [];
+      });
+    }
   }
 
   const result = studentMeta.map(meta => {
-    const rows = rowsMap[meta.username] || [];
+    const rows = rowsMap[meta.username.toLowerCase()] || rowsMap[meta.username] || [];
     if (rows.length < 2) {
       return {
         username:meta.username, className:meta.className, realName:meta.realName, hasData:false,
@@ -895,26 +941,41 @@ function _getClassOverview(ss, targetClass, forceRefresh) {
 
 function _getStudentData(ss, username) {
   const cleanU = String(username || "").trim();
-  const sheet = getStudentSheet(ss, cleanU);
-  if (!sheet || sheet.getLastRow() < 2) {
-    return {
-      status: "success",
-      username: cleanU,
-      headers: ["備份時間","完整JSON","等級","分數","連勝","最佳連勝","學習中","練習中","精通","共答對單字","累積受測單字","單字掌握率","LEVEL 1 入門\n(答對/受測字數)","LEVEL 2 基礎\n(答對/受測字數)","LEVEL 3 進階\n(答對/受測字數)","LEVEL 4 挑戰\n(答對/受測字數)","LEVEL 5 精熟\n(答對/受測字數)","🎧 聽與拼\n(答對/受測字數)","✅ 選拼法\n(答對/受測字數)","🧩 字母重組\n(答對/受測字數)","🖍️ 填空陷阱\n(答對/受測字數)","任務名稱","施測單字數","作答單字數","答對單字數","指定測驗成績","指定測驗正確率","練習狀態","測驗錯題單字","自由練習受測字數","自由練習答對字數","自由練習正確率","自由練習錯題單字", "防偽驗證"],
-      data: [],
-      wordList: [],
-      agentData: null,
-      isNewStudent: true
-    };
+
+  // 🚀 優先從【學生歷程總庫】秒速檢索
+  const cpRes = getStudentRowsFromCentralPortfolio(ss, cleanU, 60);
+  let sheet = null;
+  let headers = null;
+  let rawData = null;
+
+  if (cpRes && cpRes.rawData && cpRes.rawData.length > 0) {
+    headers = cpRes.headers;
+    rawData = cpRes.rawData;
+  } else {
+    sheet = getStudentSheet(ss, cleanU);
+    if (!sheet || sheet.getLastRow() < 2) {
+      return {
+        status: "success",
+        username: cleanU,
+        headers: ["備份時間","完整JSON","等級","分數","連勝","最佳連勝","學習中","練習中","精通","共答對單字","累積受測單字","單字掌握率","LEVEL 1 入門\n(答對/受測字數)","LEVEL 2 基礎\n(答對/受測字數)","LEVEL 3 進階\n(答對/受測字數)","LEVEL 4 挑戰\n(答對/受測字數)","LEVEL 5 精熟\n(答對/受測字數)","🎧 聽與拼\n(答對/受測字數)","✅ 選拼法\n(答對/受測字數)","🧩 字母重組\n(答對/受測字數)","🖍️ 填空陷阱\n(答對/受測字數)","任務名稱","施測單字數","作答單字數","答對單字數","指定測驗成績","指定測驗正確率","練習狀態","測驗錯題單字","自由練習受測字數","自由練習答對字數","自由練習正確率","自由練習錯題單字", "防偽驗證"],
+        data: [],
+        wordList: [],
+        agentData: null,
+        isNewStudent: true
+      };
+    }
+
+    const lastRow = sheet.getLastRow();
+    const lastCol = sheet.getLastColumn();
+    const maxRowsToRead = Math.min(lastRow - 1, 60);
+    headers = sheet.getRange(1, 1, 1, lastCol).getDisplayValues()[0];
+    rawData = sheet.getRange(2, 1, maxRowsToRead, lastCol).getDisplayValues();
+
+    // 🚀 背景無感遷移：將舊分頁資料自動同步寫入【學生歷程總庫】
+    try {
+      backfillOldStudentDataToCentralPortfolio(ss, cleanU, rawData);
+    } catch(_) {}
   }
-
-  // 🚀 極速讀取：載入最新 60 筆作答歷程即可完整滿足所有圖表、日曆熱點與差分表格需求
-  const lastRow = sheet.getLastRow();
-  const lastCol = sheet.getLastColumn();
-  const maxRowsToRead = Math.min(lastRow - 1, 60);
-
-  const headers = sheet.getRange(1, 1, 1, lastCol).getDisplayValues()[0];
-  const rawData = sheet.getRange(2, 1, maxRowsToRead, lastCol).getDisplayValues();
   // 自動校準：依新 33 欄結構，作答數/施測數決定完成狀態，答對/作答決定正確率
   const hMap = getHeaderIndexMap(headers);
   if (hMap.taskAssigned >= 0 && hMap.taskAnswered >= 0 && hMap.taskCorrect >= 0) {
@@ -1490,6 +1551,7 @@ function onOpen(e) {
   try {
     SpreadsheetApp.getUi()
       .createMenu("🎯 系統維護")
+      .addItem("🚀 一鍵遷移所有學生至【學生歷程總庫】","migrateAllStudentsToCentralPortfolioUi")
       .addItem("📊 一鍵整理所有學生分頁欄位與數值 (單字數)","migrateAllSheetsToVocabBasedUi")
       .addItem("📋 重新產生全班學習總覽","generateClassDashboardSheetUi")
       .addItem("🎨 美化所有學生分頁格式與欄寬","formatAllStudentSheetsUi")
@@ -2634,4 +2696,191 @@ function clearDeviceLoginLogs(creds) {
   } catch(e) {
     return { status: "error", message: e.toString() };
   }
+}
+
+
+// ════════════════════════════════════════════════════════════════════
+// 9. 【學生歷程總庫】單一資料庫表集中管理模組
+// ════════════════════════════════════════════════════════════════════
+
+/**
+ * 取得或建立【學生歷程總庫】工作表
+ */
+function getCentralPortfolioSheet(ss, autoCreate) {
+  if (!ss) return null;
+  let s = ss.getSheetByName("學生歷程總庫");
+  if (!s && autoCreate) {
+    s = ss.insertSheet("學生歷程總庫");
+    ensureCentralPortfolioColumns(s);
+  }
+  return s;
+}
+
+/**
+ * 確保【學生歷程總庫】包含 35 個標準欄位（以學號起首）
+ */
+function ensureCentralPortfolioColumns(sheet) {
+  if (!sheet) return;
+  try {
+    const headers = [
+      "學號", "備份時間", "完整JSON", "等級", "分數", "連勝", "最佳連勝",
+      "學習中", "練習中", "精通", "共答對單字", "累積受測單字", "單字掌握率",
+      "LEVEL 1 入門\n(答對/受測字數)", "LEVEL 2 基礎\n(答對/受測字數)",
+      "LEVEL 3 進階\n(答對/受測字數)", "LEVEL 4 挑戰\n(答對/受測字數)", "LEVEL 5 精熟\n(答對/受測字數)",
+      "🎧 聽與拼\n(答對/受測字數)", "✅ 選拼法\n(答對/受測字數)", "🧩 字母重組\n(答對/受測字數)", "🖍️ 填空陷阱\n(答對/受測字數)",
+      "任務名稱", "施測單字數", "作答單字數", "答對單字數", "指定測驗成績", "指定測驗正確率", "練習狀態", "測驗錯題單字",
+      "自由練習受測字數", "自由練習答對字數", "自由練習正確率", "自由練習錯題單字",
+      "防偽驗證"
+    ];
+    if (sheet.getLastRow() < 1) {
+      sheet.getRange(1, 1, 1, headers.length).setValues([headers])
+        .setBackground("#1a73e8").setFontColor("#ffffff").setFontWeight("bold").setHorizontalAlignment("center");
+      sheet.setFrozenRows(1);
+      sheet.setFrozenColumns(1);
+    }
+  } catch(e) {
+    Logger.log("ensureCentralPortfolioColumns error: " + e.message);
+  }
+}
+
+/**
+ * 儲存學生紀錄至【學生歷程總庫】
+ */
+function saveToCentralPortfolio(ss, username, rowData, shouldInsertNewRow, todayStr, taskName) {
+  try {
+    const cpSheet = getCentralPortfolioSheet(ss, true);
+    if (!cpSheet) return;
+    ensureCentralPortfolioColumns(cpSheet);
+
+    const fullRow = [String(username).trim(), ...rowData];
+    const cleanU = String(username).trim().toLowerCase();
+
+    const lastRow = cpSheet.getLastRow();
+    let replacedRow = -1;
+    if (lastRow >= 2) {
+      const checkCount = Math.min(lastRow - 1, 60);
+      const vals = cpSheet.getRange(2, 1, checkCount, 25).getValues();
+      for (let i = 0; i < vals.length; i++) {
+        const u = String(vals[i][0] || "").trim().toLowerCase();
+        const d = formatStandardDateYMD(vals[i][1]);
+        const t = String(vals[i][22] || "").trim(); // 任務名稱 (index 22 in fullRow)
+        if (u === cleanU && d === todayStr) {
+          if ((taskName === "自主練習" && t === "自主練習") || (taskName !== "自主練習" && t === taskName)) {
+            replacedRow = i + 2;
+            break;
+          }
+        }
+      }
+    }
+
+    if (replacedRow > 0 && !shouldInsertNewRow) {
+      cpSheet.getRange(replacedRow, 1, 1, fullRow.length).setValues([fullRow]);
+    } else {
+      cpSheet.insertRowBefore(2);
+      cpSheet.getRange(2, 1, 1, fullRow.length).setValues([fullRow]);
+    }
+  } catch(e) {
+    Logger.log("saveToCentralPortfolio error: " + e.message);
+  }
+}
+
+/**
+ * 從【學生歷程總庫】快速取得指定學生歷程列
+ */
+function getStudentRowsFromCentralPortfolio(ss, username, maxRows) {
+  try {
+    const cpSheet = getCentralPortfolioSheet(ss, false);
+    if (!cpSheet || cpSheet.getLastRow() < 2) return null;
+    const cleanU = String(username).trim().toLowerCase();
+    const lastRow = cpSheet.getLastRow();
+    const lastCol = cpSheet.getLastColumn();
+    if (lastCol < 2) return null;
+
+    const vals = cpSheet.getRange(2, 1, lastRow - 1, lastCol).getDisplayValues();
+    const headers = cpSheet.getRange(1, 2, 1, lastCol - 1).getDisplayValues()[0];
+    const studentRows = [];
+
+    for (let i = 0; i < vals.length; i++) {
+      if (String(vals[i][0]).trim().toLowerCase() === cleanU) {
+        studentRows.push(vals[i].slice(1)); // 去除第 1 欄學號
+        if (studentRows.length >= (maxRows || 60)) break;
+      }
+    }
+
+    if (studentRows.length > 0) {
+      return { headers: headers, rawData: studentRows };
+    }
+    return null;
+  } catch(e) {
+    Logger.log("getStudentRowsFromCentralPortfolio error: " + e.message);
+    return null;
+  }
+}
+
+/**
+ * 背景回填：將舊學生工作表資料遷移至【學生歷程總庫】
+ */
+function backfillOldStudentDataToCentralPortfolio(ss, username, rawData) {
+  if (!rawData || rawData.length === 0) return;
+  const cpSheet = getCentralPortfolioSheet(ss, true);
+  if (!cpSheet) return;
+  ensureCentralPortfolioColumns(cpSheet);
+
+  const cleanU = String(username).trim();
+  const rowsToInsert = rawData.map(r => [cleanU, ...r]);
+
+  if (rowsToInsert.length > 0) {
+    const startRow = cpSheet.getLastRow() + 1;
+    cpSheet.getRange(startRow, 1, rowsToInsert.length, rowsToInsert[0].length).setValues(rowsToInsert);
+  }
+}
+
+/**
+ * 一鍵將所有學生歷史分頁遷移至【學生歷程總庫】
+ */
+function migrateAllStudentsToCentralPortfolio(ss) {
+  if (!ss) ss = SpreadsheetApp.getActiveSpreadsheet();
+  const cpSheet = getCentralPortfolioSheet(ss, true);
+  ensureCentralPortfolioColumns(cpSheet);
+
+  const sheets = ss.getSheets();
+  let migratedStudents = 0;
+  let totalRows = 0;
+
+  sheets.forEach(s => {
+    const name = s.getName().trim();
+    if (isSystemSheet(name) || name === "學生歷程總庫") return;
+    const lastRow = s.getLastRow();
+    const lastCol = s.getLastColumn();
+    if (lastRow < 2 || lastCol < 2) return;
+
+    try {
+      const data = s.getRange(2, 1, lastRow - 1, Math.min(lastCol, 34)).getValues();
+      if (data.length > 0) {
+        const rows = data.map(r => {
+          while (r.length < 34) r.push("");
+          return [name, ...r];
+        });
+        const targetRow = cpSheet.getLastRow() + 1;
+        cpSheet.getRange(targetRow, 1, rows.length, rows[0].length).setValues(rows);
+        migratedStudents++;
+        totalRows += rows.length;
+      }
+    } catch(e) {
+      Logger.log("Migrate sheet " + name + " failed: " + e.message);
+    }
+  });
+
+  clearOverviewCache();
+  return { status: "success", migratedStudents, totalRows };
+}
+
+function migrateAllStudentsToCentralPortfolioUi() {
+  const ui = SpreadsheetApp.getUi();
+  const res = migrateAllStudentsToCentralPortfolio();
+  ui.alert(
+    "🚀 學生歷程總庫遷移完成",
+    "✅ 已成功將 " + res.migratedStudents + " 位學生、共 " + res.totalRows + " 筆歷史紀錄整合成【學生歷程總庫】！\n\n日後可隨時安心使用【一鍵清理無用分頁】安全移除個人舊分頁。",
+    ui.ButtonSet.OK
+  );
 }

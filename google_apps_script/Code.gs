@@ -18,8 +18,9 @@ const SYS = {
   MAX_JSON_BYTES     : 500000,
   MAX_BACKUP_FILES   : 30,
   BACKUP_FOLDER      : "【備份庫】學生學習歷程資料",
+  PORTFOLIO_SHEET    : "學生歷程總庫",
   SYSTEM_SHEETS      : new Set([
-    "全班學習總覽","使用者清單","指定單字任務","錯誤日誌","時間限制設定"
+    "全班學習總覽","使用者清單","指定單字任務","錯誤日誌","時間限制設定","學生歷程總庫","裝置登入歷程"
   ])
 };
 
