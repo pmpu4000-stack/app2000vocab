@@ -41,6 +41,7 @@ import * as store from "./store.js?v=20261019_v228";
 import { normalizeDateStr } from "./store.js?v=20261019_v228";
 import { nextWord } from "./srs.js?v=20261019_v228";
 import * as ui from "./ui.js?v=20261027_0850";
+import { stopAudio } from "./audio.js";
 import { burst } from "./confetti.js?v=20261019_v228";
 import {
   LEVELS, levelColor, levelName, sample,
@@ -557,6 +558,7 @@ function refreshChrome() {
 }
 
 function renderCurrent() {
+  stopAudio();
   const isTask = taskState.active;
   state.round = ui.renderRound(state.word, state.mode, { 
     onAnswer: answer, 
@@ -638,6 +640,7 @@ function scheduleAutoNext() {
 }
 
 function newRound() {
+  stopAudio();
   clearAutoNextTimer();
   if (typeof window !== "undefined" && window.__dailyUsageTimeIsUp === true) {
     return;
