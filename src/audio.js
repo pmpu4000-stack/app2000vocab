@@ -1,3 +1,35 @@
+
+let audioCtx = null;
+let compressor = null;
+
+/**
+ * 🚀 Web Audio API 動態音量平衡器 (DynamicsCompressorNode)：
+ * 自動平滑削峰、防止耳機爆音與刺耳破音，維持所有單字音量一致舒適
+ */
+function getAudioCompressor() {
+  if (typeof window === "undefined") return null;
+  const Ctx = window.AudioContext || window.webkitAudioContext;
+  if (!Ctx) return null;
+  try {
+    if (!audioCtx) {
+      audioCtx = new Ctx();
+      compressor = audioCtx.createDynamicsCompressor();
+      compressor.threshold.setValueAtTime(-20, audioCtx.currentTime);
+      compressor.knee.setValueAtTime(25, audioCtx.currentTime);
+      compressor.ratio.setValueAtTime(10, audioCtx.currentTime);
+      compressor.attack.setValueAtTime(0.003, audioCtx.currentTime);
+      compressor.release.setValueAtTime(0.25, audioCtx.currentTime);
+      compressor.connect(audioCtx.destination);
+    }
+    if (audioCtx.state === "suspended") {
+      audioCtx.resume().catch(() => {});
+    }
+    return compressor;
+  } catch (_) {
+    return null;
+  }
+}
+
 const AUDIO_CACHE_NAME = "spelling-audio-cache-v1";
 const audioBlobMap = new Map();
 
@@ -213,6 +245,7 @@ function speakWithTTS(text, rate = 0.8, onEnd = null, token = currentSeqToken, t
       }
       u.rate = rate;
       u.pitch = 1.0;
+      u.volume = 0.88; // 智慧音量平衡防爆音
 
       activeUtterances.add(u);
       u.onend = () => {
@@ -297,7 +330,17 @@ function playSingleWordOrTTS(rawText, rate = 0.8, onEnd = null, token = currentS
           try {
             const audio = new Audio(srcUrl);
             audio.playbackRate = 0.92;
+            audio.volume = 0.88; // 智慧音量平衡防爆音
             currentAudio = audio;
+            try {
+              if (srcUrl.startsWith("blob:")) {
+                const comp = getAudioCompressor();
+                if (comp && audioCtx) {
+                  const source = audioCtx.createMediaElementSource(audio);
+                  source.connect(comp);
+                }
+              }
+            } catch (_) {}
             audio.onended = () => {
               if (currentAudio === audio) currentAudio = null;
               if (!fallbackTriggered && token === currentSeqToken && onEnd) onEnd();
