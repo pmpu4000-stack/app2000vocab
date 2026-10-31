@@ -2661,7 +2661,7 @@ export function getWeekPendingConquerWords(cycleParam = "current") {
 
   // 2. 從 weekTaskMistakes 讀取本機即時平日指定任務錯題（即時性保證，避免剛做完測驗尚未刷新）
   try {
-    const rawMistakes = localStorage.getItem("weekTaskMistakes");
+    const rawMistakes = (() => { try { return JSON.parse(localStorage.getItem("conquer_roll_settings") || "{}").rollTaskMistakes === false ? null : localStorage.getItem("weekTaskMistakes"); } catch(_) { return localStorage.getItem("weekTaskMistakes"); } })();
     if (rawMistakes) {
       const map = JSON.parse(rawMistakes);
       for (const dateKey in map) {
@@ -2682,7 +2682,11 @@ export function getWeekPendingConquerWords(cycleParam = "current") {
     const rawTodayTask = localStorage.getItem("today_task_result");
     if (rawTodayTask) {
       const todayRes = JSON.parse(rawTodayTask);
-      if (todayRes && Array.isArray(todayRes.wrongWords)) {
+      const _tn = new Date();
+      const _todayStr = _tn.getFullYear() + "-" + String(_tn.getMonth() + 1).padStart(2, "0") + "-" + String(_tn.getDate()).padStart(2, "0");
+      let _rollTask3 = true;
+      try { _rollTask3 = JSON.parse(localStorage.getItem("conquer_roll_settings") || "{}").rollTaskMistakes !== false; } catch(_) {}
+      if (_rollTask3 && _todayStr >= scanStartStr && _todayStr <= scanEndStr && todayRes && Array.isArray(todayRes.wrongWords)) {
         todayRes.wrongWords.forEach(w => {
           const cw = normalizeCleanWord(w);
           if (cw) unfinishedWords.add(cw);
