@@ -20,7 +20,7 @@ description: 修改或查詢 google_apps_script/（Code.gs、Index.html、teache
 
 | 檔案 | 職責與內容 | 行數 |
 |---|---|---|
-| `Code.gs` | 系統常數、`WORD_LEVELS`、主路由 `doPost`/`doGet`、`include`、`jsonResponse` | ~1,068 行 |
+| `Code.gs` | 系統常數、`WORD_LEVELS`、主路由 `doPost`/`doGet`、`include`、`jsonResponse` | ~1,113 行 |
 | `AuthService.js` | 0. 密碼雜湊與資安防護、1. 身分驗證與 Token 快取、WAF 攻擊偵測 | ~666 行 |
 | `TaskService.js` | 2. 老師指定單字任務核心函式、出題與週末補救任務 | ~452 行 |
 | `TimeRestriction.js` | 2.5 學生使用時間管制 (07:30~22:00) 與教師解除限制設定 | ~1,045 行 |

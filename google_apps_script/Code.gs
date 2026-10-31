@@ -427,18 +427,30 @@ function doPost(e) {
       }
 
       let records = {};
-      const uSheet = getStudentSheet(ss, auth.username);
       let raw = "";
 
-      if (uSheet && uSheet.getLastRow() >= 2) {
-        // 直接從學生試算表讀取最新一筆有效備份（第 2 列起往下搜尋最多 35 列）
-        const checkCount = Math.min(uSheet.getLastRow() - 1, 35);
-        const bVals = uSheet.getRange(2, 2, checkCount, 1).getValues();
-        for (let r = 0; r < bVals.length; r++) {
-          const cellVal = String(bVals[r][0] || "").trim();
+      // 🚀 優先從【學生歷程總庫】秒速提取最新進度備份 (零分頁尋找延遲)
+      try {
+        const cpRes = getStudentRowsFromCentralPortfolio(ss, auth.username, 1);
+        if (cpRes && cpRes.rawData && cpRes.rawData.length > 0) {
+          const cellVal = String(cpRes.rawData[0][1] || "").trim();
           if (cellVal && (cellVal.startsWith("GZ:") || cellVal.startsWith("{"))) {
             raw = cellVal;
-            break;
+          }
+        }
+      } catch(_) {}
+
+      if (!raw) {
+        const uSheet = getStudentSheet(ss, auth.username);
+        if (uSheet && uSheet.getLastRow() >= 2) {
+          const checkCount = Math.min(uSheet.getLastRow() - 1, 35);
+          const bVals = uSheet.getRange(2, 2, checkCount, 1).getValues();
+          for (let r = 0; r < bVals.length; r++) {
+            const cellVal = String(bVals[r][0] || "").trim();
+            if (cellVal && (cellVal.startsWith("GZ:") || cellVal.startsWith("{"))) {
+              raw = cellVal;
+              break;
+            }
           }
         }
       }
