@@ -929,13 +929,30 @@
     }
   });
 
+  // 🚀 全局智慧避讓手機虛擬鍵盤：涵蓋登入、拼字、修正模式與所有操作按鈕
+  function autoAvoidKeyboard(el) {
+    if (!el) return;
+    setTimeout(() => {
+      const parentCard = el.closest('#login-overlay, .quiz-screen, .card') || el;
+      if (parentCard && typeof parentCard.scrollIntoView === 'function') {
+        parentCard.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+      } else {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+      }
+    }, 120);
+  }
+
+  document.addEventListener('focusin', (e) => {
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
+      autoAvoidKeyboard(e.target);
+    }
+  });
+
   if (window.visualViewport) {
     window.visualViewport.addEventListener('resize', () => {
       const activeEl = document.activeElement;
-      if (activeEl && (activeEl.id === 'login-user' || activeEl.id === 'login-pass')) {
-        setTimeout(() => {
-          activeEl.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-        }, 100);
+      if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) {
+        autoAvoidKeyboard(activeEl);
       }
     });
   }
