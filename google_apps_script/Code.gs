@@ -409,11 +409,10 @@ function ensureStudentSheetColumns(sheet) {
 
     migrateStudentSheetRows_(sheet);
 
-    // 5. 效能優化：裁切多餘空白列（保留最多 120 列），大幅提升 Google Sheets 開啟與捲動速度
+    // 5. 確保足夠空白列，避免在第 25 列底部浮現 Google 試算表原生「新增 1000 列於底部」按鈕
     const maxR = sheet.getMaxRows();
-    const lastR = sheet.getLastRow();
-    if (maxR > 120 && maxR > lastR + 20) {
-      sheet.deleteRows(Math.max(lastR + 10, 50), maxR - Math.max(lastR + 10, 50));
+    if (maxR < 200) {
+      sheet.insertRowsAfter(maxR, 200 - maxR);
     }
   } catch(e) {
     logError("ensureStudentSheetColumns", e, sheet.getName(), "");
@@ -5850,9 +5849,8 @@ function cleanupAndOptimizeSpreadsheet() {
       }
 
       const curMaxRows = sheet.getMaxRows();
-      const targetRows = Math.max(lastRow + 10, 25);
-      if (curMaxRows > targetRows) {
-        sheet.deleteRows(targetRows + 1, curMaxRows - targetRows);
+      if (curMaxRows < 200) {
+        sheet.insertRowsAfter(curMaxRows, 200 - curMaxRows);
       }
 
       report.studentSheetsCleaned.push(sName);
@@ -6342,6 +6340,12 @@ function fixIncompleteTaskRecords(ss, params) {
     if (isSystemSheet(name)) return;
     if (targetStudent && name !== targetStudent) return;
     ensureStudentSheetColumns(s);
+    try {
+      const curMax = s.getMaxRows();
+      if (curMax < 200) {
+        s.insertRowsAfter(curMax, 200 - curMax);
+      }
+    } catch(_) {}
     const modified = migrateStudentSheetRows_(s);
     if (modified) {
       modifiedList.push({ student: name });
