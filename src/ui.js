@@ -5241,7 +5241,7 @@ async function _exportRecordToPdf(payload) {
       image: { type: "jpeg", quality: 0.98 },
       html2canvas: { scale: 2, useCORS: true, backgroundColor: "#FFFFFF", scrollY: 0 },
       jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-      pagebreak: { mode: ["avoid-all", "css", "legacy"] }
+      pagebreak: { mode: ["css", "legacy"] }
     };
     let downloaded = false;
     try {
@@ -5804,7 +5804,7 @@ export function initWeakWordsCard() {
       printDiv.innerHTML = `
         <h2 style="text-align:center; color:#232A4D; margin-bottom:6px;">🎯 英文個人常錯單字複習小卡</h2>
         <div style="text-align:center; font-size:12px; color:#5A6183; margin-bottom:18px;">統計範圍：${rangeName} ｜ 產生日期：${new Date().toLocaleDateString()} ｜ 共 ${list.length} 個弱點單字</div>
-        <table style="width:100%; border-collapse:collapse; font-size:13px;">
+        <style>table{page-break-inside:auto!important;break-inside:auto!important;}tr{page-break-inside:auto!important;break-inside:auto!important;}</style><table style="width:100%; border-collapse:collapse; font-size:13px; page-break-inside:auto!important; break-inside:auto!important;">
           <thead>
             <tr style="background:#F1F5F9; border-bottom:2px solid #CBD5E1;">
               <th style="padding:8px; text-align:center; width:40px;">#</th>
@@ -5830,11 +5830,12 @@ export function initWeakWordsCard() {
         </table>
       `;
       html2pdf().from(printDiv).set({
-        margin: 10,
+        margin: [10, 10, 10, 10],
         filename: `常錯單字複習卡_${new Date().toISOString().split("T")[0]}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['css', 'legacy'] }
       }).save();
     };
   }
