@@ -135,6 +135,10 @@
             <b class="tnum">A+</b>
             <span>放大</span>
           </div>
+          <div class="stat fullscreen-btn" id="btn-fullscreen-toggle" style="cursor:pointer; display:flex;" title="全螢幕專注作答模式 (隱藏網址列與工具列)">
+            <b id="s-fullscreen-icon" class="tnum">⛶</b>
+            <span id="s-fullscreen-text">全螢幕</span>
+          </div>
         </div>
       </div>
     </header>
@@ -1566,6 +1570,55 @@
     // 依需求調整：全面停用 5 分鐘自動存檔與離開頁面自動背景同步，僅由使用者手動點擊「上傳紀錄」存檔
 
     window.uploadLocalStorageData = uploadLocalStorageData;
+
+    // 🚀 全螢幕沉浸專注作答模式 (Fullscreen API + CSS Fallback)
+    function toggleImmersiveFullscreen() {
+      const isFull = !!(document.fullscreenElement || document.webkitFullscreenElement || document.body.classList.contains("css-fullscreen-active"));
+      const icon = document.getElementById("s-fullscreen-icon");
+      const text = document.getElementById("s-fullscreen-text");
+
+      if (!isFull) {
+        const docEl = document.documentElement;
+        if (docEl.requestFullscreen) {
+          docEl.requestFullscreen().catch(() => {
+            document.body.classList.add("css-fullscreen-active");
+          });
+        } else if (docEl.webkitRequestFullscreen) {
+          docEl.webkitRequestFullscreen();
+        } else {
+          document.body.classList.add("css-fullscreen-active");
+        }
+        if (icon) icon.textContent = "🗗";
+        if (text) text.textContent = "還原";
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen().catch(() => {});
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        }
+        document.body.classList.remove("css-fullscreen-active");
+        if (icon) icon.textContent = "⛶";
+        if (text) text.textContent = "全螢幕";
+      }
+    }
+
+    const fsBtn = document.getElementById("btn-fullscreen-toggle");
+    if (fsBtn) fsBtn.onclick = toggleImmersiveFullscreen;
+
+    document.addEventListener("fullscreenchange", () => {
+      const isFull = !!(document.fullscreenElement || document.webkitFullscreenElement);
+      const icon = document.getElementById("s-fullscreen-icon");
+      const text = document.getElementById("s-fullscreen-text");
+      if (!isFull) {
+        document.body.classList.remove("css-fullscreen-active");
+        if (icon) icon.textContent = "⛶";
+        if (text) text.textContent = "全螢幕";
+      } else {
+        if (icon) icon.textContent = "🗗";
+        if (text) text.textContent = "還原";
+      }
+    });
+
 
     // 立即綁定按鈕點擊事件（無論是否登入皆即刻綁定）
     const uploadBtnEl = document.getElementById("btn-upload") || document.querySelector(".stat.upload");

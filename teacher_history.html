@@ -213,6 +213,26 @@
   align-items: center;
 }
 
+    
+/* 🚀 全螢幕沉浸專注模式樣式 (Fullscreen Immersive Focus Mode) */
+body.css-fullscreen-active {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  margin: 0 !important;
+  padding: 8px !important;
+  z-index: 999999 !important;
+  overflow-y: auto !important;
+  background: var(--paper, #F6F7FB) !important;
+}
+:fullscreen .app,
+:-webkit-full-screen .app {
+  max-width: 900px !important;
+  padding: 12px !important;
+}
+
     .container {
       max-width: 1320px;
       margin: 0 auto;
@@ -5578,6 +5598,7 @@
       <div class="header-controls" style="display:flex; align-items:center; gap:8px;">
         <button class="btn-secondary btn-sm" id="btnStudentDirectLogout" onclick="logout()" style="display:inline-flex;">登出</button>
         <button class="btn-secondary btn-sm" id="btnThemeToggle" onclick="toggleTheme()">🌙 深色模式</button>
+        <button class="btn-secondary btn-sm" id="btnFullscreenToggle" onclick="toggleImmersiveFullscreen()" title="全螢幕專注模式">⛶ 全螢幕</button>
         <button class="btn-secondary btn-sm" id="btnFontDec" onclick="adjustHistoryFont(-1)" title="縮小字體 (A-)" style="font-weight:800; min-width:38px; padding:0 8px;">A-</button>
         <button class="btn-secondary btn-sm" id="btnFontInc" onclick="adjustHistoryFont(1)" title="放大字體 (A+)" style="font-weight:800; min-width:38px; padding:0 8px;">A+</button>
       </div>
@@ -23380,3 +23401,42 @@ function initStudentWeakWordsCard() {
 
   renderWeakWordsUI();
 }
+
+
+function toggleImmersiveFullscreen() {
+  const isFull = !!(document.fullscreenElement || document.webkitFullscreenElement || document.body.classList.contains("css-fullscreen-active"));
+  const btn = document.getElementById("btnFullscreenToggle");
+
+  if (!isFull) {
+    const docEl = document.documentElement;
+    if (docEl.requestFullscreen) {
+      docEl.requestFullscreen().catch(() => {
+        document.body.classList.add("css-fullscreen-active");
+      });
+    } else if (docEl.webkitRequestFullscreen) {
+      docEl.webkitRequestFullscreen();
+    } else {
+      document.body.classList.add("css-fullscreen-active");
+    }
+    if (btn) btn.innerHTML = "🗗 還原";
+  } else {
+    if (document.exitFullscreen) {
+      document.exitFullscreen().catch(() => {});
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
+    }
+    document.body.classList.remove("css-fullscreen-active");
+    if (btn) btn.innerHTML = "⛶ 全螢幕";
+  }
+}
+
+document.addEventListener("fullscreenchange", () => {
+  const isFull = !!(document.fullscreenElement || document.webkitFullscreenElement);
+  const btn = document.getElementById("btnFullscreenToggle");
+  if (!isFull) {
+    document.body.classList.remove("css-fullscreen-active");
+    if (btn) btn.innerHTML = "⛶ 全螢幕";
+  } else {
+    if (btn) btn.innerHTML = "🗗 還原";
+  }
+});

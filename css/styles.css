@@ -3400,3 +3400,23 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   justify-content: space-between;
   align-items: center;
 }
+
+
+/* 🚀 全螢幕沉浸專注模式樣式 (Fullscreen Immersive Focus Mode) */
+body.css-fullscreen-active {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  margin: 0 !important;
+  padding: 8px !important;
+  z-index: 999999 !important;
+  overflow-y: auto !important;
+  background: var(--paper, #F6F7FB) !important;
+}
+:fullscreen .app,
+:-webkit-full-screen .app {
+  max-width: 900px !important;
+  padding: 12px !important;
+}
