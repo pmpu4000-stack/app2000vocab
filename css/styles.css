@@ -1147,7 +1147,10 @@ body.is-logging-in {
 }
 
 #login-msg.login-status-banner {
-  display: none !important;
+  display: flex !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  min-height: 44px;
   align-items: center;
   justify-content: center;
   gap: 8px;
@@ -1162,10 +1165,10 @@ body.is-logging-in {
   text-align: center;
   border: 1.5px solid transparent;
   background: transparent;
+  pointer-events: none !important;
   transition: opacity 0.2s ease, background 0.2s, border-color 0.2s;
 }
 #login-msg.login-status-banner.active {
-  display: flex !important;
   visibility: visible !important;
   opacity: 1 !important;
   pointer-events: auto !important;

@@ -5137,7 +5137,10 @@
     }
 
     #login-msg.login-status-banner {
-      display: none !important;
+      display: flex !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      min-height: 44px;
       align-items: center;
       justify-content: center;
       gap: 8px;
@@ -5152,10 +5155,10 @@
       text-align: center;
       border: 1.5px solid transparent;
       background: transparent;
+      pointer-events: none !important;
       transition: opacity 0.2s ease, background 0.2s, border-color 0.2s;
     }
     #login-msg.login-status-banner.active {
-      display: flex !important;
       visibility: visible !important;
       opacity: 1 !important;
       pointer-events: auto !important;
@@ -5356,7 +5359,7 @@
         <span class="theme-icon">🌙</span><span class="theme-text">深色</span>
       </button>
       <div style="font-size:42px; margin-bottom:8px;" id="login-header-icon">🎓</div>
-      <h2 style="color:#232A4D; margin:0 0 8px 0; font-size:24px; font-weight:800; text-align:center;">教師管理系統</h2>
+      <h2 style="color:#232A4D; margin:0 0 8px 0; font-size:24px; font-weight:800; text-align:center;">學習歷程管理系統</h2>
       <p style="color:#5A6183; font-size:13.5px; margin-bottom:18px; line-height:1.5; text-align:center;">請輸入帳號與密碼</p>
       
       <div class="login-box-group">
@@ -7797,7 +7800,11 @@ function setBtnLoading(btnId, isLoading, text) {
   const btn = document.getElementById(btnId);
   if (!btn) return;
   btn.disabled = isLoading;
-  btn.style.opacity = isLoading ? "0.75" : "1";
+  btn.style.opacity = isLoading ? "0.85" : "1";
+  if (btnId === "btnLogin" || btnId === "login-btn") {
+    btn.innerHTML = "登入";
+    return;
+  }
   btn.innerHTML = isLoading ? `<div class="spinner"></div> 處理中...` : text;
 }
 
@@ -7893,7 +7900,7 @@ function fetchData(isRefresh = false, onComplete = null) {
   isFetchingData = true;
 
   const btnId   = isRefresh ? "btnRefresh" : "btnLogin";
-  const btnText = isRefresh ? "🔄 同步最新" : "登入系統";
+  const btnText = isRefresh ? "🔄 同步最新" : "登入";
   setBtnLoading(btnId, true, btnText);
 
   const formData = {
