@@ -2424,6 +2424,38 @@ function doPost(e) {
 
     // ── 1. 學生 / 教師登入 ──
     // ── 0.5 歷程查詢與各項 Web API 橋接 ──
+    // ── 0.3 教師新功能：指定測驗時限、題庫輪播、週期成績錯題、作答時長 ──
+    if (action === "saveTaskDurationLimit") {
+      const auth = authenticateUser(ss, params.username, params.password);
+      if (!auth.success || auth.role !== "teacher") return jsonResponse({status:"error", message:"僅教師可設定指定測驗時限"});
+      return jsonResponse(saveTaskDurationLimit(ss, auth.username, params.limitMinutes));
+    }
+    if (action === "getRotationTaskSettings") {
+      const auth = authenticateUser(ss, params.username, params.password);
+      if (!auth.success || auth.role !== "teacher") return jsonResponse({status:"error", message:"僅教師可查閱題庫輪播設定"});
+      return jsonResponse(getRotationTaskSettings(ss, params.targetClass || auth.className));
+    }
+    if (action === "saveRotationTaskSettings") {
+      const auth = authenticateUser(ss, params.username, params.password);
+      if (!auth.success || auth.role !== "teacher") return jsonResponse({status:"error", message:"僅教師可儲存題庫輪播設定"});
+      return jsonResponse(saveRotationTaskSettings(ss, auth.username, params));
+    }
+    if (action === "advanceRotationTaskPointer") {
+      const auth = authenticateUser(ss, params.username, params.password);
+      if (!auth.success || auth.role !== "teacher") return jsonResponse({status:"error", message:"僅教師可微調題庫輪播指針"});
+      return jsonResponse(advanceRotationTaskPointer(ss, auth.username, params));
+    }
+    if (action === "getCycleRecordsAnalytics") {
+      const auth = authenticateUser(ss, params.username, params.password);
+      if (!auth.success || auth.role !== "teacher") return jsonResponse({status:"error", message:"僅教師可查閱週期成績分析"});
+      return jsonResponse(getCycleRecordsAnalytics(ss, auth, params));
+    }
+    if (action === "getStudentDurationAnalytics") {
+      const auth = authenticateUser(ss, params.username, params.password);
+      if (!auth.success || auth.role !== "teacher") return jsonResponse({status:"error", message:"僅教師可查閱作答時長分析"});
+      return jsonResponse(getStudentDurationAnalytics(ss, auth, params));
+    }
+
     if (action === "adminFixIncompleteRecords" || action === "fixIncompleteTaskRecords") {
       return jsonResponse(fixIncompleteTaskRecords(ss, params));
     }
