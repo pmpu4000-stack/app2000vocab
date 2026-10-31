@@ -1,0 +1,598 @@
+<script>
+// ═══ 共用高效 DOM 安全輔助函式 (冗餘精簡) ═══
+const $id = (id) => document.getElementById(id);
+const setText = (id, text) => { const el = typeof id === 'string' ? $id(id) : id; if (el) el.textContent = text; };
+const setHtml = (id, html) => { const el = typeof id === 'string' ? $id(id) : id; if (el) el.innerHTML = html; };
+const setVisible = (id, isVisible, displayType = "block") => {
+  const el = typeof id === 'string' ? $id(id) : id;
+  if (el) el.style.display = isVisible ? displayType : "none";
+};
+
+// ════════════════════════════════════════
+// Google Apps Script client shim (供本機預覽或非 GAS 容器環境容錯)
+// ════════════════════════════════════════
+if (typeof google === "undefined" || !google.script || !google.script.run) {
+  window.google = window.google || {};
+  window.google.script = window.google.script || {};
+  window.google.script.run = (function() {
+    function makeRunner(onSuccess, onFailure) {
+      const runner = {
+        withSuccessHandler: function(fn) { return makeRunner(fn, onFailure); },
+        withFailureHandler: function(fn) { return makeRunner(onSuccess, fn); }
+      };
+      return new Proxy(runner, {
+        get: function(target, prop) {
+          if (prop in target) return target[prop];
+          return function(...args) {
+            const gasUrl = "https:\x2F\x2Fscript.google.com/macros/s/AKfycbx1hyCNJxqFMoaJgIxfZqLYIYH00NegI1Yd8NJP6gRjqwOndWGkmr-H9tGvVwK_axM9/exec";
+            const payload = Object.assign({ action: prop }, args[0] || {});
+            fetch(gasUrl, {
+              method: "POST",
+              headers: { "Content-Type": "text/plain;charset=utf-8" },
+              body: JSON.stringify(payload)
+            })
+            .then(r => r.json())
+            .then(data => { if (onSuccess) onSuccess(data); })
+            .catch(err => { if (onFailure) onFailure(err); });
+          };
+        }
+      });
+    }
+    return makeRunner(null, null);
+  })();
+}
+
+// ════════════════════════════════════════
+// 狀態變數
+// ════════════════════════════════════════
+let currentUser = null;
+let currentPass = null;
+let currentRole = null;          // "teacher" | "student"
+let viewingStudent = null;       // 教師正在查看的學生帳號（null = 班級總覽）
+let teacherStudents = [];        // 所有學生帳號清單
+let teacherOverview = [];        // 班級總覽資料
+let latestOverviewResult = null; // 包含今日任務紀錄映射表
+let studentListWithPasswords = []; // 密碼管理用
+
+// 多班級支援狀態
+let teacherSelectedClass = "all";
+let teacherClassList = [];
+let teacherAllOverview = [];
+let studentMyClass = "";
+let studentRealName = "";
+let leaderboardScope = "class";  // "class" (本班) | "all" (全校跨班)
+
+// 教師總覽擴充狀態
+let teacherSortField = "score";
+let teacherSortAsc = false;
+let teacherSearchKeyword = "";
+let teacherStatusFilter = "all";
+let isTeacherChartVisible = false;
+let teacherBarChartInstance = null;
+let teacherPieChartInstance = null;
+let teacherRadarChartInstance = null;
+
+let fullProcessedData = [];
+let displayHeaders = [];
+let lastFilteredData = [];
+let currentPage = 1;
+const pageSize = 10;
+
+let cumChartInstance = null, dailyChartInstance = null;
+let wordCumChartInstance = null, wordDailyChartInstance = null;
+let radarChartInstance = null;
+let forecastChartInstance = null;
+let freqWeekdayChartInstance = null, freqIntensityChartInstance = null;
+let weaknessChartInstance = null;
+let wordFlowStreamChartInstance = null, wordFlowDailyChartInstance = null;
+
+// 班內排名狀態與快取
+let currentLeaderboard = null;
+let cachedLeaderboards = { class: null, all: null };
+let currentRankingTab = "mastered";
+let isMaskNames = true;
+
+// ════════════════════════════════════════
+// CSV 資安防護輔助函數 (CWE-1236 預防公式注入攻擊)
+// ════════════════════════════════════════
+function safeCsvCell(val) {
+  if (val === null || val === undefined) return '""';
+  let str = String(val);
+  if (/^[=\+\-@\t\r]/.test(str)) {
+    str = "'" + str;
+  }
+  return '"' + str.replace(/"/g, '""') + '"';
+}
+
+// ════════════════════════════════════════
+// 初始化
+// ════════════════════════════════════════
+// 兼容遊戲登入元件 ID (login-user / login-pass / login-btn) 與原後台 ID (username / password / btnLogin)
+(function() {
+  const _origGetById = document.getElementById.bind(document);
+  document.getElementById = function(id) {
+    if (id === "username" || id === "login-user") return _origGetById("login-user") || _origGetById("username");
+    if (id === "password" || id === "login-pass") return _origGetById("login-pass") || _origGetById("password");
+    if (id === "btnLogin" || id === "login-btn") return _origGetById("login-btn") || _origGetById("btnLogin");
+    return _origGetById(id);
+  };
+})();
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("username").addEventListener("keyup", e => { if (e.key === "Enter") login(); });
+  document.getElementById("password").addEventListener("keyup", e => { if (e.key === "Enter") login(); });
+  document.getElementById("startDate").addEventListener("keyup", e => { if (e.key === "Enter") applyFilter(); });
+  document.getElementById("endDate").addEventListener("keyup", e => { if (e.key === "Enter") applyFilter(); });
+
+  const savedTheme = localStorage.getItem("theme") || localStorage.getItem("app_theme") || "light";
+  applyPageThemeBackground(savedTheme);
+  updateThemeButtonText(savedTheme);
+
+  // 記住帳號便利體驗：自動載入前次登入帳號並聚焦密碼輸入框
+  const rememberedUser = localStorage.getItem("remembered_username");
+  if (rememberedUser) {
+    const uInput = document.getElementById("username");
+    if (uInput && !uInput.value) {
+      uInput.value = rememberedUser;
+      const pInput = document.getElementById("password");
+      if (pInput) setTimeout(() => pInput.focus(), 100);
+    }
+  }
+
+  window.addEventListener("scroll", () => {
+    document.getElementById("backToTop").classList.toggle("visible", window.scrollY > 300);
+  }, { passive: true });
+
+  if (window.innerWidth <= 640) {
+    const fb = document.getElementById("filterBody");
+    if (fb) { fb.style.maxHeight = "0"; fb.classList.add("collapsed"); }
+  }
+
+  try {
+    initStudentExportRecordsCard(null);
+  } catch (e) {}
+});
+
+// ════════════════════════════════════════
+// 主題切換
+// ════════════════════════════════════════
+function applyPageThemeBackground(theme) {
+  const isDark = theme === "dark";
+  document.documentElement.setAttribute("data-theme", theme);
+  if (document.body) {
+    document.body.setAttribute("data-theme", theme);
+  }
+  const bgVal = isDark ? "#141826" : "#F6F7FB";
+  document.documentElement.style.backgroundColor = bgVal;
+  document.documentElement.style.backgroundImage = "none";
+  if (document.body) {
+    if (isDark) {
+      document.body.style.background = "#141826";
+      document.body.style.backgroundColor = "#141826";
+      document.body.style.backgroundImage = "none";
+    } else {
+      document.body.style.background = "";
+      document.body.style.backgroundColor = "";
+      document.body.style.backgroundImage = "";
+    }
+  }
+
+  // 同步登入覆蓋層、卡片與輸入框底色
+  const loginOverlay = document.getElementById("login-overlay");
+  if (loginOverlay) {
+    loginOverlay.style.background = isDark ? "#141826" : "#F6F7FB";
+    const card = loginOverlay.querySelector("div");
+    if (card) {
+      card.style.background = isDark ? "#1C2234" : "#ffffff";
+      card.style.borderColor = isDark ? "#2B334E" : "#E7E9F5";
+    }
+    const title = loginOverlay.querySelector("h2");
+    if (title) title.style.color = isDark ? "#F0F3FA" : "#232A4D";
+    const desc = loginOverlay.querySelector("p");
+    if (desc) desc.style.color = isDark ? "#9AA0BD" : "#5A6183";
+    const uInp = document.getElementById("username");
+    const pInp = document.getElementById("password");
+    [uInp, pInp].forEach(inp => {
+      if (inp) {
+        inp.style.background = isDark ? "#141826" : "#F6F7FB";
+        inp.style.color = isDark ? "#F0F3FA" : "#232A4D";
+        inp.style.borderColor = isDark ? "#2B334E" : "#E7E9F5";
+      }
+    });
+    const noteBoxes = loginOverlay.querySelectorAll(".curfew-note-box, .login-study-note, .login-upload-note");
+    noteBoxes.forEach(box => {
+      box.style.color = isDark ? "#F8FAFC" : "#1E293B";
+      box.style.background = isDark ? "rgba(108, 76, 224, 0.22)" : "rgba(108, 76, 224, 0.08)";
+      box.style.borderColor = isDark ? "rgba(108, 76, 224, 0.45)" : "rgba(108, 76, 224, 0.22)";
+    });
+  }
+}
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute("data-theme") || "light";
+  const next = cur === "light" ? "dark" : "light";
+  applyPageThemeBackground(next);
+  localStorage.setItem("theme", next);
+  localStorage.setItem("app_theme", next);
+  updateThemeButtonText(next);
+  if (cumChartInstance || dailyChartInstance || wordCumChartInstance || wordDailyChartInstance || radarChartInstance) updateCharts();
+  if (forecastChartInstance) renderForecast();
+  if (freqWeekdayChartInstance || freqIntensityChartInstance) renderFrequencyAnalysis();
+  if (weaknessChartInstance) renderWeaknessAnalysis();
+  if (wordFlowStreamChartInstance || wordFlowDailyChartInstance) renderWordFlowTracking();
+  if (isTeacherChartVisible && teacherOverview && teacherOverview.length > 0) renderTeacherCharts(teacherOverview);
+  if (document.getElementById("heatmapCard") && document.getElementById("heatmapCard").style.display !== "none") renderHeatmap();
+}
+function updateThemeButtonText(theme) {
+  const btn = document.getElementById("btnThemeToggle");
+  if (btn) btn.innerHTML = theme === "dark" ? "☀️ 明亮模式" : "🌙 深色模式";
+  const loginThemeBtn = document.getElementById("btn-login-theme-toggle");
+  if (loginThemeBtn) {
+    const lIcon = loginThemeBtn.querySelector(".theme-icon");
+    const lTxt = loginThemeBtn.querySelector(".theme-text");
+    if (lIcon) lIcon.textContent = theme === "dark" ? "☀️" : "🌙";
+    if (lTxt) lTxt.textContent = theme === "dark" ? "淺色" : "深色";
+  }
+}
+
+// ════════════════════════════════════════
+// 字體大小縮放控制 (對齊遊戲網站 showFontScaleToast 浮動膠囊通知)
+// ════════════════════════════════════════
+const HIST_FONT_LEVELS = [0.9, 1.0, 1.1, 1.2, 1.3];
+function applyHistoryFontScale(scale, showFeedback = false) {
+  scale = parseFloat(scale) || 1.0;
+  scale = Math.max(0.9, Math.min(1.3, Math.round(scale * 10) / 10));
+  localStorage.setItem("app_font_scale", scale.toString());
+  localStorage.setItem("history_font_scale", scale.toString());
+  document.documentElement.style.setProperty("--history-font-scale", scale.toString());
+  const mainWrap = document.querySelector(".container") || document.body;
+  if (mainWrap) mainWrap.style.zoom = scale.toString();
+  const decBtn = document.getElementById("btnFontDec");
+  const incBtn = document.getElementById("btnFontInc");
+  if (decBtn) decBtn.style.opacity = scale <= 0.9 ? "0.45" : "1";
+  if (incBtn) incBtn.style.opacity = scale >= 1.3 ? "0.45" : "1";
+
+  // 清除任何殘留於頂部主卡片內的字體大小 toast 文字
+  const tEl = document.getElementById("toast");
+  if (tEl && tEl.innerText && tEl.innerText.includes("字體大小")) {
+    tEl.innerText = "";
+    tEl.className = "toast-box";
+  }
+
+  if (showFeedback) {
+    const pct = Math.round(scale * 100);
+    let label = `${pct}%`;
+    if (scale === 1.0) label += " (預設)";
+    else if (scale < 1.0) label += " (小)";
+    else if (scale === 1.3) label += " (最大)";
+    else label += " (大)";
+    showFontScaleToast(`🔍 字體大小：${label}`);
+  }
+}
+function adjustHistoryFont(step) {
+  const cur = parseFloat(localStorage.getItem("app_font_scale") || localStorage.getItem("history_font_scale") || "1.0");
+  let idx = HIST_FONT_LEVELS.findIndex(v => Math.abs(v - cur) < 0.05);
+  if (idx === -1) idx = 1;
+  const nextIdx = idx + step;
+  if (nextIdx < 0) {
+    showFontScaleToast("⚠️ 已是最小字體 (90%)");
+    return;
+  }
+  if (nextIdx >= HIST_FONT_LEVELS.length) {
+    showFontScaleToast("⚠️ 已是最大字體 (130%)");
+    return;
+  }
+  applyHistoryFontScale(HIST_FONT_LEVELS[nextIdx], true);
+}
+
+function showFontScaleToast(text) {
+  let toast = document.getElementById("font-scale-toast");
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.id = "font-scale-toast";
+    toast.style.cssText = "position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(35,42,77,0.92);color:#FFFFFF;padding:8px 18px;border-radius:999px;font-size:13.5px;font-weight:700;letter-spacing:0.3px;box-shadow:0 6px 20px rgba(0,0,0,0.2);z-index:99999;pointer-events:none;opacity:0;transition:all 0.2s cubic-bezier(0.16, 1, 0.3, 1);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,0.15);";
+    document.body.appendChild(toast);
+  }
+  toast.textContent = text;
+  toast.style.opacity = "1";
+  toast.style.transform = "translateX(-50%) translateY(0)";
+  clearTimeout(window.__fontToastTimer);
+  window.__fontToastTimer = setTimeout(() => {
+    toast.style.opacity = "0";
+    toast.style.transform = "translateX(-50%) translateY(20px)";
+  }, 1300);
+}
+
+try {
+  const savedHistScale = localStorage.getItem("app_font_scale") || localStorage.getItem("history_font_scale") || "1.0";
+  applyHistoryFontScale(parseFloat(savedHistScale), false);
+} catch(_) {}
+
+// ════════════════════════════════════════
+// Toast / Loading
+// ════════════════════════════════════════
+function setLoginStatus(text, type = "loading-data") {
+  const msgEl = document.getElementById("login-msg");
+  if (!msgEl) return;
+  if (!text) {
+    msgEl.className = "login-status-banner";
+    msgEl.innerHTML = "&nbsp;";
+    return;
+  }
+  msgEl.className = `login-status-banner active msg-${type}`;
+  let icon = "⚡";
+  if (type === "loading-data" || type === "loading") icon = "📦";
+  else if (type === "loading-game" || type === "success") icon = "🎮";
+  else if (type === "error") icon = "❌";
+  else if (type === "warning") icon = "⏰";
+  msgEl.innerHTML = `<span style="font-size:16px;">${icon}</span> <span>${text}</span>`;
+}
+
+function showToast(msg, type = "danger") {
+  const el = document.getElementById("toast");
+  if (el) {
+    el.className = `toast-box toast-${type} show`;
+    el.innerText = msg;
+  }
+  const bannerType = (type === "danger" || type === "error") ? "error" : (type === "warning" ? "warning" : "loading-data");
+  setLoginStatus(msg, bannerType);
+}
+function hideToast() {
+  const el = document.getElementById("toast");
+  if (el) { el.className = "toast-box"; el.innerText = ""; }
+  setLoginStatus("");
+}
+function setBtnLoading(btnId, isLoading, text) {
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+  btn.disabled = isLoading;
+  btn.style.opacity = isLoading ? "0.85" : "1";
+  if (btnId === "btnLogin" || btnId === "login-btn") {
+    btn.innerHTML = "登入";
+    return;
+  }
+  btn.innerHTML = isLoading ? `<div class="spinner"></div> 處理中...` : text;
+}
+
+// ════════════════════════════════════════
+// 登入
+// ════════════════════════════════════════
+
+// 行動裝置輸入時自動滾動至可視區域中央，避免被虛擬鍵盤遮擋
+(function bindMobileKeyboardHandler() {
+  function scrollIntoSafeView(el) {
+    if (!el) return;
+    setTimeout(() => {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+    }, 120);
+    setTimeout(() => {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+    }, 350);
+  }
+
+  ['login-user', 'login-pass'].forEach(id => {
+    const inp = document.getElementById(id);
+    if (inp) {
+      inp.addEventListener('focus', function() {
+        scrollIntoSafeView(this);
+      });
+    }
+  });
+
+  // 🚀 全局智慧避讓手機虛擬鍵盤：涵蓋登入、拼字、修正模式與所有操作按鈕
+  function autoAvoidKeyboard(el) {
+    if (!el) return;
+    setTimeout(() => {
+      const parentCard = el.closest('#login-overlay, .quiz-screen, .card') || el;
+      if (parentCard && typeof parentCard.scrollIntoView === 'function') {
+        parentCard.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+      } else {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+      }
+    }, 120);
+  }
+
+  document.addEventListener('focusin', (e) => {
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
+      autoAvoidKeyboard(e.target);
+    }
+  });
+
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', () => {
+      const activeEl = document.activeElement;
+      if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) {
+        autoAvoidKeyboard(activeEl);
+      }
+    });
+  }
+})();
+
+function login() {
+  hideToast();
+  const uInp = document.getElementById("login-user") || document.getElementById("username");
+  const pInp = document.getElementById("login-pass") || document.getElementById("password");
+  const u = uInp ? uInp.value.trim() : "";
+  const p = pInp ? pInp.value.trim() : "";
+  if (!u || !p) { setLoginStatus("請輸入帳號與密碼", "error"); return; }
+  try { localStorage.setItem("remembered_username", u); } catch(_) {}
+  currentUser = u; currentPass = p;
+  // 按下登入後按鈕維持顯示「登入」，狀態顯示留給下方會出現的方塊
+  setLoginStatus("正在驗證與載入資料...", "loading-data");
+  fetchData(false, (err) => {
+    if (err) setLoginStatus(err, "error");
+  });
+}
+
+// ════════════════════════════════════════
+// 登出 / 返回
+// ════════════════════════════════════════
+function logout() {
+  document.body.classList.remove("student-mode");
+  currentUser = null; currentPass = null; currentRole = null;
+  viewingStudent = null; teacherStudents = []; teacherOverview = [];
+  teacherAllOverview = []; teacherClassList = []; teacherSelectedClass = "all";
+  studentMyClass = ""; studentRealName = ""; leaderboardScope = "class";
+  studentListWithPasswords = [];
+  fullProcessedData = []; displayHeaders = []; lastFilteredData = [];
+
+  const uInp = document.getElementById("login-user") || document.getElementById("username");
+  const pInp = document.getElementById("login-pass") || document.getElementById("password");
+  if (pInp) pInp.value = "";
+  document.getElementById("startDate").value = "";
+  document.getElementById("endDate").value = "";
+  setLoginStatus("");
+
+  const overlay = document.getElementById("login-overlay");
+  if (overlay) {
+    overlay.classList.remove("hidden");
+    overlay.style.removeProperty("display");
+    overlay.style.setProperty("display", "flex", "important");
+  }
+  const mainCard = document.getElementById("mainControlCard");
+  if (mainCard) mainCard.style.display = "none";
+  const loginSec = document.getElementById("loginSection");
+  if (loginSec) loginSec.style.display = "none";
+  document.getElementById("querySection").style.display = "none";
+  document.getElementById("teacherBackBar").style.display = "none";
+  const tcEl = document.getElementById("teacherOverviewCard"); if (tcEl) { tcEl.style.setProperty("display", "none", "important"); }
+  document.getElementById("kpiSection").style.display = "none";
+  const sumEl = document.getElementById("studentSummaryCard"); if (sumEl) sumEl.style.display = "none";
+  const dtEl = document.getElementById("studentDailyTaskCard"); if (dtEl) dtEl.style.display = "none";
+  const fpEl = document.getElementById("studentFreePracticeCard"); if (fpEl) fpEl.style.display = "none";
+  document.getElementById("rankingCard").style.display = "none";
+  document.getElementById("goalsCard").style.display = "none";
+  const fcEl = document.getElementById("forecastCard"); if (fcEl) fcEl.style.display = "none";
+  const fqEl = document.getElementById("frequencyCard"); if (fqEl) fqEl.style.display = "none";
+  const wkEl = document.getElementById("weaknessCard"); if (wkEl) wkEl.style.display = "none";
+  const wfEl = document.getElementById("wordFlowCard"); if (wfEl) wfEl.style.display = "none";
+  document.getElementById("heatmapCard").style.display = "none";
+  document.getElementById("chartCard").style.display = "none";
+  document.getElementById("resultCard").style.display = "none";
+  currentLeaderboard = null;
+  cachedLeaderboards = { class: null, all: null };
+  document.getElementById("userBadge").innerText = "";
+  const btnDirectOut = document.getElementById("btnStudentDirectLogout");
+  if (btnDirectOut) btnDirectOut.style.display = "none";
+  document.getElementById("teacherBadge").innerText = "";
+  setQuickDateHighlight(null);
+  destroyCharts();
+  closePrintReportModal();
+  closeStudentDailyReportModal();
+  closeGoalModal();
+  hideToast();
+  try { sessionStorage.clear(); } catch(_) {}
+}
+
+// 學生：直接登出 | 教師查看學生：返回班級總覽
+function handleLogoutOrBack() {
+  if (currentRole === "teacher" && viewingStudent) {
+    backToClassOverview();
+  } else {
+    logout();
+  }
+}
+
+// ════════════════════════════════════════
+// 資料抓取（學生視圖 + 教師查看學生）
+// ════════════════════════════════════════
+let isFetchingData = false;
+
+function fetchData(isRefresh = false, onComplete = null) {
+  if (isFetchingData && !isRefresh) return;
+  isFetchingData = true;
+
+  const btnId   = isRefresh ? "btnRefresh" : "btnLogin";
+  const btnText = isRefresh ? "🔄 同步最新" : "登入";
+  setBtnLoading(btnId, true, btnText);
+
+  const formData = {
+    username: currentUser,
+    password: currentPass,
+    rankingMode: leaderboardScope,
+    forceRefresh: isRefresh
+  };
+  if (currentRole === "teacher") {
+    if (viewingStudent) {
+      formData.targetStudent = viewingStudent;
+    } else {
+      formData.targetClass = teacherSelectedClass;
+    }
+  }
+
+  google.script.run
+    .withSuccessHandler(resp => {
+      isFetchingData = false;
+      setBtnLoading(btnId, false, btnText);
+      if (onComplete) onComplete();
+
+      if (!resp || resp.status !== "success") {
+        const errMsg = (resp && resp.message) ? resp.message : "登入失敗或查無紀錄";
+        showToast(errMsg, "error");
+        return;
+      }
+      setLoginStatus("載入成功，準備進入歷程...", "success");
+      hideToast();
+
+      if (resp.role === "teacher" && !viewingStudent) {
+        // ── 教師：班級總覽 ──
+        currentRole = "teacher";
+        teacherAllOverview = resp.allOverview || resp.overview || [];
+        teacherClassList = resp.classes || [];
+        teacherSelectedClass = resp.currentClass || "all";
+        teacherStudents = resp.students || [];
+        teacherOverview = resp.overview || []; latestOverviewResult = resp;
+        initTeacherDashboard(resp);
+      } else {
+        // ── 學生 or 教師查看某學生 ──
+        if (!viewingStudent) {
+          // 學生自己登入
+          currentRole = "student";
+          studentMyClass = resp.className || "";
+          studentRealName = resp.realName || "";
+          const dispStudent = studentRealName || resp.username || currentUser;
+          const classStr = studentMyClass ? `班級：${studentMyClass}  ` : "";
+          document.getElementById("userBadge").innerText = `👤 ${classStr}學生：${dispStudent}`;
+          document.getElementById("btnLogoutOrBack").textContent = "登出";
+          const btnDirectOut = document.getElementById("btnStudentDirectLogout");
+          if (btnDirectOut) btnDirectOut.style.display = "inline-flex";
+        }
+        showStudentSections();
+        addFadeIn(["studentSummaryCard"]);
+        window.cachedTaskWordsMap = resp.taskWordsMap || {};
+        window.cachedBackupTodayTaskSummary = resp.backupTodayTaskSummary || null;
+        window.cachedBackupTaskHistory = resp.backupTaskHistory || [];
+        if (resp.leaderboard) {
+          updateLeaderboardUI(resp.leaderboard);
+        }
+        renderStudentSummary(resp);
+        renderStudentDailyTask(resp.todayTaskResult, resp.dailyTaskHistory, resp.assignedTask);
+        // 效能優化：若後端已打包目標設定，直接載入並更新 UI，免去額外 API 請求
+        const targetGoalUser = viewingStudent || currentUser;
+        if (resp.goals) {
+          currentGoals = resp.goals;
+          try {
+            localStorage.setItem("goals_" + targetGoalUser, JSON.stringify(resp.goals));
+          } catch (_) {}
+          updateGoalsProgress();
+          renderForecast();
+        } else {
+          loadStudentGoals(targetGoalUser);
+        }
+        processHistoryWithDiffs(resp.headers || [], resp.data || []);
+        setQuickDateHighlight("qd-all");
+        applyFilter();
+      }
+    })
+    .withFailureHandler(err => {
+      isFetchingData = false;
+      setBtnLoading(btnId, false, btnText);
+      if (onComplete) onComplete();
+      showToast("伺服器連線錯誤：" + (err.message || err));
+    })
+    .checkAndGetData(formData);
+}
+
+// ════════════════════════════════════════
+// 教師：初始化班級總覽
+// ════════════════════════════════════════
+</script>

@@ -35,13 +35,15 @@ description: 修改或查詢 google_apps_script/（Code.gs、Index.html、teache
 
 ---
 
-## 二、GAS 查詢系統前端（模組化架構）
-- **HTML 骨架**：`google_apps_script/Index.html`（~2,288 行，純 DOM 與 Modals 骨架，鏡像 `teacher_history.html`）
-  - 透過 `<?!= include('Style'); ?>` 引入 `Style.html`
-  - 透過 `<?!= include('ClientJs'); ?>` 引入 `ClientJs.html`
+## 二、GAS 查詢系統前端（高內聚模組化架構）
+- **HTML 骨架**：`google_apps_script/Index.html`（~2,290 行，純 DOM 與 Modals 骨架，鏡像 `teacher_history.html`）
+  - 透過 `include` 引入 `Style`、`ClientCoreJs`、`TeacherJs`、`StudentAnalyticsJs`、`ExportReportJs`
 - **CSS 樣式模組**：`google_apps_script/Style.html`（~5,570 行，鏡像 `teacher_style.html`）
-- **JS 客戶端邏輯模組**：`google_apps_script/ClientJs.html`（~15,500 行，鏡像 `teacher_client.html`）
-  - 含共用 DOM 安全操作 `$id()`、`setText()`、`setHtml()`、`setVisible()`
+- **JS 客戶端邏輯模組（按角色功能切分）**：
+  1. `ClientCoreJs.html`：基礎認證、共用 DOM 安全輔助、主題切換、Toast、資料拉取（~596 行）
+  2. `TeacherJs.html`：教師總覽大儀表板、出題 Modal、時間管制、大數據分析、密碼管理（~3,894 行）
+  3. `StudentAnalyticsJs.html`：學生歷程處理、KPI、Chart.js 圖表、熱力圖、目標里程碑、弱點常錯卡片（~3,427 行）
+  4. `ExportReportJs.html`：A4 PDF 列印報表生成器、Excel (.xlsx) 樣式自定義匯出引擎（~7,826 行）
 - **後端模組引導**：`Code.gs` 含 `include(filename)` 與 `doGet(e)` 透過 `createTemplateFromFile("Index").evaluate()` 解析樣版
 
 ### HTML Body（4537–6779）
