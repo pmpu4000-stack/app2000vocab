@@ -409,10 +409,10 @@ function ensureStudentSheetColumns(sheet) {
 
     migrateStudentSheetRows_(sheet);
 
-    // 5. 確保足夠空白列，避免在第 25 列底部浮現 Google 試算表原生「新增 1000 列於底部」按鈕
+    // 5. 恢復原生 Google 試算表標準 1000 列規格，絕不裁切列數
     const maxR = sheet.getMaxRows();
-    if (maxR < 200) {
-      sheet.insertRowsAfter(maxR, 200 - maxR);
+    if (maxR < 1000) {
+      sheet.insertRowsAfter(maxR, 1000 - maxR);
     }
   } catch(e) {
     logError("ensureStudentSheetColumns", e, sheet.getName(), "");
@@ -5378,6 +5378,12 @@ function cleanDuplicateStudentRecords() {
   let deletedRows = 0;
 
   sheets.forEach(s => {
+    try {
+      const curMax = s.getMaxRows();
+      if (curMax < 1000) {
+        s.insertRowsAfter(curMax, 1000 - curMax);
+      }
+    } catch(_) {}
     const name = s.getName().trim();
     if (isSystemSheet(name)) return;
     checkedSheets++;
@@ -5625,9 +5631,8 @@ function generateClassDashboardSheet() {
     dash.deleteColumns(25, dash.getMaxColumns() - 24);
   }
   const maxDashRows = dash.getMaxRows();
-  const lastDashRow = Math.max(dash.getLastRow(), 1);
-  if (maxDashRows > Math.max(lastDashRow + 5, 20)) {
-    dash.deleteRows(Math.max(lastDashRow + 5, 20) + 1, maxDashRows - Math.max(lastDashRow + 5, 20));
+  if (maxDashRows < 1000) {
+    dash.insertRowsAfter(maxDashRows, 1000 - maxDashRows);
   }
 
   ss.toast(`✅ 已彙整 ${sorted.length} 位學生數據至「全班學習總覽」！`,"學習歷程管理中心",5);
@@ -5685,10 +5690,8 @@ function cleanupAndOptimizeSpreadsheet() {
               sheet.deleteColumns(cfg.keepCols + 1, maxCols - cfg.keepCols);
             }
             const maxRows = sheet.getMaxRows();
-            const lastRow = Math.max(sheet.getLastRow(), 1);
-            const targetRows = Math.max(lastRow + cfg.keepRowsBuffer, 25);
-            if (maxRows > targetRows) {
-              sheet.deleteRows(targetRows + 1, maxRows - targetRows);
+            if (maxRows < 1000) {
+              sheet.insertRowsAfter(maxRows, 1000 - maxRows);
             }
             report.systemSheetsOptimized.push(sName);
           }
@@ -5849,8 +5852,8 @@ function cleanupAndOptimizeSpreadsheet() {
       }
 
       const curMaxRows = sheet.getMaxRows();
-      if (curMaxRows < 200) {
-        sheet.insertRowsAfter(curMaxRows, 200 - curMaxRows);
+      if (curMaxRows < 1000) {
+        sheet.insertRowsAfter(curMaxRows, 1000 - curMaxRows);
       }
 
       report.studentSheetsCleaned.push(sName);
@@ -6336,16 +6339,17 @@ function fixIncompleteTaskRecords(ss, params) {
   const targetStudent = (params && params.targetStudent) ? String(params.targetStudent).trim() : "";
 
   sheets.forEach(s => {
+    try {
+      const curMax = s.getMaxRows();
+      if (curMax < 1000) {
+        s.insertRowsAfter(curMax, 1000 - curMax);
+      }
+    } catch(_) {}
     const name = s.getName().trim();
     if (isSystemSheet(name)) return;
     if (targetStudent && name !== targetStudent) return;
     ensureStudentSheetColumns(s);
-    try {
-      const curMax = s.getMaxRows();
-      if (curMax < 200) {
-        s.insertRowsAfter(curMax, 200 - curMax);
-      }
-    } catch(_) {}
+    
     const modified = migrateStudentSheetRows_(s);
     if (modified) {
       modifiedList.push({ student: name });
