@@ -2883,9 +2883,13 @@ function doPost(e) {
   }
 }
 
+function include(filename) {
+  return HtmlService.createHtmlOutputFromFile(filename).getContent();
+}
+
 function doGet(e) {
-  // 嚴格資安防護：doGet 僅回傳安全之 Web 介面，全面移除任何未經身分驗證之檢測或除錯後門
-  return HtmlService.createHtmlOutputFromFile("Index")
+  // 嚴格資安防護：doGet 僅回傳安全之 Web 介面，透過 HtmlTemplate 動態模組化引入 Style 與 ClientJs
+  return HtmlService.createTemplateFromFile("Index").evaluate()
     .setTitle("學習歷程管理系統")
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
     .addMetaTag("viewport", "width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover");

@@ -46,9 +46,14 @@ description: 修改或查詢 google_apps_script/（Code.gs、Index.html、teache
 
 ---
 
-## 二、GAS 查詢系統前端：`google_apps_script/Index.html`（~21,083 行，鏡像 `teacher_history.html`）
-### CSS 樣式區塊行號（16–4535）
-- 33 色彩變數(淺色) · 39 Progress Bar色彩 · 68 深色色彩變數 · 162 主控制卡片 · 225 輸入框 · 248 日曆圖示 · 334 快捷日期 · 338 KPI卡片 · 394 Toast · 410 差分標籤 · 434 教師班級表格 · 446 教師總覽樣式 · 474 空狀態 · 486 教師手機卡片 · 510 Spinner · 520 密碼Modal · 550 錯誤日誌Modal · 617 學習活動熱力圖(626統計/635框/654Tooltip/664星期分佈) · 670 學習目標與里程碑(733設定Modal) · 760 班內排名與榮譽榜(864橫幅/893頒獎台)
+## 二、GAS 查詢系統前端（模組化架構）
+- **HTML 骨架**：`google_apps_script/Index.html`（~2,288 行，純 DOM 與 Modals 骨架，鏡像 `teacher_history.html`）
+  - 透過 `<?!= include('Style'); ?>` 引入 `Style.html`
+  - 透過 `<?!= include('ClientJs'); ?>` 引入 `ClientJs.html`
+- **CSS 樣式模組**：`google_apps_script/Style.html`（~5,570 行，鏡像 `teacher_style.html`）
+- **JS 客戶端邏輯模組**：`google_apps_script/ClientJs.html`（~15,500 行，鏡像 `teacher_client.html`）
+  - 含共用 DOM 安全操作 `$id()`、`setText()`、`setHtml()`、`setVisible()`
+- **後端模組引導**：`Code.gs` 含 `include(filename)` 與 `doGet(e)` 透過 `createTemplateFromFile("Index").evaluate()` 解析樣版
 
 ### HTML Body（4537–6779）
 `login-overlay`(4539) · `mainControlCard`(4595: `loginSection` 4610 / `querySection` 4613) · `teacherBackBar`(4648) · `teacherOverviewCard`(4660: `teacherOverviewMainView` 4695 / `teacherAnalyticsView` 4850 / `teacherRangePerformanceView` 4978 / `teacherTimeSettingsView` 5107) · 學生卡片：`studentSummaryCard`(5330) / `studentProgressCard`(5332) / `studentLearningRecordCard`(5362) / `export-records-section`(5483) / `kpiSection`(5545) / `studentDailyTaskCard`(5559) / `studentFreePracticeCard`(5707) / `rankingCard`(5819) / `goalsCard`(5919) / `forecastCard`(6014) / `frequencyCard`(6077) / `weaknessCard`(6174) / `wordFlowCard`(6286) / `heatmapCard`(6382) / `chartCard`(6456) / `resultCard`(6548) · Modals：`taskModal`(6579) / `passwordModal`(6738) / `errorLogModal`(6754)
