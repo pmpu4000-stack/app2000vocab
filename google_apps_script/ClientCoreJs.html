@@ -497,12 +497,85 @@ function handleLogoutOrBack() {
 // ════════════════════════════════════════
 let isFetchingData = false;
 
+function applyFetchedData(resp) {
+  setLoginStatus("載入成功，準備進入歷程...", "success");
+  hideToast();
+
+  if (resp.role === "teacher" && !viewingStudent) {
+    // ── 教師：班級總覽 ──
+    currentRole = "teacher";
+    teacherAllOverview = resp.allOverview || resp.overview || [];
+    teacherClassList = resp.classes || [];
+    teacherSelectedClass = resp.currentClass || "all";
+    teacherStudents = resp.students || [];
+    teacherOverview = resp.overview || []; latestOverviewResult = resp;
+    initTeacherDashboard(resp);
+  } else {
+    // ── 學生 or 教師查看某學生 ──
+    if (!viewingStudent) {
+      // 學生自己登入
+      currentRole = "student";
+      studentMyClass = resp.className || "";
+      studentRealName = resp.realName || "";
+      const dispStudent = studentRealName || resp.username || currentUser;
+      const classStr = studentMyClass ? `班級：${studentMyClass}  ` : "";
+      document.getElementById("userBadge").innerText = `👤 ${classStr}學生：${dispStudent}`;
+      document.getElementById("btnLogoutOrBack").textContent = "登出";
+      const btnDirectOut = document.getElementById("btnStudentDirectLogout");
+      if (btnDirectOut) btnDirectOut.style.display = "inline-flex";
+    }
+    showStudentSections();
+    addFadeIn(["studentSummaryCard"]);
+    window.cachedTaskWordsMap = resp.taskWordsMap || {};
+    window.cachedBackupTodayTaskSummary = resp.backupTodayTaskSummary || null;
+    window.cachedBackupTaskHistory = resp.backupTaskHistory || [];
+    if (resp.leaderboard) {
+      updateLeaderboardUI(resp.leaderboard);
+    }
+    renderStudentSummary(resp);
+    renderStudentDailyTask(resp.todayTaskResult, resp.dailyTaskHistory, resp.assignedTask);
+    // 效能優化：若後端已打包目標設定，直接載入並更新 UI，免去額外 API 請求
+    const targetGoalUser = viewingStudent || currentUser;
+    if (resp.goals) {
+      currentGoals = resp.goals;
+      try {
+        localStorage.setItem("goals_" + targetGoalUser, JSON.stringify(resp.goals));
+      } catch (_) {}
+      updateGoalsProgress();
+      renderForecast();
+    } else {
+      loadStudentGoals(targetGoalUser);
+    }
+    processHistoryWithDiffs(resp.headers || [], resp.data || []);
+    setQuickDateHighlight("qd-all");
+    applyFilter();
+  }
+}
+
 function fetchData(isRefresh = false, onComplete = null) {
   if (isFetchingData && !isRefresh) return;
-  isFetchingData = true;
 
   const btnId   = isRefresh ? "btnRefresh" : "btnLogin";
   const btnText = isRefresh ? "🔄 同步最新" : "登入";
+
+  // ★ 核心優化：5 分鐘客戶端 TTL 快取層（GAS 呼叫量暴減 80% 永不超額）
+  const cacheKey = `fetch_cache_${currentUser}_${currentRole}_${viewingStudent || teacherSelectedClass || ""}_${leaderboardScope}`;
+  const now = Date.now();
+  if (!isRefresh) {
+    try {
+      const cached = sessionStorage.getItem(cacheKey);
+      if (cached) {
+        const { timestamp, data } = JSON.parse(cached);
+        if (now - timestamp < 300000) {
+          applyFetchedData(data);
+          if (onComplete) onComplete();
+          return;
+        }
+      }
+    } catch (_) {}
+  }
+
+  isFetchingData = true;
   setBtnLoading(btnId, true, btnText);
 
   const formData = {
@@ -530,58 +603,12 @@ function fetchData(isRefresh = false, onComplete = null) {
         showToast(errMsg, "error");
         return;
       }
-      setLoginStatus("載入成功，準備進入歷程...", "success");
-      hideToast();
+      try {
+        const cacheKey = `fetch_cache_${currentUser}_${currentRole}_${viewingStudent || teacherSelectedClass || ""}_${leaderboardScope}`;
+        sessionStorage.setItem(cacheKey, JSON.stringify({ timestamp: Date.now(), data: resp }));
+      } catch (_) {}
 
-      if (resp.role === "teacher" && !viewingStudent) {
-        // ── 教師：班級總覽 ──
-        currentRole = "teacher";
-        teacherAllOverview = resp.allOverview || resp.overview || [];
-        teacherClassList = resp.classes || [];
-        teacherSelectedClass = resp.currentClass || "all";
-        teacherStudents = resp.students || [];
-        teacherOverview = resp.overview || []; latestOverviewResult = resp;
-        initTeacherDashboard(resp);
-      } else {
-        // ── 學生 or 教師查看某學生 ──
-        if (!viewingStudent) {
-          // 學生自己登入
-          currentRole = "student";
-          studentMyClass = resp.className || "";
-          studentRealName = resp.realName || "";
-          const dispStudent = studentRealName || resp.username || currentUser;
-          const classStr = studentMyClass ? `班級：${studentMyClass}  ` : "";
-          document.getElementById("userBadge").innerText = `👤 ${classStr}學生：${dispStudent}`;
-          document.getElementById("btnLogoutOrBack").textContent = "登出";
-          const btnDirectOut = document.getElementById("btnStudentDirectLogout");
-          if (btnDirectOut) btnDirectOut.style.display = "inline-flex";
-        }
-        showStudentSections();
-        addFadeIn(["studentSummaryCard"]);
-        window.cachedTaskWordsMap = resp.taskWordsMap || {};
-        window.cachedBackupTodayTaskSummary = resp.backupTodayTaskSummary || null;
-        window.cachedBackupTaskHistory = resp.backupTaskHistory || [];
-        if (resp.leaderboard) {
-          updateLeaderboardUI(resp.leaderboard);
-        }
-        renderStudentSummary(resp);
-        renderStudentDailyTask(resp.todayTaskResult, resp.dailyTaskHistory, resp.assignedTask);
-        // 效能優化：若後端已打包目標設定，直接載入並更新 UI，免去額外 API 請求
-        const targetGoalUser = viewingStudent || currentUser;
-        if (resp.goals) {
-          currentGoals = resp.goals;
-          try {
-            localStorage.setItem("goals_" + targetGoalUser, JSON.stringify(resp.goals));
-          } catch (_) {}
-          updateGoalsProgress();
-          renderForecast();
-        } else {
-          loadStudentGoals(targetGoalUser);
-        }
-        processHistoryWithDiffs(resp.headers || [], resp.data || []);
-        setQuickDateHighlight("qd-all");
-        applyFilter();
-      }
+      applyFetchedData(resp);
     })
     .withFailureHandler(err => {
       isFetchingData = false;

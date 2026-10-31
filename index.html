@@ -1510,6 +1510,7 @@
         
         if (result.status === "success") {
           window.hasUnsavedChanges = false;
+          try { localStorage.removeItem("offline_pending_upload_payload"); } catch(_) {}
           if (iconEl) iconEl.textContent = "✅";
           setTimeout(() => { if (iconEl) iconEl.textContent = "🌱"; }, 2500);
 
@@ -1568,6 +1569,15 @@
     // 依需求調整：全面停用 5 分鐘自動存檔與離開頁面自動背景同步，僅由使用者手動點擊「上傳紀錄」存檔
 
     window.uploadLocalStorageData = uploadLocalStorageData;
+    // ★ 斷網離線自動補傳監聽：當瀏覽器由斷網恢復連線時，無感接續自動上傳暫存進度
+    window.addEventListener("online", () => {
+      const pending = localStorage.getItem("offline_pending_upload_payload");
+      if (pending && typeof window.uploadLocalStorageData === "function") {
+        console.log("網路連線已恢復，自動補傳離線未同步資料...");
+        window.uploadLocalStorageData(true, true);
+      }
+    });
+
 
     // 🚀 全螢幕沉浸專注作答模式 (Fullscreen API + CSS Fallback)
     function toggleImmersiveFullscreen() {
