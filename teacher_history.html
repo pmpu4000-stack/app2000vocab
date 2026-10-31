@@ -164,8 +164,12 @@
 
     
 /* 🎯 個人常錯單字複習小卡樣式 */
-.weak-words-card {
-  margin-top: 14px;
+.weak-words-card.is-collapsed h3 {
+  margin-bottom: 0 !important;
+}
+.weak-words-card.is-collapsed .weak-words-container,
+.weak-words-card.is-collapsed #st-weak-words-container {
+  display: none !important;
 }
 .weak-card-item {
   background: var(--card, #fff);
@@ -6371,7 +6375,7 @@ body.css-fullscreen-active {
       <h3>
         <span>
           <span>常錯單字 Mistakes</span>
-          <span class="badge" id="st-weak-words-count-badge" style="display:none; margin-left:6px; font-size:12px; font-weight:700; background:rgba(239,68,68,0.12); color:#dc2626; padding:2px 8px; border-radius:12px;">0 字</span>
+          
         </span>
         <span style="display:flex;gap:14px;align-items:center;">
           <a id="btn-toggle-st-weak-words-card" class="sum-toggle-btn" style="display:inline-flex; align-items:center; justify-content:center; text-align:center; min-width:44px;" title="展開或收合常錯單字小卡">展開</a>
@@ -23378,8 +23382,7 @@ function initStudentWeakWordsCard() {
     const list = getWeakWordsForRange(currentRange);
     const badge = document.getElementById("st-weak-words-count-badge");
     if (badge) {
-      badge.textContent = `${list.length} 字`;
-      badge.style.display = list.length > 0 ? "inline-block" : "none";
+      badge.style.display = "none";
     }
 
     const statText = document.getElementById("st-weak-words-stat-text");

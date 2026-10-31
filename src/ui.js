@@ -5708,8 +5708,7 @@ export function initWeakWordsCard() {
     const list = getWeakWordsForRange(currentRange);
     const badge = document.getElementById("weak-words-count-badge");
     if (badge) {
-      badge.textContent = `${list.length} 字`;
-      badge.style.display = list.length > 0 ? "inline-block" : "none";
+      badge.style.display = "none";
     }
 
     const statText = document.getElementById("weak-words-stat-text");

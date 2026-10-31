@@ -3352,8 +3352,12 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 }
 
 /* 🎯 個人常錯單字複習小卡樣式 */
-.weak-words-card {
-  margin-top: 14px;
+.weak-words-card.is-collapsed h3 {
+  margin-bottom: 0 !important;
+}
+.weak-words-card.is-collapsed .weak-words-container,
+.weak-words-card.is-collapsed #weak-words-container {
+  display: none !important;
 }
 .weak-card-item {
   background: var(--card, #fff);
