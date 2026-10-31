@@ -3393,6 +3393,38 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   color: var(--ink2, #5A6183);
   line-height: 1.4;
 }
+
+.weak-tag-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1.5px 6px;
+  border-radius: 6px;
+  width: fit-content;
+}
+.weak-tag-badge.tag-vowel {
+  background: rgba(168, 85, 247, 0.12);
+  color: #7e22ce;
+  border: 1px solid rgba(168, 85, 247, 0.25);
+}
+.weak-tag-badge.tag-pos {
+  background: rgba(14, 165, 233, 0.12);
+  color: #0369a1;
+  border: 1px solid rgba(14, 165, 233, 0.25);
+}
+.weak-tag-badge.tag-spelling {
+  background: rgba(245, 158, 11, 0.12);
+  color: #b45309;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+.weak-tag-badge.tag-affix {
+  background: rgba(16, 185, 129, 0.12);
+  color: #047857;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
 .weak-card-sub {
   font-size: 11px;
   color: var(--ink3, #9AA0BD);

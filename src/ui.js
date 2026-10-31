@@ -5602,6 +5602,26 @@ export function initConquerCard() {
 
 
 
+
+function analyzeErrorTag(word, zh, ph) {
+  const w = String(word || "").toLowerCase();
+  const z = String(zh || "").toLowerCase();
+  const posMatches = z.match(/\b(n|v|vt|vi|adj|adv|prep|conj|pron|phr)\b/g);
+  if (posMatches && new Set(posMatches).size >= 2) {
+    return { tag: "多詞性混淆", cls: "tag-pos", icon: "🏷️" };
+  }
+  if (/(ea|ee|ie|ei|ou|ow|au|aw|ai|ay|oa|oo|oi|oy)/.test(w)) {
+    return { tag: "母音/音標易混", cls: "tag-vowel", icon: "🔊" };
+  }
+  if (/([a-z])\1/.test(w) || w.length >= 8) {
+    return { tag: "雙重字母/長詞", cls: "tag-spelling", icon: "🔤" };
+  }
+  if (/(tion|sion|ment|able|ible|ence|ance|ful|less)$/.test(w)) {
+    return { tag: "字尾詞綴弱點", cls: "tag-affix", icon: "🧩" };
+  }
+  return { tag: "拼字形近弱點", cls: "tag-spelling", icon: "⚠️" };
+}
+
 export function initWeakWordsCard() {
   const sec = document.getElementById("weak-words-section");
   const container = document.getElementById("weak-words-container");
@@ -5666,13 +5686,17 @@ export function initWeakWordsCard() {
     const allWords = window.__WORDS || [];
     wordCounts.forEach((count, word) => {
       const wObj = allWords.find(x => x.word.toLowerCase() === word) || {};
+      const tagInfo = analyzeErrorTag(word, wObj.zh, wObj.ph);
       list.push({
         word,
         count,
         zh: wObj.zh || "",
         ph: wObj.ph || "",
         level: wObj.level || 1,
-        sent: wObj.sent || ""
+        sent: wObj.sent || "",
+        tag: tagInfo.tag,
+        tagCls: tagInfo.cls,
+        tagIcon: tagInfo.icon
       });
     });
 
@@ -5717,6 +5741,7 @@ export function initWeakWordsCard() {
             <span class="weak-word-title">${item.word}</span>
             <span class="weak-err-badge">錯 ${item.count} 次</span>
           </div>
+          <div class="weak-tag-badge ${item.tagCls}">${item.tagIcon} ${item.tag}</div>
           <div class="weak-card-zh">${item.zh || "（暫無中文釋義）"}</div>
           <div class="weak-card-sub">
             <span>LEVEL ${item.level}</span>
@@ -5809,7 +5834,8 @@ export function initWeakWordsCard() {
             <tr style="background:#F1F5F9; border-bottom:2px solid #CBD5E1;">
               <th style="padding:8px; text-align:center; width:40px;">#</th>
               <th style="padding:8px; text-align:left; width:120px;">單字</th>
-              <th style="padding:8px; text-align:left; width:160px;">中文釋義</th>
+              <th style="padding:8px; text-align:left; width:140px;">中文釋義</th>
+              <th style="padding:8px; text-align:center; width:95px;">盲點特徵</th>
               <th style="padding:8px; text-align:center; width:70px;">關卡</th>
               <th style="padding:8px; text-align:center; width:70px;">失誤次數</th>
               <th style="padding:8px; text-align:left;">重點例句</th>
@@ -5821,6 +5847,7 @@ export function initWeakWordsCard() {
                 <td style="padding:8px; text-align:center; color:#64748B;">${idx + 1}</td>
                 <td style="padding:8px; font-weight:bold; color:#1E293B;">${item.word}</td>
                 <td style="padding:8px; color:#334155;">${item.zh || "—"}</td>
+                <td style="padding:8px; text-align:center; font-size:11px; font-weight:700;"><span style="background:#F3E8FF; color:#7E22CE; padding:2px 6px; border-radius:4px; border:1px solid #E9D5FF;">${item.tagIcon} ${item.tag}</span></td>
                 <td style="padding:8px; text-align:center; font-size:11px;">L${item.level}</td>
                 <td style="padding:8px; text-align:center; color:#DC2626; font-weight:bold;">${item.count}次</td>
                 <td style="padding:8px; font-size:11.5px; color:#475569;">${item.sent || "—"}</td>

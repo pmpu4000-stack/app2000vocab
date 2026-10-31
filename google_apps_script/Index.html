@@ -205,6 +205,38 @@
   color: var(--ink2, #5A6183);
   line-height: 1.4;
 }
+
+.weak-tag-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1.5px 6px;
+  border-radius: 6px;
+  width: fit-content;
+}
+.weak-tag-badge.tag-vowel {
+  background: rgba(168, 85, 247, 0.12);
+  color: #7e22ce;
+  border: 1px solid rgba(168, 85, 247, 0.25);
+}
+.weak-tag-badge.tag-pos {
+  background: rgba(14, 165, 233, 0.12);
+  color: #0369a1;
+  border: 1px solid rgba(14, 165, 233, 0.25);
+}
+.weak-tag-badge.tag-spelling {
+  background: rgba(245, 158, 11, 0.12);
+  color: #b45309;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+.weak-tag-badge.tag-affix {
+  background: rgba(16, 185, 129, 0.12);
+  color: #047857;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
 .weak-card-sub {
   font-size: 11px;
   color: var(--ink3, #9AA0BD);
@@ -23194,6 +23226,26 @@ function refreshLeaderboard(force = false) {
 </html>
 
 
+
+function analyzeErrorTag(word, zh, ph) {
+  const w = String(word || "").toLowerCase();
+  const z = String(zh || "").toLowerCase();
+  const posMatches = z.match(/\b(n|v|vt|vi|adj|adv|prep|conj|pron|phr)\b/g);
+  if (posMatches && new Set(posMatches).size >= 2) {
+    return { tag: "多詞性混淆", cls: "tag-pos", icon: "🏷️" };
+  }
+  if (/(ea|ee|ie|ei|ou|ow|au|aw|ai|ay|oa|oo|oi|oy)/.test(w)) {
+    return { tag: "母音/音標易混", cls: "tag-vowel", icon: "🔊" };
+  }
+  if (/([a-z])\1/.test(w) || w.length >= 8) {
+    return { tag: "雙重字母/長詞", cls: "tag-spelling", icon: "🔤" };
+  }
+  if (/(tion|sion|ment|able|ible|ence|ance|ful|less)$/.test(w)) {
+    return { tag: "字尾詞綴弱點", cls: "tag-affix", icon: "🧩" };
+  }
+  return { tag: "拼字形近弱點", cls: "tag-spelling", icon: "⚠️" };
+}
+
 function initStudentWeakWordsCard() {
   const sec = document.getElementById("studentWeakWordsCard");
   const container = document.getElementById("st-weak-words-container");
@@ -23278,6 +23330,7 @@ function initStudentWeakWordsCard() {
             <span class="weak-word-title">${item.word}</span>
             <span class="weak-err-badge">錯 ${item.count} 次</span>
           </div>
+          <div class="weak-tag-badge ${item.tagCls}">${item.tagIcon} ${item.tag}</div>
           <div class="weak-card-zh">${item.zh || "（無釋義）"}</div>
           <div class="weak-card-sub">
             <span>LEVEL ${item.level}</span>
@@ -23381,6 +23434,7 @@ function initStudentWeakWordsCard() {
                 <td style="padding:8px; text-align:center; color:#64748B;">${idx + 1}</td>
                 <td style="padding:8px; font-weight:bold; color:#1E293B;">${item.word}</td>
                 <td style="padding:8px; color:#334155;">${item.zh || "—"}</td>
+                <td style="padding:8px; text-align:center; font-size:11px; font-weight:700;"><span style="background:#F3E8FF; color:#7E22CE; padding:2px 6px; border-radius:4px; border:1px solid #E9D5FF;">${item.tagIcon} ${item.tag}</span></td>
                 <td style="padding:8px; text-align:center; font-size:11px;">L${item.level}</td>
                 <td style="padding:8px; text-align:center; color:#DC2626; font-weight:bold;">${item.count}次</td>
               </tr>
