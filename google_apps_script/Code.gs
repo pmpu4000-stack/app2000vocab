@@ -691,7 +691,19 @@ function authenticateUser(ss, inputUser, inputPass) {
     return {success:false, message:"找不到【使用者清單】工作表"};
   }
 
-  const data = sheet.getDataRange().getValues();
+  // 極致快取優化：全校使用者名冊快取 600 秒，高併發登入免重複讀取試算表
+  const rosterCacheKey = "ALL_USERS_ROSTER_V1";
+  let data = null;
+  try {
+    const hitRoster = cache.get(rosterCacheKey);
+    if (hitRoster) data = JSON.parse(hitRoster);
+  } catch(_) {}
+
+  if (!data) {
+    data = sheet.getDataRange().getValues();
+    try { cache.put(rosterCacheKey, JSON.stringify(data), 600); } catch(_) {}
+  }
+
   let foundAnyTeacher = false;
 
   for (let i = 1; i < data.length; i++) {
@@ -3194,6 +3206,14 @@ function syncAllTaskRecords(ss) {
 // ════════════════════════════════════════════════════════════════════
 
 function handleSaveRecord(ss, params, auth) {
+  // 極致高併發鎖定優化：排隊安全寫入防鎖表
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+  } catch(e) {
+    return jsonResponse({status:"error", message:"伺服器繁忙排隊中，請稍候重試"});
+  }
+
   try {
     const username = (auth && auth.username) ? auth.username : String(params.username || "").trim();
     const records  = params.records || {};
@@ -3550,12 +3570,17 @@ function handleSaveRecord(ss, params, auth) {
     const cache = CacheService.getScriptCache();
     cache.remove("stu_data_" + username.toLowerCase());
     cache.remove("stu_hist_" + username.toLowerCase());
+    cache.remove("CACHE_STUDENT_PORTFOLIO_" + username + "_class");
+    cache.remove("CACHE_STUDENT_PORTFOLIO_" + username + "_all");
+    cache.remove("STUDENT_DAILY_RESULT_" + username);
     cache.put("stu_rec_" + username.toLowerCase(), stored, 1200);
   } catch(_) {}
   return jsonResponse({status:"success", message:"紀錄已成功儲存於個人分頁"});
   } catch(err) {
     logError("handleSaveRecord", err, auth ? auth.username : (params ? params.username : ""), "");
     return jsonResponse({status:"error", message: "儲存失敗：" + (err.message || err.toString())});
+  } finally {
+    try { lock.releaseLock(); } catch(_) {}
   }
 }
 
@@ -4331,7 +4356,16 @@ function checkAndGetData(formData) {
       return result;
     }
 
-    // 學生自己查詢
+    // 學生自己查詢（極致快取優化：歷程查詢快取 180 秒，高併發秒開零 API 消耗）
+    const cache = CacheService.getScriptCache();
+    const studentCacheKey = "CACHE_STUDENT_PORTFOLIO_" + auth.username + "_" + (formData.rankingMode || "class");
+    if (!formData.forceRefresh) {
+      try {
+        const hit = cache.get(studentCacheKey);
+        if (hit) return JSON.parse(hit);
+      } catch(_) {}
+    }
+
     const result = _getStudentData(ss, auth.username);
     if (result.status === "success") {
       result.role = "student"; result.className = auth.className; result.realName = auth.realName;
@@ -4343,6 +4377,10 @@ function checkAndGetData(formData) {
       try {
         const g = _getGoalsInternal(ss, auth.username);
         result.goals = g.goals; result.goalsUpdatedAt = g.updatedAt;
+      } catch(_) {}
+
+      try {
+        cache.put(studentCacheKey, JSON.stringify(result), 180);
       } catch(_) {}
     }
     return result;
@@ -5058,6 +5096,7 @@ function changeStudentPassword(creds) {
       if (!auth.isAdmin&&tClass!==auth.className) return {status:"error",message:"無權限修改其他班級的學生密碼"};
       sheet.getRange(i+1,2).setValue(hashPassword(newPass));
       clearLoginFailures(target);
+      try { CacheService.getScriptCache().remove("ALL_USERS_ROSTER_V1"); } catch(_) {}
       return {status:"success",message:`✅ ${target} 的密碼已成功更新並加密儲存`};
     }
     return {status:"error",message:"找不到該學生帳號"};
