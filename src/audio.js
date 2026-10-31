@@ -67,25 +67,38 @@ export async function prefetchAudio(words) {
   if (typeof window === "undefined" || !("caches" in window) || !Array.isArray(words)) return;
   try {
     const cache = await caches.open(AUDIO_CACHE_NAME);
-    words.forEach(async (w) => {
-      const cleanW = String(w || "").trim().toLowerCase();
-      if (!/^[a-z]+$/.test(cleanW)) return;
-      const url = `https://ssl.gstatic.com/dictionary/static/sounds/20200429/${cleanW}--_us_1.mp3`;
-      if (audioBlobMap.has(url)) return;
-      const match = await cache.match(url);
-      if (!match) {
-        fetch(url, { mode: "cors" }).then(async (resp) => {
-          if (resp && resp.ok) {
-            await cache.put(url, resp.clone());
-            const blob = await resp.blob();
+    const queue = [...words];
+    const MAX_CONCURRENT = 3;
+
+    const worker = async () => {
+      while (queue.length > 0) {
+        const w = queue.shift();
+        const cleanW = String(w || "").trim().toLowerCase();
+        if (!/^[a-z]+$/.test(cleanW)) continue;
+        const url = `https://ssl.gstatic.com/dictionary/static/sounds/20200429/${cleanW}--_us_1.mp3`;
+        if (audioBlobMap.has(url)) continue;
+        try {
+          const match = await cache.match(url);
+          if (!match) {
+            const resp = await fetch(url, { mode: "cors" });
+            if (resp && resp.ok) {
+              await cache.put(url, resp.clone());
+              const blob = await resp.blob();
+              audioBlobMap.set(url, URL.createObjectURL(blob));
+            }
+          } else {
+            const blob = await match.blob();
             audioBlobMap.set(url, URL.createObjectURL(blob));
           }
-        }).catch(() => {});
-      } else {
-        const blob = await match.blob();
-        audioBlobMap.set(url, URL.createObjectURL(blob));
+        } catch (_) {}
       }
-    });
+    };
+
+    const pool = [];
+    for (let i = 0; i < Math.min(MAX_CONCURRENT, queue.length); i++) {
+      pool.push(worker());
+    }
+    await Promise.all(pool);
   } catch (_) {}
 }
 

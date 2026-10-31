@@ -391,7 +391,7 @@ function setBtnLoading(btnId, isLoading, text) {
     }, 120);
   }
 
-  document.addEventListener('focusin', (e) => {
+  document.addEventListener('focusin', (e) => { /* passive */
     if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
       autoAvoidKeyboard(e.target);
     }

@@ -346,11 +346,10 @@ function handleSaveRecord(ss, params, auth) {
     .setValues([rowData]).setHorizontalAlignment("center").setVerticalAlignment("middle");
 
   try {
-    uSheet.getRange(2, 7, 1, 5).setNumberFormat("0");
-    uSheet.getRange(2, 12).setNumberFormat("0%");
-    uSheet.getRange(2, 13, 1, 9).setNumberFormat("@");
-    uSheet.getRange(2, 23, 1, 2).setNumberFormat("@");
-    uSheet.getRange(2, 27, 1, 4).setNumberFormat("@");
+    const numFormats = [new Array(rowData.length).fill("@")];
+    for (let c = 6; c <= 10; c++) numFormats[0][c] = "0";
+    numFormats[0][11] = "0%";
+    uSheet.getRange(2, 1, 1, rowData.length).setNumberFormats(numFormats);
   } catch(_) {}
 
   // 【自動清理防護】：僅清理同日且「完全相同任務名稱」的多餘重複暫存列，絕不誤刪已完成的指定測驗列
@@ -1990,10 +1989,13 @@ function cleanupAndOptimizeSpreadsheet() {
         sheet.getRange(2, 1, newRows.length, 26).setValues(newRows)
           .setHorizontalAlignment("center").setVerticalAlignment("middle");
 
-        sheet.getRange(2, 7, newRows.length, 5).setNumberFormat("0");
-        sheet.getRange(2, 12, newRows.length, 1).setNumberFormat("0%");
-        sheet.getRange(2, 13, newRows.length, 9).setNumberFormat("@");
-        sheet.getRange(2, 23, newRows.length, 2).setNumberFormat("@");
+        const batchFormats = newRows.map(() => {
+          const r = new Array(newRows[0].length).fill("@");
+          for (let c = 6; c <= 10; c++) r[c] = "0";
+          r[11] = "0%";
+          return r;
+        });
+        sheet.getRange(2, 1, newRows.length, newRows[0].length).setNumberFormats(batchFormats);
       }
 
       // 覆寫表頭與美化樣式
