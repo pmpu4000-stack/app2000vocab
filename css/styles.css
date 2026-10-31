@@ -17,6 +17,12 @@
       height: 0 !important;
     }
 
+/* 🚀 極致行動端響應與觸控優化 (Passive Touch & Zero 300ms Delay) */
+button, .btn, .tile, .card, input, select, .choice, [role="button"], a {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
   --paper:#F6F7FB; --card:#FFFFFF; --ink:#232A4D; --ink2:#5A6183; --ink3:#9AA0BD;

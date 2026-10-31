@@ -132,6 +132,11 @@
       background-image: none !important;
       color: #F0F3FA !important;
     }
+    /* 🚀 極致行動端響應與觸控優化 (Passive Touch & Zero 300ms Delay) */
+    button, .btn, input, select, .kpi-card, .tab-btn, .mobile-card, .pagination-btn, [role="button"], a {
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
     .container {
       max-width: 1320px;
       margin: 0 auto;
@@ -1506,7 +1511,12 @@
         padding: 10px 8px max(24px, env(safe-area-inset-bottom)) !important;
         -webkit-tap-highlight-color: transparent;
       }
-      .container {
+      /* 🚀 極致行動端響應與觸控優化 (Passive Touch & Zero 300ms Delay) */
+    button, .btn, input, select, .kpi-card, .tab-btn, .mobile-card, .pagination-btn, [role="button"], a {
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .container {
         max-width: 100% !important;
       }
       .card {
@@ -12224,6 +12234,10 @@ function renderTableAndCards(pagedData) {
     pagHtml += `</div>`;
   }
 
+  // 🚀 DOM 節點主動回收清理：釋放舊分頁的 DOM 參考，防止行動裝置記憶體洩漏與發燙
+  while (rc.firstChild) {
+    rc.removeChild(rc.firstChild);
+  }
   rc.innerHTML = tableHtml + cardsHtml + pagHtml;
 }
 
