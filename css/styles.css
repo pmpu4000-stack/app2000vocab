@@ -1,3 +1,22 @@
+
+    /* 防止展開時右側出現滑條導致畫面往左閃動 (No scrollbar jump / Zero Layout Shift) */
+    html {
+      scrollbar-gutter: stable;
+      scrollbar-width: none !important;
+      -ms-overflow-style: none !important;
+    }
+    body {
+      scrollbar-width: none !important;
+      -ms-overflow-style: none !important;
+    }
+    html::-webkit-scrollbar,
+    body::-webkit-scrollbar,
+    *::-webkit-scrollbar {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+    }
+
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
   --paper:#F6F7FB; --card:#FFFFFF; --ink:#232A4D; --ink2:#5A6183; --ink3:#9AA0BD;

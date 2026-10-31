@@ -2870,7 +2870,7 @@ function doPost(e) {
 function doGet(e) {
   // 嚴格資安防護：doGet 僅回傳安全之 Web 介面，全面移除任何未經身分驗證之檢測或除錯後門
   return HtmlService.createHtmlOutputFromFile("Index")
-    .setTitle("學生學習歷程查詢系統")
+    .setTitle("學習歷程管理系統")
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
     .addMetaTag("viewport", "width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover");
 }
