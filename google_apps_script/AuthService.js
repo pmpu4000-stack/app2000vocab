@@ -673,11 +673,58 @@ function getTaskWordsDictCached_(ss) {
 // 1.5 單一裝置綁定與多開代答防護
 // ════════════════════════════════════════════════════════════════════
 
-function registerStudentDevice(username, deviceId, deviceDesc) {
+function recordDeviceLoginLog(ss, username, realName, className, deviceDetails, statusFlag, note) {
+  try {
+    if (!ss) ss = SpreadsheetApp.getActiveSpreadsheet();
+    let sheet = ss.getSheetByName("裝置登入歷程");
+    const headers = ["登入時間", "班級", "帳號", "姓名", "狀態標記", "設備類別", "作業系統與瀏覽器", "螢幕規格", "裝置識別碼", "稽核說明 (合規技術特徵)"];
+    
+    if (!sheet) {
+      sheet = ss.insertSheet("裝置登入歷程");
+      sheet.appendRow(headers);
+      sheet.getRange("1:1")
+        .setFontWeight("bold").setBackground("#e0f2fe")
+        .setFontColor("#0369a1").setHorizontalAlignment("center").setVerticalAlignment("middle");
+      sheet.setRowHeight(1, 36);
+      [160, 90, 100, 100, 110, 110, 190, 110, 130, 280].forEach((w, i) => sheet.setColumnWidth(i + 1, w));
+      sheet.setFrozenRows(1);
+    }
+
+    const ts = Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy-MM-dd HH:mm:ss");
+    const devType = (deviceDetails && deviceDetails.deviceType) || "💻 電腦";
+    const osBrowser = (deviceDetails && deviceDetails.osBrowser) || (deviceDetails && deviceDetails.deviceDesc) || "未知環境";
+    const resolution = (deviceDetails && deviceDetails.resolution) || "";
+    const devId = (deviceDetails && deviceDetails.deviceId) || "";
+
+    sheet.insertRowBefore(2);
+    sheet.getRange(2, 1, 1, headers.length).setValues([[
+      ts,
+      String(className || "").trim(),
+      String(username || "").trim(),
+      String(realName || "").trim(),
+      statusFlag,
+      devType,
+      osBrowser,
+      resolution,
+      devId,
+      String(note || "").trim()
+    ]]).setVerticalAlignment("middle");
+
+    // 限制最大保留 1000 筆紀錄，確保試算表讀寫極速
+    const last = sheet.getLastRow();
+    if (last > 1001) {
+      sheet.deleteRows(1002, last - 1001);
+    }
+  } catch(e) {
+    Logger.log("recordDeviceLoginLog 寫入失敗: " + e);
+  }
+}
+
+function registerStudentDevice(ss, username, realName, className, deviceDetails) {
   if (!username) return "";
   const cleanU = String(username).trim().toLowerCase();
-  const cleanDevId = String(deviceId || "").trim();
-  const cleanDevDesc = String(deviceDesc || "未知裝置").trim();
+  const cleanDevId = String(deviceDetails && deviceDetails.deviceId || "").trim();
+  const cleanDevDesc = String(deviceDetails && (deviceDetails.deviceDesc || deviceDetails.osBrowser) || "未知裝置").trim();
   const sessionToken = "ST_" + Utilities.getUuid().replace(/-/g, "");
 
   const propKey = "DEV_" + cleanU;
@@ -696,12 +743,21 @@ function registerStudentDevice(username, deviceId, deviceDesc) {
     } catch(_) {}
   }
 
-  // 偵測裝置變更：若先前已有不同裝置登入過，發出代答/換裝置警示日誌
-  if (prevInfo && prevInfo.deviceId && cleanDevId && prevInfo.deviceId !== cleanDevId) {
+  let statusFlag = "🟢 同機登入";
+  let note = `正常登入：${cleanDevDesc}`;
+
+  if (!prevInfo) {
+    statusFlag = "🆕 首次登入";
+    note = `初次綁定裝置：${cleanDevDesc}`;
+  } else if (prevInfo.deviceId && cleanDevId && prevInfo.deviceId !== cleanDevId) {
+    statusFlag = "⚠️ 換機登入";
     const oldDesc = prevInfo.deviceDesc || "舊裝置";
-    const newDesc = cleanDevDesc || "新裝置";
-    logError("device_change", "更換裝置登入", cleanU, `原裝置：${oldDesc} ➜ 新裝置：${newDesc}`);
+    note = `原裝置：${oldDesc} ➜ 變更為：${cleanDevDesc}`;
+    logError("device_change", "更換裝置登入", cleanU, note);
   }
+
+  // 寫入合規專屬「裝置登入歷程」試算表
+  recordDeviceLoginLog(ss, cleanU, realName, className, deviceDetails, statusFlag, note);
 
   const newInfo = {
     token: sessionToken,

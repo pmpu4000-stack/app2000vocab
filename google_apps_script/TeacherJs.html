@@ -3894,3 +3894,101 @@ function animateKpiValue(elId, targetText) {
 // 差分計算與資料解析
 // ════════════════════════════════════════
 </script>
+let currentLogModalTab = 'error';
+
+function switchLogModalTab(tab) {
+  currentLogModalTab = tab;
+  const btnErr = document.getElementById("btnTabErrorLogs");
+  const btnDev = document.getElementById("btnTabDeviceLogs");
+  const title = document.getElementById("logModalTitle");
+
+  if (tab === 'device') {
+    if (btnDev) { btnDev.style.background = "var(--primary)"; btnDev.style.color = "#fff"; }
+    if (btnErr) { btnErr.style.background = "transparent"; btnErr.style.color = "var(--text)"; }
+    if (title) title.textContent = "📱 裝置登入歷程 (防代答稽核)";
+    loadDeviceLoginLogs();
+  } else {
+    if (btnErr) { btnErr.style.background = "var(--primary)"; btnErr.style.color = "#fff"; }
+    if (btnDev) { btnDev.style.background = "transparent"; btnDev.style.color = "var(--text)"; }
+    if (title) title.textContent = "⚠️ 系統錯誤日誌";
+    loadErrorLogs();
+  }
+}
+
+function loadDeviceLoginLogs() {
+  const container = document.getElementById("errorLogModalContent");
+  if (!container) return;
+  container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-muted);"><div class="spinner" style="margin:0 auto 12px; border-top-color:var(--primary); border-color:var(--border);"></div>載入裝置登入歷程中...</div>';
+
+  google.script.run
+    .withSuccessHandler(resp => {
+      if (!resp || resp.status !== "success") {
+        container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--danger);">' + ((resp && resp.message) || "讀取失敗") + '</div>';
+        return;
+      }
+      renderDeviceLogsUI(resp.logs || [], resp.total || 0);
+    })
+    .withFailureHandler(err => {
+      container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--danger);">連線失敗：' + (err.message || err) + '</div>';
+    })
+    .getDeviceLoginLogs({ username: currentUser, password: currentPass });
+}
+
+function renderDeviceLogsUI(logs, total) {
+  const badge = document.getElementById("errorLogCountBadge");
+  if (badge) {
+    badge.style.display = "inline-block";
+    badge.innerText = `${total || logs.length} 筆`;
+  }
+  const container = document.getElementById("errorLogModalContent");
+  if (!container) return;
+
+  if (!logs || logs.length === 0) {
+    container.innerHTML = '<div style="text-align:center; padding:48px 20px; color:var(--text-muted);"><div style="font-size:2.6rem; margin-bottom:12px;">📱</div><div style="font-size:15px; font-weight:700; color:var(--text); margin-bottom:4px;">尚無裝置登入歷程</div><div style="font-size:13px;">學生登入後將自動依個資法規範記錄連線環境特徵</div></div>';
+    return;
+  }
+
+  let html = `
+    <table class="log-table">
+      <thead>
+        <tr>
+          <th style="width:36px;">#</th>
+          <th style="width:130px;">登入時間</th>
+          <th style="width:65px;">班級</th>
+          <th style="width:75px;">學號</th>
+          <th style="width:75px;">姓名</th>
+          <th style="width:85px;">狀態標記</th>
+          <th style="width:90px;">設備</th>
+          <th style="width:140px;">系統/瀏覽器</th>
+          <th style="width:85px;">螢幕</th>
+          <th>稽核說明 / 技術特徵</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  logs.forEach((log, idx) => {
+    const isChange = String(log.status).includes("換機");
+    const statusBadge = isChange
+      ? '<span style="background:#fee2e2; color:#991b1b; padding:2px 6px; border-radius:4px; font-weight:700; font-size:11px;">⚠️ 換機登入</span>'
+      : (String(log.status).includes("首次") ? '<span style="background:#e0f2fe; color:#0369a1; padding:2px 6px; border-radius:4px; font-weight:600; font-size:11px;">🆕 首次登入</span>' : '<span style="background:#dcfce7; color:#166534; padding:2px 6px; border-radius:4px; font-size:11px;">🟢 同機登入</span>');
+
+    html += `
+      <tr style="${isChange ? 'background:rgba(254, 226, 226, 0.25);' : ''}">
+        <td style="color:var(--text-muted); font-size:11.5px;">${idx + 1}</td>
+        <td class="log-badge-time">${escapeHtml(log.time)}</td>
+        <td>${escapeHtml(log.className || "-")}</td>
+        <td><strong>${escapeHtml(log.username)}</strong></td>
+        <td>${escapeHtml(log.realName || "-")}</td>
+        <td>${statusBadge}</td>
+        <td>${escapeHtml(log.deviceType)}</td>
+        <td style="font-size:11.5px;">${escapeHtml(log.osBrowser)}</td>
+        <td style="font-size:11px; color:var(--text-muted);">${escapeHtml(log.resolution)}</td>
+        <td style="font-size:12px; color:${isChange ? '#b91c1c' : 'inherit'}; font-weight:${isChange ? '600' : 'normal'};">${escapeHtml(log.note)}</td>
+      </tr>
+    `;
+  });
+
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}

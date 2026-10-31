@@ -2134,10 +2134,16 @@
   <div id="errorLogModalInner">
     <button class="modal-close" onclick="closeErrorLogModal()">✕</button>
     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px; padding-right:28px;">
-      <h3 style="margin:0; display:flex; align-items:center; gap:8px;">
-        ⚠️ 系統錯誤日誌
-        <span id="errorLogCountBadge" style="font-size:12px; font-weight:600; padding:2px 8px; border-radius:10px; background:var(--danger-bg); color:var(--danger); display:none;">0 筆</span>
-      </h3>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <h3 style="margin:0; display:flex; align-items:center; gap:8px;">
+          <span id="logModalTitle">⚠️ 系統錯誤日誌</span>
+          <span id="errorLogCountBadge" style="font-size:12px; font-weight:600; padding:2px 8px; border-radius:10px; background:var(--danger-bg); color:var(--danger); display:none;">0 筆</span>
+        </h3>
+        <div style="display:flex; border:1px solid var(--border); border-radius:6px; overflow:hidden;">
+          <button id="btnTabErrorLogs" class="btn-sm" style="padding:4px 10px; border:none; background:var(--primary); color:#fff; cursor:pointer;" onclick="switchLogModalTab('error')">系統錯誤</button>
+          <button id="btnTabDeviceLogs" class="btn-sm" style="padding:4px 10px; border:none; background:transparent; color:var(--text); cursor:pointer;" onclick="switchLogModalTab('device')">📱 裝置登入歷程</button>
+        </div>
+      </div>
       <div style="display:flex; gap:8px; align-items:center;">
         <button class="btn-secondary btn-sm" id="btnRefreshErrorLogs" onclick="loadErrorLogs()">🔄 重新整理</button>
         <button class="btn-secondary btn-sm" onclick="exportErrorLogsCsv()">📥 匯出 CSV</button>

@@ -353,6 +353,12 @@ function doPost(e) {
       if (!auth.success) return jsonResponse({status:"error", message:"舊密碼驗證失敗"});
       return jsonResponse(changeOwnPassword(ss, params.username, params.oldPassword, params.newPassword));
     }
+    if (action === "getDeviceLoginLogs") {
+      return jsonResponse(getDeviceLoginLogs(params));
+    }
+    if (action === "clearDeviceLoginLogs") {
+      return jsonResponse(clearDeviceLoginLogs(params));
+    }
     if (action === "getErrorLogs") {
       const auth = authenticateUser(ss, params.username, params.password);
       if (!auth.success || auth.role !== "teacher") return jsonResponse({status:"error", message:"僅教師可查閱日誌"});
@@ -550,7 +556,10 @@ function doPost(e) {
         } catch(_) {}
       }
 
-      const sessionToken = registerStudentDevice(auth.username, params.deviceId, params.deviceDesc);
+      const sessionToken = registerStudentDevice(ss, auth.username, auth.realName, auth.className, params.deviceDetails || {
+        deviceId: params.deviceId,
+        deviceDesc: params.deviceDesc
+      });
 
       return jsonResponse({
         status:"success", message:"驗證成功", role:"student",

@@ -936,22 +936,63 @@
       return id;
     }
 
-    function getDeviceDescription() {
+    function getDeviceAuditInfo() {
       const ua = navigator.userAgent || "";
-      let os = "未知裝置";
-      if (/iPad|iPhone|iPod/.test(ua)) os = "iOS (iPhone/iPad)";
-      else if (/Android/.test(ua)) os = "Android 手機/平板";
-      else if (/Windows/.test(ua)) os = "Windows 電腦";
-      else if (/Macintosh|Mac OS X/.test(ua)) os = "Mac 電腦";
-      else if (/CrOS/.test(ua)) os = "Chromebook";
+      let os = "其他環境";
+      if (/iPad/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)) {
+        os = "iPadOS";
+      } else if (/iPhone|iPod/.test(ua)) {
+        os = "iOS";
+      } else if (/Android/.test(ua)) {
+        os = "Android";
+      } else if (/Windows NT 10.0/.test(ua)) {
+        os = "Windows 10/11";
+      } else if (/Windows/.test(ua)) {
+        os = "Windows";
+      } else if (/Macintosh|Mac OS X/.test(ua)) {
+        os = "macOS";
+      } else if (/CrOS/.test(ua)) {
+        os = "ChromeOS";
+      } else if (/Linux/.test(ua)) {
+        os = "Linux";
+      }
 
       let browser = "瀏覽器";
-      if (/Edg/.test(ua)) browser = "Edge";
-      else if (/Chrome/.test(ua)) browser = "Chrome";
-      else if (/Safari/.test(ua)) browser = "Safari";
-      else if (/Firefox/.test(ua)) browser = "Firefox";
+      if (/Edg\//.test(ua)) browser = "Edge";
+      else if (/Chrome\//.test(ua) && !/Edg\//.test(ua)) browser = "Chrome";
+      else if (/Safari\//.test(ua) && !/Chrome\//.test(ua)) browser = "Safari";
+      else if (/Firefox\//.test(ua)) browser = "Firefox";
 
-      return `${os} (${browser})`;
+      let deviceType = "💻 電腦";
+      const isTouch = navigator.maxTouchPoints > 0;
+      const w = window.screen ? window.screen.width : window.innerWidth;
+      const h = window.screen ? window.screen.height : window.innerHeight;
+      const minDim = Math.min(w, h);
+      const maxDim = Math.max(w, h);
+
+      if (/iPad/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)) {
+        deviceType = "📟 平板 (iPad)";
+      } else if (/iPhone|iPod/.test(ua) || (/Android/.test(ua) && minDim < 600)) {
+        deviceType = "📱 手機";
+      } else if (/Android/.test(ua) && minDim >= 600) {
+        deviceType = "📟 平板 (Android)";
+      } else if (isTouch && minDim >= 600 && maxDim <= 1366) {
+        deviceType = "📟 觸控筆電/平板";
+      } else {
+        deviceType = "💻 電腦";
+      }
+
+      const resolution = `${w}x${h}`;
+      const devId = getOrCreateDeviceId();
+      const osBrowser = `${os} (${browser})`;
+
+      return {
+        deviceId: devId,
+        deviceType: deviceType,
+        osBrowser: osBrowser,
+        resolution: resolution,
+        deviceDesc: `${deviceType} - ${osBrowser} [${resolution}]`
+      };
     }
 
     let isLoggingIn = false;
@@ -1049,10 +1090,11 @@
           try {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 20000);
+const devAudit = getDeviceAuditInfo();
             response = await fetch(scriptUrl, {
               method: "POST",
               headers: { "Content-Type": "text/plain;charset=utf-8" },
-              body: JSON.stringify({ action: "login", username: user, password: pass, deviceId: getOrCreateDeviceId(), deviceDesc: getDeviceDescription() }),
+              body: JSON.stringify({ action: "login", username: user, password: pass, deviceId: devAudit.deviceId, deviceDesc: devAudit.deviceDesc, deviceDetails: devAudit }),
               signal: controller.signal
             });
             clearTimeout(timeoutId);
