@@ -19719,6 +19719,7 @@ function _buildStudentExportPayload(resp, mode, startDate, endDate) {
           taskCorrectWords = [];
           taskWrongWords = [];
           unansweredWords = rawWords;
+          tCor = 0; tAtt = 0; actualAnswered = 0; actualWrong = 0; actualUnanswered = rawWords.length; attemptedRate = 0; overallScoreRate = 0;
         } else if (isIncomplete) {
           taskStatus = `🟠 未完成 (${tCor}/${assignedTotWords})`;
           taskScore = `${tCor}/${assignedTotWords}`;
@@ -19731,7 +19732,7 @@ function _buildStudentExportPayload(resp, mode, startDate, endDate) {
         }
 
         periodAssigned += assignedTotWords;
-        periodWrong += actualWrong;
+        periodWrong += Math.max(0, actualWrong - (isUntested ? 0 : (hasUnanswered ? actualUnanswered : 0)));
         periodUnanswered += actualUnanswered;
       }
     }
