@@ -3350,3 +3350,53 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   background: #334155 !important;
   color: #f8fafc !important;
 }
+
+/* 🎯 個人常錯單字複習小卡樣式 */
+.weak-words-card {
+  margin-top: 14px;
+}
+.weak-card-item {
+  background: var(--card, #fff);
+  border: 1px solid var(--line, #E7E9F5);
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: 0 2px 8px rgba(35, 42, 77, 0.04);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.weak-card-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(35, 42, 77, 0.08);
+}
+.weak-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.weak-word-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--ink, #232A4D);
+}
+.weak-err-badge {
+  font-size: 11px;
+  font-weight: 800;
+  background: rgba(239, 68, 68, 0.12);
+  color: #dc2626;
+  padding: 2px 7px;
+  border-radius: 10px;
+}
+.weak-card-zh {
+  font-size: 12.5px;
+  color: var(--ink2, #5A6183);
+  line-height: 1.4;
+}
+.weak-card-sub {
+  font-size: 11px;
+  color: var(--ink3, #9AA0BD);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}

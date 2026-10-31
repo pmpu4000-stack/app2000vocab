@@ -268,6 +268,44 @@
         </div>
       </section>
 
+      <!-- 🎯 個人常錯單字複習小卡方塊 (支援時間範圍切換、單字發音、PDF/Excel 一鍵下載) -->
+      <section class="progress weak-words-card is-collapsed" id="weak-words-section">
+        <h3>
+          <span>
+            <span>常錯單字 Mistakes</span>
+            <span class="badge" id="weak-words-count-badge" style="display:none; margin-left:6px; font-size:12px; font-weight:700; background:rgba(239,68,68,0.12); color:#dc2626; padding:2px 8px; border-radius:12px;">0 字</span>
+          </span>
+          <span style="display:flex;gap:14px;align-items:center;">
+            <a id="btn-toggle-weak-words-card" class="sum-toggle-btn" style="display:inline-flex; align-items:center; justify-content:center; text-align:center; min-width:44px;" title="展開或收合常錯單字小卡">展開</a>
+          </span>
+        </h3>
+        <div class="weak-words-container" id="weak-words-container" style="display:none; margin-top:8px;">
+          <!-- 1. 時間範圍選擇列 (比照整個網頁設計規範) -->
+          <div class="weak-words-toolbar" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:12px;">
+            <div class="mode-tabs" id="weak-range-tabs" style="display:inline-flex; gap:4px; background:var(--bar-track, #E8EBF5); padding:3px; border-radius:10px;">
+              <button type="button" class="tab-btn active" data-range="7" style="padding:4px 10px; font-size:12.5px; border-radius:7px; font-weight:700; cursor:pointer;">近 7 天</button>
+              <button type="button" class="tab-btn" data-range="14" style="padding:4px 10px; font-size:12.5px; border-radius:7px; font-weight:700; cursor:pointer;">近 14 天</button>
+              <button type="button" class="tab-btn" data-range="30" style="padding:4px 10px; font-size:12.5px; border-radius:7px; font-weight:700; cursor:pointer;">近 30 天</button>
+              <button type="button" class="tab-btn" data-range="all" style="padding:4px 10px; font-size:12.5px; border-radius:7px; font-weight:700; cursor:pointer;">全部歷史</button>
+            </div>
+            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+              <button type="button" id="btn-copy-weak-words" class="action-btn" style="padding:6px 11px; font-size:12px; font-weight:700; border-radius:8px; cursor:pointer; background:rgba(37,99,235,0.08); color:var(--primary, #2563eb); border:1px solid rgba(37,99,235,0.2);" title="一鍵複製常錯單字清單">📋 複製單字</button>
+              <button type="button" id="btn-export-weak-pdf" class="action-btn" style="padding:6px 11px; font-size:12px; font-weight:700; border-radius:8px; cursor:pointer; background:#6C4CE0; color:#fff; border:none;" title="匯出 PDF 複習字卡">📄 匯出 PDF</button>
+              <button type="button" id="btn-export-weak-excel" class="action-btn" style="padding:6px 11px; font-size:12px; font-weight:700; border-radius:8px; cursor:pointer; background:#10B981; color:#fff; border:none;" title="匯出 Excel 單字表">📊 匯出 Excel</button>
+            </div>
+          </div>
+
+          <!-- 2. 統計摘要小卡 -->
+          <div id="weak-words-summary-bar" style="background:var(--paper, #F8F9FD); border:1px solid var(--line, #E7E9F5); border-radius:10px; padding:10px 14px; margin-bottom:12px; font-size:13px; color:var(--ink2, #5A6183); display:flex; justify-content:space-between; align-items:center;">
+            <span id="weak-words-stat-text">正在分析常錯單字...</span>
+            <span id="weak-words-filter-label" style="font-size:11.5px; color:var(--ink3, #9AA0BD);">近 7 天統計</span>
+          </div>
+
+          <!-- 3. 單字小卡網格 -->
+          <div id="weak-words-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:10px;"></div>
+        </div>
+      </section>
+
       <!-- 📥 底部作答歷程紀錄匯出下載方塊 (支援指定日期或指定範圍，PDF / Excel 雙格式輸出) -->
       <section class="progress export-records-card is-collapsed" id="export-records-section">
         <h3>

@@ -1776,6 +1776,7 @@ ui.onCheckClick(check);
 ui.onSummary(() => ui.toggleSummary(store.summary(WORDS)));
 ui.initProgressCard();
 ui.initConquerCard();
+  if (typeof ui.initWeakWordsCard === "function") ui.initWeakWordsCard();
 
 
 // ---- boot ----

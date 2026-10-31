@@ -162,6 +162,57 @@
   transform: scale(1.22);
 }
 
+    
+/* 🎯 個人常錯單字複習小卡樣式 */
+.weak-words-card {
+  margin-top: 14px;
+}
+.weak-card-item {
+  background: var(--card, #fff);
+  border: 1px solid var(--line, #E7E9F5);
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: 0 2px 8px rgba(35, 42, 77, 0.04);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.weak-card-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(35, 42, 77, 0.08);
+}
+.weak-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.weak-word-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--ink, #232A4D);
+}
+.weak-err-badge {
+  font-size: 11px;
+  font-weight: 800;
+  background: rgba(239, 68, 68, 0.12);
+  color: #dc2626;
+  padding: 2px 7px;
+  border-radius: 10px;
+}
+.weak-card-zh {
+  font-size: 12.5px;
+  color: var(--ink2, #5A6183);
+  line-height: 1.4;
+}
+.weak-card-sub {
+  font-size: 11px;
+  color: var(--ink3, #9AA0BD);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
     .container {
       max-width: 1320px;
       margin: 0 auto;
@@ -6259,6 +6310,41 @@
       </h3>
       <div class="week-conquer-container" id="st-week-conquer-container" style="display:none; margin-top:8px;">
         <div id="st-week-conquer-details"></div>
+      </div>
+    </section>
+
+    <!-- 🎯 個人常錯單字複習小卡方塊 (支援時間範圍切換、單字發音、PDF/Excel 一鍵下載) -->
+    <section class="progress weak-words-card is-collapsed" id="studentWeakWordsCard">
+      <h3>
+        <span>
+          <span>常錯單字 Mistakes</span>
+          <span class="badge" id="st-weak-words-count-badge" style="display:none; margin-left:6px; font-size:12px; font-weight:700; background:rgba(239,68,68,0.12); color:#dc2626; padding:2px 8px; border-radius:12px;">0 字</span>
+        </span>
+        <span style="display:flex;gap:14px;align-items:center;">
+          <a id="btn-toggle-st-weak-words-card" class="sum-toggle-btn" style="display:inline-flex; align-items:center; justify-content:center; text-align:center; min-width:44px;" title="展開或收合常錯單字小卡">展開</a>
+        </span>
+      </h3>
+      <div class="weak-words-container" id="st-weak-words-container" style="display:none; margin-top:8px;">
+        <div class="weak-words-toolbar" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:12px;">
+          <div class="mode-tabs" id="st-weak-range-tabs" style="display:inline-flex; gap:4px; background:var(--bar-track, #E8EBF5); padding:3px; border-radius:10px;">
+            <button type="button" class="tab-btn active" data-range="7" style="padding:4px 10px; font-size:12.5px; border-radius:7px; font-weight:700; cursor:pointer;">近 7 天</button>
+            <button type="button" class="tab-btn" data-range="14" style="padding:4px 10px; font-size:12.5px; border-radius:7px; font-weight:700; cursor:pointer;">近 14 天</button>
+            <button type="button" class="tab-btn" data-range="30" style="padding:4px 10px; font-size:12.5px; border-radius:7px; font-weight:700; cursor:pointer;">近 30 天</button>
+            <button type="button" class="tab-btn" data-range="all" style="padding:4px 10px; font-size:12.5px; border-radius:7px; font-weight:700; cursor:pointer;">全部歷史</button>
+          </div>
+          <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <button type="button" id="btn-st-copy-weak-words" class="action-btn" style="padding:6px 11px; font-size:12px; font-weight:700; border-radius:8px; cursor:pointer; background:rgba(37,99,235,0.08); color:var(--primary, #2563eb); border:1px solid rgba(37,99,235,0.2);" title="一鍵複製常錯單字清單">📋 複製單字</button>
+            <button type="button" id="btn-st-export-weak-pdf" class="action-btn" style="padding:6px 11px; font-size:12px; font-weight:700; border-radius:8px; cursor:pointer; background:#6C4CE0; color:#fff; border:none;" title="匯出 PDF 複習字卡">📄 匯出 PDF</button>
+            <button type="button" id="btn-st-export-weak-excel" class="action-btn" style="padding:6px 11px; font-size:12px; font-weight:700; border-radius:8px; cursor:pointer; background:#10B981; color:#fff; border:none;" title="匯出 Excel 單字表">📊 匯出 Excel</button>
+          </div>
+        </div>
+
+        <div id="st-weak-words-summary-bar" style="background:var(--paper, #F8F9FD); border:1px solid var(--line, #E7E9F5); border-radius:10px; padding:10px 14px; margin-bottom:12px; font-size:13px; color:var(--ink2, #5A6183); display:flex; justify-content:space-between; align-items:center;">
+          <span id="st-weak-words-stat-text">正在分析常錯單字...</span>
+          <span id="st-weak-words-filter-label" style="font-size:11.5px; color:var(--ink3, #9AA0BD);">近 7 天統計</span>
+        </div>
+
+        <div id="st-weak-words-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:10px;"></div>
       </div>
     </section>
 
@@ -23085,3 +23171,211 @@ function refreshLeaderboard(force = false) {
 </div>
 </body>
 </html>
+
+
+function initStudentWeakWordsCard() {
+  const sec = document.getElementById("studentWeakWordsCard");
+  const container = document.getElementById("st-weak-words-container");
+  const toggleBtn = document.getElementById("btn-toggle-st-weak-words-card");
+  if (!sec || !toggleBtn) return;
+
+  let currentRange = "7";
+
+  function getWeakWordsForRange(range) {
+    const now = Date.now();
+    const days = range === "all" ? 9999 : parseInt(range, 10);
+    const cutoffDate = new Date(now - days * 86400000).toISOString().split("T")[0];
+    
+    const wordCounts = new Map();
+    const historyList = cachedStudentDailyHistory || [];
+    historyList.forEach(item => {
+      const d = String(item.date || "").trim().split(/[T\s]/)[0].replace(/\//g, "-");
+      if (range === "all" || d >= cutoffDate) {
+        if (Array.isArray(item.wrongWords)) {
+          item.wrongWords.forEach(w => {
+            const cleanW = String(w).trim().toLowerCase();
+            if (cleanW) wordCounts.set(cleanW, (wordCounts.get(cleanW) || 0) + 1);
+          });
+        }
+      }
+    });
+
+    if (range === "all" && Array.isArray(rawWordList)) {
+      rawWordList.forEach(w => {
+        if (w && w.wrong > 0) {
+          const cleanW = String(w.word || "").toLowerCase();
+          wordCounts.set(cleanW, Math.max(wordCounts.get(cleanW) || 0, w.wrong));
+        }
+      });
+    }
+
+    const list = [];
+    wordCounts.forEach((count, word) => {
+      const zh = (typeof getWordZh === "function") ? getWordZh(word) : "";
+      const lv = (typeof getWordLevelNumber === "function") ? getWordLevelNumber(word) : 1;
+      list.push({ word, count, zh, level: lv });
+    });
+
+    list.sort((a, b) => b.count - a.count || a.word.localeCompare(b.word));
+    return list;
+  }
+
+  function renderWeakWordsUI() {
+    const list = getWeakWordsForRange(currentRange);
+    const badge = document.getElementById("st-weak-words-count-badge");
+    if (badge) {
+      badge.textContent = `${list.length} 字`;
+      badge.style.display = list.length > 0 ? "inline-block" : "none";
+    }
+
+    const statText = document.getElementById("st-weak-words-stat-text");
+    const rangeLabel = document.getElementById("st-weak-words-filter-label");
+    const rangeName = currentRange === "7" ? "近 7 天" : (currentRange === "14" ? "近 14 天" : (currentRange === "30" ? "近 30 天" : "全部歷史"));
+    if (rangeLabel) rangeLabel.textContent = `${rangeName}統計`;
+
+    const totalErrors = list.reduce((sum, item) => sum + item.count, 0);
+    if (statText) {
+      if (list.length === 0) {
+        statText.innerHTML = `🎉 <strong>太棒了！</strong> 此期間內沒有任何常錯單字。`;
+      } else {
+        statText.innerHTML = `📊 共 <strong>${list.length}</strong> 個常錯單字 ｜ 累計失誤 <strong>${totalErrors}</strong> 次`;
+      }
+    }
+
+    const grid = document.getElementById("st-weak-words-grid");
+    if (!grid) return;
+    if (list.length === 0) {
+      grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:24px; color:var(--text-muted); font-size:13.5px;">✨ 目前此區間零錯題紀錄，繼續保持！</div>`;
+      return;
+    }
+
+    let html = "";
+    list.forEach(item => {
+      html += `
+        <div class="weak-card-item">
+          <div class="weak-card-top">
+            <span class="weak-word-title">${item.word}</span>
+            <span class="weak-err-badge">錯 ${item.count} 次</span>
+          </div>
+          <div class="weak-card-zh">${item.zh || "（無釋義）"}</div>
+          <div class="weak-card-sub">
+            <span>LEVEL ${item.level}</span>
+            <button type="button" class="word-speech-btn" onclick="event.stopPropagation(); speakMasteredWord('${item.word}')" style="padding:2px 6px; cursor:pointer;" title="播放發音">${SVG_SPEAKER}</button>
+          </div>
+        </div>
+      `;
+    });
+    grid.innerHTML = html;
+  }
+
+  toggleBtn.onclick = (e) => {
+    e.preventDefault();
+    const isHidden = (container && container.style.display === "none") || sec.classList.contains("is-collapsed");
+    if (isHidden) {
+      if (container) container.style.display = "block";
+      sec.classList.remove("is-collapsed");
+      toggleBtn.innerHTML = "收合";
+      renderWeakWordsUI();
+      sec.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    } else {
+      if (container) container.style.display = "none";
+      sec.classList.add("is-collapsed");
+      toggleBtn.innerHTML = "展開";
+    }
+  };
+
+  const tabWrap = document.getElementById("st-weak-range-tabs");
+  if (tabWrap) {
+    tabWrap.querySelectorAll(".tab-btn").forEach(btn => {
+      btn.onclick = () => {
+        tabWrap.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        currentRange = btn.getAttribute("data-range") || "7";
+        renderWeakWordsUI();
+      };
+    });
+  }
+
+  const btnCopy = document.getElementById("btn-st-copy-weak-words");
+  if (btnCopy) {
+    btnCopy.onclick = () => {
+      const list = getWeakWordsForRange(currentRange);
+      if (list.length === 0) { showToast("此區間尚無常錯單字可複製。", "warning"); return; }
+      const rangeName = currentRange === "7" ? "近 7 天" : (currentRange === "14" ? "近 14 天" : (currentRange === "30" ? "近 30 天" : "全部歷史"));
+      let text = `【📝 個人常錯單字複習卡 (${rangeName})】\n`;
+      list.forEach((item, idx) => {
+        text += `${idx + 1}. ${item.word} [L${item.level}] - ${item.zh || ""} (失誤 ${item.count} 次)\n`;
+      });
+      navigator.clipboard.writeText(text).then(() => {
+        showToast("📋 已成功複製常錯單字清單！可直接貼上複習。", "success");
+      }).catch(() => {
+        prompt("請按 Ctrl+C 複製單字：", text);
+      });
+    };
+  }
+
+  const btnExcel = document.getElementById("btn-st-export-weak-excel");
+  if (btnExcel) {
+    btnExcel.onclick = () => {
+      const list = getWeakWordsForRange(currentRange);
+      if (list.length === 0) { showToast("此區間尚無常錯單字可匯出。", "warning"); return; }
+      if (typeof XLSX === "undefined") { showToast("Excel 模組載入中，請稍候再試。", "warning"); return; }
+      const rows = [["序號", "英文單字", "中文釋義", "難度關卡", "失誤次數"]];
+      list.forEach((item, idx) => {
+        rows.push([idx + 1, item.word, item.zh || "", "Level " + item.level, item.count]);
+      });
+      const ws = XLSX.utils.aoa_to_sheet(rows);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "常錯單字表");
+      XLSX.writeFile(wb, `常錯單字複習卡_${new Date().toISOString().split("T")[0]}.xlsx`);
+    };
+  }
+
+  const btnPdf = document.getElementById("btn-st-export-weak-pdf");
+  if (btnPdf) {
+    btnPdf.onclick = () => {
+      const list = getWeakWordsForRange(currentRange);
+      if (list.length === 0) { showToast("此區間尚無常錯單字可匯出。", "warning"); return; }
+      if (typeof html2pdf === "undefined") { showToast("PDF 模組載入中，請稍候再試。", "warning"); return; }
+      const rangeName = currentRange === "7" ? "近 7 天" : (currentRange === "14" ? "近 14 天" : (currentRange === "30" ? "近 30 天" : "全部歷史"));
+      const printDiv = document.createElement("div");
+      printDiv.style.padding = "24px";
+      printDiv.style.fontFamily = "system-ui, sans-serif";
+      printDiv.innerHTML = `
+        <h2 style="text-align:center; color:#232A4D; margin-bottom:6px;">🎯 英文個人常錯單字複習小卡</h2>
+        <div style="text-align:center; font-size:12px; color:#5A6183; margin-bottom:18px;">統計範圍：${rangeName} ｜ 產生日期：${new Date().toLocaleDateString()} ｜ 共 ${list.length} 個弱點單字</div>
+        <table style="width:100%; border-collapse:collapse; font-size:13px;">
+          <thead>
+            <tr style="background:#F1F5F9; border-bottom:2px solid #CBD5E1;">
+              <th style="padding:8px; text-align:center; width:40px;">#</th>
+              <th style="padding:8px; text-align:left; width:130px;">單字</th>
+              <th style="padding:8px; text-align:left; width:180px;">中文釋義</th>
+              <th style="padding:8px; text-align:center; width:70px;">關卡</th>
+              <th style="padding:8px; text-align:center; width:80px;">失誤次數</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${list.map((item, idx) => `
+              <tr style="border-bottom:1px solid #E2E8F0;">
+                <td style="padding:8px; text-align:center; color:#64748B;">${idx + 1}</td>
+                <td style="padding:8px; font-weight:bold; color:#1E293B;">${item.word}</td>
+                <td style="padding:8px; color:#334155;">${item.zh || "—"}</td>
+                <td style="padding:8px; text-align:center; font-size:11px;">L${item.level}</td>
+                <td style="padding:8px; text-align:center; color:#DC2626; font-weight:bold;">${item.count}次</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      `;
+      html2pdf().from(printDiv).set({
+        margin: 10,
+        filename: `常錯單字複習卡_${new Date().toISOString().split("T")[0]}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      }).save();
+    };
+  }
+
+  renderWeakWordsUI();
+}
