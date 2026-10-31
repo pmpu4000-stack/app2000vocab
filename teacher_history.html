@@ -13,7 +13,10 @@
       document.documentElement.setAttribute("data-theme", t);
     })();
   </script>
-  <?!= include('Style'); ?>
+  <?!= include('StyleBase'); ?>
+  <?!= include('StyleTeacher'); ?>
+  <?!= include('StyleStudent'); ?>
+  <?!= include('StylePrint'); ?>
 </head>
 <body>
 <!-- 登入驗證遮罩 (1:1 完美比照遊戲網頁登入處) -->
@@ -2285,6 +2288,8 @@
   <?!= include('ClientCoreJs'); ?>
   <?!= include('TeacherJs'); ?>
   <?!= include('StudentAnalyticsJs'); ?>
-  <?!= include('ExportReportJs'); ?>
+  <?!= include('StudentChipsJs'); ?>
+  <?!= include('ExportPdfJs'); ?>
+  <?!= include('ExportExcelJs'); ?>
 </body>
 </html>

@@ -1,0 +1,727 @@
+<style>
+    /* ── 學習活動熱力圖 ── */
+    .heatmap-card { margin-bottom: 20px; }
+    .heatmap-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+    .heatmap-title-group { display: flex; align-items: center; gap: 10px; }
+    .heatmap-title-group h2 { margin: 0; font-size: 1.15rem; }
+    .heatmap-subtitle { font-size: 12.5px; color: var(--text-muted); margin-top: 2px; }
+    .heatmap-controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .heatmap-select { font-size: 12.5px; padding: 6px 10px; border-radius: 8px; border: 1.5px solid var(--border); background: var(--input-bg); color: var(--text); cursor: pointer; font-weight: 600; }
+
+    /* 熱力統計 mini cards */
+    .heatmap-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 18px; }
+    .heatmap-stat-pill { background: var(--table-header-bg); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; display: flex; flex-direction: column; gap: 3px; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    .heatmap-stat-pill:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+    .heatmap-stat-label { font-size: 11.5px; color: var(--text-muted); display: flex; align-items: center; gap: 5px; font-weight: 500; }
+    .heatmap-stat-val { font-size: 18px; font-weight: 700; color: var(--text); }
+    .heatmap-stat-val.streak-highlight { color: #ea580c; }
+    .heatmap-stat-sub { font-size: 11px; color: var(--text-muted); }
+
+    /* 熱力圖主體捲動外框 */
+    .heatmap-scroll-area { overflow-x: auto; padding: 8px 4px 12px; margin: 0 -4px; -webkit-overflow-scrolling: touch; }
+    .heatmap-grid-container { display: inline-flex; flex-direction: column; gap: 6px; min-width: fit-content; user-select: none; }
+    .heatmap-months-row { display: flex; margin-left: 32px; font-size: 11px; color: var(--text-muted); height: 16px; position: relative; }
+    .heatmap-month-label { position: absolute; white-space: nowrap; font-weight: 600; }
+    .heatmap-body { display: flex; gap: 6px; align-items: flex-start; }
+    .heatmap-days-col { display: flex; flex-direction: column; gap: 3.5px; width: 26px; font-size: 10px; color: var(--text-muted); text-align: right; padding-top: 1px; }
+    .heatmap-day-label { height: 13px; line-height: 13px; }
+    .heatmap-weeks-row { display: flex; gap: 3.5px; }
+    .heatmap-week-col { display: flex; flex-direction: column; gap: 3.5px; }
+    .heatmap-cell { width: 13px; height: 13px; border-radius: 2.5px; background: var(--heatmap-lvl-0); cursor: pointer; box-sizing: border-box; transition: transform 0.15s ease, filter 0.15s ease; }
+    .heatmap-cell:hover { transform: scale(1.35); z-index: 10; outline: 1.5px solid var(--primary); filter: brightness(1.1); }
+    .heatmap-cell.empty-placeholder { visibility: hidden; pointer-events: none; }
+
+    /* 圖例與底部說明 */
+    .heatmap-footer { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 14px; font-size: 11.5px; color: var(--text-muted); padding-top: 10px; border-top: 1px dashed var(--border); }
+    .heatmap-legend { display: flex; align-items: center; gap: 5px; }
+    .legend-box { width: 12px; height: 12px; border-radius: 2.5px; }
+
+    /* 懸浮提示 Tooltip */
+    #heatmapTooltip { position: fixed; display: none; pointer-events: none; z-index: 10000; background: rgba(15, 23, 42, 0.94); color: #fff; padding: 8px 12px; border-radius: 8px; font-size: 12px; line-height: 1.45; box-shadow: 0 8px 24px rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15); transform: translate(-50%, -100%); margin-top: -8px; backdrop-filter: blur(6px); white-space: nowrap; }
+    #heatmapTooltip::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -5px; border-width: 5px; border-style: solid; border-color: rgba(15, 23, 42, 0.94) transparent transparent transparent; }
+
+    .lvl-0 { background-color: var(--heatmap-lvl-0) !important; }
+    .lvl-1 { background-color: var(--heatmap-lvl-1) !important; }
+    .lvl-2 { background-color: var(--heatmap-lvl-2) !important; }
+    .lvl-3 { background-color: var(--heatmap-lvl-3) !important; }
+    .lvl-4 { background-color: var(--heatmap-lvl-4) !important; }
+
+    /* 星期分佈小圖表 */
+    .heatmap-weekday-bars { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 12px; padding: 10px 14px; background: var(--table-header-bg); border-radius: 8px; font-size: 11.5px; border: 1px solid var(--border); }
+    .weekday-bar-item { display: flex; align-items: center; gap: 5px; flex-grow: 1; min-width: 75px; }
+    .weekday-bar-track { flex-grow: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; min-width: 30px; }
+    .weekday-bar-fill { height: 100%; background: var(--primary); border-radius: 3px; transition: width 0.3s ease; }
+
+    /* ── 學習目標與里程碑 ── */
+    .goals-card { margin-bottom: 20px; }
+    .goals-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+    .goals-title-group h2 { margin: 0; font-size: 1.15rem; }
+    .goals-subtitle { font-size: 12.5px; color: var(--text-muted); margin-top: 2px; }
+
+    /* 總體目標達成率橫幅 */
+    .overall-goal-banner {
+      background: var(--table-header-bg); border: 1px solid var(--border); border-radius: 12px;
+      padding: 14px 18px; margin-bottom: 18px; display: flex; flex-direction: column; gap: 8px;
+    }
+    .overall-goal-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+    .overall-goal-badge {
+      font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 9999px;
+      background: var(--primary-light); color: var(--primary); display: inline-flex; align-items: center; gap: 4px;
+    }
+    .overall-goal-badge.all-completed {
+      background: var(--success-bg); color: var(--success);
+    }
+    .overall-goal-text { font-size: 13.5px; font-weight: 600; color: var(--text); }
+    .overall-goal-track { height: 10px; background: var(--border); border-radius: 5px; overflow: hidden; width: 100%; }
+    .overall-goal-fill {
+      height: 100%; border-radius: 5px;
+      background: linear-gradient(90deg, var(--primary), #8b5cf6);
+      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* 四大目標進度卡片網格 */
+    .goals-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+    .goal-card-item {
+      background: var(--card); border: 1.5px solid var(--border); border-radius: 12px;
+      padding: 16px; display: flex; flex-direction: column; gap: 10px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+      position: relative; overflow: hidden;
+    }
+    .goal-card-item:hover { transform: translateY(-2px); box-shadow: var(--shadow-sm); border-color: var(--primary); }
+    .goal-card-item.achieved { border-color: var(--success); background: var(--success-bg); }
+
+    .goal-item-header { display: flex; justify-content: space-between; align-items: center; }
+    .goal-item-title { font-size: 13.5px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 6px; }
+    .goal-item-pct { font-size: 15px; font-weight: 800; color: var(--primary); }
+    .goal-card-item.achieved .goal-item-pct { color: var(--success); }
+
+    .goal-item-values { display: flex; justify-content: space-between; align-items: baseline; font-size: 12.5px; color: var(--text-muted); }
+    .goal-curr-val { font-size: 18px; font-weight: 700; color: var(--text); }
+    .goal-target-val { font-size: 12.5px; color: var(--text-muted); }
+
+    .goal-track { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+    .goal-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+    .goal-fill.fill-mastered { background: linear-gradient(90deg, #10b981, #059669); }
+    .goal-fill.fill-attempts { background: linear-gradient(90deg, #3b82f6, #2563eb); }
+    .goal-fill.fill-accuracy { background: linear-gradient(90deg, #f59e0b, #d97706); }
+    .goal-fill.fill-streak   { background: linear-gradient(90deg, #f97316, #ea580c); }
+
+    .goal-status-chip {
+      font-size: 11.5px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 8px; border-radius: 6px; width: fit-content;
+    }
+    .status-in-progress { background: var(--primary-light); color: var(--primary); }
+    .status-near { background: var(--warning-bg); color: var(--warning); }
+    .status-achieved { background: #dcfce7; color: #15803d; }
+    [data-theme="dark"] .status-achieved { background: rgba(34,197,94,0.25); color: #4ade80; }
+
+    /* 目標設定 Modal */
+    #goalModal {
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.55); z-index: 1000; align-items: center; justify-content: center;
+    }
+    #goalModal.open { display: flex; }
+    #goalModalInner {
+      background: var(--card); border-radius: 16px; padding: 24px 28px;
+      max-width: 520px; width: 92%; max-height: 90vh; overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3); border: 1px solid var(--border);
+    }
+    .goal-presets-group { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+    .goal-preset-chip {
+      font-size: 11.5px; font-weight: 600; padding: 5px 10px; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--table-header-bg); color: var(--text);
+      cursor: pointer; transition: all 0.15s ease;
+    }
+    .goal-preset-chip:hover { border-color: var(--primary); background: var(--primary-light); color: var(--primary); }
+    .goal-form-grid { display: flex; flex-direction: column; gap: 14px; }
+    .goal-input-row { display: flex; flex-direction: column; gap: 4px; }
+    .goal-input-row label { font-size: 13px; font-weight: 600; color: var(--text); display: flex; justify-content: space-between; }
+    .goal-input-row input {
+      width: 100%; padding: 8px 12px; border: 1.5px solid var(--border); border-radius: 8px;
+      font-size: 14px; color: var(--text); background: var(--input-bg);
+    }
+    .goal-input-row input:focus { outline: none; border-color: var(--primary); }
+
+    /* ── 班內排名與榮譽榜 ── */
+    .ranking-card {
+      border-top: 4px solid #f59e0b;
+      position: relative;
+    }
+    .ranking-header {
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+      margin-bottom: 16px;
+    }
+    .ranking-total-badge {
+      font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 9999px;
+      background: #fef3c7; color: #b45309; vertical-align: middle;
+    }
+    [data-theme="dark"] .ranking-total-badge { background: rgba(245,158,11,0.2); color: #fbbf24; }
+    .ranking-class-badge {
+      font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 9999px;
+      background: #e0f2fe; color: #0369a1; vertical-align: middle;
+    }
+    [data-theme="dark"] .ranking-class-badge { background: rgba(14,165,233,0.2); color: #38bdf8; }
+    .leaderboard-scope-toggle {
+      display: inline-flex; background: var(--bg); border: 1.5px solid var(--border); border-radius: 8px; padding: 2px;
+    }
+    .scope-toggle-btn {
+      border: none; background: transparent; padding: 4px 10px; font-size: 12px; font-weight: 600;
+      color: var(--text-muted); border-radius: 6px; cursor: pointer; transition: all 0.15s ease;
+    }
+    .scope-toggle-btn.active {
+      background: var(--card); color: var(--primary); font-weight: 700; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    [data-theme="dark"] .scope-toggle-btn.active {
+      background: #334155; color: #60a5fa;
+    }
+    .class-tag {
+      display: inline-block; font-size: 11px; font-weight: 700; padding: 1px 6px; border-radius: 4px;
+      background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; margin-right: 6px; white-space: nowrap;
+    }
+    [data-theme="dark"] .class-tag {
+      background: rgba(37,99,235,0.2); color: #93c5fd; border-color: rgba(37,99,235,0.4);
+    }
+    .wchip {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 10px; background: rgba(99,102,241,0.06);
+      border: 1px solid var(--border); border-radius: 6px;
+      font-size: 12px; color: var(--text);
+      cursor: pointer; user-select: none;
+      transition: all 0.15s ease;
+    }
+    .wchip:hover {
+      background: rgba(99,102,241,0.15);
+      border-color: var(--primary);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.06);
+    }
+    .wchip:active {
+      transform: scale(0.97);
+    }
+    .wchip .wchip-speaker {
+      font-size: 11px; opacity: 0.5;
+      transition: opacity 0.15s ease;
+    }
+    .wchip:hover .wchip-speaker {
+      opacity: 1;
+    }
+    .wchip.fixed {
+      background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.3);
+      color: #d97706; font-weight: 600;
+    }
+    .wchip.fixed:hover {
+      background: rgba(245,158,11,0.18);
+      border-color: #d97706;
+      box-shadow: 0 2px 5px rgba(217,119,6,0.12);
+    }
+    .st-level-tab-btn {
+      font-size: 11.5px; padding: 3px 10px; border-radius: 14px;
+      border: 1px solid var(--border); background: var(--card-bg, #ffffff);
+      color: var(--text-muted); cursor: pointer; transition: all 0.15s ease;
+      font-weight: 600;
+    }
+    .st-level-tab-btn:hover {
+      border-color: var(--primary); color: var(--primary);
+    }
+    .st-level-tab-btn.active {
+      background: var(--primary) !important; color: #ffffff !important;
+      border-color: var(--primary) !important;
+      box-shadow: 0 1px 3px rgba(37,99,235,0.25);
+    }
+    .st-heat-cell {
+      aspect-ratio: 1; border-radius: 4px;
+      transition: transform 0.15s ease, filter 0.15s ease;
+      cursor: pointer;
+    }
+    .st-heat-cell:hover {
+      transform: scale(1.18); filter: brightness(1.15); z-index: 2;
+    }
+    .ranking-subtitle { font-size: 13px; color: var(--text-muted); }
+    .ranking-toolbar-actions {
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    }
+    .ranking-privacy-label {
+      font-size: 12.5px; font-weight: 600; color: var(--text-muted); display: inline-flex; align-items: center;
+      gap: 5px; cursor: pointer; user-select: none;
+    }
+    .ranking-privacy-label input { cursor: pointer; }
+
+    /* 個人榮譽橫幅 */
+    .ranking-my-banner {
+      background: linear-gradient(135deg, rgba(37,99,235,0.06), rgba(245,158,11,0.08));
+      border: 1.5px solid var(--border); border-radius: 12px; padding: 14px 18px; margin-bottom: 18px;
+    }
+    [data-theme="dark"] .ranking-my-banner {
+      background: linear-gradient(135deg, rgba(59,130,246,0.12), rgba(245,158,11,0.1));
+    }
+    .ranking-banner-msg {
+      font-size: 13.5px; font-weight: 700; color: var(--text); margin-bottom: 12px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .ranking-chips-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;
+    }
+    .ranking-chip {
+      background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px;
+      text-align: center; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+    .ranking-chip:hover {
+      transform: translateY(-2px); border-color: var(--primary); box-shadow: 0 4px 12px rgba(37,99,235,0.15);
+    }
+    .chip-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; }
+    .chip-rank { font-size: 18px; font-weight: 800; color: var(--text); margin: 3px 0; }
+    .chip-rank.top-1 { color: #d97706; }
+    .chip-rank.top-2 { color: #475569; }
+    .chip-rank.top-3 { color: #b45309; }
+    .chip-pr { font-size: 11px; font-weight: 700; color: var(--primary); }
+
+    /* 榮譽頒獎台 (Top 3 Podium) */
+    .ranking-podium-section {
+      background: var(--table-header-bg); border-radius: 12px; border: 1px solid var(--border);
+      padding: 16px; margin-bottom: 18px; text-align: center;
+    }
+    .podium-title { font-size: 13px; font-weight: 700; color: var(--text-muted); margin-bottom: 14px; }
+    .podium-stage {
+      display: flex; justify-content: center; align-items: flex-end; gap: 14px; min-height: 160px;
+      padding-top: 10px;
+    }
+    .podium-slot {
+      display: flex; flex-direction: column; align-items: center; width: 30%; max-width: 140px;
+    }
+    .podium-avatar {
+      font-size: 24px; margin-bottom: 4px; position: relative;
+    }
+    .podium-crown {
+      position: absolute; top: -14px; left: 50%; transform: translateX(-50%); font-size: 16px;
+    }
+    .podium-name {
+      font-size: 12.5px; font-weight: 700; color: var(--text); max-width: 100%;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-bottom: 2px;
+    }
+    .podium-val { font-size: 12px; font-weight: 800; color: var(--primary); margin-bottom: 6px; }
+    .podium-block {
+      width: 100%; border-radius: 8px 8px 0 0; display: flex; align-items: center; justify-content: center;
+      font-size: 15px; font-weight: 900; color: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+      transition: transform 0.2s;
+    }
+    .podium-slot:hover .podium-block { transform: scale(1.02); }
+    .podium-block.rank-1st {
+      height: 100px; background: linear-gradient(180deg, #f59e0b, #d97706);
+      box-shadow: 0 6px 16px rgba(245,158,11,0.3);
+    }
+    .podium-block.rank-2nd {
+      height: 75px; background: linear-gradient(180deg, #94a3b8, #64748b);
+    }
+    .podium-block.rank-3rd {
+      height: 55px; background: linear-gradient(180deg, #d97706, #b45309);
+    }
+    .podium-slot.is-me .podium-name { color: var(--primary); font-weight: 900; }
+    .podium-slot.is-me .podium-avatar::after {
+      content: "YOU"; position: absolute; bottom: -4px; left: 50%; transform: translateX(-50%);
+      font-size: 9px; font-weight: 900; background: var(--primary); color: #fff;
+      padding: 1px 4px; border-radius: 4px;
+    }
+
+    /* 標籤頁切換 */
+    .ranking-tabs {
+      display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px;
+    }
+    .ranking-tab-btn {
+      padding: 6px 14px; border-radius: 8px; font-size: 13px; font-weight: 600;
+      border: 1.5px solid var(--border); background: var(--card); color: var(--text-muted);
+      cursor: pointer; transition: all 0.18s; display: inline-flex; align-items: center; gap: 4px;
+    }
+    .ranking-tab-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .ranking-tab-btn.active {
+      background: var(--primary); color: #fff; border-color: var(--primary);
+    }
+
+    /* 排行榜表格 */
+    .leaderboard-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    .leaderboard-table th, .leaderboard-table td {
+      border-bottom: 1px solid var(--border); padding: 10px 12px; text-align: center;
+    }
+    .leaderboard-table th { background: var(--table-header-bg); font-weight: 700; color: var(--text); }
+    .leaderboard-table tr.row-me {
+      background: var(--primary-light) !important; font-weight: 700;
+    }
+    .leaderboard-table tr:hover td { background-color: var(--table-hover-bg); }
+    .rank-medal-badge {
+      display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px;
+      font-size: 15px; font-weight: 800; border-radius: 50%;
+    }
+    .pr-pill {
+      font-size: 11.5px; font-weight: 700; padding: 2px 8px; border-radius: 9999px;
+      background: var(--diff-zero-bg); color: var(--text-muted);
+    }
+    .pr-pill.high { background: var(--success-bg); color: var(--success); }
+    .pr-pill.mid { background: var(--primary-light); color: var(--primary); }
+    .gap-badge {
+      font-size: 11.5px; font-weight: 600; color: var(--text-muted);
+    }
+    .gap-badge.leader { color: #d97706; font-weight: 700; }
+    .gap-badge.chasing { color: var(--primary); }
+
+    /* ── 🔮 學習曲線預測卡片樣式 ── */
+    .forecast-card {
+      border: 1px solid rgba(139, 92, 246, 0.28);
+      position: relative;
+    }
+    .forecast-header {
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 12px; margin-bottom: 16px;
+    }
+    .forecast-title-group h2 {
+      font-size: 1.25rem; font-weight: 800; margin: 0 0 4px;
+      color: #7c3aed; display: flex; align-items: center; gap: 8px;
+    }
+    [data-theme="dark"] .forecast-title-group h2 { color: #a78bfa; }
+    .forecast-subtitle { font-size: 13px; color: var(--text-muted); }
+    .forecast-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .forecast-select {
+      font-size: 13px; font-weight: 600; padding: 6px 12px; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--input-bg); color: var(--text);
+      cursor: pointer;
+    }
+    .forecast-stats-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px; margin-bottom: 16px;
+    }
+    .forecast-stat-card {
+      background: var(--chart-container-bg); border: 1px solid var(--border);
+      border-radius: 10px; padding: 12px 14px;
+      border-left: 4px solid #8b5cf6;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .forecast-stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(139, 92, 246, 0.12);
+    }
+    .forecast-stat-label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+    .forecast-stat-val { font-size: 18px; font-weight: 800; color: var(--text); margin-top: 4px; }
+    .forecast-stat-sub { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+    .forecast-insights-box {
+      margin-top: 16px; padding: 12px 16px; border-radius: 10px;
+      background: rgba(139, 92, 246, 0.06); border: 1px solid rgba(139, 92, 246, 0.2);
+    }
+    [data-theme="dark"] .forecast-insights-box {
+      background: rgba(139, 92, 246, 0.12); border-color: rgba(139, 92, 246, 0.3);
+    }
+    .forecast-insights-title {
+      font-size: 13px; font-weight: 700; color: #7c3aed; margin-bottom: 4px;
+    }
+    [data-theme="dark"] .forecast-insights-title { color: #c4b5fd; }
+    .forecast-insights-text {
+      font-size: 13px; color: var(--text); line-height: 1.6;
+    }
+
+    /* ── ⏱️ 練習頻率與習慣節奏卡片樣式 ── */
+    .freq-card {
+      border: 1px solid rgba(14, 165, 233, 0.28);
+      position: relative;
+    }
+    .freq-header {
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 12px; margin-bottom: 16px;
+    }
+    .freq-title-group h2 {
+      font-size: 1.25rem; font-weight: 800; margin: 0 0 4px;
+      color: #0284c7; display: flex; align-items: center; gap: 8px;
+    }
+    [data-theme="dark"] .freq-title-group h2 { color: #38bdf8; }
+    .freq-subtitle { font-size: 13px; color: var(--text-muted); }
+    .freq-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .freq-select {
+      font-size: 13px; font-weight: 600; padding: 6px 12px; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--input-bg); color: var(--text);
+      cursor: pointer;
+    }
+    .freq-persona-banner {
+      display: flex; align-items: center; gap: 14px; padding: 14px 18px;
+      border-radius: 12px; background: linear-gradient(135deg, rgba(14, 165, 233, 0.1), rgba(59, 130, 246, 0.08));
+      border: 1px solid rgba(14, 165, 233, 0.25); margin-bottom: 16px; flex-wrap: wrap;
+    }
+    [data-theme="dark"] .freq-persona-banner {
+      background: linear-gradient(135deg, rgba(14, 165, 233, 0.18), rgba(59, 130, 246, 0.12));
+      border-color: rgba(56, 189, 248, 0.3);
+    }
+    .freq-persona-icon { font-size: 32px; line-height: 1; }
+    .freq-persona-info { flex: 1; min-width: 220px; }
+    .freq-persona-title { font-size: 15px; font-weight: 800; color: #0284c7; margin-bottom: 3px; display: flex; align-items: center; gap: 8px; }
+    [data-theme="dark"] .freq-persona-title { color: #38bdf8; }
+    .freq-persona-desc { font-size: 12.5px; color: var(--text); line-height: 1.5; }
+
+    .freq-stats-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px; margin-bottom: 18px;
+    }
+    .freq-stat-card {
+      background: var(--chart-container-bg); border: 1px solid var(--border);
+      border-radius: 10px; padding: 12px 14px; border-left: 4px solid #0284c7;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .freq-stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(14, 165, 233, 0.12);
+    }
+    .freq-stat-label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+    .freq-stat-val { font-size: 18px; font-weight: 800; color: var(--text); margin-top: 4px; }
+    .freq-stat-sub { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+
+    .freq-charts-grid {
+      display: grid; grid-template-columns: 3fr 2fr; gap: 16px; margin-bottom: 18px;
+    }
+    @media (max-width: 880px) {
+      .freq-charts-grid { grid-template-columns: 1fr; }
+    }
+    .freq-chart-box {
+      background: var(--chart-container-bg); border: 1px solid var(--border);
+      border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column;
+    }
+    .freq-chart-title {
+      font-size: 13.5px; font-weight: 700; color: var(--text); margin-bottom: 10px;
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
+    }
+
+    .freq-weeks-box {
+      margin-top: 14px; padding: 14px 16px; border-radius: 12px;
+      background: var(--chart-container-bg); border: 1px solid var(--border);
+    }
+    .freq-weeks-header {
+      font-size: 13.5px; font-weight: 700; color: var(--text); margin-bottom: 10px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .freq-weeks-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;
+    }
+    .freq-week-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+      padding: 10px 12px; display: flex; flex-direction: column; gap: 4px;
+    }
+    .freq-week-label { font-size: 12px; font-weight: 700; color: var(--text-muted); display: flex; justify-content: space-between; }
+    .freq-week-dots { display: flex; gap: 3px; margin: 4px 0; }
+    .freq-dot {
+      width: 10px; height: 10px; border-radius: 50%; background: var(--border);
+    }
+    .freq-dot.active { background: #0284c7; }
+    [data-theme="dark"] .freq-dot.active { background: #38bdf8; }
+    .freq-week-stat { font-size: 14px; font-weight: 800; color: var(--text); }
+    .freq-week-sub { font-size: 11px; color: var(--text-muted); }
+
+    .freq-coach-box {
+      margin-top: 16px; padding: 12px 16px; border-radius: 10px;
+      background: rgba(14, 165, 233, 0.06); border: 1px solid rgba(14, 165, 233, 0.2);
+    }
+    [data-theme="dark"] .freq-coach-box {
+      background: rgba(14, 165, 233, 0.12); border-color: rgba(56, 189, 248, 0.3);
+    }
+    .freq-coach-title { font-size: 13px; font-weight: 700; color: #0284c7; margin-bottom: 4px; }
+    [data-theme="dark"] .freq-coach-title { color: #7dd3fc; }
+    .freq-coach-text { font-size: 13px; color: var(--text); line-height: 1.6; }
+
+    /* ── 🎯 學習弱點分析卡片樣式 ── */
+    .weakness-card {
+      border: 1px solid rgba(239, 68, 68, 0.28);
+      position: relative;
+    }
+    .weakness-header {
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 12px; margin-bottom: 16px;
+    }
+    .weakness-title-group h2 {
+      font-size: 1.25rem; font-weight: 800; margin: 0 0 4px;
+      color: #dc2626; display: flex; align-items: center; gap: 8px;
+    }
+    [data-theme="dark"] .weakness-title-group h2 { color: #f87171; }
+    .weakness-subtitle { font-size: 13px; color: var(--text-muted); }
+    .weakness-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .weakness-select {
+      font-size: 13px; font-weight: 600; padding: 6px 12px; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--input-bg); color: var(--text);
+      cursor: pointer;
+    }
+
+    .weakness-banner {
+      display: flex; align-items: center; gap: 14px; padding: 14px 18px;
+      border-radius: 12px; background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(245, 158, 11, 0.08));
+      border: 1px solid rgba(239, 68, 68, 0.25); margin-bottom: 16px; flex-wrap: wrap;
+    }
+    [data-theme="dark"] .weakness-banner {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.18), rgba(245, 158, 11, 0.12));
+      border-color: rgba(248, 113, 113, 0.3);
+    }
+    .weakness-banner-icon { font-size: 32px; line-height: 1; }
+    .weakness-banner-info { flex: 1; min-width: 220px; }
+    .weakness-banner-title { font-size: 15px; font-weight: 800; color: #dc2626; margin-bottom: 3px; display: flex; align-items: center; gap: 8px; }
+    [data-theme="dark"] .weakness-banner-title { color: #f87171; }
+    .weakness-banner-desc { font-size: 12.5px; color: var(--text); line-height: 1.5; }
+
+    .weakness-stats-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px; margin-bottom: 18px;
+    }
+    .weakness-stat-card {
+      background: var(--chart-container-bg); border: 1px solid var(--border);
+      border-radius: 10px; padding: 12px 14px; border-left: 4px solid #dc2626;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .weakness-stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.12);
+    }
+    .weakness-stat-label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+    .weakness-stat-val { font-size: 18px; font-weight: 800; color: var(--text); margin-top: 4px; }
+    .weakness-stat-sub { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+
+    .weakness-body-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 18px;
+    }
+    @media (max-width: 900px) {
+      .weakness-body-grid { grid-template-columns: 1fr; }
+    }
+    .weakness-panel {
+      background: var(--chart-container-bg); border: 1px solid var(--border);
+      border-radius: 12px; padding: 14px 16px;
+    }
+    .weakness-panel-title {
+      font-size: 13.5px; font-weight: 700; color: var(--text); margin-bottom: 12px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+
+    .weakness-level-table {
+      width: 100%; border-collapse: collapse; font-size: 12.5px;
+    }
+    .weakness-level-table th, .weakness-level-table td {
+      padding: 8px 10px; text-align: center; border-bottom: 1px solid var(--border);
+    }
+    .weakness-level-table th {
+      background: var(--card); color: var(--text-muted); font-weight: 600;
+    }
+    .weakness-tag {
+      font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 4px; display: inline-block;
+    }
+    .tag-severe { background: rgba(220, 38, 38, 0.15); color: #dc2626; }
+    .tag-moderate { background: rgba(217, 119, 6, 0.15); color: #d97706; }
+    .tag-safe { background: rgba(22, 163, 74, 0.15); color: #16a34a; }
+    .tag-none { background: rgba(100, 116, 139, 0.15); color: #64748b; }
+
+    .funnel-container {
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .funnel-stage {
+      background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+      padding: 10px 12px; display: flex; align-items: center; gap: 10px;
+    }
+    .funnel-stage-icon { font-size: 20px; line-height: 1; }
+    .funnel-stage-body { flex: 1; }
+    .funnel-stage-top { display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 700; margin-bottom: 4px; }
+    .funnel-stage-bar {
+      height: 8px; background: var(--border); border-radius: 9999px; overflow: hidden;
+    }
+    .funnel-stage-fill { height: 100%; border-radius: 9999px; }
+
+    .weakness-action-box {
+      margin-top: 16px; padding: 12px 16px; border-radius: 10px;
+      background: rgba(239, 68, 68, 0.06); border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+    [data-theme="dark"] .weakness-action-box {
+      background: rgba(239, 68, 68, 0.12); border-color: rgba(248, 113, 113, 0.3);
+    }
+    .weakness-action-title { font-size: 13px; font-weight: 700; color: #dc2626; margin-bottom: 6px; }
+    [data-theme="dark"] .weakness-action-title { color: #fca5a5; }
+    .weakness-action-list { margin: 0; padding-left: 18px; font-size: 13px; color: var(--text); line-height: 1.6; }
+
+    /* ── 🌊 單字流轉追蹤 (Word Flow Tracking) ── */
+    .wordflow-card {
+      border-left: 4px solid #0284c7;
+      background: linear-gradient(180deg, var(--card) 0%, rgba(2, 132, 199, 0.02) 100%);
+    }
+    .wordflow-header {
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 12px; margin-bottom: 16px;
+    }
+    .wordflow-title-group h2 {
+      font-size: 1.18rem; font-weight: 700; margin: 0; color: #0284c7;
+      display: flex; align-items: center; gap: 8px;
+    }
+    [data-theme="dark"] .wordflow-title-group h2 { color: #38bdf8; }
+    .wordflow-subtitle { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+    .wordflow-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .wordflow-select {
+      padding: 6px 12px; font-size: 13px; font-weight: 600; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--input-bg); color: var(--text);
+      cursor: pointer;
+    }
+    .wordflow-banner {
+      display: flex; align-items: center; gap: 14px; padding: 14px 18px;
+      border-radius: 12px; margin-bottom: 18px;
+      background: linear-gradient(135deg, rgba(2, 132, 199, 0.08), rgba(14, 165, 233, 0.04));
+      border: 1px solid rgba(2, 132, 199, 0.22);
+    }
+    [data-theme="dark"] .wordflow-banner {
+      background: linear-gradient(135deg, rgba(2, 132, 199, 0.18), rgba(14, 165, 233, 0.08));
+      border-color: rgba(56, 189, 248, 0.3);
+    }
+    .wordflow-banner-icon { font-size: 28px; line-height: 1; }
+    .wordflow-banner-info { flex: 1; }
+    .wordflow-banner-title { font-size: 14.5px; font-weight: 700; color: #0284c7; margin-bottom: 3px; }
+    [data-theme="dark"] .wordflow-banner-title { color: #38bdf8; }
+    .wordflow-banner-desc { font-size: 12.5px; color: var(--text); line-height: 1.5; }
+    .wordflow-kpi-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin-bottom: 18px;
+    }
+    .wordflow-kpi-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+      padding: 12px 14px; border-left: 3.5px solid #0284c7;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .wordflow-kpi-card:hover {
+      transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+    }
+    .wordflow-kpi-label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+    .wordflow-kpi-val { font-size: 18px; font-weight: 800; color: var(--text); margin-top: 4px; }
+    .wordflow-kpi-sub { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+
+    .wordflow-pipeline-container {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-bottom: 20px;
+    }
+    .wordflow-pipeline-step {
+      background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+      padding: 14px; position: relative; display: flex; flex-direction: column; justify-content: space-between;
+    }
+    .wordflow-pipeline-header {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;
+    }
+    .wordflow-pipeline-badge {
+      font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 4px;
+    }
+    .wordflow-pipeline-step-title { font-size: 13px; font-weight: 700; color: var(--text); }
+    .wordflow-pipeline-val { font-size: 20px; font-weight: 800; margin: 4px 0 2px 0; }
+    .wordflow-pipeline-desc { font-size: 11.5px; color: var(--text-muted); line-height: 1.4; }
+
+    .wordflow-charts-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 18px;
+    }
+    @media (max-width: 900px) {
+      .wordflow-charts-grid { grid-template-columns: 1fr; }
+    }
+    .wordflow-chart-panel {
+      background: var(--chart-container-bg); border: 1px solid var(--border);
+      border-radius: 10px; padding: 14px;
+    }
+    .wordflow-chart-title {
+      font-size: 13px; font-weight: 700; color: var(--chart-title-color); margin-bottom: 10px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .wordflow-advice-box {
+      padding: 14px 18px; border-radius: 10px;
+      background: rgba(2, 132, 199, 0.06); border: 1px solid rgba(2, 132, 199, 0.2);
+    }
+    [data-theme="dark"] .wordflow-advice-box {
+      background: rgba(2, 132, 199, 0.12); border-color: rgba(56, 189, 248, 0.3);
+    }
+    .wordflow-advice-title { font-size: 13px; font-weight: 700; color: #0284c7; margin-bottom: 6px; }
+    [data-theme="dark"] .wordflow-advice-title { color: #38bdf8; }
+    .wordflow-advice-list { margin: 0; padding-left: 18px; font-size: 13px; color: var(--text); line-height: 1.6; }
+
+</style>

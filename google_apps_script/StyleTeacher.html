@@ -1,0 +1,185 @@
+<style>
+    /* ── 教師班級表格 ── */
+    .class-table { min-width: 900px; }
+    .class-table th:first-child, .class-table td:first-child { text-align: left; padding-left: 16px; }
+    .student-link {
+      color: var(--primary); font-weight: 700; cursor: pointer; text-decoration: underline;
+      text-underline-offset: 2px; transition: color 0.15s;
+    }
+    .student-link:hover { color: var(--primary-hover); }
+    .has-data-badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 9999px; }
+    .badge-active { color: var(--success); background: var(--success-bg); }
+    .badge-inactive { color: var(--text-muted); background: var(--diff-zero-bg); }
+
+    /* ── 教師總覽加強樣式 ── */
+    .teacher-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+    .teacher-search-box { position: relative; min-width: 220px; flex-grow: 1; max-width: 320px; }
+    .teacher-search-input { width: 100%; padding: 8px 12px 8px 34px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 13.5px; background: var(--input-bg); color: var(--text); }
+    .teacher-search-input:focus { outline: none; border-color: var(--primary); }
+    .teacher-search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 14px; color: var(--text-muted); pointer-events: none; }
+    .filter-chip-group { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+    .filter-chip { padding: 5px 12px; border-radius: 9999px; font-size: 12.5px; font-weight: 600; border: 1.5px solid var(--border); background: var(--card); color: var(--text-muted); cursor: pointer; transition: all 0.18s; }
+    .filter-chip:hover { border-color: var(--primary); color: var(--primary); }
+    .filter-chip.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .filter-chip.need-attention.active { background: var(--danger); border-color: var(--danger); color: #fff; }
+
+    .sortable-th { cursor: pointer; user-select: none; transition: background-color 0.15s; }
+    .sortable-th:hover { background-color: var(--table-hover-bg); color: var(--primary); }
+    .sort-icon { font-size: 11px; margin-left: 3px; opacity: 0.55; }
+    .sortable-th.active-sort { color: var(--primary); }
+    .sortable-th.active-sort .sort-icon { opacity: 1; font-weight: bold; }
+
+    .rank-badge { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; font-size: 11px; margin-right: 6px; font-weight: bold; }
+    .rank-1 { background: #fef08a; color: #854d0e; border: 1px solid #fde047; }
+    .rank-2 { background: #e2e8f0; color: #334155; border: 1px solid #cbd5e1; }
+    .rank-3 { background: #ffedd5; color: #9a3412; border: 1px solid #fdba74; }
+    .attention-pill { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 9999px; background: var(--danger-bg); color: var(--danger); margin-left: 6px; }
+    .btn-view-student { padding: 3px 8px; font-size: 12px; border-radius: 5px; min-height: 26px; }
+
+    /* ── 空值淡化 ── */
+    .zero-val { color: var(--text-muted); opacity: 0.45; }
+
+    /* ── 空狀態 ── */
+    .no-data { text-align: center; padding: 48px 20px; color: var(--text-muted); font-size: 14px; }
+    .no-data-icon { font-size: 3rem; display: block; margin-bottom: 12px; }
+    .no-data-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+
+    /* ── 手機卡片 ── */
+    .mobile-card { display: none; background: var(--card); border: 1.5px solid var(--border); border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.02); }
+    .mobile-card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 10px; font-weight: bold; flex-wrap: wrap; gap: 6px; }
+    .mobile-card-body { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; font-size: 13px; }
+    .mobile-item { display: flex; flex-direction: column; }
+    .mobile-label { color: var(--text-muted); font-size: 11px; margin-bottom: 2px; font-weight: 500; }
+
+    /* 教師專用手機卡片 */
+    .teacher-mobile-cards-list { display: none; }
+    .teacher-mobile-card {
+      background: var(--card); border: 1.5px solid var(--border); border-radius: 12px;
+      padding: 14px; margin-bottom: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+      transition: border-color 0.2s;
+    }
+    .teacher-mobile-card-header {
+      display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border);
+      padding-bottom: 8px; margin-bottom: 10px; flex-wrap: wrap; gap: 6px;
+    }
+    .teacher-mobile-card-body {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; font-size: 13px;
+    }
+
+    @media (max-width: 768px) {
+      .table-container { background: transparent !important; border: none !important; }
+      .table-container table.student-data-table { display: none !important; }
+      .mobile-card { display: block !important; }
+      #resultCard { background: transparent !important; border: none !important; box-shadow: none !important; padding: 0 !important; }
+      #classOverviewTableContainer .class-table { display: none !important; }
+      .teacher-mobile-cards-list { display: flex !important; flex-direction: column !important; gap: 10px !important; }
+    }
+
+    /* ── Spinner ── */
+    .spinner { border: 2px solid rgba(255,255,255,0.3); border-top: 2px solid white; border-radius: 50%; width: 14px; height: 14px; animation: spin 0.8s linear infinite; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    /* ── 教師返回列 ── */
+    #teacherBackBar { display: none; padding: 14px 24px; }
+    #teacherBackBar .back-inner { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+    .viewing-label { font-size: 1rem; color: var(--text-muted); }
+    .viewing-name  { font-weight: 700; font-size: 1.1rem; color: var(--primary); }
+
+    /* ── 密碼管理 Modal ── */
+    #passwordModal {
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.55); z-index: 1000;
+      align-items: center; justify-content: center;
+    }
+    #passwordModal.open { display: flex; }
+    #passwordModalInner {
+      background: var(--card); border-radius: 16px; padding: 28px 32px;
+      max-width: 480px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      position: relative; border: 1px solid var(--border);
+    }
+    .modal-close {
+      position: absolute; top: 12px; right: 14px; background: none; border: none;
+      font-size: 20px; cursor: pointer; color: var(--text-muted);
+      min-height: auto; padding: 4px 8px; line-height: 1;
+    }
+    .modal-close:hover { color: var(--text); background: none; transform: none; }
+
+    /* 密碼表格 */
+    .pwd-table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin-bottom: 20px; }
+    .pwd-table th, .pwd-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); text-align: left; }
+    .pwd-table th { background: var(--table-header-bg); font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px; }
+    .pwd-table tr:last-child td { border-bottom: none; }
+    .pwd-table tr:hover td { background: var(--table-hover-bg); }
+    .pwd-input { width: 100%; padding: 5px 8px; border: 1.5px solid var(--border); border-radius: 6px; font-size: 13px; color: var(--text); background: var(--input-bg); }
+    .pwd-input:focus { outline: none; border-color: var(--primary); }
+    .pwd-save-btn { padding: 4px 10px; font-size: 12.5px; min-height: 30px; border-radius: 6px; }
+    .pwd-saved { color: var(--success); font-size: 12px; font-weight: 700; }
+
+    /* ── 錯誤日誌 Modal ── */
+    #errorLogModal {
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.55); z-index: 1000;
+      align-items: center; justify-content: center;
+    }
+    #errorLogModal.open { display: flex; }
+    #errorLogModalInner {
+      background: var(--card); border-radius: 16px; padding: 24px 28px;
+      max-width: 900px; width: 94%; max-height: 85vh; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      position: relative; border: 1px solid var(--border); display: flex; flex-direction: column;
+    }
+    .log-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .log-table th, .log-table td { padding: 9px 12px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
+    .log-table th { background: var(--table-header-bg); font-weight: 700; font-size: 12px; position: sticky; top: 0; z-index: 1; text-transform: uppercase; letter-spacing: 0.3px; }
+    .log-table tr:hover td { background: var(--table-hover-bg); }
+    .log-badge-time { font-family: monospace; font-size: 11.5px; color: var(--text-muted); white-space: nowrap; }
+    .log-badge-action { font-weight: 600; color: var(--primary); font-size: 12px; white-space: nowrap; background: var(--primary-light); padding: 2px 6px; border-radius: 4px; }
+    .log-msg-err { color: var(--danger); font-weight: 600; word-break: break-word; font-size: 12.5px; }
+    .log-details-box { font-family: monospace; font-size: 11px; max-height: 80px; overflow-y: auto; background: var(--table-header-bg); padding: 5px 8px; border-radius: 4px; border: 1px solid var(--border); white-space: pre-wrap; word-break: break-all; color: var(--text-muted); }
+
+    /* ── 手機篩選 ── */
+    #filterToggleBtn { display: none; width: 100%; justify-content: center; margin-bottom: 10px; }
+    #filterBody { transition: max-height 0.3s ease, opacity 0.3s ease; overflow: hidden; }
+    @media (max-width: 640px) {
+      #filterToggleBtn { display: flex; }
+      #filterBody.collapsed { max-height: 0 !important; opacity: 0; pointer-events: none; }
+    }
+
+    /* ── 回到頂部 ── */
+    #backToTop {
+      position: fixed; bottom: 24px; right: 20px; width: 44px; height: 44px;
+      border-radius: 50%; background: var(--primary); color: #fff;
+      font-size: 20px; border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 16px rgba(37,99,235,0.35);
+      opacity: 0; pointer-events: none; transition: opacity 0.25s ease, transform 0.25s ease; z-index: 999;
+    }
+    #backToTop.visible { opacity: 1; pointer-events: auto; }
+    #backToTop:hover { transform: translateY(-2px); background: var(--primary-hover); }
+    #backToTop:active { transform: scale(0.93); }
+
+    /* ── 手機觸控 ── */
+    @media (max-width: 768px) {
+      button:not(.date-nav-btn):not(.export-dl-btn):not(.export-mode-btn), input[type="text"], input[type="password"], input[type="date"]:not(.date-picker-input), select:not(.task-date-selector) { min-height: 44px !important; }
+      .pagination-btn { min-height: 44px !important; min-width: 44px !important; }
+    }
+
+    /* ── 列印 ── */
+    @media print {
+      body { background: white; padding: 0; }
+      #backToTop, #btnThemeToggle, #btnLogin, #btnRefresh, #btnFilter,
+      .quick-dates, .btn-secondary, .pagination-wrapper,
+      #filterToggleBtn, #teacherBackBar, #passwordModal { display: none !important; }
+      .card { box-shadow: none; border: 1px solid #ccc; }
+      /* 未開啟報告書預覽時，隱藏報告書模態框 */
+      body:not(.modal-report-open):not(:has(#printReportModal.open)) #printReportModal {
+        display: none !important;
+      }
+      body:not(.modal-daily-report-open):not(:has(#studentDailyTaskReportModal.open)) #studentDailyTaskReportModal {
+        display: none !important;
+      }
+    }
+
+    /* ── 稀疏資料提示 ── */
+    #sparseDataNotice { display:none; margin-bottom:14px; padding: 12px 16px; border-radius: 10px; background: var(--warning-bg); color: var(--warning); font-size: 13px; font-weight: 500; line-height: 1.6; }
+
+</style>

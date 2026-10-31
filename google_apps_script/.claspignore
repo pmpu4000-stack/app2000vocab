@@ -6,9 +6,14 @@
 !AnalyticsService.js
 !SpreadsheetService.js
 !Index.html
-!Style.html
+!StyleBase.html
+!StyleTeacher.html
+!StyleStudent.html
+!StylePrint.html
 !ClientCoreJs.html
 !TeacherJs.html
 !StudentAnalyticsJs.html
-!ExportReportJs.html
+!StudentChipsJs.html
+!ExportPdfJs.html
+!ExportExcelJs.html
 !appsscript.json

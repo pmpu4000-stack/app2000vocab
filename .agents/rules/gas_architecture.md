@@ -35,15 +35,21 @@ description: 修改或查詢 google_apps_script/（Code.gs、Index.html、teache
 
 ---
 
-## 二、GAS 查詢系統前端（高內聚模組化架構）
+## 二、GAS 查詢系統前端（極致高內聚模組化架構）
 - **HTML 骨架**：`google_apps_script/Index.html`（~2,290 行，純 DOM 與 Modals 骨架，鏡像 `teacher_history.html`）
-  - 透過 `include` 引入 `Style`、`ClientCoreJs`、`TeacherJs`、`StudentAnalyticsJs`、`ExportReportJs`
-- **CSS 樣式模組**：`google_apps_script/Style.html`（~5,570 行，鏡像 `teacher_style.html`）
+  - 透過 `include` 組合所有樣式與模組
+- **CSS 樣式模組（按頁面切分）**：
+  1. `StyleBase.html`：基礎變數、深淺主題、按鈕、輸入框、全螢幕（~581 行，鏡像 `teacher_style_base.html`）
+  2. `StyleTeacher.html`：教師總覽大卡片、班級表格、時間管制、出題 Modal（~183 行，鏡像 `teacher_style_teacher.html`）
+  3. `StyleStudent.html`：學生歷程卡、KPI、熱力圖、目標里程碑、常錯小卡（~725 行，鏡像 `teacher_style_student.html`）
+  4. `StylePrint.html`：A4 診斷報告列印預覽與 `@media print` 專用排版（~4,072 行，鏡像 `teacher_style_print.html`）
 - **JS 客戶端邏輯模組（按角色功能切分）**：
-  1. `ClientCoreJs.html`：基礎認證、共用 DOM 安全輔助、主題切換、Toast、資料拉取（~596 行）
-  2. `TeacherJs.html`：教師總覽大儀表板、出題 Modal、時間管制、大數據分析、密碼管理（~3,894 行）
-  3. `StudentAnalyticsJs.html`：學生歷程處理、KPI、Chart.js 圖表、熱力圖、目標里程碑、弱點常錯卡片（~3,427 行）
-  4. `ExportReportJs.html`：A4 PDF 列印報表生成器、Excel (.xlsx) 樣式自定義匯出引擎（~7,826 行）
+  1. `ClientCoreJs.html`：基礎認證、共用 DOM 安全輔助、主題切換、Toast、資料拉取（~596 行，鏡像 `teacher_client_core.html`）
+  2. `TeacherJs.html`：教師總覽大儀表板、出題 Modal、時間管制、大數據分析、密碼管理（~3,894 行，鏡像 `teacher_client_teacher.html`）
+  3. `StudentAnalyticsJs.html`：學生歷程處理、KPI、Chart.js 圖表、熱力圖、目標里程碑、弱點常錯卡片（~3,427 行，鏡像 `teacher_client_student.html`）
+  4. `StudentChipsJs.html`：單字晶片卡片、已掌握/修復單字清單（~1,705 行，鏡像 `teacher_chips.html`）
+  5. `ExportPdfJs.html`：A4 PDF 列印報告預覽與下載生成（~5,469 行，鏡像 `teacher_export_pdf.html`）
+  6. `ExportExcelJs.html`：Excel (.xlsx) 彩色樣式自定義匯出引擎（~652 行，鏡像 `teacher_export_excel.html`）
 - **後端模組引導**：`Code.gs` 含 `include(filename)` 與 `doGet(e)` 透過 `createTemplateFromFile("Index").evaluate()` 解析樣版
 
 ### HTML Body（4537–6779）
@@ -82,5 +88,5 @@ description: 修改或查詢 google_apps_script/（Code.gs、Index.html、teache
 ### `src/` 模組
 - **`src/app.js`**（1,773 行）：35 `scheduleCloudTaskSync` · 45 `persistTaskProgress` · 94 `getSaturdayRemedyRecord` · 163 `getVacationInfo` · 185 `recordSundayRemainingMistakes` · 207 `markWordLearnedInFreePractice` · 269 `getVacationDayAssignedWords` · 296 `recordTaskMistake` · 324 `getMonToFriUnfinishedWords` · 431 `levelInfo` · 441 `refreshChrome` · 508 `renderCurrent` · 543 `isCurfewActive` · 580 `newRound` · 625 `check` · 640 `answer` · 728 `pickLevel` · 784 `startPlacement` · 814 `startChallenge` · 856 `isDesignatedTaskPendingToday` · 933 `checkAndStartDailyTask` · 1162 `showTaskIntroScreen` · 1337 `startTaskExecution` · 1358 `finishTaskMode`
 - **`src/store.js`**（1,038 行）：11 `normalizeDateStr` · 47 `getWeekRangeDates` · 64 `getBiweeklyCycleInfo` · 136 `load` · 218 `save` · 226 `grade` · 359 `historyData` · 575 `levelStats` · 625 `stats` · 678 `getDailyPractice` · 742 `summary` · 988 `getPrecomputedSummary`
-- **`src/ui.js`**（4,961 行）：74 `setScreen` · 108 `renderRound` · 234 `renderListen` · 246 `renderPick` · 271 `renderTrap` · 327 `renderScramble` · 446 `showResult` · 545 `renderProgress` · 670 `getCombinedTaskHistory` · 1049 `resolveTaskWords` · 1271 `renderSingleTaskCardHtml` · 1783 `renderUntestedTaskCardHtml` · 1885 `buildTaskDetailsHtml` · 2093 `buildFreeDetailsHtml` · 2324 `resolveDailyPracticeRecord` · 2445 `getWeekPendingConquerWords` · 2636 `buildWeekPendingConquerHtml` · 2844 `renderSummary` · 3588 底部紀錄匯出模組（3685 `_buildExportPayload` / 4100 `_exportRecordToExcel` / 4443 `_exportRecordToPdf` / 4673 `initExportRecordsCard`） · 4909 `initProgressCard` · 4932 `initConquerCard`
-- **輔助模組**：`src/audio.js`(405L) · `src/wordbank.js`(108L) · `src/levels.js`(101L) · `src/data.js`(77L) · `src/diagnostics.js`(55L) · `src/srs.js`(39L) · `src/confetti.js`(8L) · `src/anticheat.js`(6L)
+- **`src/ui.js`**（4,050 行）：核心主畫面、模式作答渲染、結算回饋；底部匯出已拆為 `src/ui_export.js`(1,579L)，常錯小卡已拆為 `src/ui_weak_words.js`(297L)
+- **輔助模組**：`src/ui_export.js`(1,579L) · `src/ui_weak_words.js`(297L) · `src/audio.js`(405L) · `src/wordbank.js`(108L) · `src/levels.js`(101L) · `src/data.js`(77L) · `src/diagnostics.js`(55L) · `src/srs.js`(39L) · `src/confetti.js`(8L) · `src/anticheat.js`(6L)
