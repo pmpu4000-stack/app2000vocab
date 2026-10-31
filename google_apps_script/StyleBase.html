@@ -580,4 +580,11 @@ body.css-fullscreen-active {
     .pagination-info { font-size: 13px; color: var(--text-muted); margin: 0 4px; font-weight: 500; }
     @media (max-width: 520px) { .pagination-btn.page-num { display: none; } }
 
+
+/* ═══ GPU 算力與長列表渲染優化 (極致流暢) ═══ */
+.table-responsive, .report-scroll-container, .analytics-grid, #weak-words-grid, .word-picker-grid {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 500px;
+}
+
 </style>
