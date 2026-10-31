@@ -15531,6 +15531,8 @@ function initStudentWeakWordsCard() {
 
     const list = [];
     wordCounts.forEach((count, word) => {
+      // ★ 核心新規範：累積答錯 ≥ 2 次才正式列入常錯清單（排除手滑粗心）
+      if (count < 2) return;
       const zh = (typeof getWordZh === "function") ? getWordZh(word) : "";
       const lv = (typeof getWordLevelNumber === "function") ? getWordLevelNumber(word) : 1;
       list.push({ word, count, zh, level: lv });

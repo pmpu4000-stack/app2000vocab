@@ -5692,10 +5692,35 @@ export function initWeakWordsCard() {
       }
     }
 
+    // 取得週末補救與後續練習已攻克的單字
+    const remedyLearned = new Set();
+    try {
+      const rawLearned = localStorage.getItem("remedy_learned_words");
+      if (rawLearned) {
+        const arr = JSON.parse(rawLearned);
+        if (Array.isArray(arr)) arr.forEach(w => remedyLearned.add(String(w).trim().toLowerCase()));
+      }
+    } catch (_) {}
+
+    const isMasteredWord = (wObj) => {
+      if (!wObj) return false;
+      if (remedyLearned.has(wObj.word.toLowerCase())) return true;
+      if (typeof window !== "undefined" && window.__store && typeof window.__store.box === "function") {
+        const b = window.__store.box(wObj.id);
+        if (b >= 2) return true; // 連續答對 ≥ 2 次，判定克服弱點移出
+      }
+      return false;
+    };
+
     const list = [];
     const allWords = window.__WORDS || [];
     wordCounts.forEach((count, word) => {
+      // ★ 核心新規範：累積答錯 ≥ 2 次才正式列入常錯清單（排除手滑粗心）
+      if (count < 2) return;
       const wObj = allWords.find(x => x.word.toLowerCase() === word) || {};
+      // ★ 核心新規範：後續已在測驗/練習連續答對 ≥ 2 次，移出常錯榜
+      if (isMasteredWord(wObj)) return;
+
       const tagInfo = analyzeErrorTag(word, wObj.zh, wObj.ph);
       list.push({
         word,
