@@ -1,3 +1,36 @@
+
+// ── 🚀 螢幕常亮喚醒鎖 (Screen Wake Lock API)：測驗作答中防止手機自動黑屏休眠 ──
+let wakeLockSentinel = null;
+async function requestScreenWakeLock() {
+  if (typeof navigator !== "undefined" && "wakeLock" in navigator) {
+    try {
+      if (!wakeLockSentinel) {
+        wakeLockSentinel = await navigator.wakeLock.request("screen");
+        wakeLockSentinel.addEventListener("release", () => {
+          wakeLockSentinel = null;
+        });
+      }
+    } catch (_) {}
+  }
+}
+
+function releaseScreenWakeLock() {
+  if (wakeLockSentinel) {
+    try {
+      wakeLockSentinel.release().catch(() => {});
+    } catch (_) {}
+    wakeLockSentinel = null;
+  }
+}
+
+if (typeof document !== "undefined") {
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible" && taskState && taskState.active) {
+      requestScreenWakeLock();
+    }
+  });
+}
+
 // =====================================================================
 // app.js — the controller. Boots the word bank, runs the placement test,
 // drives level-based practice, gates progression behind challenges,
@@ -1373,6 +1406,7 @@ function showTaskIntroScreen(task) {
 }
 
 function startTaskExecution() {
+  requestScreenWakeLock();
   store.sessionStart();
   taskState.pending = false;
   taskState.active  = true;
@@ -1399,6 +1433,7 @@ function startTaskExecution() {
 }
 
 function finishTaskMode() {
+  releaseScreenWakeLock();
   taskState.active = false;
   taskState.pending = false;
   const task = taskState.task;
