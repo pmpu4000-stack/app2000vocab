@@ -4874,6 +4874,30 @@ async function _exportRecordToExcel(payload) {
   }
 }
 
+// 一頁檢視外框：包成「A4 紙本文件」樣式（灰桌面＋白紙＋公文式抬頭），與遊戲網頁畫面明確區隔
+function _wrapReportPreviewPaper(innerHtml, payload) {
+  const p = payload || {};
+  const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const sd = p.startDate || "", ed = p.endDate || "";
+  const range = sd && ed ? (sd === ed ? sd : sd + " ～ " + ed) : "—";
+  const who = p.studentId || p.studentName || p.username || "—";
+  const now = new Date();
+  const ts = now.getFullYear() + "/" + String(now.getMonth() + 1).padStart(2, "0") + "/" + String(now.getDate()).padStart(2, "0") + " " + String(now.getHours()).padStart(2, "0") + ":" + String(now.getMinutes()).padStart(2, "0");
+  return '<div style="background:#C9CED9; padding:16px 8px; border-radius:10px;">'
+    + '<div style="position:relative; max-width:794px; margin:0 auto; background:#fff; color:#1F2937; box-shadow:0 6px 22px rgba(15,23,42,.35); border-top:6px solid #334155; padding:18px 16px 14px; font-family:\'Noto Serif TC\',\'PMingLiu\',\'Songti TC\',serif;">'
+    + '<div style="position:absolute; top:12px; right:14px; border:2px solid #B91C1C; color:#B91C1C; font-size:11px; font-weight:800; letter-spacing:2px; padding:2px 8px; transform:rotate(6deg); opacity:.8;">列印預覽</div>'
+    + '<div style="text-align:center; border-bottom:2px double #334155; padding-bottom:10px; margin-bottom:12px;">'
+    + '<div style="font-size:12px; letter-spacing:4px; color:#64748B;">APP 2000 VOCAB · LEARNING RECORD</div>'
+    + '<div style="font-size:22px; font-weight:900; letter-spacing:3px; margin-top:4px;">歷程檔案　作答歷程報告書</div></div>'
+    + '<table style="width:100%; border-collapse:collapse; font-size:13px; margin-bottom:14px;"><tr>'
+    + '<td style="border:1px solid #94A3B8; background:#F1F5F9; padding:4px 8px; width:18%; font-weight:700;">學員</td><td style="border:1px solid #94A3B8; padding:4px 8px;">' + esc(who) + '</td>'
+    + '<td style="border:1px solid #94A3B8; background:#F1F5F9; padding:4px 8px; width:18%; font-weight:700;">報告期間</td><td style="border:1px solid #94A3B8; padding:4px 8px;">' + esc(range) + '</td></tr>'
+    + '<tr><td style="border:1px solid #94A3B8; background:#F1F5F9; padding:4px 8px; font-weight:700;">製表時間</td><td colspan="3" style="border:1px solid #94A3B8; padding:4px 8px;">' + ts + '</td></tr></table>'
+    + '<div style="font-family:system-ui,\'Noto Sans TC\',sans-serif;">' + innerHtml + '</div>'
+    + '<div style="margin-top:14px; border-top:1px dashed #94A3B8; padding-top:6px; text-align:center; font-size:11px; color:#64748B;">— 本頁為歷程檔案文件預覽（唯讀），非遊戲畫面；可下載 PDF 列印存檔 —</div>'
+    + '</div></div>';
+}
+
 function _buildReportHtml(payload) {
   const ov = payload.overall;
   const ps = payload.periodSummary;
@@ -5469,7 +5493,7 @@ export function initExportRecordsCard(getSummaryFn) {
 
       const payload = _buildExportPayload(d, currentMode, sDate, eDate);
       if (previewBody) {
-        previewBody.innerHTML = _buildReportHtml(payload);
+        previewBody.innerHTML = _wrapReportPreviewPaper(_buildReportHtml(payload), payload);
       }
       if (previewContainer) {
         previewContainer.style.display = "block";
