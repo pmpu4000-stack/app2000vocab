@@ -5026,37 +5026,49 @@
       box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.5) !important;
     }
     
-    /* 行動裝置/平板虛擬鍵盤防遮擋最佳化 */
+    /* 登入遮罩與滑條消除、防鍵盤遮擋最佳化 */
     #login-overlay {
-      position: fixed !important;
-      top: 0 !important;
-      left: 0 !important;
-      width: 100% !important;
-      height: 100% !important;
-      height: 100dvh !important;
-      min-height: 100dvh !important;
-      display: flex !important;
-      justify-content: center !important;
-      align-items: center !important;
-      overflow-y: auto !important;
-      -webkit-overflow-scrolling: touch !important;
-      box-sizing: border-box !important;
-      padding: 24px 16px !important;
-      z-index: 9999 !important;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      min-height: 100dvh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      box-sizing: border-box;
+      padding: 24px 16px;
+      z-index: 9999;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    #login-overlay::-webkit-scrollbar {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+    }
+    #login-overlay.hidden,
+    #login-overlay[style*="display: none"],
+    #login-overlay[style*="display:none"] {
+      display: none !important;
     }
     #login-overlay > div {
-      margin: auto 0 !important;
-      max-width: 94vw !important;
-      box-sizing: border-box !important;
+      margin: auto 0;
+      max-width: 94vw;
+      box-sizing: border-box;
     }
     @media (max-height: 740px), (max-width: 600px) {
       #login-overlay {
-        align-items: flex-start !important;
-        padding-top: 24px !important;
-        padding-bottom: 260px !important;
+        align-items: flex-start;
+        padding-top: 24px;
+        padding-bottom: 32px;
       }
       #login-overlay > div {
-        margin: 0 auto !important;
+        margin: 0 auto;
       }
     }
 
@@ -5189,21 +5201,24 @@
       display: flex !important;
       visibility: hidden !important;
       opacity: 0 !important;
-      min-height: 44px;
+      height: 44px !important;
+      min-height: 44px !important;
+      max-height: 44px !important;
       align-items: center;
       justify-content: center;
       gap: 8px;
       width: 100%;
-      box-sizing: border-box;
+      box-sizing: border-box !important;
       margin: 0 !important;
-      padding: 11px 16px;
+      padding: 0 16px !important;
       border-radius: 12px;
-      font-size: 14px;
-      font-weight: 800;
-      line-height: 1.45;
+      font-size: 13.5px;
+      font-weight: 700;
+      line-height: 1.2;
       text-align: center;
-      border: 1.5px solid transparent;
-      background: transparent;
+      border: 1.5px solid transparent !important;
+      background: transparent !important;
+      box-shadow: none !important;
       pointer-events: none !important;
       transition: opacity 0.2s ease, background 0.2s, border-color 0.2s;
     }
@@ -8070,7 +8085,7 @@ function fetchData(isRefresh = false, onComplete = null) {
 function initTeacherDashboard(resp) {
   // 隱藏登入遮罩並顯示主控制區
   const overlay = document.getElementById("login-overlay");
-  if (overlay) overlay.style.display = "none";
+  if (overlay) { overlay.style.setProperty("display", "none", "important"); overlay.classList.add("hidden"); }
   const mainCard = document.getElementById("mainControlCard");
   if (mainCard) mainCard.style.display = "block";
   document.getElementById("loginSection").style.display = "none";
@@ -11768,7 +11783,7 @@ window.addEventListener("error", (e) => {
 function showStudentSections() {
   document.body.classList.add("student-mode");
   const overlay = document.getElementById("login-overlay");
-  if (overlay) overlay.style.display = "none";
+  if (overlay) { overlay.style.setProperty("display", "none", "important"); overlay.classList.add("hidden"); }
   document.getElementById("mainControlCard").style.display = "block";
   document.getElementById("querySection").style.display = "none";
   
