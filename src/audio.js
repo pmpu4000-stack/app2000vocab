@@ -1,4 +1,30 @@
 
+const AUDIO_CLEANUP_KEY = "last_audio_cache_cleanup_ts";
+const TWO_WEEKS_MS = 14 * 24 * 60 * 60 * 1000;
+
+// 🚀 音檔每兩週自動清理一次，釋放過期快取不佔手機空間
+async function autoPruneAudioCache() {
+  if (typeof window === "undefined" || !("caches" in window)) return;
+  try {
+    const lastCleanup = parseInt(localStorage.getItem(AUDIO_CLEANUP_KEY) || "0", 10);
+    const now = Date.now();
+    if (now - lastCleanup > TWO_WEEKS_MS) {
+      console.log("🧹 正在執行每兩週音檔快取自動清理...");
+      await caches.delete(AUDIO_CACHE_NAME);
+      if (typeof audioBlobMap !== "undefined" && audioBlobMap.clear) {
+        audioBlobMap.clear();
+      }
+      localStorage.setItem(AUDIO_CLEANUP_KEY, String(now));
+      console.log("✅ 音檔快取清理完成，儲存空間已釋放！");
+    }
+  } catch (_) {}
+}
+
+if (typeof window !== "undefined") {
+  setTimeout(autoPruneAudioCache, 2500);
+}
+
+
 let audioCtx = null;
 let compressor = null;
 

@@ -1038,18 +1038,8 @@
             }
           } catch(_) {}
 
-          // 切換不同使用者帳號時，完整清理前一位使用者的所有學習紀錄、任務快取與歷史明細
-          if (isDifferentUser) {
-            purgeAllStudentSessionAndLocalData();
-          } else {
-            // 同一帳號重新登入時，亦先清除舊的 task_words_* 快取，改由伺服器回傳之最新 taskWordsMap 寫入
-            const oldTaskWordKeys = [];
-            for (let i = 0; i < localStorage.length; i++) {
-              const k = localStorage.key(i);
-              if (k && (k.startsWith("task_words_") || k === "today_task_in_progress")) oldTaskWordKeys.push(k);
-            }
-            oldTaskWordKeys.forEach(k => localStorage.removeItem(k));
-          }
+          // 🚀 核心規範：每次登入時徹底清除所有本機快取與歷史紀錄，確保一人一機絕對純淨隔離，完全免除他人帳號影響
+          purgeAllStudentSessionAndLocalData();
 
           localStorage.setItem("current_user", user);
           localStorage.setItem("user_role", result.role || "student");

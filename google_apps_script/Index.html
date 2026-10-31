@@ -22390,10 +22390,10 @@ function copyStudentDailyReport() {
       `💡 親師叮嚀：每天堅持 5～10 分鐘，積少成多！請同學抽空登入挑戰今日單字～加油！💪`;
   }
 
+  // 🚀 即時回饋零延遲秒複製
+  showToast("📋 親師成果快報已複製至剪貼簿！可直接貼至 LINE 或親師群組", "success");
   if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(content).then(() => {
-      showToast("📋 親師成果快報已複製至剪貼簿！可直接貼至 LINE 或親師群組", "success");
-    }).catch(err => {
+    navigator.clipboard.writeText(content).catch(() => {
       fallbackCopyReport(content);
     });
   } else {
