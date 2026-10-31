@@ -36,15 +36,6 @@
 
         <div id="login-msg" class="login-status-banner">&nbsp;</div>
 
-        <div class="curfew-note-box">
-          <span class="note-icon">⏰</span>
-          <div class="note-body">
-            <div>每日開放作答時間：07:30 至 22:00</div>
-            <div>請於時段內進行十分鐘指定單字測驗</div>
-            <div>並歡迎多加進行自由練習</div>
-          </div>
-        </div>
-
         <div class="login-study-note">
           <span class="note-icon">💡</span>
           <div class="note-body">
@@ -908,6 +899,40 @@
       else if (type === "warning") icon = "⏰";
       msgEl.innerHTML = `<span style="font-size:16px;">${icon}</span> <span>${text}</span>`;
     };
+
+    
+// 行動裝置輸入時自動滾動至可視區域中央，避免被虛擬鍵盤遮擋
+(function bindMobileKeyboardHandler() {
+  function scrollIntoSafeView(el) {
+    if (!el) return;
+    setTimeout(() => {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+    }, 120);
+    setTimeout(() => {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+    }, 350);
+  }
+
+  ['login-user', 'login-pass'].forEach(id => {
+    const inp = document.getElementById(id);
+    if (inp) {
+      inp.addEventListener('focus', function() {
+        scrollIntoSafeView(this);
+      });
+    }
+  });
+
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', () => {
+      const activeEl = document.activeElement;
+      if (activeEl && (activeEl.id === 'login-user' || activeEl.id === 'login-pass')) {
+        setTimeout(() => {
+          activeEl.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+        }, 100);
+      }
+    });
+  }
+})();
 
     loginBtn.addEventListener('click', async () => {
       if (isLoggingIn) return;

@@ -5025,6 +5025,41 @@
       color: #F0F3FA !important;
       box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.5) !important;
     }
+    
+    /* 行動裝置/平板虛擬鍵盤防遮擋最佳化 */
+    #login-overlay {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+      height: 100dvh !important;
+      min-height: 100dvh !important;
+      display: flex !important;
+      justify-content: center !important;
+      align-items: center !important;
+      overflow-y: auto !important;
+      -webkit-overflow-scrolling: touch !important;
+      box-sizing: border-box !important;
+      padding: 24px 16px !important;
+      z-index: 9999 !important;
+    }
+    #login-overlay > div {
+      margin: auto 0 !important;
+      max-width: 94vw !important;
+      box-sizing: border-box !important;
+    }
+    @media (max-height: 740px), (max-width: 600px) {
+      #login-overlay {
+        align-items: flex-start !important;
+        padding-top: 24px !important;
+        padding-bottom: 260px !important;
+      }
+      #login-overlay > div {
+        margin: 0 auto !important;
+      }
+    }
+
     #login-overlay h2 {
       color: #232A4D;
       margin: 0 0 8px 0 !important;
@@ -5389,15 +5424,6 @@
         </button>
 
         <div id="login-msg" class="login-status-banner">&nbsp;</div>
-
-        <div class="curfew-note-box">
-          <span class="note-icon">⏰</span>
-          <div class="note-body">
-            <div>每日開放作答時間：07:30 至 22:00</div>
-            <div>請於時段內進行十分鐘指定單字測驗</div>
-            <div>並歡迎多加進行自由練習</div>
-          </div>
-        </div>
 
         <div class="login-study-note">
           <span class="note-icon">💡</span>
@@ -7825,6 +7851,40 @@ function setBtnLoading(btnId, isLoading, text) {
 // ════════════════════════════════════════
 // 登入
 // ════════════════════════════════════════
+
+// 行動裝置輸入時自動滾動至可視區域中央，避免被虛擬鍵盤遮擋
+(function bindMobileKeyboardHandler() {
+  function scrollIntoSafeView(el) {
+    if (!el) return;
+    setTimeout(() => {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+    }, 120);
+    setTimeout(() => {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+    }, 350);
+  }
+
+  ['login-user', 'login-pass'].forEach(id => {
+    const inp = document.getElementById(id);
+    if (inp) {
+      inp.addEventListener('focus', function() {
+        scrollIntoSafeView(this);
+      });
+    }
+  });
+
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', () => {
+      const activeEl = document.activeElement;
+      if (activeEl && (activeEl.id === 'login-user' || activeEl.id === 'login-pass')) {
+        setTimeout(() => {
+          activeEl.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+        }, 100);
+      }
+    });
+  }
+})();
+
 function login() {
   hideToast();
   const uInp = document.getElementById("login-user") || document.getElementById("username");

@@ -1134,6 +1134,41 @@ body.is-logging-in {
   caret-color: #F0F3FA !important;
 }
 
+
+#login-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  height: 100dvh !important;
+  min-height: 100dvh !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  box-sizing: border-box !important;
+  padding: 24px 16px !important;
+}
+
+#login-overlay > div {
+  margin: auto 0 !important;
+  max-width: 94vw !important;
+  box-sizing: border-box !important;
+}
+
+@media (max-height: 740px), (max-width: 600px) {
+  #login-overlay {
+    align-items: flex-start !important;
+    padding-top: 24px !important;
+    padding-bottom: 260px !important;
+  }
+  #login-overlay > div {
+    margin: 0 auto !important;
+  }
+}
+
 /* 登入狀態提示條（高清晰、顯眼高質感） */
 
 #login-overlay h2 {
