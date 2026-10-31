@@ -1,4 +1,13 @@
 
+/* 🚀 GPU 硬體加速與複合層優化 (Hardware Accelerated 60FPS) */
+.card, .practice-card, .quiz-screen, .app, #modes, .summary-panel, #levelbar, .tile {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+
     /* 防止展開時右側出現滑條導致畫面往左閃動 (No scrollbar jump / Zero Layout Shift) */
     html {
       scrollbar-gutter: stable;

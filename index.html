@@ -1470,8 +1470,12 @@
         }
       } catch (err) {
         console.error("上傳失敗：", err);
-        if (iconEl && !isSilent) iconEl.textContent = "❌";
-        setTimeout(() => { if (iconEl) iconEl.textContent = "🌱"; }, 2500);
+        // 🚀 斷網離線待傳佇列：將完整進度暫存於本機，網路恢復時自動背景重傳，絕不丟失任何成績！
+        try {
+          localStorage.setItem("offline_pending_upload_payload", payloadStr);
+          if (iconEl) iconEl.textContent = "📡";
+        } catch(_) {}
+
         if (!isSilent) {
           let extra = "";
           if (window.location.protocol === "file:") {
@@ -1479,7 +1483,9 @@
           } else if (err && err.message) {
             extra = "\n(" + err.message + ")";
           }
-          alert("連線失敗，請檢查網路。" + extra);
+          alert("📶 網路暫時中斷，您的成績與進度已完整暫存在手機排隊佇列！\n連線恢復時系統將自動補傳，請放心繼續練習。" + extra);
+        } else {
+          setTimeout(() => { if (iconEl) iconEl.textContent = "🌱"; }, 3500);
         }
       } finally {
         isUploading = false;

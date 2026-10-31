@@ -137,6 +137,15 @@
       touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
     }
+    
+    /* 🚀 GPU 硬體加速與複合層優化 (Hardware Accelerated 60FPS) */
+    .card, .kpi-card, .mobile-card, .chart-panel, .heatmap-card {
+      transform: translateZ(0);
+      -webkit-transform: translateZ(0);
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+
     .container {
       max-width: 1320px;
       margin: 0 auto;
