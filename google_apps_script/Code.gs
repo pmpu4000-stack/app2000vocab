@@ -4864,7 +4864,7 @@ function _getStudentData(ss, username) {
   }
   let rawBVals = [];
   try {
-    rawBVals = sheet.getRange(2, 2, maxRowsToRead, 1).getValues();
+    rawBVals = sheet.getRange(2, 2, Math.min(maxRowsToRead, 3), 1).getValues();
   } catch(_) {}
 
   let wordList  = [];

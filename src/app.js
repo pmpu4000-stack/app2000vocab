@@ -37,9 +37,10 @@ function scheduleCloudTaskSync() {
   taskCloudSyncTimer = setTimeout(() => {
     taskCloudSyncTimer = null;
     if (typeof window !== "undefined" && typeof window.uploadLocalStorageData === "function") {
-      window.uploadLocalStorageData(true, true);
+      // 🚀 智慧防抖批次上傳：作答中途以 2.5~3.5 秒合併暫存，避免每題連續發送 POST，大幅降低伺服器排隊與鎖定
+      window.uploadLocalStorageData(true, false);
     }
-  }, 1000);
+  }, 1200);
 }
 
 function persistTaskProgress() {
@@ -1377,6 +1378,11 @@ function startTaskExecution() {
   if (bannerEl) bannerEl.style.display = "none";
 
   persistTaskProgress();
+  // 🚀 背景預載任務字庫發音音檔
+  try {
+    const taskWords = (taskState.pool || []).slice(0, 10).map(w => typeof w === "string" ? w : (w.word || w.display || w.w));
+    prefetchAudio(taskWords);
+  } catch(_) {}
   refreshChrome();
   newRound();
 }

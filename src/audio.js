@@ -1,3 +1,59 @@
+const AUDIO_CACHE_NAME = "spelling-audio-cache-v1";
+const audioBlobMap = new Map();
+
+/**
+ * 🚀 原生 CacheStorage 音檔預載與永久快取層：
+ * 題目一出現即非同步背景預載單字真人發音，二次播放 0 延遲且完全免聯網
+ */
+export async function prefetchAudio(words) {
+  if (typeof window === "undefined" || !("caches" in window) || !Array.isArray(words)) return;
+  try {
+    const cache = await caches.open(AUDIO_CACHE_NAME);
+    words.forEach(async (w) => {
+      const cleanW = String(w || "").trim().toLowerCase();
+      if (!/^[a-z]+$/.test(cleanW)) return;
+      const url = `https://ssl.gstatic.com/dictionary/static/sounds/20200429/${cleanW}--_us_1.mp3`;
+      if (audioBlobMap.has(url)) return;
+      const match = await cache.match(url);
+      if (!match) {
+        fetch(url, { mode: "cors" }).then(async (resp) => {
+          if (resp && resp.ok) {
+            await cache.put(url, resp.clone());
+            const blob = await resp.blob();
+            audioBlobMap.set(url, URL.createObjectURL(blob));
+          }
+        }).catch(() => {});
+      } else {
+        const blob = await match.blob();
+        audioBlobMap.set(url, URL.createObjectURL(blob));
+      }
+    });
+  } catch (_) {}
+}
+
+async function getCachedAudioSrc(url) {
+  if (audioBlobMap.has(url)) return audioBlobMap.get(url);
+  if (typeof window !== "undefined" && "caches" in window) {
+    try {
+      const cache = await caches.open(AUDIO_CACHE_NAME);
+      let resp = await cache.match(url);
+      if (!resp) {
+        resp = await fetch(url, { mode: "cors" });
+        if (resp && resp.ok) {
+          cache.put(url, resp.clone());
+        }
+      }
+      if (resp && resp.ok) {
+        const blob = await resp.blob();
+        const objUrl = URL.createObjectURL(blob);
+        audioBlobMap.set(url, objUrl);
+        return objUrl;
+      }
+    } catch (_) {}
+  }
+  return url;
+}
+
 // =====================================================================
 // audio.js — 雙引擎自然英語發音系統：
 // 1. 單一英語單字優先播放真人標準美式發音音檔（清晰男女真人發音）
@@ -236,22 +292,29 @@ function playSingleWordOrTTS(rawText, rate = 0.8, onEnd = null, token = currentS
       };
 
       try {
-        const audio = new Audio(audioUrl);
-        audio.playbackRate = 0.92;
-        currentAudio = audio;
-        audio.onended = () => {
-          if (currentAudio === audio) currentAudio = null;
-          if (!fallbackTriggered && token === currentSeqToken && onEnd) onEnd();
-        };
-        audio.onerror = () => {
-          triggerFallback();
-        };
-        const playPromise = audio.play();
-        if (playPromise && typeof playPromise.catch === "function") {
-          playPromise.catch((err) => {
-            triggerFallback(err);
-          });
-        }
+        getCachedAudioSrc(audioUrl).then(srcUrl => {
+          if (token !== currentSeqToken) return;
+          try {
+            const audio = new Audio(srcUrl);
+            audio.playbackRate = 0.92;
+            currentAudio = audio;
+            audio.onended = () => {
+              if (currentAudio === audio) currentAudio = null;
+              if (!fallbackTriggered && token === currentSeqToken && onEnd) onEnd();
+            };
+            audio.onerror = () => {
+              triggerFallback();
+            };
+            const playPromise = audio.play();
+            if (playPromise && typeof playPromise.catch === "function") {
+              playPromise.catch((err) => {
+                triggerFallback(err);
+              });
+            }
+          } catch (_) {
+            triggerFallback();
+          }
+        }).catch(triggerFallback);
         return;
       } catch (_) {
         triggerFallback();
