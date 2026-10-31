@@ -14,29 +14,18 @@ description: 修改或查詢 google_apps_script/（Code.gs、Index.html、teache
 
 ---
 
-## 一、GAS 後端：`google_apps_script/Code.gs`（~5,867 行）
+## 一、GAS 後端（模組化拆分架構）
 - **Script ID**：`1Y69AjfZvh__eyEr6fEjrl-DADDJ5KRn13yRehlWi2EGUZhO_qUQN6KcT`
 - **Web App Deployment ID**：`AKfycbx1hyCNJxqFMoaJgIxfZqLYIYH00NegI1Yd8NJP6gRjqwOndWGkmr-H9tGvVwK_axM9`
 
-| 行號 | 區段 / 函式 |
-|---|---|
-| 12–40 | `SYS` 常數、`WORD_LEVELS`(L27)、`getWordLevel`(L29) |
-| 41–172 | `calculateSummaryFromAgentData` |
-| 176–237 | **0. 密碼雜湊與資安**：`hashPassword`(176)、`isHashedPassword`(185)、`checkLoginAttempts`(193)、`recordLoginFailure`(202)、`clearLoginFailures`(214)、`getStudentClass`(222)、`isAdminTeacher`(229) |
-| 238–307 | 日期格式化：`formatStandardDateYMD`(238)、`formatStandardTimeHHmm`(265)、`formatStandardDateTime`(282) |
-| 308–483 | 試算表與壓縮：`isSystemSheet`(308)、`getStudentSheet`(315)、`ensureStudentSheetColumns`(333)、`getHeaderIndexMap`(418)、`compressData`(454)、`decompressData`(459)、`sanitizeLogDetails`(473) |
-| 484–654 | 錯誤與 **0.1 WAF**：`translateErrorForHuman`(484)、`logError`(542)、`inspectRequestForAttacks`(587) |
-| 658–812 | **1. 身分驗證與快取**：`authenticateUser`(658)、`clearOverviewCache`(725)、`getTeacherTasksCached_`(732)、`invalidateTeacherTaskCache_`(767)、`getTaskWordsDictCached_`(776) |
-| 816–1246 | **2. 指定單字任務**：`getActiveTaskForClass`(816)、`getWeekendRemediationTask`(957)、`getTeacherTask`(1122)、`saveTeacherTask`(1179) |
-| 1253–2269 | **2.5 時間管制 (07:30~22:00)**：`ensureTimeSettingsSheet`(1253)、`checkTimeRestrictionAllowance`(1306)、`getTimeRestrictionRulesCached_`(1355)、`getDailyUsageSettings`(1457)、`getDailyUsageRulesCached_`(1520)、`saveDailyMinutesSetting`(1610)、`extendStudentUsageTime`(1655)、`toggleStudentDailyUnlock`(1717)、`teacherSaveDailyMinutes`(1776)、`teacherExtendUsage`(1793)、`teacherToggleDailyUnlock`(1810)、`getTimeRestrictions`(1827)、`saveGlobalTimeSetting`(1928)、`saveStudentTimeSetting`(1992)、`deleteStudentTimeSetting`(2063)、`saveTimeRestriction`(2094)、`deleteTimeRestriction`(2166)、`quickToggleTodayUnlock`(2200) |
-| 2279–2760 | **3. Web API**：`sanitizeStudentRecordsObj_`(2279)、**`doPost(e)`**(2370–2744)、**`doGet(e)`**(2745)、`jsonResponse`(2753) |
-| 2764–3067 | **清理與回填**：`cleanupUnusedSheets`(2764)、`syncAndBackfillStudentTaskHistory`(2839)、`syncAllTaskRecords`(3032) |
-| 3071–3381 | **4. 儲存歷程**：`handleSaveRecord`(3071) |
-| 3385–4104 | **4.1 / 4.2 分析**：`getDailyTaskAnalytics`(3385)、`getDateRangePerformanceAnalytics`(3706) |
-| 4108–4438 | **5. 查詢邏輯**：`checkAndGetData`(4108)、`parseScoreAndRate`(4174)、`getStudentTodayTaskResult`(4220)、`getStudentDailyTaskHistory`(4276)、`getTodayTaskMap`(4355) |
-| 4442–4745 | **6. 班級總覽與排行榜 (batchGet)**：`getClassOverviewRaw`(4442)、`_getClassOverview`(4545)、`_getStudentData`(4558)、`_getLeaderboard`(4662)、`getStudentLeaderboard`(4730) |
-| 4749–4951 | **7. 密碼與目標**：`getStudentPasswords`(4749)、`changeStudentPassword`(4781)、`changeOwnPassword`(4812)、`getErrorLogs`(4840)、`clearErrorLogs`(4858)、`reportClientError`(4869)、`getStudentGoals`(4890)、`saveStudentGoals`(4911) |
-| 4955–5867 | **8. 試算表選單與備份**：`auditComplianceData`(4955)、`onOpen`(5097)、`cleanDuplicateStudentRecords`(5146)、`migrateAllPasswordsToHash`(5202)、`generateClassDashboardSheet`(5231)、`cleanupAndOptimizeSpreadsheet`(5411)、`initStudentPasswordSheet`(5651)、`checkInactiveStudentsAlert`(5685)、`setupDailyTriggers`(5726)、`backupSpreadsheetToDrive`(5753)、`exportFullSystemJsonArchive`(5780) |
+| 檔案 | 職責與內容 | 行數 |
+|---|---|---|
+| `Code.gs` | 系統常數、`WORD_LEVELS`、主路由 `doPost`/`doGet`、`include`、`jsonResponse` | ~1,068 行 |
+| `AuthService.js` | 0. 密碼雜湊與資安防護、1. 身分驗證與 Token 快取、WAF 攻擊偵測 | ~666 行 |
+| `TaskService.js` | 2. 老師指定單字任務核心函式、出題與週末補救任務 | ~434 行 |
+| `TimeRestriction.js` | 2.5 學生使用時間管制 (07:30~22:00) 與教師解除限制設定 | ~1,045 行 |
+| `AnalyticsService.js` | 4.1 每日指定測驗成果與錯題大數據分析、日期區間績效比較分析 | ~723 行 |
+| `SpreadsheetService.js` | 4. 儲存歷程、5. 查詢邏輯、6. 班級總覽與排行榜、7. 密碼與目標、8. 試算表備份維護 | ~2,593 行 |
 
 - **試算表分頁**：
   1. `使用者清單`：A帳號 | B密碼(SHA-256) | C角色 | D班級 | E姓名

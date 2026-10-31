@@ -254,7 +254,36 @@ function load() {
 
 let DB = load();
 export function reload() { DB = load(); return DB; }
-function save() { try { localStorage.setItem(LS_KEY, JSON.stringify(DB)); } catch { /* storage off */ } }
+let _saveTimer = null;
+export function flushSave() {
+  if (_saveTimer) {
+    clearTimeout(_saveTimer);
+    _saveTimer = null;
+  }
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify(DB));
+  } catch { /* storage off */ }
+}
+
+export function save(immediate = false) {
+  if (immediate) {
+    flushSave();
+    return;
+  }
+  if (!_saveTimer) {
+    _saveTimer = setTimeout(() => {
+      _saveTimer = null;
+      try {
+        localStorage.setItem(LS_KEY, JSON.stringify(DB));
+      } catch { /* storage off */ }
+    }, 280);
+  }
+}
+
+if (typeof window !== "undefined") {
+  window.addEventListener("beforeunload", flushSave);
+  window.addEventListener("pagehide", flushSave);
+}
 
 export function box(id) { return DB.box[id] || 0; }
 export function everWrong(id) { return !!(DB.stat[id] && DB.stat[id].ew); }

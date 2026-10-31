@@ -1,5 +1,10 @@
 **/*
 !Code.gs
+!AuthService.js
+!TaskService.js
+!TimeRestriction.js
+!AnalyticsService.js
+!SpreadsheetService.js
 !Index.html
 !Style.html
 !ClientJs.html
