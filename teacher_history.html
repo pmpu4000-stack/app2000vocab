@@ -5475,123 +5475,150 @@
        教師：班級總覽容器 (Spacious Modular Layout)
   ══════════════════════════════════════════ -->
   <div id="teacherOverviewCard" style="display:none;">
-    <!-- 頂部導覽列：儀表板抬頭與快速功能跳轉列 (比照遊戲學習進度設計) -->
+    <!-- 頂部精簡導覽列：標題、班級切換、快捷動作 (無任何多餘分頁頁籤) -->
     <section class="progress teacher-header-card" style="margin-bottom:16px;">
-      <div class="header-title" style="margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
-        <h2 style="font-size:1.35rem; margin:0; display:flex; align-items:center; gap:10px;">
-          📋 班級學習歷程儀表板
-        </h2>
-        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-          <span id="teacherBadge" style="font-size:13.5px; font-weight:700; color:var(--primary); background:rgba(37,99,235,0.1); padding:4px 12px; border-radius:20px;"></span>
+      <div class="header-title" style="margin-bottom:0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+          <h2 style="font-size:1.35rem; margin:0; display:flex; align-items:center; gap:8px;">
+            📋 教師教學管理後台
+          </h2>
+          <span id="teacherBadge" style="font-size:13px; font-weight:700; color:var(--primary); background:rgba(37,99,235,0.1); padding:4px 12px; border-radius:20px;"></span>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <label for="teacherClassSelect" style="font-size:13px; font-weight:700; color:var(--text);">🏫 班級：</label>
+            <select id="teacherClassSelect" onchange="handleTeacherClassChange(this.value)" style="height:34px; padding:0 10px; border-radius:8px; border:1.5px solid var(--border); background:var(--input-bg); color:var(--text); font-weight:700;">
+              <option value="all">🌐 全校 / 所有班級</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
           <button type="button" class="sum-toggle-btn" id="btnToggleAllTeacherCards" onclick="toggleAllTeacherCards()" style="font-size:12px; padding:4px 10px; border-radius:8px; cursor:pointer;" title="一鍵切換全部功能方塊展開或收合">
             🔽 展開全部
           </button>
-          <button class="btn-secondary btn-sm" id="btnTeacherRefresh" onclick="refreshClassOverview()" style="height:34px; padding:0 14px; border-radius:8px;">🔄 重新整理</button>
-          <a href="https://pmpu4000-stack.github.io/app2000vocab/" target="_blank" rel="noopener noreferrer" class="btn-secondary btn-sm" style="text-decoration:none; height:34px; padding:0 14px; border-radius:8px; display:inline-flex; align-items:center; gap:5px; font-weight:700;">
-            🎮 開啟單字測驗區
-          </a>
-          <button class="btn-secondary btn-sm" onclick="logout()" style="height:34px; padding:0 14px; border-radius:8px;">登出</button>
+          <button class="btn-secondary btn-sm" id="btnTeacherRefresh" onclick="refreshClassOverview()" style="height:34px; padding:0 12px; border-radius:8px;">🔄 重新整理</button>
+          <button class="btn-secondary btn-sm" onclick="exportAllCsv()" style="height:34px; padding:0 12px; border-radius:8px;">📥 匯出名冊</button>
+          <button class="btn-secondary btn-sm" onclick="openPasswordModal()" style="height:34px; padding:0 12px; border-radius:8px;">🔑 密碼</button>
+          <button class="btn-secondary btn-sm" onclick="logout()" style="height:34px; padding:0 12px; border-radius:8px;">登出</button>
         </div>
       </div>
-
-      <!-- 快速功能跳轉頁籤 -->
-      <div class="teacher-nav-tabs" style="margin-bottom:0; padding-bottom:0; border-bottom:none; display:flex; gap:8px; flex-wrap:wrap;">
-        <button type="button" class="teacher-nav-tab active" onclick="switchTeacherSubView('kpis')">📊 核心指標</button>
-        <button type="button" class="teacher-nav-tab" onclick="switchTeacherSubView('controls')">⚙️ 班級篩選與控制</button>
-        <button type="button" class="teacher-nav-tab" onclick="switchTeacherSubView('timeSettings')">⏰ 作答時間設定</button>
-        <button type="button" class="teacher-nav-tab" onclick="switchTeacherSubView('taskmgr')">📝 出題與題庫輪播</button>
-        <button type="button" class="teacher-nav-tab" onclick="switchTeacherSubView('cycles')">🔍 週期成績與滾動錯題</button>
-        <button type="button" class="teacher-nav-tab" onclick="switchTeacherSubView('duration')">⏱️ 學生作答時長分析</button>
-        <button type="button" class="teacher-nav-tab" onclick="switchTeacherSubView('roster')">📋 學生名冊進度</button>
-        <button type="button" class="teacher-nav-tab" onclick="switchTeacherSubView('charts')">📈 數據分析圖表</button>
-        <button type="button" class="teacher-nav-tab" onclick="switchTeacherSubView('analytics')">🎯 今日指定測驗分析</button>
-        <button type="button" class="teacher-nav-tab" onclick="switchTeacherSubView('range')">📅 區間學生狀況比較</button>
-      </div>
     </section>
+
+    <!-- 隱藏兼容容器，防止舊函式報錯 -->
     <div id="teacherOverviewMainView" style="display:none;"></div>
-    <!-- ── 模組 1：全班核心學習表現 4 大指標 (整體進度風格) ── -->
-    <section class="progress teacher-section-card" id="tc-kpis">
-      <h3 onclick="toggleTeacherCard('tc-kpis')">
-        <span>📊 全班學習表現 4 大核心總覽指標</span>
+    <div id="teacherKpiGrid" style="display:none;"></div>
+    <div id="teacherChartCard" style="display:none;"></div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         方塊 1：⏰ 網站開放時間與測驗時限設定
+    ══════════════════════════════════════════════════════════ -->
+    <section class="progress teacher-section-card is-collapsed" id="tc-timesettings">
+      <h3 onclick="toggleTeacherCard('tc-timesettings')">
+        <span>⏰ 網站開放時間與測驗時限設定</span>
         <span style="display:flex; gap:10px; align-items:center;">
-          <a class="sum-toggle-btn" id="btn-toggle-tc-kpis" onclick="event.stopPropagation(); toggleTeacherCard('tc-kpis')">收合</a>
+          <a class="sum-toggle-btn" id="btn-toggle-tc-timesettings" onclick="event.stopPropagation(); toggleTeacherCard('tc-timesettings')">展開</a>
         </span>
       </h3>
-      <div class="teacher-card-body" id="body-tc-kpis">
-      <!-- 卡片 1：全班核心學習表現 4 大指標 -->
-      <div class="card" style="padding:22px 26px; margin-bottom:24px;">
-        <div style="font-weight:800; font-size:15px; color:var(--text); margin-bottom:14px; display:flex; align-items:center; gap:8px;">
-          📊 全班學習表現 4 大核心總覽指標
-        </div>
-        <!-- 教師 KPI -->
-        <div id="teacherKpiGrid" class="kpi-grid" style="margin-bottom:16px; gap:16px;"></div>
-
-        <!-- 💡 班級學習歷程 4 大總覽指標定義與數值解讀說明卡 -->
-        <div class="chart-desc-card" style="margin-bottom:0;">
-          <div style="font-weight:700; font-size:13px; color:var(--text); margin-bottom:8px; display:flex; align-items:center; gap:6px;">
-            💡 班級學習歷程 4 大總覽指標定義與數值解讀：
+      <div class="teacher-card-body" id="body-tc-timesettings" style="display:none;">
+        <div class="card" style="padding:22px 26px; margin-bottom:24px;">
+          <!-- 頂部狀態列與一鍵快捷解除 -->
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px; background:var(--input-bg); border:1.5px solid var(--border); border-radius:10px; padding:12px 18px;">
+            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+              <span style="font-size:13px; font-weight:700; color:var(--text-muted);">📅 今日系統即時狀態：</span>
+              <span id="ttsTodayStatusBadge" style="font-size:14px; font-weight:700; color:var(--primary);">載入中...</span>
+              <span id="ttsGlobalSummaryHint" style="font-size:12.5px; color:var(--text-muted); margin-left:8px;"></span>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button class="btn-secondary btn-sm" id="ttsBtnQuickToggle" onclick="toggleTeacherTodayUnlock()" style="padding:6px 14px; font-weight:700;">
+                ⚡ 一鍵解除今日限制
+              </button>
+              <button class="btn-secondary btn-sm" onclick="loadTeacherTimeSettings(true)" style="padding:6px 12px; font-weight:700;">
+                🔄 重新整理
+              </button>
+            </div>
           </div>
-          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:12px; font-size:12px; color:var(--text-muted); line-height:1.65;">
-            <div>• <strong style="color:var(--text);">👥 總人數與已有紀錄</strong>：當前篩選範圍（全校或指定班級）的學生總名額，以及目前至少完成過一次單字練習並上傳備份雲端的學生人數。</div>
-            <div>• <strong style="color:var(--text);">📊 平均正確率</strong>：依全體已有紀錄學生之最新一次備份歷史總正確率計算之全班平均值，指標高於 80% 代表整體學習品質優良。</div>
-            <div>• <strong style="color:var(--text);">🏆 平均精通單字</strong>：全班學生在教育部常用 2000 字庫中，連續答對 3 次已精熟掌握的平均單字數量（滿目標為 2000 字）。</div>
-            <div>• <strong style="color:var(--text);">⏳ 尚無紀錄人數</strong>：尚未開始登入系統進行任何練習的學生人數，點擊學生姓名可檢視或催促其上線完成初始練習。</div>
-          </div>
-        </div>
-      </div>
 
-      </div>
-    </section>
-    <!-- ── 模組 2：班級篩選與教學管理控制台 ── -->
-    <section class="progress teacher-section-card" id="tc-controls">
-      <h3 onclick="toggleTeacherCard('tc-controls')">
-        <span>⚙️ 班級篩選與教學管理控制台</span>
-        <span style="display:flex; gap:10px; align-items:center;">
-          <a class="sum-toggle-btn" id="btn-toggle-tc-controls" onclick="event.stopPropagation(); toggleTeacherCard('tc-controls')">收合</a>
-        </span>
-      </h3>
-      <div class="teacher-card-body" id="body-tc-controls">
-      <!-- 卡片 2：班級篩選與教學管理控制台 -->
-      <div class="card" style="padding:22px 26px; margin-bottom:24px;">
-        <div style="font-weight:800; font-size:15px; color:var(--text); margin-bottom:14px; display:flex; align-items:center; gap:8px;">
-          ⚙️ 班級篩選與教學管理控制台
-        </div>
-        <div style="display:flex; flex-wrap:wrap; gap:16px; align-items:flex-end; justify-content:space-between;">
-          <div style="display:flex; flex-wrap:wrap; gap:14px; align-items:flex-end;">
-            <div class="input-field" style="margin:0;">
-              <label for="teacherClassSelect" style="font-size:12.5px; font-weight:700; color:var(--text); margin-bottom:4px; display:block;">🏫 班級篩選</label>
-              <select id="teacherClassSelect" onchange="handleTeacherClassChange(this.value)" style="min-width: 150px; padding:8px 12px; border-radius:8px; border:1.5px solid var(--border); background:var(--input-bg); color:var(--text); font-weight:600;">
-                <option value="all">🌐 全校 / 所有班級</option>
+          <!-- 設定項 1：每日指定單字測驗實施時限 -->
+          <div style="border:1.5px solid var(--border); border-radius:10px; padding:16px 18px; margin-bottom:16px; background:var(--card);">
+            <div style="font-size:14.5px; font-weight:800; color:var(--text); margin-bottom:6px;">⏱️ 每日指定單字測驗實施時限</div>
+            <div style="font-size:12.5px; color:var(--text-muted); margin-bottom:12px;">設定學生進行每日指定單字測驗的倒數時間限制</div>
+            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+              <select id="taskDurationLimitSelect" style="height:38px; border-radius:8px; border:1.5px solid var(--border); background:var(--input-bg); color:var(--text); padding:0 12px; font-weight:700;">
+                <option value="5">5 分鐘</option>
+                <option value="10" selected>10 分鐘（建議）</option>
+                <option value="15">15 分鐘</option>
+                <option value="20">20 分鐘</option>
+                <option value="0">🌟 全天開放（不限時）</option>
               </select>
+              <button class="btn-primary btn-sm" onclick="saveTaskDurationLimitSetting()" style="height:38px; padding:0 16px; font-weight:700;">💾 儲存指定測驗時限</button>
+              <span id="taskDurationLimitMsg" style="font-size:13px; font-weight:700; color:var(--primary);"></span>
             </div>
-            <div class="input-field" style="margin:0;">
-              <label for="studentSelector" style="font-size:12.5px; font-weight:700; color:var(--text); margin-bottom:4px; display:block;">👤 選擇學生</label>
-              <select id="studentSelector" style="min-width: 160px; padding:8px 12px; border-radius:8px; border:1.5px solid var(--border); background:var(--input-bg); color:var(--text); font-weight:600;"></select>
-            </div>
-            <button onclick="viewSelectedStudent()" style="height:38px; padding:0 16px; border-radius:8px; font-weight:700;">👤 查看個別學生</button>
           </div>
-          <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
-            <button class="btn-primary" onclick="openTaskModal()" style="height:38px; padding:0 16px; border-radius:8px; background:var(--primary); color:white; font-weight:700; display:inline-flex; align-items:center; gap:6px;" title="老師線上出題（可指定測驗日期與目標班級）">
-              📝 每日測驗出題
-            </button>
-            <button class="btn-secondary" onclick="switchTeacherSubView('timeSettings')" style="height:38px; padding:0 14px; border-radius:8px; font-weight:700; color:var(--primary); border:1.5px solid var(--primary); display:inline-flex; align-items:center; gap:5px;" title="設定全校或個別學生可作答時間，或解除特定日期限制">
-              ⏰ 設定開放時間
-            </button>
-            <button class="btn-secondary" onclick="exportAllCsv()" style="height:38px; padding:0 14px; border-radius:8px;">📥 匯出班級 CSV</button>
-            <button class="btn-secondary" onclick="openPasswordModal()" style="height:38px; padding:0 14px; border-radius:8px;">🔑 管理密碼</button>
-            <button class="btn-secondary" onclick="openErrorLogModal()" style="height:38px; padding:0 14px; border-radius:8px;">⚠️ 錯誤日誌</button>
-            <button class="btn-secondary" onclick="triggerCleanupUnusedSheets()" style="height:38px; padding:0 14px; border-radius:8px;" title="自動清理並刪除試算表內無用/空白工作表">🧹 清理無用分頁</button>
-            <button class="btn-secondary teacher-chart-toggle-btn" onclick="toggleTeacherCharts()" style="height:38px; padding:0 14px; border-radius:8px;">
-              📊 <span id="teacherChartToggleText">展開分析圖表</span>
-            </button>
+
+          <!-- 設定項 2：常態每日開放作答時段 -->
+          <div style="border:1.5px solid var(--border); border-radius:10px; padding:16px 18px; margin-bottom:16px; background:var(--card);">
+            <div style="font-size:14.5px; font-weight:800; color:var(--text); margin-bottom:6px;">🕒 常態每日開放作答時間（全校標準）</div>
+            <div style="font-size:12.5px; color:var(--text-muted); margin-bottom:12px;">可指定每天常態開放之起訖時間，或直接勾選 24 小時全天開放</div>
+            <div style="margin-bottom:12px;">
+              <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; font-size:13.5px; font-weight:700; color:var(--primary); background:rgba(99,102,241,0.08); padding:8px 14px; border-radius:8px; border:1px solid rgba(99,102,241,0.2);">
+                <input type="checkbox" id="ttsGlobalAllDayCheckbox" onchange="handleGlobalAllDayToggle(this.checked)" style="width:18px; height:18px; accent-color:var(--primary);" />
+                🌟 24 小時全天開放（常態全天開放，不限時段）
+              </label>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:14px; align-items:end;">
+              <div class="input-field" style="margin:0;">
+                <label for="ttsGlobalStartTime" style="font-weight:700; font-size:12.5px; margin-bottom:4px; display:block;">開始作答時間：</label>
+                <input type="time" id="ttsGlobalStartTime" value="07:30" style="width:100%; height:38px; border-radius:8px; padding:6px 10px; border:1.5px solid var(--border); background:var(--input-bg); color:var(--text); font-weight:600; box-sizing:border-box;" />
+              </div>
+              <div class="input-field" style="margin:0;">
+                <label for="ttsGlobalEndTime" style="font-weight:700; font-size:12.5px; margin-bottom:4px; display:block;">結束作答時間：</label>
+                <input type="time" id="ttsGlobalEndTime" value="22:00" style="width:100%; height:38px; border-radius:8px; padding:6px 10px; border:1.5px solid var(--border); background:var(--input-bg); color:var(--text); font-weight:600; box-sizing:border-box;" />
+              </div>
+              <div>
+                <button class="btn-primary" id="ttsBtnSaveGlobal" onclick="saveTeacherGlobalTimeSetting()" style="width:100%; height:38px; border-radius:8px; font-weight:700; font-size:13.5px;">
+                  💾 儲存常態開放時間
+                </button>
+              </div>
+            </div>
+            <div id="ttsGlobalUpdatedMsg" style="font-size:12px; color:var(--text-muted); margin-top:10px;"></div>
+          </div>
+
+          <!-- 設定項 3：指定日期開放時間（特別日期 / 範圍開放） -->
+          <div style="border:1.5px solid var(--border); border-radius:10px; padding:16px 18px; background:var(--card);">
+            <div style="font-size:14.5px; font-weight:800; color:var(--text); margin-bottom:6px;">📅 指定日期開放時間（段考、週末、連假特開）</div>
+            <div style="font-size:12.5px; color:var(--text-muted); margin-bottom:12px;">指定特定單日或多日範圍，該期間全天或特定時段開放學生測驗</div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:12px; margin-bottom:12px;">
+              <div class="input-field" style="margin:0;">
+                <label for="ttsDateStart" style="font-weight:700; font-size:12.5px; margin-bottom:4px; display:block;">開始日期：</label>
+                <input type="date" id="ttsDateStart" style="width:100%; height:38px; border-radius:8px; padding:6px 10px; border:1.5px solid var(--border); background:var(--input-bg); color:var(--text); font-size:13px; box-sizing:border-box;" />
+              </div>
+              <div class="input-field" style="margin:0;">
+                <label for="ttsDateEnd" style="font-weight:700; font-size:12.5px; margin-bottom:4px; display:block;">結束日期：</label>
+                <input type="date" id="ttsDateEnd" style="width:100%; height:38px; border-radius:8px; padding:6px 10px; border:1.5px solid var(--border); background:var(--input-bg); color:var(--text); font-size:13px; box-sizing:border-box;" />
+              </div>
+              <div class="input-field" style="margin:0;">
+                <label for="ttsDateName" style="font-weight:700; font-size:12.5px; margin-bottom:4px; display:block;">活動或設定名稱：</label>
+                <input type="text" id="ttsDateName" placeholder="例：段考衝刺溫書假、週末特開" style="width:100%; height:38px; border-radius:8px; padding:6px 10px; border:1.5px solid var(--border); background:var(--input-bg); color:var(--text); font-size:13px; box-sizing:border-box;" />
+              </div>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+              <div id="ttsDateMsg" style="font-size:13px; font-weight:700; color:var(--primary);"></div>
+              <button class="btn-primary" id="ttsBtnSaveDate" onclick="saveTeacherDateRestriction()" style="height:38px; padding:0 20px; border-radius:8px; font-weight:700;">
+                💾 儲存並啟用指定日期開放
+              </button>
+            </div>
+            <div style="margin-top:14px;">
+              <div style="font-size:13px; font-weight:700; color:var(--text); margin-bottom:8px;">📋 目前生效之特別開放日期清單：</div>
+              <div id="ttsDateRulesContainer" style="overflow-x:auto;">
+                <div style="text-align:center; padding:15px; color:var(--text-muted); font-size:13px;">讀取中...</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-
-      </div>
     </section>
 
-    <!-- ── 模組 2.1：📝 指定單字測驗出題與題庫輪播 (整體進度風格展開收合方塊) ── -->
+    <!-- ══════════════════════════════════════════════════════════
+         方塊 2：📝 指定單字測驗出題與題庫輪播
+    ══════════════════════════════════════════════════════════ -->
     <section class="progress teacher-section-card is-collapsed" id="tc-taskmgr">
       <h3 onclick="toggleTeacherCard('tc-taskmgr')">
         <span>📝 指定單字測驗出題與題庫輪播</span>
@@ -5601,21 +5628,6 @@
       </h3>
       <div class="teacher-card-body" id="body-tc-taskmgr" style="display:none;">
         <div class="card" style="padding:22px 26px; margin-bottom:24px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
-            <div>
-              <div style="font-size:16px; font-weight:800; color:var(--text); display:flex; align-items:center; gap:8px;">
-                <span>🎯 每日指定單字測驗出題設定</span>
-              </div>
-              <div style="font-size:13px; color:var(--text-muted); margin-top:4px;">
-                支援「範圍依序輪播模式（每日自動前進）」與「手動自選單字模式」，可自由設定題數與題目來源
-              </div>
-            </div>
-            <div style="display:flex; gap:8px;">
-              <button class="btn-secondary btn-sm" onclick="openTaskModal()" style="font-weight:700;">🔍 開啟進階挑字視窗</button>
-              <button class="btn-secondary btn-sm" onclick="loadTaskMgrSettings(true)" style="font-weight:700;">🔄 重新整理</button>
-            </div>
-          </div>
-
           <!-- 出題基本參數：日期、班級、任務名稱 -->
           <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:14px; margin-bottom:16px; background:var(--input-bg); padding:14px 18px; border-radius:10px; border:1px solid var(--border);">
             <div>
@@ -5646,11 +5658,11 @@
 
           <!-- 面板 A：依序輪播模式 -->
           <div id="tmPanelRotation" style="display:block; border:1.5px solid var(--border); border-radius:12px; padding:18px 20px; background:var(--card); margin-bottom:16px;">
-            <div style="font-size:14.5px; font-weight:800; color:var(--text); margin-bottom:8px;">
-              🔄 依序輪播自動推進出題
+            <div style="font-size:14.5px; font-weight:800; color:var(--text); margin-bottom:6px;">
+              🔄 範圍依序輪播自動推進出題
             </div>
             <div style="font-size:12.5px; color:var(--text-muted); margin-bottom:14px; line-height:1.6;">
-              系統自動記錄出題進度指針，例如從單字庫開頭第 1 個單字開始出 20 題，隔天自動接續接下來的另外 20 個單字，依序推進全字庫！
+              系統自動記錄出題進度指針，例如從單字庫第 1 個單字開始出 20 題，隔天自動接續接下來的另外 20 個單字，循序漸進！
             </div>
             <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:14px; margin-bottom:14px;">
               <div>
@@ -5705,7 +5717,7 @@
             <div style="background:linear-gradient(135deg, rgba(99,102,241,0.06) 0%, rgba(139,92,246,0.06) 100%); border:1.5px solid rgba(99,102,241,0.25); border-radius:10px; padding:14px 18px; margin-bottom:14px;">
               <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
                 <span id="tmPointerStatusBadge" style="font-size:13.5px; font-weight:700; color:var(--primary);">
-                  📍 當前出題進度：第 1 ~ 20 個單字
+                  📍 當前出題進度：單字第 1 ~ 20 個
                 </span>
                 <div style="display:flex; gap:6px;">
                   <button type="button" class="btn-secondary btn-sm" onclick="advanceTaskMgrPointer('prev')" style="padding:4px 10px; font-size:12px;">⏪ 上一批</button>
@@ -5724,33 +5736,35 @@
 
           <!-- 面板 B：手動指定單字模式 -->
           <div id="tmPanelManual" style="display:none; border:1.5px solid var(--border); border-radius:12px; padding:18px 20px; background:var(--card); margin-bottom:16px;">
-            <div style="font-size:14.5px; font-weight:800; color:var(--text); margin-bottom:8px;">
+            <div style="font-size:14.5px; font-weight:800; color:var(--text); margin-bottom:6px;">
               ✍️ 教師自由挑選與輸入單字
             </div>
             <div style="font-size:12.5px; color:var(--text-muted); margin-bottom:10px;">
-              可直接輸入或粘貼單字（以逗號、空格或換行分隔），或使用下方快捷抽詞按鈕：
+              可直接輸入單字（以逗號、空格分隔），或點擊隨機抽詞：
             </div>
             <textarea id="tmManualWordsInput" placeholder="請輸入單字，例如：apple banana cat dog elephant..." style="width:100%; height:80px; border-radius:8px; border:1.5px solid var(--border); padding:8px 12px; font-size:13px; font-family:monospace; background:var(--input-bg); color:var(--text); box-sizing:border-box; margin-bottom:10px;"></textarea>
             <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
               <span style="font-size:12px; font-weight:700; color:var(--text-muted);">⚡ 隨機抽詞：</span>
               <button type="button" class="btn-secondary btn-sm" onclick="quickFillTaskWords(10)">🎲 隨機抽 10 題</button>
               <button type="button" class="btn-secondary btn-sm" onclick="quickFillTaskWords(20)">🎲 隨機抽 20 題</button>
-              <button type="button" class="btn-secondary btn-sm" onclick="openTaskModal()">📚 從完整單字庫勾選</button>
+              <button type="button" class="btn-secondary btn-sm" onclick="openTaskModal()">📚 開啟完整字庫挑選</button>
             </div>
           </div>
 
           <!-- 動作儲存按鈕 -->
           <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; padding-top:12px; border-top:1px dashed var(--border);">
             <div id="tmActionMsg" style="font-size:13px; font-weight:700; color:var(--primary); min-height:18px;"></div>
-            <button class="btn-primary" onclick="publishTaskFromBlock()" style="height:40px; padding:0 24px; border-radius:8px; font-weight:800; font-size:14px; display:inline-flex; align-items:center; gap:6px;">
-              💾 發布並儲存為指定測驗
+            <button class="btn-primary" onclick="publishTaskFromBlock()" style="height:40px; padding:0 24px; border-radius:8px; font-weight:800; font-size:14px;">
+              💾 發布並儲存為今日指定測驗
             </button>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ── 模組 2.2：🔍 週期成績與滾動錯題庫追蹤 (整體進度風格展開收合方塊) ── -->
+    <!-- ══════════════════════════════════════════════════════════
+         方塊 3：🔍 週期成績與滾動錯題庫追蹤
+    ══════════════════════════════════════════════════════════ -->
     <section class="progress teacher-section-card is-collapsed" id="tc-cycles">
       <h3 onclick="toggleTeacherCard('tc-cycles')">
         <span>🔍 週期成績與滾動錯題庫追蹤</span>
@@ -5760,31 +5774,22 @@
       </h3>
       <div class="teacher-card-body" id="body-tc-cycles" style="display:none;">
         <div class="card" style="padding:22px 26px; margin-bottom:24px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
-            <div>
-              <div style="font-size:16px; font-weight:800; color:var(--text); display:flex; align-items:center; gap:8px;">
-                <span>📊 週期測驗成績與滾動錯題庫追蹤</span>
-              </div>
-              <div style="font-size:13px; color:var(--text-muted); margin-top:4px;">
-                查詢日、週、雙週、月度指定測驗成績，並追蹤「週末消除大作戰」與「學期末魔王單字測驗」單字庫
-              </div>
+          <!-- 週期切換按鈕列 -->
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:16px;">
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button type="button" class="cycle-tab-btn" id="cTab-today" onclick="switchCycleTab('today')">📅 今日指定測驗</button>
+              <button type="button" class="cycle-tab-btn active" id="cTab-week" onclick="switchCycleTab('week')">🗓️ 本週成果 (週一至今日)</button>
+              <button type="button" class="cycle-tab-btn" id="cTab-biweekly" onclick="switchCycleTab('biweekly')">⚔️ 雙週消除週期 (最近14天)</button>
+              <button type="button" class="cycle-tab-btn" id="cTab-month" onclick="switchCycleTab('month')">📆 本月成果 (1日至今日)</button>
+              <button type="button" class="cycle-tab-btn" id="cTab-range" onclick="switchCycleTab('range')">🎯 自訂日期區間</button>
             </div>
             <div style="display:flex; gap:8px;">
-              <button class="btn-secondary btn-sm" onclick="exportCycleRecordsCsv()" style="font-weight:700;">📥 匯出週期報表 CSV</button>
+              <button class="btn-secondary btn-sm" onclick="exportCycleRecordsCsv()" style="font-weight:700;">📥 匯出報表 CSV</button>
               <button class="btn-secondary btn-sm" onclick="loadCycleRecordsAnalytics(true)" style="font-weight:700;">🔄 重新整理</button>
             </div>
           </div>
 
-          <!-- 週期切換按鈕列 -->
-          <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;">
-            <button type="button" class="cycle-tab-btn" id="cTab-today" onclick="switchCycleTab('today')">📅 今日指定測驗</button>
-            <button type="button" class="cycle-tab-btn active" id="cTab-week" onclick="switchCycleTab('week')">🗓️ 本週成果 (週一至今日)</button>
-            <button type="button" class="cycle-tab-btn" id="cTab-biweekly" onclick="switchCycleTab('biweekly')">⚔️ 雙週消除週期 (最近14天)</button>
-            <button type="button" class="cycle-tab-btn" id="cTab-month" onclick="switchCycleTab('month')">📆 本月成果 (1日至今日)</button>
-            <button type="button" class="cycle-tab-btn" id="cTab-range" onclick="switchCycleTab('range')">🎯 自訂日期區間</button>
-          </div>
-
-          <!-- 自訂日期區間選擇框 (預設隱藏) -->
+          <!-- 自訂日期區間選擇框 -->
           <div id="cycleRangeInputs" style="display:none; grid-template-columns:1fr 1fr auto; gap:10px; margin-bottom:16px; align-items:end; background:var(--input-bg); padding:10px 14px; border-radius:8px;">
             <div>
               <label style="font-size:12px; font-weight:700; color:var(--text); display:block; margin-bottom:3px;">開始日期：</label>
@@ -5821,48 +5826,48 @@
           <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:16px; margin-bottom:20px;">
             <!-- 週末消除大作戰錯題庫 -->
             <div style="border:1.5px solid #f87171; border-radius:12px; padding:16px; background:rgba(239,68,68,0.03);">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:6px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:6px;">
                 <span style="font-size:14px; font-weight:800; color:#dc2626; display:flex; align-items:center; gap:6px;">
                   ⚔️ 滾入「週末消除大作戰」單字庫
                 </span>
                 <span id="cWeekendBadge" style="font-size:11px; font-weight:700; background:#fee2e2; color:#b91c1c; padding:2px 8px; border-radius:10px;">0 字</span>
               </div>
               <div style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">
-                平日指定測驗答錯之單字，將於週六、日自動出題進行補救練習。
+                平日指定測驗答錯之單字，週末將自動出題進行補救消除
               </div>
-              <div id="cWeekendWordsList" style="max-height:140px; overflow-y:auto; font-size:12.5px; line-height:1.6; margin-bottom:10px; color:var(--text);">
+              <div id="cWeekendWordsList" style="max-height:130px; overflow-y:auto; font-size:12.5px; line-height:1.6; margin-bottom:10px; color:var(--text);">
                 無待補救錯題
               </div>
               <div style="display:flex; gap:6px;">
-                <button type="button" class="btn-secondary btn-sm" onclick="copyWeekendMistakesList()" style="font-size:12px; padding:4px 10px;">📋 複製單字清單</button>
-                <button type="button" class="btn-secondary btn-sm" onclick="assignWeekendMistakesAsTask()" style="font-size:12px; padding:4px 10px; color:#dc2626;">📝 一鍵出題測驗</button>
+                <button type="button" class="btn-secondary btn-sm" onclick="copyWeekendMistakesList()" style="font-size:12px; padding:4px 10px;">📋 複製清單</button>
+                <button type="button" class="btn-secondary btn-sm" onclick="assignWeekendMistakesAsTask()" style="font-size:12px; padding:4px 10px; color:#dc2626;">📝 一鍵出題</button>
               </div>
             </div>
 
             <!-- 學期末魔王單字測驗庫 -->
             <div style="border:1.5px solid #a855f7; border-radius:12px; padding:16px; background:rgba(168,85,247,0.03);">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:6px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:6px;">
                 <span style="font-size:14px; font-weight:800; color:#7e22ce; display:flex; align-items:center; gap:6px;">
                   👾 滾入「學期末魔王單字測驗」單字庫
                 </span>
                 <span id="cFinalBossBadge" style="font-size:11px; font-weight:700; background:#f3e8ff; color:#6b21a8; padding:2px 8px; border-radius:10px;">0 字</span>
               </div>
               <div style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">
-                雙週未消滅之高難度單字，將滾入學期末最終魔王關卡。
+                雙週未消滅之高難度單字，將滾入學期末最終魔王大考
               </div>
-              <div id="cFinalBossWordsList" style="max-height:140px; overflow-y:auto; font-size:12.5px; line-height:1.6; margin-bottom:10px; color:var(--text);">
+              <div id="cFinalBossWordsList" style="max-height:130px; overflow-y:auto; font-size:12.5px; line-height:1.6; margin-bottom:10px; color:var(--text);">
                 無魔王單字
               </div>
               <div style="display:flex; gap:6px;">
-                <button type="button" class="btn-secondary btn-sm" onclick="copyFinalBossWordsList()" style="font-size:12px; padding:4px 10px;">📋 複製魔王清單</button>
-                <button type="button" class="btn-secondary btn-sm" onclick="assignFinalBossAsTask()" style="font-size:12px; padding:4px 10px; color:#7e22ce;">📝 一鍵出題測驗</button>
+                <button type="button" class="btn-secondary btn-sm" onclick="copyFinalBossWordsList()" style="font-size:12px; padding:4px 10px;">📋 複製清單</button>
+                <button type="button" class="btn-secondary btn-sm" onclick="assignFinalBossAsTask()" style="font-size:12px; padding:4px 10px; color:#7e22ce;">📝 一鍵出題</button>
               </div>
             </div>
           </div>
 
           <!-- 週期指定測驗學生成績明細表 -->
           <div style="font-size:14px; font-weight:800; color:var(--text); margin-bottom:8px;">
-            📋 週期內各生指定測驗成績明細
+            📋 週期指定測驗學生成績明細
           </div>
           <div id="cTableContainer" style="overflow-x:auto;">
             <table class="teacher-table" id="cycleRecordsTable" style="width:100%; font-size:13px;">
@@ -5888,10 +5893,12 @@
       </div>
     </section>
 
-    <!-- ── 模組 2.3：⏱️ 學生作答時長統計分析 (整體進度風格展開收合方塊) ── -->
+    <!-- ══════════════════════════════════════════════════════════
+         方塊 4：⏱️ 學生作答使用時間查詢
+    ══════════════════════════════════════════════════════════ -->
     <section class="progress teacher-section-card is-collapsed" id="tc-duration">
       <h3 onclick="toggleTeacherCard('tc-duration')">
-        <span>⏱️ 學生作答時長統計分析</span>
+        <span>⏱️ 學生作答使用時間查詢</span>
         <span style="display:flex; gap:10px; align-items:center;">
           <a class="sum-toggle-btn" id="btn-toggle-tc-duration" onclick="event.stopPropagation(); toggleTeacherCard('tc-duration')">展開</a>
         </span>
@@ -5899,12 +5906,16 @@
       <div class="teacher-card-body" id="body-tc-duration" style="display:none;">
         <div class="card" style="padding:22px 26px; margin-bottom:24px;">
           <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
-            <div>
-              <div style="font-size:16px; font-weight:800; color:var(--text); display:flex; align-items:center; gap:8px;">
-                <span>⏱️ 指定測驗與自由練習使用時間統計</span>
+            <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+              <div style="display:flex; align-items:center; gap:6px;">
+                <label style="font-size:13px; font-weight:700; color:var(--text);">📅 統計日期：</label>
+                <input type="date" id="durationTargetDate" onchange="loadStudentDurationAnalytics()" style="height:36px; border-radius:8px; border:1.5px solid var(--border); padding:0 10px; font-weight:600; background:var(--input-bg); color:var(--text);">
               </div>
-              <div style="font-size:13px; color:var(--text-muted); margin-top:4px;">
-                精準統計各生在「指定單字測驗」與「自由單字練習」的實際作答使用時間與排行榜
+              <div style="display:flex; align-items:center; gap:6px;">
+                <label style="font-size:13px; font-weight:700; color:var(--text);">🏫 班級：</label>
+                <select id="durationClassSelect" onchange="loadStudentDurationAnalytics()" style="height:36px; border-radius:8px; border:1.5px solid var(--border); padding:0 10px; font-weight:600; background:var(--input-bg); color:var(--text);">
+                  <option value="all">🌐 全校 / 所有班級</option>
+                </select>
               </div>
             </div>
             <div style="display:flex; gap:8px;">
@@ -5913,33 +5924,19 @@
             </div>
           </div>
 
-          <!-- 日期選擇 -->
-          <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap;">
-            <div style="display:flex; align-items:center; gap:8px;">
-              <label style="font-size:13px; font-weight:700; color:var(--text);">📅 統計日期：</label>
-              <input type="date" id="durationTargetDate" onchange="loadStudentDurationAnalytics()" style="height:36px; border-radius:8px; border:1.5px solid var(--border); padding:0 10px; font-weight:600; background:var(--input-bg); color:var(--text);">
-            </div>
-            <div style="display:flex; align-items:center; gap:8px;">
-              <label style="font-size:13px; font-weight:700; color:var(--text);">🏫 班級：</label>
-              <select id="durationClassSelect" onchange="loadStudentDurationAnalytics()" style="height:36px; border-radius:8px; border:1.5px solid var(--border); padding:0 10px; font-weight:600; background:var(--input-bg); color:var(--text);">
-                <option value="all">🌐 全校 / 所有班級</option>
-              </select>
-            </div>
-          </div>
-
           <!-- 時長統計 3 欄指標 -->
           <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:14px; margin-bottom:20px;">
             <div style="background:var(--input-bg); border:1.5px solid var(--border); border-radius:10px; padding:14px; text-align:center;">
               <div style="font-size:12px; font-weight:700; color:var(--text-muted);">🎯 指定單字測驗平均作答時間</div>
-              <div id="durStatTaskAvg" style="font-size:22px; font-weight:800; color:var(--primary); margin-top:4px;">0 分 0 秒</div>
+              <div id="durStatTaskAvg" style="font-size:20px; font-weight:800; color:var(--primary); margin-top:4px;">0 分 0 秒</div>
             </div>
             <div style="background:var(--input-bg); border:1.5px solid var(--border); border-radius:10px; padding:14px; text-align:center;">
               <div style="font-size:12px; font-weight:700; color:var(--text-muted);">🎮 自由練習平均作答時間</div>
-              <div id="durStatFreeAvg" style="font-size:22px; font-weight:800; color:#10b981; margin-top:4px;">0 分 0 秒</div>
+              <div id="durStatFreeAvg" style="font-size:20px; font-weight:800; color:#10b981; margin-top:4px;">0 分 0 秒</div>
             </div>
             <div style="background:var(--input-bg); border:1.5px solid var(--border); border-radius:10px; padding:14px; text-align:center;">
               <div style="font-size:12px; font-weight:700; color:var(--text-muted);">⌛ 全班今日累計作答總時長</div>
-              <div id="durStatTotalHours" style="font-size:22px; font-weight:800; color:#f59e0b; margin-top:4px;">0 小時</div>
+              <div id="durStatTotalHours" style="font-size:20px; font-weight:800; color:#f59e0b; margin-top:4px;">0 小時</div>
             </div>
           </div>
 
@@ -5952,8 +5949,8 @@
                   <th>班級</th>
                   <th>學號</th>
                   <th>姓名</th>
-                  <th onclick="sortDurationTable('task')" style="cursor:pointer;" title="點擊依指定測驗時長排序">🎯 指定測驗作答時長 ⬍</th>
-                  <th onclick="sortDurationTable('free')" style="cursor:pointer;" title="點擊依自由練習時長排序">🎮 自由練習作答時長 ⬍</th>
+                  <th onclick="sortDurationTable('task')" style="cursor:pointer;" title="點擊依指定測驗時長排序">🎯 指定測驗時長 ⬍</th>
+                  <th onclick="sortDurationTable('free')" style="cursor:pointer;" title="點擊依自由練習時長排序">🎮 自由練習時長 ⬍</th>
                   <th onclick="sortDurationTable('total')" style="cursor:pointer;" title="點擊依總時長排序">⏱️ 今日總作答時長 ⬍</th>
                 </tr>
               </thead>
@@ -5965,712 +5962,44 @@
         </div>
       </div>
     </section>
-    <!-- ── 模組 3：班級學習數據與能力掌握圖表 ── -->
-    <section class="progress teacher-section-card is-collapsed" id="tc-charts">
-      <h3 onclick="toggleTeacherCard('tc-charts')">
-        <span>📈 班級學習數據與能力掌握圖表</span>
-        <span style="display:flex; gap:10px; align-items:center;">
-          <a class="sum-toggle-btn" id="btn-toggle-tc-charts" onclick="event.stopPropagation(); toggleTeacherCard('tc-charts')">展開</a>
-        </span>
-      </h3>
-      <div class="teacher-card-body" id="body-tc-charts" style="display:none;">
-      <!-- 卡片 3：班級分析圖表容器 (展開時為獨立舒適卡片) -->
-      <div id="teacherChartSection" class="card" style="display:none; padding:24px 26px; margin-bottom:24px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
-          <div style="font-size:15px; font-weight:800; color:var(--text); display:flex; align-items:center; gap:6px;">
-            📊 <span>全班學習成效分佈與能力掌握分析</span>
-          </div>
-          <button class="btn-secondary btn-sm" onclick="downloadAllTeacherCharts()" title="一鍵打包下載全班 3 張分析圖表" style="display:inline-flex; align-items:center; gap:4px; font-weight:600;">
-            📥 下載所有班級圖表
-          </button>
-        </div>
-        <div class="chart-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:20px;">
-          <div class="chart-container" style="min-height: 280px; display:flex; flex-direction:column;">
-            <div class="chart-title">
-              <span class="chart-title-text">🏆 精通單字排行榜 (Top 10)</span>
-              <button class="btn-chart-download" onclick="downloadChartImage('teacherBarChart', '精通單字排行榜Top10')" title="下載此圖表 (PNG)">📥 下載</button>
-            </div>
-            <div style="flex-grow:1; height:240px; position:relative;"><canvas id="teacherBarChart"></canvas></div>
-            <div class="chart-desc-box">
-              <b>📊 圖表數值解讀：</b>統計全班精通單字數最高的前 10 名學生。<strong>X 軸</strong>為學生帳號/姓名，<strong>Y 軸</strong>為該生連續答對 3 次已牢記的單字數量。數值越高代表該生已精熟掌握之字彙庫越豐富，可作為班級進度領先標竿。
-            </div>
-          </div>
-          <div class="chart-container" style="min-height: 280px; display:flex; flex-direction:column;">
-            <div class="chart-title">
-              <span class="chart-title-text">🎯 全班學習表現分佈 (依正確率)</span>
-              <button class="btn-chart-download" onclick="downloadChartImage('teacherPieChart', '全班學習表現分佈')" title="下載此圖表 (PNG)">📥 下載</button>
-            </div>
-            <div style="flex-grow:1; height:240px; position:relative;"><canvas id="teacherPieChart"></canvas></div>
-            <div class="chart-desc-box">
-              <b>📊 圖表數值解讀：</b>依學生最新總正確率分群呈現全班常態分佈：
-              <span style="color:#10b981; font-weight:700;">● 優秀 (≥90%)</span>、
-              <span style="color:#3b82f6; font-weight:700;">● 良好 (75-89%)</span>、
-              <span style="color:#f59e0b; font-weight:700;">● 平穩 (60-74%)</span>、
-              <span style="color:#ef4444; font-weight:700;">● 加強 (&lt;60%)</span>。百分比為該群學生人數佔全班已有紀錄學生之比例，利於教師評估班級雙峰或落後群規模。
-            </div>
-          </div>
-          <div class="chart-container" style="min-height: 280px; display:flex; flex-direction:column;">
-            <div class="chart-title">
-              <span class="chart-title-text">🕸️ 全班 LEVEL 1~5 平均掌握雷達圖</span>
-              <button class="btn-chart-download" onclick="downloadChartImage('teacherRadarChart', '全班能力掌握雷達圖')" title="下載此圖表 (PNG)">📥 下載</button>
-            </div>
-            <div style="flex-grow:1; height:240px; position:relative;"><canvas id="teacherRadarChart"></canvas></div>
-            <div class="chart-desc-box">
-              <b>📊 圖表數值解讀：</b>符應教育部 2000 單字五大等級（Level 1 基礎 ~ Level 5 進階）。各軸向數值代表全班在該等級單字的平均掌握精通百分比（0%~100%）。雷達面積越大代表字彙基礎越全面；若高階向度凹陷，表示進階字彙需於課堂重點加強。
-            </div>
-          </div>
-        </div>
-      </div>
 
-      </div>
-    </section>
-    <!-- ── 模組 4：全班學生名冊與學習歷程總表 ── -->
+    <!-- ══════════════════════════════════════════════════════════
+         方塊 5：📋 全班學生學習名冊與進度總覽
+    ══════════════════════════════════════════════════════════ -->
     <section class="progress teacher-section-card" id="tc-roster">
       <h3 onclick="toggleTeacherCard('tc-roster')">
-        <span>📋 全班學生學習進度與名冊總覽</span>
+        <span>📋 全班學生學習名冊與進度總覽</span>
         <span style="display:flex; gap:10px; align-items:center;">
-          <span style="font-size:12.5px; color:var(--text-muted);" id="teacherShowingCount"></span>
           <a class="sum-toggle-btn" id="btn-toggle-tc-roster" onclick="event.stopPropagation(); toggleTeacherCard('tc-roster')">收合</a>
         </span>
       </h3>
       <div class="teacher-card-body" id="body-tc-roster">
-      <!-- 卡片 4：全班學生名冊與學習歷程總表 -->
-      <div class="card" style="padding:24px 26px; margin-bottom:24px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
-          <div style="font-weight:800; font-size:16px; color:var(--text); display:flex; align-items:center; gap:8px;">
-            <span>📋 全班學生學習進度與指標總覽</span>
+        <div class="card" style="padding:22px 26px; margin-bottom:24px;">
+          <!-- 搜尋與狀態篩選工具列 -->
+          <div class="teacher-toolbar" style="margin-bottom:18px; gap:14px; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center;">
+            <div class="teacher-search-box" style="flex:1; max-width:320px;">
+              <span class="teacher-search-icon">🔍</span>
+              <input type="text" id="teacherSearchInput" class="teacher-search-input"
+                placeholder="搜尋學生帳號、姓名或班級..." oninput="handleTeacherSearch(this.value)" />
+            </div>
+            <div class="filter-chip-group" style="gap:8px;">
+              <button class="filter-chip active" id="chip-all" onclick="setTeacherFilter('all')">全部 (<span id="count-all">0</span>)</button>
+              <button class="filter-chip" id="chip-active" onclick="setTeacherFilter('active')">已有紀錄 (<span id="count-active">0</span>)</button>
+              <button class="filter-chip" id="chip-inactive" onclick="setTeacherFilter('inactive')">尚無紀錄 (<span id="count-inactive">0</span>)</button>
+              <button class="filter-chip need-attention" id="chip-attention" onclick="setTeacherFilter('attention')">⚠️ 需關注 (<span id="count-attention">0</span>)</button>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <select id="studentSelector" style="min-width:140px; height:34px; border-radius:8px; border:1.5px solid var(--border); padding:0 8px; font-weight:600; background:var(--input-bg); color:var(--text);"></select>
+              <button class="btn-primary btn-sm" onclick="viewSelectedStudent()" style="height:34px; padding:0 12px; font-weight:700;">👤 查看個別學生</button>
+            </div>
           </div>
-          <div style="font-size:13px; color:var(--text-muted);" id="teacherShowingCount"></div>
-        </div>
 
-        <!-- 搜尋與狀態篩選工具列 -->
-        <div class="teacher-toolbar" style="margin-bottom:18px; gap:14px;">
-          <div class="teacher-search-box" style="flex:1; max-width:360px;">
-            <span class="teacher-search-icon">🔍</span>
-            <input type="text" id="teacherSearchInput" class="teacher-search-input"
-              placeholder="搜尋學生帳號、姓名或班級..." oninput="handleTeacherSearch(this.value)" />
-          </div>
-          <div class="filter-chip-group" style="gap:8px;">
-            <button class="filter-chip active" id="chip-all" onclick="setTeacherFilter('all')">全部 (<span id="count-all">0</span>)</button>
-            <button class="filter-chip" id="chip-active" onclick="setTeacherFilter('active')">已有紀錄 (<span id="count-active">0</span>)</button>
-            <button class="filter-chip" id="chip-inactive" onclick="setTeacherFilter('inactive')">尚無紀錄 (<span id="count-inactive">0</span>)</button>
-            <button class="filter-chip need-attention" id="chip-attention" onclick="setTeacherFilter('attention')">⚠️ 需關注 (<span id="count-attention">0</span>)</button>
-          </div>
+          <!-- 班級總覽表格 -->
+          <div class="table-container" id="classOverviewTableContainer" style="max-height:600px; overflow-y:auto;"></div>
         </div>
-
-        <!-- 班級總覽表格 -->
-        <div class="table-container" id="classOverviewTableContainer" style="max-height:600px; overflow-y:auto;"></div>
-
-        <!-- 📋 班級學習總覽各欄位指標與數值定義說明卡 -->
-        <div class="table-legend-card" style="margin-top:18px;">
-          <div style="font-weight:700; font-size:13px; color:var(--text); margin-bottom:8px; display:flex; align-items:center; gap:6px;">
-            📋 班級學習總覽各欄位指標與數值定義說明：
-          </div>
-          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:10px; font-size:12px; color:var(--text-muted); line-height:1.65;">
-            <div>• <strong style="color:var(--text);">學號 / 姓名</strong>：學生登入系統帳號與真實姓名。</div>
-            <div>• <strong style="color:var(--text);">班級代碼</strong>：學生所屬之班級代碼或標籤。</div>
-            <div>• <strong style="color:var(--text);">累積受測單字數</strong>：歷史累積已練習過的所有不重複單字數量。</div>
-            <div>• <strong style="color:var(--text);">單字掌握率</strong>：已答對單字數 ÷ 累積受測單字數之百分比。</div>
-            <div>• <strong style="color:var(--text);">最高連勝 (Streak)</strong>：學生維持連續答對未中斷的最高題數紀錄。</div>
-            <div>• <strong style="color:var(--text);">挑戰等級 (LV)</strong>：系統依學生答題表現推估之適性挑戰難度關卡（LV 1~5）。</div>
-            <div>• <strong style="color:var(--text);">狀態指示燈</strong>：🟢 穩定前進（正確率 ≥ 80%）· 🟡 正常學習中 · 🔴 需關注（正確率低於 60%）。</div>
-            <div>• <strong style="color:var(--text);">最新同步時間</strong>：學生端裝置最新一次上傳備份至試算表的確切時間戳記。</div>
-          </div>
-        </div>
-      </div>
       </div>
     </section>
-    <!-- ── 模組 5：今日指定測驗成果與錯題大數據分析 ── -->
-    <section class="progress teacher-section-card is-collapsed" id="tc-analytics">
-      <h3 onclick="toggleTeacherCard('tc-analytics')">
-        <span>🎯 今日指定測驗成果與錯題大數據分析</span>
-        <span style="display:flex; gap:10px; align-items:center;">
-          <a class="sum-toggle-btn" id="btn-toggle-tc-analytics" onclick="event.stopPropagation(); toggleTeacherCard('tc-analytics')">展開</a>
-        </span>
-      </h3>
-      <div class="teacher-card-body" id="body-tc-analytics" style="display:none;">
-    <div id="teacherAnalyticsView" style="display:none;">
-      <!-- 卡片 1：測驗日期與班級篩選控制台 -->
-      <div class="card" style="padding:22px 26px; margin-bottom:24px;">
-        <div style="font-weight:800; font-size:15px; color:var(--text); margin-bottom:14px; display:flex; align-items:center; gap:8px;">
-          ⚙️ 今日指定測驗查詢與教學動作
-        </div>
-        <div style="display:flex; flex-wrap:wrap; gap:16px; align-items:flex-end; justify-content:space-between;">
-          <div style="display:flex; flex-wrap:wrap; gap:14px; align-items:flex-end;">
-            <div class="input-field" style="margin:0;">
-              <label for="analyticsDateSelect" style="font-size:12.5px; font-weight:700; color:var(--text); margin-bottom:4px; display:block;">📅 測驗日期</label>
-              <select id="analyticsDateSelect" onchange="loadDailyTaskAnalytics()" style="min-width: 150px; font-weight:700; padding:8px 12px; border-radius:8px; border:1.5px solid var(--border); background:var(--input-bg); color:var(--text);"></select>
-            </div>
-            <div class="input-field" style="margin:0;">
-              <label for="analyticsClassSelect" style="font-size:12.5px; font-weight:700; color:var(--text); margin-bottom:4px; display:block;">🏫 班級篩選</label>
-              <select id="analyticsClassSelect" onchange="loadDailyTaskAnalytics()" style="min-width: 140px; font-weight:700; padding:8px 12px; border-radius:8px; border:1.5px solid var(--border); background:var(--input-bg); color:var(--text);">
-                <option value="all">🌐 全校 / 所有班級</option>
-              </select>
-            </div>
-            <button class="btn-primary" onclick="loadDailyTaskAnalytics()" style="height:38px; padding:0 16px; border-radius:8px; background:#4f46e5; color:white; font-weight:700; display:inline-flex; align-items:center; gap:6px;">
-              🔄 重新載入大數據
-            </button>
-          </div>
-          <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
-            <button class="btn-secondary" onclick="copyErrorWordsList()" title="一鍵複製本測驗所有學生答錯單字（可用於教學複習單）" style="height:38px; padding:0 14px; border-radius:8px; display:inline-flex; align-items:center; gap:6px;">
-              📋 複製錯題複習清單
-            </button>
-            <button class="btn-secondary" onclick="reassignFromErrors()" style="background:rgba(99,102,241,0.12); border-color:#6366f1; color:var(--primary); font-weight:700; height:38px; padding:0 14px; border-radius:8px; display:inline-flex; align-items:center; gap:6px;" title="直接以此錯題單字群再次出題測驗">
-              📝 以此錯題群再次出題
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- 卡片 2：今日指定測驗 4 大核心 KPI 網格與解讀說明卡 -->
-      <div class="card" style="padding:22px 26px; margin-bottom:24px;">
-        <div style="font-weight:800; font-size:15px; color:var(--text); margin-bottom:14px; display:flex; align-items:center; gap:8px;">
-          📊 本次指定測驗 4 大核心表現 KPI
-        </div>
-        <!-- 大數據 KPI 卡片 (4格) -->
-        <div id="analyticsKpiGrid" class="kpi-grid" style="margin-bottom:16px; gap:16px;"></div>
-
-        <!-- 💡 大數據 4 大 KPI 數值定義與指標解讀說明卡 -->
-        <div class="chart-desc-card" style="margin-bottom:0;">
-          <div style="font-weight:700; font-size:13px; color:var(--text); margin-bottom:8px; display:flex; align-items:center; gap:6px;">
-            💡 今日指定測驗 4 大核心 KPI 數值定義與指標解讀：
-          </div>
-          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:12px; font-size:12px; color:var(--text-muted); line-height:1.65;">
-            <div>• <strong style="color:var(--text);">👥 應測學生 / 完成率</strong>：<strong>分母</strong>為該班級在使用者名單中的應測總人數；<strong>分子</strong>為今日已全數作答完畢的學生數。<strong>完成率</strong>＝已完成人數 ÷ 應測總人數。標籤同步統計中途作答中（每題即時存檔保護）與尚未測驗人數。</div>
-            <div>• <strong style="color:var(--text);">📊 班級平均得分</strong>：全班已完成測驗學生的換算百分制平均成績（各生答對題數 ÷ 總出題數 × 100 之全班平均值），直接反映本次指派單字的整體掌握度與試題難易平衡。</div>
-            <div>• <strong style="color:var(--text);">🎯 測驗及格表現 (≥60%)</strong>：本次測驗成績達 60%（及格）之學生人數與全班及格率；不及格人數為低於 60 分需優先安排補救與輔導之名單。</div>
-            <div>• <strong style="color:var(--text);">🏆 滿分成就 / 易錯弱點</strong>：<strong>滿分人數</strong>為本次指派測驗中 100% 全對無任何錯題的學生數；<strong>易錯弱點數</strong>為全班在本次測驗中被系統大數據彙整出的所有相異錯題單字總數量。</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 卡片 3：🔥 班級答錯單字大數據排行榜 (教育大數據診斷核心) -->
-      <div class="card analytics-ranking-section" style="padding:24px 26px; margin-bottom:24px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:8px;">
-          <div class="analytics-ranking-title">
-            <span>🔥 班級單字答錯排行榜 (教育大數據診斷)</span>
-            <span style="font-size:12px; font-weight:500; color:var(--text-muted);">（自動統計全班易錯弱點單字，供課堂加強與個別補救）</span>
-          </div>
-          <span id="analyticsWordCountBadge" class="analytics-ranking-badge"></span>
-        </div>
-        <div id="analyticsErrorRankingContainer" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap:14px;"></div>
-
-        <!-- 🔍 班級單字答錯排行榜詳細數值與教學指引說明 -->
-        <div class="chart-desc-card" style="margin-top:18px;">
-          <div style="font-weight:700; font-size:13px; color:var(--text); margin-bottom:8px; display:flex; align-items:center; gap:6px;">
-            🔍 班級單字答錯排行榜（教育大數據診斷）各項數值與教學指引說明：
-          </div>
-          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:10px; font-size:12px; color:var(--text-muted); line-height:1.65;">
-            <div>• <strong style="color:var(--text);">排名順序（🥇 最多、🥈 次多、🥉 次次多...）</strong>：系統自動統計全班學生在本次測驗答錯的所有單字，依<strong>答錯人次降序排列</strong>。排名越前面的單字，代表是全班普遍最容易混淆或拼錯的共同盲點。</div>
-            <div>• <strong style="color:var(--text);">答錯人數與錯誤佔比 (%)</strong>：表示全班已測驗學生中，具體有多少位學生在此單字拼寫失分（答錯人數 ÷ 已完成總人數）。色彩條長度直觀對應錯誤嚴重度（紅/橘/黃/藍）。</div>
-            <div>• <strong style="color:var(--text);">單字與教育部 2000 字庫釋義</strong>：標註英文單字與中文詞性釋義，提供老師在黑板或投影幕直接解析詞根、發音規則與易拼錯字元。</div>
-            <div>• <strong style="color:var(--text);">👥 答錯學生名單</strong>：點擊「查看答錯學生名單」可展開個別學生標籤，精準鎖定哪些同學尚未掌握該字，落實差異化個別補救。</div>
-            <div>• <strong style="color:var(--text);">一鍵教學應用動作</strong>：點擊「📋 複製錯題複習清單」可打包輸出文字供列印紙本複習卷；點擊「📝 以此錯題群再次出題」可直接以此批易錯單字指派二次強化測驗。</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 卡片 4：📋 各學生每日測驗個別成果獨立大表格 -->
-      <div class="card" style="padding:24px 26px; margin-bottom:24px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
-          <div style="font-size:16px; font-weight:800; color:var(--text); display:flex; align-items:center; gap:8px;">
-            <span>📋 學生每日測驗作答明細總表</span>
-            <span style="font-size:12px; font-weight:500; color:var(--text-muted);">（包含每位學生具體答錯單字標籤與時間戳記）</span>
-          </div>
-          <div style="display:flex; gap:8px; align-items:center;">
-            <input type="text" id="analyticsStudentSearch" placeholder="搜尋學號或姓名..." oninput="handleAnalyticsSearch(this.value)" style="padding:7px 14px; border-radius:8px; border:1px solid var(--border); background:var(--input-bg); color:var(--text); font-size:13px; outline:none;" />
-            <button class="btn-secondary btn-sm" onclick="exportAnalyticsCsv()">📥 匯出明細 CSV</button>
-          </div>
-        </div>
-
-        <!-- 狀態過濾按鈕組 -->
-        <div class="filter-chip-group" style="margin-bottom:18px; gap:8px;">
-          <button class="filter-chip active" id="achip-all" onclick="setAnalyticsFilter('all')">全部 (<span id="acount-all">0</span>)</button>
-          <button class="filter-chip" id="achip-done" onclick="setAnalyticsFilter('done')">已完成 (<span id="acount-done">0</span>)</button>
-          <button class="filter-chip" id="achip-progress" onclick="setAnalyticsFilter('progress')">作答中 (<span id="acount-progress">0</span>)</button>
-          <button class="filter-chip" id="achip-notyet" onclick="setAnalyticsFilter('notyet')">未受測/未指派 (<span id="acount-notyet">0</span>)</button>
-          <button class="filter-chip need-attention" id="achip-fail" onclick="setAnalyticsFilter('fail')">⚠️ 不及格 (<span id="acount-fail">0</span>)</button>
-        </div>
-
-        <div class="table-container" id="analyticsTableContainer" style="max-height:600px; overflow-y:auto;"></div>
-
-        <!-- 📋 學生每日測驗作答明細總表各欄位數值與標籤說明 -->
-        <div class="table-legend-card" style="margin-top:18px;">
-          <div style="font-weight:700; font-size:13px; color:var(--text); margin-bottom:8px; display:flex; align-items:center; gap:6px;">
-            📋 學生每日測驗作答明細總表各欄位數值與標籤說明：
-          </div>
-          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:10px; font-size:12px; color:var(--text-muted); line-height:1.65;">
-            <div>• <strong style="color:var(--text);">測驗狀態標籤</strong>：
-              <span style="color:#10b981; font-weight:700;">🟢 已完成</span>（全數作答完畢並已結算成績）·
-              <span style="color:#f59e0b; font-weight:700;">🟡 作答中</span>（正在測驗中，每題即時自動存檔，尚未完成全部題數）·
-              <span style="color:#ef4444; font-weight:700;">⚪ 未受測</span>（當天有指派指定測驗但尚未完成）·
-              <span style="color:var(--text-muted); font-weight:700;">⚪ 未指派</span>（當天無指派指定測驗）。
-            </div>
-            <div>• <strong style="color:var(--text);">得分 (正確率) 數值</strong>：格式為「答對題數 / 總出題數 (答對百分比)」，例如 <code>4/5 (80%)</code>。綠底代表精熟（≥80%）、黃底代表平穩（60%~79%）、紅底代表不及格需關注（&lt;60%）。</div>
-            <div>• <strong style="color:var(--text);">本次答錯單字診斷 (紅標)</strong>：標記該學生在本次測驗中具體拼錯的所有單字與釋義；全對者標記為「✨ 全對滿分」。紅標單字皆已即時同步至該學生的週末複習錯題庫。</div>
-            <div>• <strong style="color:var(--text);">完成時間</strong>：學生作答完畢交卷或最新一題自動存檔傳送至試算表的時間。</div>
-            <div>• <strong style="color:var(--text);">👤 查歷程按鈕</strong>：點擊即可無縫開啟該名學生的完整歷史學習紀錄、能力雷達圖與列印學習報告。</div>
-            <div>• <strong style="color:var(--text);">📥 匯出明細 CSV</strong>：支援將當前日期與班級的完整測驗明細一鍵打包下載為 Excel 相容的 UTF-8 CSV 檔案。</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── 子視圖 3：📅 區間學生答題狀況比較表（指定日期範圍） ── -->
-      </div>
-    </section>
-    <!-- ── 模組 6：區間學生答題狀況大數據比較表 ── -->
-    <section class="progress teacher-section-card is-collapsed" id="tc-range">
-      <h3 onclick="toggleTeacherCard('tc-range')">
-        <span>📅 區間學生答題狀況大數據比較表</span>
-        <span style="display:flex; gap:10px; align-items:center;">
-          <a class="sum-toggle-btn" id="btn-toggle-tc-range" onclick="event.stopPropagation(); toggleTeacherCard('tc-range')">展開</a>
-        </span>
-      </h3>
-      <div class="teacher-card-body" id="body-tc-range" style="display:none;">
-    <div id="teacherRangePerformanceView" style="display:none;">
-      <!-- 控制列獨立大卡片：快捷標籤、起訖日期、班級篩選、搜尋與檢視切換 -->
-      <div class="card" style="padding:22px 26px; margin-bottom:24px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:18px;">
-          <div style="display:flex; align-items:center; gap:10px;">
-            <span style="font-size:16px; font-weight:800; color:var(--text); letter-spacing:-0.2px;">📅 指定日期範圍全班比較</span>
-            <span id="rangePerformanceBadge" style="font-size:12px; font-weight:700; color:var(--primary); background:rgba(99,102,241,0.12); padding:4px 12px; border-radius:20px;">載入中...</span>
-          </div>
-          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-            <button class="btn-secondary btn-sm" id="btnToggleRangeView" onclick="toggleRangeViewMode()" title="在每日作答分數矩陣與總結摘要模式間切換" style="display:inline-flex; align-items:center; gap:6px; padding:7px 14px; font-weight:700;">
-              📊 每日分數矩陣模式
-            </button>
-            <button class="btn-secondary btn-sm" onclick="exportRangePerformanceCsv()" style="display:inline-flex; align-items:center; gap:6px; padding:7px 14px; font-weight:700;" title="將整張區間比較表匯出為 CSV">
-              📥 匯出區間比較報表 CSV
-            </button>
-            <button class="btn-secondary btn-sm" onclick="loadDateRangePerformance(true)" title="重新從伺服器拉取最新紀錄" style="display:inline-flex; align-items:center; gap:6px; padding:7px 14px; font-weight:700;">
-              🔄 重新整理
-            </button>
-          </div>
-        </div>
-
-        <!-- 快捷區間標籤 -->
-        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:16px;">
-          <span style="font-size:13px; font-weight:700; color:var(--text-muted);">⚡ 快捷範圍：</span>
-          <button class="range-quick-chip active" id="rq-7d" onclick="setQuickRange('7d')">最近 7 天</button>
-          <button class="range-quick-chip" id="rq-14d" onclick="setQuickRange('14d')">最近 14 天</button>
-          <button class="range-quick-chip" id="rq-30d" onclick="setQuickRange('30d')">最近 30 天</button>
-          <button class="range-quick-chip" id="rq-week" onclick="setQuickRange('week')">本週 (週一至今日)</button>
-          <button class="range-quick-chip" id="rq-month" onclick="setQuickRange('month')">本月 (1日至今日)</button>
-          <button class="range-quick-chip" id="rq-all" onclick="setQuickRange('all')">全部歷史紀錄</button>
-        </div>
-
-        <!-- 篩選列：日期輸入框、班級、搜尋框 -->
-        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:14px; align-items:end;">
-          <div class="input-field">
-            <label for="rangeStartDate" style="font-weight:700; margin-bottom:6px;">📅 開始日期</label>
-            <input type="date" id="rangeStartDate" onchange="handleRangeDateChange()" style="width:100%; height:40px; border-radius:8px;" />
-          </div>
-          <div class="input-field">
-            <label for="rangeEndDate" style="font-weight:700; margin-bottom:6px;">📅 結束日期</label>
-            <input type="date" id="rangeEndDate" onchange="handleRangeDateChange()" style="width:100%; height:40px; border-radius:8px;" />
-          </div>
-          <div class="input-field">
-            <label for="rangeClassSelect" style="font-weight:700; margin-bottom:6px;">🏫 班級篩選</label>
-            <select id="rangeClassSelect" onchange="handleRangeClassChange(this.value)" style="width:100%; height:40px; border-radius:8px;">
-              <option value="all">🌐 全校 / 所有班級</option>
-            </select>
-          </div>
-          <div class="input-field">
-            <label for="rangeSearchInput" style="font-weight:700; margin-bottom:6px;">🔍 學生搜尋</label>
-            <input type="text" id="rangeSearchInput" placeholder="搜尋座號、學號或姓名..." oninput="handleRangeSearch(this.value)" style="width:100%; height:40px; border-radius:8px;" />
-          </div>
-        </div>
-
-        <!-- 學生表現分類過濾 Chips -->
-        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:16px; padding-top:14px; border-top:1px dashed var(--border);">
-          <span style="font-size:13px; font-weight:700; color:var(--text-muted);">👥 學生篩選：</span>
-          <button class="analytics-filter-chip active" id="rfchip-all" onclick="setRangeFilter('all')">全體名冊</button>
-          <button class="analytics-filter-chip" id="rfchip-mastered" onclick="setRangeFilter('mastered')">🌟 精熟頂尖 (≥85%)</button>
-          <button class="analytics-filter-chip" id="rfchip-steady" onclick="setRangeFilter('steady')">🟢 良好穩定 (75%~84%)</button>
-          <button class="analytics-filter-chip" id="rfchip-attention" onclick="setRangeFilter('attention')">⚠️ 需加強輔導 (&lt;60%)</button>
-          <button class="analytics-filter-chip" id="rfchip-missing" onclick="setRangeFilter('missing')">💤 缺測偏多 (&lt;40%天數)</button>
-        </div>
-      </div>
-
-      <!-- 讀取狀態 Loading -->
-      <div id="rangePerformanceLoading" style="display:none; text-align:center; padding:55px 20px;">
-        <div class="spinner" style="margin:0 auto 16px; width:38px; height:38px;"></div>
-        <div style="font-size:15px; font-weight:700; color:var(--text);">正在彙整區間作答大數據與各日答題矩陣...</div>
-        <div style="font-size:13px; color:var(--text-muted); margin-top:6px;">即時統計全班出席、答對率與累積錯題</div>
-      </div>
-
-      <!-- 主內容區塊 Content -->
-      <div id="rangePerformanceContent">
-        <!-- 模組 1：期間全班整體指標與每日趨勢獨立大卡片 -->
-        <div class="card" style="padding:24px 26px; margin-bottom:24px;">
-          <div style="font-size:15px; font-weight:800; color:var(--text); margin-bottom:16px; display:flex; align-items:center; gap:8px;">
-            <span>📈 期間全班指標與每日趨勢概覽</span>
-          </div>
-
-          <!-- 1. 全班整體狀況 KPI 卡片 (一眼看清整班) -->
-          <div id="rangeClassKpiGrid" class="kpi-grid" style="margin-bottom:20px;"></div>
-
-          <!-- 2. 全班每日答題趨勢條 -->
-          <div id="rangeDailyTrendContainer" style="margin-bottom:18px;"></div>
-
-          <!-- 3. 期間班級高頻錯題排行 Top 5 (若有錯題) -->
-          <div id="rangeClassErrorWordsContainer" style="margin-bottom:0;"></div>
-        </div>
-
-        <!-- 模組 2：核心比較大表獨立大卡片 (所有學生的答題狀況表) -->
-        <div class="card" style="padding:24px 26px; margin-bottom:24px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
-            <div style="display:flex; align-items:center; gap:10px;">
-              <span style="font-size:15px; font-weight:800; color:var(--text);">📊 學生作答表現與歷程矩陣大表</span>
-              <span id="rangeTableCountBadge" style="font-size:12px; color:var(--text-muted); font-weight:600;"></span>
-            </div>
-            <div style="font-size:12px; color:var(--text-muted); display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
-              <span style="display:inline-flex; align-items:center; gap:5px;"><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#10b981;"></span>滿分/精熟 (≥80%)</span>
-              <span style="display:inline-flex; align-items:center; gap:5px;"><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#3b82f6;"></span>良好穩定 (70%~79%)</span>
-              <span style="display:inline-flex; align-items:center; gap:5px;"><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#f59e0b;"></span>及格平穩 (60%~69%)</span>
-              <span style="display:inline-flex; align-items:center; gap:5px;"><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#ef4444;"></span>不及格需關懷 (&lt;60%)</span>
-              <span style="display:inline-flex; align-items:center; gap:5px;"><span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:var(--text-muted); opacity:0.5;"></span>未測驗 (—)</span>
-            </div>
-          </div>
-
-          <div id="rangeMatrixTableContainer" style="overflow-x:auto; max-height:720px; border:1px solid var(--border); border-radius:10px;">
-            <!-- 表格由 JS 動態生成 -->
-          </div>
-        </div>
-
-        <!-- 模組 3：💡 區間指標數值解讀與教育大數據說明獨立卡片 -->
-        <div class="card" style="padding:22px 26px; margin-bottom:24px; background:linear-gradient(135deg, rgba(99,102,241,0.03) 0%, rgba(139,92,246,0.04) 100%); border:1px solid rgba(99,102,241,0.18);">
-          <div style="font-weight:800; font-size:14px; color:var(--text); margin-bottom:12px; display:flex; align-items:center; gap:8px;">
-            💡 區間作答狀況表各項指標定義與數值解讀說明：
-          </div>
-          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:14px; font-size:12.5px; color:var(--text-muted); line-height:1.7;">
-            <div>• <strong style="color:var(--text);">👥 班級參與率</strong>：在所選起訖日期範圍內，至少完成過 1 天測驗的學生人數比例。低於 80% 代表該班有較多學生持續缺測，需加強提醒。</div>
-            <div>• <strong style="color:var(--text);">📝 期間作答與答對單字數</strong>：全班或個別學生在所選日期區間內的累計施測總單字數與答對單字數加總。</div>
-            <div>• <strong style="color:var(--text);">🎯 期間總正確率</strong>：累計答對單字數 ÷ 累計施測單字數。綠色代表表現優異（≥80%）、黃色代表及格平穩（60%~79%）、紅色代表基礎薄弱需輔導（&lt;60%）。</div>
-            <div>• <strong style="color:var(--text);">🏫 首行【全班平均基準】</strong>：以紫色/藍色高亮標記的基準行，提供全班在該區間的平均施測單字數、平均正確率以及每日班級平均分，便於直接比對學生是否超越班級平均。</div>
-            <div>• <strong style="color:var(--text);">📅 每日作答格子 (Matrix Cell)</strong>：顯示該生當日出題測驗的「答對/施測單字數 (正確率)」，滑鼠懸停或點擊可顯示當日具體拼錯的所有單字與中文釋義。</div>
-            <div>• <strong style="color:var(--text);">🔤 期間累計易錯單字</strong>：將該名學生在整個日期區間內所有測驗曾答錯過的單字去重彙整，老師可一眼看出該生近期的主要學習痛點。</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── 子視圖 4：⏰ 學生開放時間管制與設定 ── -->
-      </div>
-    </section>
-    <!-- ── 模組 7：學生作答開放時間管制與設定 ── -->
-    <section class="progress teacher-section-card is-collapsed" id="tc-timesettings">
-      <h3 onclick="toggleTeacherCard('tc-timesettings')">
-        <span>⏰ 學生作答開放時間管制與設定</span>
-        <span style="display:flex; gap:10px; align-items:center;">
-          <a class="sum-toggle-btn" id="btn-toggle-tc-timesettings" onclick="event.stopPropagation(); toggleTeacherCard('tc-timesettings')">展開</a>
-        </span>
-      </h3>
-      <div class="teacher-card-body" id="body-tc-timesettings" style="display:none;">
-    <div id="teacherTimeSettingsView" style="display:none;">
-      <!-- 控制列獨立大卡片：狀態、快捷一鍵解除、分頁切換 -->
-      <div class="card" style="padding:22px 26px; margin-bottom:24px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:18px;">
-          <div>
-            <div style="font-size:16px; font-weight:800; color:var(--text); letter-spacing:-0.2px; display:flex; align-items:center; gap:8px;">
-              <span>⏰ 學生可作答時間管制與專屬設定</span>
-            </div>
-            <div style="font-size:13px; color:var(--text-muted); margin-top:4px;">
-              設定全校每日標準開放時段、個別學生特例時段，或解除指定日期全天限制
-            </div>
-          </div>
-          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-            <button class="btn-secondary btn-sm" id="ttsBtnQuickToggle" onclick="toggleTeacherTodayUnlock()" style="display:inline-flex; align-items:center; gap:6px; padding:8px 16px; font-weight:700;">
-              ⚡ 一鍵解除今日限制
-            </button>
-            <button class="btn-secondary btn-sm" onclick="loadTeacherTimeSettings(true)" title="重新從伺服器拉取最新設定" style="display:inline-flex; align-items:center; gap:6px; padding:8px 14px; font-weight:700;">
-              🔄 重新整理
-            </button>
-          </div>
-        </div>
-
-        <!-- 今日狀態橫幅 Badge -->
-        <div style="background:var(--input-bg); border:1.5px solid var(--border); border-radius:10px; padding:12px 18px; margin-bottom:18px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-          <div style="display:flex; align-items:center; gap:10px;">
-            <span style="font-size:13px; font-weight:700; color:var(--text-muted);">📅 今日系統即時狀態：</span>
-            <span id="ttsTodayStatusBadge" style="font-size:14px; font-weight:700; color:var(--primary);">載入中...</span>
-          </div>
-          <div id="ttsGlobalSummaryHint" style="font-size:12.5px; color:var(--text-muted);">
-            全校預設時段：讀取中...
-          </div>
-        </div>
-
-        <!-- ⏱️ 每日練習時間（預設 10 分鐘）設定 -->
-        <div style="border:1.5px solid var(--border); border-radius:12px; padding:16px 18px; margin-bottom:18px; background:var(--card);">
-          <div style="font-size:15px; font-weight:800; color:var(--text); margin-bottom:4px;">⏱️ 每日練習時間（學生每天可練習幾分鐘）</div>
-          <div style="font-size:12.5px; color:var(--text-muted); margin-bottom:14px; line-height:1.6;">
-            從學生當天第一次登入開始倒數。時間到了，學生只能看進度與紀錄，不能再出題。你可以改全校上限、改單一學生上限、今天幫學生加時間，或今天直接解除限制。
-          </div>
-
-          <!-- 每日指定單字測驗實施時限 (5分/10分/20分/全天) -->
-          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:14px; padding-bottom:12px; border-bottom:1px dashed var(--border);">
-            <span style="font-size:13px; font-weight:700; color:var(--text);">📝 每日指定單字測驗實施時限：</span>
-            <select id="taskDurationLimitSelect" style="height:38px; border-radius:8px; border:1.5px solid var(--border); background:var(--input-bg); color:var(--text); padding:0 10px; font-weight:700;">
-              <option value="5">5 分鐘</option>
-              <option value="10" selected>10 分鐘（標準建議）</option>
-              <option value="15">15 分鐘</option>
-              <option value="20">20 分鐘</option>
-              <option value="0">🌟 全天開放（不設限）</option>
-            </select>
-            <button class="btn-primary btn-sm" onclick="saveTaskDurationLimitSetting()" style="padding:8px 16px; font-weight:700;">💾 儲存指定測驗時限</button>
-            <span id="taskDurationLimitMsg" style="font-size:12.5px; font-weight:700; color:var(--primary);"></span>
-          </div>
-
-          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:14px;">
-            <span style="font-size:13px; font-weight:700; color:var(--text);">🏫 全校每日上限：</span>
-            <select id="duGlobalMinutes" style="height:38px; border-radius:8px; border:1.5px solid var(--border); background:var(--input-bg); color:var(--text); padding:0 10px; font-weight:700;">
-              <option value="5">5 分鐘</option><option value="10" selected>10 分鐘（預設）</option><option value="15">15 分鐘</option><option value="20">20 分鐘</option><option value="30">30 分鐘</option><option value="45">45 分鐘</option><option value="60">60 分鐘</option><option value="90">90 分鐘</option><option value="120">120 分鐘</option>
-            </select>
-            <button class="btn-secondary btn-sm" onclick="duSaveGlobalMinutes()" style="padding:8px 16px; font-weight:700;">💾 儲存全校上限</button>
-            <button class="btn-secondary btn-sm" onclick="duUnlock('ALL', true)" style="padding:8px 16px; font-weight:700;">🔓 今天全校解除限制</button>
-            <button class="btn-secondary btn-sm" onclick="duUnlock('ALL', false)" style="padding:8px 16px; font-weight:700;">🔒 恢復全校限制</button>
-          </div>
-
-          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding-top:12px; border-top:1px dashed var(--border);">
-            <span style="font-size:13px; font-weight:700; color:var(--text);">👤 指定學生：</span>
-            <select id="duStudentSelect" style="min-width:220px; height:38px; border-radius:8px; border:1.5px solid var(--border); background:var(--input-bg); color:var(--text); padding:0 10px;">
-              <option value="">-- 請選擇學生 --</option>
-            </select>
-            <select id="duStudentMinutes" style="height:38px; border-radius:8px; border:1.5px solid var(--border); background:var(--input-bg); color:var(--text); padding:0 10px; font-weight:700;">
-              <option value="10">10 分鐘</option><option value="15">15 分鐘</option><option value="20">20 分鐘</option><option value="30">30 分鐘</option><option value="45">45 分鐘</option><option value="60">60 分鐘</option><option value="90">90 分鐘</option><option value="120">120 分鐘</option>
-            </select>
-            <button class="btn-secondary btn-sm" onclick="duSaveStudentMinutes()" style="padding:8px 14px; font-weight:700;">💾 設為此學生每日上限</button>
-            <button class="btn-secondary btn-sm" onclick="duExtend(10)" style="padding:8px 14px; font-weight:700;">➕ 今天加 10 分</button>
-            <button class="btn-secondary btn-sm" onclick="duExtend(20)" style="padding:8px 14px; font-weight:700;">➕ 今天加 20 分</button>
-            <button class="btn-secondary btn-sm" onclick="duUnlock('STUDENT', true)" style="padding:8px 14px; font-weight:700;">🔓 今天解除此學生</button>
-            <button class="btn-secondary btn-sm" onclick="duUnlock('STUDENT', false)" style="padding:8px 14px; font-weight:700;">🔒 恢復此學生限制</button>
-          </div>
-          <div id="duMsg" style="font-size:13px; font-weight:700; color:var(--primary); margin-top:10px; min-height:18px;"></div>
-        </div>
-        <!-- 📋 待攻克單字滾入規則與學期週次設定 -->
-        <div style="border:1.5px solid var(--border); border-radius:12px; padding:16px 18px; margin-bottom:18px; background:var(--card);">
-          <div style="font-size:15px; font-weight:800; color:var(--text); margin-bottom:4px;">📋 待攻克單字滾入規則與學期週次設定（教師控制）</div>
-          <div style="font-size:12.5px; color:var(--text-muted); margin-bottom:14px; line-height:1.6;">
-            控制學生平日答錯題目滾入待攻克機制，並可設定學期開學日或手動指定目前教學週次，精準對應學校行事曆。
-          </div>
-          <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:14px;">
-            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13.5px; font-weight:600; color:var(--text);">
-              <input type="checkbox" id="conquerRollTaskMistakes" checked style="width:16px; height:16px; accent-color:var(--primary);">
-              指定單字測驗答錯的單字滾入待攻克（預設開啟，讓學生週末補救平日指定測驗錯題）
-            </label>
-            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13.5px; font-weight:600; color:var(--text);">
-              <input type="checkbox" id="conquerRollFreeMistakes" style="width:16px; height:16px; accent-color:var(--primary);">
-              自由練習答錯的單字滾入待攻克（預設關閉，鼓勵自主安全探索不懲罰；若開啟則自由練習答錯也需週末補救）
-            </label>
-          </div>
-          
-          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:12px; padding:12px 14px; background:rgba(148,163,184,0.08); border-radius:10px; margin-bottom:14px; border:1px solid var(--border);">
-            <div>
-              <label style="font-size:12.5px; font-weight:700; color:var(--text); display:block; margin-bottom:4px;">🗓️ 學期開學首週週一日期：</label>
-              <input type="date" id="conquerSemesterStartDate" style="width:100%; padding:6px 10px; border-radius:6px; border:1px solid var(--border); background:var(--card); color:var(--text); font-size:13px; box-sizing:border-box;">
-              <div style="font-size:11px; color:var(--text-muted); margin-top:3px;">留空則依系統自動推定（8/30 或 2/15）</div>
-            </div>
-            <div>
-              <label style="font-size:12.5px; font-weight:700; color:var(--text); display:block; margin-bottom:4px;">⚙️ 手動指定當前週次（可覆寫）：</label>
-              <select id="conquerManualCurrentWeek" style="width:100%; padding:6px 10px; border-radius:6px; border:1px solid var(--border); background:var(--card); color:var(--text); font-size:13px; box-sizing:border-box; cursor:pointer;">
-                <option value="0">🤖 自動推算（依開學日自動計算當前週次）</option>
-                <option value="1">第 1 週</option>
-                <option value="2">第 2 週（雙週大消滅）</option>
-                <option value="3">第 3 週</option>
-                <option value="4">第 4 週（雙週大消滅）</option>
-                <option value="5">第 5 週</option>
-                <option value="6">第 6 週（雙週大消滅）</option>
-                <option value="7">第 7 週</option>
-                <option value="8">第 8 週（雙週大消滅）</option>
-                <option value="9">第 9 週</option>
-                <option value="10">第 10 週（雙週大消滅）</option>
-                <option value="11">第 11 週</option>
-                <option value="12">第 12 週（雙週大消滅）</option>
-                <option value="13">第 13 週</option>
-                <option value="14">第 14 週（雙週大消滅）</option>
-                <option value="15">第 15 週</option>
-                <option value="16">第 16 週（雙週大消滅）</option>
-                <option value="17">第 17 週</option>
-                <option value="18">第 18 週（雙週大消滅）</option>
-                <option value="19">第 19 週</option>
-                <option value="20">第 20 週（雙週大消滅）</option>
-              </select>
-              <div style="font-size:11px; color:var(--text-muted); margin-top:3px;">如遇連假、放假可隨時手動微調指定當前週次</div>
-            </div>
-          </div>
-
-          <div style="display:flex; gap:10px; align-items:center;">
-            <button class="btn-secondary btn-sm" onclick="saveConquerRollSettings()" style="padding:8px 16px; font-weight:700;">💾 儲存規則與週次設定</button>
-            <div id="conquerRollMsg" style="font-size:13px; font-weight:700; color:var(--primary); min-height:18px;"></div>
-          </div>
-        </div>
-
-        <!-- 3 個內部次分頁按鈕 -->
-        <div style="display:flex; gap:10px; border-bottom:1px solid var(--border); padding-bottom:12px; flex-wrap:wrap;">
-          <button class="btn-secondary active" id="ttsTabBtnGlobal" onclick="switchTtsSubTab('global')" style="flex:1; min-width:180px; padding:10px 14px; font-weight:700; border-radius:8px; cursor:pointer;">
-            ⚙️ 全校預設作答時間
-          </button>
-          <button class="btn-secondary" id="ttsTabBtnStudent" onclick="switchTtsSubTab('student')" style="flex:1; min-width:180px; padding:10px 14px; font-weight:700; border-radius:8px; cursor:pointer;">
-            👤 個別學生自訂時間
-          </button>
-          <button class="btn-secondary" id="ttsTabBtnDate" onclick="switchTtsSubTab('date')" style="flex:1; min-width:180px; padding:10px 14px; font-weight:700; border-radius:8px; cursor:pointer;">
-            📅 特別日期全天解除
-          </button>
-        </div>
-      </div>
-
-      <!-- 次分頁 1：全校預設作答時間 -->
-      <div id="ttsTabPanelGlobal" style="display:block;">
-        <div class="card" style="padding:24px 26px; margin-bottom:24px;">
-          <div style="font-weight:800; font-size:15px; color:var(--text); margin-bottom:12px; display:flex; align-items:center; gap:8px;">
-            <span>⚙️ 全校每日標準作答開放時段</span>
-          </div>
-          <div style="background:linear-gradient(135deg, rgba(99,102,241,0.04) 0%, rgba(139,92,246,0.05) 100%); border:1px solid rgba(99,102,241,0.18); border-radius:10px; padding:14px 18px; margin-bottom:20px; font-size:13px; line-height:1.65; color:var(--text-muted);">
-            <div>• <strong style="color:var(--text);">自動保存上次設定</strong>：每次修改儲存後，系統將永久以<b>上次教師設定的時間</b>為基準，無須每次重複調整。</div>
-            <div>• <strong style="color:var(--text);">全校一體適用</strong>：全體學生平日作答均受此起訖時段管制，超出時段系統自動禁止登入與測驗。</div>
-            <div>• <strong style="color:var(--text);">個別彈性優先</strong>：若有特定學生需放學留校輔導或特殊練習，可切換至「個別學生自訂時間」設定，該生將優先採用其個人專屬時段。</div>
-          </div>
-
-          <div style="margin-bottom:12px;">
-            <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; font-size:14px; font-weight:700; color:var(--primary); background:rgba(99,102,241,0.08); padding:8px 14px; border-radius:8px; border:1px solid rgba(99,102,241,0.2);">
-              <input type="checkbox" id="ttsGlobalAllDayCheckbox" onchange="handleGlobalAllDayToggle(this.checked)" style="width:18px; height:18px; accent-color:var(--primary);" />
-              🌟 24 小時全天開放（常態全天開放，不限時段）
-            </label>
-          </div>
-          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:18px; align-items:end; margin-bottom:20px;">
-            <div class="input-field" style="margin:0;">
-              <label for="ttsGlobalStartTime" style="font-weight:700; font-size:13px; color:var(--text); margin-bottom:6px; display:block;">🕒 每日開始作答時間：</label>
-              <input type="time" id="ttsGlobalStartTime" value="07:30" style="width:100%; height:42px; border-radius:8px; padding:8px 12px; border:1.5px solid var(--border); background:var(--input-bg); color:var(--text); font-size:15px; font-weight:600; box-sizing:border-box;" />
-            </div>
-            <div class="input-field" style="margin:0;">
-              <label for="ttsGlobalEndTime" style="font-weight:700; font-size:13px; color:var(--text); margin-bottom:6px; display:block;">🕒 每日結束作答時間：</label>
-              <input type="time" id="ttsGlobalEndTime" value="22:00" style="width:100%; height:42px; border-radius:8px; padding:8px 12px; border:1.5px solid var(--border); background:var(--input-bg); color:var(--text); font-size:15px; font-weight:600; box-sizing:border-box;" />
-            </div>
-            <div>
-              <button class="btn-primary" id="ttsBtnSaveGlobal" onclick="saveTeacherGlobalTimeSetting()" style="width:100%; height:42px; border-radius:8px; font-weight:700; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:8px;">
-                💾 儲存並套用全校預設作答時間
-              </button>
-            </div>
-          </div>
-
-          <div id="ttsGlobalUpdatedMsg" style="font-size:12.5px; color:var(--text-muted); border-top:1px dashed var(--border); padding-top:12px;">
-            目前狀態：讀取中...
-          </div>
-        </div>
-      </div>
-
-      <!-- 次分頁 2：個別學生自訂時間 -->
-      <div id="ttsTabPanelStudent" style="display:none;">
-        <!-- 新增個別設定卡片 -->
-        <div class="card" style="padding:24px 26px; margin-bottom:24px;">
-          <div style="font-weight:800; font-size:15px; color:var(--text); margin-bottom:12px; display:flex; align-items:center; gap:8px;">
-            <span>➕ 設定特定學生專屬作答時間</span>
-          </div>
-          <div style="background:linear-gradient(135deg, rgba(16,185,129,0.04) 0%, rgba(5,150,105,0.05) 100%); border:1px solid rgba(16,185,129,0.2); border-radius:10px; padding:14px 18px; margin-bottom:20px; font-size:13px; line-height:1.65; color:var(--text-muted);">
-            <div>• <strong style="color:var(--text);">個別時段優先</strong>：被設定的學生作答時間將以其<b>專屬時段</b>為準，不再受全校預設時段限制。</div>
-            <div>• <strong style="color:var(--text);">隨時還原</strong>：若欲取消該生專屬時段，只需點擊清單中的「🗑️ 移除」，該生即自動恢復適用全校預設時間。</div>
-          </div>
-
-          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px; margin-bottom:16px;">
-            <div class="input-field" style="margin:0;">
-              <label for="ttsStudentClassFilter" style="font-weight:700; font-size:12.5px; color:var(--text); margin-bottom:6px; display:block;">🏫 篩選班級：</label>
-              <select id="ttsStudentClassFilter" onchange="filterTeacherTimeStudentDropdown()" style="width:100%; height:40px; border-radius:8px; padding:6px 10px; border:1.5px solid var(--border); background:var(--input-bg); color:var(--text); font-weight:600;">
-                <option value="all">所有班級</option>
-              </select>
-            </div>
-            <div class="input-field" style="margin:0;">
-              <label for="ttsStudentSelect" style="font-weight:700; font-size:12.5px; color:var(--text); margin-bottom:6px; display:block;">👤 選擇學生：</label>
-              <select id="ttsStudentSelect" onchange="handleTeacherTimeStudentSelectChange()" style="width:100%; height:40px; border-radius:8px; padding:6px 10px; border:1.5px solid var(--border); background:var(--input-bg); color:var(--text); font-weight:600;">
-                <option value="">-- 請先選擇學生 --</option>
-              </select>
-            </div>
-            <div class="input-field" style="margin:0;">
-              <label for="ttsStudentStartTime" style="font-weight:700; font-size:12.5px; color:var(--text); margin-bottom:6px; display:block;">🕒 該生開始作答時間：</label>
-              <input type="time" id="ttsStudentStartTime" value="07:30" style="width:100%; height:40px; border-radius:8px; padding:6px 10px; border:1.5px solid var(--border); background:var(--input-bg); color:var(--text); font-size:14px; font-weight:600; box-sizing:border-box;" />
-            </div>
-            <div class="input-field" style="margin:0;">
-              <label for="ttsStudentEndTime" style="font-weight:700; font-size:12.5px; color:var(--text); margin-bottom:6px; display:block;">🕒 該生結束作答時間：</label>
-              <input type="time" id="ttsStudentEndTime" value="22:00" style="width:100%; height:40px; border-radius:8px; padding:6px 10px; border:1.5px solid var(--border); background:var(--input-bg); color:var(--text); font-size:14px; font-weight:600; box-sizing:border-box;" />
-            </div>
-          </div>
-
-          <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
-            <input type="text" id="ttsStudentRemark" placeholder="備註說明（例：放學留校輔導、補考練習特許、自主超前進度）" style="flex:1; min-width:240px; height:40px; border-radius:8px; padding:6px 12px; border:1.5px solid var(--border); background:var(--input-bg); color:var(--text); font-size:13px; box-sizing:border-box;" />
-            <button class="btn-primary" id="ttsBtnSaveStudent" onclick="saveTeacherStudentTimeSetting()" style="height:40px; padding:0 22px; border-radius:8px; font-weight:700; display:inline-flex; align-items:center; gap:6px; background:#059669; border-color:#059669;">
-              💾 儲存該學生專屬時段
-            </button>
-          </div>
-        </div>
-
-        <!-- 已設定名冊卡片 -->
-        <div class="card" style="padding:24px 26px; margin-bottom:24px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
-            <div style="display:flex; align-items:center; gap:10px;">
-              <span style="font-size:15px; font-weight:800; color:var(--text);">📋 已設定專屬時段學生名單</span>
-              <span id="ttsStudentCountBadge" style="font-size:12px; font-weight:700; color:var(--primary); background:rgba(99,102,241,0.12); padding:3px 10px; border-radius:20px;">共 0 位學生</span>
-            </div>
-          </div>
-          <div id="ttsStudentRulesContainer" style="overflow-x:auto;">
-            <div style="text-align:center; padding:30px 10px; color:var(--text-muted); font-size:13.5px;">讀取中...</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 次分頁 3：特別日期全天解除 -->
-      <div id="ttsTabPanelDate" style="display:none;">
-        <!-- 新增特別日期卡片 -->
-        <div class="card" style="padding:24px 26px; margin-bottom:24px;">
-          <div style="font-weight:800; font-size:15px; color:var(--text); margin-bottom:12px; display:flex; align-items:center; gap:8px;">
-            <span>➕ 新增特別日期全天開放（指定單日或多日範圍）</span>
-          </div>
-          <div style="background:linear-gradient(135deg, rgba(59,130,246,0.04) 0%, rgba(37,99,235,0.05) 100%); border:1px solid rgba(59,130,246,0.2); border-radius:10px; padding:14px 18px; margin-bottom:20px; font-size:13px; line-height:1.65; color:var(--text-muted);">
-            <div>• <strong style="color:var(--text);">全天 24 小時暢行</strong>：在指定的日期區間內，學生全天皆可登入系統進行測驗練習與備份。</div>
-            <div>• <strong style="color:var(--text);">適用情境</strong>：段考衝刺溫書假、週末集訓加強日、連假練習開放等。單日開放請將開始與結束日期填為同一天。</div>
-          </div>
-
-          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:16px; margin-bottom:16px;">
-            <div class="input-field" style="margin:0;">
-              <label for="ttsDateStart" style="font-weight:700; font-size:12.5px; color:var(--text); margin-bottom:6px; display:block;">📅 開始日期：</label>
-              <input type="date" id="ttsDateStart" style="width:100%; height:40px; border-radius:8px; padding:6px 10px; border:1.5px solid var(--border); background:var(--input-bg); color:var(--text); font-size:14px; font-weight:600; box-sizing:border-box;" />
-            </div>
-            <div class="input-field" style="margin:0;">
-              <label for="ttsDateEnd" style="font-weight:700; font-size:12.5px; color:var(--text); margin-bottom:6px; display:block;">📅 結束日期：</label>
-              <input type="date" id="ttsDateEnd" style="width:100%; height:40px; border-radius:8px; padding:6px 10px; border:1.5px solid var(--border); background:var(--input-bg); color:var(--text); font-size:14px; font-weight:600; box-sizing:border-box;" />
-            </div>
-          </div>
-
-          <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
-            <input type="text" id="ttsDateName" placeholder="設定名稱或備註（例：段考衝刺溫書週、週末自主練習開放）" style="flex:1; min-width:240px; height:40px; border-radius:8px; padding:6px 12px; border:1.5px solid var(--border); background:var(--input-bg); color:var(--text); font-size:13px; box-sizing:border-box;" />
-            <button class="btn-primary" id="ttsBtnSaveDate" onclick="saveTeacherDateRestriction()" style="height:40px; padding:0 22px; border-radius:8px; font-weight:700; display:inline-flex; align-items:center; gap:6px;">
-              💾 儲存並生效
-            </button>
-          </div>
-        </div>
-
-        <!-- 已生效解除規則清單卡片 -->
-        <div class="card" style="padding:24px 26px; margin-bottom:24px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
-            <div style="display:flex; align-items:center; gap:10px;">
-              <span style="font-size:15px; font-weight:800; color:var(--text);">📋 目前生效之特別日期全天開放清單</span>
-            </div>
-          </div>
-          <div id="ttsDateRulesContainer" style="overflow-x:auto;">
-            <div style="text-align:center; padding:30px 10px; color:var(--text-muted); font-size:13.5px;">讀取中...</div>
-          </div>
-        </div>
-      </div>
-
-      <div id="ttsGlobalMessage" style="text-align:center; min-height:22px; font-size:13.5px; font-weight:700; margin-bottom:16px; color:var(--primary);"></div>
-    </div>
-      </div>
-    </section>
-  </div>
-
-  <!-- ══════════════════════════════════════════
-       📱 學生學習進度與總結簡潔儀表板 (Student Learning Progress & Summary)
-  ══════════════════════════════════════════ -->
-  <div id="studentSummaryCard" style="display:none; margin-bottom:24px;">
+  </div><div id="studentSummaryCard" style="display:none; margin-bottom:24px;">
     <!-- 整體進度 Progress 卡片 (1:1 完整完美複製遊戲網頁介面) -->
     <section class="progress learning-progress-card is-collapsed" id="studentProgressCard">
       <h3>
@@ -8777,7 +8106,9 @@ function renderTeacherKpis(overview) {
 
   const scopeTitle = teacherSelectedClass === "all" ? "全校" : teacherSelectedClass;
 
-  document.getElementById("teacherKpiGrid").innerHTML = `
+  const grid = document.getElementById("teacherKpiGrid");
+  if (!grid) return;
+  grid.innerHTML = `
     <div class="kpi-card">
       <div class="kpi-title">${scopeTitle} 總人數</div>
       <div class="kpi-value">${total} 人</div>
@@ -9997,14 +9328,7 @@ function toggleTeacherCard(cardId) {
     card.classList.remove("is-collapsed");
     if (body) body.style.display = "block";
     if (btn) btn.innerHTML = "收合";
-    if (cardId === "tc-charts") {
-      isTeacherChartVisible = true;
-      if (teacherOverview && teacherOverview.length > 0) renderTeacherCharts(teacherOverview);
-    } else if (cardId === "tc-analytics") {
-      loadDailyTaskAnalytics();
-    } else if (cardId === "tc-range") {
-      loadDateRangePerformance();
-    } else if (cardId === "tc-timesettings") {
+    if (cardId === "tc-timesettings") {
       loadTeacherTimeSettings();
     } else if (cardId === "tc-taskmgr") {
       loadTaskMgrSettings();
@@ -10023,7 +9347,7 @@ function toggleTeacherCard(cardId) {
 let allTeacherCardsExpanded = false;
 function toggleAllTeacherCards() {
   allTeacherCardsExpanded = !allTeacherCardsExpanded;
-  const cards = ["tc-kpis", "tc-controls", "tc-timesettings", "tc-taskmgr", "tc-cycles", "tc-duration", "tc-roster", "tc-charts", "tc-analytics", "tc-range"];
+  const cards = ["tc-timesettings", "tc-taskmgr", "tc-cycles", "tc-duration", "tc-roster"];
   cards.forEach(id => {
     const card = document.getElementById(id);
     if (!card) return;
@@ -10042,10 +9366,10 @@ function toggleAllTeacherCards() {
   const masterBtn = document.getElementById("btnToggleAllTeacherCards");
   if (masterBtn) masterBtn.innerHTML = allTeacherCardsExpanded ? "🔼 收合全部" : "🔽 展開全部";
   if (allTeacherCardsExpanded) {
-    if (teacherOverview && teacherOverview.length > 0) renderTeacherCharts(teacherOverview);
-    loadDailyTaskAnalytics();
-    loadDateRangePerformance();
     loadTeacherTimeSettings();
+    loadTaskMgrSettings();
+    loadCycleRecordsAnalytics();
+    loadStudentDurationAnalytics();
   }
 }
 
