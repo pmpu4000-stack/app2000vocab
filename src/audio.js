@@ -126,6 +126,7 @@ let currentAudio = null;
 let currentSeqTimer = null;
 let currentSeqToken = 0;
 let cachedUSVoices = [];
+let audioDebounceTimer = null;
 
 export function getAvailableUSVoices() {
   if (!supported) return [];
@@ -223,6 +224,10 @@ if (supported) {
 export function stopAudio() {
   try {
     currentSeqToken++;
+    if (audioDebounceTimer) {
+      clearTimeout(audioDebounceTimer);
+      audioDebounceTimer = null;
+    }
     if (currentSeqTimer) {
       clearTimeout(currentSeqTimer);
       currentSeqTimer = null;
@@ -233,14 +238,23 @@ export function stopAudio() {
         currentAudio.onerror = null;
         currentAudio.pause();
         currentAudio.currentTime = 0;
+        currentAudio.src = "";
       } catch (_) {}
       currentAudio = null;
     }
     if (supported) {
-      if (speechSynthesis.speaking || speechSynthesis.pending) {
-        speechSynthesis.cancel();
-      }
+      try {
+        if (speechSynthesis.speaking || speechSynthesis.pending) {
+          speechSynthesis.cancel();
+        }
+      } catch (_) {}
       activeUtterances.clear();
+    }
+    // 智慧重設 Web Audio 壓縮器防破音殘響
+    if (audioCtx && audioCtx.state === 'running') {
+      try {
+        audioCtx.suspend().then(() => audioCtx.resume()).catch(() => {});
+      } catch (_) {}
     }
   } catch (_) {}
 }
@@ -422,11 +436,12 @@ let _lastSayWordAt = 0;
 export function sayWord(word, rate = 0.8, onEnd = null) {
   const clean = String(word || "").trim().toLowerCase();
   const now = Date.now();
-  if (clean && clean === _lastSayWordText && (now - _lastSayWordAt) < 180) {
+  if (clean && clean === _lastSayWordText && (now - _lastSayWordAt) < 220) {
     return;
   }
   _lastSayWordText = clean;
   _lastSayWordAt = now;
+  stopAudio();
   say(word, rate, onEnd, true);
 }
 

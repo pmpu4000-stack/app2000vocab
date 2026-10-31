@@ -259,6 +259,16 @@ function save() { try { localStorage.setItem(LS_KEY, JSON.stringify(DB)); } catc
 export function box(id) { return DB.box[id] || 0; }
 export function everWrong(id) { return !!(DB.stat[id] && DB.stat[id].ew); }
 export function correctCount(id) { return DB.stat[id] ? DB.stat[id].c : 0; }
+export function getWordReviewState(id) {
+  if (!DB || !DB.stat || !DB.stat[id]) return null;
+  return {
+    box: DB.box ? (DB.box[id] || 0) : 0,
+    attempts: DB.stat[id].a || 0,
+    correct: DB.stat[id].c || 0,
+    everWrong: !!DB.stat[id].ew,
+    lastTested: DB.stat[id].lastTested || null
+  };
+}
 
 // Grade one practice attempt. `level` (optional) also updates that level's tally. `mode` (optional) tracks 4 practice modes.
 // `wordStr` (optional) tracks the specific word tested. `isFree` (default true) catalogs it into daily free practice log.
@@ -266,6 +276,7 @@ export function grade(id, correct, level, mode, wordStr = null, isFree = true) {
   const before = box(id);
   const st = DB.stat[id] || (DB.stat[id] = { a: 0, c: 0, ew: false });
   st.a++; DB.attempts++;
+  st.lastTested = Date.now();
 
   let gain = 0, newlyMastered = false;
   if (correct) {
