@@ -664,9 +664,20 @@ function check() {
   answer(correct, guess);
 }
 
+function triggerHaptic(type) {
+  if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") {
+    try {
+      if (type === "correct") navigator.vibrate([35]);
+      else if (type === "wrong") navigator.vibrate([60, 50, 60]);
+      else if (type === "tap") navigator.vibrate(15);
+    } catch (_) {}
+  }
+}
+
 function answer(correct, guessVal) {
   if (state.answered) return;
   state.answered = true;
+  triggerHaptic(correct ? "correct" : "wrong");
 
   // ── 若在指定任務中 ──
   if (taskState.active) {
