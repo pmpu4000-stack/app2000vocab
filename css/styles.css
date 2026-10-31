@@ -1135,6 +1135,25 @@ body.is-logging-in {
 }
 
 /* 登入狀態提示條（高清晰、顯眼高質感） */
+
+#login-overlay h2 {
+  display: block !important;
+  text-align: center !important;
+  width: 100% !important;
+}
+#login-overlay input,
+#login-user,
+#login-pass,
+.login-input {
+  text-align: center !important;
+}
+#login-overlay input::placeholder,
+#login-user::placeholder,
+#login-pass::placeholder,
+.login-input::placeholder {
+  text-align: center !important;
+}
+
 .login-box-group {
   display: flex;
   flex-direction: column;

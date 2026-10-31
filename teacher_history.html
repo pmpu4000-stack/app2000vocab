@@ -5028,9 +5028,23 @@
     #login-overlay h2 {
       color: #232A4D;
       margin: 0 0 8px 0 !important;
-      font-size: 22px !important;
+      font-size: 24px !important;
       font-weight: 800 !important;
-      text-align: center;
+      text-align: center !important;
+      display: block !important;
+      width: 100% !important;
+    }
+    #login-overlay input,
+    #login-user,
+    #login-pass,
+    .login-input {
+      text-align: center !important;
+    }
+    #login-overlay input::placeholder,
+    #login-user::placeholder,
+    #login-pass::placeholder,
+    .login-input::placeholder {
+      text-align: center !important;
     }
     [data-theme="dark"] #login-overlay h2 {
       color: #F0F3FA !important;
@@ -5359,15 +5373,15 @@
         <span class="theme-icon">🌙</span><span class="theme-text">深色</span>
       </button>
       <div style="font-size:42px; margin-bottom:8px;" id="login-header-icon">🎓</div>
-      <h2 style="color:#232A4D; margin:0 0 8px 0; font-size:24px; font-weight:800; text-align:center;">學習歷程管理系統</h2>
+      <h2 style="color:#232A4D; margin:0 0 8px 0; font-size:24px; font-weight:800; text-align:center; display:block; width:100%;">學習歷程管理系統</h2>
       <p style="color:#5A6183; font-size:13.5px; margin-bottom:18px; line-height:1.5; text-align:center;">請輸入帳號與密碼</p>
       
       <div class="login-box-group">
         <input type="text" id="login-user" placeholder="請輸入帳號" autocomplete="username" class="login-input"
-          style="width:100%; padding:13px 14px; margin:0; border:1.5px solid #E7E9F5; border-radius:12px; box-sizing:border-box; font-size:15px; outline:none; transition:all .2s;">
+          style="width:100%; padding:13px 14px; margin:0; border:1.5px solid #E7E9F5; border-radius:12px; box-sizing:border-box; font-size:15px; outline:none; text-align:center; transition:all .2s;">
         
         <input type="password" id="login-pass" placeholder="請輸入密碼" autocomplete="current-password" class="login-input"
-          style="width:100%; padding:13px 14px; margin:0; border:1.5px solid #E7E9F5; border-radius:12px; box-sizing:border-box; font-size:15px; outline:none; transition:all .2s;">
+          style="width:100%; padding:13px 14px; margin:0; border:1.5px solid #E7E9F5; border-radius:12px; box-sizing:border-box; font-size:15px; outline:none; text-align:center; transition:all .2s;">
         
         <button type="button" id="login-btn" onclick="login()"
           style="width:100%; padding:13px; margin:0; background:#6C4CE0; color:white; border:none; border-radius:12px; font-weight:700; font-size:16px; cursor:pointer; box-shadow:0 8px 20px -6px rgba(108,76,224,0.45); transition:all 0.2s; display:flex; align-items:center; justify-content:center; text-align:center;">
