@@ -1494,6 +1494,11 @@ function finishTaskMode() {
     localStorage.setItem("student_task_history", JSON.stringify(filtered));
   } catch(_) {}
 
+  // 立即觸發最高優先級雲端自動存檔，確保成績在第一時間送達試算表
+  if (typeof window.uploadLocalStorageData === "function") {
+    try { window.uploadLocalStorageData(true, true); } catch(_) {}
+  }
+
   // 4. 還原自由模式按鈕（若每日時間已到則維持隱藏）
   const isTimeUp = window.__dailyUsageTimeIsUp || (window.dailyUsageState && window.dailyUsageState.isLockedDown) || document.body.classList.contains("daily-limit-reached");
   const checkBtn = document.getElementById("checkBtn");

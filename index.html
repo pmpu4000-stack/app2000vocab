@@ -716,6 +716,7 @@
             k === "weekTaskMistakes" ||
             k === "remedy_learned_words" ||
             k === "current_user" ||
+            k === "current_pass" ||
             k === "user_role" ||
             k === "user_real_name" ||
             k === "user_class_name"
@@ -1044,6 +1045,7 @@
             try { loadPickerData(); } catch(_) {}
           }
           sessionStorage.setItem("current_pass", pass);
+          localStorage.setItem("current_pass", pass);
 
           if (hasCloudRecords) {
             // 雲端有存檔：將雲端最新進度寫入 LocalStorage（跳過舊備份中的 task_words_*，統一由下方權威 taskWordsMap 寫入）
@@ -1263,9 +1265,6 @@
      *    切頁或直接關閉時，瀏覽器底層確保資料送達，學生無須在頁面乾等。
      */
     async function uploadLocalStorageData(isSilent = false, immediate = false) {
-      // 唯有使用者主動點擊「上傳紀錄」按鈕 (isSilent === false) 才執行存檔
-      if (isSilent) return;
-
       if (uploadDebounceTimer) {
         clearTimeout(uploadDebounceTimer);
         uploadDebounceTimer = null;
@@ -1279,7 +1278,7 @@
       isUploading = true;
 
       const currentUser = localStorage.getItem("current_user");
-      let currentPass = sessionStorage.getItem("current_pass");
+      let currentPass = sessionStorage.getItem("current_pass") || localStorage.getItem("current_pass") || "";
 
       if (!currentUser) {
         isUploading = false;
@@ -1372,11 +1371,11 @@
 
       if (!todayTaskSummary) {
         try {
-          const rawSum = localStorage.getItem("today_task_summary");
+          const rawSum = localStorage.getItem("today_task_summary") || localStorage.getItem("task_summary_" + todayDash) || localStorage.getItem("task_summary_" + todaySlash);
           if (rawSum) {
             const parsedSum = JSON.parse(rawSum);
-            const sumDate = parsedSum && parsedSum.date ? String(parsedSum.date).trim().replace(/\//g, "-") : "";
-            if (parsedSum && sumDate === todayDash) {
+            if (parsedSum) {
+              const sumDate = parsedSum.date ? String(parsedSum.date).trim().replace(/\//g, "-") : todayDash;
               if (!Array.isArray(parsedSum.words) || parsedSum.words.length === 0) {
                 try {
                   const cached = localStorage.getItem("task_words_" + sumDate) || localStorage.getItem("task_words_" + todayDash) || localStorage.getItem("task_words_" + todaySlash);
