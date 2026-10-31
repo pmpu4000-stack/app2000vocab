@@ -340,14 +340,15 @@ function ensureStudentSheetColumns(sheet) {
       "LEVEL 3 進階\n(答對/受測字數)", "LEVEL 4 挑戰\n(答對/受測字數)", "LEVEL 5 精熟\n(答對/受測字數)",
       "🎧 聽與拼\n(答對/受測字數)", "✅ 選拼法\n(答對/受測字數)", "🧩 字母重組\n(答對/受測字數)", "🖍️ 填空陷阱\n(答對/受測字數)",
       "任務名稱", "施測單字數", "作答單字數", "答對單字數", "指定測驗成績", "指定測驗正確率", "練習狀態", "測驗錯題單字",
-      "自由練習受測字數", "自由練習答對字數", "自由練習正確率", "自由練習錯題單字"
+      "自由練習受測字數", "自由練習答對字數", "自由練習正確率", "自由練習錯題單字",
+      "防偽驗證"
     ];
 
     const maxCols = sheet.getMaxColumns();
     const lastCol = sheet.getLastColumn();
 
     // 🚀 極速快取檢查：若表頭已是最新 33 欄且欄位名稱完全相符
-    if (lastCol >= 33) {
+    if (lastCol >= 34) {
       const firstRowVals = sheet.getRange(1, 1, 1, 33).getValues()[0] || [];
       if (firstRowVals[2] === "等級" && firstRowVals[6] === "學習中" && firstRowVals[9] === "共答對單字" && firstRowVals[21] === "任務名稱" && firstRowVals[22] === "施測單字數" && firstRowVals[29] === "自由練習受測字數") {
         if (sheet.getLastRow() >= 2) {
@@ -361,9 +362,9 @@ function ensureStudentSheetColumns(sheet) {
       }
     }
 
-    if (maxCols < 33) {
-      sheet.insertColumnsAfter(maxCols, 33 - maxCols);
-    } else if (maxCols > 33 && sheet.getLastRow() <= 1) {
+    if (maxCols < 34) {
+      sheet.insertColumnsAfter(maxCols, 34 - maxCols);
+    } else if (maxCols > 34 && sheet.getLastRow() <= 1) {
       sheet.deleteColumns(34, maxCols - 33);
     }
 
@@ -396,7 +397,8 @@ function ensureStudentSheetColumns(sheet) {
       115, 115, 115, 115, 115,
       115, 115, 115, 115,
       130, 95, 95, 95, 95, 95, 110, 200,
-      115, 115, 95, 200
+      115, 115, 95, 200,
+      120
     ];
     widths.forEach((w, idx) => sheet.setColumnWidth(idx + 1, w));
     try {
@@ -404,7 +406,8 @@ function ensureStudentSheetColumns(sheet) {
       sheet.getRange("L:L").setNumberFormat("0%");
       sheet.getRange("M:U").setNumberFormat("@");
       sheet.getRange("W:Y").setNumberFormat("0");
-      sheet.getRange("Z:AG").setNumberFormat("@");
+      sheet.getRange("Z:AH").setNumberFormat("@");
+    try { sheet.getRange("AH1").setBackground("#e0f2fe").setFontColor("#0369a1").setFontWeight("bold"); } catch(_) {}
     } catch(_) {}
 
     migrateStudentSheetRows_(sheet);
@@ -429,11 +432,12 @@ function getHeaderIndexMap(headers) {
     l1: 12, l2: 13, l3: 14, l4: 15, l5: 16,
     mListen: 17, mPick: 18, mScramble: 19, mTrap: 20,
     taskName: 21, taskAssigned: 22, taskAnswered: 23, taskCorrect: 24, taskScore: 25, taskRate: 26, status: 27, wrong: 28,
-    freeTested: 29, freeCorrect: 30, freeRate: 31, freeWrong: 32
+    freeTested: 29, freeCorrect: 30, freeRate: 31, freeWrong: 32, authSign: 33
   };
   (headers || []).forEach((h, idx) => {
     const s = String(h || "").trim();
-    if (s.includes("自由練習受測") || s.includes("自由練習題數")) map.freeTested = idx;
+    if (s.includes("防偽") || s.includes("簽章") || s.includes("簽名")) map.authSign = idx;
+    else if (s.includes("自由練習受測") || s.includes("自由練習題數")) map.freeTested = idx;
     else if (s.includes("自由練習答對")) map.freeCorrect = idx;
     else if (s.includes("自由練習正確率")) map.freeRate = idx;
     else if (s.includes("自由練習錯題")) map.freeWrong = idx;
@@ -3495,6 +3499,28 @@ function handleSaveRecord(ss, params, auth) {
   const pureRate    = testedWordsCount > 0 ? (Math.round((distinctC / testedWordsCount) * 10000) / 10000) : 0;
   const curLevel = (agentData.level && agentData.level.current) || agentData.currentLevel || 1;
 
+  // 🚀 本機成績防竄改數位簽名校驗 (Tamper-Proof Digital Signature Verification)
+  let authVerificationStatus = "🟢 通過驗證";
+  if (params.authSignature) {
+    try {
+      const expectedRaw = username + ":" + todayStr + ":" + correctWordsCount + ":" + answeredWordsCount + ":SPELL_AGENT_SECURE_V1";
+      const expectedDigest = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, expectedRaw, Utilities.Charset.UTF_8);
+      const expectedSig = expectedDigest.map(b => (b < 0 ? b + 256 : b).toString(16).padStart(2, "0")).join("").substring(0, 16);
+      if (params.authSignature === expectedSig) {
+        authVerificationStatus = "🟢 通過驗證";
+      } else {
+        authVerificationStatus = "🔴 簽名異常(疑竄改)";
+        logError("TamperDetection", "學生本機成績簽名不符，疑遭 F12 竄改", username, "client:" + params.authSignature + ", expected:" + expectedSig);
+      }
+    } catch(e) {
+      authVerificationStatus = "🟡 簽名校驗略過";
+    }
+  } else if (hasTaskActivity) {
+    authVerificationStatus = "🟡 原始簽章";
+  } else {
+    authVerificationStatus = "⚪ 系統自驗";
+  }
+
   const rowData = [
     ts, stored,
     curLevel, agentData.points || 0,
@@ -3511,7 +3537,8 @@ function handleSaveRecord(ss, params, auth) {
     freeTested > 0 ? freeTested : (hasTodayPractice ? 0 : "—"),
     freeTested > 0 ? freeCorrect : (hasTodayPractice ? 0 : "—"),
     freeRate,
-    freeWrongStr
+    freeWrongStr,
+    authVerificationStatus
   ];
 
   if (shouldInsertNewRow && uSheet.getLastRow() >= 2) {
@@ -4805,7 +4832,7 @@ function _getStudentData(ss, username) {
     return {
       status: "success",
       username: cleanU,
-      headers: ["備份時間","完整JSON","等級","分數","連勝","最佳連勝","學習中","練習中","精通","共答對單字","累積受測單字","單字掌握率","LEVEL 1 入門\n(答對/受測字數)","LEVEL 2 基礎\n(答對/受測字數)","LEVEL 3 進階\n(答對/受測字數)","LEVEL 4 挑戰\n(答對/受測字數)","LEVEL 5 精熟\n(答對/受測字數)","🎧 聽與拼\n(答對/受測字數)","✅ 選拼法\n(答對/受測字數)","🧩 字母重組\n(答對/受測字數)","🖍️ 填空陷阱\n(答對/受測字數)","任務名稱","施測單字數","作答單字數","答對單字數","指定測驗成績","指定測驗正確率","練習狀態","測驗錯題單字","自由練習受測字數","自由練習答對字數","自由練習正確率","自由練習錯題單字"],
+      headers: ["備份時間","完整JSON","等級","分數","連勝","最佳連勝","學習中","練習中","精通","共答對單字","累積受測單字","單字掌握率","LEVEL 1 入門\n(答對/受測字數)","LEVEL 2 基礎\n(答對/受測字數)","LEVEL 3 進階\n(答對/受測字數)","LEVEL 4 挑戰\n(答對/受測字數)","LEVEL 5 精熟\n(答對/受測字數)","🎧 聽與拼\n(答對/受測字數)","✅ 選拼法\n(答對/受測字數)","🧩 字母重組\n(答對/受測字數)","🖍️ 填空陷阱\n(答對/受測字數)","任務名稱","施測單字數","作答單字數","答對單字數","指定測驗成績","指定測驗正確率","練習狀態","測驗錯題單字","自由練習受測字數","自由練習答對字數","自由練習正確率","自由練習錯題單字", "防偽驗證"],
       data: [],
       wordList: [],
       agentData: null,

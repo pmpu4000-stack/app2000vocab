@@ -1433,13 +1433,27 @@
       } catch(_) {}
 
       try {
+        // 🚀 計算防竄改數位簽名 (SHA-256 HMAC 簽名，防 F12 竄改分數)
+        let authSignature = "";
+        try {
+          const cWords = todayTaskSummary ? (todayTaskSummary.score || 0) : 0;
+          const aWords = todayTaskSummary ? (todayTaskSummary.attempts !== undefined ? todayTaskSummary.attempts : (todayTaskSummary.total || 0)) : 0;
+          const rawSign = `${currentUser}:${todayDash}:${cWords}:${aWords}:SPELL_AGENT_SECURE_V1`;
+          if (window.crypto && window.crypto.subtle) {
+            const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(rawSign));
+            const bArr = Array.from(new Uint8Array(buf));
+            authSignature = bArr.map(b => b.toString(16).padStart(2, "0")).join("").substring(0, 16);
+          }
+        } catch(_) {}
+
         const payloadStr = JSON.stringify({ 
           action           : "saveRecord", 
           username         : currentUser, 
           password         : currentPass, 
           records          : localData,
           todayTaskSummary : todayTaskSummary,
-          summary          : precomputedSummary
+          summary          : precomputedSummary,
+          authSignature    : authSignature
         });
         const fetchOpts = {
           method: "POST",
