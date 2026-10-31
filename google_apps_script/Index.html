@@ -12114,13 +12114,24 @@ function applyFilter(resetPage = true) {
   if (resetPage) currentPage = 1;
   updateKpis(lastFilteredData);
   renderTableAndCards(lastFilteredData.slice((currentPage-1)*pageSize, currentPage*pageSize));
-  updateCharts();
-  renderHeatmap();
-  updateGoalsProgress();
-  renderForecast();
-  renderFrequencyAnalysis();
-  renderWeaknessAnalysis();
-  renderWordFlowTracking();
+
+  // 🚀 關鍵效能優化 (Idle / Lazy Deferred Rendering)：
+  // 優先保障首屏 KPI 與分頁表格 0 延遲秒開，將 6 大重型圖表移至 requestIdleCallback 延遲繪製，徹底杜絕畫面卡死
+  const scheduleIdle = (typeof window !== "undefined" && window.requestIdleCallback)
+    ? window.requestIdleCallback
+    : ((cb) => setTimeout(cb, 40));
+
+  scheduleIdle(() => {
+    updateCharts();
+    renderHeatmap();
+    updateGoalsProgress();
+    scheduleIdle(() => {
+      renderForecast();
+      renderFrequencyAnalysis();
+      renderWeaknessAnalysis();
+      renderWordFlowTracking();
+    });
+  });
 }
 
 function noDataHtml(icon, title, desc) {

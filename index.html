@@ -9,6 +9,13 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" defer></script>
   <link rel="preload" href="data/words2000.json" as="fetch" crossorigin>
   <link rel="preload" href="data/meanings.json" as="fetch" crossorigin>
+  <script>
+    if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
+  </script>
 </head>
 <body class="is-logging-in">
 
