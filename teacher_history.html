@@ -5027,12 +5027,10 @@
     }
     #login-overlay h2 {
       color: #232A4D;
-      margin: 0 auto 8px auto !important;
+      margin: 0 0 8px 0 !important;
       font-size: 22px !important;
       font-weight: 800 !important;
-      display: block !important;
-      text-align: center !important;
-      width: 100% !important;
+      text-align: center;
     }
     [data-theme="dark"] #login-overlay h2 {
       color: #F0F3FA !important;
@@ -5040,16 +5038,30 @@
     #login-overlay p {
       color: #5A6183;
       font-size: 13px;
-      margin-bottom: 20px;
+      margin-bottom: 18px;
       line-height: 1.5;
     }
     [data-theme="dark"] #login-overlay p {
       color: #9AA0BD !important;
     }
+
+    /* 登入狀態提示條（高清晰、顯眼高質感） */
+    .login-box-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .login-box-group > * {
+      margin: 0 !important;
+    }
+
     #login-overlay input,
     .login-input {
       width: 100%;
       padding: 13px 14px;
+      margin: 0;
       border: 1.5px solid #E7E9F5;
       border-radius: 12px;
       box-sizing: border-box;
@@ -5066,6 +5078,8 @@
     }
     [data-theme="dark"] #login-overlay input,
     [data-theme="dark"] .login-input,
+    [data-theme="dark"] #login-user,
+    [data-theme="dark"] #login-pass,
     [data-theme="dark"] #username,
     [data-theme="dark"] #password {
       background: #141826 !important;
@@ -5075,6 +5089,8 @@
     }
     [data-theme="dark"] #login-overlay input:focus,
     [data-theme="dark"] .login-input:focus,
+    [data-theme="dark"] #login-user:focus,
+    [data-theme="dark"] #login-pass:focus,
     [data-theme="dark"] #username:focus,
     [data-theme="dark"] #password:focus {
       border-color: #8B5CF6 !important;
@@ -5083,6 +5099,8 @@
     }
     [data-theme="dark"] #login-overlay input::placeholder,
     [data-theme="dark"] .login-input::placeholder,
+    [data-theme="dark"] #login-user::placeholder,
+    [data-theme="dark"] #login-pass::placeholder,
     [data-theme="dark"] #username::placeholder,
     [data-theme="dark"] #password::placeholder {
       color: #6B779E !important;
@@ -5094,6 +5112,7 @@
       -webkit-text-fill-color: #F0F3FA !important;
       caret-color: #F0F3FA !important;
     }
+
     #btn-login-theme-toggle {
       position: absolute;
       top: 16px;
@@ -5116,10 +5135,99 @@
       border-color: #2B334E !important;
       color: #9AA0BD !important;
     }
+
+    #login-msg.login-status-banner {
+      display: flex !important;
+      visibility: hidden;
+      opacity: 0;
+      pointer-events: none;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      box-sizing: border-box;
+      margin: 0 !important;
+      padding: 11px 16px;
+      min-height: 48px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 800;
+      line-height: 1.45;
+      text-align: center;
+      border: 1.5px solid transparent;
+      background: transparent;
+      transition: opacity 0.2s ease, visibility 0.2s ease, background 0.2s, border-color 0.2s;
+    }
+    #login-msg.login-status-banner.active {
+      visibility: visible !important;
+      opacity: 1 !important;
+      pointer-events: auto !important;
+    }
+
+    /* 1. 載入資料 (稍微顯眼一點的橘黃色，淺色深色皆以鮮明顯眼為主) */
+    #login-msg.login-status-banner.msg-loading,
+    #login-msg.login-status-banner.msg-loading-data {
+      background: #FEF3C7 !important;
+      color: #92400E !important;
+      border: 1.5px solid #F59E0B !important;
+      box-shadow: 0 4px 14px rgba(245, 158, 11, 0.28), 0 0 6px rgba(251, 191, 36, 0.25) !important;
+    }
+    [data-theme="dark"] #login-msg.login-status-banner.msg-loading,
+    [data-theme="dark"] #login-msg.login-status-banner.msg-loading-data {
+      background: rgba(245, 158, 11, 0.24) !important;
+      color: #FDE047 !important;
+      border: 1.5px solid #F59E0B !important;
+      box-shadow: 0 0 16px rgba(245, 158, 11, 0.45), 0 0 6px rgba(251, 191, 36, 0.35) !important;
+    }
+
+    /* 2. 載入遊戲 (100% 答對率熱力圖榮耀綠色，顯眼高光微光框框) */
+    #login-msg.login-status-banner.msg-success,
+    #login-msg.login-status-banner.msg-loading-game {
+      background: #15803D !important;
+      color: #FFFFFF !important;
+      border: 2px solid #16A34A !important;
+      box-shadow: 0 4px 14px rgba(22, 163, 74, 0.45), 0 0 10px rgba(34, 197, 94, 0.4) !important;
+    }
+    [data-theme="dark"] #login-msg.login-status-banner.msg-success,
+    [data-theme="dark"] #login-msg.login-status-banner.msg-loading-game {
+      background: rgba(34, 197, 94, 0.45) !important;
+      color: #FFFFFF !important;
+      border: 2px solid #86EFAC !important;
+      box-shadow: 0 0 18px rgba(52, 211, 153, 0.75), 0 0 8px rgba(134, 239, 172, 0.85), inset 0 0 8px rgba(52, 211, 153, 0.3) !important;
+    }
+
+    /* 3. 錯誤提示 (鮮明警戒紅) */
+    #login-msg.login-status-banner.msg-error {
+      background: #FEF2F2 !important;
+      color: #DC2626 !important;
+      border: 1.5px solid #EF4444 !important;
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.18) !important;
+    }
+    [data-theme="dark"] #login-msg.login-status-banner.msg-error {
+      background: rgba(239, 68, 68, 0.24) !important;
+      color: #FCA5A5 !important;
+      border: 1.5px solid #F87171 !important;
+      box-shadow: 0 0 14px rgba(239, 68, 68, 0.35) !important;
+    }
+
+    /* 4. 宵禁/時段警告 (活力金琥珀) */
+    #login-msg.login-status-banner.msg-warning {
+      background: #FEFCE8 !important;
+      color: #B45309 !important;
+      border: 1.5px solid #F59E0B !important;
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.18) !important;
+    }
+    [data-theme="dark"] #login-msg.login-status-banner.msg-warning {
+      background: rgba(245, 158, 11, 0.20) !important;
+      color: #FDE047 !important;
+      border: 1.5px solid #F59E0B !important;
+      box-shadow: 0 0 14px rgba(245, 158, 11, 0.30) !important;
+    }
+
     .curfew-note-box,
     .login-study-note,
     .login-upload-note {
-      margin-top: 10px;
+      margin: 0;
       padding: 10px 14px;
       background: rgba(108,76,224,0.08);
       border: 1px solid rgba(108,76,224,0.22);
@@ -5171,48 +5279,50 @@
     <div style="background:#ffffff; padding:36px 32px; border-radius:24px; box-shadow:0 20px 45px -10px rgba(35,42,77,0.22); width:320px; text-align:center; border:1px solid #E7E9F5; position:relative;">
       <!-- 登入視窗切換按鈕 -->
       <button type="button" id="btn-login-theme-toggle" onclick="toggleTheme()" title="切換深色/淺色模式"
-        style="position:absolute; top:16px; right:16px; background:rgba(108,76,224,0.08); border:1px solid #E7E9F5; border-radius:20px; padding:5px 11px; font-size:12.5px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:4px; color:var(--ink2, #5A6183);">
+        style="position:absolute; top:16px; right:16px; background:rgba(108,76,224,0.08); border:1px solid #E7E9F5; border-radius:20px; padding:5px 11px; font-size:12.5px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:4px; color:var(--ink2);">
         <span class="theme-icon">🌙</span><span class="theme-text">深色</span>
       </button>
       <div style="font-size:40px; margin-bottom:8px;">🎯</div>
-      <h2 style="color:#232A4D; margin:0 auto 8px auto; font-size:22px; font-weight:800; text-align:center; display:block; width:100%;">學生學習歷程查詢系統</h2>
-      <p style="color:#5A6183; font-size:13px; margin-bottom:20px; line-height:1.5; text-align:center;">請輸入帳號與密碼</p>
+      <h2 style="color:#232A4D; margin:0 0 8px 0; font-size:22px; font-weight:800;">拼字小特工</h2>
+      <p style="color:#5A6183; font-size:13px; margin-bottom:18px; line-height:1.5;">請輸入學號與密碼</p>
       
-      <input type="text" id="username" placeholder="請輸入帳號 (如: 70101)" autocomplete="username" class="login-input"
-        style="width:100%; padding:13px 14px; margin-bottom:12px; border:1.5px solid #E7E9F5; border-radius:12px; box-sizing:border-box; font-size:15px; outline:none; transition:all .2s;">
-      
-      <input type="password" id="password" placeholder="請輸入密碼" autocomplete="current-password" class="login-input"
-        style="width:100%; padding:13px 14px; margin-bottom:20px; border:1.5px solid #E7E9F5; border-radius:12px; box-sizing:border-box; font-size:15px; outline:none; transition:all .2s;">
-      
-      <button id="btnLogin" onclick="login()"
-        style="width:100%; padding:13px; background:#6C4CE0; color:white; border:none; border-radius:12px; font-weight:700; font-size:15px; cursor:pointer; box-shadow:0 8px 20px -6px rgba(108,76,224,0.45); transition:all 0.2s;">
-        確認登入
-      </button>
+      <div class="login-box-group">
+        <input type="text" id="login-user" placeholder="請輸入學號 (如: 70101)" autocomplete="username" class="login-input"
+          style="width:100%; padding:13px 14px; margin:0; border:1.5px solid #E7E9F5; border-radius:12px; box-sizing:border-box; font-size:15px; outline:none; transition:all .2s;">
+        
+        <input type="password" id="login-pass" placeholder="請輸入密碼" autocomplete="current-password" class="login-input"
+          style="width:100%; padding:13px 14px; margin:0; border:1.5px solid #E7E9F5; border-radius:12px; box-sizing:border-box; font-size:15px; outline:none; transition:all .2s;">
+        
+        <button type="button" id="login-btn" onclick="login()"
+          style="width:100%; padding:13px; margin:0; background:#6C4CE0; color:white; border:none; border-radius:12px; font-weight:700; font-size:15px; cursor:pointer; box-shadow:0 8px 20px -6px rgba(108,76,224,0.45); transition:all 0.2s;">
+          確認登入
+        </button>
 
-      <p id="login-msg" style="color:#FF6B6B; font-size:13px; margin-top:12px; min-height:18px; line-height:1.5;"></p>
+        <div id="login-msg" class="login-status-banner">&nbsp;</div>
 
-      <div class="curfew-note-box">
-        <span class="note-icon">⏰</span>
-        <div class="note-body">
-          <div>每日開放作答時間：07:30 至 22:00</div>
-          <div>請於時段內進行十分鐘指定單字測驗</div>
-          <div>並歡迎多加進行自由練習</div>
+        <div class="curfew-note-box">
+          <span class="note-icon">⏰</span>
+          <div class="note-body">
+            <div>每日開放作答時間：07:30 至 22:00</div>
+            <div>請於時段內進行十分鐘指定單字測驗</div>
+            <div>並歡迎多加進行自由練習</div>
+          </div>
         </div>
-      </div>
 
-      <div class="login-study-note">
-        <span class="note-icon">💡</span>
-        <div class="note-body">
-          <div>登入將記錄班級座號與答題成績</div>
-          <div>作為英語科學習歷程與教學輔導使用</div>
+        <div class="login-study-note">
+          <span class="note-icon">💡</span>
+          <div class="note-body">
+            <div>登入將記錄班級座號與答題成績</div>
+            <div>作為英語科學習歷程與教學輔導使用</div>
+          </div>
         </div>
-      </div>
 
-      <div class="login-upload-note">
-        <span class="note-icon">🌱</span>
-        <div class="note-body">
-          <div>完成作答或要暫時離開遊戲前</div>
-          <div>請務必先點擊「上傳紀錄」進行存檔</div>
+        <div class="login-upload-note">
+          <span class="note-icon">🌱</span>
+          <div class="note-body">
+            <div>完成作答或要暫時離開遊戲前</div>
+            <div>請務必先點擊「上傳紀錄」進行存檔</div>
+          </div>
         </div>
       </div>
     </div>
@@ -7578,6 +7688,17 @@ function safeCsvCell(val) {
 // ════════════════════════════════════════
 // 初始化
 // ════════════════════════════════════════
+// 兼容遊戲登入元件 ID (login-user / login-pass / login-btn) 與原後台 ID (username / password / btnLogin)
+(function() {
+  const _origGetById = document.getElementById.bind(document);
+  document.getElementById = function(id) {
+    if (id === "username" || id === "login-user") return _origGetById("login-user") || _origGetById("username");
+    if (id === "password" || id === "login-pass") return _origGetById("login-pass") || _origGetById("password");
+    if (id === "btnLogin" || id === "login-btn") return _origGetById("login-btn") || _origGetById("btnLogin");
+    return _origGetById(id);
+  };
+})();
+
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("username").addEventListener("keyup", e => { if (e.key === "Enter") login(); });
   document.getElementById("password").addEventListener("keyup", e => { if (e.key === "Enter") login(); });
@@ -7770,28 +7891,42 @@ try {
 // ════════════════════════════════════════
 // Toast / Loading
 // ════════════════════════════════════════
+function setLoginStatus(text, type = "loading-data") {
+  const msgEl = document.getElementById("login-msg");
+  if (!msgEl) return;
+  if (!text) {
+    msgEl.className = "login-status-banner";
+    msgEl.innerHTML = "&nbsp;";
+    return;
+  }
+  msgEl.className = `login-status-banner active msg-${type}`;
+  let icon = "⚡";
+  if (type === "loading-data" || type === "loading") icon = "📦";
+  else if (type === "loading-game" || type === "success") icon = "🎮";
+  else if (type === "error") icon = "❌";
+  else if (type === "warning") icon = "⏰";
+  msgEl.innerHTML = `<span style="font-size:16px;">${icon}</span> <span>${text}</span>`;
+}
+
 function showToast(msg, type = "danger") {
   const el = document.getElementById("toast");
   if (el) {
     el.className = `toast-box toast-${type} show`;
     el.innerText = msg;
   }
-  const lMsg = document.getElementById("login-msg");
-  if (lMsg) {
-    lMsg.innerText = msg;
-    lMsg.style.color = (type === "warning" || type === "danger") ? "#FF6B6B" : "#10B981";
-  }
+  const bannerType = (type === "danger" || type === "error") ? "error" : (type === "warning" ? "warning" : "loading-data");
+  setLoginStatus(msg, bannerType);
 }
 function hideToast() {
   const el = document.getElementById("toast");
   if (el) { el.className = "toast-box"; el.innerText = ""; }
-  const lMsg = document.getElementById("login-msg");
-  if (lMsg) { lMsg.innerText = ""; }
+  setLoginStatus("");
 }
 function setBtnLoading(btnId, isLoading, text) {
   const btn = document.getElementById(btnId);
   if (!btn) return;
   btn.disabled = isLoading;
+  btn.style.opacity = isLoading ? "0.75" : "1";
   btn.innerHTML = isLoading ? `<div class="spinner"></div> 處理中...` : text;
 }
 
@@ -7800,13 +7935,19 @@ function setBtnLoading(btnId, isLoading, text) {
 // ════════════════════════════════════════
 function login() {
   hideToast();
-  const u = document.getElementById("username").value.trim();
-  const p = document.getElementById("password").value.trim();
-  if (!u || !p) { showToast("請輸入學號與密碼"); return; }
+  const uInp = document.getElementById("login-user") || document.getElementById("username");
+  const pInp = document.getElementById("login-pass") || document.getElementById("password");
+  const u = uInp ? uInp.value.trim() : "";
+  const p = pInp ? pInp.value.trim() : "";
+  if (!u || !p) { setLoginStatus("請輸入學號與密碼", "error"); return; }
   try { localStorage.setItem("remembered_username", u); } catch(_) {}
   currentUser = u; currentPass = p;
-  setBtnLoading("btnLogin", true, "登入中...");
-  fetchData(false, () => setBtnLoading("btnLogin", false, "確認登入"));
+  setBtnLoading("login-btn", true, "登入中...");
+  setLoginStatus("正在載入個人學習資料...", "loading-data");
+  fetchData(false, (err) => {
+    setBtnLoading("login-btn", false, "確認登入");
+    if (err) setLoginStatus(err, "error");
+  });
 }
 
 // ════════════════════════════════════════
@@ -7906,9 +8047,11 @@ function fetchData(isRefresh = false, onComplete = null) {
       if (onComplete) onComplete();
 
       if (!resp || resp.status !== "success") {
-        showToast((resp && resp.message) ? resp.message : "登入失敗或查無紀錄");
+        const errMsg = (resp && resp.message) ? resp.message : "登入失敗或查無紀錄";
+        showToast(errMsg, "error");
         return;
       }
+      setLoginStatus("載入成功，準備進入歷程...", "success");
       hideToast();
 
       if (resp.role === "teacher" && !viewingStudent) {
@@ -19719,6 +19862,7 @@ function _buildStudentExportPayload(resp, mode, startDate, endDate) {
           taskCorrectWords = [];
           taskWrongWords = [];
           unansweredWords = rawWords;
+          tCor = 0; tAtt = 0; actualAnswered = 0; actualWrong = 0; actualUnanswered = rawWords.length; attemptedRate = 0; overallScoreRate = 0;
         } else if (isIncomplete) {
           taskStatus = `🟠 未完成 (${tCor}/${assignedTotWords})`;
           taskScore = `${tCor}/${assignedTotWords}`;
@@ -19731,7 +19875,7 @@ function _buildStudentExportPayload(resp, mode, startDate, endDate) {
         }
 
         periodAssigned += assignedTotWords;
-        periodWrong += actualWrong;
+        periodWrong += Math.max(0, actualWrong - (isUntested ? 0 : (hasUnanswered ? actualUnanswered : 0)));
         periodUnanswered += actualUnanswered;
       }
     }
@@ -20278,6 +20422,11 @@ async function _exportStudentRecordToExcel(payload) {
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     triggerBlobDownload(blob, `${fileName}.csv`);
   }
+}
+
+// 一頁檢視外框：沿用學習足跡（summary-embedded）版面樣式，與遊戲網頁整體進度風格一致
+function _wrapReportPreviewPaper(innerHtml, payload) {
+  return '<div class="summary-embedded" style="padding:4px 2px;">' + innerHtml + '</div>';
 }
 
 function _buildStudentReportHtml(payload) {
@@ -20873,7 +21022,7 @@ function initStudentExportRecordsCard(resp) {
 
       const payload = _buildStudentExportPayload(_latestStudentExportResp || window.cachedStudentExportResp || {}, currentMode, sDate, eDate);
       if (previewBody) {
-        previewBody.innerHTML = _buildStudentReportHtml(payload);
+        previewBody.innerHTML = _wrapReportPreviewPaper(_buildStudentReportHtml(payload), payload);
       }
       if (previewContainer) {
         previewContainer.style.display = "block";
