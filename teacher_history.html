@@ -5453,7 +5453,7 @@
   <!-- ══════════════════════════════════════════
        教師：班級總覽容器 (Spacious Modular Layout)
   ══════════════════════════════════════════ -->
-    <div id="teacherOverviewCard" style="display:none;">
+  <div id="teacherOverviewCard" style="display:none;">
     <!-- 頂部導覽列：儀表板抬頭與快速功能跳轉列 (比照遊戲學習進度設計) -->
     <section class="progress teacher-header-card" style="margin-bottom:16px;">
       <div class="header-title" style="margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
@@ -5484,8 +5484,8 @@
         <button type="button" class="teacher-nav-tab" onclick="switchTeacherSubView('timeSettings')">⏰ 學生作答時間管理</button>
       </div>
     </section>
-
-    <!-- ── 模組 1：全班學習表現 4 大核心總覽指標 ── -->
+    <div id="teacherOverviewMainView" style="display:none;"></div>
+    <!-- ── 模組 1：全班核心學習表現 4 大指標 (整體進度風格) ── -->
     <section class="progress teacher-section-card" id="tc-kpis">
       <h3 onclick="toggleTeacherCard('tc-kpis')">
         <span>📊 全班學習表現 4 大核心總覽指標</span>
@@ -5494,9 +5494,15 @@
         </span>
       </h3>
       <div class="teacher-card-body" id="body-tc-kpis">
+      <!-- 卡片 1：全班核心學習表現 4 大指標 -->
+      <div class="card" style="padding:22px 26px; margin-bottom:24px;">
+        <div style="font-weight:800; font-size:15px; color:var(--text); margin-bottom:14px; display:flex; align-items:center; gap:8px;">
+          📊 全班學習表現 4 大核心總覽指標
+        </div>
+        <!-- 教師 KPI -->
         <div id="teacherKpiGrid" class="kpi-grid" style="margin-bottom:16px; gap:16px;"></div>
 
-        
+        <!-- 💡 班級學習歷程 4 大總覽指標定義與數值解讀說明卡 -->
         <div class="chart-desc-card" style="margin-bottom:0;">
           <div style="font-weight:700; font-size:13px; color:var(--text); margin-bottom:8px; display:flex; align-items:center; gap:6px;">
             💡 班級學習歷程 4 大總覽指標定義與數值解讀：
@@ -5509,8 +5515,9 @@
           </div>
         </div>
       </div>
-    </section>
 
+      </div>
+    </section>
     <!-- ── 模組 2：班級篩選與教學管理控制台 ── -->
     <section class="progress teacher-section-card" id="tc-controls">
       <h3 onclick="toggleTeacherCard('tc-controls')">
@@ -5520,6 +5527,11 @@
         </span>
       </h3>
       <div class="teacher-card-body" id="body-tc-controls">
+      <!-- 卡片 2：班級篩選與教學管理控制台 -->
+      <div class="card" style="padding:22px 26px; margin-bottom:24px;">
+        <div style="font-weight:800; font-size:15px; color:var(--text); margin-bottom:14px; display:flex; align-items:center; gap:8px;">
+          ⚙️ 班級篩選與教學管理控制台
+        </div>
         <div style="display:flex; flex-wrap:wrap; gap:16px; align-items:flex-end; justify-content:space-between;">
           <div style="display:flex; flex-wrap:wrap; gap:14px; align-items:flex-end;">
             <div class="input-field" style="margin:0;">
@@ -5551,56 +5563,10 @@
           </div>
         </div>
       </div>
-    </section>
 
-    <!-- ── 模組 3：全班學生名冊與學習歷程總表 ── -->
-    <section class="progress teacher-section-card" id="tc-roster">
-      <h3 onclick="toggleTeacherCard('tc-roster')">
-        <span>📋 全班學生學習進度與名冊總覽</span>
-        <span style="display:flex; gap:10px; align-items:center;">
-          <span style="font-size:12.5px; color:var(--text-muted);" id="teacherShowingCount"></span>
-          <a class="sum-toggle-btn" id="btn-toggle-tc-roster" onclick="event.stopPropagation(); toggleTeacherCard('tc-roster')">收合</a>
-        </span>
-      </h3>
-      <div class="teacher-card-body" id="body-tc-roster">
-        <div class="teacher-toolbar" style="margin-bottom:18px; gap:14px;">
-          <div class="teacher-search-box" style="flex:1; max-width:360px;">
-            <span class="teacher-search-icon">🔍</span>
-            <input type="text" id="teacherSearchInput" class="teacher-search-input"
-              placeholder="搜尋學生帳號、姓名或班級..." oninput="handleTeacherSearch(this.value)" />
-          </div>
-          <div class="filter-chip-group" style="gap:8px;">
-            <button class="filter-chip active" id="chip-all" onclick="setTeacherFilter('all')">全部 (<span id="count-all">0</span>)</button>
-            <button class="filter-chip" id="chip-active" onclick="setTeacherFilter('active')">已有紀錄 (<span id="count-active">0</span>)</button>
-            <button class="filter-chip" id="chip-inactive" onclick="setTeacherFilter('inactive')">尚無紀錄 (<span id="count-inactive">0</span>)</button>
-            <button class="filter-chip need-attention" id="chip-attention" onclick="setTeacherFilter('attention')">⚠️ 需關注 (<span id="count-attention">0</span>)</button>
-          </div>
-        </div>
-
-        
-        <div class="table-container" id="classOverviewTableContainer" style="max-height:600px; overflow-y:auto;"></div>
-
-        
-        <div class="table-legend-card" style="margin-top:18px;">
-          <div style="font-weight:700; font-size:13px; color:var(--text); margin-bottom:8px; display:flex; align-items:center; gap:6px;">
-            📋 班級學習總覽各欄位指標與數值定義說明：
-          </div>
-          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:10px; font-size:12px; color:var(--text-muted); line-height:1.65;">
-            <div>• <strong style="color:var(--text);">學號 / 姓名</strong>：學生登入系統帳號與真實姓名。</div>
-            <div>• <strong style="color:var(--text);">班級代碼</strong>：學生所屬之班級代碼或標籤。</div>
-            <div>• <strong style="color:var(--text);">累積受測單字數</strong>：歷史累積已練習過的所有不重複單字數量。</div>
-            <div>• <strong style="color:var(--text);">單字掌握率</strong>：已答對單字數 ÷ 累積受測單字數之百分比。</div>
-            <div>• <strong style="color:var(--text);">最高連勝 (Streak)</strong>：學生維持連續答對未中斷的最高題數紀錄。</div>
-            <div>• <strong style="color:var(--text);">挑戰等級 (LV)</strong>：系統依學生答題表現推估之適性挑戰難度關卡（LV 1~5）。</div>
-            <div>• <strong style="color:var(--text);">狀態指示燈</strong>：🟢 穩定前進（正確率 ≥ 80%）· 🟡 正常學習中 · 🔴 需關注（正確率低於 60%）。</div>
-            <div>• <strong style="color:var(--text);">最新同步時間</strong>：學生端裝置最新一次上傳備份至試算表的確切時間戳記。</div>
-          </div>
-        </div>
-      </div>
       </div>
     </section>
-
-    <!-- ── 模組 4：班級學習數據與能力掌握圖表 ── -->
+    <!-- ── 模組 3：班級學習數據與能力掌握圖表 ── -->
     <section class="progress teacher-section-card is-collapsed" id="tc-charts">
       <h3 onclick="toggleTeacherCard('tc-charts')">
         <span>📈 班級學習數據與能力掌握圖表</span>
@@ -5609,7 +5575,8 @@
         </span>
       </h3>
       <div class="teacher-card-body" id="body-tc-charts" style="display:none;">
-        <div id="teacherChartSection">
+      <!-- 卡片 3：班級分析圖表容器 (展開時為獨立舒適卡片) -->
+      <div id="teacherChartSection" class="card" style="display:none; padding:24px 26px; margin-bottom:24px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
           <div style="font-size:15px; font-weight:800; color:var(--text); display:flex; align-items:center; gap:6px;">
             📊 <span>全班學習成效分佈與能力掌握分析</span>
@@ -5655,8 +5622,65 @@
           </div>
         </div>
       </div>
-    </section>
 
+      </div>
+    </section>
+    <!-- ── 模組 4：全班學生名冊與學習歷程總表 ── -->
+    <section class="progress teacher-section-card" id="tc-roster">
+      <h3 onclick="toggleTeacherCard('tc-roster')">
+        <span>📋 全班學生學習進度與名冊總覽</span>
+        <span style="display:flex; gap:10px; align-items:center;">
+          <span style="font-size:12.5px; color:var(--text-muted);" id="teacherShowingCount"></span>
+          <a class="sum-toggle-btn" id="btn-toggle-tc-roster" onclick="event.stopPropagation(); toggleTeacherCard('tc-roster')">收合</a>
+        </span>
+      </h3>
+      <div class="teacher-card-body" id="body-tc-roster">
+      <!-- 卡片 4：全班學生名冊與學習歷程總表 -->
+      <div class="card" style="padding:24px 26px; margin-bottom:24px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+          <div style="font-weight:800; font-size:16px; color:var(--text); display:flex; align-items:center; gap:8px;">
+            <span>📋 全班學生學習進度與指標總覽</span>
+          </div>
+          <div style="font-size:13px; color:var(--text-muted);" id="teacherShowingCount"></div>
+        </div>
+
+        <!-- 搜尋與狀態篩選工具列 -->
+        <div class="teacher-toolbar" style="margin-bottom:18px; gap:14px;">
+          <div class="teacher-search-box" style="flex:1; max-width:360px;">
+            <span class="teacher-search-icon">🔍</span>
+            <input type="text" id="teacherSearchInput" class="teacher-search-input"
+              placeholder="搜尋學生帳號、姓名或班級..." oninput="handleTeacherSearch(this.value)" />
+          </div>
+          <div class="filter-chip-group" style="gap:8px;">
+            <button class="filter-chip active" id="chip-all" onclick="setTeacherFilter('all')">全部 (<span id="count-all">0</span>)</button>
+            <button class="filter-chip" id="chip-active" onclick="setTeacherFilter('active')">已有紀錄 (<span id="count-active">0</span>)</button>
+            <button class="filter-chip" id="chip-inactive" onclick="setTeacherFilter('inactive')">尚無紀錄 (<span id="count-inactive">0</span>)</button>
+            <button class="filter-chip need-attention" id="chip-attention" onclick="setTeacherFilter('attention')">⚠️ 需關注 (<span id="count-attention">0</span>)</button>
+          </div>
+        </div>
+
+        <!-- 班級總覽表格 -->
+        <div class="table-container" id="classOverviewTableContainer" style="max-height:600px; overflow-y:auto;"></div>
+
+        <!-- 📋 班級學習總覽各欄位指標與數值定義說明卡 -->
+        <div class="table-legend-card" style="margin-top:18px;">
+          <div style="font-weight:700; font-size:13px; color:var(--text); margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+            📋 班級學習總覽各欄位指標與數值定義說明：
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:10px; font-size:12px; color:var(--text-muted); line-height:1.65;">
+            <div>• <strong style="color:var(--text);">學號 / 姓名</strong>：學生登入系統帳號與真實姓名。</div>
+            <div>• <strong style="color:var(--text);">班級代碼</strong>：學生所屬之班級代碼或標籤。</div>
+            <div>• <strong style="color:var(--text);">累積受測單字數</strong>：歷史累積已練習過的所有不重複單字數量。</div>
+            <div>• <strong style="color:var(--text);">單字掌握率</strong>：已答對單字數 ÷ 累積受測單字數之百分比。</div>
+            <div>• <strong style="color:var(--text);">最高連勝 (Streak)</strong>：學生維持連續答對未中斷的最高題數紀錄。</div>
+            <div>• <strong style="color:var(--text);">挑戰等級 (LV)</strong>：系統依學生答題表現推估之適性挑戰難度關卡（LV 1~5）。</div>
+            <div>• <strong style="color:var(--text);">狀態指示燈</strong>：🟢 穩定前進（正確率 ≥ 80%）· 🟡 正常學習中 · 🔴 需關注（正確率低於 60%）。</div>
+            <div>• <strong style="color:var(--text);">最新同步時間</strong>：學生端裝置最新一次上傳備份至試算表的確切時間戳記。</div>
+          </div>
+        </div>
+      </div>
+      </div>
+    </section>
     <!-- ── 模組 5：今日指定測驗成果與錯題大數據分析 ── -->
     <section class="progress teacher-section-card is-collapsed" id="tc-analytics">
       <h3 onclick="toggleTeacherCard('tc-analytics')">
@@ -5666,7 +5690,7 @@
         </span>
       </h3>
       <div class="teacher-card-body" id="body-tc-analytics" style="display:none;">
-        <div id="teacherAnalyticsView" style="display:block;">
+    <div id="teacherAnalyticsView" style="display:none;">
       <!-- 卡片 1：測驗日期與班級篩選控制台 -->
       <div class="card" style="padding:22px 26px; margin-bottom:24px;">
         <div style="font-weight:800; font-size:15px; color:var(--text); margin-bottom:14px; display:flex; align-items:center; gap:8px;">
@@ -5794,10 +5818,8 @@
     </div>
 
     <!-- ── 子視圖 3：📅 區間學生答題狀況比較表（指定日期範圍） ── -->
-    
       </div>
     </section>
-
     <!-- ── 模組 6：區間學生答題狀況大數據比較表 ── -->
     <section class="progress teacher-section-card is-collapsed" id="tc-range">
       <h3 onclick="toggleTeacherCard('tc-range')">
@@ -5807,7 +5829,7 @@
         </span>
       </h3>
       <div class="teacher-card-body" id="body-tc-range" style="display:none;">
-        <div id="teacherRangePerformanceView" style="display:block;">
+    <div id="teacherRangePerformanceView" style="display:none;">
       <!-- 控制列獨立大卡片：快捷標籤、起訖日期、班級篩選、搜尋與檢視切換 -->
       <div class="card" style="padding:22px 26px; margin-bottom:24px;">
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:18px;">
@@ -5936,10 +5958,8 @@
     </div>
 
     <!-- ── 子視圖 4：⏰ 學生開放時間管制與設定 ── -->
-    
       </div>
     </section>
-
     <!-- ── 模組 7：學生作答開放時間管制與設定 ── -->
     <section class="progress teacher-section-card is-collapsed" id="tc-timesettings">
       <h3 onclick="toggleTeacherCard('tc-timesettings')">
@@ -5949,7 +5969,7 @@
         </span>
       </h3>
       <div class="teacher-card-body" id="body-tc-timesettings" style="display:none;">
-        <div id="teacherTimeSettingsView" style="display:block;">
+    <div id="teacherTimeSettingsView" style="display:none;">
       <!-- 控制列獨立大卡片：狀態、快捷一鍵解除、分頁切換 -->
       <div class="card" style="padding:22px 26px; margin-bottom:24px;">
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:18px;">
@@ -6224,16 +6244,14 @@
 
       <div id="ttsGlobalMessage" style="text-align:center; min-height:22px; font-size:13.5px; font-weight:700; margin-bottom:16px; color:var(--primary);"></div>
     </div>
+      </div>
+    </section>
   </div>
 
   <!-- ══════════════════════════════════════════
        📱 學生學習進度與總結簡潔儀表板 (Student Learning Progress & Summary)
   ══════════════════════════════════════════ -->
-  <div 
-      </div>
-    </section>
-  </div>
-id="studentSummaryCard" style="display:none; margin-bottom:24px;">
+  <div id="studentSummaryCard" style="display:none; margin-bottom:24px;">
     <!-- 整體進度 Progress 卡片 (1:1 完整完美複製遊戲網頁介面) -->
     <section class="progress learning-progress-card is-collapsed" id="studentProgressCard">
       <h3>
@@ -9626,7 +9644,6 @@ function switchTeacherSubView(subView) {
     targetCard.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
-  // 更新頁籤 active 狀態
   const tabMap = {
     kpis: "📊 核心指標",
     controls: "⚙️ 班級篩選與控制",
