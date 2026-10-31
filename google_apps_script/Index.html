@@ -5137,10 +5137,7 @@
     }
 
     #login-msg.login-status-banner {
-      display: flex !important;
-      visibility: hidden;
-      opacity: 0;
-      pointer-events: none;
+      display: none !important;
       align-items: center;
       justify-content: center;
       gap: 8px;
@@ -5148,7 +5145,6 @@
       box-sizing: border-box;
       margin: 0 !important;
       padding: 11px 16px;
-      min-height: 48px;
       border-radius: 12px;
       font-size: 14px;
       font-weight: 800;
@@ -5156,9 +5152,10 @@
       text-align: center;
       border: 1.5px solid transparent;
       background: transparent;
-      transition: opacity 0.2s ease, visibility 0.2s ease, background 0.2s, border-color 0.2s;
+      transition: opacity 0.2s ease, background 0.2s, border-color 0.2s;
     }
     #login-msg.login-status-banner.active {
+      display: flex !important;
       visibility: visible !important;
       opacity: 1 !important;
       pointer-events: auto !important;
@@ -5358,20 +5355,20 @@
         style="position:absolute; top:16px; right:16px; background:rgba(108,76,224,0.08); border:1px solid #E7E9F5; border-radius:20px; padding:5px 11px; font-size:12.5px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:4px; color:var(--ink2);">
         <span class="theme-icon">🌙</span><span class="theme-text">深色</span>
       </button>
-      <div style="font-size:40px; margin-bottom:8px;">🎯</div>
-      <h2 style="color:#232A4D; margin:0 0 8px 0; font-size:22px; font-weight:800;">拼字小特工</h2>
-      <p style="color:#5A6183; font-size:13px; margin-bottom:18px; line-height:1.5;">請輸入學號與密碼</p>
+      <div style="font-size:42px; margin-bottom:8px;" id="login-header-icon">🎓</div>
+      <h2 style="color:#232A4D; margin:0 0 8px 0; font-size:24px; font-weight:800; text-align:center;">教師管理系統</h2>
+      <p style="color:#5A6183; font-size:13.5px; margin-bottom:18px; line-height:1.5; text-align:center;">請輸入帳號與密碼</p>
       
       <div class="login-box-group">
-        <input type="text" id="login-user" placeholder="請輸入學號 (如: 70101)" autocomplete="username" class="login-input"
+        <input type="text" id="login-user" placeholder="請輸入帳號" autocomplete="username" class="login-input"
           style="width:100%; padding:13px 14px; margin:0; border:1.5px solid #E7E9F5; border-radius:12px; box-sizing:border-box; font-size:15px; outline:none; transition:all .2s;">
         
         <input type="password" id="login-pass" placeholder="請輸入密碼" autocomplete="current-password" class="login-input"
           style="width:100%; padding:13px 14px; margin:0; border:1.5px solid #E7E9F5; border-radius:12px; box-sizing:border-box; font-size:15px; outline:none; transition:all .2s;">
         
         <button type="button" id="login-btn" onclick="login()"
-          style="width:100%; padding:13px; margin:0; background:#6C4CE0; color:white; border:none; border-radius:12px; font-weight:700; font-size:15px; cursor:pointer; box-shadow:0 8px 20px -6px rgba(108,76,224,0.45); transition:all 0.2s;">
-          確認登入
+          style="width:100%; padding:13px; margin:0; background:#6C4CE0; color:white; border:none; border-radius:12px; font-weight:700; font-size:16px; cursor:pointer; box-shadow:0 8px 20px -6px rgba(108,76,224,0.45); transition:all 0.2s; display:flex; align-items:center; justify-content:center; text-align:center;">
+          登入
         </button>
 
         <div id="login-msg" class="login-status-banner">&nbsp;</div>
@@ -7813,13 +7810,12 @@ function login() {
   const pInp = document.getElementById("login-pass") || document.getElementById("password");
   const u = uInp ? uInp.value.trim() : "";
   const p = pInp ? pInp.value.trim() : "";
-  if (!u || !p) { setLoginStatus("請輸入學號與密碼", "error"); return; }
+  if (!u || !p) { setLoginStatus("請輸入帳號與密碼", "error"); return; }
   try { localStorage.setItem("remembered_username", u); } catch(_) {}
   currentUser = u; currentPass = p;
-  setBtnLoading("login-btn", true, "登入中...");
-  setLoginStatus("正在載入個人學習資料...", "loading-data");
+  // 按下登入後按鈕維持顯示「登入」，狀態顯示留給下方會出現的方塊
+  setLoginStatus("正在驗證與載入資料...", "loading-data");
   fetchData(false, (err) => {
-    setBtnLoading("login-btn", false, "確認登入");
     if (err) setLoginStatus(err, "error");
   });
 }
