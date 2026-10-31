@@ -550,8 +550,11 @@ function doPost(e) {
         } catch(_) {}
       }
 
+      const sessionToken = registerStudentDevice(auth.username, params.deviceId, params.deviceDesc);
+
       return jsonResponse({
         status:"success", message:"驗證成功", role:"student",
+        sessionToken: sessionToken,
         className:auth.className, realName:auth.realName, records,
         isNewStudent: isNewStudent,
         assignedTask: assignedTask,
@@ -569,6 +572,15 @@ function doPost(e) {
       const auth = authenticateUser(ss, params.username, params.password);
       if (!auth.success) return jsonResponse({status:"error", message:auth.message});
       
+      // 學生裝置綁定檢核：若在其他裝置登入，拒絕存檔並踢出舊裝置
+      if (auth.role === "student" && params.sessionToken && !isStudentTokenValid(auth.username, params.sessionToken)) {
+        return jsonResponse({
+          status: "error",
+          code: "SESSION_KICKED",
+          message: "您的帳號已在其他裝置登入，無法同步成績。"
+        });
+      }
+
       // 學生在非開放時間禁止同步紀錄
       if (auth.role === "student") {
         const timeAllowance = checkTimeRestrictionAllowance(ss, auth.username);
@@ -669,6 +681,13 @@ function doPost(e) {
 
     if (action === "getDailyUsageSettings") {
       const u = String(params.targetUsername || params.username || "").trim();
+      if (params.sessionToken && !isStudentTokenValid(u, params.sessionToken)) {
+        return jsonResponse({
+          status: "error",
+          code: "SESSION_KICKED",
+          message: "您的帳號已在其他裝置登入，本裝置已自動登出。"
+        });
+      }
       return jsonResponse({
         status: "success",
         dailyUsage: getDailyUsageSettings(ss, u, false),

@@ -335,6 +335,8 @@ function translateErrorForHuman(action, rawMsg, details) {
   // 1. 動作分類轉譯
   if (a.includes("curfew") || a.includes("時間限制")) {
     friendlyAction = "⏰ 時間管制攔截";
+  } else if (a.includes("device") || a.includes("裝置")) {
+    friendlyAction = "📱 裝置更換/代答警示";
   } else if (a.includes("login") || a.includes("登入")) {
     friendlyAction = "🔑 學生/教師登入";
   } else if (a.includes("saverecord") || a.includes("儲存")) {
@@ -352,7 +354,10 @@ function translateErrorForHuman(action, rawMsg, details) {
   }
 
   // 2. 情況說明與因應建議
-  if (m.includes("帳號或密碼錯誤")) {
+  if (m.includes("更換裝置登入") || m.includes("換裝置")) {
+    friendlyMsg = "帳號在不同裝置登入（前裝置已自動登出）";
+    suggestion = d ? `⚠️ 警示：同一帳號在另一台裝置登入（${d}）。請確認是否為學生借用帳號給他人代答，或學生更換新手機/電腦。` : "⚠️ 警示：同一帳號在另一台裝置登入。請確認是否為學生借用帳號給他人代答，或學生更換新手機/電腦。";
+  } else if (m.includes("帳號或密碼錯誤")) {
     friendlyMsg = "帳號或密碼輸入錯誤";
     suggestion = "💡 一般學生操作疏失。請提醒學生核對學號與密碼大小寫後重新輸入即可。";
   } else if (m.includes("連續失敗") || m.includes("鎖定")) {
@@ -664,3 +669,78 @@ function getTaskWordsDictCached_(ss) {
 }
 
 // ════════════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════════
+// 1.5 單一裝置綁定與多開代答防護
+// ════════════════════════════════════════════════════════════════════
+
+function registerStudentDevice(username, deviceId, deviceDesc) {
+  if (!username) return "";
+  const cleanU = String(username).trim().toLowerCase();
+  const cleanDevId = String(deviceId || "").trim();
+  const cleanDevDesc = String(deviceDesc || "未知裝置").trim();
+  const sessionToken = "ST_" + Utilities.getUuid().replace(/-/g, "");
+
+  const propKey = "DEV_" + cleanU;
+  const cache = CacheService.getScriptCache();
+  let prevInfo = null;
+
+  try {
+    const cached = cache.get(propKey);
+    if (cached) prevInfo = JSON.parse(cached);
+  } catch(_) {}
+
+  if (!prevInfo) {
+    try {
+      const val = PropertiesService.getScriptProperties().getProperty(propKey);
+      if (val) prevInfo = JSON.parse(val);
+    } catch(_) {}
+  }
+
+  // 偵測裝置變更：若先前已有不同裝置登入過，發出代答/換裝置警示日誌
+  if (prevInfo && prevInfo.deviceId && cleanDevId && prevInfo.deviceId !== cleanDevId) {
+    const oldDesc = prevInfo.deviceDesc || "舊裝置";
+    const newDesc = cleanDevDesc || "新裝置";
+    logError("device_change", "更換裝置登入", cleanU, `原裝置：${oldDesc} ➜ 新裝置：${newDesc}`);
+  }
+
+  const newInfo = {
+    token: sessionToken,
+    deviceId: cleanDevId,
+    deviceDesc: cleanDevDesc,
+    time: Date.now()
+  };
+
+  try {
+    const jsonStr = JSON.stringify(newInfo);
+    cache.put(propKey, jsonStr, 21600); // 快取 6 小時
+    PropertiesService.getScriptProperties().setProperty(propKey, jsonStr);
+  } catch(e) {
+    Logger.log("registerStudentDevice 儲存失敗: " + e);
+  }
+
+  return sessionToken;
+}
+
+function isStudentTokenValid(username, sessionToken) {
+  if (!username || !sessionToken) return true;
+  const cleanU = String(username).trim().toLowerCase();
+  const cleanToken = String(sessionToken).trim();
+  const propKey = "DEV_" + cleanU;
+  const cache = CacheService.getScriptCache();
+  let info = null;
+
+  try {
+    const cached = cache.get(propKey);
+    if (cached) info = JSON.parse(cached);
+  } catch(_) {}
+
+  if (!info) {
+    try {
+      const val = PropertiesService.getScriptProperties().getProperty(propKey);
+      if (val) info = JSON.parse(val);
+    } catch(_) {}
+  }
+
+  if (!info || !info.token) return true;
+  return info.token === cleanToken;
+}

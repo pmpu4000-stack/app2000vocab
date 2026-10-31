@@ -927,6 +927,33 @@
       }
     }
 
+    function getOrCreateDeviceId() {
+      let id = localStorage.getItem("app_device_id");
+      if (!id) {
+        id = "dev_" + Math.random().toString(36).substring(2, 9) + "_" + Date.now().toString(36);
+        localStorage.setItem("app_device_id", id);
+      }
+      return id;
+    }
+
+    function getDeviceDescription() {
+      const ua = navigator.userAgent || "";
+      let os = "未知裝置";
+      if (/iPad|iPhone|iPod/.test(ua)) os = "iOS (iPhone/iPad)";
+      else if (/Android/.test(ua)) os = "Android 手機/平板";
+      else if (/Windows/.test(ua)) os = "Windows 電腦";
+      else if (/Macintosh|Mac OS X/.test(ua)) os = "Mac 電腦";
+      else if (/CrOS/.test(ua)) os = "Chromebook";
+
+      let browser = "瀏覽器";
+      if (/Edg/.test(ua)) browser = "Edge";
+      else if (/Chrome/.test(ua)) browser = "Chrome";
+      else if (/Safari/.test(ua)) browser = "Safari";
+      else if (/Firefox/.test(ua)) browser = "Firefox";
+
+      return `${os} (${browser})`;
+    }
+
     let isLoggingIn = false;
     const loginBtn = document.getElementById('login-btn');
     const msgEl = document.getElementById('login-msg');
@@ -1025,7 +1052,7 @@
             response = await fetch(scriptUrl, {
               method: "POST",
               headers: { "Content-Type": "text/plain;charset=utf-8" },
-              body: JSON.stringify({ action: "login", username: user, password: pass }),
+              body: JSON.stringify({ action: "login", username: user, password: pass, deviceId: getOrCreateDeviceId(), deviceDesc: getDeviceDescription() }),
               signal: controller.signal
             });
             clearTimeout(timeoutId);
@@ -1123,6 +1150,9 @@
           }
           sessionStorage.setItem("current_pass", pass);
           localStorage.setItem("current_pass", pass);
+          if (result.sessionToken) {
+            localStorage.setItem("session_token", result.sessionToken);
+          }
 
           if (hasCloudRecords) {
             // 雲端有存檔：將雲端最新進度寫入 LocalStorage（跳過舊備份中的 task_words_*，統一由下方權威 taskWordsMap 寫入）
@@ -1490,6 +1520,7 @@
           action           : "saveRecord", 
           username         : currentUser, 
           password         : currentPass, 
+          sessionToken     : localStorage.getItem("session_token") || "",
           records          : localData,
           todayTaskSummary : todayTaskSummary,
           summary          : precomputedSummary,
@@ -1525,6 +1556,18 @@
               alert("🎉 上傳成功！學習紀錄已同步至試算表。");
             }
           }
+        } else if (result && result.code === "SESSION_KICKED") {
+          if (iconEl && !isSilent) iconEl.textContent = "❌";
+          setTimeout(() => { if (iconEl) iconEl.textContent = "🌱"; }, 2500);
+          alert("⚠️ 帳號安全性提示：\n您的帳號已在其他裝置（手機/電腦）登入！\n為了防止代答與維護成績公正，本裝置已強制登出。");
+          localStorage.removeItem("session_token");
+          sessionStorage.clear();
+          const overlay = document.getElementById("login-overlay");
+          if (overlay) {
+            overlay.style.display = "flex";
+            document.body.classList.add("is-logging-in");
+          }
+          return;
         } else {
           if (iconEl && !isSilent) iconEl.textContent = "❌";
           setTimeout(() => { if (iconEl) iconEl.textContent = "🌱"; }, 2500);
@@ -2366,7 +2409,7 @@
       let interval;
       if (dailyUsageState.unlocked) interval = 10 * 60 * 1000;
       else if (dailyUsageState.isLockedDown) interval = 60 * 1000;
-      else return;
+      else interval = 45 * 1000;
       if (!force && Date.now() - lastDailyPollAt < interval) return;
       if (force && Date.now() - lastDailyPollAt < 20 * 1000) return;
       lastDailyPollAt = Date.now();
@@ -2389,10 +2432,22 @@
           headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify({
             action: "getDailyUsageSettings",
-            username: currentUser
+            username: currentUser,
+            sessionToken: localStorage.getItem("session_token") || ""
           })
         });
         const d = await res.json();
+        if (d && d.code === "SESSION_KICKED") {
+          alert("⚠️ 帳號安全性提示：\n您的帳號已在其他裝置（手機/電腦）登入！\n本裝置已強制登出，如有疑問請洽詢任課老師。");
+          localStorage.removeItem("session_token");
+          sessionStorage.clear();
+          const overlay = document.getElementById("login-overlay");
+          if (overlay) {
+            overlay.style.display = "flex";
+            document.body.classList.add("is-logging-in");
+          }
+          return;
+        }
         if (d.status === "success" && d.dailyUsage) {
           dailyUsageState.limitMinutes = Number(d.dailyUsage.limitMinutes) || dailyUsageState.limitMinutes;
           dailyUsageState.extendedMinutes = Number(d.dailyUsage.extendedMinutes) || 0;
