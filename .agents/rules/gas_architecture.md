@@ -6,9 +6,8 @@ description: 修改或查詢 google_apps_script/（Code.gs、Index.html、teache
 
 ## ⚡ 極致省 Token 守則（必讀）
 1. **零探勘**：本檔已含全專案函式與 CSS 行號索引，**直接依下方行號用 `read_file`（StartLine/EndLine 範圍 ≤120 行）讀取目標函式**；除非行號漂移找不到，否則嚴禁跑 `Select-String` 或全目錄搜尋。
-2. **禁讀巨檔/巨行**：
-   - 禁讀 `data/meanings.json`（2MB）、`data/words2000.json`（65KB）。
-   - `google_apps_script/Index.html`（與根目錄鏡像 `teacher_history.html`）的 **第 8080–8090 行**含 50KB 單行單字庫，讀取範圍絕對不可跨過該區。
+2. **禁讀巨檔**：
+   - 禁讀 `data/meanings.json`（2MB）、`data/words2000.json`（65KB）、`data/wordbank2000.json`（57KB）。
    - `Code.gs` **第 27 行**（`WORD_LEVELS`）為 2055 字元單行，讀取時盡量避開。
 3. **雙胞胎鏡像檔**：根目錄 `teacher_history.html` 與 `google_apps_script/Index.html` 完全相同。只改 `google_apps_script/Index.html`，收尾時 `Copy-Item google_apps_script\Index.html teacher_history.html`。
 4. **單一工作目錄**：固定操作 `C:\Users\pmpu4\.gemini\antigravity\scratch\app2000vocab-repo`，忽視 `app2000vocab` 與 `bad-repo` 舊目錄。
@@ -57,8 +56,7 @@ description: 修改或查詢 google_apps_script/（Code.gs、Index.html、teache
 ### JS 核心函式精準行號（6780–20925）
 - **基礎/驗證**：`safeCsvCell`(6850)、`applyPageThemeBackground`(6900)、`toggleTheme`(6951)、`adjustHistoryFont`(6998)、`showToast`(7021)、`login`(7049)、`logout`(7063)、`handleLogoutOrBack`(7115)、`fetchData`(7128)
 - **教師總覽**：`initTeacherDashboard`(7224)、`populateTeacherClassSelector`(7270)、`refreshClassOverview`(7299)、`renderTeacherKpis`(7327)、`renderTeacherCharts`(7382)、`getFilteredAndSortedOverview`(7573)、`renderTodayTaskBadge`(7639)、`renderClassOverviewTable`(7730)、`viewStudentAsTeacher`(7961)、`backToClassOverview`(8024)、`triggerCleanupUnusedSheets`(8042)
-- **指定測驗出題 Modal**：`openTaskModal`(8134)、`closeTaskModal`(8236)、`setWordPickerLevel`(8252)、`renderWordPickerGrid`(8280)、`toggleWordSelection`(8331)、`quickPickRandomWords`(8342)、`submitTaskData`(8476)
-  *(⚠️ 8080–8090 行含 50KB 巨行，勿讀！)*
+- **指定測驗出題 Modal**：`openTaskModal`、`closeTaskModal`、`setWordPickerLevel`、`renderWordPickerGrid`、`toggleWordSelection`、`quickPickRandomWords`、`submitTaskData`（單字庫已外部化由 CDN 動態快取載入）
 - **教師時間管制**：`switchTeacherSubView`(8550)、`loadTeacherTimeSettings`(8633)、`renderTeacherStudentRulesList`(8808)、`renderTeacherDateRulesList`(8866)、`saveTeacherGlobalTimeSetting`(8929)、`saveTeacherStudentTimeSetting`(8980)、`saveTeacherDateRestriction`(9068)、`duSaveStudentMinutes`(9191)、`duExtend`(9197)、`duUnlock`(9202)、`toggleTeacherTodayUnlock`(9211)
 - **教師大數據與區間比較**：`loadDailyTaskAnalytics`(9310)、`renderErrorRanking`(9444)、`renderAnalyticsTable`(9535)、`exportAnalyticsCsv`(9760)、`loadDateRangePerformance`(9924)、`renderRangePerformance`(10015)、`renderRangeTableOnly`(10152)、`exportRangePerformanceCsv`(10382)
 - **密碼與錯誤日誌 Modal**：`openPasswordModal`(10489)、`renderPasswordModal`(10504)、`saveSinglePassword`(10570)、`exportAllCsv`(10607)、`openErrorLogModal`(10642)、`renderErrorLogs`(10682)、`confirmClearErrorLogs`(10735)
