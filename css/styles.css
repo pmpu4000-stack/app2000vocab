@@ -1,4 +1,20 @@
 
+/* 🚀 向量化圖示優化 (Vectorized SVG Icons) */
+.icon-speaker {
+  display: inline-block;
+  vertical-align: middle;
+  pointer-events: none;
+  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.word-speech-btn:hover .icon-speaker,
+.sent-speaker-btn:hover .icon-speaker {
+  transform: scale(1.15);
+}
+.word-speech-btn.playing .icon-speaker {
+  transform: scale(1.22);
+}
+
+
 /* 🚀 GPU 硬體加速與複合層優化 (Hardware Accelerated 60FPS) */
 .card, .practice-card, .quiz-screen, .app, #modes, .summary-panel, #levelbar, .tile {
   transform: translateZ(0);

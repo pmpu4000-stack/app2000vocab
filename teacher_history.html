@@ -146,6 +146,22 @@
       -webkit-backface-visibility: hidden;
     }
 
+    
+/* 🚀 向量化圖示優化 (Vectorized SVG Icons) */
+.icon-speaker {
+  display: inline-block;
+  vertical-align: middle;
+  pointer-events: none;
+  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.word-speech-btn:hover .icon-speaker,
+.sent-speaker-btn:hover .icon-speaker {
+  transform: scale(1.15);
+}
+.word-speech-btn.playing .icon-speaker {
+  transform: scale(1.22);
+}
+
     .container {
       max-width: 1320px;
       margin: 0 auto;
@@ -17929,7 +17945,7 @@ function _renderConquerWordCard(wordStr) {
 
   const sentsHtml = `
     <div class="sent-row conquer-sent-variant" data-idx="${defaultIdx}" onclick="speakMasteredWord('${safeSent}')" style="cursor:pointer;">
-      <button type="button" class="sent-speaker-btn ${levelCls}" onclick="event.stopPropagation(); speakMasteredWord('${safeSent}')" aria-label="${levelText}例句朗讀" title="${levelText}例句朗讀">🔊</button>
+      <button type="button" class="sent-speaker-btn ${levelCls}" onclick="event.stopPropagation(); speakMasteredWord('${safeSent}')" aria-label="${levelText}例句朗讀" title="${levelText}例句朗讀">${SVG_SPEAKER}</button>
       <div class="sent-text-wrap">
         <div class="sent-en">${highlightedSent}</div>
         ${s.sentZh ? `<div class="sent-zh">${s.sentZh}</div>` : ""}
@@ -21591,7 +21607,7 @@ function renderMasteredChipsUI() {
       const tip = `${w} ${zh ? `(${zh})` : ''} · Level ${lv || '?'} · 點擊聆聽發音`;
       return `
         <span class="wchip" onclick="speakMasteredWord('${escapeHtml(w)}')" title="${escapeHtml(tip)}">
-          <span class="wchip-speaker">🔊</span>
+          <span class="wchip-speaker">${SVG_SPEAKER}</span>
           <span style="font-weight:700;">${escapeHtml(w)}</span>
           ${zh ? `<span style="font-size:11px; opacity:0.85; margin-left:1px;">(${escapeHtml(zh)})</span>` : ''}
         </span>
@@ -21726,7 +21742,7 @@ function renderFixedChipsUI() {
       const tip = `${w} ${zh ? `(${zh})` : ''} · Level ${lv || '?'} · 曾拼錯現已訂正 · 點擊發音`;
       return `
         <span class="wchip fixed" onclick="speakMasteredWord('${escapeHtml(w)}')" title="${escapeHtml(tip)}">
-          <span class="wchip-speaker">🔊</span>
+          <span class="wchip-speaker">${SVG_SPEAKER}</span>
           <span>${escapeHtml(w)}</span>
           ${zh ? `<span style="font-size:11px; opacity:0.9; margin-left:1px;">(${escapeHtml(zh)})</span>` : ''}
         </span>
