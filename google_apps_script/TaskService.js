@@ -10,23 +10,32 @@ function getActiveTaskForClass(ss, studentClass, username) {
   let hasAnyCompletedToday = false;
 
   if (username) {
-    const uSheet = getStudentSheet(ss, username);
-    if (uSheet && uSheet.getLastRow() >= 2) {
-      const lastCol = uSheet.getLastColumn();
-      if (lastCol >= 1) {
-        const headers = uSheet.getRange(1, 1, 1, lastCol).getValues()[0] || [];
-        const hMap = getHeaderIndexMap(headers);
-        const maxRows = Math.min(uSheet.getLastRow() - 1, 15);
-        const vals = uSheet.getRange(2, 1, maxRows, lastCol).getValues();
-        for (let i = 0; i < vals.length; i++) {
-          const dStr = formatStandardDateYMD(vals[i][0]);
-          const status = String(vals[i][hMap.status] || "").trim();
-          const taskScore = String(vals[i][hMap.taskScore] || "").trim();
-          const tName = String(vals[i][hMap.taskName] || "").trim();
-          if (dStr === todayStrDash && status.includes("已完成") && taskScore !== "—" && taskScore !== "") {
-            hasAnyCompletedToday = true;
-            if (tName) completedTasksToday.add(tName.toLowerCase());
-          }
+    let headers = null, vals = null;
+    const cpRes = getStudentRowsFromCentralPortfolio(ss, username, 15);
+    if (cpRes && cpRes.rawData && cpRes.rawData.length > 0) {
+      headers = cpRes.headers;
+      vals = cpRes.rawData;
+    } else {
+      const uSheet = getStudentSheet(ss, username);
+      if (uSheet && uSheet.getLastRow() >= 2) {
+        const lastCol = uSheet.getLastColumn();
+        if (lastCol >= 1) {
+          headers = uSheet.getRange(1, 1, 1, lastCol).getValues()[0] || [];
+          const maxRows = Math.min(uSheet.getLastRow() - 1, 15);
+          vals = uSheet.getRange(2, 1, maxRows, lastCol).getValues();
+        }
+      }
+    }
+    if (headers && vals) {
+      const hMap = getHeaderIndexMap(headers);
+      for (let i = 0; i < vals.length; i++) {
+        const dStr = formatStandardDateYMD(vals[i][0]);
+        const status = String(vals[i][hMap.status] || "").trim();
+        const taskScore = String(vals[i][hMap.taskScore] || "").trim();
+        const tName = String(vals[i][hMap.taskName] || "").trim();
+        if (dStr === todayStrDash && status.includes("已完成") && taskScore !== "—" && taskScore !== "") {
+          hasAnyCompletedToday = true;
+          if (tName) completedTasksToday.add(tName.toLowerCase());
         }
       }
     }
@@ -182,13 +191,22 @@ function getWeekendRemediationTask(ss, cleanClass, username, completedTasksToday
   let satCompletedRec = null;
 
   if (username) {
-    const uSheet = getStudentSheet(ss, username);
-    if (uSheet && uSheet.getLastRow() >= 2) {
-      const lastCol = uSheet.getLastColumn();
-      const headers = uSheet.getRange(1, 1, 1, lastCol).getValues()[0] || [];
+    let headers = null, uVals = null;
+    const cpRes = getStudentRowsFromCentralPortfolio(ss, username, 60);
+    if (cpRes && cpRes.rawData && cpRes.rawData.length > 0) {
+      headers = cpRes.headers;
+      uVals = cpRes.rawData;
+    } else {
+      const uSheet = getStudentSheet(ss, username);
+      if (uSheet && uSheet.getLastRow() >= 2) {
+        const lastCol = uSheet.getLastColumn();
+        headers = uSheet.getRange(1, 1, 1, lastCol).getValues()[0] || [];
+        const maxRows = Math.min(uSheet.getLastRow() - 1, 60);
+        uVals = uSheet.getRange(Math.max(2, uSheet.getLastRow() - maxRows + 1), 1, maxRows, lastCol).getValues();
+      }
+    }
+    if (headers && uVals) {
       const hMap = getHeaderIndexMap(headers);
-      const maxRows = Math.min(uSheet.getLastRow() - 1, 60);
-      const uVals = uSheet.getRange(Math.max(2, uSheet.getLastRow() - maxRows + 1), 1, maxRows, lastCol).getValues();
 
       for (let r = 0; r < uVals.length; r++) {
         const rowD = formatStandardDateYMD(uVals[r][0]);

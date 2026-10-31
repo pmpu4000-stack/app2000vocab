@@ -45,37 +45,8 @@ function getDailyTaskAnalytics(formData) {
       }
     }
 
-    // 2. 獲取任務紀錄：直接自各學生個別分頁彙整（完全不依賴獨立任務表，每筆測驗皆獨立紀錄）
-    const recData = [["日期","班級","學號","姓名","任務名稱","指定測驗成績","指定測驗正確率","今日總作答","今日總答對","總正確率","練習狀態","最後更新時間","測驗錯題單字"]];
-    allStudents.forEach(st => {
-      const uSheet = ss.getSheetByName(st.username);
-      if (uSheet && uSheet.getLastRow() >= 2) {
-        const maxRows = Math.min(uSheet.getLastRow() - 1, 60);
-        const maxCols = uSheet.getLastColumn();
-        if (maxCols >= 1) {
-          const headers = uSheet.getRange(1, 1, 1, maxCols).getValues()[0] || [];
-          const hMap = getHeaderIndexMap(headers);
-          const sVals = uSheet.getRange(2, 1, maxRows, maxCols).getValues();
-          sVals.forEach(row => {
-            const dateStr = formatStandardDateYMD(row[hMap.date]);
-            if (dateStr && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-              recData.push([
-                dateStr, st.className, st.username, st.realName || st.username,
-                row[hMap.taskName] || "自主練習",
-                row[hMap.taskScore] || "—",
-                row[hMap.taskRate] || "—",
-                row[hMap.correct] || 0,
-                row[hMap.attempts] || 0,
-                row[hMap.accuracy] || "0%",
-                row[hMap.status] || "—",
-                formatStandardDateTime(row[hMap.date]),
-                row[hMap.wrong] || ""
-              ]);
-            }
-          });
-        }
-      }
-    });
+    // 2. 獲取任務紀錄：優先從【學生歷程總庫】單次批量讀取
+    const recData = collectAnalyticsTaskRecords(ss, allStudents);
 
     if (recData.length < 2) {
       return {
@@ -367,37 +338,8 @@ function getDateRangePerformanceAnalytics(formData) {
       }
     }
 
-    // 2. 獲取任務紀錄：直接自各學生個別分頁彙整（完全不依賴獨立任務表）
-    const recData = [["日期","班級","學號","姓名","任務名稱","指定測驗成績","指定測驗正確率","今日總作答","今日總答對","總正確率","練習狀態","最後更新時間","測驗錯題單字"]];
-    allStudents.forEach(st => {
-      const uSheet = ss.getSheetByName(st.username);
-      if (uSheet && uSheet.getLastRow() >= 2) {
-        const maxRows = Math.min(uSheet.getLastRow() - 1, 60);
-        const maxCols = uSheet.getLastColumn();
-        if (maxCols >= 1) {
-          const headers = uSheet.getRange(1, 1, 1, maxCols).getValues()[0] || [];
-          const hMap = getHeaderIndexMap(headers);
-          const sVals = uSheet.getRange(2, 1, maxRows, maxCols).getValues();
-          sVals.forEach(row => {
-            const dateStr = formatStandardDateYMD(row[hMap.date]);
-            if (dateStr && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-              recData.push([
-                dateStr, st.className, st.username, st.realName || st.username,
-                row[hMap.taskName] || "自主練習",
-                row[hMap.taskScore] || "—",
-                row[hMap.taskRate] || "—",
-                row[hMap.correct] || 0,
-                row[hMap.attempts] || 0,
-                row[hMap.accuracy] || "0%",
-                row[hMap.status] || "—",
-                formatStandardDateTime(row[hMap.date]),
-                row[hMap.wrong] || ""
-              ]);
-            }
-          });
-        }
-      }
-    });
+    // 2. 獲取任務紀錄：優先從【學生歷程總庫】單次批量讀取
+    const recData = collectAnalyticsTaskRecords(ss, allStudents);
 
     if (recData.length < 2) {
       return {
@@ -721,3 +663,87 @@ function getDateRangePerformanceAnalytics(formData) {
 }
 
 // ════════════════════════════════════════════════════════════════════
+/**
+ * 🚀 從【學生歷程總庫】單次批量讀取任務紀錄 (取代逐生分頁查詢，將 API 與逾時風險降至最低)
+ */
+function collectAnalyticsTaskRecords(ss, allStudents) {
+  const recData = [["日期","班級","學號","姓名","任務名稱","指定測驗成績","指定測驗正確率","今日總作答","今日總答對","總正確率","練習狀態","最後更新時間","測驗錯題單字"]];
+  const studentMap = {};
+  allStudents.forEach(st => {
+    studentMap[st.username.toLowerCase()] = st;
+  });
+
+  const cpSheet = getCentralPortfolioSheet(ss, false);
+  const coveredStudents = new Set();
+
+  if (cpSheet && cpSheet.getLastRow() >= 2) {
+    try {
+      const lastRow = cpSheet.getLastRow();
+      const lastCol = Math.min(cpSheet.getLastColumn(), 35);
+      const cpVals = cpSheet.getRange(2, 1, lastRow - 1, lastCol).getValues();
+      const cpHdrs = cpSheet.getRange(1, 2, 1, lastCol - 1).getValues()[0];
+      const hMap = getHeaderIndexMap(cpHdrs);
+
+      for (let i = 0; i < cpVals.length; i++) {
+        const u = String(cpVals[i][0] || "").trim().toLowerCase();
+        const st = studentMap[u];
+        if (st) {
+          coveredStudents.add(u);
+          const row = cpVals[i].slice(1);
+          const dateStr = formatStandardDateYMD(row[hMap.date]);
+          if (dateStr && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+            recData.push([
+              dateStr, st.className, st.username, st.realName || st.username,
+              row[hMap.taskName] || "自主練習",
+              row[hMap.taskScore] || "—",
+              row[hMap.taskRate] || "—",
+              row[hMap.correct] || 0,
+              row[hMap.attempts] || 0,
+              row[hMap.accuracy] || "0%",
+              row[hMap.status] || "—",
+              formatStandardDateTime(row[hMap.date]),
+              row[hMap.wrong] || ""
+            ]);
+          }
+        }
+      }
+    } catch(errCP) {
+      Logger.log("[Analytics] CP batch read error: " + errCP.message);
+    }
+  }
+
+  // 尚未被總庫覆蓋的學生，fallback 讀取個別分頁
+  const remaining = allStudents.filter(st => !coveredStudents.has(st.username.toLowerCase()));
+  if (remaining.length > 0) {
+    remaining.forEach(st => {
+      const uSheet = ss.getSheetByName(st.username);
+      if (uSheet && uSheet.getLastRow() >= 2) {
+        const maxRows = Math.min(uSheet.getLastRow() - 1, 60);
+        const maxCols = uSheet.getLastColumn();
+        if (maxCols >= 1) {
+          const headers = uSheet.getRange(1, 1, 1, maxCols).getValues()[0] || [];
+          const hMap = getHeaderIndexMap(headers);
+          const sVals = uSheet.getRange(2, 1, maxRows, maxCols).getValues();
+          sVals.forEach(row => {
+            const dateStr = formatStandardDateYMD(row[hMap.date]);
+            if (dateStr && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+              recData.push([
+                dateStr, st.className, st.username, st.realName || st.username,
+                row[hMap.taskName] || "自主練習",
+                row[hMap.taskScore] || "—",
+                row[hMap.taskRate] || "—",
+                row[hMap.correct] || 0,
+                row[hMap.attempts] || 0,
+                row[hMap.accuracy] || "0%",
+                row[hMap.status] || "—",
+                formatStandardDateTime(row[hMap.date]),
+                row[hMap.wrong] || ""
+              ]);
+            }
+          });
+        }
+      }
+    });
+  }
+  return recData;
+}

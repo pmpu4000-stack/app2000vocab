@@ -22,9 +22,9 @@ description: 修改或查詢 google_apps_script/（Code.gs、Index.html、teache
 |---|---|---|
 | `Code.gs` | 系統常數、`WORD_LEVELS`、主路由 `doPost`/`doGet`、`include`、`jsonResponse` | ~1,068 行 |
 | `AuthService.js` | 0. 密碼雜湊與資安防護、1. 身分驗證與 Token 快取、WAF 攻擊偵測 | ~666 行 |
-| `TaskService.js` | 2. 老師指定單字任務核心函式、出題與週末補救任務 | ~434 行 |
+| `TaskService.js` | 2. 老師指定單字任務核心函式、出題與週末補救任務 | ~452 行 |
 | `TimeRestriction.js` | 2.5 學生使用時間管制 (07:30~22:00) 與教師解除限制設定 | ~1,045 行 |
-| `AnalyticsService.js` | 4.1 每日指定測驗成果與錯題大數據分析、日期區間績效比較分析 | ~723 行 |
+| `AnalyticsService.js` | 4.1 每日指定測驗成果與錯題大數據分析、日期區間績效比較分析 | ~750 行 |
 | `SpreadsheetService.js` | 4. 儲存歷程、5. 查詢邏輯、6. 班級總覽與排行榜、7. 密碼與目標、8. 試算表備份維護、9. 學生歷程總庫集中管理 | ~2,882 行 |
 
 - **試算表分頁**：
