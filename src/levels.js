@@ -28,6 +28,14 @@ export function getWordLevel(wKey) {
   return 1;
 }
 
+// 各等級精通自動升級門檻字數（約達 80% 即平滑自動晉級，免挑戰測驗）
+export const AUTO_PROMOTE_THRESHOLDS = {
+  1: 200,
+  2: 300,
+  3: 400,
+  4: 450
+};
+
 export const DAILY_GOAL = 20;         // questions that fill the daily session bar
 export const PASS_RATE = 0.8;         // ≥80% to clear a level challenge
 export const GATE_MIN_ATTEMPTS = 12;  // practice this many before the gate opens

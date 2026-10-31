@@ -46,6 +46,7 @@ import { burst } from "./confetti.js?v=20261019_v228";
 import {
   LEVELS, levelColor, levelName, sample,
   PASS_RATE, GATE_MIN_ATTEMPTS, CHALLENGE_LEN, PLACEMENT_PER_LEVEL, DAILY_GOAL,
+  AUTO_PROMOTE_THRESHOLDS,
 } from "./levels.js?v=20261019_v228";
 
 let WORDS = [];
@@ -471,6 +472,25 @@ function getMonToFriUnfinishedWords() {
 
 const getMonToFriMistakes = getMonToFriUnfinishedWords;
 
+
+function checkAutoPromote() {
+  const prog = store.progress();
+  const cur = prog.current;
+  if (cur >= 5) return false;
+  const ws = wordsAt(cur);
+  const mast = ws.filter((w) => store.box(w.id) >= 3).length;
+  const target = (AUTO_PROMOTE_THRESHOLDS && AUTO_PROMOTE_THRESHOLDS[cur]) || 200;
+  if (mast >= target && prog.unlocked <= cur) {
+    const next = store.promote();
+    burst();
+    if (typeof ui !== "undefined" && typeof ui.showToast === "function") {
+      ui.showToast(`🎉 恭喜！Level ${cur} 精通達 ${mast} 字，自動晉級至 Level ${next}「${levelName(next)}」！`, "success");
+    }
+    return true;
+  }
+  return false;
+}
+
 function levelInfo() {
   const prog = store.progress();
   return LEVELS.map((L) => {
@@ -512,15 +532,18 @@ function refreshChrome() {
 
   ui.renderSession(sessionS, sessionGoal, onSessionStart, onSessionEnd, sessionTitle);
   ui.renderProgress(store.summary(WORDS));
+  checkAutoPromote();
   ui.renderLevelBar(levelInfo(), pickLevel);
   const cur = store.progress().current;
-  const ls = store.levelStats(cur, WORDS);
-  const ready = ls.attempts >= GATE_MIN_ATTEMPTS && ls.rate >= PASS_RATE;
+  const ws = wordsAt(cur);
+  const mast = ws.filter((w) => store.box(w.id) >= 3).length;
+  const target = (AUTO_PROMOTE_THRESHOLDS && AUTO_PROMOTE_THRESHOLDS[cur]) || 200;
+  const ready = cur < 5 && mast >= target;
   let hint;
-  if (ready) hint = "🎉 已達標！挑戰成功就能升級到下一關。";
-  else if (ls.attempts < GATE_MIN_ATTEMPTS) hint = `再練習 ${GATE_MIN_ATTEMPTS - ls.attempts} 字（正確率保持 ≥80%）就能挑戰。`;
-  else hint = "單字正確率再高一點（需 ≥80%）就能挑戰本關。";
-  ui.renderBanner(cur, ls, ready, hint, startChallenge);
+  if (cur >= 5) hint = "🎉 太強了！您已在最高精熟等級 Level 5！";
+  else if (ready) hint = `🎉 已達標（${mast}/${target} 字）！已解鎖下一關。`;
+  else hint = `只要再精通 ${Math.max(0, target - mast)} 字（目前 ${mast}/${target} 字），即可自動升級至下一關！`;
+  ui.renderBanner(cur, { attempts: ws.length, rate: target > 0 ? (mast / target) : 1, mast, target }, ready, hint, startChallenge);
   if (typeof ui.initExportRecordsCard === "function") {
     ui.initExportRecordsCard(() => store.summary(WORDS));
   }

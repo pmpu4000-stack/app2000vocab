@@ -732,17 +732,27 @@ export function renderSession(s, goal, onStart, onEnd, customTitle) {
 }
 
 export function renderBanner(level, ls, ready, hint, onChallenge) {
-  const pct = Math.round(ls.rate * 100);
+  const pct = Math.min(100, Math.round((ls.mast !== undefined && ls.target) ? (ls.mast / ls.target * 100) : (ls.rate * 100)));
+  const progressText = (ls.mast !== undefined && ls.target) 
+    ? `已精通 <b>${ls.mast} / ${ls.target} 字</b>（${pct}%）`
+    : `正確率 <b>${pct}%</b>`;
+  const badgeHtml = (level >= 5) 
+    ? `<span class="badge" style="background:#10b981;color:#fff;padding:6px 12px;border-radius:12px;font-size:12px;font-weight:700;">🌟 最高等級</span>`
+    : (ready 
+        ? `<span class="badge" style="background:#2563eb;color:#fff;padding:6px 12px;border-radius:12px;font-size:12px;font-weight:700;">🚀 已解鎖 Lv${level + 1}</span>`
+        : `<span class="badge" style="background:rgba(37,99,235,0.08);color:var(--primary,#2563eb);border:1px solid rgba(37,99,235,0.2);padding:6px 12px;border-radius:12px;font-size:12px;font-weight:700;">🎯 目標 ${ls.target || 200} 字</span>`);
+
   el.banner.innerHTML = `
     <div class="gate">
-      <div>
-        <div class="info">Level ${level}「${levelName(level)}」· 正確率 <b>${pct}%</b>（本關練習 ${ls.attempts} 字）</div>
-        <div class="meter"><i style="width:${Math.min(100, pct)}%"></i></div>
+      <div style="flex:1;">
+        <div class="info">Level ${level}「${levelName(level)}」· ${progressText}</div>
+        <div class="meter"><i style="width:${pct}%"></i></div>
         <div class="info" style="margin-top:6px;color:var(--ink3)">${hint}</div>
       </div>
-      <button class="challenge" id="challengeBtn" ${ready ? "" : "disabled"}>🏆 挑戰測驗</button>
+      <div style="display:flex;align-items:center;margin-left:12px;">
+        ${badgeHtml}
+      </div>
     </div>`;
-  $("#challengeBtn").onclick = () => { if (ready) onChallenge(); };
 }
 
 function formatWeekendTaskDate(ds, fallbackText = "") {
