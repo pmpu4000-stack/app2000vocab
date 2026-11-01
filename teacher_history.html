@@ -833,9 +833,17 @@
           </div>
           <div class="weak-actions-group">
             <button type="button" id="btn-st-copy-weak-words" class="action-btn weak-btn-copy" title="一鍵複製常錯單字清單">📋 複製單字</button>
-            <button type="button" id="btn-st-export-weak-pdf" class="action-btn weak-btn-pdf" title="匯出 PDF 複習字卡">📄 匯出 PDF</button>
-            <button type="button" id="btn-st-export-weak-excel" class="action-btn weak-btn-excel" title="匯出 Excel 單字表">📊 匯出 Excel</button>
+            <button type="button" id="btn-st-weak-preview-web" class="action-btn weak-btn-preview" title="即時預覽完整排版報告">📜 一頁檢視</button>
+            <button type="button" id="btn-st-export-weak-pdf" class="action-btn weak-btn-pdf" title="下載 A4 PDF 格式檔案">📄 下載 PDF 格式</button>
           </div>
+        </div>
+
+        <div id="st-weak-web-preview-container" class="export-preview-container" style="display: none; margin-bottom: 1rem;">
+          <div class="export-preview-header">
+            <span class="preview-title">常錯單字分析 (A4 一頁檢視預覽)</span>
+            <button type="button" id="btn-st-weak-close-preview" class="preview-close-btn" title="收起預覽">收起檢視 ✕</button>
+          </div>
+          <div id="st-weak-web-preview-body" class="export-preview-body" style="background:#fff; color:#222; border-radius:8px; overflow-x:auto;"></div>
         </div>
 
         <div id="st-weak-words-summary-bar" class="weak-summary-bar">

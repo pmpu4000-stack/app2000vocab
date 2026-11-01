@@ -3464,8 +3464,8 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 }
 .weak-actions-group .action-btn,
 .weak-btn-copy,
-.weak-btn-pdf,
-.weak-btn-excel {
+.weak-btn-preview,
+.weak-btn-pdf {
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -3525,24 +3525,24 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45) !important;
 }
 
-.weak-btn-excel,
-#btn-export-weak-excel,
-#btn-st-export-weak-excel {
-  background: linear-gradient(135deg, #10B981, #059669) !important;
+.weak-btn-preview,
+#btn-weak-preview-web,
+#btn-st-weak-preview-web {
+  background: linear-gradient(135deg, #0284c7, #0ea5e9) !important;
   color: #FFFFFF !important;
   border: none !important;
-  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.25) !important;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.25) !important;
 }
-.weak-btn-excel:hover,
-#btn-export-weak-excel:hover,
-#btn-st-export-weak-excel:hover {
+.weak-btn-preview:hover,
+#btn-weak-preview-web:hover,
+#btn-st-weak-preview-web:hover {
   transform: translateY(-1px) !important;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35) !important;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35) !important;
 }
-[data-theme="dark"] .weak-btn-excel,
-[data-theme="dark"] #btn-export-weak-excel,
-[data-theme="dark"] #btn-st-export-weak-excel {
-  background: linear-gradient(135deg, #059669, #10B981) !important;
+[data-theme="dark"] .weak-btn-preview,
+[data-theme="dark"] #btn-weak-preview-web,
+[data-theme="dark"] #btn-st-weak-preview-web {
+  background: linear-gradient(135deg, #0369a1, #0284c7) !important;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45) !important;
 }
 
