@@ -426,40 +426,51 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 .hc.hc-active{outline:2.5px solid #059669;outline-offset:1px;transform:scale(1.08);z-index:2}
 [data-theme="dark"] .hc{background:#1E293B;border-color:#334155}
 [data-theme="dark"] .hc.hc-active{outline:2.5px solid #34D399;outline-offset:1px}
-/* 熱力圖專屬：純綠色系六階層（指定測驗與自由練習共用，依正確率：<60% / 60-69% / 70-79% / 80-89% / 90-99% / 100%） */
-/* 熱力圖專屬：⚡【電光寶石蔚藍】六階層（依正確率由淡至極鮮豔：<60% / 60-69% / 70-79% / 80-89% / 90-99% / 100%） */
-.hc.h1, .heatmap .hc.h1, #task-heatmap-grid .hc.h1, #heatmap-grid .hc.h1 { background: #E0F2FE !important; border-color: #BAE6FD !important; }
-.hc.h2, .heatmap .hc.h2, #task-heatmap-grid .hc.h2, #heatmap-grid .hc.h2 { background: #BAE6FD !important; border-color: #7DD3FC !important; }
-.hc.h3, .heatmap .hc.h3, #task-heatmap-grid .hc.h3, #heatmap-grid .hc.h3 { background: #7DD3FC !important; border-color: #38BDF8 !important; }
-.hc.h4, .heatmap .hc.h4, #task-heatmap-grid .hc.h4, #heatmap-grid .hc.h4 { background: #38BDF8 !important; border-color: #0284C7 !important; }
-.hc.h5, .heatmap .hc.h5, #task-heatmap-grid .hc.h5, #heatmap-grid .hc.h5 { background: #0284C7 !important; border-color: #0369A1 !important; }
-.hc.h6, .heatmap .hc.h6, #task-heatmap-grid .hc.h6, #heatmap-grid .hc.h6 {
-  background: #0066FF !important;
-  border: 1.5px solid #0052CC !important;
-  box-shadow: 0 0 10px rgba(0,102,255,.6), 0 2px 6px rgba(0,82,204,.45) !important;
-  position: relative;
-  z-index: 1;
+/* 熱力圖專屬：GitHub 五級四分位距動態著色（淺色：靛藍青階 / 深色：深空極光青藍階） */
+.hc.h0, .heatmap .hc.h0, #task-heatmap-grid .hc.h0, #heatmap-grid .hc.h0, #stTaskHeatmapGrid .hc.h0, #stHeatmapGrid .hc.h0 { background: #ebedf0 !important; border-color: #e2e8f0 !important; }
+.hc.h1, .heatmap .hc.h1, #task-heatmap-grid .hc.h1, #heatmap-grid .hc.h1, #stTaskHeatmapGrid .hc.h1, #stHeatmapGrid .hc.h1 { background: #e0f2fe !important; border-color: #bae6fd !important; }
+.hc.h2, .heatmap .hc.h2, #task-heatmap-grid .hc.h2, #heatmap-grid .hc.h2, #stTaskHeatmapGrid .hc.h2, #stHeatmapGrid .hc.h2 { background: #7dd3fc !important; border-color: #38bdf8 !important; }
+.hc.h3, .heatmap .hc.h3, #task-heatmap-grid .hc.h3, #heatmap-grid .hc.h3, #stTaskHeatmapGrid .hc.h3, #stHeatmapGrid .hc.h3 { background: #0284c7 !important; border-color: #0369a1 !important; }
+.hc.h4, .heatmap .hc.h4, #task-heatmap-grid .hc.h4, #heatmap-grid .hc.h4, #stTaskHeatmapGrid .hc.h4, #stHeatmapGrid .hc.h4 {
+  background: #1e40af !important;
+  border: 1.5px solid #1e3a8a !important;
+  box-shadow: 0 0 10px rgba(30,64,175,.5) !important;
 }
-.hc.hc-active, .heatmap .hc.hc-active, #task-heatmap-grid .hc.hc-active, #heatmap-grid .hc.hc-active { outline: 2.5px solid #0066FF !important; outline-offset: 1px; }
+.hc.h5, .heatmap .hc.h5, #task-heatmap-grid .hc.h5, #heatmap-grid .hc.h5, #stTaskHeatmapGrid .hc.h5, #stHeatmapGrid .hc.h5 {
+  background: #1e40af !important;
+  border: 1.5px solid #1e3a8a !important;
+}
+.hc.h6, .heatmap .hc.h6, #task-heatmap-grid .hc.h6, #heatmap-grid .hc.h6, #stTaskHeatmapGrid .hc.h6, #stHeatmapGrid .hc.h6 {
+  background: #1e40af !important;
+  border: 1.5px solid #1e3a8a !important;
+}
+.hc.hc-active, .heatmap .hc.hc-active, #task-heatmap-grid .hc.hc-active, #heatmap-grid .hc.hc-active, #stTaskHeatmapGrid .hc.hc-active, #stHeatmapGrid .hc.hc-active { outline: 2.5px solid #0284c7 !important; outline-offset: 1px; }
 
-[data-theme="dark"] .hc.h1, [data-theme="dark"] .heatmap .hc.h1, [data-theme="dark"] #task-heatmap-grid .hc.h1, [data-theme="dark"] #heatmap-grid .hc.h1 { background: #0C2A4A !important; border-color: #0284C7 !important; }
-[data-theme="dark"] .hc.h2, [data-theme="dark"] .heatmap .hc.h2, [data-theme="dark"] #task-heatmap-grid .hc.h2, [data-theme="dark"] #heatmap-grid .hc.h2 { background: #0369A1 !important; border-color: #38BDF8 !important; }
-[data-theme="dark"] .hc.h3, [data-theme="dark"] .heatmap .hc.h3, [data-theme="dark"] #task-heatmap-grid .hc.h3, [data-theme="dark"] #heatmap-grid .hc.h3 { background: #0284C7 !important; border-color: #7DD3FC !important; }
-[data-theme="dark"] .hc.h4, [data-theme="dark"] .heatmap .hc.h4, [data-theme="dark"] #task-heatmap-grid .hc.h4, [data-theme="dark"] #heatmap-grid .hc.h4 { background: #0084FF !important; border-color: #BAE6FD !important; }
-[data-theme="dark"] .hc.h5, [data-theme="dark"] .heatmap .hc.h5, [data-theme="dark"] #task-heatmap-grid .hc.h5, [data-theme="dark"] #heatmap-grid .hc.h5 { background: #00B4D8 !important; border-color: #E0F2FE !important; }
-[data-theme="dark"] .hc.h6, [data-theme="dark"] .heatmap .hc.h6, [data-theme="dark"] #task-heatmap-grid .hc.h6, [data-theme="dark"] #heatmap-grid .hc.h6 {
-  background: #00D2FF !important;
-  border: 1.5px solid #90E0EF !important;
+[data-theme="dark"] .hc.h0, [data-theme="dark"] .heatmap .hc.h0, [data-theme="dark"] #task-heatmap-grid .hc.h0, [data-theme="dark"] #heatmap-grid .hc.h0, [data-theme="dark"] #stTaskHeatmapGrid .hc.h0, [data-theme="dark"] #stHeatmapGrid .hc.h0 { background: #161b22 !important; border-color: #30363d !important; }
+[data-theme="dark"] .hc.h1, [data-theme="dark"] .heatmap .hc.h1, [data-theme="dark"] #task-heatmap-grid .hc.h1, [data-theme="dark"] #heatmap-grid .hc.h1, [data-theme="dark"] #stTaskHeatmapGrid .hc.h1, [data-theme="dark"] #stHeatmapGrid .hc.h1 { background: #0c2a4a !important; border-color: #0369a1 !important; }
+[data-theme="dark"] .hc.h2, [data-theme="dark"] .heatmap .hc.h2, [data-theme="dark"] #task-heatmap-grid .hc.h2, [data-theme="dark"] #heatmap-grid .hc.h2, [data-theme="dark"] #stTaskHeatmapGrid .hc.h2, [data-theme="dark"] #stHeatmapGrid .hc.h2 { background: #0284c7 !important; border-color: #38bdf8 !important; }
+[data-theme="dark"] .hc.h3, [data-theme="dark"] .heatmap .hc.h3, [data-theme="dark"] #task-heatmap-grid .hc.h3, [data-theme="dark"] #heatmap-grid .hc.h3, [data-theme="dark"] #stTaskHeatmapGrid .hc.h3, [data-theme="dark"] #stHeatmapGrid .hc.h3 { background: #0084ff !important; border-color: #7dd3fc !important; }
+[data-theme="dark"] .hc.h4, [data-theme="dark"] .heatmap .hc.h4, [data-theme="dark"] #task-heatmap-grid .hc.h4, [data-theme="dark"] #heatmap-grid .hc.h4, [data-theme="dark"] #stTaskHeatmapGrid .hc.h4, [data-theme="dark"] #stHeatmapGrid .hc.h4 {
+  background: #00d2ff !important;
+  border: 1.5px solid #90e0ef !important;
   box-shadow: 0 0 14px rgba(0,210,255,.8), 0 0 6px rgba(144,224,239,.95) !important;
   position: relative;
   z-index: 1;
 }
-[data-theme="dark"] .hc.h6:hover, [data-theme="dark"] .heatmap .hc.h6:hover {
+[data-theme="dark"] .hc.h5, [data-theme="dark"] .heatmap .hc.h5, [data-theme="dark"] #task-heatmap-grid .hc.h5, [data-theme="dark"] #heatmap-grid .hc.h5, [data-theme="dark"] #stTaskHeatmapGrid .hc.h5, [data-theme="dark"] #stHeatmapGrid .hc.h5 {
+  background: #00d2ff !important;
+  border: 1.5px solid #90e0ef !important;
+}
+[data-theme="dark"] .hc.h6, [data-theme="dark"] .heatmap .hc.h6, [data-theme="dark"] #task-heatmap-grid .hc.h6, [data-theme="dark"] #heatmap-grid .hc.h6, [data-theme="dark"] #stTaskHeatmapGrid .hc.h6, [data-theme="dark"] #stHeatmapGrid .hc.h6 {
+  background: #00d2ff !important;
+  border: 1.5px solid #90e0ef !important;
+}
+[data-theme="dark"] .hc.h4:hover, [data-theme="dark"] .heatmap .hc.h4:hover {
   transform: scale(1.18);
-  box-shadow: 0 0 20px rgba(0,210,255,1), 0 0 8px #90E0EF !important;
+  box-shadow: 0 0 20px rgba(0,210,255,1), 0 0 8px #90e0ef !important;
   z-index: 3;
 }
-[data-theme="dark"] .hc.hc-active, [data-theme="dark"] .heatmap .hc.hc-active, [data-theme="dark"] #task-heatmap-grid .hc.hc-active, [data-theme="dark"] #heatmap-grid .hc.hc-active { outline: 2.5px solid #00D2FF !important; outline-offset: 1px; }
+[data-theme="dark"] .hc.hc-active, [data-theme="dark"] .heatmap .hc.hc-active, [data-theme="dark"] #task-heatmap-grid .hc.hc-active, [data-theme="dark"] #heatmap-grid .hc.hc-active, [data-theme="dark"] #stTaskHeatmapGrid .hc.hc-active, [data-theme="dark"] #stHeatmapGrid .hc.hc-active { outline: 2.5px solid #00d2ff !important; outline-offset: 1px; }
 
 /* 指定測驗已完成右側⚡【電光寶石蔚藍】框框 (依正確率：少/中/大) */
 .heat-day-info.tier-green-low,

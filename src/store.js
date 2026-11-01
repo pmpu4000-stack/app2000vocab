@@ -536,12 +536,40 @@ export function historyData(n = 28, preloadedTaskHistory = null) {
   };
 
   const days = [];
+  const rawDays = [];
+  const activeAtts = [];
   for (let i = n - 1; i >= 0; i--) {
     const { key, dnum } = dayAgo(i);
     const { a, c } = getDayStat(key);
     const rate = a ? Math.round((c / a) * 100) : 0;
-    const level = a === 0 ? 0 : rate < 60 ? 1 : rate < 70 ? 2 : rate < 80 ? 3 : rate < 90 ? 4 : rate < 100 ? 5 : 6;
-    days.push({ key, dnum, a, c, rate, level });
+    if (a > 0) activeAtts.push(a);
+    rawDays.push({ key, dnum, a, c, rate });
+  }
+
+  // GitHub 四分位距動態著色 (Level 0~4)
+  activeAtts.sort((x, y) => x - y);
+  const qLen = activeAtts.length;
+  const q1 = qLen > 0 ? activeAtts[Math.floor(qLen * 0.25)] : 0;
+  const q2 = qLen > 0 ? activeAtts[Math.floor(qLen * 0.50)] : 0;
+  const q3 = qLen > 0 ? activeAtts[Math.floor(qLen * 0.75)] : 0;
+
+  for (let i = 0; i < rawDays.length; i++) {
+    const d = rawDays[i];
+    let level = 0;
+    if (d.a > 0) {
+      if (qLen <= 3) {
+        level = d.rate >= 90 ? 4 : (d.rate >= 75 ? 3 : (d.rate >= 60 ? 2 : 1));
+      } else if (d.a <= q1) {
+        level = 1;
+      } else if (d.a <= q2) {
+        level = 2;
+      } else if (d.a <= q3) {
+        level = 3;
+      } else {
+        level = 4;
+      }
+    }
+    days.push({ ...d, level });
   }
 
   // 連續天數 (streak) — 支援連勝守護卡 (Streak Freeze) 自動保護
