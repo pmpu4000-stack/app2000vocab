@@ -37,10 +37,10 @@ if (typeof document !== "undefined") {
 // and manages teacher-assigned tasks & weekend mistake remediation.
 // =====================================================================
 import { loadWordBank, wordsAtLevel } from "./wordbank.js?v=20261025_1618";
-import * as store from "./store.js?v=20261101_1140";
-import { normalizeDateStr } from "./store.js?v=20261101_1140";
+import * as store from "./store.js?v=20261101_2115";
+import { normalizeDateStr } from "./store.js?v=20261101_2115";
 import { nextWord } from "./srs.js?v=20261019_v228";
-import * as ui from "./ui.js?v=20261101_1140";
+import * as ui from "./ui.js?v=20261101_2115";
 import { stopAudio, prefetchAudio } from "./audio.js";
 import { burst } from "./confetti.js?v=20261019_v228";
 import {
