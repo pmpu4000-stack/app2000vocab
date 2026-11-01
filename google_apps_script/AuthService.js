@@ -273,7 +273,7 @@ function getHeaderIndexMap(headers) {
     else if (s.includes("施測單字數") || s.includes("施測字數")) map.taskAssigned = idx;
     else if (s.includes("作答單字數") || s.includes("作答字數")) map.taskAnswered = idx;
     else if ((s.includes("答對單字數") || s.includes("答對字數")) && !s.includes("自由")) map.taskCorrect = idx;
-    else if (s.includes("指定測驗成績") || s.includes("測驗成績") || s.includes("測驗測驗成績")) map.taskScore = idx;
+    else if (s.includes("指定測驗成績") || s.includes("測驗成績") || s.includes("答對比例") || s.includes("測驗測驗成績")) map.taskScore = idx;
     else if (s.includes("指定測驗正確率") || s.includes("測驗正確率")) map.taskRate = idx;
     else if (s.includes("練習狀態")) map.status = idx;
     else if (s.includes("測驗錯題") || (s.includes("錯題") && !s.includes("自由"))) map.wrong = idx;
