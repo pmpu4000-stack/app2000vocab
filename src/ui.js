@@ -10,7 +10,7 @@ import { CATS } from "./data.js?v=20261013_1225";
 import { say, sayWord, spellOut, playContestSentence, stopAudio, parseDialogue } from "./audio.js?v=20261013_2225";
 import { LEVELS, levelColor, levelName, misspellings, shuffle } from "./levels.js?v=20261013_1225";
 import { diagnoseWordMistake } from "./diagnostics.js";
-import { box, normalizeDateStr, formatDateYMD, getWeekRangeDates, getBiweeklyCycleInfo } from "./store.js?v=20261101_2115";
+import { box, normalizeDateStr, formatDateYMD, getWeekRangeDates, getBiweeklyCycleInfo } from "./store.js?v=20261101_2120";
 
 if (typeof window !== "undefined") {
   window.__say = say;
@@ -1657,13 +1657,13 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
       let unansAccordionHtml = "";
       if (untestedWords.length > 0 || actualUnanswered > 0) {
         const unansId = `unans-${Math.random().toString(36).substr(2, 7)}`;
-        const unansPills = untestedWords.map(w => `<span class="word-pill-tag neutral" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="未受測單字 (點擊聆聽發音)">${w}</span>`).join("");
+        const unansPills = untestedWords.map(w => `<span class="word-pill-tag neutral" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="未作答單字 (點擊聆聽發音)">${w}</span>`).join("");
         unansAccordionHtml = `
           <div style="${wrongList.length > 0 ? 'margin-top:10px; padding-top:8px; border-top:1px dashed var(--line, rgba(148,163,184,0.25));' : ''} width:100%;">
             <div onclick="const el=document.getElementById('${unansId}'); const arrow=this.querySelector('.accordion-arrow'); if(el){ const isHidden=el.style.display==='none'; el.style.display=isHidden?'flex':'none'; if(arrow) arrow.textContent=isHidden?'▲':'▼'; }" 
                  style="cursor:pointer; display:flex; align-items:center; font-size:12px; font-weight:700; color:var(--ink2); padding:4px 0; gap:6px; user-select:none; width:100%;">
               <span class="card-icon-slot">⏳</span>
-              <span style="flex:1;">未受測的清單 (${untestedWords.length > 0 ? untestedWords.length : actualUnanswered} 字，點擊查看)</span>
+              <span style="flex:1;">未作答的單字 (${untestedWords.length > 0 ? untestedWords.length : actualUnanswered} 字，點擊查看)</span>
               <span class="accordion-arrow" style="font-size:10px; color:var(--ink3); margin-left:auto;">▼</span>
             </div>
             <div id="${unansId}" style="display:none; flex-wrap:wrap; gap:6px; margin-top:8px; padding:8px; background:rgba(2,132,199,0.06); border-radius:8px; border:1px solid rgba(2,132,199,0.18);">
