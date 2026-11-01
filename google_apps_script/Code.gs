@@ -502,50 +502,70 @@ function doPost(e) {
       }
 
       const uSheet = !raw ? getStudentSheet(ss, auth.username) : null;
-      const isNewStudent = !raw && (!uSheet || uSheet.getLastRow() < 2);
+      const cpResFallback = !raw ? getStudentRowsFromCentralPortfolio(ss, auth.username, 15) : null;
+      const hasCpRows = !!(cpResFallback && cpResFallback.rawData && cpResFallback.rawData.length > 0);
+      const isNewStudent = !raw && !hasCpRows && (!uSheet || uSheet.getLastRow() < 2);
 
-      // 備援還原：只要該學生不是新帳號（已有分頁且有紀錄），若 Column B 未能解析出，自動從試算表欄位反向組合還原
-      if ((!records || !records["spellAgent.v2"]) && !isNewStudent && uSheet) {
+      // 備援還原：只要該學生不是新帳號（總庫或分頁有紀錄），若 Column B 未能解析出，自動從試算表欄位反向組合還原
+      if ((!records || !records["spellAgent.v2"]) && !isNewStudent) {
         try {
-          const checkCount = Math.min(uSheet.getLastRow() - 1, 15);
-          const rVals = uSheet.getRange(2, 1, checkCount, Math.min(uSheet.getLastColumn(), 23)).getValues();
-          let bestRow = rVals[0];
-          for (let r = 0; r < rVals.length; r++) {
-            const att = parseInt(rVals[r][6]) || 0;
-            const pts = parseInt(rVals[r][3]) || 0;
-            if (att > 0 || pts > 0) {
-              bestRow = rVals[r];
-              break;
-            }
+          let rVals = [];
+          let fHeaders = [];
+          if (hasCpRows) {
+            rVals = cpResFallback.rawData;
+            fHeaders = cpResFallback.headers || [];
+          } else if (uSheet && uSheet.getLastRow() >= 2) {
+            const checkCount = Math.min(uSheet.getLastRow() - 1, 15);
+            const colCnt = Math.min(uSheet.getLastColumn(), 34);
+            fHeaders = uSheet.getRange(1, 1, 1, colCnt).getValues()[0] || [];
+            rVals = uSheet.getRange(2, 1, checkCount, colCnt).getValues();
           }
-          const lvl = parseInt(bestRow[2]) || 1;
-          const pts = parseInt(bestRow[3]) || 0;
-          const stk = parseInt(bestRow[4]) || 0;
-          const bst = parseInt(bestRow[5]) || 0;
-          const att = parseInt(bestRow[6]) || 0;
-          const cor = parseInt(bestRow[7]) || 0;
-          const reconstructed = {
-            box: {}, stat: {}, lstat: {},
-            mstat: { listen: { a: att, c: cor }, pick: { a: 0, c: 0 }, scramble: { a: 0, c: 0 }, trap: { a: 0, c: 0 } },
-            level: { current: lvl, unlocked: lvl, placed: true },
-            session: { active: false, date: null, answered: 0, correct: 0, incorrect: 0, ids: {}, mastered: 0 },
-            history: {},
-            dailyPractice: {},
-            points: pts, streak: stk, best: bst, attempts: att, correct: cor
-          };
-          records["spellAgent.v2"] = JSON.stringify(reconstructed);
+          if (rVals.length > 0) {
+            const hMapFb = getHeaderIndexMap(fHeaders);
+            const attIdx = hMapFb.attempts >= 0 ? hMapFb.attempts : 10;
+            const corIdx = hMapFb.correct >= 0 ? hMapFb.correct : 9;
+            const ptsIdx = hMapFb.score >= 0 ? hMapFb.score : 3;
+            const lvlIdx = hMapFb.level >= 0 ? hMapFb.level : 2;
+            const stkIdx = hMapFb.streak >= 0 ? hMapFb.streak : 4;
+            const bstIdx = hMapFb.bestStreak >= 0 ? hMapFb.bestStreak : 5;
+            let bestRow = rVals[0];
+            for (let r = 0; r < rVals.length; r++) {
+              const att = parseInt(rVals[r][attIdx]) || 0;
+              const pts = parseInt(rVals[r][ptsIdx]) || 0;
+              if (att > 0 || pts > 0) {
+                bestRow = rVals[r];
+                break;
+              }
+            }
+            const lvl = parseInt(bestRow[lvlIdx]) || 1;
+            const pts = parseInt(bestRow[ptsIdx]) || 0;
+            const stk = parseInt(bestRow[stkIdx]) || 0;
+            const bst = parseInt(bestRow[bstIdx]) || 0;
+            const att = parseInt(bestRow[attIdx]) || 0;
+            const cor = parseInt(bestRow[corIdx]) || 0;
+            const reconstructed = {
+              box: {}, stat: {}, lstat: {},
+              mstat: { listen: { a: att, c: cor }, pick: { a: 0, c: 0 }, scramble: { a: 0, c: 0 }, trap: { a: 0, c: 0 } },
+              level: { current: lvl, unlocked: lvl, placed: true },
+              session: { active: false, date: null, answered: 0, correct: 0, incorrect: 0, ids: {}, mastered: 0 },
+              history: {},
+              dailyPractice: {},
+              points: pts, streak: stk, best: bst, attempts: att, correct: cor
+            };
+            records["spellAgent.v2"] = JSON.stringify(reconstructed);
+          }
         } catch(_) {}
       }
 
       let cachedSummary = null;
       try {
         let firstRow = null, rowVals = null;
-        const cpResSum = getStudentRowsFromCentralPortfolio(ss, auth.username, 1);
+        const cpResSum = cpResFallback || getStudentRowsFromCentralPortfolio(ss, auth.username, 1);
         if (cpResSum && cpResSum.rawData && cpResSum.rawData.length > 0) {
           firstRow = cpResSum.headers || [];
           rowVals = cpResSum.rawData[0] || [];
         } else if (uSheet && uSheet.getLastRow() >= 2) {
-          const lastC = Math.min(uSheet.getLastColumn(), 27);
+          const lastC = Math.min(uSheet.getLastColumn(), 34);
           rowVals = uSheet.getRange(2, 1, 1, lastC).getDisplayValues()[0];
           firstRow = uSheet.getRange(1, 1, 1, lastC).getValues()[0] || [];
         }

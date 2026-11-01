@@ -1102,12 +1102,66 @@ export function summary(words) {
  */
 export function getPrecomputedSummary(words) {
   const s = stats(words);
-  const modeStats = s.modes || {
+  const modeStats = {
     listen: { a: 0, c: 0 },
     pick: { a: 0, c: 0 },
     scramble: { a: 0, c: 0 },
     trap: { a: 0, c: 0 }
   };
+  const mwords = (DB && DB.mwords) || {};
+  let totTestedWords = 0, totCorrWords = 0;
+  if (DB && DB.stat) {
+    if (!mwords.listen) mwords.listen = {};
+    const pMap = mwords.pick || {};
+    const sMap = mwords.scramble || {};
+    const tMap = mwords.trap || {};
+    for (const id in DB.stat) {
+      const st = DB.stat[id];
+      if (!st || st.a <= 0) continue;
+      totTestedWords++;
+      if (st.c > 0) totCorrWords++;
+      if (!mwords.listen[id] && !pMap[id] && !sMap[id] && !tMap[id]) {
+        mwords.listen[id] = { a: st.a, c: st.c };
+      }
+    }
+  }
+  const modeKeys = ["listen", "pick", "scramble", "trap"];
+  let hasValidMwords = false;
+  for (let i = 0; i < modeKeys.length; i++) {
+    const mapObj = mwords[modeKeys[i]];
+    if (mapObj) {
+      for (const k in mapObj) {
+        if (mapObj[k] && mapObj[k].a > 0) { hasValidMwords = true; break; }
+      }
+    }
+    if (hasValidMwords) break;
+  }
+  const activeModes = modeKeys.filter(m => DB && DB.mstat && DB.mstat[m] && DB.mstat[m].a > 0);
+  for (let i = 0; i < modeKeys.length; i++) {
+    const m = modeKeys[i];
+    const mapObj = mwords[m];
+    let mAtt = 0, mCor = 0, hasEntries = false;
+    if (mapObj) {
+      for (const k in mapObj) {
+        hasEntries = true;
+        const e = mapObj[k];
+        if (e) {
+          if (e.a > 0) mAtt++;
+          if (e.c > 0) mCor++;
+        }
+      }
+    }
+    if (hasEntries) {
+      modeStats[m].a = mAtt;
+      modeStats[m].c = mCor;
+    } else if (!hasValidMwords && activeModes.length === 1 && activeModes[0] === m) {
+      modeStats[m].a = totTestedWords;
+      modeStats[m].c = totCorrWords;
+    } else if (DB && DB.mstat && DB.mstat[m]) {
+      modeStats[m].a = Math.min(totTestedWords, DB.mstat[m].a || 0);
+      modeStats[m].c = Math.min(totCorrWords, DB.mstat[m].c || 0);
+    }
+  }
 
   const levels = {};
   const levelTested = [0, 0, 0, 0, 0, 0];

@@ -3306,7 +3306,8 @@ function renderStudentSummary(resp) {
         lTotCorr = ls.c || 0;
         lTestedWords = ls.a || 0;
       } else if (lTestedWords === 0 && rawRow && rawRow.length > 10 + lv) {
-        const parts = String(rawRow[10 + lv] || "").split("/");
+        const lIdx = getIdx([`LEVEL ${lv}`, `Level ${lv}`], 10 + lv);
+        const parts = String(rawRow[lIdx] || "").split("/");
         lTotCorr = parseInt(parts[0]) || 0;
         lTestedWords = parseInt(parts[1]) || 0;
       }

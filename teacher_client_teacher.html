@@ -402,7 +402,7 @@ function getFilteredAndSortedOverview() {
     } else if (teacherSortField === "todayTask") {
       const getScoreVal = (u) => {
         const map = (latestOverviewResult && latestOverviewResult.todayTaskMap) ? latestOverviewResult.todayTaskMap : {};
-        const t = map[u];
+        const t = map[u] || (u ? map[String(u).toLowerCase()] : null);
         if (!t) return -1;
         if (t.status && t.status.includes("作答中")) return -0.5;
         let r = String(t.rate || "");
@@ -617,7 +617,8 @@ function renderClassOverviewTable() {
         <td>
           ${(()=>{
             const map = (latestOverviewResult && latestOverviewResult.todayTaskMap) ? latestOverviewResult.todayTaskMap : {};
-            return renderTodayTaskBadge(map[s.username]);
+            const t = map[s.username] || (s.username ? map[String(s.username).toLowerCase()] : null);
+            return renderTodayTaskBadge(t);
           })()}
         </td>
         <td style="font-size:12px;">${escapeHtml(s.lastBackup ? s.lastBackup.substring(0, 16) : "—")}</td>
@@ -656,7 +657,8 @@ function renderClassOverviewTable() {
             <div>
               ${(()=>{
                 const map = (latestOverviewResult && latestOverviewResult.todayTaskMap) ? latestOverviewResult.todayTaskMap : {};
-                return renderTodayTaskBadge(map[s.username]);
+                const t = map[s.username] || (s.username ? map[String(s.username).toLowerCase()] : null);
+                return renderTodayTaskBadge(t);
               })()}
             </div>
           </div>

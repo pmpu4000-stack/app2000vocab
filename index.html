@@ -2009,6 +2009,7 @@ const devAudit = getDeviceAuditInfo();
             return;
           }
           const currentUser = localStorage.getItem("current_user");
+          const currentPass = sessionStorage.getItem("current_pass") || localStorage.getItem("current_pass") || "";
           const selClass = document.getElementById("t-modal-class-select");
           const customClassInp = document.getElementById("t-modal-class-custom");
           let targetClass = selClass ? selClass.value : "all";

@@ -372,7 +372,7 @@ function handleSaveRecord(ss, params, auth) {
   try {
     if (uSheet && uSheet.getLastRow() > 2) {
       const checkRows = Math.min(uSheet.getLastRow() - 1, 15);
-      const datesVals = uSheet.getRange(2, 1, checkRows, Math.min(uSheet.getLastColumn(), 26)).getValues();
+      const datesVals = uSheet.getRange(2, 1, checkRows, Math.min(uSheet.getLastColumn(), 34)).getValues();
       let deleteRowIndices = [];
       for (let i = 1; i < datesVals.length; i++) {
         const rowD = formatStandardDateYMD(datesVals[i][0]);
@@ -1121,12 +1121,12 @@ function _getStudentData(ss, username) {
   // 備援：若 Column B 完全無備份，但第 2 列有作答紀錄，自動從各欄位反組合成 agentData
   if (!agentData && rawData.length > 0) {
     const r0 = rawData[0];
-    const lvl = parseInt(r0[2]) || 1;
-    const pts = parseInt(r0[3]) || 0;
-    const stk = parseInt(r0[4]) || 0;
-    const bst = parseInt(r0[5]) || 0;
-    const att = parseInt(r0[6]) || 0;
-    const cor = parseInt(r0[7]) || 0;
+    const lvl = parseInt(r0[hMap.level >= 0 ? hMap.level : 2]) || 1;
+    const pts = parseInt(r0[hMap.score >= 0 ? hMap.score : 3]) || 0;
+    const stk = parseInt(r0[hMap.streak >= 0 ? hMap.streak : 4]) || 0;
+    const bst = parseInt(r0[hMap.bestStreak >= 0 ? hMap.bestStreak : 5]) || 0;
+    const att = parseInt(r0[hMap.attempts >= 0 ? hMap.attempts : 10]) || 0;
+    const cor = parseInt(r0[hMap.correct >= 0 ? hMap.correct : 9]) || 0;
     if (att > 0 || pts > 0) {
       agentData = {
         box: {}, stat: {}, lstat: {},
@@ -1533,15 +1533,22 @@ function auditComplianceData(ss) {
     report.complianceSummary.unhashedPasswordCount = unhashedPassCount;
   }
 
-  // 2. 檢驗個別學生歷程工作表
+  // 2. 檢驗學生歷程工作表（含集中式【學生歷程總庫】與個別分頁）
+  const cpSheetAudit = ss.getSheetByName(CP_SHEET_NAME);
   const studentSheetList = sheets.filter(s => {
     const name = s.getName();
     return !SYS.SYSTEM_SHEETS.has(name) && /^\d+/.test(name);
   });
-  report.studentSheetsAudit.count = studentSheetList.length;
-  if (studentSheetList.length > 0) {
+  report.studentSheetsAudit.count = studentSheetList.length + (cpSheetAudit ? 1 : 0);
+  if (cpSheetAudit && cpSheetAudit.getLastRow() >= 1) {
+    const cpHeaders = cpSheetAudit.getRange(1, 1, 1, Math.min(cpSheetAudit.getLastColumn(), 35)).getValues()[0];
+    report.studentSheetsAudit.sampleSheets.push({
+      sheetName: CP_SHEET_NAME,
+      headers: cpHeaders.map(String)
+    });
+  } else if (studentSheetList.length > 0) {
     const sample = studentSheetList[0];
-    const sHeaders = sample.getLastRow() >= 1 ? sample.getRange(1, 1, 1, Math.min(sample.getLastColumn(), 25)).getValues()[0] : [];
+    const sHeaders = sample.getLastRow() >= 1 ? sample.getRange(1, 1, 1, Math.min(sample.getLastColumn(), 34)).getValues()[0] : [];
     report.studentSheetsAudit.sampleSheets.push({
       sheetName: sample.getName(),
       headers: sHeaders.map(String)
@@ -1824,7 +1831,7 @@ function generateClassDashboardSheet() {
   if (missingNames.length > 0) {
     try {
       const resp = Sheets.Spreadsheets.Values.batchGet(ss.getId(), {
-        ranges            : missingNames.map(n=>`'${n}'!A2:Z2`),
+        ranges            : missingNames.map(n=>`'${n}'!A2:AH2`),
         valueRenderOption : "FORMATTED_VALUE",
         majorDimension    : "ROWS"
       });
@@ -1833,17 +1840,19 @@ function generateClassDashboardSheet() {
       });
     } catch(_) {
       sheets.filter(s => !rowsMap[s.getName().toLowerCase()]).forEach(s=>{
-        rowsMap[s.getName().toLowerCase()] = s.getLastRow()>=2 ? s.getRange(2,1,1,Math.min(s.getLastColumn(),26)).getDisplayValues()[0] : [];
+        rowsMap[s.getName().toLowerCase()] = s.getLastRow()>=2 ? s.getRange(2,1,1,Math.min(s.getLastColumn(),34)).getDisplayValues()[0] : [];
       });
     }
   }
 
-  const allStudentNames = Array.from(new Set([...Object.keys(metaMap), ...sheetNames]));
+  const metaLowerSet = new Set(Object.keys(metaMap).map(k => k.toLowerCase()));
+  const extraNames = [...sheetNames, ...Object.keys(rowsMap)].filter(n => !metaLowerSet.has(n.toLowerCase()));
+  const allStudentNames = Array.from(new Set([...Object.keys(metaMap), ...extraNames]));
   const now = new Date();
   const rows=[], dataValues=[];
 
   allStudentNames.forEach(name=>{
-    const meta    = metaMap[name]||{className:getStudentClass(name,""),realName:""};
+    const meta    = metaMap[name]||metaMap[name.toLowerCase()]||{className:getStudentClass(name,""),realName:""};
     const row     = rowsMap[name.toLowerCase()]||rowsMap[name]||[];
     const hasData = row.length>0;
 
@@ -1857,7 +1866,7 @@ function generateClassDashboardSheet() {
       }
     }
 
-    const tItem = todayMap[name];
+    const tItem = todayMap[name] || todayMap[name.toLowerCase()];
     const cleanCls = String(meta.className || "").replace(/班$/, "").trim().toLowerCase();
     const assignedTaskName = classTaskAssignedToday.get(cleanCls) || schoolWideTaskName;
     const isClassAssignedToday = !!assignedTaskName;
@@ -2625,7 +2634,9 @@ function getDeviceLoginLogs(creds) {
     if (!s || s.getLastRow() < 2) return { status: "success", logs: [], total: 0 };
     const total = s.getLastRow() - 1;
     const num = Math.min(total, 100);
-    const logs = s.getRange(2, 1, num, 10).getDisplayValues()
+    const isAdmin = !!auth.isAdmin;
+    const tCls = String(auth.className || "").replace(/班$/, "").trim();
+    let logs = s.getRange(2, 1, num, 10).getDisplayValues()
       .map((r, i) => ({
         id: i + 1,
         time: r[0],
@@ -2639,7 +2650,10 @@ function getDeviceLoginLogs(creds) {
         deviceId: r[8],
         note: r[9]
       }));
-    return { status: "success", logs: logs, total: total };
+    if (!isAdmin && tCls) {
+      logs = logs.filter(item => String(item.className || "").replace(/班$/, "").trim() === tCls);
+    }
+    return { status: "success", logs: logs, total: isAdmin ? total : logs.length };
   } catch(e) {
     logError("getDeviceLoginLogs", e, creds ? creds.username : "", "");
     return { status: "error", message: e.toString() };
@@ -2651,6 +2665,7 @@ function clearDeviceLoginLogs(creds) {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const auth = authenticateUser(ss, creds.username, creds.password);
     if (!auth.success || auth.role !== "teacher") return { status: "error", message: "無權限" };
+    if (!auth.isAdmin) return { status: "error", message: "僅管理員教師可清空全校裝置登入歷程" };
     const s = ss.getSheetByName("裝置登入歷程");
     if (s && s.getLastRow() >= 2) s.deleteRows(2, s.getLastRow() - 1);
     return { status: "success", message: "裝置登入歷程已清空" };

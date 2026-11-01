@@ -41,7 +41,7 @@ import * as store from "./store.js?v=20261019_v228";
 import { normalizeDateStr } from "./store.js?v=20261019_v228";
 import { nextWord } from "./srs.js?v=20261019_v228";
 import * as ui from "./ui.js?v=20261027_0850";
-import { stopAudio } from "./audio.js";
+import { stopAudio, prefetchAudio } from "./audio.js";
 import { burst } from "./confetti.js?v=20261019_v228";
 import {
   LEVELS, levelColor, levelName, sample,
@@ -432,22 +432,25 @@ function getMonToFriUnfinishedWords() {
     }
   } catch(_) {}
 
-  // 3. 從 dailyPractice（自由練習作答歷程）讀取本週一至週五答錯的單字
+  // 3. 從 dailyPractice（自由練習作答歷程）讀取本週一至週五答錯的單字（若開啟自由練習錯題滾入）
   try {
-    const rawData = localStorage.getItem("app2000vocab_data");
-    if (rawData) {
-      const dbObj = JSON.parse(rawData);
-      if (dbObj && dbObj.dailyPractice) {
-        for (const dateKey in dbObj.dailyPractice) {
-          const normD = String(dateKey).trim().split(" ")[0].replace(/\//g, "-");
-          if (normD >= mondayStr && normD <= fridayStr) {
-            const dp = dbObj.dailyPractice[dateKey];
-            if (dp && dp.words) {
-              for (const wKey in dp.words) {
-                const info = dp.words[wKey];
-                if (info && (info.wrong > 0 || info.lastResult === "wrong" || info.hadCorrectThenWrong)) {
-                  const cw = String(wKey).trim().toLowerCase();
-                  if (cw) unfinishedWords.add(cw);
+    const rollCfg = getConquerRollSettings();
+    if (rollCfg && rollCfg.rollFreeMistakes) {
+      const rawData = localStorage.getItem("spellAgent.v2") || localStorage.getItem("app2000vocab_data");
+      if (rawData) {
+        const dbObj = JSON.parse(rawData);
+        if (dbObj && dbObj.dailyPractice) {
+          for (const dateKey in dbObj.dailyPractice) {
+            const normD = String(dateKey).trim().split(" ")[0].replace(/\//g, "-");
+            if (normD >= mondayStr && normD <= fridayStr) {
+              const dp = dbObj.dailyPractice[dateKey];
+              if (dp && dp.words) {
+                for (const wKey in dp.words) {
+                  const info = dp.words[wKey];
+                  if (info && (info.wrong > 0 || info.lastResult === "wrong" || info.hadCorrectThenWrong)) {
+                    const cw = String(wKey).trim().toLowerCase();
+                    if (cw) unfinishedWords.add(cw);
+                  }
                 }
               }
             }
