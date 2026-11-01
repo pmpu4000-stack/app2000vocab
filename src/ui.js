@@ -1430,9 +1430,12 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     if (m) quizTotal = parseInt(m[1], 10);
   } else if (record.total && !isNaN(parseInt(record.total, 10)) && parseInt(record.total, 10) > 0) {
     quizTotal = parseInt(record.total, 10);
+  } else if (rawWords && rawWords.length > 0) {
+    quizTotal = rawWords.length;
   } else if (taskTotWords > 0) {
     quizTotal = taskTotWords;
-  } else if (rawWords && rawWords.length > 0) {
+  }
+  if (rawWords && rawWords.length > quizTotal) {
     quizTotal = rawWords.length;
   }
   if (quizTotal <= 0) quizTotal = 5;
@@ -1454,9 +1457,13 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
   }
   if (actualAnswered <= 0 && taskCorrWords > 0) actualAnswered = taskCorrWords;
 
-  const assignedTotWords = quizTotal;
   const actualWrong = wrongList.length > 0 ? wrongList.length : Math.max(0, actualAnswered - taskCorrWords);
-  const actualUnanswered = Math.max(0, quizTotal - actualAnswered);
+  const actualUnanswered = unansweredList.length > 0 ? unansweredList.length : Math.max(0, quizTotal - actualAnswered);
+  if (actualUnanswered > 0 && quizTotal < actualAnswered + actualUnanswered) {
+    quizTotal = actualAnswered + actualUnanswered;
+  }
+  taskTotWords = quizTotal;
+  const assignedTotWords = quizTotal;
   const hasUnanswered = actualUnanswered > 0 || (quizTotal > actualAnswered && actualAnswered > 0);
 
   // (A) 作答正確率 (針對實際受測有作答題目的答對率，如 3/4 = 75%)
