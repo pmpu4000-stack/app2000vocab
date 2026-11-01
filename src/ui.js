@@ -3628,13 +3628,14 @@ export function renderSummary(d) {
   const renderTaskHeatBadgeContent = (dateKey, att, rate, activeCellIdx) => {
     if (!taskHeatDayInfoEl) return;
     const stat = getTaskDayStat(dateKey);
+    const shortDate = String(dateKey).replace(/^\d{4}-/, '');
     taskHeatDayInfoEl.className = `heat-day-info ${stat.badgeTier}`;
     if (stat.hasUnanswered || stat.statusType === "incomplete") {
-      taskHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 全卷正確率 <b>${stat.rate}%</b>`;
+      taskHeatDayInfoEl.innerHTML = `<b>${shortDate}</b> ｜ 全卷正確率 <b>${stat.rate}%</b>`;
     } else if (stat.statusType === "completed") {
-      taskHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 正確率 <b>${stat.rate}%</b>`;
+      taskHeatDayInfoEl.innerHTML = `<b>${shortDate}</b> ｜ 正確率 <b>${stat.rate}%</b>`;
     } else {
-      taskHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ <b>${stat.statusLabel}</b>`;
+      taskHeatDayInfoEl.innerHTML = `<b>${shortDate}</b> ｜ <b>${stat.statusLabel}</b>`;
     }
     if (taskHeatGridEl) {
       taskHeatGridEl.querySelectorAll(".hc").forEach((cell, cIdx) => {
@@ -3711,13 +3712,14 @@ export function renderSummary(d) {
 
   const renderHeatBadgeContent = (dateKey, att, rate, activeCellIdx) => {
     if (!heatDayInfoEl) return;
+    const shortDate = String(dateKey).replace(/^\d{4}-/, '');
     if (!att || att <= 0) {
       heatDayInfoEl.className = "heat-day-info tier-gray";
-      heatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 無練習紀錄`;
+      heatDayInfoEl.innerHTML = `<b>${shortDate}</b> ｜ 無練習紀錄`;
     } else {
       const badgeTier = rate === 100 ? "tier-green-perfect" : (rate >= 80 ? "tier-green-high" : (rate >= 60 ? "tier-green-mid" : "tier-green-low"));
       heatDayInfoEl.className = `heat-day-info ${badgeTier}`;
-      heatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 正確率 <b>${rate}%</b>`;
+      heatDayInfoEl.innerHTML = `<b>${shortDate}</b> ｜ 正確率 <b>${rate}%</b>`;
     }
     if (heatGridEl) {
       heatGridEl.querySelectorAll(".hc").forEach((cell, cIdx) => {

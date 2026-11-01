@@ -3837,13 +3837,14 @@ function renderStudentSummary(resp) {
       const badgeEl = document.getElementById("stTaskHeatDayInfo") || taskHeatDayInfoEl;
       if (!badgeEl) return;
       const stat = getTaskDayStat(dateKey);
+      const shortDate = String(dateKey).replace(/^\d{4}-/, '');
       badgeEl.className = `heat-day-info ${stat.badgeTier}`;
       if (stat.hasUnanswered || stat.statusType === "incomplete") {
-        badgeEl.innerHTML = `<b>${dateKey}</b> ｜ 全卷正確率 <b>${stat.rate}%</b>`;
+        badgeEl.innerHTML = `<b>${shortDate}</b> ｜ 全卷正確率 <b>${stat.rate}%</b>`;
       } else if (stat.statusType === "completed") {
-        badgeEl.innerHTML = `<b>${dateKey}</b> ｜ 正確率 <b>${stat.rate}%</b>`;
+        badgeEl.innerHTML = `<b>${shortDate}</b> ｜ 正確率 <b>${stat.rate}%</b>`;
       } else {
-        badgeEl.innerHTML = `<b>${dateKey}</b> ｜ <b>${stat.statusLabel}</b>`;
+        badgeEl.innerHTML = `<b>${shortDate}</b> ｜ <b>${stat.statusLabel}</b>`;
       }
       taskHeatGrid.querySelectorAll(".hc").forEach((cell, cIdx) => {
         cell.classList.toggle("hc-active", cIdx === activeCellIdx);
@@ -4014,13 +4015,14 @@ function renderStudentSummary(resp) {
     const renderFreeHeatBadgeContent = (dateKey, att, rate, activeCellIdx) => {
       const badgeEl = document.getElementById("stHeatDayInfo");
       if (!badgeEl) return;
+      const shortDate = String(dateKey).replace(/^\d{4}-/, '');
       if (att > 0) {
         const tierClass = rate >= 100 ? "tier-green-perfect" : (rate >= 80 ? "tier-green-high" : (rate >= 60 ? "tier-green-mid" : "tier-green-low"));
         badgeEl.className = `heat-day-info ${tierClass}`;
-        badgeEl.innerHTML = `<b>${dateKey}</b> ｜ 正確率 <b>${rate}%</b>`;
+        badgeEl.innerHTML = `<b>${shortDate}</b> ｜ 正確率 <b>${rate}%</b>`;
       } else {
         badgeEl.className = "heat-day-info tier-gray";
-        badgeEl.innerHTML = `<b>${dateKey}</b> ｜ 無自由練習紀錄`;
+        badgeEl.innerHTML = `<b>${shortDate}</b> ｜ 無自由練習紀錄`;
       }
       freeHeatGrid.querySelectorAll(".hc").forEach((cell, cIdx) => {
         cell.classList.toggle("hc-active", cIdx === activeCellIdx);
