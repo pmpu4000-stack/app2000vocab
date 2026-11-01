@@ -10,7 +10,7 @@ import { CATS } from "./data.js?v=20261013_1225";
 import { say, sayWord, spellOut, playContestSentence, stopAudio, parseDialogue } from "./audio.js?v=20261013_2225";
 import { LEVELS, levelColor, levelName, misspellings, shuffle } from "./levels.js?v=20261013_1225";
 import { diagnoseWordMistake } from "./diagnostics.js";
-import { box, normalizeDateStr, formatDateYMD, getWeekRangeDates, getBiweeklyCycleInfo } from "./store.js?v=20261019_v228";
+import { box, normalizeDateStr, formatDateYMD, getWeekRangeDates, getBiweeklyCycleInfo } from "./store.js?v=20261101_1140";
 
 if (typeof window !== "undefined") {
   window.__say = say;
@@ -1667,7 +1667,10 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
       }
       wrongContentHtml = `<div style="display:flex; flex-direction:column; width:100%;"><div style="display:flex; flex-wrap:wrap; gap:6px;">${wrongPills || '<span style="font-size:12px; color:var(--ink3); font-style:italic;">（受測題目無答錯）</span>'}</div>${unansAccordionHtml}</div>`;
     } else {
-      leftBoxClass = "correct-box";
+      wrongContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（目前無答錯單字）</span>`;
+    }
+  } else {
+    leftBoxClass = "correct-box";
       leftTitleClass = "correct-title";
       leftTitleText = `<span class="card-icon-slot" style="color:#10B981; font-weight:900;">✔</span><span>已答對的單字 (${correctList.length} 字)</span>`;
       if (correctList.length > 0) {
