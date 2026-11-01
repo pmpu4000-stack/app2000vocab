@@ -1813,13 +1813,13 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
             <div class="task-score-label">已答對</div>
             <div class="task-score-val task-score-num-corr">${taskCorrWords}</div>
           </div>
-          <div class="task-score-item score-ans-item">
-            <div class="task-score-label">已作答</div>
-            <div class="task-score-val task-score-num-ans">${ansCount}</div>
-          </div>
           <div class="task-score-item score-wrong-item">
             <div class="task-score-label">答錯</div>
             <div class="task-score-val task-score-num-wrong">${wrgCount}</div>
+          </div>
+          <div class="task-score-item score-ans-item">
+            <div class="task-score-label">已作答</div>
+            <div class="task-score-val task-score-num-ans">${ansCount}</div>
           </div>
           <div class="task-score-item score-unans-item">
             <div class="task-score-label">未作答</div>
