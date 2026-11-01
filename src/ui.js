@@ -1780,69 +1780,6 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
         </div>
       </div>
     `;
-  } else if (hasUnanswered) {
-    const getHeatmapRateClass = (r) => {
-      const n = (typeof r === 'number') ? r : (parseInt(r, 10) || 0);
-      if (n >= 100) return 'tier-6';
-      if (n >= 90) return 'tier-5';
-      if (n >= 80) return 'tier-4';
-      if (n >= 70) return 'tier-3';
-      if (n >= 60) return 'tier-2';
-      return 'tier-1';
-    };
-    const getHeatmapRateColor = (r) => {
-      const n = (typeof r === 'number') ? r : (parseInt(r, 10) || 0);
-      if (n >= 100) return '#00D2FF';
-      if (n >= 90) return '#00B4D8';
-      if (n >= 80) return '#38BDF8';
-      if (n >= 70) return '#7DD3FC';
-      if (n >= 60) return '#93C5FD';
-      return '#94A3B8';
-    };
-    scoreGridHtml = `
-      <div class="task-score-grid">
-        <div class="task-score-subgrid">
-          <div class="task-score-item">
-            <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap; font-size:11px;" title="已答對單字 / 已施測單字">
-              <span style="flex:1; text-align:right;">已答對</span>
-              <span style="padding:0 2px; opacity:0.6;">/</span>
-              <span style="flex:1; text-align:left;">已施測</span>
-            </div>
-            <div class="task-score-val heat-rate-val ${getHeatmapRateClass(attemptedRate)}" style="display:flex; align-items:center; justify-content:center; color:${actualAnswered > 0 ? getHeatmapRateColor(attemptedRate) : 'var(--ink3)'}; font-size:20px; font-weight:800;">
-              <span class="task-score-num-corr" style="flex:1; text-align:right;">${taskCorrWords}</span>
-              <span style="padding:0 3px; font-weight:700; color:var(--ink3); opacity:0.6; font-size:16px;">/</span>
-              <span class="task-score-num-tot" style="flex:1; text-align:left;">${actualAnswered}</span>
-            </div>
-          </div>
-          <div class="task-score-item">
-            <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap; font-size:11px;" title="答錯單字 / 未作答單字">
-              <span style="flex:1; text-align:right; color:var(--ink2);">答錯</span>
-              <span style="padding:0 2px; opacity:0.6;">/</span>
-              <span style="flex:1; text-align:left; color:var(--ink2);">未作答</span>
-            </div>
-            <div class="task-score-val" style="display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:800;">
-              <span style="flex:1; text-align:right; color:${actualWrong > 0 ? '#ef4444' : 'var(--ink3)'};">${actualWrong}</span>
-              <span style="padding:0 3px; font-weight:700; color:var(--ink3); opacity:0.6; font-size:16px;">/</span>
-              <span style="flex:1; text-align:left; color:${actualUnanswered > 0 ? '#0284c7' : 'var(--ink3)'};">${actualUnanswered}</span>
-            </div>
-          </div>
-        </div>
-        <div class="task-score-subgrid">
-          <div class="task-score-item">
-            <div class="task-score-label" style="font-size:11px;" title="實際有作答題目的答對率">作答正確率</div>
-            <div class="task-score-val heat-rate-val ${getHeatmapRateClass(attemptedRate)}" style="color:${actualAnswered > 0 ? getHeatmapRateColor(attemptedRate) : 'var(--ink3)'}; font-size:20px; font-weight:800; line-height:1.2;">
-              ${actualAnswered > 0 ? attemptedRate + '%' : '—'}
-            </div>
-          </div>
-          <div class="task-score-item">
-            <div class="task-score-label" style="font-size:11px;" title="以全卷應測總單字數為分母計算之正確率">全卷正確率</div>
-            <div class="task-score-val heat-rate-val ${getHeatmapRateClass(overallScoreRate)}" style="color:${getHeatmapRateColor(overallScoreRate)}; font-size:20px; font-weight:800; line-height:1.2;">
-              ${overallScoreRate}%
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
   } else {
     const getHeatmapRateClass = (r) => {
       const n = (typeof r === 'number') ? r : (parseInt(r, 10) || 0);
@@ -1853,32 +1790,45 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
       if (n >= 60) return 'tier-2';
       return 'tier-1';
     };
-    const getHeatmapRateColor = (r) => {
-      const n = (typeof r === 'number') ? r : (parseInt(r, 10) || 0);
-      if (n >= 100) return '#00D2FF';
-      if (n >= 90) return '#00B4D8';
-      if (n >= 80) return '#38BDF8';
-      if (n >= 70) return '#7DD3FC';
-      if (n >= 60) return '#93C5FD';
-      return '#94A3B8';
-    };
+    const ansCount = hasUnanswered ? actualAnswered : taskTotWords;
+    const wrgCount = hasUnanswered ? actualWrong : Math.max(0, taskTotWords - taskCorrWords);
+    const unansCount = hasUnanswered ? actualUnanswered : 0;
+    const attRate = hasUnanswered ? attemptedRate : taskRate;
+    const ovrRate = hasUnanswered ? overallScoreRate : taskRate;
+
     scoreGridHtml = `
       <div class="task-score-grid">
-        <div class="task-score-item">
-          <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap;">
-            <span style="flex:1; text-align:right;">已答對單字</span>
-            <span style="padding:0 6px; opacity:0.6;">/</span>
-            <span style="flex:1; text-align:left;">已施測單字</span>
+        <div class="task-score-subgrid-4">
+          <div class="task-score-item">
+            <div class="task-score-label">已答對</div>
+            <div class="task-score-val task-score-num-corr">${taskCorrWords}</div>
           </div>
-          <div class="task-score-val heat-rate-val ${getHeatmapRateClass(taskRate)}" style="display:flex; align-items:center; justify-content:center; color:${getHeatmapRateColor(taskRate)}; font-size:20px; font-weight:800;">
-            <span class="task-score-num-corr" style="flex:1; text-align:right;">${taskCorrWords}</span>
-            <span style="padding:0 6px; font-weight:700; color:var(--ink3); opacity:0.6; font-size:16px;">/</span>
-            <span class="task-score-num-tot" style="flex:1; text-align:left;">${taskTotWords}</span>
+          <div class="task-score-item">
+            <div class="task-score-label">已作答</div>
+            <div class="task-score-val task-score-num-ans">${ansCount}</div>
+          </div>
+          <div class="task-score-item">
+            <div class="task-score-label">答錯</div>
+            <div class="task-score-val task-score-num-wrong">${wrgCount}</div>
+          </div>
+          <div class="task-score-item">
+            <div class="task-score-label">未作答</div>
+            <div class="task-score-val task-score-num-unans">${unansCount}</div>
           </div>
         </div>
-        <div class="task-score-item">
-          <div class="task-score-label">正確率</div>
-          <div class="task-score-val heat-rate-val ${getHeatmapRateClass(taskRate)}" style="color:${getHeatmapRateColor(taskRate)}; font-size:20px; font-weight:800;">${taskRate}%</div>
+        <div class="task-score-subgrid-2">
+          <div class="task-score-item">
+            <div class="task-score-label" title="實際有作答題目的答對率">作答正確率</div>
+            <div class="task-score-val heat-rate-val ${getHeatmapRateClass(attRate)}">
+              ${ansCount > 0 ? attRate + '%' : '—'}
+            </div>
+          </div>
+          <div class="task-score-item">
+            <div class="task-score-label" title="以全卷應測總單字數為分母計算之正確率">全卷正確率</div>
+            <div class="task-score-val heat-rate-val ${getHeatmapRateClass(ovrRate)}">
+              ${ovrRate}%
+            </div>
+          </div>
         </div>
       </div>
     `;

@@ -2590,6 +2590,26 @@
       box-sizing: border-box !important;
       height: 60px !important;
     }
+    .task-score-subgrid-4 {
+      display: grid !important;
+      grid-template-columns: repeat(4, 1fr) !important;
+      gap: 6px !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+      height: 60px !important;
+    }
+    .task-score-subgrid-2 {
+      display: grid !important;
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 6px !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+      height: 60px !important;
+    }
+    .task-score-num-corr, .task-score-num-ans { color: #1D4ED8 !important; }
+    .task-score-num-wrong, .task-score-num-unans { color: #64748B !important; }
+    [data-theme="dark"] .task-score-num-corr, [data-theme="dark"] .task-score-num-ans { color: #7DD3FC !important; }
+    [data-theme="dark"] .task-score-num-wrong, [data-theme="dark"] .task-score-num-unans { color: #94A3B8 !important; }
     @media (max-width: 580px) {
       .task-score-subgrid {
         gap: 6px !important;
