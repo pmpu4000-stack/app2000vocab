@@ -1539,7 +1539,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
   let wrongContentHtml = "";
   let leftBoxClass = "correct-box";
   let leftTitleClass = "correct-title";
-  let leftTitleText = `<span class="card-icon-slot" style="color:#10B981; font-weight:900;">✔</span><span>已答對的單字 (${correctList.length} 字)</span>`;
+  let leftTitleText = `<span class="card-icon-slot" style="color:#10B981; font-weight:900;">✔</span><span>答對的單字 (${correctList.length} 字)</span>`;
   const isTrulyPerfect = (taskRate >= 100) || (taskTotWords > 0 && taskCorrWords >= taskTotWords && wrongList.length === 0);
   const missedCount = Math.max(0, taskTotWords - taskCorrWords);
   let rightBoxClass = "wrong-box";
@@ -1626,7 +1626,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
   } else if (isIncomplete) {
     leftBoxClass = "correct-box";
     leftTitleClass = "correct-title";
-    leftTitleText = `<span class="card-icon-slot" style="color:#10B981; font-weight:900;">✔</span><span>已答對的單字 (${correctList.length} 字)</span>`;
+    leftTitleText = `<span class="card-icon-slot" style="color:#10B981; font-weight:900;">✔</span><span>答對的單字 (${correctList.length} 字)</span>`;
     if (correctList.length > 0) {
       correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
     } else {
@@ -1681,7 +1681,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
   } else {
     leftBoxClass = "correct-box";
       leftTitleClass = "correct-title";
-      leftTitleText = `<span class="card-icon-slot" style="color:#10B981; font-weight:900;">✔</span><span>已答對的單字 (${correctList.length} 字)</span>`;
+      leftTitleText = `<span class="card-icon-slot" style="color:#10B981; font-weight:900;">✔</span><span>答對的單字 (${correctList.length} 字)</span>`;
       if (correctList.length > 0) {
         correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
       } else if (taskCorrWords > 0) {
@@ -2394,7 +2394,7 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
         <!-- 答對的單字區 -->
         <div class="word-split-box correct-box">
           <div class="word-split-title correct-title">
-            <span><span style="color:#10B981; font-weight:900; margin-right:4px;">✔</span>已答對的單字 (${displayCorrectBoxCount} 字)</span>
+            <span><span style="color:#10B981; font-weight:900; margin-right:4px;">✔</span>答對的單字 (${displayCorrectBoxCount} 字)</span>
           </div>
           <div class="word-split-content">
             ${correctContentHtml}
@@ -2620,7 +2620,7 @@ export function getWeekPendingConquerWords(cycleParam = "current") {
 
 
 
-          // 收集此任務已答對的單字，確保答對者絕不誤入待攻克
+          // 收集此任務答對的單字，確保答對者絕不誤入待攻克
           const correctSet = new Set();
           if (Array.isArray(item.correctWords)) {
             item.correctWords.forEach(w => {

@@ -389,7 +389,7 @@ function _buildStudentReportHtml(payload) {
       taskKpiHtml = `
         <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:6px; margin-bottom:10px;">
           <div style="background:#F0F9FF; border:1px solid rgba(14,165,233,.25); border-radius:10px; padding:8px 4px; text-align:center;">
-            <div style="font-size:10.5px; color:#0369A1; font-weight:700; margin-bottom:2px;">已答對 / 已施測</div>
+            <div style="font-size:10.5px; color:#0369A1; font-weight:700; margin-bottom:2px;">答對 / 已施測</div>
             <div style="font-size:17px; font-weight:900; color:#0284C7;"><span style="color:#0284C7;">${r.taskCorrWords || 0}</span> <span style="font-size:14px; opacity:0.6;">/</span> <span style="color:#0369A1;">${r.assignedTotWords || 5}</span></div>
           </div>
           <div style="background:#F8FAFC; border:1px solid #CBD5E1; border-radius:10px; padding:8px 4px; text-align:center;">
@@ -491,7 +491,7 @@ function _buildStudentReportHtml(payload) {
           ${(!r.isUnassigned) ? `
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
               <div style="background:#F0F9FF; border:1px solid rgba(14,165,233,.35); border-radius:10px; padding:10px 12px; min-height:85px;">
-                <div style="font-size:12px; font-weight:800; color:#0284C7; margin-bottom:6px;"><span style="color:#10B981; font-weight:900; margin-right:4px;">✔</span>已答對的單字 (${(r.taskCorrectWords || []).length} 字)</div>
+                <div style="font-size:12px; font-weight:800; color:#0284C7; margin-bottom:6px;"><span style="color:#10B981; font-weight:900; margin-right:4px;">✔</span>答對的單字 (${(r.taskCorrectWords || []).length} 字)</div>
                 <div style="display:flex; flex-wrap:wrap; gap:4px;">${taskLeftContent}</div>
               </div>
               <div style="background:#F8FAFC; border:1px solid #CBD5E1; border-radius:10px; padding:10px 12px; min-height:85px;">
@@ -512,7 +512,7 @@ function _buildStudentReportHtml(payload) {
           ${r.hasFree ? `
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
               <div style="background:#F0F9FF; border:1px solid rgba(14,165,233,.35); border-radius:10px; padding:10px 12px; min-height:85px;">
-                <div style="font-size:12px; font-weight:800; color:#0284C7; margin-bottom:6px;"><span style="color:#10B981; font-weight:900; margin-right:4px;">✔</span>已答對的單字 (${(r.freeCorrectWords || []).length} 字)</div>
+                <div style="font-size:12px; font-weight:800; color:#0284C7; margin-bottom:6px;"><span style="color:#10B981; font-weight:900; margin-right:4px;">✔</span>答對的單字 (${(r.freeCorrectWords || []).length} 字)</div>
                 <div style="display:flex; flex-wrap:wrap; gap:4px;">${freeLeftContent}</div>
               </div>
               <div style="background:#F8FAFC; border:1px solid #CBD5E1; border-radius:10px; padding:10px 12px; min-height:85px;">

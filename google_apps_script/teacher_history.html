@@ -5467,7 +5467,7 @@
             <div>• <strong style="color:var(--text);">學號 / 姓名</strong>：學生登入系統帳號與真實姓名。</div>
             <div>• <strong style="color:var(--text);">班級代碼</strong>：學生所屬之班級代碼或標籤。</div>
             <div>• <strong style="color:var(--text);">累積受測單字數</strong>：歷史累積已練習過的所有不重複單字數量。</div>
-            <div>• <strong style="color:var(--text);">單字掌握率</strong>：已答對單字數 ÷ 累積受測單字數之百分比。</div>
+            <div>• <strong style="color:var(--text);">單字掌握率</strong>：答對單字數 ÷ 累積受測單字數之百分比。</div>
             <div>• <strong style="color:var(--text);">最高連勝 (Streak)</strong>：學生維持連續答對未中斷的最高題數紀錄。</div>
             <div>• <strong style="color:var(--text);">挑戰等級 (LV)</strong>：系統依學生答題表現推估之適性挑戰難度關卡（LV 1~5）。</div>
             <div>• <strong style="color:var(--text);">狀態指示燈</strong>：🟢 穩定前進（正確率 ≥ 80%）· 🟡 正常學習中 · 🔴 需關注（正確率低於 60%）。</div>
@@ -16167,7 +16167,7 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
   let wrongContentHtml = "";
   let leftBoxClass = "correct-box";
   let leftTitleClass = "correct-title";
-  let leftTitleText = `<span class="card-icon-slot" style="color:#10B981; font-weight:900;">✔</span><span>已答對的單字 (${correctList.length} 字)</span>`;
+  let leftTitleText = `<span class="card-icon-slot" style="color:#10B981; font-weight:900;">✔</span><span>答對的單字 (${correctList.length} 字)</span>`;
   const isTrulyPerfect = (taskRate >= 100) || (taskTotWords > 0 && taskCorrWords >= taskTotWords && wrongList.length === 0);
   const missedCount = Math.max(0, taskTotWords - taskCorrWords);
   let rightBoxClass = "wrong-box";
@@ -16255,7 +16255,7 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
   } else if (isIncomplete) {
     leftBoxClass = "correct-box";
     leftTitleClass = "correct-title";
-    leftTitleText = `<span class="card-icon-slot" style="color:#10B981; font-weight:900;">✔</span><span>已答對的單字 (${correctList.length} 字)</span>`;
+    leftTitleText = `<span class="card-icon-slot" style="color:#10B981; font-weight:900;">✔</span><span>答對的單字 (${correctList.length} 字)</span>`;
     if (correctList.length > 0) {
       correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); speakMasteredWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
     } else {
@@ -16407,8 +16407,8 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
       <div class="task-score-grid">
         <div class="task-score-subgrid">
           <div class="task-score-item" style="display:flex; flex-direction:column; justify-content:center; ">
-            <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap; font-size:11px;" title="已答對單字 / 已施測單字">
-              <span style="flex:1; text-align:right;">已答對</span>
+            <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap; font-size:11px;" title="答對單字 / 已施測單字">
+              <span style="flex:1; text-align:right;">答對</span>
               <span style="padding:0 2px; opacity:0.6;">/</span>
               <span style="flex:1; text-align:left;">已施測</span>
             </div>
@@ -16450,7 +16450,7 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
       <div class="task-score-grid">
         <div class="task-score-item">
           <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap;">
-            <span style="flex:1; text-align:right;">已答對單字</span>
+            <span style="flex:1; text-align:right;">答對單字</span>
             <span style="padding:0 6px; opacity:0.6;">/</span>
             <span style="flex:1; text-align:left;">已施測單字</span>
           </div>
@@ -17071,7 +17071,7 @@ function buildFreeDetailsHtml(record, selectedDate, agent) {
       <div class="word-split-grid">
         <div class="word-split-box correct-box">
           <div class="word-split-title correct-title">
-            <span><span style="color:#10B981; font-weight:900; margin-right:4px;">✔</span>已答對的單字 (${displayCorrectBoxCount} 字)</span>
+            <span><span style="color:#10B981; font-weight:900; margin-right:4px;">✔</span>答對的單字 (${displayCorrectBoxCount} 字)</span>
           </div>
           <div class="word-split-content">
             ${correctContentHtml}
@@ -20362,7 +20362,7 @@ function _buildStudentReportHtml(payload) {
       taskKpiHtml = `
         <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:6px; margin-bottom:10px;">
           <div style="background:#F0F9FF; border:1px solid rgba(14,165,233,.25); border-radius:10px; padding:8px 4px; text-align:center;">
-            <div style="font-size:10.5px; color:#0369A1; font-weight:700; margin-bottom:2px;">已答對 / 已施測</div>
+            <div style="font-size:10.5px; color:#0369A1; font-weight:700; margin-bottom:2px;">答對 / 已施測</div>
             <div style="font-size:17px; font-weight:900; color:#0284C7;"><span style="color:#0284C7;">${r.taskCorrWords || 0}</span> <span style="font-size:14px; opacity:0.6;">/</span> <span style="color:#0369A1;">${r.assignedTotWords || 5}</span></div>
           </div>
           <div style="background:#F8FAFC; border:1px solid #CBD5E1; border-radius:10px; padding:8px 4px; text-align:center;">
@@ -20464,7 +20464,7 @@ function _buildStudentReportHtml(payload) {
           ${(!r.isUnassigned) ? `
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
               <div style="background:#F0F9FF; border:1px solid rgba(14,165,233,.35); border-radius:10px; padding:10px 12px; min-height:85px;">
-                <div style="font-size:12px; font-weight:800; color:#0284C7; margin-bottom:6px;"><span style="color:#10B981; font-weight:900; margin-right:4px;">✔</span>已答對的單字 (${(r.taskCorrectWords || []).length} 字)</div>
+                <div style="font-size:12px; font-weight:800; color:#0284C7; margin-bottom:6px;"><span style="color:#10B981; font-weight:900; margin-right:4px;">✔</span>答對的單字 (${(r.taskCorrectWords || []).length} 字)</div>
                 <div style="display:flex; flex-wrap:wrap; gap:4px;">${taskLeftContent}</div>
               </div>
               <div style="background:#F8FAFC; border:1px solid #CBD5E1; border-radius:10px; padding:10px 12px; min-height:85px;">
@@ -20485,7 +20485,7 @@ function _buildStudentReportHtml(payload) {
           ${r.hasFree ? `
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
               <div style="background:#F0F9FF; border:1px solid rgba(14,165,233,.35); border-radius:10px; padding:10px 12px; min-height:85px;">
-                <div style="font-size:12px; font-weight:800; color:#0284C7; margin-bottom:6px;"><span style="color:#10B981; font-weight:900; margin-right:4px;">✔</span>已答對的單字 (${(r.freeCorrectWords || []).length} 字)</div>
+                <div style="font-size:12px; font-weight:800; color:#0284C7; margin-bottom:6px;"><span style="color:#10B981; font-weight:900; margin-right:4px;">✔</span>答對的單字 (${(r.freeCorrectWords || []).length} 字)</div>
                 <div style="display:flex; flex-wrap:wrap; gap:4px;">${freeLeftContent}</div>
               </div>
               <div style="background:#F8FAFC; border:1px solid #CBD5E1; border-radius:10px; padding:10px 12px; min-height:85px;">
