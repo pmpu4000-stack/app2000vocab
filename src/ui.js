@@ -3601,7 +3601,7 @@ export function renderSummary(d) {
         </div>
         <div class="heatmap" id="heatmap-grid">${d.history.days.map((x, idx) =>
           `<i class="hc h${x.level}" role="button" tabindex="0" aria-label="${x.key}，正確率 ${x.rate || 0}%" data-idx="${idx}" data-key="${x.key}" data-a="${x.a || 0}" data-rate="${x.rate || 0}"></i>`).join("")}</div>
-        <p class="defs heat-legend" style="margin-top:8px;">熱力圖說明：<b>連續</b>＝目前不中斷練習天數 · <b>最佳</b>＝最長連續天天練習紀錄 · <b>累計</b>＝有練習的總天數 · <b>方格顏色</b>＝採五級四分位動態著色，練習量愈多顏色愈深（灰色代表未練習）</p>
+        <p class="defs heat-legend" style="margin-top:8px;">熱力圖說明：<b>連續</b>＝目前不中斷練習天數 · <b>最佳</b>＝最長連續天天練習紀錄 · <b>累計</b>＝有練習的總天數 · <b>方格顏色</b>＝愈鮮豔當日正確率愈高（灰色代表未練習）</p>
       </div>
     </div>`;
 

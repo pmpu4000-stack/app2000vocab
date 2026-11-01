@@ -3915,40 +3915,13 @@ function renderStudentSummary(resp) {
   };
 
   const freeHeatDays = [];
-  const rawFreeDays = [];
-  const activeFreeAtts = [];
   for (let i = 27; i >= 0; i--) {
     const dt = new Date(nowDt);
     dt.setDate(dt.getDate() - i);
     const kDash = formatDateYMD(dt);
     const { a, c, rate } = getFreeDayStat(kDash);
-    if (a > 0) activeFreeAtts.push(a);
-    rawFreeDays.push({ key: kDash, a, c, rate });
-  }
-
-  activeFreeAtts.sort((x, y) => x - y);
-  const qFreeLen = activeFreeAtts.length;
-  const qf1 = qFreeLen > 0 ? activeFreeAtts[Math.floor(qFreeLen * 0.25)] : 0;
-  const qf2 = qFreeLen > 0 ? activeFreeAtts[Math.floor(qFreeLen * 0.50)] : 0;
-  const qf3 = qFreeLen > 0 ? activeFreeAtts[Math.floor(qFreeLen * 0.75)] : 0;
-
-  for (let i = 0; i < rawFreeDays.length; i++) {
-    const d = rawFreeDays[i];
-    let level = 0;
-    if (d.a > 0) {
-      if (qFreeLen <= 3) {
-        level = d.rate >= 90 ? 4 : (d.rate >= 75 ? 3 : (d.rate >= 60 ? 2 : 1));
-      } else if (d.a <= qf1) {
-        level = 1;
-      } else if (d.a <= qf2) {
-        level = 2;
-      } else if (d.a <= qf3) {
-        level = 3;
-      } else {
-        level = 4;
-      }
-    }
-    freeHeatDays.push({ ...d, level });
+    const level = a === 0 ? 0 : rate < 60 ? 1 : rate < 70 ? 2 : rate < 80 ? 3 : rate < 90 ? 4 : rate < 100 ? 5 : 6;
+    freeHeatDays.push({ key: kDash, a, c, rate, level });
   }
 
   const activeFreeDateSet = new Set();
