@@ -1302,7 +1302,7 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
       const unansCount = hasUnanswered ? actualUnanswered : 0;
       const attRate = hasUnanswered ? attemptedRate : taskRate;
       const ovrRate = hasUnanswered ? overallScoreRate : taskRate;
-      const getTier = (r) => (r >= 100 ? 'tier-6' : (r >= 90 ? 'tier-5' : (r >= 80 ? 'tier-4' : (r >= 70 ? 'tier-3' : (r >= 60 ? 'tier-2' : 'tier-1')))));
+      const getTier = (r) => (r >= 100 ? 'tier-6' : (r >= 90 ? 'tier-5' : (r >= 80 ? 'tier-4' : (r >= 70 ? 'tier-3' : (r >= 60 ? 'tier-2' : (r > 0 ? 'tier-1' : 'tier-0'))))));
 
       return `
         <div class="task-score-grid">

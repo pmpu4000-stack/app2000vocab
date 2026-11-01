@@ -1797,7 +1797,8 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
       if (n >= 80) return 'tier-4';
       if (n >= 70) return 'tier-3';
       if (n >= 60) return 'tier-2';
-      return 'tier-1';
+      if (n > 0) return 'tier-1';
+      return 'tier-0';
     };
     const ansCount = hasUnanswered ? actualAnswered : taskTotWords;
     const wrgCount = hasUnanswered ? actualWrong : Math.max(0, taskTotWords - taskCorrWords);
