@@ -318,49 +318,20 @@
       <section class="progress weak-words-card is-collapsed" id="weak-words-section">
         <h3>
           <span>
-            <span>常錯單字 Mistakes</span>
-            
+            <span>雙週未答對滾入期末測驗單字表</span>
           </span>
           <span style="display:flex;gap:14px;align-items:center;">
-            <a id="btn-toggle-weak-words-card" class="sum-toggle-btn" style="display:inline-flex; align-items:center; justify-content:center; text-align:center; min-width:44px;" title="展開或收合常錯單字小卡">展開</a>
+            <a id="btn-toggle-weak-words-card" class="sum-toggle-btn" style="display:inline-flex; align-items:center; justify-content:center; text-align:center; min-width:44px;" title="展開或收合單字表">展開</a>
           </span>
         </h3>
         <div class="weak-words-container" id="weak-words-container" style="display:none; margin-top:8px;">
-          <!-- 1. 時間範圍選擇列 (比照整個網頁設計規範) -->
-          <div class="weak-words-toolbar">
-            <div class="mode-tabs weak-range-tabs" id="weak-range-tabs">
-              <button type="button" class="tab-btn active" data-range="7">近 7 天</button>
-              <button type="button" class="tab-btn" data-range="14">近 14 天</button>
-              <button type="button" class="tab-btn" data-range="28">近 28 天</button>
-              <button type="button" class="tab-btn" data-range="all">全部歷史</button>
-            </div>
+          <div class="weak-words-toolbar" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+            <div id="weak-words-stat-text" style="font-size:13px; font-weight:700; color:var(--ink, #232A4D);">載入單字中...</div>
             <div class="weak-actions-group">
-              <button type="button" id="btn-copy-weak-words" class="action-btn weak-btn-copy" title="一鍵複製常錯單字清單">📋 複製單字</button>
-              <button type="button" id="btn-weak-preview-web" class="action-btn weak-btn-preview" title="A4 寬長幅網頁版型即時預覽檢視">📜 一頁檢視</button>
-              <button type="button" id="btn-export-weak-pdf" class="action-btn weak-btn-pdf" title="下載標準 A4 分頁列印 PDF 格式">📄 下載 PDF 格式</button>
+              <button type="button" id="btn-copy-weak-words" class="action-btn weak-btn-copy" style="font-size:12px; padding:4px 10px;" title="一鍵複製單字清單">📋 複製單字</button>
             </div>
           </div>
-
-          <!-- 2. 統計摘要小卡 -->
-          <div id="weak-words-summary-bar" class="weak-summary-bar">
-            <span id="weak-words-stat-text">正在分析常錯單字...</span>
-            <span id="weak-words-filter-label">近 7 天統計</span>
-          </div>
-
-          <!-- 3. 單字小卡網格 -->
-          <div id="weak-words-grid" class="weak-words-grid"></div>
-
-          <!-- 4. 網頁長幅檢視區域 (比照歷程檔案的一頁檢視) -->
-          <div id="weak-web-preview-container" class="weak-web-preview-container" style="display:none; margin-top:12px; border-top:1.5px dashed var(--line, #E7E9F5); padding-top:10px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
-              <div style="font-size:13.5px; font-weight:800; color:var(--violet, #6C4CE0); display:flex; align-items:center; gap:6px;">
-                <span>📜 一頁檢視</span>
-                <span style="font-size:11px; font-weight:700; color:var(--ink3); background:rgba(108,76,224,0.08); padding:2px 8px; border-radius:999px;">A4 寬長幅版型</span>
-              </div>
-              <button type="button" id="btn-close-weak-web-preview" class="date-nav-btn" style="padding:4px 10px; font-size:12px; cursor:pointer;">✖ 收起檢視</button>
-            </div>
-            <div id="weak-web-preview-body" class="weak-web-preview-body" style="background:var(--card, #FFFFFF); border:1.5px solid var(--line, #E7E9F5); border-radius:12px; padding:12px 14px; box-shadow:0 4px 14px rgba(0,0,0,0.05); overflow-x:auto;"></div>
-          </div>
+          <div id="weak-words-grid" class="weak-words-grid" style="display:flex; flex-wrap:wrap; gap:6px; padding:6px 0;"></div>
         </div>
       </section>
 

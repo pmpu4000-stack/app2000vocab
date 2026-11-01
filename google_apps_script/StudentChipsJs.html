@@ -1461,252 +1461,127 @@ function initStudentWeakWordsCard() {
   const toggleBtn = document.getElementById("btn-toggle-st-weak-words-card");
   if (!sec || !toggleBtn) return;
 
-  let currentRange = "7";
+  function getBiweeklyFailedFinalBossWords() {
+    const historyList = (typeof cachedStudentDailyHistory !== "undefined" && Array.isArray(cachedStudentDailyHistory) && cachedStudentDailyHistory.length)
+      ? cachedStudentDailyHistory
+      : (() => {
+          try {
+            return JSON.parse(localStorage.getItem("student_task_history") || "[]");
+          } catch (_) { return []; }
+        })();
 
-  function getWeakWordsForRange(range) {
-    const now = Date.now();
-    const days = range === "all" ? 9999 : parseInt(range, 10);
-    const cutoffDate = new Date(now - days * 86400000).toISOString().split("T")[0];
-    
-    const wordCounts = new Map();
-    const historyList = cachedStudentDailyHistory || [];
+    const failedMap = new Map();
+    const masteredMap = new Map();
+
     historyList.forEach(item => {
-      const d = String(item.date || "").trim().split(/[T\s]/)[0].replace(/\//g, "-");
-      if (range === "all" || d >= cutoffDate) {
-        if (Array.isArray(item.wrongWords)) {
-          item.wrongWords.forEach(w => {
-            const cleanW = String(w).trim().toLowerCase();
-            if (cleanW) wordCounts.set(cleanW, (wordCounts.get(cleanW) || 0) + 1);
-          });
+      if (!item) return;
+      const tName = String(item.taskName || "").trim();
+      const dStr = String(item.date || "").trim().split(/[T\s]/)[0].replace(/\//g, "-");
+      
+      let isBiweeklyTask = tName.includes("雙週") || tName.includes("消滅") || tName.includes("待攻克") || tName.includes("週末");
+      if (!isBiweeklyTask && dStr) {
+        const d = new Date(dStr + "T12:00:00");
+        if (!isNaN(d.getTime()) && (d.getDay() === 0 || d.getDay() === 6)) {
+          isBiweeklyTask = true;
         }
+      }
+      if (!isBiweeklyTask) return;
+
+      const correctSet = new Set();
+      if (Array.isArray(item.correctWords)) {
+        item.correctWords.forEach(w => {
+          const cw = String(w).replace(/\(.*?\)/g, "").trim().toLowerCase();
+          if (cw) {
+            correctSet.add(cw);
+            masteredMap.set(cw, dStr);
+          }
+        });
+      }
+
+      const recordFailed = (w) => {
+        const cw = String(w).replace(/\(.*?\)/g, "").trim().toLowerCase();
+        if (cw && !correctSet.has(cw)) {
+          failedMap.set(cw, dStr);
+        }
+      };
+
+      if (Array.isArray(item.wrongWords)) {
+        item.wrongWords.forEach(recordFailed);
+      }
+      if (Array.isArray(item.words)) {
+        item.words.forEach(recordFailed);
       }
     });
 
-    if (range === "all" && Array.isArray(rawWordList)) {
-      rawWordList.forEach(w => {
-        if (w && w.wrong > 0) {
-          const cleanW = String(w.word || "").toLowerCase();
-          wordCounts.set(cleanW, Math.max(wordCounts.get(cleanW) || 0, w.wrong));
-        }
-      });
-    }
-
-    const masteredSet = new Set();
-    if (window._masteredViewer && Array.isArray(window._masteredViewer.words)) {
-      window._masteredViewer.words.forEach(item => {
-        const w = String((item && item.word) || item || "").trim().toLowerCase();
-        if (w) masteredSet.add(w);
-      });
-    }
-    if (Array.isArray(rawWordList)) {
-      rawWordList.forEach(w => {
-        if (w && w.word && (w.box >= 2 || (w.correct >= 2 && (w.wrong || 0) === 0))) {
-          masteredSet.add(String(w.word).trim().toLowerCase());
-        }
-      });
-    }
-
-    const list = [];
-    wordCounts.forEach((count, word) => {
-      // ★ 核心新規範：累積答錯 ≥ 2 次且尚未精通克服才正式列入常錯清單（排除手滑粗心與已克服單字）
-      if (count < 2 || masteredSet.has(word)) return;
-      const zh = (typeof getWordZh === "function") ? getWordZh(word) : "";
-      const lv = (typeof getWordLevelNumber === "function") ? getWordLevelNumber(word) : 1;
-      const tagInfo = analyzeErrorTag(word, zh, "");
-      list.push({ word, count, zh, level: lv, tag: tagInfo.tag, tagCls: tagInfo.cls, tagIcon: tagInfo.icon });
+    const finalWords = [];
+    failedMap.forEach((fDate, w) => {
+      const mDate = masteredMap.get(w);
+      if (!mDate || mDate < fDate) {
+        finalWords.push(w);
+      }
     });
 
-    list.sort((a, b) => b.count - a.count || a.word.localeCompare(b.word));
-    return list;
+    finalWords.sort((a, b) => a.localeCompare(b));
+    return finalWords;
   }
 
   function renderWeakWordsUI() {
-    const list = getWeakWordsForRange(currentRange);
-    const badge = document.getElementById("st-weak-words-count-badge");
-    if (badge) {
-      badge.style.display = "none";
-    }
-
+    const words = getBiweeklyFailedFinalBossWords();
     const statText = document.getElementById("st-weak-words-stat-text");
-    const rangeLabel = document.getElementById("st-weak-words-filter-label");
-    const rangeName = currentRange === "7" ? "近 7 天" : (currentRange === "14" ? "近 14 天" : (currentRange === "28" ? "近 28 天" : "全部歷史"));
-    if (rangeLabel) rangeLabel.textContent = `${rangeName}統計`;
+    const grid = document.getElementById("st-weak-words-grid");
 
-    const totalErrors = list.reduce((sum, item) => sum + item.count, 0);
     if (statText) {
-      if (list.length === 0) {
-        statText.innerHTML = `🎉 <strong>太棒了！</strong> 此期間內沒有任何常錯單字。`;
+      if (words.length === 0) {
+        statText.innerHTML = `🎉 <strong>太棒了！</strong> 目前無任何雙週未答對滾入期末測驗的單字。`;
       } else {
-        statText.innerHTML = `📊 共 <strong>${list.length}</strong> 個常錯單字 ｜ 累計失誤 <strong>${totalErrors}</strong> 次`;
+        statText.innerHTML = `👾 滾入期末測驗單字表：共 <strong>${words.length}</strong> 字`;
       }
     }
 
-    const grid = document.getElementById("st-weak-words-grid");
     if (!grid) return;
-    if (list.length === 0) {
-      grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:24px; color:var(--text-muted); font-size:13.5px;">✨ 目前此區間零錯題紀錄，繼續保持！</div>`;
+    if (words.length === 0) {
+      grid.innerHTML = `<div style="padding:16px 8px; text-align:center; color:var(--text-muted, #94A3B8); font-size:13px; width:100%;">✨ 雙週測驗全數答對，無滾入期末測驗之單字！</div>`;
       return;
     }
 
-    let html = "";
-    list.forEach(item => {
-      html += `
-        <div class="weak-card-item">
-          <div class="weak-card-top">
-            <span class="weak-word-title">${item.word}</span>
-            <span class="weak-err-badge">錯 ${item.count} 次</span>
-          </div>
-          <div class="weak-tag-badge ${item.tagCls}">${item.tagIcon} ${item.tag}</div>
-          <div class="weak-card-zh">${item.zh || "（無釋義）"}</div>
-          <div class="weak-card-sub">
-            <span>LEVEL ${item.level}</span>
-            <button type="button" class="word-speech-btn" onclick="event.stopPropagation(); speakMasteredWord('${item.word}')" style="padding:2px 6px; cursor:pointer;" title="播放發音">${SVG_SPEAKER}</button>
-          </div>
-        </div>
-      `;
-    });
-    grid.innerHTML = html;
+    grid.innerHTML = words.map(w => {
+      const esc = w.replace(/"/g, "&quot;").replace(/'/g, "\\'");
+      return `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); if (typeof speakMasteredWord === 'function') speakMasteredWord('${esc}');" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`;
+    }).join("");
   }
 
-  toggleBtn.onclick = (e) => {
-    e.preventDefault();
-    const isHidden = (container && container.style.display === "none") || sec.classList.contains("is-collapsed");
-    if (isHidden) {
-      if (container) container.style.display = "block";
+  toggleBtn.onclick = () => {
+    const isCollapsed = sec.classList.contains("is-collapsed");
+    if (isCollapsed) {
       sec.classList.remove("is-collapsed");
       toggleBtn.innerHTML = "收合";
+      if (container) container.style.display = "block";
       renderWeakWordsUI();
-      sec.scrollIntoView({ behavior: "smooth", block: "nearest" });
     } else {
-      if (container) container.style.display = "none";
       sec.classList.add("is-collapsed");
       toggleBtn.innerHTML = "展開";
+      if (container) container.style.display = "none";
     }
   };
-
-  const tabWrap = document.getElementById("st-weak-range-tabs");
-  if (tabWrap) {
-    tabWrap.querySelectorAll(".tab-btn").forEach(btn => {
-      btn.onclick = () => {
-        tabWrap.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
-        currentRange = btn.getAttribute("data-range") || "7";
-        renderWeakWordsUI();
-      };
-    });
-  }
 
   const btnCopy = document.getElementById("btn-st-copy-weak-words");
   if (btnCopy) {
     btnCopy.onclick = () => {
-      const list = getWeakWordsForRange(currentRange);
-      if (list.length === 0) { showToast("此區間尚無常錯單字可複製。", "warning"); return; }
-      const rangeName = currentRange === "7" ? "近 7 天" : (currentRange === "14" ? "近 14 天" : (currentRange === "28" ? "近 28 天" : "全部歷史"));
-      let text = `【📝 個人常錯單字複習卡 (${rangeName})】\n`;
-      list.forEach((item, idx) => {
-        text += `${idx + 1}. ${item.word} [L${item.level}] - ${item.zh || ""} (失誤 ${item.count} 次)\n`;
-      });
-      navigator.clipboard.writeText(text).then(() => {
-        showToast("📋 已成功複製常錯單字清單！可直接貼上複習。", "success");
-      }).catch(() => {
-        prompt("請按 Ctrl+C 複製單字：", text);
-      });
-    };
-  }
-
-  const buildWeakReportHtml = (list, rangeName) => {
-    return `
-      <div style="padding: 24px; font-family: system-ui, sans-serif; background: #fff; color: #222;">
-        <h2 style="text-align:center; color:#232A4D; margin-bottom:6px;">🎯 英文個人常錯單字複習報告</h2>
-        <div style="text-align:center; font-size:12px; color:#5A6183; margin-bottom:18px;">統計範圍：${rangeName} ｜ 產生日期：${new Date().toLocaleDateString()} ｜ 共 ${list.length} 個弱點單字</div>
-        <table style="width:100%; border-collapse:collapse; font-size:13px; page-break-inside:auto!important; break-inside:auto!important;">
-          <thead>
-            <tr style="background:#F1F5F9; border-bottom:2px solid #CBD5E1;">
-              <th style="padding:8px; text-align:center; width:40px;">#</th>
-              <th style="padding:8px; text-align:left; width:130px;">單字</th>
-              <th style="padding:8px; text-align:left; width:180px;">中文釋義</th>
-              <th style="padding:8px; text-align:center; width:95px;">盲點特徵</th>
-              <th style="padding:8px; text-align:center; width:70px;">關卡</th>
-              <th style="padding:8px; text-align:center; width:80px;">失誤次數</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${list.map((item, idx) => `
-              <tr style="border-bottom:1px solid #E2E8F0;">
-                <td style="padding:8px; text-align:center; color:#64748B;">${idx + 1}</td>
-                <td style="padding:8px; font-weight:bold; color:#1E293B;">${item.word}</td>
-                <td style="padding:8px; color:#334155;">${item.zh || "—"}</td>
-                <td style="padding:8px; text-align:center; font-size:11px; font-weight:700;"><span style="background:#F3E8FF; color:#7E22CE; padding:2px 6px; border-radius:4px; border:1px solid #E9D5FF;">${item.tagIcon} ${item.tag}</span></td>
-                <td style="padding:8px; text-align:center; font-size:11px;">L${item.level}</td>
-                <td style="padding:8px; text-align:center; color:#DC2626; font-weight:bold;">${item.count}次</td>
-              </tr>
-            `).join("")}
-          </tbody>
-        </table>
-      </div>
-    `;
-  };
-
-  const previewContainer = document.getElementById("st-weak-web-preview-container");
-  const previewBody = document.getElementById("st-weak-web-preview-body");
-  const btnClosePreview = document.getElementById("btn-st-weak-close-preview");
-  const btnPreviewWeb = document.getElementById("btn-st-weak-preview-web");
-
-  if (btnClosePreview && previewContainer) {
-    btnClosePreview.onclick = () => {
-      previewContainer.style.display = "none";
-    };
-  }
-
-  if (btnPreviewWeb) {
-    btnPreviewWeb.onclick = () => {
-      const list = getWeakWordsForRange(currentRange);
-      if (list.length === 0) { showToast("此區間尚無常錯單字可預覽。", "warning"); return; }
-      if (!previewContainer || !previewBody) return;
-
-      if (previewContainer.style.display !== "none") {
-        previewContainer.style.display = "none";
+      const words = getBiweeklyFailedFinalBossWords();
+      if (words.length === 0) {
+        if (typeof showToast === "function") showToast("目前無滾入期末測驗之單字可複製", "warning");
+        else alert("目前無滾入期末測驗之單字可複製。");
         return;
       }
-
-      const rangeName = currentRange === "7" ? "近 7 天" : (currentRange === "14" ? "近 14 天" : (currentRange === "28" ? "近 28 天" : "全部歷史"));
-      previewBody.innerHTML = buildWeakReportHtml(list, rangeName);
-      previewContainer.style.display = "block";
-      previewContainer.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    };
-  }
-
-  const btnPdf = document.getElementById("btn-st-export-weak-pdf");
-  if (btnPdf) {
-    btnPdf.onclick = async () => {
-      const list = getWeakWordsForRange(currentRange);
-      if (list.length === 0) { showToast("此區間尚無常錯單字可匯出。", "warning"); return; }
-      try {
-        const html2pdfLib = await _ensureExternalScript(
-          "html2pdf",
-          "https:\x2F\x2Fcdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js",
-          "https:\x2F\x2Fcdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"
-        );
-        const rangeName = currentRange === "7" ? "近 7 天" : (currentRange === "14" ? "近 14 天" : (currentRange === "28" ? "近 28 天" : "全部歷史"));
-        const printDiv = document.createElement("div");
-        printDiv.innerHTML = buildWeakReportHtml(list, rangeName);
-        html2pdfLib().from(printDiv).set({
-          margin: [10, 10, 10, 10],
-          filename: `常錯單字複習卡_${new Date().toISOString().split("T")[0]}.pdf`,
-          image: { type: 'jpeg', quality: 0.98 },
-          html2canvas: { scale: 2, useCORS: true },
-          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-          pagebreak: { mode: ['css', 'legacy'] }
-        }).save();
-      } catch (e) {
-        showToast("PDF 模組載入失敗，請稍候再試。", "warning");
-      }
+      navigator.clipboard.writeText(words.join(", ")).then(() => {
+        if (typeof showToast === "function") showToast(`已複製 ${words.length} 個期末測驗單字`, "success");
+        else alert(`📋 已成功複製 ${words.length} 個期末測驗單字！`);
+      });
     };
   }
 
   renderWeakWordsUI();
 }
-
 
 function toggleImmersiveFullscreen() {
   const isFull = !!(document.fullscreenElement || document.webkitFullscreenElement || document.body.classList.contains("css-fullscreen-active"));

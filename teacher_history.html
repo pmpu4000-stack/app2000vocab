@@ -812,46 +812,24 @@
       </div>
     </section>
 
-    <!-- 🎯 個人常錯單字複習小卡方塊 (支援時間範圍切換、單字發音、PDF/Excel 一鍵下載) -->
+    <!-- 🎯 雙週未答對滾入期末測驗單字表 -->
     <section class="progress weak-words-card is-collapsed" id="studentWeakWordsCard">
       <h3>
         <span>
-          <span>常錯單字 Mistakes</span>
-          
+          <span>雙週未答對滾入期末測驗單字表</span>
         </span>
         <span style="display:flex;gap:14px;align-items:center;">
-          <a id="btn-toggle-st-weak-words-card" class="sum-toggle-btn" style="display:inline-flex; align-items:center; justify-content:center; text-align:center; min-width:44px;" title="展開或收合常錯單字小卡">展開</a>
+          <a id="btn-toggle-st-weak-words-card" class="sum-toggle-btn" style="display:inline-flex; align-items:center; justify-content:center; text-align:center; min-width:44px;" title="展開或收合單字表">展開</a>
         </span>
       </h3>
       <div class="weak-words-container" id="st-weak-words-container" style="display:none; margin-top:8px;">
-        <div class="weak-words-toolbar">
-          <div class="mode-tabs weak-range-tabs" id="st-weak-range-tabs">
-            <button type="button" class="tab-btn active" data-range="7">近 7 天</button>
-            <button type="button" class="tab-btn" data-range="14">近 14 天</button>
-            <button type="button" class="tab-btn" data-range="28">近 28 天</button>
-            <button type="button" class="tab-btn" data-range="all">全部歷史</button>
-          </div>
+        <div class="weak-words-toolbar" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+          <div id="st-weak-words-stat-text" style="font-size:13px; font-weight:700; color:var(--text, #334155);">載入單字中...</div>
           <div class="weak-actions-group">
-            <button type="button" id="btn-st-copy-weak-words" class="action-btn weak-btn-copy" title="一鍵複製常錯單字清單">📋 複製單字</button>
-            <button type="button" id="btn-st-weak-preview-web" class="action-btn weak-btn-preview" title="即時預覽完整排版報告">📜 一頁檢視</button>
-            <button type="button" id="btn-st-export-weak-pdf" class="action-btn weak-btn-pdf" title="下載 A4 PDF 格式檔案">📄 下載 PDF 格式</button>
+            <button type="button" id="btn-st-copy-weak-words" class="action-btn weak-btn-copy" style="font-size:12px; padding:4px 10px;" title="一鍵複製單字清單">📋 複製單字</button>
           </div>
         </div>
-
-        <div id="st-weak-web-preview-container" class="export-preview-container" style="display: none; margin-bottom: 1rem;">
-          <div class="export-preview-header">
-            <span class="preview-title">常錯單字分析 (A4 一頁檢視預覽)</span>
-            <button type="button" id="btn-st-weak-close-preview" class="preview-close-btn" title="收起預覽">收起檢視 ✕</button>
-          </div>
-          <div id="st-weak-web-preview-body" class="export-preview-body" style="background:#fff; color:#222; border-radius:8px; overflow-x:auto;"></div>
-        </div>
-
-        <div id="st-weak-words-summary-bar" class="weak-summary-bar">
-          <span id="st-weak-words-stat-text">正在分析常錯單字...</span>
-          <span id="st-weak-words-filter-label">近 7 天統計</span>
-        </div>
-
-        <div id="st-weak-words-grid" class="weak-words-grid"></div>
+        <div id="st-weak-words-grid" class="weak-words-grid" style="display:flex; flex-wrap:wrap; gap:6px; padding:6px 0;"></div>
       </div>
     </section>
 
