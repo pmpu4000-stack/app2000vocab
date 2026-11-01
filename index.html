@@ -4,6 +4,50 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>拼字小特工 · Spelling Agent</title>
+  <script>
+    (function() {
+      try {
+        var t = localStorage.getItem("app_theme") || localStorage.getItem("theme");
+        if (t === "dark" || (!t && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+          document.documentElement.setAttribute("data-theme", "dark");
+        }
+      } catch (e) {}
+    })();
+  </script>
+  <style>
+    /* 立即套用深色主題基礎底色，杜絕白光閃爍 (Zero FOUC) */
+    html[data-theme="dark"],
+    html[data-theme="dark"] body {
+      background-color: #141826 !important;
+      background-image: none !important;
+      color: #F0F3FA !important;
+    }
+    html[data-theme="dark"] #login-overlay {
+      background: #141826 !important;
+      background-color: #141826 !important;
+    }
+    html[data-theme="dark"] #login-overlay > div {
+      background: #1C2234 !important;
+      border-color: #2B334E !important;
+      color: #F0F3FA !important;
+    }
+    html[data-theme="dark"] #login-overlay input {
+      background: #141826 !important;
+      border-color: #2B334E !important;
+      color: #F0F3FA !important;
+    }
+    html[data-theme="dark"] #login-overlay h2 {
+      color: #F0F3FA !important;
+    }
+    html[data-theme="dark"] #login-overlay p {
+      color: #A5B0CF !important;
+    }
+    html[data-theme="dark"] #btn-login-theme-toggle {
+      color: #A5B0CF !important;
+      border-color: #2B334E !important;
+      background: rgba(255, 255, 255, 0.06) !important;
+    }
+  </style>
   <link rel="stylesheet" href="css/styles.css?v=20261027_0850">
   <link rel="preload" href="data/words2000.json" as="fetch" crossorigin>
   <link rel="preload" href="data/meanings.json" as="fetch" crossorigin>
@@ -18,21 +62,21 @@
 <body class="is-logging-in">
 
   <!-- 登入驗證遮罩 -->
-  <div id="login-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#F6F7FB; z-index:9999; display:flex; justify-content:center; align-items:center;">
-    <div style="background:#ffffff; padding:36px 32px; border-radius:24px; box-shadow:0 20px 45px -10px rgba(35,42,77,0.22); width:320px; text-align:center; border:1px solid #E7E9F5; position:relative;">
+  <div id="login-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:var(--paper, #F6F7FB); z-index:9999; display:flex; justify-content:center; align-items:center;">
+    <div style="background:var(--card, #ffffff); padding:36px 32px; border-radius:24px; box-shadow:0 20px 45px -10px rgba(35,42,77,0.22); width:320px; text-align:center; border:1px solid var(--line, #E7E9F5); position:relative;">
       <!-- 登入視窗切換按鈕 -->
       <button type="button" id="btn-login-theme-toggle" title="切換深色/淺色模式"
-        style="position:absolute; top:16px; right:16px; background:rgba(108,76,224,0.08); border:1px solid #E7E9F5; border-radius:20px; padding:5px 11px; font-size:12.5px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:4px; color:var(--ink2);">
+        style="position:absolute; top:16px; right:16px; background:rgba(108,76,224,0.08); border:1px solid var(--line, #E7E9F5); border-radius:20px; padding:5px 11px; font-size:12.5px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:4px; color:var(--ink2);">
         <span class="theme-icon">🌙</span><span class="theme-text">深色</span>
       </button>
       <div style="font-size:40px; margin-bottom:8px;">🎯</div>
-      <h2 style="color:#232A4D; margin:0 0 8px 0; font-size:22px; font-weight:800;">拼字小特工</h2>
-      <p style="color:#5A6183; font-size:13px; margin-bottom:18px; line-height:1.5;">請輸入學號與密碼</p>
+      <h2 style="color:var(--ink, #232A4D); margin:0 0 8px 0; font-size:22px; font-weight:800;">拼字小特工</h2>
+      <p style="color:var(--ink2, #5A6183); font-size:13px; margin-bottom:18px; line-height:1.5;">請輸入學號與密碼</p>
       
       <div class="login-box-group">
-        <input type="text" id="login-user" placeholder="請輸入學號 (如: 70101)" style="width:100%; padding:13px 14px; margin:0; border:1.5px solid #E7E9F5; border-radius:12px; box-sizing:border-box; font-size:15px; outline:none; text-align:center; transition:all .2s;">
+        <input type="text" id="login-user" placeholder="請輸入學號 (如: 70101)" style="width:100%; padding:13px 14px; margin:0; border:1.5px solid var(--line, #E7E9F5); border-radius:12px; box-sizing:border-box; font-size:15px; outline:none; text-align:center; transition:all .2s; background:var(--paper, #F6F7FB); color:var(--ink, #232A4D);">
         
-        <input type="password" id="login-pass" placeholder="請輸入密碼" style="width:100%; padding:13px 14px; margin:0; border:1.5px solid #E7E9F5; border-radius:12px; box-sizing:border-box; font-size:15px; outline:none; text-align:center; transition:all .2s;">
+        <input type="password" id="login-pass" placeholder="請輸入密碼" style="width:100%; padding:13px 14px; margin:0; border:1.5px solid var(--line, #E7E9F5); border-radius:12px; box-sizing:border-box; font-size:15px; outline:none; text-align:center; transition:all .2s; background:var(--paper, #F6F7FB); color:var(--ink, #232A4D);">
         
         <button type="button" id="login-btn" 
           style="width:100%; padding:13px; margin:0; background:#6C4CE0; color:white; border:none; border-radius:12px; font-weight:700; font-size:15px; cursor:pointer; box-shadow:0 8px 20px -6px rgba(108,76,224,0.45); transition:all 0.2s;">
