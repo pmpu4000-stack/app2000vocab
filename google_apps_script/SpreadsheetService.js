@@ -1650,6 +1650,42 @@ function cleanDuplicateStudentRecords() {
     }
   });
 
+  // 🚀 同步清理【學生歷程總庫】中的重複列（依 學號+日期+任務名稱 去重）
+  try {
+    const cpSheet = getCentralPortfolioSheet(ss, false);
+    if (cpSheet && cpSheet.getLastRow() > 2) {
+      checkedSheets++;
+      const lastR = cpSheet.getLastRow();
+      const checkR = Math.min(lastR - 1, 300);
+      const cpData = cpSheet.getRange(2, 1, checkR, 24).getValues();
+      const cpSeen = new Set();
+      const cpToDelete = [];
+
+      for (let i = 0; i < cpData.length; i++) {
+        const u = String(cpData[i][0] || "").trim().toLowerCase();
+        const d = formatStandardDateYMD(cpData[i][1]);
+        const task = String(cpData[i][22] || "自主練習").trim();
+        if (!u || !d) continue;
+
+        const cpKey = u + "___" + d + "___" + task;
+        if (cpSeen.has(cpKey)) {
+          cpToDelete.push(i + 2);
+        } else {
+          cpSeen.add(cpKey);
+        }
+      }
+
+      for (let k = cpToDelete.length - 1; k >= 0; k--) {
+        try {
+          cpSheet.deleteRow(cpToDelete[k]);
+          deletedRows++;
+        } catch(_) {}
+      }
+    }
+  } catch(errCP) {
+    Logger.log("[CentralPortfolio] dedup error: " + errCP.message);
+  }
+
   clearOverviewCache();
   return { status: "success", message: "學生重複紀錄已徹底掃描並清理完成！", checkedSheets, deletedRows };
 }

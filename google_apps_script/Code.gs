@@ -883,8 +883,9 @@ function cleanupUnusedSheets() {
  * 確保試算表與遊戲前端歷程 100% 雙向同步無遺漏。
  */
 function syncAndBackfillStudentTaskHistory(ss, username, records, uSheet) {
-  if (!uSheet) uSheet = getStudentSheet(ss, username);
-  if (!uSheet || uSheet.getLastRow() < 2) return 0;
+  if (!uSheet && username) uSheet = getStudentSheet(ss, username);
+  const cpSheet = getCentralPortfolioSheet(ss, false);
+  if ((!uSheet || uSheet.getLastRow() < 2) && (!cpSheet || cpSheet.getLastRow() < 2)) return 0;
 
   // 1. 蒐集學生 JSON 中的所有已完成指定測驗紀錄
   const completedTasksMap = new Map(); // key: "YYYY-MM-DD_taskName" -> taskObj
