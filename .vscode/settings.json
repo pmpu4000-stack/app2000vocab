@@ -19,5 +19,30 @@
   "workbench.editor.closeEmptyGroups": true,
   "workbench.editor.enablePreview": true,
   "workbench.editor.enablePreviewFromQuickOpen": true,
-  "workbench.editor.closeOnFileDelete": true
+  "workbench.editor.closeOnFileDelete": true,
+  "files.watcherExclude": {
+    "**/data/meanings.json": true,
+    "**/data/words2000.json": true,
+    "**/data/wordbank2000.json": true,
+    "**/scratch/**": true,
+    "**/.git/**": true,
+    "**/backups/**": true,
+    "**/*.tar.gz": true,
+    "**/*.log": true
+  },
+  "search.exclude": {
+    "**/data/meanings.json": true,
+    "**/data/words2000.json": true,
+    "**/data/wordbank2000.json": true,
+    "**/scratch/**": true,
+    "**/.git/**": true,
+    "**/backups/**": true,
+    "**/*.tar.gz": true,
+    "**/*.log": true
+  },
+  "files.exclude": {
+    "data/meanings.json": true
+  },
+  "git.autofetch": false,
+  "git.autorefresh": false
 }
