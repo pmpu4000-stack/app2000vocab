@@ -1491,10 +1491,25 @@ function initStudentWeakWordsCard() {
       });
     }
 
+    const masteredSet = new Set();
+    if (window._masteredViewer && Array.isArray(window._masteredViewer.words)) {
+      window._masteredViewer.words.forEach(item => {
+        const w = String((item && item.word) || item || "").trim().toLowerCase();
+        if (w) masteredSet.add(w);
+      });
+    }
+    if (Array.isArray(rawWordList)) {
+      rawWordList.forEach(w => {
+        if (w && w.word && (w.box >= 2 || (w.correct >= 2 && (w.wrong || 0) === 0))) {
+          masteredSet.add(String(w.word).trim().toLowerCase());
+        }
+      });
+    }
+
     const list = [];
     wordCounts.forEach((count, word) => {
-      // ★ 核心新規範：累積答錯 ≥ 2 次才正式列入常錯清單（排除手滑粗心）
-      if (count < 2) return;
+      // ★ 核心新規範：累積答錯 ≥ 2 次且尚未精通克服才正式列入常錯清單（排除手滑粗心與已克服單字）
+      if (count < 2 || masteredSet.has(word)) return;
       const zh = (typeof getWordZh === "function") ? getWordZh(word) : "";
       const lv = (typeof getWordLevelNumber === "function") ? getWordLevelNumber(word) : 1;
       const tagInfo = analyzeErrorTag(word, zh, "");

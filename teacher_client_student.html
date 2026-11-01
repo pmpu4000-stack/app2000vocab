@@ -25,9 +25,9 @@ function processHistoryWithDiffs(originalHeaders, originalRows) {
   const rawJsonColIdx = originalHeaders.indexOf("完整JSON");
 
   const dateCol     = 0;
-  const attemptsCol = displayHeaders.findIndex(h => h.includes("受測單字") || h.includes("作答題數"));
-  const correctCol  = displayHeaders.findIndex(h => h.includes("共答對單字") || h.includes("答對單字") || h.includes("答對題數"));
-  const accCol      = displayHeaders.findIndex(h => h.includes("單字掌握率") || h.includes("正確率"));
+  const attemptsCol = displayHeaders.findIndex(h => h.includes("累積受測單字") || (!h.includes("指定") && !h.includes("自由") && (h.includes("受測單字") || h.includes("作答題數"))));
+  const correctCol  = displayHeaders.findIndex(h => h.includes("共答對單字") || (!h.includes("指定") && !h.includes("自由") && h !== "答對單字數" && (h.includes("答對單字") || h.includes("答對題數"))));
+  const accCol      = displayHeaders.findIndex(h => h.includes("單字掌握率") || (!h.includes("指定") && !h.includes("自由") && h.includes("正確率")));
   const masteredCol = displayHeaders.findIndex(h => h.includes("精通"));
   const scoreCol    = displayHeaders.findIndex(h => h.includes("分數"));
   const distWordCol = displayHeaders.findIndex(h => h.includes("共答對單字") || h.includes("答對單字"));
@@ -75,11 +75,11 @@ function processHistoryWithDiffs(originalHeaders, originalRows) {
           <div class="cum-val">${escapeHtml(valStr || "0%")}</div>
           <div class="accuracy-pill ${accClass}" title="單日作答正確率">單日: ${dAtt > 0 ? dAcc.toFixed(1)+"%" : "0.0%"}</div>
         `);
-      } else if (colHeader.includes("指定測驗成績") || colHeader.includes("測驗成績")) {
+      } else if (colHeader.includes("指定測驗成績") || colHeader.includes("測驗成績") || colHeader.includes("指定測驗正確率")) {
         cellsHtml.push(`
           <div class="cum-val" style="font-size:14px; font-weight:800; color:var(--primary);">${escapeHtml(valStr || "—")}</div>
         `);
-      } else if (colHeader.includes("自由練習")) {
+      } else if (colHeader.includes("施測單字數") || colHeader.includes("作答單字數") || colHeader === "答對單字數" || colHeader.includes("自由練習")) {
         cellsHtml.push(`
           <div class="cum-val" style="font-size:13px; font-weight:700;">${escapeHtml(valStr || "—")}</div>
         `);

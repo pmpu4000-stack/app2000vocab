@@ -156,7 +156,7 @@ function getWeekendRemediationTask(ss, cleanClass, username, completedTasksToday
   const dayOfWeek = d.getDay(); // 0=Sun, 6=Sat
   if (dayOfWeek !== 0 && dayOfWeek !== 6) return null;
 
-  // 計算 ISO 週次與雙週週期
+  // 計算 ISO 週次與雙週週期（支援教師設定之學期開學日與手動指定週次）
   const targetDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
   const dayNr = (targetDate.getDay() + 6) % 7;
   targetDate.setDate(targetDate.getDate() - dayNr + 3);
@@ -166,7 +166,6 @@ function getWeekendRemediationTask(ss, cleanClass, username, completedTasksToday
     targetDate.setMonth(0, 1 + ((4 - targetDate.getDay()) + 7) % 7);
   }
   const isoWeek = 1 + Math.ceil((firstThursday - targetDate) / 604800000);
-  const isBiweeklyBossWeek = (isoWeek % 2 === 0);
 
   // 計算本週週一至週五與週六標準日期區間
   const diffToMon = (dayOfWeek === 0 ? -6 : 1 - dayOfWeek);
@@ -177,6 +176,27 @@ function getWeekendRemediationTask(ss, cleanClass, username, completedTasksToday
   const friStr = Utilities.formatDate(friDate, "Asia/Taipei", "yyyy-MM-dd");
   const satStr = Utilities.formatDate(satDate, "Asia/Taipei", "yyyy-MM-dd");
 
+  let rollSettings = { rollTaskMistakes: true, rollFreeMistakes: false, semesterStartDate: "", manualCurrentWeek: 0 };
+  try {
+    if (typeof getConquerRollSettings === "function") {
+      rollSettings = getConquerRollSettings() || rollSettings;
+    }
+  } catch(_) {}
+
+  let semesterWeek = ((isoWeek - 1) % 20) + 1;
+  if (rollSettings.semesterStartDate && /^\d{4}-\d{2}-\d{2}$/.test(rollSettings.semesterStartDate)) {
+    const sp = rollSettings.semesterStartDate.split("-").map(Number);
+    const sDate = new Date(sp[0], sp[1] - 1, sp[2]);
+    const sDay = sDate.getDay();
+    const sDiffToMon = sDate.getDate() - sDay + (sDay === 0 ? -6 : 1);
+    const startMon = new Date(sDate.getFullYear(), sDate.getMonth(), sDiffToMon);
+    const weeksDiff = Math.floor(Math.round((monDate - startMon) / 86400000) / 7);
+    semesterWeek = Math.max(1, Math.min(20, weeksDiff + 1));
+  } else if (rollSettings.manualCurrentWeek >= 1 && rollSettings.manualCurrentWeek <= 20) {
+    semesterWeek = Number(rollSettings.manualCurrentWeek);
+  }
+  const isBiweeklyBossWeek = (semesterWeek % 2 === 0);
+
   // 若為雙週大消滅週（第 2 週），向前包含上一週（第 1 週）之日期區間
   const prevMonDate = new Date(d.getFullYear(), d.getMonth(), d.getDate() + diffToMon - 7);
   const prevMonStr = Utilities.formatDate(prevMonDate, "Asia/Taipei", "yyyy-MM-dd");
@@ -184,10 +204,11 @@ function getWeekendRemediationTask(ss, cleanClass, username, completedTasksToday
   const scanEndStr = friStr;
 
   const tasks = getTeacherTasksCached_(ss);
-  if (tasks.length === 0) return null;
+  if (tasks.length === 0 && !rollSettings.rollFreeMistakes) return null;
 
   // 取得學生在作答區間內的實際作答紀錄
   const studentDoneMap = {};
+  const extraFreeWrongWords = new Set();
   let satCompletedRec = null;
 
   if (username) {
@@ -220,12 +241,22 @@ function getWeekendRemediationTask(ss, cleanClass, username, completedTasksToday
           : [];
         const isDone = (status.includes("已完成") || (score !== "—" && score !== ""));
 
-        // 注意：自由練習錯題不納入週末待攻克！維持自主安全學習
-
         if (rowD >= scanStartStr && rowD <= scanEndStr) {
           if (tName && tName !== "自主練習" && !tName.includes("自由練習") && isDone) {
-            studentDoneMap[tName] = { completed: true, wrongWords: wrongList };
-            studentDoneMap[rowD + "_" + tName] = { completed: true, wrongWords: wrongList };
+            const effectiveWrongs = (rollSettings.rollTaskMistakes === false) ? [] : wrongList;
+            studentDoneMap[tName] = { completed: true, wrongWords: effectiveWrongs };
+            studentDoneMap[rowD + "_" + tName] = { completed: true, wrongWords: effectiveWrongs };
+          }
+          if (rollSettings.rollFreeMistakes === true) {
+            if (hMap.freeWrong >= 0) {
+              const fWrongStr = String(uVals[r][hMap.freeWrong] || "").trim();
+              if (fWrongStr && !fWrongStr.includes("無錯題") && fWrongStr !== "—") {
+                fWrongStr.split(/[\s,;\n\r]+/).map(w => w.trim().toLowerCase()).filter(isEngWord).forEach(w => extraFreeWrongWords.add(w));
+              }
+            }
+            if (tName === "自主練習" || tName.includes("自由練習")) {
+              wrongList.forEach(w => extraFreeWrongWords.add(w));
+            }
           }
         } else if (rowD === satStr) {
           if (tName && (tName.includes("週末") || tName.includes("消滅") || tName.includes("待攻克") || tName.includes("雙週")) && isDone) {
@@ -297,11 +328,12 @@ function getWeekendRemediationTask(ss, cleanClass, username, completedTasksToday
     if (!doneRec) {
       // 學生於指定平日完全沒有作答（包含未作答/缺考）：全數單字自動納入六日測驗
       words.forEach(w => unpassedWordsSet.add(w));
-    } else {
+    } else if (rollSettings.rollTaskMistakes !== false) {
       // 學生有作答，但沒有答對（答錯的單字）：納入六日測驗
       doneRec.wrongWords.forEach(w => unpassedWordsSet.add(w));
     }
   }
+  extraFreeWrongWords.forEach(w => unpassedWordsSet.add(w));
 
   if (unpassedWordsSet.size === 0) return null;
 

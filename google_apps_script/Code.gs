@@ -698,7 +698,7 @@ function doPost(e) {
     if (action === "getTimeRestrictions") {
       const auth = authenticateUser(ss, params.username, params.password);
       if (!auth.success || auth.role !== "teacher") return jsonResponse({ status: "error", message: "無教師權限" });
-      return jsonResponse(getTimeRestrictions(ss));
+      return jsonResponse(getTimeRestrictions(ss, auth));
     }
 
     if (action === "saveGlobalTimeSetting") {

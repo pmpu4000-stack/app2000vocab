@@ -175,10 +175,10 @@ function ensureStudentSheetColumns(sheet) {
     const maxCols = sheet.getMaxColumns();
     const lastCol = sheet.getLastColumn();
 
-    // 🚀 極速快取檢查：若表頭已是最新 33 欄且欄位名稱完全相符
+    // 🚀 極速快取檢查：若表頭已是最新 34 欄且欄位名稱完全相符
     if (lastCol >= 34) {
-      const firstRowVals = sheet.getRange(1, 1, 1, 33).getValues()[0] || [];
-      if (firstRowVals[2] === "等級" && firstRowVals[6] === "學習中" && firstRowVals[9] === "共答對單字" && firstRowVals[21] === "任務名稱" && firstRowVals[22] === "施測單字數" && firstRowVals[29] === "自由練習受測字數") {
+      const firstRowVals = sheet.getRange(1, 1, 1, 34).getValues()[0] || [];
+      if (firstRowVals[2] === "等級" && firstRowVals[6] === "學習中" && firstRowVals[9] === "共答對單字" && firstRowVals[21] === "任務名稱" && firstRowVals[22] === "施測單字數" && firstRowVals[29] === "自由練習受測字數" && firstRowVals[33] === "防偽驗證") {
         if (sheet.getLastRow() >= 2) {
           const sampleRow = sheet.getRange(2, 23, 1, 7).getValues()[0] || [];
           const hasOldData = String(sampleRow[1] || "").includes("%") || String(sampleRow[2] || "").includes("完成") || String(sampleRow[5] || "").includes("%") || String(sampleRow[0] || "").includes("/");
@@ -193,7 +193,7 @@ function ensureStudentSheetColumns(sheet) {
     if (maxCols < 34) {
       sheet.insertColumnsAfter(maxCols, 34 - maxCols);
     } else if (maxCols > 34 && sheet.getLastRow() <= 1) {
-      sheet.deleteColumns(34, maxCols - 33);
+      sheet.deleteColumns(35, maxCols - 34);
     }
 
     sheet.getRange(1, 1, 1, studentHdr.length).setValues([studentHdr]);

@@ -1666,37 +1666,62 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
         `;
       }
       wrongContentHtml = `<div style="display:flex; flex-direction:column; width:100%;"><div style="display:flex; flex-wrap:wrap; gap:6px;">${wrongPills || '<span style="font-size:12px; color:var(--ink3); font-style:italic;">（受測題目無答錯）</span>'}</div>${unansAccordionHtml}</div>`;
-    } else if (isTrulyPerfect) {
-      wrongContentHtml = `<span class="perfect-score-msg">🎉 全數答對，無答錯單字！</span>`;
-    } else if (missedCount > 0) {
-      const unmastered = (rawWords.length > 0)
-        ? rawWords.filter(w => !correctList.includes(String(w).toLowerCase()))
-        : (unansweredList.length > 0 ? unansweredList : []);
-
-      if (unmastered.length > 0) {
-        rightTitleText = `<span class="card-icon-slot">🔘</span><span>未作答的單字 (${unmastered.length} 字)</span>`;
-        wrongContentHtml = unmastered.map(w => {
-          return `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="未作答單字 (點擊聆聽發音)">${w} <span class="diag-bubble-tag" title="未作答">未作答</span></span>`;
-        }).join("");
+    } else {
+      leftBoxClass = "correct-box";
+      leftTitleClass = "correct-title";
+      leftTitleText = `<span class="card-icon-slot" style="color:#10B981; font-weight:900;">✔</span><span>已答對的單字 (${correctList.length} 字)</span>`;
+      if (correctList.length > 0) {
+        correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
+      } else if (taskCorrWords > 0) {
+        correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（本次測驗答對 ${taskCorrWords} 字）</span>`;
       } else {
-        rightTitleText = `<span class="card-icon-slot">🔘</span><span>未作答的單字 (${missedCount} 字)</span>`;
-        wrongContentHtml = `
-          <div style="display:flex; flex-direction:column; gap:4px; padding:6px 0; font-size:12.5px; line-height:1.55; color:var(--ink2); width:100%;">
-            <div>⚠️ 本次測驗施測 <b>${taskTotWords}</b> 字，答對 <b>${taskCorrWords}</b> 字，尚有 <b style="color:var(--ink, #475569); font-weight:800;">${missedCount}</b> 字未作答。</div>
-            <div style="display:flex; align-items:flex-start; font-size:11.5px; color:var(--ink3); gap:6px; width:100%;">
-              <span class="card-icon-slot" style="margin-top:1px;">📌</span>
-              <div style="flex:1; display:flex; align-items:flex-start;">
-                <span style="white-space:nowrap; flex-shrink:0;">提醒：</span>
-                <span style="flex:1;">未作答之單字已自動排入週末弱點補強測驗。</span>
+        correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（本次測驗尚無答對單字）</span>`;
+      }
+
+      if (wrongList.length > 0) {
+        const normDate = normalizeDateStr(selectedDate);
+        const slashDate = normDate.replace(/-/g, "/");
+        const dpDay = d && d.dailyPractice && (d.dailyPractice[normDate] || d.dailyPractice[slashDate] || d.dailyPractice[selectedDate]);
+        wrongContentHtml = wrongList.map(w => {
+          const isHadCW = (hadCorrectThenWrongList && hadCorrectThenWrongList.includes(w)) ||
+                          (record.hadCorrectThenWrong && record.hadCorrectThenWrong.includes(w)) ||
+                          (dpDay && dpDay.words && dpDay.words[w] && (dpDay.words[w].hadCorrectThenWrong || (dpDay.words[w].lastResult === "wrong" && dpDay.words[w].correct > 0)));
+          if (isHadCW) {
+            return `<span class="word-pill-tag warning" data-word="${w.replace(/"/g, "&quot;")}" style="border:1.5px dashed #f59e0b; background:rgba(245,158,11,0.1); color:#b45309; cursor:pointer;" title="當日曾答對，但後續作答時答錯 (點擊聆聽發音)">${w} <small style="font-size:10px; font-weight:700;">(曾對後錯⚠️)</small></span>`;
+          }
+          return `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`;
+        }).join("");
+      } else if (isTrulyPerfect) {
+        wrongContentHtml = `<span class="perfect-score-msg">🎉 全數答對，無答錯單字！</span>`;
+      } else if (missedCount > 0) {
+        const unmastered = (rawWords.length > 0)
+          ? rawWords.filter(w => !correctList.includes(String(w).toLowerCase()))
+          : (unansweredList.length > 0 ? unansweredList : []);
+
+        if (unmastered.length > 0) {
+          rightTitleText = `<span class="card-icon-slot">🔘</span><span>未作答的單字 (${unmastered.length} 字)</span>`;
+          wrongContentHtml = unmastered.map(w => {
+            return `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="未作答單字 (點擊聆聽發音)">${w} <span class="diag-bubble-tag" title="未作答">未作答</span></span>`;
+          }).join("");
+        } else {
+          rightTitleText = `<span class="card-icon-slot">🔘</span><span>未作答的單字 (${missedCount} 字)</span>`;
+          wrongContentHtml = `
+            <div style="display:flex; flex-direction:column; gap:4px; padding:6px 0; font-size:12.5px; line-height:1.55; color:var(--ink2); width:100%;">
+              <div>⚠️ 本次測驗施測 <b>${taskTotWords}</b> 字，答對 <b>${taskCorrWords}</b> 字，尚有 <b style="color:var(--ink, #475569); font-weight:800;">${missedCount}</b> 字未作答。</div>
+              <div style="display:flex; align-items:flex-start; font-size:11.5px; color:var(--ink3); gap:6px; width:100%;">
+                <span class="card-icon-slot" style="margin-top:1px;">📌</span>
+                <div style="flex:1; display:flex; align-items:flex-start;">
+                  <span style="white-space:nowrap; flex-shrink:0;">提醒：</span>
+                  <span style="flex:1;">未作答之單字已自動排入週末弱點補強測驗。</span>
+                </div>
               </div>
             </div>
-          </div>
-        `;
+          `;
+        }
+      } else {
+        wrongContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（目前無答錯單字）</span>`;
       }
-    } else {
-      wrongContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（目前無答錯單字）</span>`;
     }
-  }
 
   const dateStr = record && record.date ? record.date : (selectedDate || "");
   const isWeekendTask = isWeekend(dateStr) || isWeekend(selectedDate) || String(record.taskName || "").includes("週末") || String(record.taskName || "").includes("消滅戰") || String(record.taskName || "").includes("待攻克") || String(record.taskName || "").includes("雙週");

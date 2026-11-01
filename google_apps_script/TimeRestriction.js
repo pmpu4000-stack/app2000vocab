@@ -586,15 +586,17 @@ function teacherToggleDailyUnlock(param1, param2) {
 /**
  * 讀取目前所有的時間設定 (供教師管理介面)
  */
-function getTimeRestrictions(param1) {
+function getTimeRestrictions(param1, optAuth) {
   let ss;
+  let auth = optAuth || null;
   if (param1 && typeof param1.getSheetByName === "function") {
     ss = param1;
   } else {
     ss = SpreadsheetApp.getActiveSpreadsheet();
-    const auth = authenticateUser(ss, param1 && param1.username, param1 && param1.password);
+    auth = authenticateUser(ss, param1 && param1.username, param1 && param1.password);
     if (!auth.success || auth.role !== "teacher") return { status: "error", message: "無教師權限" };
   }
+  const cleanAuthClass = (auth && !auth.isAdmin && auth.className) ? String(auth.className).replace(/班$/, "").trim().toLowerCase() : "";
   const sheet = ensureTimeSettingsSheet(ss);
   const statusInfo = checkTimeRestrictionAllowance(ss, "");
 
@@ -673,7 +675,9 @@ function getTimeRestrictions(param1) {
         const c = String(uData[i][3] || "").replace(/班$/, "").trim();
         const name = String(uData[i][4] || "").trim();
         if (u && role === "student") {
-          studentList.push({ username: u, className: c, realName: name || u });
+          if (!cleanAuthClass || cleanAuthClass === "all" || c.toLowerCase() === cleanAuthClass) {
+            studentList.push({ username: u, className: c, realName: name || u });
+          }
         }
       }
       studentList.sort((a, b) => (a.className.localeCompare(b.className) || a.username.localeCompare(b.username)));
