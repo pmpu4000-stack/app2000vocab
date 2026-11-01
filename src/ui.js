@@ -1441,12 +1441,14 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
   let actualAnswered = 0;
   if (record.answeredCount && !isNaN(parseInt(record.answeredCount, 10)) && parseInt(record.answeredCount, 10) > 0) {
     actualAnswered = parseInt(record.answeredCount, 10);
+  } else if (totalAnswered > 0) {
+    actualAnswered = totalAnswered;
+  } else if (record.attempts !== undefined && !isNaN(parseInt(record.attempts, 10)) && parseInt(record.attempts, 10) > 0) {
+    actualAnswered = parseInt(record.attempts, 10);
   } else if (scoreVal && String(scoreVal).includes("/")) {
     const parts = String(scoreVal).split("/");
     const sTot = parseInt(parts[1], 10);
     if (!isNaN(sTot) && sTot > 0) actualAnswered = sTot;
-  } else if (record.attempts !== undefined && !isNaN(parseInt(record.attempts, 10)) && parseInt(record.attempts, 10) > 0) {
-    actualAnswered = parseInt(record.attempts, 10);
   } else {
     actualAnswered = totalAnswered > 0 ? totalAnswered : (taskCorrWords + wrongList.length);
   }
@@ -3336,7 +3338,6 @@ export function renderSummary(d) {
       const sTot = parseInt(sp[1], 10);
       if (!isNaN(sTot) && sTot > 0) {
         if (!taskWordsCount) taskWordsCount = sTot;
-        if (!tAtt) tAtt = sTot;
       }
       if (!isNaN(sCorr)) tCor = sCorr;
     }
@@ -3349,9 +3350,10 @@ export function renderSummary(d) {
     const resolvedWrong = resolved.wrongList || [];
     const resolvedAnsCount = resolvedCorr.length + resolvedWrong.length;
 
-    if (!tAtt && resolvedAnsCount > 0) {
+    if (resolvedAnsCount > 0) {
       tAtt = resolvedAnsCount;
-      tCor = resolvedCorr.length;
+    } else if (!tAtt && tRec.answeredCount) {
+      tAtt = parseInt(tRec.answeredCount, 10) || 0;
     }
     if (resolvedCorr.length > 0) {
       tCor = Math.max(tCor, resolvedCorr.length);
@@ -3369,13 +3371,14 @@ export function renderSummary(d) {
       ? parseInt(tRec.rate, 10)
       : (taskWordsCount > 0 ? Math.round((tCor / taskWordsCount) * 100) : (tAtt > 0 ? Math.round((tCor / tAtt) * 100) : (parseInt(tRec.rate) || 0)));
 
-    // 核心完成判定：只要狀態明確為已完成，或已全數作答完畢
-    const isFinished = statusStr.includes("已完成") || (!statusStr.includes("未受測") && !statusStr.includes("尚未開始") && ((tAtt > 0 && tAtt >= taskWordsCount) || (resolvedAnsCount > 0 && resolvedAnsCount >= taskWordsCount)));
+    // 核心完成判定：只要狀態明確為已完成、或無未作答且已全數作答完畢
+    const isExplicitlyNotFinished = statusStr.includes("中斷") || statusStr.includes("未完成") || statusStr.includes("作答中") || statusStr.includes("未受測") || statusStr.includes("尚未開始") || tRec.inProgress === true;
+    const isFinished = !isExplicitlyNotFinished && (statusStr.includes("已完成") || ((tAtt > 0 && tAtt >= taskWordsCount) || (resolvedAnsCount > 0 && resolvedAnsCount >= taskWordsCount)));
 
-    // 核心中斷判定：必須是有實際開始作答 (resolvedAnsCount > 0 或 tAtt > 0)，但未答完總題數且無答錯
-    const isUnfinishedAttempt = !isFinished && (
-      (taskWordsCount > 0 && resolvedAnsCount > 0 && resolvedAnsCount < taskWordsCount && resolvedWrong.length === 0) ||
-      (taskWordsCount > 0 && tAtt > 0 && tAtt < taskWordsCount && resolvedWrong.length === 0)
+    // 核心中斷判定：已作答但未答滿全部題目 (resolvedAnsCount < taskWordsCount 或 tAtt < taskWordsCount)，或狀態明確含中斷/未完成/作答中
+    const isUnfinishedAttempt = !isFinished && !statusStr.includes("未受測") && (
+      (taskWordsCount > 0 && resolvedAnsCount > 0 && resolvedAnsCount < taskWordsCount) ||
+      (taskWordsCount > 0 && tAtt > 0 && tAtt < taskWordsCount)
     );
 
     // 判定是否為登入作答未完成 (中斷)
