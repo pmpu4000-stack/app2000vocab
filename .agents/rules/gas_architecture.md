@@ -25,7 +25,7 @@ description: 修改或查詢 google_apps_script/（Code.gs、Index.html、teache
 | `TaskService.js` | 2. 老師指定單字任務核心函式、出題與週末補救任務 | ~452 行 |
 | `TimeRestriction.js` | 2.5 學生使用時間管制 (07:30~22:00) 與教師解除限制設定 | ~1,045 行 |
 | `AnalyticsService.js` | 4.1 每日指定測驗成果與錯題大數據分析、日期區間績效比較分析 | ~750 行 |
-| `SpreadsheetService.js` | 4. 儲存歷程、5. 查詢邏輯、6. 班級總覽與排行榜、7. 密碼與目標、8. 試算表備份維護、9. 學生歷程總庫集中管理 | ~2,882 行 |
+| `SpreadsheetService.js` | 4. 儲存歷程、5. 查詢邏輯、6. 班級總覽與排行榜、7. 密碼與目標、8. 試算表備份維護、9. 學生歷程總庫集中管理 | ~2,855 行 |
 
 - **試算表分頁**：
   1. `使用者清單`：A帳號 | B密碼(SHA-256) | C角色 | D班級 | E姓名

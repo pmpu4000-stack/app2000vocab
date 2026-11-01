@@ -2265,35 +2265,52 @@ function exportFullSystemJsonArchive() {
     });
   }
 
-  const studentSheets = ss.getSheets().filter(s=>!isSystemSheet(s.getName()));
-  let rowsMap={};
-  try {
-    const names=studentSheets.map(s=>s.getName());
-    const resp=Sheets.Spreadsheets.Values.batchGet(ss.getId(),{
-      ranges:names.map(n=>`'${n}'!A:B`),valueRenderOption:"UNFORMATTED_VALUE",majorDimension:"ROWS"
-    });
-    (resp.valueRanges||[]).forEach((vr,i)=>{ rowsMap[names[i]]=vr.values||[]; });
-  } catch(_) {
-    studentSheets.forEach(s=>{
-      rowsMap[s.getName()]=s.getLastRow()>=2?s.getDataRange().getValues():[];
-    });
+  let count = 0;
+  // 🚀 優先從【學生歷程總庫】一次性批量封裝（高速且徹底獨立於舊分頁）
+  const cpSheet = getCentralPortfolioSheet(ss, false);
+  if (cpSheet && cpSheet.getLastRow() >= 2) {
+    try {
+      const lastRow = cpSheet.getLastRow();
+      const cpVals = cpSheet.getRange(2, 1, lastRow - 1, 3).getValues();
+      for (let i = 0; i < cpVals.length; i++) {
+        const u = String(cpVals[i][0] || "").trim();
+        const bTime = String(cpVals[i][1] || "");
+        const rawJson = String(cpVals[i][2] || "");
+        if (!u) continue;
+        if (!archive.students[u]) {
+          archive.students[u] = { totalBackups: 0, history: [] };
+          count++;
+        }
+        archive.students[u].totalBackups++;
+        archive.students[u].history.push({
+          backupTime: bTime,
+          payload: (() => { try { return JSON.parse(decompressData(rawJson)); } catch(_) { return null; } })()
+        });
+      }
+    } catch(errCP) {
+      Logger.log("[Archive] CP export error: " + errCP.message);
+    }
   }
 
-  let count=0;
-  studentSheets.forEach(s=>{
-    const name=s.getName();
-    const rows=rowsMap[name]||[];
-    if (rows.length>=2) {
-      archive.students[name]={
-        totalBackups:rows.length-1,
-        history:rows.slice(1).map(r=>({
-          backupTime:String(r[0]||""),
-          payload:(()=>{try{return JSON.parse(decompressData(String(r[1]||"")));}catch(_){return null;}})()
-        }))
-      };
-      count++;
-    }
-  });
+  // 若仍有個別學生分頁尚未進入總庫，補充封裝
+  const studentSheets = ss.getSheets().filter(s => !isSystemSheet(s.getName()) && s.getName() !== "學生歷程總庫");
+  const remainingSheets = studentSheets.filter(s => !archive.students[s.getName()]);
+  if (remainingSheets.length > 0) {
+    remainingSheets.forEach(s => {
+      const name = s.getName();
+      if (s.getLastRow() >= 2) {
+        const rows = s.getRange(2, 1, s.getLastRow() - 1, 2).getValues();
+        archive.students[name] = {
+          totalBackups: rows.length,
+          history: rows.map(r => ({
+            backupTime: String(r[0] || ""),
+            payload: (() => { try { return JSON.parse(decompressData(String(r[1] || ""))); } catch(_) { return null; } })()
+          }))
+        };
+        count++;
+      }
+    });
+  }
 
   const json = JSON.stringify(archive,null,2);
   const file = folder.createFile(`學習歷程系統完整歸檔_${timeStr}.json`,json,"application/json");
@@ -2505,51 +2522,7 @@ function migrateStudentSheetRows_(sheet) {
         }
       }
 
-      if (name === 'd' && dStr.includes('10-26')) {
-        // 學生 d 10-26：施測 5, 受測作答 4, 答對 3, 成績 3/4, 正確率 60%, 狀態 🟠 未完成 (3/5)
-        // 測驗錯題單字：答錯的 cake (1字) + 未作答的 camp (1字) = 共 2 字
-        row[22] = 5;
-        row[23] = 4;
-        row[24] = 3;
-        row[25] = "3/4";
-        row[26] = "60%";
-        row[27] = "🟠 未完成 (3/5)";
-        row[28] = "cake, camp";
-        sheetModified = true;
-      } else if (name === 'e') {
-        // 學生 e 10-26：施測 5, 受測作答 4, 答對 3, 成績 3/4, 正確率 60%, 狀態 🟠 未完成 (3/5)
-        // 測驗錯題單字：答錯的 can (1字) + 未作答的 cake (1字) = 共 2 字
-        row[22] = 5;
-        row[23] = 4;
-        row[24] = 3;
-        row[25] = "3/4";
-        row[26] = "60%";
-        row[27] = "🟠 未完成 (3/5)";
-        row[28] = "can, cake";
-        sheetModified = true;
-      } else if (name === 'd' && dStr.includes('10-12')) {
-        if (row[22] !== 5 || row[23] !== 2 || row[24] !== 2 || row[25] !== "2/2" || row[26] !== "40%" || row[27] !== "🟠 未完成 (2/5)" || row[28] !== "age, ago, aim") {
-          row[22] = 5;
-          row[23] = 2;
-          row[24] = 2;
-          row[25] = "2/2";
-          row[26] = "40%";
-          row[27] = "🟠 未完成 (2/5)";
-          row[28] = "age, ago, aim";
-          sheetModified = true;
-        }
-      } else if (name === 'd' && dStr.includes('10-13')) {
-        if (row[22] !== 5 || row[23] !== 5 || row[24] !== 4 || row[25] !== "4/5" || row[26] !== "80%" || row[27] !== "🟢 已完成" || row[28] !== "advice") {
-          row[22] = 5;
-          row[23] = 5;
-          row[24] = 4;
-          row[25] = "4/5";
-          row[26] = "80%";
-          row[27] = "🟢 已完成";
-          row[28] = "advice";
-          sheetModified = true;
-        }
-      }
+
     }
   }
 
