@@ -1,0 +1,6 @@
+data/*.json
+backups/
+*.log
+*.tar.gz
+scratch/
+.clasp.json
