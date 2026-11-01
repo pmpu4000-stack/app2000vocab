@@ -2590,8 +2590,9 @@ export function getWeekPendingConquerWords(cycleParam = "current") {
     const diffToMon = dNow.getDate() - day + (day === 0 ? -6 : 1);
     const targetMon = new Date(dNow.getFullYear(), dNow.getMonth(), diffToMon + diffW * 7);
     const targetFri = new Date(dNow.getFullYear(), dNow.getMonth(), diffToMon + diffW * 7 + 4);
+    const prevWeekMon = new Date(dNow.getFullYear(), dNow.getMonth(), diffToMon + (diffW - 1) * 7);
     const formatD = (dt) => dt.getFullYear() + "-" + String(dt.getMonth() + 1).padStart(2, "0") + "-" + String(dt.getDate()).padStart(2, "0");
-    scanStartStr = formatD(targetMon);
+    scanStartStr = (targetW % 2 === 0) ? formatD(prevWeekMon) : formatD(targetMon);
     scanEndStr = formatD(targetFri);
   } else if (cycleParam === "previous" || cycleParam === "prevWeek") {
     // 上一週平日 (週一至週五)
