@@ -743,3 +743,307 @@ function collectAnalyticsTaskRecords(ss, allStudents) {
   }
   return recData;
 }
+
+// ════════════════════════════════════════════════════════════════════
+// 4.2 教師後台擴充服務：測驗時限、題庫輪播、週期滾動錯題與作答時長
+// ════════════════════════════════════════════════════════════════════
+
+function _resolveTeacherCall_(param1, param2, param3) {
+  let ss, auth, params;
+  if (param1 && typeof param1.getSheetByName === "function") {
+    ss = param1;
+    if (param2 && typeof param2 === "object" && param2.username) {
+      auth = param2;
+      params = param3 || {};
+    } else {
+      auth = { success: true, role: "teacher", username: String(param2 || "teacher"), isAdmin: true };
+      params = (typeof param3 === "object" && param3) ? param3 : { value: param3 };
+    }
+  } else {
+    ss = SpreadsheetApp.getActiveSpreadsheet();
+    params = param1 || {};
+    auth = authenticateUser(ss, params.username, params.password);
+  }
+  return { ss, auth, params };
+}
+
+function saveTaskDurationLimit(param1, param2, param3) {
+  try {
+    const { auth, params } = _resolveTeacherCall_(param1, param2, param3);
+    if (!auth || !auth.success || auth.role !== "teacher") {
+      return { status: "error", message: "無權限設定測驗時限" };
+    }
+    const mins = (typeof param3 === "number" || typeof param3 === "string")
+      ? parseInt(param3, 10)
+      : parseInt(params.limitMinutes !== undefined ? params.limitMinutes : params.value, 10);
+    const validMins = isNaN(mins) ? 10 : Math.max(0, mins);
+    PropertiesService.getScriptProperties().setProperty("TASK_DURATION_LIMIT_MINUTES", String(validMins));
+    return {
+      status: "success",
+      limitMinutes: validMins,
+      message: validMins > 0 ? ("已設定每日指定測驗時限為 " + validMins + " 分鐘") : "已設定每日指定測驗為全天不限時"
+    };
+  } catch (e) {
+    return { status: "error", message: e.toString() };
+  }
+}
+
+function getRotationTaskSettings(param1, param2) {
+  try {
+    const ss = (param1 && typeof param1.getSheetByName === "function") ? param1 : SpreadsheetApp.getActiveSpreadsheet();
+    const targetClass = (typeof param2 === "string" && param2)
+      ? param2
+      : ((param1 && param1.targetClass) || "all");
+    const cleanCls = String(targetClass || "all").replace(/班$/, "").trim().toLowerCase() || "all";
+    const props = PropertiesService.getScriptProperties();
+    const raw = props.getProperty("ROTATION_TASK_CFG_" + cleanCls);
+    const limitMinutes = parseInt(props.getProperty("TASK_DURATION_LIMIT_MINUTES") || "10", 10);
+    const cfg = raw ? JSON.parse(raw) : { scope: "all", count: 20, pointer: 0, taskName: "每日指定單字測驗" };
+    return { status: "success", targetClass: cleanCls, settings: cfg, limitMinutes: isNaN(limitMinutes) ? 10 : limitMinutes };
+  } catch (e) {
+    return { status: "error", message: e.toString() };
+  }
+}
+
+function saveRotationTaskSettings(param1, param2, param3) {
+  try {
+    const { auth, params } = _resolveTeacherCall_(param1, param2, param3);
+    if (!auth || !auth.success || auth.role !== "teacher") return { status: "error", message: "無權限" };
+    const cleanCls = String(params.targetClass || auth.className || "all").replace(/班$/, "").trim().toLowerCase() || "all";
+    const cfg = {
+      scope: String(params.scope || "all"),
+      count: parseInt(params.count, 10) || 20,
+      pointer: Math.max(0, parseInt(params.pointer, 10) || 0),
+      taskName: String(params.taskName || "每日指定單字測驗").trim(),
+      updatedAt: Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy-MM-dd HH:mm:ss"),
+      updatedBy: auth.username
+    };
+    PropertiesService.getScriptProperties().setProperty("ROTATION_TASK_CFG_" + cleanCls, JSON.stringify(cfg));
+    return { status: "success", settings: cfg, message: "題庫輪播設定已儲存" };
+  } catch (e) {
+    return { status: "error", message: e.toString() };
+  }
+}
+
+function advanceRotationTaskPointer(param1, param2, param3) {
+  try {
+    const { ss, auth, params } = _resolveTeacherCall_(param1, param2, param3);
+    if (!auth || !auth.success || auth.role !== "teacher") return { status: "error", message: "無權限" };
+    const cleanCls = String(params.targetClass || auth.className || "all").replace(/班$/, "").trim().toLowerCase() || "all";
+    const cur = getRotationTaskSettings(ss, cleanCls).settings || { scope: "all", count: 20, pointer: 0, taskName: "每日指定單字測驗" };
+    const step = parseInt(params.count || cur.count, 10) || 20;
+    const dir = String(params.direction || "next");
+    if (dir === "reset") cur.pointer = 0;
+    else if (dir === "prev") cur.pointer = Math.max(0, (cur.pointer || 0) - step);
+    else cur.pointer = (cur.pointer || 0) + step;
+    PropertiesService.getScriptProperties().setProperty("ROTATION_TASK_CFG_" + cleanCls, JSON.stringify(cur));
+    return { status: "success", settings: cur };
+  } catch (e) {
+    return { status: "error", message: e.toString() };
+  }
+}
+
+function getCycleRecordsAnalytics(param1, param2, param3) {
+  try {
+    const { ss, auth, params } = _resolveTeacherCall_(param1, param2, param3);
+    if (!auth || !auth.success || auth.role !== "teacher") return { status: "error", message: "無權限" };
+
+    const targetClass = (!auth.isAdmin && auth.className) ? auth.className : (params.targetClass || "all");
+    const cleanTargetClass = String(targetClass).replace(/班$/, "").trim().toLowerCase();
+
+    const now = new Date();
+    const todayStr = Utilities.formatDate(now, "Asia/Taipei", "yyyy-MM-dd");
+    const mode = String(params.cycleMode || "week");
+    let startStr = params.startDate ? formatStandardDateYMD(params.startDate) : "";
+    let endStr = params.endDate ? formatStandardDateYMD(params.endDate) : todayStr;
+
+    if (mode === "today") {
+      startStr = todayStr; endStr = todayStr;
+    } else if (mode === "week") {
+      const d = new Date(now.getTime());
+      const day = d.getDay() || 7;
+      d.setDate(d.getDate() - day + 1);
+      startStr = Utilities.formatDate(d, "Asia/Taipei", "yyyy-MM-dd");
+    } else if (mode === "biweekly") {
+      const d = new Date(now.getTime());
+      d.setDate(d.getDate() - 13);
+      startStr = Utilities.formatDate(d, "Asia/Taipei", "yyyy-MM-dd");
+    } else if (mode === "month") {
+      startStr = todayStr.slice(0, 8) + "01";
+    } else if (!startStr) {
+      startStr = todayStr;
+    }
+
+    const userSheet = ss.getSheetByName("使用者清單");
+    const allStudents = [];
+    if (userSheet && userSheet.getLastRow() >= 2) {
+      const uData = userSheet.getDataRange().getValues();
+      for (let i = 1; i < uData.length; i++) {
+        const u = String(uData[i][0] || "").trim();
+        const role = String(uData[i][2] || "student").trim().toLowerCase();
+        const c = String(uData[i][3] || "").trim();
+        const real = String(uData[i][4] || "").trim();
+        if (u && role === "student") {
+          const cClean = c.replace(/班$/, "").trim().toLowerCase();
+          if (cleanTargetClass === "all" || cClean === cleanTargetClass) {
+            allStudents.push({ username: u, realName: real || u, className: c });
+          }
+        }
+      }
+    }
+
+    const recData = collectAnalyticsTaskRecords(ss, allStudents);
+    const records = [];
+    const weekendWordFreq = {};
+    const bossWordFreq = {};
+    let testedCount = 0, scoreSum = 0, passCount = 0, perfectCount = 0;
+    const isEngWord = w => /^[a-zA-Z]+(?:[-'][a-zA-Z]+)*$/.test(w);
+
+    for (let r = 1; r < recData.length; r++) {
+      const row = recData[r];
+      const dStr = row[0];
+      if (!dStr || dStr < startStr || dStr > endStr) continue;
+      const tName = String(row[4] || "");
+      const parsedSR = parseScoreAndRate(row[5], row[6]);
+      const scoreStr = parsedSR.score;
+      const rateStr = parsedSR.rate;
+      const statusStr = String(row[10] || "—");
+      const wrongStr = String(row[12] || "");
+      if ((tName === "自主練習" || tName === "⚪ 未指派") && (!scoreStr || scoreStr === "—")) continue;
+
+      const wrongList = (wrongStr && !wrongStr.includes("無錯題") && wrongStr !== "—")
+        ? wrongStr.split(/[\s,;\n\r]+/).map(w => w.trim().toLowerCase()).filter(isEngWord)
+        : [];
+      const isWeekendTask = tName.includes("週末") || tName.includes("消滅") || tName.includes("待攻克");
+      wrongList.forEach(w => {
+        if (isWeekendTask) bossWordFreq[w] = (bossWordFreq[w] || 0) + 1;
+        else weekendWordFreq[w] = (weekendWordFreq[w] || 0) + 1;
+      });
+
+      const pct = parseFloat(rateStr);
+      if (!isNaN(pct) && scoreStr.includes("/")) {
+        testedCount++;
+        scoreSum += pct;
+        if (pct >= 60) passCount++;
+        if (pct >= 100) perfectCount++;
+      }
+
+      records.push({
+        date: dStr,
+        className: row[1],
+        username: row[2],
+        realName: row[3],
+        taskName: tName,
+        score: scoreStr,
+        rate: rateStr,
+        status: statusStr,
+        wrongWords: wrongList
+      });
+    }
+
+    // 雙週超過 2 人以上答錯亦滾入魔王題庫
+    Object.keys(weekendWordFreq).forEach(w => {
+      if (weekendWordFreq[w] >= 2 && !bossWordFreq[w]) bossWordFreq[w] = weekendWordFreq[w];
+    });
+
+    const weekendWords = Object.keys(weekendWordFreq).sort((a, b) => weekendWordFreq[b] - weekendWordFreq[a]);
+    const finalBossWords = Object.keys(bossWordFreq).sort((a, b) => bossWordFreq[b] - bossWordFreq[a]);
+
+    return {
+      status: "success",
+      startDate: startStr,
+      endDate: endStr,
+      summary: {
+        testedCount: testedCount,
+        avgScore: testedCount > 0 ? Math.round(scoreSum / testedCount) + " 分" : "0 分",
+        passRate: testedCount > 0 ? Math.round((passCount / testedCount) * 100) + "%" : "0%",
+        perfectCount: perfectCount
+      },
+      weekendWords: weekendWords,
+      finalBossWords: finalBossWords,
+      records: records
+    };
+  } catch (e) {
+    return { status: "error", message: e.toString() };
+  }
+}
+
+function getStudentDurationAnalytics(param1, param2, param3) {
+  try {
+    const { ss, auth, params } = _resolveTeacherCall_(param1, param2, param3);
+    if (!auth || !auth.success || auth.role !== "teacher") return { status: "error", message: "無權限" };
+
+    const targetDate = params.targetDate ? formatStandardDateYMD(params.targetDate) : Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy-MM-dd");
+    const targetClass = (!auth.isAdmin && auth.className) ? auth.className : (params.targetClass || "all");
+    const cleanTargetClass = String(targetClass).replace(/班$/, "").trim().toLowerCase();
+
+    const userSheet = ss.getSheetByName("使用者清單");
+    const allStudents = [];
+    if (userSheet && userSheet.getLastRow() >= 2) {
+      const uData = userSheet.getDataRange().getValues();
+      for (let i = 1; i < uData.length; i++) {
+        const u = String(uData[i][0] || "").trim();
+        const role = String(uData[i][2] || "student").trim().toLowerCase();
+        const c = String(uData[i][3] || "").trim();
+        const real = String(uData[i][4] || "").trim();
+        if (u && role === "student") {
+          const cClean = c.replace(/班$/, "").trim().toLowerCase();
+          if (cleanTargetClass === "all" || cClean === cleanTargetClass) {
+            allStudents.push({ username: u, realName: real || u, className: c });
+          }
+        }
+      }
+    }
+
+    const lite = cpReadAllLite_(ss);
+    const hMap = getHeaderIndexMap(lite.headers);
+    const byStudent = {};
+    for (let i = 0; i < lite.rows.length; i++) {
+      const u = lite.rows[i][0];
+      const row = lite.rows[i][1];
+      if (formatStandardDateYMD(row[hMap.date]) === targetDate) {
+        if (!byStudent[u]) byStudent[u] = { taskSec: 0, freeSec: 0 };
+        const ans = parseInt(row[hMap.taskAnswered], 10) || 0;
+        const freeT = parseInt(row[hMap.freeTested], 10) || 0;
+        if (ans > 0) byStudent[u].taskSec = Math.max(byStudent[u].taskSec, ans * 18);
+        if (freeT > 0) byStudent[u].freeSec = Math.max(byStudent[u].freeSec, freeT * 15);
+      }
+    }
+
+    let taskSecSum = 0, freeSecSum = 0, activeTaskCount = 0, activeFreeCount = 0;
+    const list = allStudents.map(st => {
+      const rec = byStudent[st.username.toLowerCase()] || { taskSec: 0, freeSec: 0 };
+      if (rec.taskSec > 0) { taskSecSum += rec.taskSec; activeTaskCount++; }
+      if (rec.freeSec > 0) { freeSecSum += rec.freeSec; activeFreeCount++; }
+      return {
+        username: st.username,
+        realName: st.realName,
+        className: st.className,
+        taskSec: rec.taskSec,
+        freeSec: rec.freeSec,
+        totalSec: rec.taskSec + rec.freeSec
+      };
+    });
+
+    list.sort((a, b) => b.totalSec - a.totalSec || a.username.localeCompare(b.username));
+
+    const fmtSec = s => {
+      const m = Math.floor(s / 60), sec = Math.round(s % 60);
+      return m + " 分 " + sec + " 秒";
+    };
+    const totalSecAll = taskSecSum + freeSecSum;
+
+    return {
+      status: "success",
+      targetDate: targetDate,
+      summary: {
+        taskAvgStr: activeTaskCount > 0 ? fmtSec(taskSecSum / activeTaskCount) : "0 分 0 秒",
+        freeAvgStr: activeFreeCount > 0 ? fmtSec(freeSecSum / activeFreeCount) : "0 分 0 秒",
+        totalHoursStr: (totalSecAll / 3600).toFixed(1) + " 小時"
+      },
+      students: list
+    };
+  } catch (e) {
+    return { status: "error", message: e.toString() };
+  }
+}

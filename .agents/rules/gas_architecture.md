@@ -20,12 +20,12 @@ description: 修改或查詢 google_apps_script/（Code.gs、Index.html、teache
 
 | 檔案 | 職責與內容 | 行數 |
 |---|---|---|
-| `Code.gs` | 系統常數、`WORD_LEVELS`、主路由 `doPost`/`doGet`、`include`、`jsonResponse` | ~1,114 行 |
-| `AuthService.js` | 0. 密碼雜湊與資安防護、1. 身分驗證與 Token 快取、WAF 攻擊偵測 | ~666 行 |
+| `Code.gs` | 系統常數、`WORD_LEVELS`、主路由 `doPost`/`doGet`、`include`、`jsonResponse`、設定與輪替任務管理 | ~1,076 行 |
+| `AuthService.js` | 0. 密碼雜湊與資安防護、1. 身分驗證與 Token 快取、WAF 攻擊偵測、裝置登入歷程 | ~803 行 |
 | `TaskService.js` | 2. 老師指定單字任務核心函式、出題與週末補救任務 | ~452 行 |
 | `TimeRestriction.js` | 2.5 學生使用時間管制 (07:30~22:00) 與教師解除限制設定 | ~1,045 行 |
-| `AnalyticsService.js` | 4.1 每日指定測驗成果與錯題大數據分析、日期區間績效比較分析 | ~746 行 |
-| `SpreadsheetService.js` | 4. 儲存歷程、5. 查詢邏輯、6. 班級總覽與排行榜、7. 密碼與目標、8. 試算表備份維護、9. 學生歷程總庫集中管理（行 ~2880 起：索引式讀取 `getStudentRowsFromCentralPortfolio`、輕量全表 `cpReadAllLite_`、去重回填 `ensureCentralPortfolioBackfilled_`、`saveToCentralPortfolio`） | ~3,064 行 |
+| `AnalyticsService.js` | 4.1 每日指定測驗成果與錯題大數據分析、日期區間績效比較、雙週週期紀錄、作答時間統計 | ~1,050 行 |
+| `SpreadsheetService.js` | 4. 儲存歷程、5. 查詢邏輯、6. 班級總覽與排行榜、7. 密碼與目標、8. 試算表備份維護、9. 學生歷程總庫集中管理（行 ~2900 起：索引式讀取 `getStudentRowsFromCentralPortfolio`、輕量全表 `cpReadAllLite_`、去重回填 `ensureCentralPortfolioBackfilled_`、`saveToCentralPortfolio`） | ~3,083 行 |
 
 - **試算表分頁**：
   1. `使用者清單`：A帳號 | B密碼(SHA-256) | C角色 | D班級 | E姓名
@@ -46,7 +46,7 @@ description: 修改或查詢 google_apps_script/（Code.gs、Index.html、teache
   4. `StylePrint.html`：A4 診斷報告列印預覽與 `@media print` 專用排版（~4,072 行，鏡像 `teacher_style_print.html`）
 - **JS 客戶端邏輯模組（按角色功能切分）**：
   1. `ClientCoreJs.html`：基礎認證、共用 DOM 安全輔助、主題切換、Toast、資料拉取（~596 行，鏡像 `teacher_client_core.html`）
-  2. `TeacherJs.html`：教師總覽大儀表板、出題 Modal、時間管制、大數據分析、密碼管理（~3,894 行，鏡像 `teacher_client_teacher.html`）
+  2. `TeacherJs.html`：教師總覽大儀表板、出題 Modal、時間管制、大數據分析、四大摺疊方塊、密碼與日誌管理（~4,475 行，鏡像 `teacher_client_teacher.html`）
   3. `StudentAnalyticsJs.html`：學生歷程處理、KPI、Chart.js 圖表、熱力圖、目標里程碑、弱點常錯卡片（~3,427 行，鏡像 `teacher_client_student.html`）
   4. `StudentChipsJs.html`：單字晶片卡片、已掌握/修復單字清單（~1,705 行，鏡像 `teacher_chips.html`）
   5. `ExportPdfJs.html`：A4 PDF 列印報告預覽與下載生成（~5,469 行，鏡像 `teacher_export_pdf.html`）

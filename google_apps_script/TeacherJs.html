@@ -3626,6 +3626,7 @@ function handleErrorLogModalBackdropClick(e) {
 }
 
 function loadErrorLogs() {
+  if (typeof currentLogModalTab !== "undefined" && currentLogModalTab === "device") { loadDeviceLoginLogs(); return; }
   setBtnLoading("btnRefreshErrorLogs", true, "🔄 重新整理");
   document.getElementById("errorLogModalContent").innerHTML = `
     <div style="text-align:center; padding:32px; color:var(--text-muted);">
@@ -3706,6 +3707,7 @@ function renderErrorLogs(logs, total) {
 }
 
 function confirmClearErrorLogs() {
+  if (typeof currentLogModalTab !== "undefined" && currentLogModalTab === "device") { confirmClearDeviceLogs(); return; }
   if (!confirm("確定要清空所有錯誤日誌嗎？此操作將清除 Google Sheet 上的所有歷史錯誤紀錄。")) return;
   document.getElementById("errorLogModalContent").innerHTML = `
     <div style="text-align:center; padding:32px; color:var(--text-muted);">
@@ -3731,6 +3733,7 @@ function confirmClearErrorLogs() {
 }
 
 function exportErrorLogsCsv() {
+  if (typeof currentLogModalTab !== "undefined" && currentLogModalTab === "device") { exportDeviceLogsCsv(); return; }
   if (!cachedErrorLogs || cachedErrorLogs.length === 0) {
     showToast("目前沒有日誌可供匯出", "warning");
     return;
@@ -3893,8 +3896,8 @@ function animateKpiValue(elId, targetText) {
 // ════════════════════════════════════════
 // 差分計算與資料解析
 // ════════════════════════════════════════
-</script>
 let currentLogModalTab = 'error';
+let cachedDeviceLogs = [];
 
 function switchLogModalTab(tab) {
   currentLogModalTab = tab;
@@ -3926,7 +3929,8 @@ function loadDeviceLoginLogs() {
         container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--danger);">' + ((resp && resp.message) || "讀取失敗") + '</div>';
         return;
       }
-      renderDeviceLogsUI(resp.logs || [], resp.total || 0);
+      cachedDeviceLogs = resp.logs || [];
+      renderDeviceLogsUI(cachedDeviceLogs, resp.total || 0);
     })
     .withFailureHandler(err => {
       container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--danger);">連線失敗：' + (err.message || err) + '</div>';
@@ -3992,3 +3996,479 @@ function renderDeviceLogsUI(logs, total) {
   html += '</tbody></table>';
   container.innerHTML = html;
 }
+
+function confirmClearDeviceLogs() {
+  if (!confirm("確定要清空所有裝置登入歷程嗎？")) return;
+  google.script.run
+    .withSuccessHandler(resp => {
+      if (resp && resp.status === "success") {
+        showToast("裝置登入歷程已清空", "success");
+        loadDeviceLoginLogs();
+      } else {
+        showToast("清空失敗：" + ((resp && resp.message) || "未知錯誤"), "danger");
+      }
+    })
+    .withFailureHandler(err => showToast("連線失敗：" + (err.message || err), "danger"))
+    .clearDeviceLoginLogs({ username: currentUser, password: currentPass });
+}
+
+function exportDeviceLogsCsv() {
+  if (!cachedDeviceLogs || cachedDeviceLogs.length === 0) {
+    showToast("目前沒有裝置登入歷程可供匯出", "warning");
+    return;
+  }
+  const headers = ["#", "登入時間", "班級", "學號", "姓名", "狀態標記", "設備類別", "系統/瀏覽器", "螢幕規格", "稽核說明"];
+  let csv = "\uFEFF" + headers.map(safeCsvCell).join(",") + "\n";
+  cachedDeviceLogs.forEach((l, i) => {
+    csv += [i + 1, l.time, l.className, l.username, l.realName, l.status, l.deviceType, l.osBrowser, l.resolution, l.note].map(safeCsvCell).join(",") + "\n";
+  });
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "裝置登入歷程_" + formatDateYMD(new Date()) + ".csv";
+  a.click();
+}
+
+// ════════════════════════════════════════════════════════════════════
+// 教師後台四大摺疊方塊前端控制邏輯 (時限、輪播出題、週期錯題、作答時長)
+// ════════════════════════════════════════════════════════════════════
+
+function saveTaskDurationLimitSetting() {
+  const sel = document.getElementById("taskDurationLimitSelect");
+  const msg = document.getElementById("taskDurationLimitMsg");
+  const mins = sel ? parseInt(sel.value, 10) : 10;
+  if (msg) msg.textContent = "儲存中...";
+  google.script.run
+    .withSuccessHandler(resp => {
+      if (msg) msg.textContent = (resp && resp.message) ? ("✅ " + resp.message) : "✅ 已儲存";
+    })
+    .withFailureHandler(err => {
+      if (msg) msg.textContent = "❌ 失敗：" + (err.message || err);
+    })
+    .saveTaskDurationLimit({ username: currentUser, password: currentPass, limitMinutes: mins });
+}
+
+function handleGlobalAllDayToggle(checked) {
+  const sInp = document.getElementById("ttsGlobalStartTime");
+  const eInp = document.getElementById("ttsGlobalEndTime");
+  if (checked) {
+    if (sInp) sInp.value = "00:00";
+    if (eInp) eInp.value = "23:59";
+  } else {
+    if (sInp && sInp.value === "00:00") sInp.value = "07:30";
+    if (eInp && eInp.value === "23:59") eInp.value = "22:00";
+  }
+}
+
+let _tmMode = "rotation";
+let _tmPointer = 0;
+let _tmPreviewWords = [];
+
+function loadTaskMgrSettings() {
+  const dateInp = document.getElementById("tmDateInput");
+  if (dateInp && !dateInp.value) dateInp.value = formatDateYMD(new Date());
+
+  const clsSel = document.getElementById("tmClassSelect");
+  const topClsSel = document.getElementById("teacherClassSelect");
+  if (clsSel && topClsSel && clsSel.options.length <= 1 && topClsSel.options.length > 1) {
+    clsSel.innerHTML = topClsSel.innerHTML;
+    clsSel.value = topClsSel.value || "all";
+  }
+
+  const targetClass = clsSel ? clsSel.value : "all";
+  ensureWordBankLoaded(() => {
+    if (typeof google !== "undefined" && google.script && google.script.run) {
+      google.script.run
+        .withSuccessHandler(resp => {
+          if (resp && resp.status === "success" && resp.settings) {
+            const cfg = resp.settings;
+            const scEl = document.getElementById("tmRotationScope");
+            const ctEl = document.getElementById("tmRotationCount");
+            const nmEl = document.getElementById("tmTaskNameInput");
+            const limEl = document.getElementById("taskDurationLimitSelect");
+            if (scEl && cfg.scope) scEl.value = cfg.scope;
+            if (ctEl && cfg.count) ctEl.value = String(cfg.count);
+            if (nmEl && cfg.taskName) nmEl.value = cfg.taskName;
+            if (limEl && resp.limitMinutes !== undefined) limEl.value = String(resp.limitMinutes);
+            _tmPointer = parseInt(cfg.pointer, 10) || 0;
+          }
+          updateRotationPreview();
+        })
+        .withFailureHandler(() => updateRotationPreview())
+        .getRotationTaskSettings({ username: currentUser, password: currentPass, targetClass: targetClass });
+    } else {
+      updateRotationPreview();
+    }
+  });
+}
+
+function switchTaskMgrMode(mode) {
+  _tmMode = mode === "manual" ? "manual" : "rotation";
+  const btnR = document.getElementById("tmBtnModeRotation");
+  const btnM = document.getElementById("tmBtnModeManual");
+  const panR = document.getElementById("tmPanelRotation");
+  const panM = document.getElementById("tmPanelManual");
+  if (btnR) btnR.classList.toggle("active", _tmMode === "rotation");
+  if (btnM) btnM.classList.toggle("active", _tmMode === "manual");
+  if (panR) panR.style.display = _tmMode === "rotation" ? "block" : "none";
+  if (panM) panM.style.display = _tmMode === "manual" ? "block" : "none";
+}
+
+function _getFilteredWordBankByScope_(scope) {
+  const bank = Array.isArray(WORD_BANK_2000) ? WORD_BANK_2000 : [];
+  if (!bank.length) return [];
+  if (!scope || scope === "all") return bank.map(x => x[0]);
+  if (scope.startsWith("lv")) {
+    const lv = parseInt(scope.slice(2), 10) || 1;
+    return bank.filter(x => Number(x[2] || 1) === lv).map(x => x[0]);
+  }
+  const ch = scope.toUpperCase();
+  return bank.filter(x => String(x[0] || "").toUpperCase().startsWith(ch)).map(x => x[0]);
+}
+
+function updateRotationPreview() {
+  ensureWordBankLoaded(() => {
+    const scopeEl = document.getElementById("tmRotationScope");
+    const countEl = document.getElementById("tmRotationCount");
+    const badgeEl = document.getElementById("tmPointerStatusBadge");
+    const listEl = document.getElementById("tmWordsPreviewList");
+    const nextEl = document.getElementById("tmNextPreviewHint");
+    const scope = scopeEl ? scopeEl.value : "all";
+    const count = countEl ? (parseInt(countEl.value, 10) || 20) : 20;
+    const pool = _getFilteredWordBankByScope_(scope);
+    if (!pool.length) {
+      if (listEl) listEl.textContent = "單字庫載入中或該範圍無單字...";
+      return;
+    }
+    const start = ((_tmPointer % pool.length) + pool.length) % pool.length;
+    const picked = [];
+    for (let i = 0; i < Math.min(count, pool.length); i++) {
+      picked.push(pool[(start + i) % pool.length]);
+    }
+    _tmPreviewWords = picked;
+    const endIdx = ((start + picked.length - 1) % pool.length) + 1;
+    if (badgeEl) badgeEl.textContent = "📍 當前出題進度：單字第 " + (start + 1) + " ~ " + endIdx + " 個 (共 " + pool.length + " 字)";
+    if (listEl) listEl.textContent = picked.join(", ");
+    const nextStart = (start + count) % pool.length;
+    const nextEnd = ((nextStart + count - 1) % pool.length) + 1;
+    if (nextEl) nextEl.textContent = "➡️ 明日接續進度預覽：單字第 " + (nextStart + 1) + " ~ " + nextEnd + " 個";
+  });
+}
+
+function advanceTaskMgrPointer(dir) {
+  const countEl = document.getElementById("tmRotationCount");
+  const clsEl = document.getElementById("tmClassSelect");
+  const step = countEl ? (parseInt(countEl.value, 10) || 20) : 20;
+  if (dir === "reset") _tmPointer = 0;
+  else if (dir === "prev") _tmPointer = Math.max(0, _tmPointer - step);
+  else _tmPointer += step;
+  updateRotationPreview();
+  if (typeof google !== "undefined" && google.script && google.script.run) {
+    google.script.run.advanceRotationTaskPointer({
+      username: currentUser,
+      password: currentPass,
+      targetClass: clsEl ? clsEl.value : "all",
+      direction: dir,
+      count: step
+    });
+  }
+}
+
+function quickFillTaskWords(n) {
+  ensureWordBankLoaded(() => {
+    const bank = Array.isArray(WORD_BANK_2000) ? WORD_BANK_2000.map(x => x[0]) : [];
+    if (!bank.length) return;
+    const shuffled = bank.slice().sort(() => Math.random() - 0.5).slice(0, n || 10);
+    const inp = document.getElementById("tmManualWordsInput");
+    if (inp) inp.value = shuffled.join(", ");
+  });
+}
+
+function publishTaskFromBlock() {
+  const dateInp = document.getElementById("tmDateInput");
+  const clsSel = document.getElementById("tmClassSelect");
+  const nameInp = document.getElementById("tmTaskNameInput");
+  const manualInp = document.getElementById("tmManualWordsInput");
+  const scopeEl = document.getElementById("tmRotationScope");
+  const countEl = document.getElementById("tmRotationCount");
+  const msgEl = document.getElementById("tmActionMsg");
+
+  const targetDate = dateInp ? dateInp.value.trim() : formatDateYMD(new Date());
+  const targetClass = clsSel ? clsSel.value : "all";
+  const taskName = (nameInp && nameInp.value.trim()) ? nameInp.value.trim() : "每日指定單字測驗";
+  let words = [];
+
+  if (_tmMode === "manual") {
+    const raw = manualInp ? manualInp.value : "";
+    words = raw.split(/[\s,;、\n\r]+/).map(w => w.trim()).filter(Boolean);
+  } else {
+    words = _tmPreviewWords.slice();
+  }
+
+  if (!words.length) {
+    alert("請先選擇或輸入至少 1 個單字！");
+    return;
+  }
+
+  if (msgEl) msgEl.textContent = "⏳ 正在發布指定測驗...";
+  const creds = { username: currentUser, password: currentPass };
+  const payload = {
+    className: targetClass,
+    targetClass: targetClass,
+    targetDate: targetDate,
+    date: targetDate,
+    taskName: taskName,
+    words: words.join(", "),
+    mode: "全考",
+    count: words.length,
+    enabled: true
+  };
+
+  google.script.run
+    .withSuccessHandler(resp => {
+      if (resp && resp.status === "success") {
+        if (msgEl) msgEl.textContent = "✅ 發布成功！（" + targetDate + " 共 " + words.length + " 題）";
+        if (_tmMode === "rotation") {
+          google.script.run.saveRotationTaskSettings({
+            username: currentUser,
+            password: currentPass,
+            targetClass: targetClass,
+            scope: scopeEl ? scopeEl.value : "all",
+            count: countEl ? (parseInt(countEl.value, 10) || 20) : 20,
+            pointer: _tmPointer + words.length,
+            taskName: taskName
+          });
+        }
+        if (typeof refreshClassOverview === "function") refreshClassOverview();
+      } else {
+        if (msgEl) msgEl.textContent = "❌ 發布失敗：" + ((resp && resp.message) || "未知錯誤");
+      }
+    })
+    .withFailureHandler(err => {
+      if (msgEl) msgEl.textContent = "❌ 連線失敗：" + (err.message || err);
+    })
+    .saveTeacherTask(creds, payload);
+}
+
+let _currentCycleTab = "week";
+let _cachedCycleResp = null;
+
+function switchCycleTab(tab) {
+  _currentCycleTab = tab || "week";
+  ["today", "week", "biweekly", "month", "range"].forEach(t => {
+    const btn = document.getElementById("cTab-" + t);
+    if (btn) btn.classList.toggle("active", t === _currentCycleTab);
+  });
+  const rangeBox = document.getElementById("cycleRangeInputs");
+  if (rangeBox) rangeBox.style.display = _currentCycleTab === "range" ? "grid" : "none";
+  if (_currentCycleTab !== "range") loadCycleRecordsAnalytics();
+}
+
+function loadCycleRecordsAnalytics() {
+  const tbody = document.getElementById("cycleRecordsTbody");
+  if (tbody) tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:20px; color:var(--text-muted);">載入週期資料中...</td></tr>';
+
+  const topClsSel = document.getElementById("teacherClassSelect");
+  const sDateEl = document.getElementById("cycleStartDate");
+  const eDateEl = document.getElementById("cycleEndDate");
+
+  google.script.run
+    .withSuccessHandler(resp => {
+      if (!resp || resp.status !== "success") {
+        if (tbody) tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:20px; color:var(--danger);">讀取失敗：' + ((resp && resp.message) || "未知錯誤") + '</td></tr>';
+        return;
+      }
+      _cachedCycleResp = resp;
+      const sum = resp.summary || {};
+      const elT = document.getElementById("cStatTested");
+      const elA = document.getElementById("cStatAvgScore");
+      const elP = document.getElementById("cStatPassRate");
+      const elF = document.getElementById("cStatPerfect");
+      if (elT) elT.textContent = String(sum.testedCount || 0);
+      if (elA) elA.textContent = String(sum.avgScore || "0 分");
+      if (elP) elP.textContent = String(sum.passRate || "0%");
+      if (elF) elF.textContent = String(sum.perfectCount || 0);
+
+      const wkWords = resp.weekendWords || [];
+      const bsWords = resp.finalBossWords || [];
+      const wkBadge = document.getElementById("cWeekendBadge");
+      const bsBadge = document.getElementById("cFinalBossBadge");
+      const wkList = document.getElementById("cWeekendWordsList");
+      const bsList = document.getElementById("cFinalBossWordsList");
+      if (wkBadge) wkBadge.textContent = wkWords.length + " 字";
+      if (bsBadge) bsBadge.textContent = bsWords.length + " 字";
+      if (wkList) wkList.textContent = wkWords.length ? wkWords.join(", ") : "無待補救錯題";
+      if (bsList) bsList.textContent = bsWords.length ? bsWords.join(", ") : "無魔王單字";
+
+      const recs = resp.records || [];
+      if (!tbody) return;
+      if (!recs.length) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:20px; color:var(--text-muted);">該週期尚無指定測驗紀錄</td></tr>';
+        return;
+      }
+      tbody.innerHTML = recs.map(r => (
+        "<tr>" +
+        "<td>" + escapeHtml(r.date) + "</td>" +
+        "<td>" + escapeHtml(r.className) + "</td>" +
+        "<td><strong>" + escapeHtml(r.username) + "</strong></td>" +
+        "<td>" + escapeHtml(r.realName) + "</td>" +
+        "<td>" + escapeHtml(r.taskName) + "</td>" +
+        "<td>" + escapeHtml(r.score) + "</td>" +
+        "<td>" + escapeHtml(r.rate) + "</td>" +
+        "<td>" + escapeHtml(r.status) + "</td>" +
+        "<td>" + escapeHtml((r.wrongWords || []).join(", ") || "—") + "</td>" +
+        "</tr>"
+      )).join("");
+    })
+    .withFailureHandler(err => {
+      if (tbody) tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:20px; color:var(--danger);">連線錯誤：' + (err.message || err) + '</td></tr>';
+    })
+    .getCycleRecordsAnalytics({
+      username: currentUser,
+      password: currentPass,
+      targetClass: topClsSel ? topClsSel.value : "all",
+      cycleMode: _currentCycleTab,
+      startDate: sDateEl ? sDateEl.value : "",
+      endDate: eDateEl ? eDateEl.value : ""
+    });
+}
+
+function exportCycleRecordsCsv() {
+  const recs = (_cachedCycleResp && _cachedCycleResp.records) || [];
+  if (!recs.length) { showToast("目前無週期紀錄可匯出", "warning"); return; }
+  const headers = ["測驗日期", "班級", "學號", "姓名", "任務名稱", "成績", "正確率", "測驗狀態", "錯題單字"];
+  let csv = "\uFEFF" + headers.map(safeCsvCell).join(",") + "\n";
+  recs.forEach(r => {
+    csv += [r.date, r.className, r.username, r.realName, r.taskName, r.score, r.rate, r.status, (r.wrongWords || []).join(", ")].map(safeCsvCell).join(",") + "\n";
+  });
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "週期指定測驗明細_" + formatDateYMD(new Date()) + ".csv";
+  a.click();
+}
+
+function copyWeekendMistakesList() {
+  const words = (_cachedCycleResp && _cachedCycleResp.weekendWords) || [];
+  if (!words.length) { showToast("目前無週末待補救錯題", "warning"); return; }
+  navigator.clipboard.writeText(words.join(", ")).then(() => showToast("已複製週末錯題清單 (" + words.length + " 字)", "success"));
+}
+
+function assignWeekendMistakesAsTask() {
+  const words = (_cachedCycleResp && _cachedCycleResp.weekendWords) || [];
+  if (!words.length) { showToast("目前無週末待補救錯題可出題", "warning"); return; }
+  switchTaskMgrMode("manual");
+  const inp = document.getElementById("tmManualWordsInput");
+  const nm = document.getElementById("tmTaskNameInput");
+  if (inp) inp.value = words.join(", ");
+  if (nm) nm.value = "週末消除大作戰";
+  switchTeacherSubView("taskmgr");
+}
+
+function copyFinalBossWordsList() {
+  const words = (_cachedCycleResp && _cachedCycleResp.finalBossWords) || [];
+  if (!words.length) { showToast("目前無魔王單字", "warning"); return; }
+  navigator.clipboard.writeText(words.join(", ")).then(() => showToast("已複製魔王單字清單 (" + words.length + " 字)", "success"));
+}
+
+function assignFinalBossAsTask() {
+  const words = (_cachedCycleResp && _cachedCycleResp.finalBossWords) || [];
+  if (!words.length) { showToast("目前無魔王單字可出題", "warning"); return; }
+  switchTaskMgrMode("manual");
+  const inp = document.getElementById("tmManualWordsInput");
+  const nm = document.getElementById("tmTaskNameInput");
+  if (inp) inp.value = words.join(", ");
+  if (nm) nm.value = "學期末魔王單字測驗";
+  switchTeacherSubView("taskmgr");
+}
+
+let _cachedDurationList = [];
+let _durationSortCol = "total";
+let _durationSortAsc = false;
+
+function loadStudentDurationAnalytics() {
+  const dInp = document.getElementById("durationTargetDate");
+  if (dInp && !dInp.value) dInp.value = formatDateYMD(new Date());
+  const cSel = document.getElementById("durationClassSelect");
+  const topClsSel = document.getElementById("teacherClassSelect");
+  if (cSel && topClsSel && cSel.options.length <= 1 && topClsSel.options.length > 1) {
+    cSel.innerHTML = topClsSel.innerHTML;
+    cSel.value = topClsSel.value || "all";
+  }
+  const tbody = document.getElementById("durationTbody");
+  if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:var(--text-muted);">載入作答時長統計中...</td></tr>';
+
+  google.script.run
+    .withSuccessHandler(resp => {
+      if (!resp || resp.status !== "success") {
+        if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:var(--danger);">讀取失敗</td></tr>';
+        return;
+      }
+      const sum = resp.summary || {};
+      const elT = document.getElementById("durStatTaskAvg");
+      const elF = document.getElementById("durStatFreeAvg");
+      const elH = document.getElementById("durStatTotalHours");
+      if (elT) elT.textContent = sum.taskAvgStr || "0 分 0 秒";
+      if (elF) elF.textContent = sum.freeAvgStr || "0 分 0 秒";
+      if (elH) elH.textContent = sum.totalHoursStr || "0 小時";
+      _cachedDurationList = resp.students || [];
+      renderDurationTable_();
+    })
+    .withFailureHandler(err => {
+      if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:var(--danger);">連線失敗：' + (err.message || err) + '</td></tr>';
+    })
+    .getStudentDurationAnalytics({
+      username: currentUser,
+      password: currentPass,
+      targetDate: dInp ? dInp.value : "",
+      targetClass: cSel ? cSel.value : "all"
+    });
+}
+
+function _fmtSecLabel_(s) {
+  const n = Number(s) || 0;
+  return Math.floor(n / 60) + " 分 " + Math.round(n % 60) + " 秒";
+}
+
+function renderDurationTable_() {
+  const tbody = document.getElementById("durationTbody");
+  if (!tbody) return;
+  if (!_cachedDurationList.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:var(--text-muted);">尚無學生資料</td></tr>';
+    return;
+  }
+  const key = _durationSortCol === "task" ? "taskSec" : (_durationSortCol === "free" ? "freeSec" : "totalSec");
+  const sorted = _cachedDurationList.slice().sort((a, b) => _durationSortAsc ? (a[key] - b[key]) : (b[key] - a[key]));
+  tbody.innerHTML = sorted.map((st, idx) => (
+    "<tr>" +
+    "<td>" + (idx + 1) + "</td>" +
+    "<td>" + escapeHtml(st.className) + "</td>" +
+    "<td><strong>" + escapeHtml(st.username) + "</strong></td>" +
+    "<td>" + escapeHtml(st.realName) + "</td>" +
+    "<td>" + _fmtSecLabel_(st.taskSec) + "</td>" +
+    "<td>" + _fmtSecLabel_(st.freeSec) + "</td>" +
+    "<td><strong>" + _fmtSecLabel_(st.totalSec) + "</strong></td>" +
+    "</tr>"
+  )).join("");
+}
+
+function sortDurationTable(col) {
+  if (_durationSortCol === col) _durationSortAsc = !_durationSortAsc;
+  else { _durationSortCol = col; _durationSortAsc = false; }
+  renderDurationTable_();
+}
+
+function exportDurationCsv() {
+  if (!_cachedDurationList.length) { showToast("目前無時長紀錄可匯出", "warning"); return; }
+  const headers = ["排行", "班級", "學號", "姓名", "指定測驗時長", "自由練習時長", "今日總作答時長"];
+  let csv = "\uFEFF" + headers.map(safeCsvCell).join(",") + "\n";
+  _cachedDurationList.forEach((st, idx) => {
+    csv += [idx + 1, st.className, st.username, st.realName, _fmtSecLabel_(st.taskSec), _fmtSecLabel_(st.freeSec), _fmtSecLabel_(st.totalSec)].map(safeCsvCell).join(",") + "\n";
+  });
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "學生作答時長_" + formatDateYMD(new Date()) + ".csv";
+  a.click();
+}
+</script>

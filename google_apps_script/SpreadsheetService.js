@@ -719,7 +719,6 @@ function getTodayTaskMap(ss, todayStr) {
   if (!uSheet || uSheet.getLastRow() < 2) return map;
   const uData = uSheet.getDataRange().getValues();
 
-  // 取得全班今日指派任務
   const allTeacherTasks = getTeacherTasksCached_(ss);
   const classTaskAssignedToday = new Map();
   (allTeacherTasks || []).forEach(t => {
@@ -732,42 +731,70 @@ function getTodayTaskMap(ss, todayStr) {
   });
   const schoolWideTaskName = classTaskAssignedToday.get("all") || classTaskAssignedToday.get("全校") || null;
 
+  // 🚀 優先從【學生歷程總庫】單次批量掃描今日任務狀態
+  const cpCovered = new Set();
+  const cpTodayRows = {};
+  try {
+    const lite = cpReadAllLite_(ss);
+    const hMap = getHeaderIndexMap(lite.headers);
+    for (let i = 0; i < lite.rows.length; i++) {
+      const uLower = lite.rows[i][0];
+      cpCovered.add(uLower);
+      const row = lite.rows[i][1];
+      if (formatStandardDateYMD(row[hMap.date]) === targetDateStr) {
+        if (!cpTodayRows[uLower]) cpTodayRows[uLower] = [];
+        cpTodayRows[uLower].push({ row: row, hMap: hMap });
+      }
+    }
+  } catch(_) {}
+
   for (let i = 1; i < uData.length; i++) {
     const u = String(uData[i][0] || "").trim();
     if (!u) continue;
+    const uLower = u.toLowerCase();
     const rawClass = String(uData[i][3] || "").trim();
     const userClass = getStudentClass(u, rawClass).replace(/班$/, "").trim().toLowerCase();
     const assignedTaskName = classTaskAssignedToday.get(userClass) || schoolWideTaskName;
     const isClassAssignedToday = !!assignedTaskName;
 
-    const sSheet = ss.getSheetByName(u);
-    if (sSheet && sSheet.getLastRow() >= 2) {
-      const maxRows = Math.min(sSheet.getLastRow() - 1, 10);
-      const lastCol = sSheet.getLastColumn();
-      if (lastCol >= 1) {
-        const headers = sSheet.getRange(1, 1, 1, lastCol).getValues()[0] || [];
-        const hMap = getHeaderIndexMap(headers);
-        const rows = sSheet.getRange(2, 1, maxRows, lastCol).getValues();
-        for (let r = 0; r < rows.length; r++) {
-          const row = rows[r];
-          if (formatStandardDateYMD(row[hMap.date]) === targetDateStr) {
-            let status = String(row[hMap.status] || "");
-            const score  = String(row[hMap.taskScore] || "—");
-            let tName = String(row[hMap.taskName] || "");
-            if (!status || status === "—") {
-              status = isClassAssignedToday ? "⚪ 未受測" : "⚪ 未指派";
-            }
-            if (!tName || tName === "—") {
-              tName = isClassAssignedToday ? assignedTaskName : "⚪ 未指派";
-            }
-            if (!map[u] || (status.includes("已完成") && score !== "—")) {
-              map[u] = {
-                taskName : tName,
-                score    : score,
-                rate     : String(row[hMap.taskRate] || "—"),
-                status   : status
-              };
-              if (status.includes("已完成")) break;
+    if (cpTodayRows[uLower] && cpTodayRows[uLower].length > 0) {
+      const items = cpTodayRows[uLower];
+      for (let r = 0; r < items.length; r++) {
+        const row = items[r].row;
+        const hMap = items[r].hMap;
+        let status = String(row[hMap.status] || "");
+        const parsedSR = parseScoreAndRate(row[hMap.taskScore], row[hMap.taskRate]);
+        const score = parsedSR.score;
+        let tName = String(row[hMap.taskName] || "");
+        if (!status || status === "—") status = isClassAssignedToday ? "⚪ 未受測" : "⚪ 未指派";
+        if (!tName || tName === "—") tName = isClassAssignedToday ? assignedTaskName : "⚪ 未指派";
+        if (!map[u] || (status.includes("已完成") && score !== "—")) {
+          map[u] = { taskName: tName, score: score, rate: parsedSR.rate, status: status };
+          if (status.includes("已完成")) break;
+        }
+      }
+    } else if (!cpCovered.has(uLower)) {
+      const sSheet = ss.getSheetByName(u);
+      if (sSheet && sSheet.getLastRow() >= 2) {
+        const maxRows = Math.min(sSheet.getLastRow() - 1, 10);
+        const lastCol = sSheet.getLastColumn();
+        if (lastCol >= 1) {
+          const headers = sSheet.getRange(1, 1, 1, lastCol).getValues()[0] || [];
+          const hMap = getHeaderIndexMap(headers);
+          const rows = sSheet.getRange(2, 1, maxRows, lastCol).getValues();
+          for (let r = 0; r < rows.length; r++) {
+            const row = rows[r];
+            if (formatStandardDateYMD(row[hMap.date]) === targetDateStr) {
+              let status = String(row[hMap.status] || "");
+              const parsedSR = parseScoreAndRate(row[hMap.taskScore], row[hMap.taskRate]);
+              const score = parsedSR.score;
+              let tName = String(row[hMap.taskName] || "");
+              if (!status || status === "—") status = isClassAssignedToday ? "⚪ 未受測" : "⚪ 未指派";
+              if (!tName || tName === "—") tName = isClassAssignedToday ? assignedTaskName : "⚪ 未指派";
+              if (!map[u] || (status.includes("已完成") && score !== "—")) {
+                map[u] = { taskName: tName, score: score, rate: parsedSR.rate, status: status };
+                if (status.includes("已完成")) break;
+              }
             }
           }
         }
@@ -775,21 +802,12 @@ function getTodayTaskMap(ss, todayStr) {
     }
 
     if (!map[u]) {
-      if (isClassAssignedToday) {
-        map[u] = {
-          taskName : assignedTaskName,
-          score    : "—",
-          rate     : "—",
-          status   : "⚪ 未受測"
-        };
-      } else {
-        map[u] = {
-          taskName : "⚪ 未指派",
-          score    : "—",
-          rate     : "—",
-          status   : "⚪ 未指派"
-        };
-      }
+      map[u] = {
+        taskName: isClassAssignedToday ? assignedTaskName : "⚪ 未指派",
+        score: "—",
+        rate: "—",
+        status: isClassAssignedToday ? "⚪ 未受測" : "⚪ 未指派"
+      };
     }
   }
   return map;
