@@ -506,7 +506,7 @@ function setStudentDailyQuickDate(preset) {
     const d = new Date(); d.setDate(d.getDate() - 6);
     startStr = formatDateYMD(d);
   } else if (preset === "30days") {
-    const d = new Date(); d.setDate(d.getDate() - 29);
+    const d = new Date(); d.setDate(d.getDate() - 27);
     startStr = formatDateYMD(d);
   } else if (preset === "thisMonth") {
     startStr = formatDateYMD(new Date(today.getFullYear(), today.getMonth(), 1));

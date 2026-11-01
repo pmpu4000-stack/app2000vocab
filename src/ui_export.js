@@ -1367,7 +1367,7 @@ export function initExportRecordsCard(getSummaryFn) {
   const todayDash = _formatYMDLocal(new Date());
   const d7 = new Date(); d7.setDate(d7.getDate() - 6);
   const sevenDaysAgo = _formatYMDLocal(d7);
-  const d30 = new Date(); d30.setDate(d30.getDate() - 29);
+  const d30 = new Date(); d30.setDate(d30.getDate() - 27);
   const thirtyDaysAgo = _formatYMDLocal(d30);
 
   const btnModeSingle = document.getElementById("btn-export-mode-single");
