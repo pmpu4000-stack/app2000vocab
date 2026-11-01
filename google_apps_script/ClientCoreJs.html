@@ -25,7 +25,11 @@ if (typeof google === "undefined" || !google.script || !google.script.run) {
           if (prop in target) return target[prop];
           return function(...args) {
             const gasUrl = "https:\x2F\x2Fscript.google.com/macros/s/AKfycbx1hyCNJxqFMoaJgIxfZqLYIYH00NegI1Yd8NJP6gRjqwOndWGkmr-H9tGvVwK_axM9/exec";
-            const payload = Object.assign({ action: prop }, args[0] || {});
+            let payload = { action: prop };
+            if (args[0] && typeof args[0] === "object") Object.assign(payload, args[0]);
+            if (prop === "saveStudentGoals" && args[1]) payload.goals = args[1];
+            else if (prop === "saveTeacherTask" && args[1]) payload.taskData = args[1];
+            else if (prop === "getTeacherTask") { payload.targetClass = args[1]; payload.targetDate = args[2]; }
             fetch(gasUrl, {
               method: "POST",
               headers: { "Content-Type": "text/plain;charset=utf-8" },

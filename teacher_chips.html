@@ -1497,7 +1497,8 @@ function initStudentWeakWordsCard() {
       if (count < 2) return;
       const zh = (typeof getWordZh === "function") ? getWordZh(word) : "";
       const lv = (typeof getWordLevelNumber === "function") ? getWordLevelNumber(word) : 1;
-      list.push({ word, count, zh, level: lv });
+      const tagInfo = analyzeErrorTag(word, zh, "");
+      list.push({ word, count, zh, level: lv, tag: tagInfo.tag, tagCls: tagInfo.cls, tagIcon: tagInfo.icon });
     });
 
     list.sort((a, b) => b.count - a.count || a.word.localeCompare(b.word));
@@ -1634,6 +1635,7 @@ function initStudentWeakWordsCard() {
               <th style="padding:8px; text-align:center; width:40px;">#</th>
               <th style="padding:8px; text-align:left; width:130px;">單字</th>
               <th style="padding:8px; text-align:left; width:180px;">中文釋義</th>
+              <th style="padding:8px; text-align:center; width:95px;">盲點特徵</th>
               <th style="padding:8px; text-align:center; width:70px;">關卡</th>
               <th style="padding:8px; text-align:center; width:80px;">失誤次數</th>
             </tr>

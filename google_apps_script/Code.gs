@@ -340,19 +340,13 @@ function doPost(e) {
       return jsonResponse(checkAndGetData(params));
     }
     if (action === "getStudentPasswords") {
-      const auth = authenticateUser(ss, params.username, params.password);
-      if (!auth.success || auth.role !== "teacher") return jsonResponse({status:"error", message:"僅教師可查閱學生密碼"});
-      return jsonResponse(getStudentPasswords(ss, auth.className, auth.isAdmin));
+      return jsonResponse(getStudentPasswords(params));
     }
     if (action === "changeStudentPassword") {
-      const auth = authenticateUser(ss, params.username, params.password);
-      if (!auth.success || auth.role !== "teacher") return jsonResponse({status:"error", message:"僅教師可重設學生密碼"});
-      return jsonResponse(changeStudentPassword(ss, params.targetUsername, params.newPassword, auth.className, auth.isAdmin));
+      return jsonResponse(changeStudentPassword(params));
     }
     if (action === "changeOwnPassword") {
-      const auth = authenticateUser(ss, params.username, params.oldPassword);
-      if (!auth.success) return jsonResponse({status:"error", message:"舊密碼驗證失敗"});
-      return jsonResponse(changeOwnPassword(ss, params.username, params.oldPassword, params.newPassword));
+      return jsonResponse(changeOwnPassword(params));
     }
     if (action === "getDeviceLoginLogs") {
       return jsonResponse(getDeviceLoginLogs(params));
@@ -361,26 +355,43 @@ function doPost(e) {
       return jsonResponse(clearDeviceLoginLogs(params));
     }
     if (action === "getErrorLogs") {
-      const auth = authenticateUser(ss, params.username, params.password);
-      if (!auth.success || auth.role !== "teacher") return jsonResponse({status:"error", message:"僅教師可查閱日誌"});
-      return jsonResponse(getErrorLogs(ss));
+      return jsonResponse(getErrorLogs(params));
     }
     if (action === "clearErrorLogs") {
-      const auth = authenticateUser(ss, params.username, params.password);
-      if (!auth.success || auth.role !== "teacher") return jsonResponse({status:"error", message:"僅教師可清空日誌"});
-      return jsonResponse(clearErrorLogs(ss));
+      return jsonResponse(clearErrorLogs(params));
     }
     if (action === "reportClientError") {
       return jsonResponse(reportClientError(params));
     }
     if (action === "getStudentGoals") {
-      return jsonResponse(getStudentGoals(ss, params.username));
+      return jsonResponse(getStudentGoals(params));
     }
     if (action === "saveStudentGoals") {
-      return jsonResponse(saveStudentGoals(ss, params.username, params.goals));
+      return jsonResponse(saveStudentGoals(params, params.goals));
     }
     if (action === "getStudentLeaderboard") {
-      return jsonResponse(getStudentLeaderboard(ss, params.username, params.rankingMode, params.isTeacher));
+      return jsonResponse(getStudentLeaderboard(params));
+    }
+    if (action === "teacherSaveDailyMinutes") {
+      const auth = authenticateUser(ss, params.username, params.password);
+      if (!auth.success || auth.role !== "teacher") return jsonResponse({ status: "error", message: "無教師權限" });
+      const r1 = saveDailyMinutesSetting(ss, auth.realName || auth.username, params.settingData || {});
+      invalidateDailyUsageRulesCache_();
+      return jsonResponse(r1);
+    }
+    if (action === "teacherExtendUsage") {
+      const auth = authenticateUser(ss, params.username, params.password);
+      if (!auth.success || auth.role !== "teacher") return jsonResponse({ status: "error", message: "無教師權限" });
+      const r2 = extendStudentUsageTime(ss, auth.realName || auth.username, params.extendData || {});
+      invalidateDailyUsageRulesCache_();
+      return jsonResponse(r2);
+    }
+    if (action === "teacherToggleDailyUnlock") {
+      const auth = authenticateUser(ss, params.username, params.password);
+      if (!auth.success || auth.role !== "teacher") return jsonResponse({ status: "error", message: "無教師權限" });
+      const r3 = toggleStudentDailyUnlock(ss, auth.realName || auth.username, params.unlockData || {});
+      invalidateDailyUsageRulesCache_();
+      return jsonResponse(r3);
     }
 
     if (action === "login") {
@@ -487,10 +498,11 @@ function doPost(e) {
         }
       }
 
-      const isNewStudent = !uSheet || uSheet.getLastRow() < 2;
+      const uSheet = !raw ? getStudentSheet(ss, auth.username) : null;
+      const isNewStudent = !raw && (!uSheet || uSheet.getLastRow() < 2);
 
       // 備援還原：只要該學生不是新帳號（已有分頁且有紀錄），若 Column B 未能解析出，自動從試算表欄位反向組合還原
-      if ((!records || !records["spellAgent.v2"]) && !isNewStudent) {
+      if ((!records || !records["spellAgent.v2"]) && !isNewStudent && uSheet) {
         try {
           const checkCount = Math.min(uSheet.getLastRow() - 1, 15);
           const rVals = uSheet.getRange(2, 1, checkCount, Math.min(uSheet.getLastColumn(), 23)).getValues();
@@ -523,11 +535,18 @@ function doPost(e) {
       }
 
       let cachedSummary = null;
-      if (uSheet && uSheet.getLastRow() >= 2) {
-        try {
+      try {
+        let firstRow = null, rowVals = null;
+        const cpResSum = getStudentRowsFromCentralPortfolio(ss, auth.username, 1);
+        if (cpResSum && cpResSum.rawData && cpResSum.rawData.length > 0) {
+          firstRow = cpResSum.headers || [];
+          rowVals = cpResSum.rawData[0] || [];
+        } else if (uSheet && uSheet.getLastRow() >= 2) {
           const lastC = Math.min(uSheet.getLastColumn(), 27);
-          const rowVals = uSheet.getRange(2, 1, 1, lastC).getDisplayValues()[0];
-          const firstRow = uSheet.getRange(1, 1, 1, lastC).getValues()[0] || [];
+          rowVals = uSheet.getRange(2, 1, 1, lastC).getDisplayValues()[0];
+          firstRow = uSheet.getRange(1, 1, 1, lastC).getValues()[0] || [];
+        }
+        if (firstRow && rowVals) {
           const hMap = getHeaderIndexMap(firstRow);
           const fmtRatio = (val) => {
             const s = String(val || "").trim();
@@ -566,8 +585,8 @@ function doPost(e) {
               trap: findMod("trap", "填")
             }
           };
-        } catch(_) {}
-      }
+        }
+      } catch(_) {}
 
       const sessionToken = registerStudentDevice(ss, auth.username, auth.realName, auth.className, params.deviceDetails || {
         deviceId: params.deviceId,
@@ -615,13 +634,7 @@ function doPost(e) {
         }
       }
 
-      const lock = LockService.getScriptLock();
-      if (!lock.tryLock(10000)) return jsonResponse({status:"error", message:"伺服器忙碌，請稍後再試"});
-      try { 
-        return handleSaveRecord(ss, params, auth); 
-      } finally { 
-        lock.releaseLock(); 
-      }
+      return handleSaveRecord(ss, params, auth);
     }
 
     // ── 3. 讀取教師指定任務 ──
@@ -1043,13 +1056,51 @@ function syncAndBackfillStudentTaskHistory(ss, username, records, uSheet) {
  */
 function syncAllTaskRecords(ss) {
   if (!ss) ss = SpreadsheetApp.getActiveSpreadsheet();
-  const sheets = ss.getSheets().filter(s => !isSystemSheet(s.getName()));
   const results = [];
   let totalFixed = 0;
+  const checkedUsers = new Set();
 
+  // 1. 優先從【學生歷程總庫】最新一筆備份掃描並回填
+  try {
+    const cpSheet = getCentralPortfolioSheet(ss, false);
+    if (cpSheet && cpSheet.getLastRow() >= 2) {
+      const ab = cpGetColAB_(ss);
+      const seenU = new Set();
+      const firstRows = [];
+      for (let i = 0; i < ab.length; i++) {
+        const u = String(ab[i][0] || "").trim();
+        const uLower = u.toLowerCase();
+        if (u && !seenU.has(uLower)) {
+          seenU.add(uLower);
+          firstRows.push({ u: u, rowNum: i + 2 });
+        }
+      }
+      firstRows.forEach(item => {
+        checkedUsers.add(item.u.toLowerCase());
+        try {
+          const storedJson = cpSheet.getRange(item.rowNum, 3).getValue();
+          const decomp = decompressData(storedJson);
+          const records = decomp ? JSON.parse(decomp) : null;
+          if (records) {
+            const count = syncAndBackfillStudentTaskHistory(ss, item.u, records, getStudentSheet(ss, item.u));
+            if (count > 0) {
+              results.push({ username: item.u, updatedRows: count });
+              totalFixed += count;
+            }
+          }
+        } catch(err) {
+          logError("syncAllTaskRecords/cp", err, item.u, "");
+        }
+      });
+    }
+  } catch(_) {}
+
+  // 2. 掃描尚未在總庫的個別學生分頁
+  const sheets = ss.getSheets().filter(s => !isSystemSheet(s.getName()) && !checkedUsers.has(s.getName().trim().toLowerCase()));
   sheets.forEach(sh => {
     const u = sh.getName();
     if (sh.getLastRow() < 2) return;
+    checkedUsers.add(u.trim().toLowerCase());
     try {
       const storedJson = sh.getRange(2, 2).getValue();
       const decomp = decompressData(storedJson);
@@ -1069,7 +1120,7 @@ function syncAllTaskRecords(ss) {
   clearOverviewCache();
   return {
     status: "success",
-    message: "智慧同步完成：共檢查 " + sheets.length + " 位學生，修復回填 " + totalFixed + " 筆指定測驗紀錄！",
+    message: "智慧同步完成：共檢查 " + checkedUsers.size + " 位學生，修復回填 " + totalFixed + " 筆指定測驗紀錄！",
     details: results
   };
 }

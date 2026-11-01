@@ -15,14 +15,6 @@ function handleSaveRecord(ss, params, auth) {
     const records  = params.records || {};
     if (!username) return jsonResponse({status:"error", message:"未提供帳號"});
 
-  let uSheet = getStudentSheet(ss, username);
-  if (!uSheet) {
-    uSheet = ss.insertSheet(username);
-    ensureStudentSheetColumns(uSheet);
-  } else {
-    ensureStudentSheetColumns(uSheet);
-  }
-
   const now       = new Date();
   const todayStr  = Utilities.formatDate(now, "Asia/Taipei", "yyyy-MM-dd");
   const ts        = Utilities.formatDate(now, "Asia/Taipei", "yyyy-MM-dd HH:mm:ss");
@@ -88,6 +80,10 @@ function handleSaveRecord(ss, params, auth) {
   const studentClass = getStudentClass(username, rawCls);
   const activeTaskObj = getActiveTaskForClass(ss, studentClass, username);
   const hasTaskAssignedToday = activeTaskObj && activeTaskObj.hasTask;
+
+  // 🚀 優先從【學生歷程總庫】取得該生最新一列作為當日/跨日比對基準，並惰性取得舊個人工作表
+  let uSheet = getStudentSheet(ss, username);
+  if (uSheet) ensureStudentSheetColumns(uSheet);
 
   let taskName      = (sum && sum.taskName) ? sum.taskName : (hasTaskAssignedToday ? (activeTaskObj.taskName || "指定測驗") : "⚪ 未指派");
   // 整理答對單字與錯題單字（有參與測驗但未作答之單字，視同錯字納入錯題單字與消滅戰）
@@ -168,21 +164,28 @@ function handleSaveRecord(ss, params, auth) {
     taskRate = `${Math.round((correctWordsCount / assignedWordsCount) * 100)}%`;
   }
 
-  // 檢查試算表目前第 2 列是否已經是今日或過往的紀錄
+  // 檢查【學生歷程總庫】或個人工作表目前最新一列是否已經是今日或過往的紀錄
   let shouldInsertNewRow = false;
   let existingRow = null;
   let sameDay = false;
-  if (uSheet.getLastRow() >= 2) {
+  let headers = [];
+  const cpLatest = getStudentRowsFromCentralPortfolio(ss, username, 1);
+  if (cpLatest && cpLatest.rawData && cpLatest.rawData.length > 0) {
+    headers = cpLatest.headers || [];
+    existingRow = cpLatest.rawData[0];
+    const lastStr = formatStandardDateYMD(existingRow[0]);
+    sameDay = (lastStr === todayStr);
+  } else if (uSheet && uSheet.getLastRow() >= 2) {
     const curCols = uSheet.getLastColumn();
     if (curCols >= 1) {
+      headers = uSheet.getRange(1, 1, 1, curCols).getValues()[0] || [];
       existingRow = uSheet.getRange(2, 1, 1, curCols).getValues()[0];
       const lastStr = formatStandardDateYMD(existingRow[0]);
       sameDay = (lastStr === todayStr);
     }
   }
 
-  // 關鍵保護與多任務支援：所有作答紀錄完整儲存在每個學生自己的分頁中
-  const headers = uSheet.getRange(1, 1, 1, Math.min(uSheet.getLastColumn(), 26)).getValues()[0] || [];
+  // 關鍵保護與多任務支援
   const hMap = getHeaderIndexMap(headers);
   const existingStatus = (existingRow && existingRow[hMap.status]) ? String(existingRow[hMap.status]) : "";
   const existingScore  = (existingRow && existingRow[hMap.taskScore]) ? String(existingRow[hMap.taskScore]) : "";
@@ -194,8 +197,8 @@ function handleSaveRecord(ss, params, auth) {
   const hasRealTodayWords = !!(todayDp && todayDp.words && Object.values(todayDp.words).some(w => w && typeof w === "object" && (w.lastResult === "correct" || w.lastResult === "wrong" || w.a !== undefined)));
   const hasTodayPractice = !!(todayDp && (todayDp.attempts > 0 || hasRealTodayWords));
 
-  if (uSheet.getLastRow() < 2) {
-    // 剛建立的新分頁，直接寫入第 2 列
+  if (!existingRow) {
+    // 尚無任何歷史紀錄，直接寫入首筆
     shouldInsertNewRow = false;
   } else if (sameDay) {
     // 【同日多次存檔】：預設就地更新第 2 列，絕不重複多開新列！
@@ -333,24 +336,26 @@ function handleSaveRecord(ss, params, auth) {
     authVerificationStatus
   ];
 
-  if (shouldInsertNewRow && uSheet.getLastRow() >= 2) {
-    uSheet.insertRowBefore(2);
-  }
-  while (uSheet.getMaxRows() < 2) {
-    uSheet.insertRowAfter(uSheet.getMaxRows());
-  }
-  if (uSheet.getMaxColumns() < rowData.length) {
-    uSheet.insertColumnsAfter(uSheet.getMaxColumns(), rowData.length - uSheet.getMaxColumns());
-  }
-  uSheet.getRange(2, 1, 1, rowData.length)
-    .setValues([rowData]).setHorizontalAlignment("center").setVerticalAlignment("middle");
+  if (uSheet) {
+    if (shouldInsertNewRow && uSheet.getLastRow() >= 2) {
+      uSheet.insertRowBefore(2);
+    }
+    while (uSheet.getMaxRows() < 2) {
+      uSheet.insertRowAfter(uSheet.getMaxRows());
+    }
+    if (uSheet.getMaxColumns() < rowData.length) {
+      uSheet.insertColumnsAfter(uSheet.getMaxColumns(), rowData.length - uSheet.getMaxColumns());
+    }
+    uSheet.getRange(2, 1, 1, rowData.length)
+      .setValues([rowData]).setHorizontalAlignment("center").setVerticalAlignment("middle");
 
-  try {
-    const numFormats = [new Array(rowData.length).fill("@")];
-    for (let c = 6; c <= 10; c++) numFormats[0][c] = "0";
-    numFormats[0][11] = "0%";
-    uSheet.getRange(2, 1, 1, rowData.length).setNumberFormats(numFormats);
-  } catch(_) {}
+    try {
+      const numFormats = [new Array(rowData.length).fill("@")];
+      for (let c = 6; c <= 10; c++) numFormats[0][c] = "0";
+      numFormats[0][11] = "0%";
+      uSheet.getRange(2, 1, 1, rowData.length).setNumberFormats(numFormats);
+    } catch(_) {}
+  }
 
   // 🚀 同步安全寫入【學生歷程總庫】（單一資料庫表集中架構）
   try {
@@ -361,7 +366,7 @@ function handleSaveRecord(ss, params, auth) {
 
   // 【自動清理防護】：僅清理同日且「完全相同任務名稱」的多餘重複暫存列，絕不誤刪已完成的指定測驗列
   try {
-    if (uSheet.getLastRow() > 2) {
+    if (uSheet && uSheet.getLastRow() > 2) {
       const checkRows = Math.min(uSheet.getLastRow() - 1, 15);
       const datesVals = uSheet.getRange(2, 1, checkRows, Math.min(uSheet.getLastColumn(), 26)).getValues();
       let deleteRowIndices = [];
@@ -1032,7 +1037,9 @@ function _getStudentData(ss, username) {
   }
   let rawBVals = [];
   try {
-    rawBVals = sheet.getRange(2, 2, Math.min(maxRowsToRead, 3), 1).getValues();
+    if (sheet && typeof maxRowsToRead !== "undefined") {
+      rawBVals = sheet.getRange(2, 2, Math.min(maxRowsToRead, 3), 1).getValues();
+    }
   } catch(_) {}
 
   let wordList  = [];
@@ -1779,31 +1786,44 @@ function generateClassDashboardSheet() {
     .setHorizontalAlignment("center").setVerticalAlignment("middle").setWrap(true);
   dash.setRowHeight(1,44); dash.setFrozenRows(1);
 
+  let rowsMap = {};
+  // 🚀 優先從【學生歷程總庫】單次批量讀取最新進度列
+  try {
+    const lite = cpReadAllLite_(ss);
+    for (let i = 0; i < lite.rows.length; i++) {
+      const u = lite.rows[i][0];
+      if (!rowsMap[u]) rowsMap[u] = lite.rows[i][1];
+    }
+  } catch(_) {}
+
   const sheets     = ss.getSheets().filter(s=>!isSystemSheet(s.getName()));
   const sheetNames = sheets.map(s=>s.getName());
-  let rowsMap      = {};
+  const missingNames = sheetNames.filter(n => !rowsMap[n.toLowerCase()]);
 
-  try {
-    const resp = Sheets.Spreadsheets.Values.batchGet(ss.getId(), {
-      ranges            : sheetNames.map(n=>`'${n}'!A2:Z2`),
-      valueRenderOption : "FORMATTED_VALUE",
-      majorDimension    : "ROWS"
-    });
-    (resp.valueRanges||[]).forEach((vr,i)=>{
-      rowsMap[sheetNames[i]] = (vr.values||[])[0]||[];
-    });
-  } catch(_) {
-    sheets.forEach(s=>{
-      rowsMap[s.getName()] = s.getLastRow()>=2 ? s.getRange(2,1,1,Math.min(s.getLastColumn(),26)).getDisplayValues()[0] : [];
-    });
+  if (missingNames.length > 0) {
+    try {
+      const resp = Sheets.Spreadsheets.Values.batchGet(ss.getId(), {
+        ranges            : missingNames.map(n=>`'${n}'!A2:Z2`),
+        valueRenderOption : "FORMATTED_VALUE",
+        majorDimension    : "ROWS"
+      });
+      (resp.valueRanges||[]).forEach((vr,i)=>{
+        rowsMap[missingNames[i].toLowerCase()] = (vr.values||[])[0]||[];
+      });
+    } catch(_) {
+      sheets.filter(s => !rowsMap[s.getName().toLowerCase()]).forEach(s=>{
+        rowsMap[s.getName().toLowerCase()] = s.getLastRow()>=2 ? s.getRange(2,1,1,Math.min(s.getLastColumn(),26)).getDisplayValues()[0] : [];
+      });
+    }
   }
 
+  const allStudentNames = Array.from(new Set([...Object.keys(metaMap), ...sheetNames]));
   const now = new Date();
   const rows=[], dataValues=[];
 
-  sheetNames.forEach(name=>{
+  allStudentNames.forEach(name=>{
     const meta    = metaMap[name]||{className:getStudentClass(name,""),realName:""};
-    const row     = rowsMap[name]||[];
+    const row     = rowsMap[name.toLowerCase()]||rowsMap[name]||[];
     const hasData = row.length>0;
 
     let dateStr="尚未練習", active="⚪ 未開始", daysDiff=999;
@@ -1844,8 +1864,8 @@ function generateClassDashboardSheet() {
         aCount = n(9); accStr = String(row[10] || "0%");
         l1 = String(row[11] || "0/0"); l2 = String(row[12] || "0/0"); l3 = String(row[13] || "0/0"); l4 = String(row[14] || "0/0"); l5 = String(row[15] || "0/0");
         mList = String(row[16] || "0/0"); mPick = String(row[17] || "0/0"); mScram = String(row[18] || "0/0"); mTrap = String(row[19] || "0/0");
-      } else if (row.length === 26) {
-        // 舊版 26 欄格式 (含等級贅欄)
+      } else if (row.length >= 26) {
+        // 標準 34 欄（學生歷程總庫）或 26 欄格式
         curStreak = n(4); bestStreak = n(5);
         lCount = n(6); pCount = n(7); mCount = n(8);
         cCount = lCount + pCount + mCount;
@@ -2194,20 +2214,46 @@ function initStudentPasswordSheet() {
 function checkInactiveStudentsAlert() {
   const ss=SpreadsheetApp.getActiveSpreadsheet(), ui=SpreadsheetApp.getUi();
   const now=new Date(), inactive=[], never=[];
+  const latestDates = {};
+  try {
+    const lite = cpReadAllLite_(ss);
+    for (let i = 0; i < lite.rows.length; i++) {
+      const u = lite.rows[i][0];
+      if (!latestDates[u]) latestDates[u] = formatStandardDateYMD(lite.rows[i][1][0]);
+    }
+  } catch(_) {}
+
+  const allUsers = new Set();
+  const uSheet = ss.getSheetByName("使用者清單");
+  if (uSheet && uSheet.getLastRow() >= 2) {
+    uSheet.getRange(2, 1, uSheet.getLastRow() - 1, 3).getValues().forEach(r => {
+      const u = String(r[0] || "").trim();
+      const role = String(r[2] || "student").trim().toLowerCase();
+      if (u && role !== "teacher") allUsers.add(u);
+    });
+  }
   ss.getSheets().forEach(s=>{
     const name=s.getName().trim();
-    if (isSystemSheet(name)) return;
-    if (s.getLastRow()>=2) {
-      const raw = s.getRange(2,1).getValue();
-      const dateStr = formatStandardDateYMD(raw);
-      if (dateStr) {
-        const d = new Date(dateStr.replace(/-/g, "/"));
-        if (!isNaN(d.getTime())) {
-          const days = Math.floor((now - d) / (1000 * 60 * 60 * 24));
-          if (days >= 7) inactive.push({ name, days, date: dateStr });
-        }
+    if (!isSystemSheet(name)) allUsers.add(name);
+  });
+
+  allUsers.forEach(name => {
+    let dateStr = latestDates[name.toLowerCase()] || "";
+    if (!dateStr) {
+      const s = ss.getSheetByName(name);
+      if (s && s.getLastRow() >= 2) {
+        dateStr = formatStandardDateYMD(s.getRange(2, 1).getValue());
       }
-    } else { never.push(name); }
+    }
+    if (dateStr) {
+      const d = new Date(dateStr.replace(/-/g, "/"));
+      if (!isNaN(d.getTime())) {
+        const days = Math.floor((now - d) / (1000 * 60 * 60 * 24));
+        if (days >= 7) inactive.push({ name, days, date: dateStr });
+      }
+    } else {
+      never.push(name);
+    }
   });
   inactive.sort((a,b)=>b.days-a.days);
   let msg=`📅 ${Utilities.formatDate(now,"Asia/Taipei","yyyy-MM-dd HH:mm")}\n\n`;

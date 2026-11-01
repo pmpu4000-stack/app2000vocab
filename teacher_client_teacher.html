@@ -72,6 +72,14 @@ function handleTeacherClassChange(val) {
   renderClassOverviewTable();
   populateStudentSelector(teacherStudents);
   if (isTeacherChartVisible) renderTeacherCharts(teacherOverview);
+  const cCard = document.getElementById("tc-cycles");
+  if (cCard && !cCard.classList.contains("is-collapsed")) loadCycleRecordsAnalytics();
+  const dCard = document.getElementById("tc-duration");
+  if (dCard && !dCard.classList.contains("is-collapsed")) {
+    const dCls = document.getElementById("durationClassSelect");
+    if (dCls) dCls.value = teacherSelectedClass;
+    loadStudentDurationAnalytics();
+  }
 }
 
 function refreshClassOverview() {
