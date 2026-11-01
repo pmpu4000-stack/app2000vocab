@@ -3383,11 +3383,6 @@ export function renderSummary(d) {
     if (taskWordsCount < resolvedAnsCount) taskWordsCount = resolvedAnsCount;
     if (taskWordsCount < tAtt) taskWordsCount = tAtt;
 
-    // 全卷正確率作為熱力圖依據
-    let tRate = (tRec.rate !== undefined && !isNaN(parseInt(tRec.rate, 10)) && parseInt(tRec.rate, 10) > 0 && taskWordsCount === (tAtt || taskWordsCount))
-      ? parseInt(tRec.rate, 10)
-      : (taskWordsCount > 0 ? Math.round((tCor / taskWordsCount) * 100) : (tAtt > 0 ? Math.round((tCor / tAtt) * 100) : (parseInt(tRec.rate) || 0)));
-
     // 核心完成判定：只要狀態明確為已完成、或無未作答且已全數作答完畢
     const isExplicitlyNotFinished = statusStr.includes("中斷") || statusStr.includes("未完成") || statusStr.includes("作答中") || statusStr.includes("未受測") || statusStr.includes("尚未開始") || tRec.inProgress === true;
     const isFinished = !isExplicitlyNotFinished && (statusStr.includes("已完成") || ((tAtt > 0 && tAtt >= taskWordsCount) || (resolvedAnsCount > 0 && resolvedAnsCount >= taskWordsCount)));
@@ -3397,6 +3392,19 @@ export function renderSummary(d) {
       (taskWordsCount > 0 && resolvedAnsCount > 0 && resolvedAnsCount < taskWordsCount) ||
       (taskWordsCount > 0 && tAtt > 0 && tAtt < taskWordsCount)
     );
+
+    // 判定是否有未作答單字 (未作答視同答錯)
+    const hasUnanswered = (taskWordsCount > tAtt) || (resolved.unansweredList && resolved.unansweredList.length > 0) || isUnfinishedAttempt;
+
+    // 全卷正確率 (未作答視同答錯失分，以全卷總題數為分母)
+    const overallRate = taskWordsCount > 0 ? Math.round((tCor / taskWordsCount) * 100) : 0;
+
+    // 若有未作答單字，熱力圖指標嚴格強制採用全卷正確率
+    let tRate = hasUnanswered
+      ? overallRate
+      : (tRec.rate !== undefined && !isNaN(parseInt(tRec.rate, 10)) && parseInt(tRec.rate, 10) > 0 && taskWordsCount === (tAtt || taskWordsCount)
+          ? parseInt(tRec.rate, 10)
+          : overallRate);
 
     // 判定是否為登入作答未完成 (中斷)
     const isIncomplete = !isFinished && (
@@ -3412,29 +3420,31 @@ export function renderSummary(d) {
     const hasLoggedInOrFree = !!(freeRec && freeRec.attempts > 0) || (tRec.freeTested > 0) || statusStr.includes("登入未受測") || statusStr.includes("登入未作答");
 
     let res;
-    if (isFinished) {
-      // 依「正確率」計算六階純綠色量級：<60%、60~69%、70~79%、80~89%、90~99%、100%
+    if (isFinished && !hasUnanswered) {
+      // 依全卷正確率計算六階量級
       const level = tRate < 60 ? 1 : tRate < 70 ? 2 : tRate < 80 ? 3 : tRate < 90 ? 4 : tRate < 100 ? 5 : 6;
       const badgeTier = tRate === 100 ? "tier-green-perfect" : (tRate >= 80 ? "tier-green-high" : (tRate >= 60 ? "tier-green-mid" : "tier-green-low"));
       res = {
         a: tAtt, c: tCor, rate: tRate,
         wordsCount: taskWordsCount,
+        hasUnanswered: false,
         statusType: "completed",
         statusLabel: `正確率 ${tRate}%`,
         levelClass: `h${level}`,
         badgeTier: badgeTier
       };
-    } else if (isIncomplete) {
-      // 登入作答未完成 (方格莫蘭迪柔紫，右側紫底紫框)
-      const curCorr = resolvedCorr.length || tCor;
-      const curTot = taskWordsCount || tAtt || 5;
+    } else if (isIncomplete || hasUnanswered) {
+      // 登入作答未完成 (中斷/有未作答單字)：未作答視同答錯，依全卷正確率著色並標明「全卷正確率」
+      const level = tRate < 60 ? 1 : tRate < 70 ? 2 : tRate < 80 ? 3 : tRate < 90 ? 4 : tRate < 100 ? 5 : 6;
+      const badgeTier = tRate === 100 ? "tier-green-perfect" : (tRate >= 80 ? "tier-green-high" : (tRate >= 60 ? "tier-green-mid" : "tier-green-low"));
       res = {
         a: tAtt, c: tCor, rate: tRate,
         wordsCount: taskWordsCount,
+        hasUnanswered: true,
         statusType: "incomplete",
-        statusLabel: `作答中斷 (${curCorr}/${curTot})`,
-        levelClass: "h-status-blue",
-        badgeTier: "tier-status-blue"
+        statusLabel: `全卷正確率 ${tRate}%`,
+        levelClass: `h${level}`,
+        badgeTier: badgeTier
       };
     } else if (hasLoggedInOrFree) {
       // 登入未受測 (方格清新綠色，右側綠色框)
@@ -3625,7 +3635,9 @@ export function renderSummary(d) {
     if (!taskHeatDayInfoEl) return;
     const stat = getTaskDayStat(dateKey);
     taskHeatDayInfoEl.className = `heat-day-info ${stat.badgeTier}`;
-    if (stat.statusType === "completed") {
+    if (stat.hasUnanswered || stat.statusType === "incomplete") {
+      taskHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 全卷正確率 <b>${stat.rate}%</b>`;
+    } else if (stat.statusType === "completed") {
       taskHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ 正確率 <b>${stat.rate}%</b>`;
     } else {
       taskHeatDayInfoEl.innerHTML = `<b>${dateKey}</b> ｜ <b>${stat.statusLabel}</b>`;
