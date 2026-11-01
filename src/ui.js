@@ -1704,7 +1704,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
           return `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`;
         }).join("");
       } else if (isTrulyPerfect) {
-        wrongContentHtml = `<span class="perfect-score-msg">🎉 全數答對，無答錯單字！</span>`;
+        wrongContentHtml = "";
       } else if (missedCount > 0) {
         const unmastered = (rawWords.length > 0)
           ? rawWords.filter(w => !correctList.includes(String(w).toLowerCase()))
