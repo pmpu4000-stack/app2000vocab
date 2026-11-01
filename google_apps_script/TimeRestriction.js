@@ -535,7 +535,9 @@ function teacherSaveDailyMinutes(param1, param2) {
     settingData = arguments[2] || {};
   } else {
     ss = SpreadsheetApp.getActiveSpreadsheet();
-    teacherUser = (param1 && (param1.username || param1.teacherUser)) || "教師";
+    const auth = authenticateUser(ss, param1 && param1.username, param1 && param1.password);
+    if (!auth.success || auth.role !== "teacher") return { status: "error", message: "無教師權限" };
+    teacherUser = auth.realName || auth.username;
     settingData = (param1 && param1.settingData) || param1 || {};
   }
   return saveDailyMinutesSetting(ss, teacherUser, settingData);
@@ -552,7 +554,9 @@ function teacherExtendUsage(param1, param2) {
     extendData = arguments[2] || {};
   } else {
     ss = SpreadsheetApp.getActiveSpreadsheet();
-    teacherUser = (param1 && (param1.username || param1.teacherUser)) || "教師";
+    const auth = authenticateUser(ss, param1 && param1.username, param1 && param1.password);
+    if (!auth.success || auth.role !== "teacher") return { status: "error", message: "無教師權限" };
+    teacherUser = auth.realName || auth.username;
     extendData = (param1 && param1.extendData) || param1 || {};
   }
   return extendStudentUsageTime(ss, teacherUser, extendData);
@@ -569,7 +573,9 @@ function teacherToggleDailyUnlock(param1, param2) {
     unlockData = arguments[2] || {};
   } else {
     ss = SpreadsheetApp.getActiveSpreadsheet();
-    teacherUser = (param1 && (param1.username || param1.teacherUser)) || "教師";
+    const auth = authenticateUser(ss, param1 && param1.username, param1 && param1.password);
+    if (!auth.success || auth.role !== "teacher") return { status: "error", message: "無教師權限" };
+    teacherUser = auth.realName || auth.username;
     unlockData = (param1 && param1.unlockData) || param1 || {};
   }
   return toggleStudentDailyUnlock(ss, teacherUser, unlockData);
@@ -579,7 +585,14 @@ function teacherToggleDailyUnlock(param1, param2) {
  * 讀取目前所有的時間設定 (供教師管理介面)
  */
 function getTimeRestrictions(param1) {
-  const ss = (param1 && typeof param1.getSheetByName === "function") ? param1 : SpreadsheetApp.getActiveSpreadsheet();
+  let ss;
+  if (param1 && typeof param1.getSheetByName === "function") {
+    ss = param1;
+  } else {
+    ss = SpreadsheetApp.getActiveSpreadsheet();
+    const auth = authenticateUser(ss, param1 && param1.username, param1 && param1.password);
+    if (!auth.success || auth.role !== "teacher") return { status: "error", message: "無教師權限" };
+  }
   const sheet = ensureTimeSettingsSheet(ss);
   const statusInfo = checkTimeRestrictionAllowance(ss, "");
 
@@ -709,7 +722,9 @@ function saveGlobalTimeSetting(param1, param2, param3) {
     timeData = param3;
   } else {
     ss = SpreadsheetApp.getActiveSpreadsheet();
-    teacherUser = (param1 && param1.username) ? param1.username : "教師";
+    const auth = authenticateUser(ss, param1 && param1.username, param1 && param1.password);
+    if (!auth.success || auth.role !== "teacher") return { status: "error", message: "無教師權限" };
+    teacherUser = auth.realName || auth.username;
     timeData = (param1 && param1.timeData) ? param1.timeData : param1;
   }
   const sheet = ensureTimeSettingsSheet(ss);
@@ -773,7 +788,9 @@ function saveStudentTimeSetting(param1, param2, param3) {
     studentData = param3;
   } else {
     ss = SpreadsheetApp.getActiveSpreadsheet();
-    teacherUser = (param1 && param1.username) ? param1.username : "教師";
+    const auth = authenticateUser(ss, param1 && param1.username, param1 && param1.password);
+    if (!auth.success || auth.role !== "teacher") return { status: "error", message: "無教師權限" };
+    teacherUser = auth.realName || auth.username;
     studentData = (param1 && param1.studentData) ? param1.studentData : param1;
   }
   const sheet = ensureTimeSettingsSheet(ss);
@@ -843,6 +860,8 @@ function deleteStudentTimeSetting(param1, param2) {
     username = param2;
   } else {
     ss = SpreadsheetApp.getActiveSpreadsheet();
+    const auth = authenticateUser(ss, param1 && param1.username, param1 && param1.password);
+    if (!auth.success || auth.role !== "teacher") return { status: "error", message: "無教師權限" };
     username = (param1 && param1.targetUsername) ? param1.targetUsername : (param1 && param1.username ? param1.username : param1);
   }
   const sheet = ss.getSheetByName("時間限制設定");
@@ -875,7 +894,9 @@ function saveTimeRestriction(param1, param2, param3) {
     ruleData = param3;
   } else {
     ss = SpreadsheetApp.getActiveSpreadsheet();
-    teacherUser = (param1 && param1.username) ? param1.username : "教師";
+    const auth = authenticateUser(ss, param1 && param1.username, param1 && param1.password);
+    if (!auth.success || auth.role !== "teacher") return { status: "error", message: "無教師權限" };
+    teacherUser = auth.realName || auth.username;
     ruleData = (param1 && param1.ruleData) ? param1.ruleData : param1;
   }
   const sheet = ensureTimeSettingsSheet(ss);
@@ -946,6 +967,8 @@ function deleteTimeRestriction(param1, param2) {
     ruleData = param2;
   } else {
     ss = SpreadsheetApp.getActiveSpreadsheet();
+    const auth = authenticateUser(ss, param1 && param1.username, param1 && param1.password);
+    if (!auth.success || auth.role !== "teacher") return { status: "error", message: "無教師權限" };
     ruleData = (param1 && param1.ruleData) ? param1.ruleData : param1;
   }
   const sheet = ss.getSheetByName("時間限制設定");
@@ -980,7 +1003,9 @@ function quickToggleTodayUnlock(param1, param2) {
     teacherUser = param2;
   } else {
     ss = SpreadsheetApp.getActiveSpreadsheet();
-    teacherUser = (param1 && param1.username) ? param1.username : "教師";
+    const auth = authenticateUser(ss, param1 && param1.username, param1 && param1.password);
+    if (!auth.success || auth.role !== "teacher") return { status: "error", message: "無教師權限" };
+    teacherUser = auth.realName || auth.username;
   }
   const sheet = ensureTimeSettingsSheet(ss);
   const todayYMD = Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy-MM-dd");

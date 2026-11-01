@@ -555,7 +555,10 @@ function authenticateUser(ss, inputUser, inputPass) {
 
       // 自動無感升級明文密碼為 SHA-256 雜湊
       if (!isHashedPassword(rowPass)) {
-        try { sheet.getRange(i + 1, 2).setValue(hashedInput); } catch(_) {}
+        try {
+          sheet.getRange(i + 1, 2).setValue(hashedInput);
+          cache.remove("ALL_USERS_ROSTER_V1");
+        } catch(_) {}
       }
 
       clearLoginFailures(username);

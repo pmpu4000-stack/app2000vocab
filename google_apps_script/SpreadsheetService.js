@@ -219,6 +219,9 @@ function handleSaveRecord(ss, params, auth) {
       if (existingHasCompleted) {
         // 今天已經有完成的指定測驗成果，保留成果不被自主練習沖刷掉
         taskName      = existingTask || taskName;
+        if (hMap.taskAssigned >= 0 && existingRow[hMap.taskAssigned] !== undefined && existingRow[hMap.taskAssigned] !== "—") assignedWordsCount = Number(existingRow[hMap.taskAssigned]) || assignedWordsCount;
+        if (hMap.taskAnswered >= 0 && existingRow[hMap.taskAnswered] !== undefined && existingRow[hMap.taskAnswered] !== "—") answeredWordsCount = Number(existingRow[hMap.taskAnswered]) || answeredWordsCount;
+        if (hMap.taskCorrect >= 0 && existingRow[hMap.taskCorrect] !== undefined && existingRow[hMap.taskCorrect] !== "—") correctWordsCount = Number(existingRow[hMap.taskCorrect]) || correctWordsCount;
         taskScore     = existingScore || taskScore;
         taskRate      = String(existingRow[hMap.taskRate] || taskRate);
         status        = existingStatus || status;
@@ -316,6 +319,7 @@ function handleSaveRecord(ss, params, auth) {
     authVerificationStatus = "⚪ 系統自驗";
   }
 
+  const effectiveTaskActive = hasTaskActivity || (sameDay && existingHasCompleted);
   const rowData = [
     ts, stored,
     curLevel, agentData.points || 0,
@@ -325,9 +329,9 @@ function handleSaveRecord(ss, params, auth) {
     l1Str, l2Str, l3Str, l4Str, l5Str,
     mListenStr, mPickStr, mScrambleStr, mTrapStr,
     taskName,
-    hasTaskActivity || hasTaskAssignedToday ? assignedWordsCount : "—",
-    hasTaskActivity ? answeredWordsCount : (hasTaskAssignedToday ? 0 : "—"),
-    hasTaskActivity ? correctWordsCount : (hasTaskAssignedToday ? 0 : "—"),
+    effectiveTaskActive || hasTaskAssignedToday ? assignedWordsCount : "—",
+    effectiveTaskActive ? answeredWordsCount : (hasTaskAssignedToday ? 0 : "—"),
+    effectiveTaskActive ? correctWordsCount : (hasTaskAssignedToday ? 0 : "—"),
     taskScore, taskRate, status, wrongWordsStr,
     freeTested > 0 ? freeTested : (hasTodayPractice ? 0 : "—"),
     freeTested > 0 ? freeCorrect : (hasTodayPractice ? 0 : "—"),
@@ -1234,6 +1238,7 @@ function getStudentPasswords(creds) {
       if (!auth.isAdmin&&c!==auth.className) continue;
       if (p && !isHashedPassword(p)) {
         sheet.getRange(i+1, 2).setValue(hashPassword(p));
+        try { CacheService.getScriptCache().remove("ALL_USERS_ROSTER_V1"); } catch(_) {}
       }
       students.push({
         username:u,
@@ -1300,6 +1305,7 @@ function changeOwnPassword(creds) {
       if (String(data[i][0]||"").trim()!==auth.username) continue;
       sheet.getRange(i+1,2).setValue(hashPassword(newP));
       clearLoginFailures(auth.username);
+      try { CacheService.getScriptCache().remove("ALL_USERS_ROSTER_V1"); } catch(_) {}
       return {status:"success",message:"✅ 密碼已成功更新！下次登入請使用新密碼。"};
     }
     return {status:"error",message:"找不到帳號資料"};
@@ -1589,8 +1595,9 @@ function onOpen(e) {
 function migrateAllSheetsToVocabBasedUi() {
   const ui = SpreadsheetApp.getUi();
   const res = migrateAllSheetsToVocabBased();
+  const cnt = res.updatedSheetsCount !== undefined ? res.updatedSheetsCount : (res.report && res.report.studentSheetsCleaned ? res.report.studentSheetsCleaned.length : 0);
   ui.alert("📊 單字數基準整理完成",
-    `✅ 已成功整理 ${res.updatedSheetsCount} 個工作表！\n\n所有學生分頁欄位與數值已全面轉為「答對單字數 / 受測單字數」，並同步更新【全班學習總覽】。`,
+    `✅ 已成功整理 ${cnt} 個工作表！\n\n所有學生分頁欄位與數值已全面轉為「答對單字數 / 受測單字數」，並同步更新【全班學習總覽】。`,
     ui.ButtonSet.OK);
 }
 
@@ -1637,17 +1644,18 @@ function cleanDuplicateStudentRecords() {
     const lastRow = s.getLastRow();
     if (lastRow <= 2) return;
 
-    // 檢查最多前 60 列
+    // 檢查最多前 60 列（動態解析表頭以支援 34 欄結構）
+    const lastCol = Math.min(s.getLastColumn(), 35);
+    const hdrs = s.getRange(1, 1, 1, Math.max(lastCol, 22)).getValues()[0] || [];
+    const hMap = getHeaderIndexMap(hdrs);
     const checkCount = Math.min(lastRow - 1, 60);
-    const data = s.getRange(2, 1, checkCount, 22).getValues();
+    const data = s.getRange(2, 1, checkCount, Math.max(hMap.taskName + 1, 22)).getValues();
     const seen = new Set();
     const toDelete = [];
 
     for (let i = 0; i < data.length; i++) {
       const dStr = formatStandardDateYMD(data[i][0]);
-      const task = String(data[i][18] || "自主練習").trim();
-      const score = String(data[i][19] || "—").trim();
-      const status = String(data[i][21] || "—").trim();
+      const task = String(data[i][hMap.taskName] || "自主練習").trim();
       if (!dStr) continue;
 
       // 複合 key：日期 + 任務名稱
@@ -1675,7 +1683,7 @@ function cleanDuplicateStudentRecords() {
     if (cpSheet && cpSheet.getLastRow() > 2) {
       checkedSheets++;
       const lastR = cpSheet.getLastRow();
-      const checkR = Math.min(lastR - 1, 300);
+      const checkR = Math.min(lastR - 1, 2000);
       const cpData = cpSheet.getRange(2, 1, checkR, 24).getValues();
       const cpSeen = new Set();
       const cpToDelete = [];
@@ -1700,6 +1708,7 @@ function cleanDuplicateStudentRecords() {
           deletedRows++;
         } catch(_) {}
       }
+      if (cpToDelete.length > 0) cpInvalidate_();
     }
   } catch(errCP) {
     Logger.log("[CentralPortfolio] dedup error: " + errCP.message);
@@ -1738,6 +1747,7 @@ function migrateAllPasswordsToHash() {
 
   if (passCol.length > 0) {
     sheet.getRange(2,2,passCol.length,1).setValues(passCol);
+    try { CacheService.getScriptCache().remove("ALL_USERS_ROSTER_V1"); } catch(_) {}
   }
 
   ui.alert("🔐 密碼加密遷移完成",

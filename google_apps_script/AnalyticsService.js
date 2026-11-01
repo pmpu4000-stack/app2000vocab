@@ -790,10 +790,14 @@ function saveTaskDurationLimit(param1, param2, param3) {
 
 function getRotationTaskSettings(param1, param2) {
   try {
-    const ss = (param1 && typeof param1.getSheetByName === "function") ? param1 : SpreadsheetApp.getActiveSpreadsheet();
-    const targetClass = (typeof param2 === "string" && param2)
-      ? param2
-      : ((param1 && param1.targetClass) || "all");
+    let targetClass = "all";
+    if (param1 && typeof param1.getSheetByName === "function") {
+      targetClass = (typeof param2 === "string" && param2) ? param2 : "all";
+    } else {
+      const { auth, params } = _resolveTeacherCall_(param1, param2);
+      if (!auth || !auth.success || auth.role !== "teacher") return { status: "error", message: "無權限" };
+      targetClass = (!auth.isAdmin && auth.className) ? auth.className : (params.targetClass || auth.className || "all");
+    }
     const cleanCls = String(targetClass || "all").replace(/班$/, "").trim().toLowerCase() || "all";
     const props = PropertiesService.getScriptProperties();
     const raw = props.getProperty("ROTATION_TASK_CFG_" + cleanCls);
