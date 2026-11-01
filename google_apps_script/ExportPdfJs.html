@@ -1298,31 +1298,31 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
       return `
         <div class="task-score-grid">
           <div class="task-score-subgrid-4">
-            <div class="task-score-item" style="display:flex; flex-direction:column; justify-content:center;">
+            <div class="task-score-item score-corr-item" style="display:flex; flex-direction:column; justify-content:center;">
               <div class="task-score-label" style="font-size:11px;">已答對</div>
               <div class="task-score-val task-score-num-corr">${taskCorrWords}</div>
             </div>
-            <div class="task-score-item" style="display:flex; flex-direction:column; justify-content:center;">
+            <div class="task-score-item score-ans-item" style="display:flex; flex-direction:column; justify-content:center;">
               <div class="task-score-label" style="font-size:11px;">已作答</div>
               <div class="task-score-val task-score-num-ans">${ansCount}</div>
             </div>
-            <div class="task-score-item" style="display:flex; flex-direction:column; justify-content:center;">
+            <div class="task-score-item score-wrong-item" style="display:flex; flex-direction:column; justify-content:center;">
               <div class="task-score-label" style="font-size:11px;">答錯</div>
               <div class="task-score-val task-score-num-wrong">${wrgCount}</div>
             </div>
-            <div class="task-score-item" style="display:flex; flex-direction:column; justify-content:center;">
+            <div class="task-score-item score-unans-item" style="display:flex; flex-direction:column; justify-content:center;">
               <div class="task-score-label" style="font-size:11px;">未作答</div>
               <div class="task-score-val task-score-num-unans">${unansCount}</div>
             </div>
           </div>
           <div class="task-score-subgrid-2">
-            <div class="task-score-item" style="display:flex; flex-direction:column; justify-content:center;">
+            <div class="task-score-item rate-tier-item ${getTier(attRate)}" style="display:flex; flex-direction:column; justify-content:center;">
               <div class="task-score-label" style="font-size:11px;" title="實際有作答題目的答對率">作答正確率</div>
               <div class="task-score-val heat-rate-val ${getTier(attRate)}" style="font-size:22px; font-weight:800; line-height:1.2;">
                 ${ansCount > 0 ? attRate + '%' : '—'}
               </div>
             </div>
-            <div class="task-score-item" style="display:flex; flex-direction:column; justify-content:center;">
+            <div class="task-score-item rate-tier-item ${getTier(ovrRate)}" style="display:flex; flex-direction:column; justify-content:center;">
               <div class="task-score-label" style="font-size:11px;" title="以全卷應測總單字數為分母計算之正確率">全卷正確率</div>
               <div class="task-score-val heat-rate-val ${getTier(ovrRate)}" style="font-size:22px; font-weight:800; line-height:1.2;">
                 ${ovrRate}%

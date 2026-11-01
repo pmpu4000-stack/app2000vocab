@@ -511,19 +511,19 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 [data-theme="dark"] .heat-day-info.tier-blue-perfect b { color: #E0F2FE !important; }
 
 /* 比照熱力圖邏輯：數值純藍階層 (低溫灰藍 -> 頂溫電光蔚藍) */
-.heat-rate-val.tier-6 { color: #0066FF !important; }
-.heat-rate-val.tier-5 { color: #0084FF !important; }
-.heat-rate-val.tier-4 { color: #0284C7 !important; }
-.heat-rate-val.tier-3 { color: #0EA5E9 !important; }
-.heat-rate-val.tier-2 { color: #38BDF8 !important; }
-.heat-rate-val.tier-1 { color: #64748B !important; }
+.rate-tier-item.tier-6 .task-score-label, .rate-tier-item.tier-6 .task-score-val, .heat-rate-val.tier-6 { color: #0066FF !important; }
+.rate-tier-item.tier-5 .task-score-label, .rate-tier-item.tier-5 .task-score-val, .heat-rate-val.tier-5 { color: #0084FF !important; }
+.rate-tier-item.tier-4 .task-score-label, .rate-tier-item.tier-4 .task-score-val, .heat-rate-val.tier-4 { color: #0284C7 !important; }
+.rate-tier-item.tier-3 .task-score-label, .rate-tier-item.tier-3 .task-score-val, .heat-rate-val.tier-3 { color: #0EA5E9 !important; }
+.rate-tier-item.tier-2 .task-score-label, .rate-tier-item.tier-2 .task-score-val, .heat-rate-val.tier-2 { color: #38BDF8 !important; }
+.rate-tier-item.tier-1 .task-score-label, .rate-tier-item.tier-1 .task-score-val, .heat-rate-val.tier-1 { color: #64748B !important; }
 
-[data-theme="dark"] .heat-rate-val.tier-6 { color: #00D2FF !important; text-shadow: 0 0 10px rgba(0,210,255,0.4); }
-[data-theme="dark"] .heat-rate-val.tier-5 { color: #00B4D8 !important; }
-[data-theme="dark"] .heat-rate-val.tier-4 { color: #38BDF8 !important; }
-[data-theme="dark"] .heat-rate-val.tier-3 { color: #7DD3FC !important; }
-[data-theme="dark"] .heat-rate-val.tier-2 { color: #93C5FD !important; }
-[data-theme="dark"] .heat-rate-val.tier-1 { color: #94A3B8 !important; }
+[data-theme="dark"] .rate-tier-item.tier-6 .task-score-label, [data-theme="dark"] .rate-tier-item.tier-6 .task-score-val, [data-theme="dark"] .heat-rate-val.tier-6 { color: #00D2FF !important; text-shadow: 0 0 10px rgba(0,210,255,0.4); }
+[data-theme="dark"] .rate-tier-item.tier-5 .task-score-label, [data-theme="dark"] .rate-tier-item.tier-5 .task-score-val, [data-theme="dark"] .heat-rate-val.tier-5 { color: #00B4D8 !important; }
+[data-theme="dark"] .rate-tier-item.tier-4 .task-score-label, [data-theme="dark"] .rate-tier-item.tier-4 .task-score-val, [data-theme="dark"] .heat-rate-val.tier-4 { color: #38BDF8 !important; }
+[data-theme="dark"] .rate-tier-item.tier-3 .task-score-label, [data-theme="dark"] .rate-tier-item.tier-3 .task-score-val, [data-theme="dark"] .heat-rate-val.tier-3 { color: #7DD3FC !important; }
+[data-theme="dark"] .rate-tier-item.tier-2 .task-score-label, [data-theme="dark"] .rate-tier-item.tier-2 .task-score-val, [data-theme="dark"] .heat-rate-val.tier-2 { color: #93C5FD !important; }
+[data-theme="dark"] .rate-tier-item.tier-1 .task-score-label, [data-theme="dark"] .rate-tier-item.tier-1 .task-score-val, [data-theme="dark"] .heat-rate-val.tier-1 { color: #94A3B8 !important; }
 
 /* 指定測驗 3 大特殊狀態方格 (登入未受測=金黃色, 缺席未受測=純警戒紅, 登入作答未完成=莫蘭迪柔紫) */
 .hc.h-status-pink,
@@ -666,9 +666,20 @@ body.daily-limit-reached #btn-upload {
 .task-score-subgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;width:100%;box-sizing:border-box;height:60px}
 .task-score-subgrid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;width:100%;box-sizing:border-box;height:60px}
 .task-score-subgrid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;width:100%;box-sizing:border-box;height:60px}
+.score-corr-item .task-score-label, .score-corr-item .task-score-val,
+.score-ans-item .task-score-label, .score-ans-item .task-score-val,
 .task-score-num-corr, .task-score-num-ans { color: #1D4ED8 !important; }
+
+.score-wrong-item .task-score-label, .score-wrong-item .task-score-val,
+.score-unans-item .task-score-label, .score-unans-item .task-score-val,
 .task-score-num-wrong, .task-score-num-unans { color: #64748B !important; }
+
+[data-theme="dark"] .score-corr-item .task-score-label, [data-theme="dark"] .score-corr-item .task-score-val,
+[data-theme="dark"] .score-ans-item .task-score-label, [data-theme="dark"] .score-ans-item .task-score-val,
 [data-theme="dark"] .task-score-num-corr, [data-theme="dark"] .task-score-num-ans { color: #7DD3FC !important; }
+
+[data-theme="dark"] .score-wrong-item .task-score-label, [data-theme="dark"] .score-wrong-item .task-score-val,
+[data-theme="dark"] .score-unans-item .task-score-label, [data-theme="dark"] .score-unans-item .task-score-val,
 [data-theme="dark"] .task-score-num-wrong, [data-theme="dark"] .task-score-num-unans { color: #94A3B8 !important; }
 @media (max-width:640px){
   .task-score-grid{grid-template-columns:1fr !important;gap:8px !important}

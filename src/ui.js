@@ -1799,31 +1799,31 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     scoreGridHtml = `
       <div class="task-score-grid">
         <div class="task-score-subgrid-4">
-          <div class="task-score-item">
+          <div class="task-score-item score-corr-item">
             <div class="task-score-label">已答對</div>
             <div class="task-score-val task-score-num-corr">${taskCorrWords}</div>
           </div>
-          <div class="task-score-item">
+          <div class="task-score-item score-ans-item">
             <div class="task-score-label">已作答</div>
             <div class="task-score-val task-score-num-ans">${ansCount}</div>
           </div>
-          <div class="task-score-item">
+          <div class="task-score-item score-wrong-item">
             <div class="task-score-label">答錯</div>
             <div class="task-score-val task-score-num-wrong">${wrgCount}</div>
           </div>
-          <div class="task-score-item">
+          <div class="task-score-item score-unans-item">
             <div class="task-score-label">未作答</div>
             <div class="task-score-val task-score-num-unans">${unansCount}</div>
           </div>
         </div>
         <div class="task-score-subgrid-2">
-          <div class="task-score-item">
+          <div class="task-score-item rate-tier-item ${getHeatmapRateClass(attRate)}">
             <div class="task-score-label" title="實際有作答題目的答對率">作答正確率</div>
             <div class="task-score-val heat-rate-val ${getHeatmapRateClass(attRate)}">
               ${ansCount > 0 ? attRate + '%' : '—'}
             </div>
           </div>
-          <div class="task-score-item">
+          <div class="task-score-item rate-tier-item ${getHeatmapRateClass(ovrRate)}">
             <div class="task-score-label" title="以全卷應測總單字數為分母計算之正確率">全卷正確率</div>
             <div class="task-score-val heat-rate-val ${getHeatmapRateClass(ovrRate)}">
               ${ovrRate}%
