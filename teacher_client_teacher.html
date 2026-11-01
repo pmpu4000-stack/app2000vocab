@@ -848,7 +848,7 @@ function triggerCleanupUnusedSheets() {
       hideToast();
       alert("❌ 執行失敗：" + (err.message || err));
     })
-    .cleanupUnusedSheets();
+    .cleanupUnusedSheets({ username: currentUser, password: currentPass });
 }
 
 // ════════════════════════════════════════
@@ -2428,8 +2428,9 @@ function renderErrorRanking(ranking) {
   if (!container) return;
 
   if (!ranking || ranking.length === 0) {
-    const comp = (currentAnalyticsData && currentAnalyticsData.completedCount) || 0;
-    const perf = (currentAnalyticsData && currentAnalyticsData.perfectCount) || 0;
+    const sumObj = (currentAnalyticsData && currentAnalyticsData.summary) || currentAnalyticsData || {};
+    const comp = sumObj.completedCount || 0;
+    const perf = sumObj.perfectCount || 0;
     let emptyIcon = "🎉";
     let emptyTitle = "太棒了！本次測驗全班無任何錯題，全員全對！";
     let emptyDesc = "學生對本次出題單字已具備高度精通度。";

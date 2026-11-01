@@ -20,7 +20,7 @@ const SYS = {
   BACKUP_FOLDER      : "【備份庫】學生學習歷程資料",
   PORTFOLIO_SHEET    : "學生歷程總庫",
   SYSTEM_SHEETS      : new Set([
-    "全班學習總覽","使用者清單","指定單字任務","錯誤日誌","時間限制設定","學生歷程總庫","裝置登入歷程"
+    "全班學習總覽","使用者清單","指定單字任務","錯誤日誌","時間限制設定","學生歷程總庫","裝置登入歷程","系統目標設定","學習目標"
   ])
 };
 
@@ -820,8 +820,14 @@ function jsonResponse(obj) {
 // 7. 自動清理試算表無用分頁 (Cleanup Unused Sheets)
 // ════════════════════════════════════════════════════════════════════
 
-function cleanupUnusedSheets() {
+function cleanupUnusedSheets(creds) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
+  if (creds && typeof creds === "object" && (creds.username !== undefined || creds.password !== undefined)) {
+    const auth = authenticateUser(ss, creds.username, creds.password);
+    if (!auth.success || auth.role !== "teacher") {
+      return { status: "error", message: "僅教師或管理員可執行工作表清理" };
+    }
+  }
   const sheets = ss.getSheets();
 
   // 1. 取得名冊中合法的學生帳號
@@ -838,7 +844,7 @@ function cleanupUnusedSheets() {
 
   // 2. 系統核心必要工作表（絕不刪除）
   const essentialSheets = new Set([
-    "全班學習總覽", "使用者清單", "指定單字任務", "錯誤日誌", "時間限制設定", "學生歷程總庫", "裝置登入歷程"
+    "全班學習總覽", "使用者清單", "指定單字任務", "錯誤日誌", "時間限制設定", "學生歷程總庫", "裝置登入歷程", "系統目標設定", "學習目標"
   ]);
 
   // 3. 明確棄用、過渡或預設空白分頁清單

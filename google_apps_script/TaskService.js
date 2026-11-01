@@ -208,13 +208,16 @@ function getWeekendRemediationTask(ss, cleanClass, username, completedTasksToday
     if (headers && uVals) {
       const hMap = getHeaderIndexMap(headers);
 
+      const isEngWord = w => /^[a-zA-Z]+(?:[-'][a-zA-Z]+)*$/.test(w);
       for (let r = 0; r < uVals.length; r++) {
         const rowD = formatStandardDateYMD(uVals[r][0]);
         const tName = String(uVals[r][hMap.taskName] || "").trim().toLowerCase();
         const score = String(uVals[r][hMap.taskScore] || "").trim();
         const status = String(uVals[r][hMap.status] || "").trim();
         const wrongStr = String(uVals[r][hMap.wrong] || "").trim();
-        const wrongList = wrongStr ? wrongStr.split(/[\s,;\n\r]+/).map(w => w.trim().toLowerCase()).filter(Boolean) : [];
+        const wrongList = (wrongStr && !wrongStr.includes("無錯題") && !wrongStr.includes("應測單字") && !wrongStr.includes("未完成") && wrongStr !== "—")
+          ? wrongStr.split(/[\s,;\n\r]+/).map(w => w.trim().toLowerCase()).filter(isEngWord)
+          : [];
         const isDone = (status.includes("已完成") || (score !== "—" && score !== ""));
 
         // 注意：自由練習錯題不納入週末待攻克！維持自主安全學習

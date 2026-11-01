@@ -111,8 +111,9 @@ function getDailyTaskAnalytics(formData) {
           const parsed = parseScoreAndRate(recData[r][5], recData[r][6]);
           const status = String(recData[r][10] || "");
           const wrongWordsStr = String(recData[r][12] || "");
-          const wrongWords = wrongWordsStr
-            ? wrongWordsStr.split(/[,;\s]+/).map(w => w.trim().toLowerCase()).filter(w => w.length > 0)
+          const isEngWord = w => /^[a-zA-Z]+(?:[-'][a-zA-Z]+)*$/.test(w);
+          const wrongWords = (wrongWordsStr && !wrongWordsStr.includes("無錯題") && !wrongWordsStr.includes("應測單字") && !wrongWordsStr.includes("未完成") && wrongWordsStr !== "—")
+            ? wrongWordsStr.split(/[,;\s]+/).map(w => w.trim().toLowerCase()).filter(isEngWord)
             : [];
 
           dayRecordsMap[u] = {
@@ -445,8 +446,9 @@ function getDateRangePerformanceAnalytics(formData) {
           const attempts = parseInt(recData[r][7], 10) || 0;
           const correct = parseInt(recData[r][8], 10) || 0;
           const wrongWordsStr = String(recData[r][12] || "");
-          const wrongWords = wrongWordsStr
-            ? wrongWordsStr.split(/[,;\s]+/).map(w => w.trim().toLowerCase()).filter(w => w.length > 0)
+          const isEngWord = w => /^[a-zA-Z]+(?:[-'][a-zA-Z]+)*$/.test(w);
+          const wrongWords = (wrongWordsStr && !wrongWordsStr.includes("無錯題") && !wrongWordsStr.includes("應測單字") && !wrongWordsStr.includes("未完成") && wrongWordsStr !== "—")
+            ? wrongWordsStr.split(/[,;\s]+/).map(w => w.trim().toLowerCase()).filter(isEngWord)
             : [];
 
           let points = null;
@@ -675,7 +677,6 @@ function collectAnalyticsTaskRecords(ss, allStudents) {
 
   const coveredStudents = new Set();
   try {
-    // 僅採用「已完成舊分頁回填」之學生（cpbf_ 標記），其餘回退讀取舊分頁以確保歷史完整
     const marks = PropertiesService.getScriptProperties().getProperties();
     const lite = cpReadAllLite_(ss);
     const hMap = getHeaderIndexMap(lite.headers);
@@ -683,7 +684,7 @@ function collectAnalyticsTaskRecords(ss, allStudents) {
     for (let i = 0; i < lite.rows.length; i++) {
       const u = lite.rows[i][0];
       const st = studentMap[u];
-      if (!st || !marks["cpbf_" + u]) continue;
+      if (!st) continue;
       coveredStudents.add(u);
       perUser[u] = (perUser[u] || 0) + 1;
       if (perUser[u] > 60) continue;
@@ -695,14 +696,23 @@ function collectAnalyticsTaskRecords(ss, allStudents) {
           row[hMap.taskName] || "自主練習",
           row[hMap.taskScore] || "—",
           row[hMap.taskRate] || "—",
-          row[hMap.correct] || 0,
           row[hMap.attempts] || 0,
+          row[hMap.correct] || 0,
           row[hMap.accuracy] || "0%",
           row[hMap.status] || "—",
           formatStandardDateTime(row[hMap.date]),
           row[hMap.wrong] || ""
         ]);
       }
+    }
+    // 若舊分頁有學生尚未標記 cpbf_，僅當舊分頁確實存在時才移除 coveredStudents 讓下方 fallback 補充
+    if (coveredStudents.size > 0) {
+      coveredStudents.forEach(u => {
+        if (!marks["cpbf_" + u]) {
+          const st = studentMap[u];
+          if (st && ss.getSheetByName(st.username)) coveredStudents.delete(u);
+        }
+      });
     }
   } catch(errCP) {
     Logger.log("[Analytics] CP batch read error: " + errCP.message);
@@ -728,8 +738,8 @@ function collectAnalyticsTaskRecords(ss, allStudents) {
                 row[hMap.taskName] || "自主練習",
                 row[hMap.taskScore] || "—",
                 row[hMap.taskRate] || "—",
-                row[hMap.correct] || 0,
                 row[hMap.attempts] || 0,
+                row[hMap.correct] || 0,
                 row[hMap.accuracy] || "0%",
                 row[hMap.status] || "—",
                 formatStandardDateTime(row[hMap.date]),

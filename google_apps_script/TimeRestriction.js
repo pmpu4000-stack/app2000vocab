@@ -695,20 +695,25 @@ function getTimeRestrictions(param1) {
 function getConquerRollSettings() {
   try {
     const raw = PropertiesService.getScriptProperties().getProperty("CONQUER_ROLL_SETTINGS");
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return Object.assign({ status: "success", settings: parsed }, parsed);
+    }
   } catch(_) {}
-  return { rollTaskMistakes: true, rollFreeMistakes: false, semesterStartDate: "", manualCurrentWeek: 0 };
+  const def = { rollTaskMistakes: true, rollFreeMistakes: false, semesterStartDate: "", manualCurrentWeek: 0 };
+  return Object.assign({ status: "success", settings: def }, def);
 }
 
 function saveConquerRollSettings(param1, settingsData) {
   const ss = (param1 && typeof param1.getSheetByName === "function") ? param1 : SpreadsheetApp.getActiveSpreadsheet();
-  const auth = authenticateUser(ss, settingsData.username, settingsData.password);
+  const payload = (param1 && typeof param1.getSheetByName === "function") ? (settingsData || {}) : (param1 || settingsData || {});
+  const auth = authenticateUser(ss, payload.username, payload.password);
   if (!auth.success || auth.role !== "teacher") return { status: "error", message: "無教師權限" };
   const data = {
-    rollTaskMistakes: settingsData.rollTaskMistakes !== false,
-    rollFreeMistakes: !!settingsData.rollFreeMistakes,
-    semesterStartDate: settingsData.semesterStartDate ? String(settingsData.semesterStartDate).trim() : "",
-    manualCurrentWeek: Number.isInteger(Number(settingsData.manualCurrentWeek)) ? Number(settingsData.manualCurrentWeek) : 0
+    rollTaskMistakes: payload.rollTaskMistakes !== false,
+    rollFreeMistakes: !!payload.rollFreeMistakes,
+    semesterStartDate: payload.semesterStartDate ? String(payload.semesterStartDate).trim() : "",
+    manualCurrentWeek: Number.isInteger(Number(payload.manualCurrentWeek)) ? Number(payload.manualCurrentWeek) : 0
   };
   PropertiesService.getScriptProperties().setProperty("CONQUER_ROLL_SETTINGS", JSON.stringify(data));
   return { status: "success", message: "✅ 待攻克單字規則與週次設定已成功更新！", settings: data };

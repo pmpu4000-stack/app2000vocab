@@ -968,10 +968,12 @@ function _getStudentData(ss, username) {
   let sheet = null;
   let headers = null;
   let rawData = null;
+  let maxRowsToRead = 0;
 
   if (cpRes && cpRes.rawData && cpRes.rawData.length > 0) {
     headers = cpRes.headers;
     rawData = cpRes.rawData;
+    maxRowsToRead = rawData.length;
   } else {
     sheet = getStudentSheet(ss, cleanU);
     if (!sheet || sheet.getLastRow() < 2) {
@@ -988,7 +990,7 @@ function _getStudentData(ss, username) {
 
     const lastRow = sheet.getLastRow();
     const lastCol = sheet.getLastColumn();
-    const maxRowsToRead = Math.min(lastRow - 1, 60);
+    maxRowsToRead = Math.min(lastRow - 1, 60);
     headers = sheet.getRange(1, 1, 1, lastCol).getDisplayValues()[0];
     rawData = sheet.getRange(2, 1, maxRowsToRead, lastCol).getDisplayValues();
 
