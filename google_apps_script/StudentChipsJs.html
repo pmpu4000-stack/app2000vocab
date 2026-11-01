@@ -1529,7 +1529,7 @@ function initStudentWeakWordsCard() {
 
     const statText = document.getElementById("st-weak-words-stat-text");
     const rangeLabel = document.getElementById("st-weak-words-filter-label");
-    const rangeName = currentRange === "7" ? "近 7 天" : (currentRange === "14" ? "近 14 天" : (currentRange === "30" ? "近 30 天" : "全部歷史"));
+    const rangeName = currentRange === "7" ? "近 7 天" : (currentRange === "14" ? "近 14 天" : (currentRange === "28" ? "近 28 天" : "全部歷史"));
     if (rangeLabel) rangeLabel.textContent = `${rangeName}統計`;
 
     const totalErrors = list.reduce((sum, item) => sum + item.count, 0);
@@ -1601,7 +1601,7 @@ function initStudentWeakWordsCard() {
     btnCopy.onclick = () => {
       const list = getWeakWordsForRange(currentRange);
       if (list.length === 0) { showToast("此區間尚無常錯單字可複製。", "warning"); return; }
-      const rangeName = currentRange === "7" ? "近 7 天" : (currentRange === "14" ? "近 14 天" : (currentRange === "30" ? "近 30 天" : "全部歷史"));
+      const rangeName = currentRange === "7" ? "近 7 天" : (currentRange === "14" ? "近 14 天" : (currentRange === "28" ? "近 28 天" : "全部歷史"));
       let text = `【📝 個人常錯單字複習卡 (${rangeName})】\n`;
       list.forEach((item, idx) => {
         text += `${idx + 1}. ${item.word} [L${item.level}] - ${item.zh || ""} (失誤 ${item.count} 次)\n`;
@@ -1669,7 +1669,7 @@ function initStudentWeakWordsCard() {
         return;
       }
 
-      const rangeName = currentRange === "7" ? "近 7 天" : (currentRange === "14" ? "近 14 天" : (currentRange === "30" ? "近 30 天" : "全部歷史"));
+      const rangeName = currentRange === "7" ? "近 7 天" : (currentRange === "14" ? "近 14 天" : (currentRange === "28" ? "近 28 天" : "全部歷史"));
       previewBody.innerHTML = buildWeakReportHtml(list, rangeName);
       previewContainer.style.display = "block";
       previewContainer.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -1687,7 +1687,7 @@ function initStudentWeakWordsCard() {
           "https:\x2F\x2Fcdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js",
           "https:\x2F\x2Fcdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"
         );
-        const rangeName = currentRange === "7" ? "近 7 天" : (currentRange === "14" ? "近 14 天" : (currentRange === "30" ? "近 30 天" : "全部歷史"));
+        const rangeName = currentRange === "7" ? "近 7 天" : (currentRange === "14" ? "近 14 天" : (currentRange === "28" ? "近 28 天" : "全部歷史"));
         const printDiv = document.createElement("div");
         printDiv.innerHTML = buildWeakReportHtml(list, rangeName);
         html2pdfLib().from(printDiv).set({

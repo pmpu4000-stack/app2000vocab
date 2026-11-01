@@ -149,7 +149,7 @@ export function initWeakWordsCard() {
 
     const statText = document.getElementById("weak-words-stat-text");
     const rangeLabel = document.getElementById("weak-words-filter-label");
-    const rangeName = currentRange === "7" ? "近 7 天" : (currentRange === "14" ? "近 14 天" : (currentRange === "30" ? "近 30 天" : "全部歷史"));
+    const rangeName = currentRange === "7" ? "近 7 天" : (currentRange === "14" ? "近 14 天" : (currentRange === "28" ? "近 28 天" : "全部歷史"));
     if (rangeLabel) rangeLabel.textContent = `${rangeName}統計`;
 
     const totalErrors = list.reduce((sum, item) => sum + item.count, 0);
@@ -221,7 +221,7 @@ export function initWeakWordsCard() {
     btnCopy.onclick = () => {
       const list = getWeakWordsForRange(currentRange);
       if (list.length === 0) { alert("此區間尚無常錯單字可複製。"); return; }
-      const rangeName = currentRange === "7" ? "近 7 天" : (currentRange === "14" ? "近 14 天" : (currentRange === "30" ? "近 30 天" : "全部歷史"));
+      const rangeName = currentRange === "7" ? "近 7 天" : (currentRange === "14" ? "近 14 天" : (currentRange === "28" ? "近 28 天" : "全部歷史"));
       let text = `【📝 個人常錯單字複習卡 (${rangeName})】\n`;
       list.forEach((item, idx) => {
         text += `${idx + 1}. ${item.word} [L${item.level}] - ${item.zh || ""} (失誤 ${item.count} 次)\n`;
@@ -284,7 +284,7 @@ export function initWeakWordsCard() {
         alert("此區間尚無常錯單字可檢視。");
         return;
       }
-      const rangeName = currentRange === "7" ? "近 7 天" : (currentRange === "14" ? "近 14 天" : (currentRange === "30" ? "近 30 天" : "全部歷史"));
+      const rangeName = currentRange === "7" ? "近 7 天" : (currentRange === "14" ? "近 14 天" : (currentRange === "28" ? "近 28 天" : "全部歷史"));
       if (previewBody) {
         previewBody.innerHTML = buildWeakReportHtml(list, rangeName);
       }
@@ -311,7 +311,7 @@ export function initWeakWordsCard() {
           "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js",
           "https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"
         );
-        const rangeName = currentRange === "7" ? "近 7 天" : (currentRange === "14" ? "近 14 天" : (currentRange === "30" ? "近 30 天" : "全部歷史"));
+        const rangeName = currentRange === "7" ? "近 7 天" : (currentRange === "14" ? "近 14 天" : (currentRange === "28" ? "近 28 天" : "全部歷史"));
         const printDiv = document.createElement("div");
         printDiv.style.padding = "20px";
         printDiv.style.fontFamily = "system-ui, sans-serif";
