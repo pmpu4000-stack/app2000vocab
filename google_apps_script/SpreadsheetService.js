@@ -2743,7 +2743,7 @@ function ensureCentralPortfolioColumns(sheet) {
       "LEVEL 1 入門\n(答對/受測字數)", "LEVEL 2 基礎\n(答對/受測字數)",
       "LEVEL 3 進階\n(答對/受測字數)", "LEVEL 4 挑戰\n(答對/受測字數)", "LEVEL 5 精熟\n(答對/受測字數)",
       "🎧 聽與拼\n(答對/受測字數)", "✅ 選拼法\n(答對/受測字數)", "🧩 字母重組\n(答對/受測字數)", "🖍️ 填空陷阱\n(答對/受測字數)",
-      "指定測驗任務名稱", "指定測驗施測字數", "指定測驗作答字數", "指定測驗答對字數", "指定測驗成績", "指定測驗正確率", "練習狀態", "測驗錯題單字",
+      "指定測驗任務名稱", "指定測驗施測字數", "指定測驗作答字數", "指定測驗答對字數", "指定測驗答對比例", "指定測驗正確率", "練習狀態", "測驗錯題單字",
       "自由練習受測字數", "自由練習答對字數", "自由練習正確率", "自由練習錯題單字",
       "防偽驗證"
     ];
@@ -2753,6 +2753,14 @@ function ensureCentralPortfolioColumns(sheet) {
       sheet.setFrozenRows(1);
       sheet.setFrozenColumns(1);
       try { sheet.hideColumns(3); } catch(_) {}
+    }
+        // 一次性自動更新總庫第 1 列的 W1~AA1 欄位標題，保持與最新命名同步
+    const hdrProp = PropertiesService.getScriptProperties();
+    if (!hdrProp.getProperty("CP_HDR_V2")) {
+      try {
+        sheet.getRange(1, 23, 1, 5).setValues([["指定測驗任務名稱", "指定測驗施測字數", "指定測驗作答字數", "指定測驗答對字數", "指定測驗答對比例"]]);
+        hdrProp.setProperty("CP_HDR_V2", "1");
+      } catch(_) {}
     }
     // 一次性套用整欄文字格式（舊版建立之總庫自動補正）
     const props = PropertiesService.getScriptProperties();
