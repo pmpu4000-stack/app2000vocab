@@ -116,7 +116,7 @@ function getDailyTaskAnalytics(formData) {
             ? wrongWordsStr.split(/[,;\s]+/).map(w => w.trim().toLowerCase()).filter(isEngWord)
             : [];
 
-          dayRecordsMap[u] = {
+          dayRecordsMap[u.toLowerCase()] = {
             date        : dStr,
             className   : c,
             username    : u,
@@ -144,7 +144,7 @@ function getDailyTaskAnalytics(formData) {
 
     // 合併清單：遍歷班級應測學生
     allStudents.forEach(st => {
-      const rec = dayRecordsMap[st.username];
+      const rec = dayRecordsMap[st.username.toLowerCase()];
       if (rec) {
         const isCompleted = rec.status.includes("已完成") && rec.score !== "—";
         const isInProgress = rec.status.includes("作答中") || rec.status.includes("進行中");
@@ -439,7 +439,8 @@ function getDateRangePerformanceAnalytics(formData) {
 
       if (dStr >= startDate && dStr <= endDate && u) {
         if (cleanTargetClass === "all" || cClean === cleanTargetClass) {
-          if (!userRecordsMap[u]) userRecordsMap[u] = {};
+          const uLower = u.toLowerCase();
+          if (!userRecordsMap[uLower]) userRecordsMap[uLower] = {};
 
           const parsed = parseScoreAndRate(recData[r][5], recData[r][6]);
           const status = String(recData[r][10] || "");
@@ -457,7 +458,7 @@ function getDateRangePerformanceAnalytics(formData) {
             if (!isNaN(num)) points = num <= 1 ? num * 100 : num;
           }
 
-          userRecordsMap[u][dStr] = {
+          userRecordsMap[uLower][dStr] = {
             date: dStr,
             taskName: String(recData[r][4] || "每日任務"),
             score: parsed.score,
@@ -472,7 +473,7 @@ function getDateRangePerformanceAnalytics(formData) {
 
           wrongWords.forEach(w => {
             if (!wordErrorCountMap[w]) wordErrorCountMap[w] = new Set();
-            wordErrorCountMap[w].add(u);
+            wordErrorCountMap[w].add(uLower);
           });
         }
       }
@@ -486,7 +487,7 @@ function getDateRangePerformanceAnalytics(formData) {
     let attentionCount = 0;
 
     const studentRecords = allStudents.map(st => {
-      const uMap = userRecordsMap[st.username] || {};
+      const uMap = userRecordsMap[st.username.toLowerCase()] || {};
       let studentAttempts = 0;
       let studentCorrect = 0;
       let activeDays = 0;
@@ -1015,6 +1016,8 @@ function getStudentDurationAnalytics(param1, param2, param3) {
     const hMap = getHeaderIndexMap(lite.headers);
     const byStudent = {};
     const cpCovered = new Set();
+    let marks = {};
+    try { marks = PropertiesService.getScriptProperties().getProperties() || {}; } catch(_) {}
     for (let i = 0; i < lite.rows.length; i++) {
       const u = lite.rows[i][0];
       cpCovered.add(u);
@@ -1028,10 +1031,10 @@ function getStudentDurationAnalytics(param1, param2, param3) {
       }
     }
 
-    // 補充讀取尚未遷移至學生歷程總庫的舊個人分頁
+    // 補充讀取尚未完全遷移至學生歷程總庫的舊個人分頁
     allStudents.forEach(st => {
       const uLower = st.username.toLowerCase();
-      if (cpCovered.has(uLower)) return;
+      if (cpCovered.has(uLower) && marks["cpbf_" + uLower]) return;
       const uSheet = getStudentSheet(ss, st.username);
       if (uSheet && uSheet.getLastRow() >= 2) {
         const maxR = Math.min(uSheet.getLastRow() - 1, 15);

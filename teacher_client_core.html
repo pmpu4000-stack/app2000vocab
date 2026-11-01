@@ -27,6 +27,11 @@ if (typeof google === "undefined" || !google.script || !google.script.run) {
             const gasUrl = "https:\x2F\x2Fscript.google.com/macros/s/AKfycbx1hyCNJxqFMoaJgIxfZqLYIYH00NegI1Yd8NJP6gRjqwOndWGkmr-H9tGvVwK_axM9/exec";
             let payload = { action: prop };
             if (args[0] && typeof args[0] === "object") Object.assign(payload, args[0]);
+            else if (typeof args[0] === "string") {
+              payload.username = args[0];
+              if (typeof args[1] === "string") payload.password = args[1];
+              if (prop === "changeStudentPassword") { payload.targetStudent = args[2]; payload.newPassword = args[3]; }
+            }
             if (prop === "saveStudentGoals" && args[1]) payload.goals = args[1];
             else if (prop === "saveTeacherTask" && args[1]) payload.taskData = args[1];
             else if (prop === "getTeacherTask") { payload.targetClass = args[1]; payload.targetDate = args[2]; }
