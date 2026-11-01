@@ -823,7 +823,8 @@ function saveRotationTaskSettings(param1, param2, param3) {
   try {
     const { auth, params } = _resolveTeacherCall_(param1, param2, param3);
     if (!auth || !auth.success || auth.role !== "teacher") return { status: "error", message: "無權限" };
-    const cleanCls = String(params.targetClass || auth.className || "all").replace(/班$/, "").trim().toLowerCase() || "all";
+    const targetCls = (!auth.isAdmin && auth.className) ? auth.className : (params.targetClass || auth.className || "all");
+    const cleanCls = String(targetCls || "all").replace(/班$/, "").trim().toLowerCase() || "all";
     const cfg = {
       scope: String(params.scope || "all"),
       count: parseInt(params.count, 10) || 20,
@@ -843,7 +844,8 @@ function advanceRotationTaskPointer(param1, param2, param3) {
   try {
     const { ss, auth, params } = _resolveTeacherCall_(param1, param2, param3);
     if (!auth || !auth.success || auth.role !== "teacher") return { status: "error", message: "無權限" };
-    const cleanCls = String(params.targetClass || auth.className || "all").replace(/班$/, "").trim().toLowerCase() || "all";
+    const targetCls = (!auth.isAdmin && auth.className) ? auth.className : (params.targetClass || auth.className || "all");
+    const cleanCls = String(targetCls || "all").replace(/班$/, "").trim().toLowerCase() || "all";
     const cur = getRotationTaskSettings(ss, cleanCls).settings || { scope: "all", count: 20, pointer: 0, taskName: "每日指定單字測驗" };
     const step = parseInt(params.count || cur.count, 10) || 20;
     const dir = String(params.direction || "next");
@@ -925,7 +927,7 @@ function getCycleRecordsAnalytics(param1, param2, param3) {
       const wrongStr = String(row[12] || "");
       if ((tName === "自主練習" || tName === "⚪ 未指派") && (!scoreStr || scoreStr === "—")) continue;
 
-      const wrongList = (wrongStr && !wrongStr.includes("無錯題") && wrongStr !== "—")
+      const wrongList = (wrongStr && !wrongStr.includes("無錯題") && !wrongStr.includes("應測單字") && !wrongStr.includes("未完成") && wrongStr !== "—")
         ? wrongStr.split(/[\s,;\n\r]+/).map(w => w.trim().toLowerCase()).filter(isEngWord)
         : [];
       const isWeekendTask = tName.includes("週末") || tName.includes("消滅") || tName.includes("待攻克");
@@ -1012,8 +1014,10 @@ function getStudentDurationAnalytics(param1, param2, param3) {
     const lite = cpReadAllLite_(ss);
     const hMap = getHeaderIndexMap(lite.headers);
     const byStudent = {};
+    const cpCovered = new Set();
     for (let i = 0; i < lite.rows.length; i++) {
       const u = lite.rows[i][0];
+      cpCovered.add(u);
       const row = lite.rows[i][1];
       if (formatStandardDateYMD(row[hMap.date]) === targetDate) {
         if (!byStudent[u]) byStudent[u] = { taskSec: 0, freeSec: 0 };
@@ -1023,6 +1027,31 @@ function getStudentDurationAnalytics(param1, param2, param3) {
         if (freeT > 0) byStudent[u].freeSec = Math.max(byStudent[u].freeSec, freeT * 15);
       }
     }
+
+    // 補充讀取尚未遷移至學生歷程總庫的舊個人分頁
+    allStudents.forEach(st => {
+      const uLower = st.username.toLowerCase();
+      if (cpCovered.has(uLower)) return;
+      const uSheet = getStudentSheet(ss, st.username);
+      if (uSheet && uSheet.getLastRow() >= 2) {
+        const maxR = Math.min(uSheet.getLastRow() - 1, 15);
+        const maxC = uSheet.getLastColumn();
+        if (maxC >= 1) {
+          const hdrs = uSheet.getRange(1, 1, 1, maxC).getValues()[0] || [];
+          const uMap = getHeaderIndexMap(hdrs);
+          const vals = uSheet.getRange(2, 1, maxR, maxC).getValues();
+          for (let r = 0; r < vals.length; r++) {
+            if (formatStandardDateYMD(vals[r][uMap.date]) === targetDate) {
+              if (!byStudent[uLower]) byStudent[uLower] = { taskSec: 0, freeSec: 0 };
+              const ans = parseInt(vals[r][uMap.taskAnswered], 10) || 0;
+              const freeT = parseInt(vals[r][uMap.freeTested], 10) || 0;
+              if (ans > 0) byStudent[uLower].taskSec = Math.max(byStudent[uLower].taskSec, ans * 18);
+              if (freeT > 0) byStudent[uLower].freeSec = Math.max(byStudent[uLower].freeSec, freeT * 15);
+            }
+          }
+        }
+      }
+    });
 
     let taskSecSum = 0, freeSecSum = 0, activeTaskCount = 0, activeFreeCount = 0;
     const list = allStudents.map(st => {

@@ -473,7 +473,10 @@ function checkAndGetData(formData) {
     if (!formData.forceRefresh) {
       try {
         const hit = cache.get(studentCacheKey);
-        if (hit) return JSON.parse(hit);
+        if (hit) {
+          const jsonStr = hit.startsWith("GZ:") ? decompressData(hit) : hit;
+          return JSON.parse(jsonStr);
+        }
       } catch(_) {}
     }
 
@@ -491,7 +494,13 @@ function checkAndGetData(formData) {
       } catch(_) {}
 
       try {
-        cache.put(studentCacheKey, JSON.stringify(result), 180);
+        const rawStr = JSON.stringify(result);
+        const gzStr = compressData(rawStr);
+        if (gzStr.length < 95000) {
+          cache.put(studentCacheKey, gzStr, 180);
+        } else if (rawStr.length < 95000) {
+          cache.put(studentCacheKey, rawStr, 180);
+        }
       } catch(_) {}
     }
     return result;
@@ -1958,26 +1967,6 @@ function cleanupAndOptimizeSpreadsheet() {
     errors: []
   };
 
-  const allTeacherTasks = getTeacherTasksCached_(ss);
-
-  const studentHdr26 = [
-    "備份時間", "完整JSON", "等級", "分數", "連勝", "最佳連勝",
-    "學習中", "練習中", "精通", "共答對單字", "累積受測單字", "單字掌握率",
-    "LEVEL 1 入門\n(答對/受測字數)", "LEVEL 2 基礎\n(答對/受測字數)",
-    "LEVEL 3 進階\n(答對/受測字數)", "LEVEL 4 挑戰\n(答對/受測字數)", "LEVEL 5 精熟\n(答對/受測字數)",
-    "🎧 聽與拼\n(答對/受測字數)", "✅ 選拼法\n(答對/受測字數)", "🧩 字母重組\n(答對/受測字數)", "🖍️ 填空陷阱\n(答對/受測字數)",
-    "任務名稱", "指定測驗成績", "指定測驗正確率", "練習狀態", "測驗錯題單字"
-  ];
-
-  const widths26 = [
-    155, 40, 60, 70, 65, 75,
-    75, 75, 75, 95, 105, 95,
-    115, 115, 115, 115, 115,
-    115, 115, 115, 115,
-    130, 95, 95, 110, 220
-  ];
-
-  // 1. 系統工作表最適化設定（刪除多餘空白欄列）
   const systemConfigs = {
     "全班學習總覽": { keepCols: 24, keepRowsBuffer: 5 },
     "使用者清單": { keepCols: 5, keepRowsBuffer: 10 },
@@ -2007,172 +1996,20 @@ function cleanupAndOptimizeSpreadsheet() {
         return;
       }
 
-      // --- 學生個人工作表 ---
-      const lastRow = sheet.getLastRow();
-      const lastCol = sheet.getLastColumn();
-      const maxCols = sheet.getMaxColumns();
-
-      if (maxCols < 26) {
-        sheet.insertColumnsAfter(maxCols, 26 - maxCols);
-      }
-
-      let oldHeaders = [];
-      if (lastRow >= 1 && lastCol >= 1) {
-        oldHeaders = sheet.getRange(1, 1, 1, Math.min(lastCol, 35)).getValues()[0] || [];
-      }
-      const hMap = getHeaderIndexMap(oldHeaders);
-
-      if (lastRow >= 2) {
-        const rowsCount = lastRow - 1;
-        const oldVals = sheet.getRange(2, 1, rowsCount, lastCol).getValues();
-        const newRows = [];
-
-        for (let r = 0; r < oldVals.length; r++) {
-          const row = oldVals[r];
-          const storedJson = row[1]; // Column B
-          const rowIdx = r + 2;
-
-          let agentData = null;
-          if (storedJson) {
-            try {
-              const rawDecomp = decompressData(storedJson);
-              const parsed = JSON.parse(rawDecomp);
-              const agentRaw = parsed["spellAgent.v2"];
-              agentData = (typeof agentRaw === "string") ? JSON.parse(agentRaw) : (agentRaw || {});
-            } catch(_) {}
-          }
-
-          const sumData = calculateSummaryFromAgentData(agentData, null);
-
-          const curLevel = (agentData && agentData.level && agentData.level.current) || (agentData && agentData.currentLevel) || (row[hMap.level] !== undefined ? row[hMap.level] : 1);
-          const oldScore = (agentData && agentData.points !== undefined) ? agentData.points : (row[hMap.score] || 0);
-          const oldStreak = (agentData && agentData.streak !== undefined) ? agentData.streak : (row[hMap.streak] || 0);
-          const oldBest = (agentData && agentData.best !== undefined) ? agentData.best : (row[hMap.best] || 0);
-
-          const pureCorrect = sumData.distinctCorrect;
-          const pureRate    = sumData.testedVocab > 0 ? (Math.round((sumData.distinctCorrect / sumData.testedVocab) * 10000) / 10000) : 0;
-
-          const rawTask = String(row[hMap.taskName] || "").trim();
-          const rawScore = String(row[hMap.taskScore] || "").trim();
-          const rawRate = String(row[hMap.taskRate] || "").trim();
-          const rawStatus = String(row[hMap.status] || "").trim();
-          const rawWrong = String(row[hMap.wrong] || "").trim();
-
-          let taskName = "⚪ 未指派";
-          let taskScore = "—";
-          let taskRate = "—";
-          let status = "⚪ 未指派";
-          let wrong = "";
-
-          const isRealCompletedTask = rawTask && !rawTask.includes("自由") && !rawTask.includes("自主") && !rawTask.includes("未指派") && rawTask !== "—" && (rawStatus.includes("已完成") || (rawScore !== "—" && rawScore.includes("/")));
-          const isInProgressTask = rawStatus.includes("作答中");
-
-          if (isRealCompletedTask) {
-            taskName = rawTask;
-            taskScore = (rawScore && rawScore !== "—") ? rawScore : "—";
-            taskRate = (rawRate && !rawRate.includes("/")) ? rawRate : "—";
-            status = "🟢 已完成";
-            wrong = (rawWrong && !rawWrong.includes("/")) ? rawWrong : "";
-          } else if (isInProgressTask) {
-            taskName = rawTask;
-            taskScore = rawScore || "—";
-            taskRate = "—";
-            status = rawStatus;
-            wrong = rawWrong || "";
-          } else {
-            // 檢查該日該學生之班級是否有指派指定測驗
-            const rowDateYMD = formatStandardDateYMD(row[0]);
-            const sClass = getStudentClass(sheet.getName(), "");
-            const cleanCls = String(sClass || "").replace(/班$/, "").trim().toLowerCase();
-            let matchedTaskName = "";
-            (allTeacherTasks || []).forEach(t => {
-              if (!t.enabled || !t.taskName || !t.rawWords) return;
-              const tDate = t.taskDate ? formatStandardDateYMD(t.taskDate) : "";
-              if (tDate && tDate !== rowDateYMD) return;
-              const tc = String(t.taskClass || "").replace(/班$/, "").trim().toLowerCase();
-              if (tc === cleanCls || tc === "all" || tc === "全校") {
-                matchedTaskName = t.taskName;
-              }
-            });
-
-            if (matchedTaskName) {
-              taskName = matchedTaskName;
-              status = "⚪ 未受測";
-            } else {
-              taskName = "⚪ 未指派";
-              status = "⚪ 未指派";
-            }
-          }
-
-          const newRow = [
-            row[0],              // 1: 備份時間
-            row[1],              // 2: 完整JSON
-            curLevel,            // 3: 等級 (保留)
-            oldScore,            // 4: 分數
-            oldStreak,           // 5: 連勝
-            oldBest,             // 6: 最佳連勝
-            sumData.learning,    // 7: 學習中
-            sumData.practicing,  // 8: 練習中
-            sumData.mastered,    // 9: 精通 (純整數格式)
-            pureCorrect,         // 10: 共答對單字
-            sumData.testedVocab, // 11: 累積受測單字
-            pureRate,            // 12: 單字掌握率
-            sumData.l1, sumData.l2, sumData.l3, sumData.l4, sumData.l5, // 13~17: LEVEL 1~5
-            sumData.mListen, sumData.mPick, sumData.mScramble, sumData.mTrap, // 18~21: 四大模式
-            taskName,            // 22: 任務名稱
-            taskScore,           // 23: 指定測驗成績
-            taskRate,            // 24: 指定測驗正確率
-            status,              // 25: 練習狀態
-            wrong                // 26: 測驗錯題單字
-          ];
-          newRows.push(newRow);
-        }
-
-        sheet.getRange(2, 1, newRows.length, 26).setValues(newRows)
-          .setHorizontalAlignment("center").setVerticalAlignment("middle");
-
-        const batchFormats = newRows.map(() => {
-          const r = new Array(newRows[0].length).fill("@");
-          for (let c = 6; c <= 10; c++) r[c] = "0";
-          r[11] = "0%";
-          return r;
-        });
-        sheet.getRange(2, 1, newRows.length, newRows[0].length).setNumberFormats(batchFormats);
-      }
-
-      // 覆寫表頭與美化樣式
-      sheet.getRange(1, 1, 1, studentHdr26.length).setValues([studentHdr26]);
-      sheet.getRange("1:1").setWrap(true).setHorizontalAlignment("center").setVerticalAlignment("middle");
-      sheet.setRowHeight(1, 45);
-      if (sheet.getFrozenRows() < 1) sheet.setFrozenRows(1);
-      if (sheet.getFrozenColumns() < 1) sheet.setFrozenColumns(1);
-      sheet.hideColumns(2);
-
-      sheet.getRange("A1").setBackground("#f1f5f9").setFontColor("#334155").setFontWeight("bold");
-      sheet.getRange("B1").setBackground("#e2e8f0").setFontColor("#64748b").setFontWeight("normal");
-      sheet.getRange("C1:F1").setBackground("#dbeafe").setFontColor("#1e40af").setFontWeight("bold");
-      sheet.getRange("G1:L1").setBackground("#dcfce7").setFontColor("#065f46").setFontWeight("bold");
-      sheet.getRange("M1:Q1").setBackground("#f3e8ff").setFontColor("#6b21a8").setFontWeight("bold");
-      sheet.getRange("R1:U1").setBackground("#ccfbf1").setFontColor("#0f766e").setFontWeight("bold");
-      sheet.getRange("V1:Z1").setBackground("#e0e7ff").setFontColor("#3730a3").setFontWeight("bold");
-
-      widths26.forEach((w, idx) => sheet.setColumnWidth(idx + 1, w));
-
-      if (sheet.getMaxColumns() > 26) {
-        sheet.deleteColumns(27, sheet.getMaxColumns() - 26);
-      }
-
-      const curMaxRows = sheet.getMaxRows();
-      if (curMaxRows < 1000) {
-        sheet.insertRowsAfter(curMaxRows, 1000 - curMaxRows);
-      }
-
+      // --- 學生個人工作表：確保為最新 34 欄標準結構並校準歷史列，絕不誤刪第 27~34 欄 ---
+      ensureStudentSheetColumns(sheet);
+      migrateStudentSheetRows_(sheet);
       report.studentSheetsCleaned.push(sName);
     } catch(err) {
       report.errors.push({ sheet: sName, error: err.message });
       Logger.log("Error in sheet " + sName + ": " + err.message);
     }
   });
+
+  try {
+    const cpSheet = getCentralPortfolioSheet(ss, false);
+    if (cpSheet) ensureCentralPortfolioColumns(cpSheet);
+  } catch(_) {}
 
   try {
     generateClassDashboardSheet();
@@ -2288,6 +2125,7 @@ function formatAllStudentSheets() {
     count++;
   });
   ss.toast(`✅ 已完成美化與整理 ${count} 張學生工作表！`,"學習歷程管理中心",5);
+  return { status: "success", count: count };
 }
 
 function setupDailyTriggers() {
@@ -2454,7 +2292,7 @@ function fixIncompleteTaskRecordsUi() {
   const ui = SpreadsheetApp.getUi();
   const res = fixIncompleteTaskRecords();
   ui.alert("🔧 校正未完成測驗狀態完成",
-    `✅ 已檢查並校正 ${res.modifiedCount} 個學生的未完成測驗紀錄！\n未完成測驗之正確率已轉為 (答對題數/出題總數)，未作答單字已全數計入錯題。\n\n校正清單：\n${(res.details || []).map(d => d.student + ' (' + d.changes.length + ' 列)').join('、') || '無須校正項目'}`,
+    `✅ 已檢查並校正 ${res.modifiedCount} 個學生的未完成測驗紀錄！\n未完成測驗之正確率已轉為 (答對題數/出題總數)，未作答單字已全數計入錯題。\n\n校正清單：\n${(res.details || []).map(d => d.student + (d.changes ? ' (' + d.changes.length + ' 列)' : '')).join('、') || '無須校正項目'}`,
     ui.ButtonSet.OK);
 }
 
@@ -2665,6 +2503,50 @@ function fixIncompleteTaskRecords(ss, params) {
       modifiedList.push({ student: name });
     }
   });
+
+  // 同步校準【學生歷程總庫】中未完成或正確率異常之測驗列
+  try {
+    const cpSheet = getCentralPortfolioSheet(ss, false);
+    if (cpSheet && cpSheet.getLastRow() >= 2) {
+      const lastR = cpSheet.getLastRow();
+      const numR = Math.min(lastR - 1, 2000);
+      const vals = cpSheet.getRange(2, 1, numR, 35).getValues();
+      let cpModified = false;
+      for (let i = 0; i < vals.length; i++) {
+        const r = vals[i];
+        const u = String(r[0] || "").trim();
+        if (targetStudent && u.toLowerCase() !== targetStudent.toLowerCase()) continue;
+        const assigned = parseInt(r[23], 10);
+        let answered = parseInt(r[24], 10);
+        const correct = parseInt(r[25], 10);
+        const statusStr = String(r[28] || "").trim();
+        if (!isNaN(assigned) && assigned > 0 && !isNaN(correct)) {
+          if (isNaN(answered) || answered < correct) {
+            answered = correct;
+            r[24] = answered;
+            cpModified = true;
+          }
+          if (!isNaN(answered) && answered > 0) {
+            const expectedScore = `'${correct}/${answered}`;
+            if (String(r[26]).replace(/^'+/, "") !== `${correct}/${answered}`) { r[26] = expectedScore; cpModified = true; }
+          }
+          const expectedRate = Math.round((correct / assigned) * 100) + "%";
+          if (r[27] !== expectedRate) { r[27] = expectedRate; cpModified = true; }
+          if (answered === assigned) {
+            if (!statusStr.includes("已完成")) { r[28] = "🟢 已完成"; cpModified = true; }
+          } else {
+            const expectedStatus = `🟠 未完成 (${correct}/${assigned})`;
+            if (r[28] !== expectedStatus) { r[28] = expectedStatus; cpModified = true; }
+          }
+        }
+      }
+      if (cpModified) {
+        cpSheet.getRange(2, 1, numR, 35).setValues(vals);
+        cpInvalidate_();
+        modifiedList.push({ student: "學生歷程總庫" });
+      }
+    }
+  } catch(_) {}
 
   return { status: "success", modifiedCount: modifiedList.length, details: modifiedList };
 }

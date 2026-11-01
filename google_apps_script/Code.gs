@@ -310,17 +310,18 @@ function doPost(e) {
     if (action === "getRotationTaskSettings") {
       const auth = authenticateUser(ss, params.username, params.password);
       if (!auth.success || auth.role !== "teacher") return jsonResponse({status:"error", message:"僅教師可查閱題庫輪播設定"});
-      return jsonResponse(getRotationTaskSettings(ss, params.targetClass || auth.className));
+      const tCls = (!auth.isAdmin && auth.className) ? auth.className : (params.targetClass || auth.className || "all");
+      return jsonResponse(getRotationTaskSettings(ss, tCls));
     }
     if (action === "saveRotationTaskSettings") {
       const auth = authenticateUser(ss, params.username, params.password);
       if (!auth.success || auth.role !== "teacher") return jsonResponse({status:"error", message:"僅教師可儲存題庫輪播設定"});
-      return jsonResponse(saveRotationTaskSettings(ss, auth.username, params));
+      return jsonResponse(saveRotationTaskSettings(ss, auth, params));
     }
     if (action === "advanceRotationTaskPointer") {
       const auth = authenticateUser(ss, params.username, params.password);
       if (!auth.success || auth.role !== "teacher") return jsonResponse({status:"error", message:"僅教師可微調題庫輪播指針"});
-      return jsonResponse(advanceRotationTaskPointer(ss, auth.username, params));
+      return jsonResponse(advanceRotationTaskPointer(ss, auth, params));
     }
     if (action === "getCycleRecordsAnalytics") {
       const auth = authenticateUser(ss, params.username, params.password);
@@ -334,6 +335,8 @@ function doPost(e) {
     }
 
     if (action === "adminFixIncompleteRecords" || action === "fixIncompleteTaskRecords") {
+      const auth = authenticateUser(ss, params.username, params.password);
+      if (!auth.success || auth.role !== "teacher") return jsonResponse({status:"error", message:"僅教師或管理員可執行校正"});
       return jsonResponse(fixIncompleteTaskRecords(ss, params));
     }
     if (action === "checkAndGetData") {
