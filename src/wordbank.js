@@ -111,3 +111,12 @@ export function loadWordBank() {
 export const wordsAtLevel = (words, level) =>
   (words && words._byLevel && words._byLevel[level]) || (Array.isArray(words) ? words.filter((w) => w.level === level) : []);
 
+export function escapeHtml(str) {
+  return String(str ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+

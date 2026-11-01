@@ -2,7 +2,18 @@
 // ui_export.js — 底部作答歷程紀錄匯出下載模組 (Excel / PDF / A4 報表)
 // =====================================================================
 import { escapeHtml } from "./wordbank.js?v=20261025_1618";
-import { formatDateYMD } from "./store.js?v=20261025_1618";
+import { normalizeDateStr, formatDateYMD } from "./store.js?v=20261025_1618";
+import { levelColor, levelName } from "./levels.js?v=20261013_1225";
+import { diagnoseWordMistake } from "./diagnostics.js";
+import {
+  resolveWordStr,
+  isValidEnglishWordStr,
+  getCombinedTaskHistory,
+  resolveTaskWords,
+  resolveDailyPracticeRecord,
+  getWeekPendingConquerWords,
+  _resolveConquerWordLevel
+} from "./ui.js";
 
 // =====================================================================
 // 📥 底部使用紀錄匯出下載模組 (支援指定日期或指定範圍，PDF / Excel 雙格式輸出)
@@ -476,7 +487,7 @@ function triggerBlobDownload(blob, filename) {
   }, 1500);
 }
 
-function _ensureScriptLoaded(globalVar, primaryUrl, fallbackUrl) {
+export function _ensureScriptLoaded(globalVar, primaryUrl, fallbackUrl) {
   if (typeof window !== "undefined" && window[globalVar]) return Promise.resolve(window[globalVar]);
   return new Promise((resolve, reject) => {
     const s = document.createElement("script");

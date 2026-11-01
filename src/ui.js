@@ -773,7 +773,7 @@ function formatWeekendTaskDate(ds, fallbackText = "") {
   return clean.replace(/-/g, "/");
 }
 
-function resolveWordStr(raw, d) {
+export function resolveWordStr(raw, d) {
   if (!raw) return "";
   const s = String(raw).trim();
   if (/^w\d+$/i.test(s)) {
@@ -790,7 +790,7 @@ function resolveWordStr(raw, d) {
   return s;
 }
 
-function getCombinedTaskHistory() {
+export function getCombinedTaskHistory() {
   const list = [];
   try {
     const raw = localStorage.getItem("student_task_history");
@@ -1144,7 +1144,7 @@ export function formatRatePercentage(rawRate, scoreStr) {
   return s;
 }
 
-function isValidEnglishWordStr(w) {
+export function isValidEnglishWordStr(w) {
   if (!w || typeof w !== "string") return false;
   const s = w.trim();
   if (!s || /^w\d+$/i.test(s)) return false;
@@ -1169,7 +1169,7 @@ function isWeekend(dateStr) {
   return day === 0 || day === 6;
 }
 
-function resolveTaskWords(record, selectedDate, d) {
+export function resolveTaskWords(record, selectedDate, d) {
   if (!record) return { rawWords: [], wrongList: [], correctList: [], hadCorrectThenWrongList: [] };
 
   const cacheKey = String(record.date || "") + "|" + String(selectedDate || "") + "|" + String(record.taskName || "") + "|" + String(record.score || "") + "|" + String(record.attempts || "") + "|" + String(record.status || "");
@@ -2429,7 +2429,7 @@ function _getCachedRawStudentTaskHistory() {
   return _rawStudentTaskHistCache;
 }
 
-function resolveDailyPracticeRecord(dateStr, d, historyList) {
+export function resolveDailyPracticeRecord(dateStr, d, historyList) {
   if (!dateStr) return null;
   const normYMD = normalizeDateStr(dateStr);
   if (_dailyPracticeCache.has(normYMD)) {
@@ -2742,7 +2742,7 @@ export function getWeekPendingConquerWords(cycleParam = "current") {
 }
 
 let _lastSummaryWords = null;
-function _resolveConquerWordLevel(wordStr, d) {
+export function _resolveConquerWordLevel(wordStr, d) {
   const clean = String(wordStr || "").trim().toLowerCase();
   if (!clean) return 1;
   const wordsRef = (d && d.words) ? d.words : _lastSummaryWords;

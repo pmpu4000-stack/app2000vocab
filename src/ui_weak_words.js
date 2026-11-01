@@ -2,8 +2,11 @@
 // ui_weak_words.js — 個人常錯單字複習小卡模組 (支援時間範圍切換、單字發音、PDF/Excel 一鍵下載)
 // =====================================================================
 import { sayWord } from "./audio.js?v=20261025_1618";
+import { _ensureScriptLoaded } from "./ui_export.js";
 
-function analyzeErrorTag(word, zh, ph) {
+const SVG_SPEAKER = '<svg class="icon-speaker" viewBox="0 0 24 24" width="17" height="17" fill="currentColor" style="vertical-align:middle;display:inline-block;"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>';
+
+export function analyzeErrorTag(word, zh, ph) {
   const w = String(word || "").toLowerCase();
   const z = String(zh || "").toLowerCase();
   const posMatches = z.match(/\b(n|v|vt|vi|adj|adv|prep|conj|pron|phr)\b/g);
@@ -55,12 +58,20 @@ export function initWeakWordsCard() {
 
     if (range === "7" || range === "14" || range === "all") {
       try {
-        const wm = JSON.parse(localStorage.getItem("weekTaskMistakes") || "[]");
+        const wm = JSON.parse(localStorage.getItem("weekTaskMistakes") || "{}");
+        const addWordIfMissed = (w) => {
+          const cleanW = String(w).trim().toLowerCase();
+          if (cleanW && !wordCounts.has(cleanW)) {
+            wordCounts.set(cleanW, 1);
+          }
+        };
         if (Array.isArray(wm)) {
-          wm.forEach(w => {
-            const cleanW = String(w).trim().toLowerCase();
-            if (cleanW && !wordCounts.has(cleanW)) {
-              wordCounts.set(cleanW, 1);
+          wm.forEach(addWordIfMissed);
+        } else if (wm && typeof wm === "object") {
+          Object.keys(wm).forEach(dKey => {
+            const normD = String(dKey).trim().replace(/\//g, "-");
+            if (range === "all" || normD >= cutoffDate) {
+              if (Array.isArray(wm[dKey])) wm[dKey].forEach(addWordIfMissed);
             }
           });
         }
@@ -169,7 +180,7 @@ export function initWeakWordsCard() {
           <div class="weak-card-zh">${item.zh || "（暫無中文釋義）"}</div>
           <div class="weak-card-sub">
             <span>LEVEL ${item.level}</span>
-            <button type="button" class="word-speech-btn" onclick="event.stopPropagation(); window.sayWord('${item.word}')" style="padding:2px 6px; cursor:pointer;" title="播放發音">${SVG_SPEAKER}</button>
+            <button type="button" class="word-speech-btn" onclick="event.stopPropagation(); (window.__sayWord || window.sayWord || function(){})('${item.word}')" style="padding:2px 6px; cursor:pointer;" title="播放發音">${SVG_SPEAKER}</button>
           </div>
         </div>
       `;
@@ -225,69 +236,85 @@ export function initWeakWordsCard() {
 
   const btnExcel = document.getElementById("btn-export-weak-excel");
   if (btnExcel) {
-    btnExcel.onclick = () => {
+    btnExcel.onclick = async () => {
       const list = getWeakWordsForRange(currentRange);
       if (list.length === 0) { alert("此區間尚無常錯單字可匯出。"); return; }
-      if (typeof XLSX === "undefined") { alert("Excel 模組載入中，請稍候再試。"); return; }
-      const rows = [["序號", "英文單字", "中文釋義", "難度關卡", "失誤次數", "例句"]];
-      list.forEach((item, idx) => {
-        rows.push([idx + 1, item.word, item.zh || "", "Level " + item.level, item.count, item.sent || ""]);
-      });
-      const ws = XLSX.utils.aoa_to_sheet(rows);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "常錯單字表");
-      XLSX.writeFile(wb, `常錯單字複習卡_${new Date().toISOString().split("T")[0]}.xlsx`);
+      try {
+        const XLSX = await _ensureScriptLoaded(
+          "XLSX",
+          "https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js",
+          "https://unpkg.com/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"
+        );
+        const rows = [["序號", "英文單字", "中文釋義", "難度關卡", "失誤次數", "例句"]];
+        list.forEach((item, idx) => {
+          rows.push([idx + 1, item.word, item.zh || "", "Level " + item.level, item.count, item.sent || ""]);
+        });
+        const ws = XLSX.utils.aoa_to_sheet(rows);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "常錯單字表");
+        XLSX.writeFile(wb, `常錯單字複習卡_${new Date().toISOString().split("T")[0]}.xlsx`);
+      } catch (e) {
+        alert("Excel 模組載入失敗，請稍候再試。");
+      }
     };
   }
 
   const btnPdf = document.getElementById("btn-export-weak-pdf");
   if (btnPdf) {
-    btnPdf.onclick = () => {
+    btnPdf.onclick = async () => {
       const list = getWeakWordsForRange(currentRange);
       if (list.length === 0) { alert("此區間尚無常錯單字可匯出。"); return; }
-      if (typeof html2pdf === "undefined") { alert("PDF 模組載入中，請稍候再試。"); return; }
-      const rangeName = currentRange === "7" ? "近 7 天" : (currentRange === "14" ? "近 14 天" : (currentRange === "30" ? "近 30 天" : "全部歷史"));
-      const printDiv = document.createElement("div");
-      printDiv.style.padding = "24px";
-      printDiv.style.fontFamily = "system-ui, sans-serif";
-      printDiv.innerHTML = `
-        <h2 style="text-align:center; color:#232A4D; margin-bottom:6px;">🎯 英文個人常錯單字複習小卡</h2>
-        <div style="text-align:center; font-size:12px; color:#5A6183; margin-bottom:18px;">統計範圍：${rangeName} ｜ 產生日期：${new Date().toLocaleDateString()} ｜ 共 ${list.length} 個弱點單字</div>
-        <style>table{page-break-inside:auto!important;break-inside:auto!important;}tr{page-break-inside:auto!important;break-inside:auto!important;}</style><table style="width:100%; border-collapse:collapse; font-size:13px; page-break-inside:auto!important; break-inside:auto!important;">
-          <thead>
-            <tr style="background:#F1F5F9; border-bottom:2px solid #CBD5E1;">
-              <th style="padding:8px; text-align:center; width:40px;">#</th>
-              <th style="padding:8px; text-align:left; width:120px;">單字</th>
-              <th style="padding:8px; text-align:left; width:140px;">中文釋義</th>
-              <th style="padding:8px; text-align:center; width:95px;">盲點特徵</th>
-              <th style="padding:8px; text-align:center; width:70px;">關卡</th>
-              <th style="padding:8px; text-align:center; width:70px;">失誤次數</th>
-              <th style="padding:8px; text-align:left;">重點例句</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${list.map((item, idx) => `
-              <tr style="border-bottom:1px solid #E2E8F0;">
-                <td style="padding:8px; text-align:center; color:#64748B;">${idx + 1}</td>
-                <td style="padding:8px; font-weight:bold; color:#1E293B;">${item.word}</td>
-                <td style="padding:8px; color:#334155;">${item.zh || "—"}</td>
-                <td style="padding:8px; text-align:center; font-size:11px; font-weight:700;"><span style="background:#F3E8FF; color:#7E22CE; padding:2px 6px; border-radius:4px; border:1px solid #E9D5FF;">${item.tagIcon} ${item.tag}</span></td>
-                <td style="padding:8px; text-align:center; font-size:11px;">L${item.level}</td>
-                <td style="padding:8px; text-align:center; color:#DC2626; font-weight:bold;">${item.count}次</td>
-                <td style="padding:8px; font-size:11.5px; color:#475569;">${item.sent || "—"}</td>
+      try {
+        const html2pdfLib = await _ensureScriptLoaded(
+          "html2pdf",
+          "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js",
+          "https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"
+        );
+        const rangeName = currentRange === "7" ? "近 7 天" : (currentRange === "14" ? "近 14 天" : (currentRange === "30" ? "近 30 天" : "全部歷史"));
+        const printDiv = document.createElement("div");
+        printDiv.style.padding = "24px";
+        printDiv.style.fontFamily = "system-ui, sans-serif";
+        printDiv.innerHTML = `
+          <h2 style="text-align:center; color:#232A4D; margin-bottom:6px;">🎯 英文個人常錯單字複習小卡</h2>
+          <div style="text-align:center; font-size:12px; color:#5A6183; margin-bottom:18px;">統計範圍：${rangeName} ｜ 產生日期：${new Date().toLocaleDateString()} ｜ 共 ${list.length} 個弱點單字</div>
+          <style>table{page-break-inside:auto!important;break-inside:auto!important;}tr{page-break-inside:auto!important;break-inside:auto!important;}</style><table style="width:100%; border-collapse:collapse; font-size:13px; page-break-inside:auto!important; break-inside:auto!important;">
+            <thead>
+              <tr style="background:#F1F5F9; border-bottom:2px solid #CBD5E1;">
+                <th style="padding:8px; text-align:center; width:40px;">#</th>
+                <th style="padding:8px; text-align:left; width:120px;">單字</th>
+                <th style="padding:8px; text-align:left; width:140px;">中文釋義</th>
+                <th style="padding:8px; text-align:center; width:95px;">盲點特徵</th>
+                <th style="padding:8px; text-align:center; width:70px;">關卡</th>
+                <th style="padding:8px; text-align:center; width:70px;">失誤次數</th>
+                <th style="padding:8px; text-align:left;">重點例句</th>
               </tr>
-            `).join("")}
-          </tbody>
-        </table>
-      `;
-      html2pdf().from(printDiv).set({
-        margin: [10, 10, 10, 10],
-        filename: `常錯單字複習卡_${new Date().toISOString().split("T")[0]}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: ['css', 'legacy'] }
-      }).save();
+            </thead>
+            <tbody>
+              ${list.map((item, idx) => `
+                <tr style="border-bottom:1px solid #E2E8F0;">
+                  <td style="padding:8px; text-align:center; color:#64748B;">${idx + 1}</td>
+                  <td style="padding:8px; font-weight:bold; color:#1E293B;">${item.word}</td>
+                  <td style="padding:8px; color:#334155;">${item.zh || "—"}</td>
+                  <td style="padding:8px; text-align:center; font-size:11px; font-weight:700;"><span style="background:#F3E8FF; color:#7E22CE; padding:2px 6px; border-radius:4px; border:1px solid #E9D5FF;">${item.tagIcon} ${item.tag}</span></td>
+                  <td style="padding:8px; text-align:center; font-size:11px;">L${item.level}</td>
+                  <td style="padding:8px; text-align:center; color:#DC2626; font-weight:bold;">${item.count}次</td>
+                  <td style="padding:8px; font-size:11.5px; color:#475569;">${item.sent || "—"}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        `;
+        html2pdfLib().from(printDiv).set({
+          margin: [10, 10, 10, 10],
+          filename: `常錯單字複習卡_${new Date().toISOString().split("T")[0]}.pdf`,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+          pagebreak: { mode: ['css', 'legacy'] }
+        }).save();
+      } catch (e) {
+        alert("PDF 模組載入失敗，請稍候再試。");
+      }
     };
   }
 
