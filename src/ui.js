@@ -2351,7 +2351,16 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
     wrongContentHtml = `<span class="perfect-score-msg">🎉 太棒了！當日自由練習全數答對，無任何答錯單字！</span>`;
   }
 
-  const freeRateColor = wordRate >= 100 ? "#059669" : (wordRate >= 80 ? "#16a34a" : (wordRate >= 60 ? "#ca8a04" : "#ea580c"));
+  const getHeatmapRateClass = (r) => {
+    const n = (typeof r === 'number') ? r : (parseInt(r, 10) || 0);
+    if (n >= 100) return 'tier-6';
+    if (n >= 90) return 'tier-5';
+    if (n >= 80) return 'tier-4';
+    if (n >= 70) return 'tier-3';
+    if (n >= 60) return 'tier-2';
+    if (n > 0) return 'tier-1';
+    return 'tier-0';
+  };
 
   return `
     <div>
@@ -2362,21 +2371,21 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
       </div>
 
       <div class="task-score-grid">
-        <div class="task-score-item">
-          <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap;">
-            <span style="flex:1; text-align:right;">答對單字數</span>
-            <span style="padding:0 6px; opacity:0.6;">/</span>
-            <span style="flex:1; text-align:left;">施測單字數</span>
+        <div class="task-score-subgrid">
+          <div class="task-score-item score-corr-item">
+            <div class="task-score-label">答對</div>
+            <div class="task-score-val task-score-num-corr">${correctWords}</div>
           </div>
-          <div class="task-score-val" style="color:#0284c7; display:flex; align-items:center; justify-content:center;">
-            <span style="flex:1; text-align:right;">${correctWords}</span>
-            <span style="padding:0 6px; font-weight:700; color:var(--ink3); opacity:0.6; font-size:18px;">/</span>
-            <span style="flex:1; text-align:left;">${totalWords}</span>
+          <div class="task-score-item score-wrong-item">
+            <div class="task-score-label">答錯</div>
+            <div class="task-score-val task-score-num-wrong">${displayWrongBoxCount}</div>
           </div>
         </div>
-        <div class="task-score-item">
-          <div class="task-score-label">正確率</div>
-          <div class="task-score-val" style="color:${freeRateColor};">${wordRate}%</div>
+        <div class="task-score-item rate-tier-item ${getHeatmapRateClass(wordRate)}">
+          <div class="task-score-label">全卷正確率</div>
+          <div class="task-score-val heat-rate-val ${getHeatmapRateClass(wordRate)}">
+            ${totalWords > 0 ? wordRate + '%' : '—'}
+          </div>
         </div>
       </div>
 
