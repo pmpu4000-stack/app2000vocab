@@ -3635,10 +3635,26 @@ function renderStudentSummary(resp) {
 
     let tAtt = parseInt(tRec.attempts) || 0;
     let tCor = parseInt(tRec.correct) || 0;
-    if (!tAtt && tRec.score && String(tRec.score).includes("/")) {
+    let taskWordsCount = 0;
+
+    if (tRec.testedCount && !isNaN(parseInt(tRec.testedCount, 10)) && parseInt(tRec.testedCount, 10) > 0) {
+      taskWordsCount = parseInt(tRec.testedCount, 10);
+    } else if (tRec.status && /\/\s*(\d+)\s*\)/.test(tRec.status)) {
+      const m = tRec.status.match(/\/\s*(\d+)\s*\)/);
+      if (m) taskWordsCount = parseInt(m[1], 10);
+    } else if (tRec.total && !isNaN(parseInt(tRec.total, 10)) && parseInt(tRec.total, 10) > 0) {
+      taskWordsCount = parseInt(tRec.total, 10);
+    }
+
+    if (tRec.score && String(tRec.score).includes("/")) {
       const sp = String(tRec.score).split("/");
-      tCor = parseInt(sp[0], 10) || 0;
-      tAtt = parseInt(sp[1], 10) || 0;
+      const sCorr = parseInt(sp[0], 10);
+      const sTot = parseInt(sp[1], 10);
+      if (!isNaN(sTot) && sTot > 0) {
+        if (!taskWordsCount) taskWordsCount = sTot;
+        if (!tAtt) tAtt = sTot;
+      }
+      if (!isNaN(sCorr)) tCor = sCorr;
     }
 
     const statusStr = String(tRec.status || "");
@@ -3647,7 +3663,6 @@ function renderStudentSummary(resp) {
     const resolvedCorr = resolved.correctList || [];
     const resolvedWrong = resolved.wrongList || [];
     const resolvedAnsCount = resolvedCorr.length + resolvedWrong.length;
-    let taskWordsCount = resolvedRaw.length || (Array.isArray(tRec.words) && tRec.words.length) || tAtt || 5;
 
     if (!tAtt && resolvedAnsCount > 0) {
       tAtt = resolvedAnsCount;
@@ -3656,15 +3671,17 @@ function renderStudentSummary(resp) {
     if (resolvedCorr.length > 0) {
       tCor = Math.max(tCor, resolvedCorr.length);
     }
-    if (tRec.score && String(tRec.score).includes("/")) {
-      const sp = String(tRec.score).split("/");
-      const sTot = parseInt(sp[1], 10);
-      if (!isNaN(sTot) && sTot > taskWordsCount) taskWordsCount = sTot;
+    if (!taskWordsCount) {
+      taskWordsCount = (resolvedCorr.length + resolvedWrong.length) > 0
+        ? (resolvedCorr.length + resolvedWrong.length)
+        : (resolvedRaw.length || (Array.isArray(tRec.words) && tRec.words.length) || tAtt || 5);
     }
     if (taskWordsCount < resolvedAnsCount) taskWordsCount = resolvedAnsCount;
     if (taskWordsCount < tAtt) taskWordsCount = tAtt;
 
-    let tRate = taskWordsCount > 0 ? Math.round((tCor / taskWordsCount) * 100) : (tAtt > 0 ? Math.round((tCor / tAtt) * 100) : (parseInt(tRec.rate) || 0));
+    let tRate = (tRec.rate !== undefined && !isNaN(parseInt(tRec.rate, 10)) && parseInt(tRec.rate, 10) > 0 && taskWordsCount === (tAtt || taskWordsCount))
+      ? parseInt(tRec.rate, 10)
+      : (taskWordsCount > 0 ? Math.round((tCor / taskWordsCount) * 100) : (tAtt > 0 ? Math.round((tCor / tAtt) * 100) : (parseInt(tRec.rate) || 0)));
     const isFinished = statusStr.includes("已完成") || (!statusStr.includes("未受測") && !statusStr.includes("尚未開始") && ((tAtt > 0 && tAtt >= taskWordsCount) || (resolvedAnsCount > 0 && resolvedAnsCount >= taskWordsCount)));
 
     const isUnfinishedAttempt = !isFinished && (
