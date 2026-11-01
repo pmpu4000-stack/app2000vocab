@@ -3357,8 +3357,8 @@ export function renderSummary(d) {
 
     if (tRec.testedCount && !isNaN(parseInt(tRec.testedCount, 10)) && parseInt(tRec.testedCount, 10) > 0) {
       taskWordsCount = parseInt(tRec.testedCount, 10);
-    } else if (tRec.status && //s*(d+)s*)/.test(tRec.status)) {
-      const m = tRec.status.match(//s*(d+)s*)/);
+    } else if (tRec.status && /\/\s*(\d+)\s*\)/.test(tRec.status)) {
+      const m = tRec.status.match(/\/\s*(\d+)\s*\)/);
       if (m) taskWordsCount = parseInt(m[1], 10);
     } else if (tRec.total && !isNaN(parseInt(tRec.total, 10)) && parseInt(tRec.total, 10) > 0) {
       taskWordsCount = parseInt(tRec.total, 10);
