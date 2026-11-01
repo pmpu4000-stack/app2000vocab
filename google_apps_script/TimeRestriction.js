@@ -82,7 +82,9 @@ function checkTimeRestrictionAllowance(ss, username) {
   const effectiveStartMin = studentRule ? studentRule.startMin : globalStartMin;
   const effectiveEndMin = studentRule ? studentRule.endMin : globalEndMin;
 
-  const isWithinHours = (currentMinutes >= effectiveStartMin && currentMinutes <= effectiveEndMin);
+  const isWithinHours = (effectiveStartMin <= effectiveEndMin)
+    ? (currentMinutes >= effectiveStartMin && currentMinutes <= effectiveEndMin)
+    : (currentMinutes >= effectiveStartMin || currentMinutes <= effectiveEndMin);
   const allowed = isDateOverridden || isWithinHours;
 
   return {

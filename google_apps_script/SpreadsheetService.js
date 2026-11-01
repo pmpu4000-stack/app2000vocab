@@ -885,7 +885,7 @@ function getClassOverviewRaw(ss, forceRefresh) {
   if (uncoveredMeta.length > 0 && cpCoveredCount < studentMeta.length) {
     try {
       const ssId  = ss.getId();
-      const ranges = uncoveredMeta.map(m => `'${m.username}'!A1:Z2`);
+      const ranges = uncoveredMeta.map(m => `'${m.username}'!A1:AH2`);
       const resp  = Sheets.Spreadsheets.Values.batchGet(ssId, {
         ranges               : ranges,
         valueRenderOption    : "FORMATTED_VALUE",
@@ -903,7 +903,7 @@ function getClassOverviewRaw(ss, forceRefresh) {
       });
       uncoveredMeta.forEach(meta => {
         const s = sheetMap[meta.username.trim().toLowerCase()];
-        rowsMap[meta.username.toLowerCase()] = (s && s.getLastRow() >= 2) ? s.getRange(1,1,2,26).getDisplayValues() : [];
+        rowsMap[meta.username.toLowerCase()] = (s && s.getLastRow() >= 2) ? s.getRange(1,1,2,Math.min(s.getLastColumn(),34)).getDisplayValues() : [];
       });
     }
   }
