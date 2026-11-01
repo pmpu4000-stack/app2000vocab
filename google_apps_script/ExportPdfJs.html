@@ -3668,33 +3668,11 @@ function renderStudentSummary(resp) {
     if (taskWordsCount < resolvedAnsCount) taskWordsCount = resolvedAnsCount;
     if (taskWordsCount < tAtt) taskWordsCount = tAtt;
 
-    const isExplicitlyNotFinished = statusStr.includes("中斷") || statusStr.includes("未完成") || statusStr.includes("作答中") || statusStr.includes("未受測") || statusStr.includes("尚未開始") || tRec.inProgress === true;
-    const isFinished = !isExplicitlyNotFinished && (statusStr.includes("已完成") || ((tAtt > 0 && tAtt >= taskWordsCount) || (resolvedAnsCount > 0 && resolvedAnsCount >= taskWordsCount)));
-
-    const isUnfinishedAttempt = !isFinished && !statusStr.includes("未受測") && (
-      (taskWordsCount > 0 && resolvedAnsCount > 0 && resolvedAnsCount < taskWordsCount) ||
-      (taskWordsCount > 0 && tAtt > 0 && tAtt < taskWordsCount)
-    );
-
-    // 判定是否有未作答單字 (未作答視同答錯)
-    const hasUnanswered = (taskWordsCount > tAtt) || (resolved.unansweredList && resolved.unansweredList.length > 0) || isUnfinishedAttempt;
-
-    // 全卷正確率 (未作答視同答錯失分，以全卷總題數為分母)
-    const overallRate = taskWordsCount > 0 ? Math.round((tCor / taskWordsCount) * 100) : 0;
-
-    // 若有未作答單字，熱力圖指標嚴格強制採用全卷正確率
-    let tRate = hasUnanswered
-      ? overallRate
-      : (tRec.rate !== undefined && !isNaN(parseInt(tRec.rate, 10)) && parseInt(tRec.rate, 10) > 0 && taskWordsCount === (tAtt || taskWordsCount)
-          ? parseInt(tRec.rate, 10)
-          : overallRate);
-
-    const isIncomplete = !isFinished && (
-      isUnfinishedAttempt ||
-      statusStr.includes("作答中") ||
-      statusStr.includes("中斷") ||
-      statusStr.includes("未完成") ||
-      tRec.inProgress === true
+    // 判定是否為未受測狀態 (缺席未受測 / 登入未受測)
+    const isUntested = isExplicitUntested || (
+      !statusStr.includes("已完成") && !statusStr.includes("中斷") && !statusStr.includes("作答中") &&
+      tAtt === 0 && resolvedAnsCount === 0 && tCor === 0 &&
+      (!tRec.score || tRec.score === "—" || tRec.score === "尚未開始")
     );
 
     const shortD = unpadDateKey(norm);
@@ -3704,49 +3682,63 @@ function renderStudentSummary(resp) {
     const hasLoggedInOrFree = !!((dpF && (dpF.attempts > 0 || (dpF.words && Object.keys(dpF.words).length > 0))) || (hF && hF.a > 0) || (tRec.freeTested > 0) || statusStr.includes("登入未受測") || statusStr.includes("登入未作答"));
 
     let res;
-    if (isFinished && !hasUnanswered) {
-      const level = tRate < 60 ? 1 : tRate < 70 ? 2 : tRate < 80 ? 3 : tRate < 90 ? 4 : tRate < 100 ? 5 : 6;
-      const badgeTier = tRate === 100 ? "tier-green-perfect" : (tRate >= 80 ? "tier-green-high" : (tRate >= 60 ? "tier-green-mid" : "tier-green-low"));
-      res = {
-        a: tAtt, c: tCor, rate: tRate,
-        wordsCount: taskWordsCount,
-        hasUnanswered: false,
-        statusType: "completed",
-        statusLabel: `正確率 ${tRate}%`,
-        levelClass: `h${level}`,
-        badgeTier: badgeTier
-      };
-    } else if (isIncomplete || hasUnanswered) {
-      const level = tRate < 60 ? 1 : tRate < 70 ? 2 : tRate < 80 ? 3 : tRate < 90 ? 4 : tRate < 100 ? 5 : 6;
-      const badgeTier = tRate === 100 ? "tier-green-perfect" : (tRate >= 80 ? "tier-green-high" : (tRate >= 60 ? "tier-green-mid" : "tier-green-low"));
-      res = {
-        a: tAtt, c: tCor, rate: tRate,
-        wordsCount: taskWordsCount,
-        hasUnanswered: true,
-        statusType: "incomplete",
-        statusLabel: `全卷正確率 ${tRate}%`,
-        levelClass: `h${level}`,
-        badgeTier: badgeTier
-      };
-    } else if (hasLoggedInOrFree) {
-      res = {
-        a: 0, c: 0, rate: 0,
-        wordsCount: taskWordsCount,
-        statusType: "login_untested",
-        statusLabel: "登入未受測",
-        levelClass: "h-status-yellow",
-        badgeTier: "tier-status-yellow"
-      };
-    } else {
-      res = {
-        a: 0, c: 0, rate: 0,
-        wordsCount: taskWordsCount,
-        statusType: "absent_untested",
-        statusLabel: "缺席未受測",
-        levelClass: "h-status-red",
-        badgeTier: "tier-status-red"
-      };
+    if (isUntested) {
+      if (hasLoggedInOrFree) {
+        // 登入未受測 (保持清新綠色)
+        res = {
+          a: 0, c: 0, rate: 0,
+          wordsCount: taskWordsCount,
+          hasUnanswered: false,
+          statusType: "login_untested",
+          statusLabel: "登入未受測",
+          levelClass: "h-status-yellow",
+          badgeTier: "tier-status-yellow"
+        };
+      } else {
+        // 缺席未受測 (保持極致電光翠綠)
+        res = {
+          a: 0, c: 0, rate: 0,
+          wordsCount: taskWordsCount,
+          hasUnanswered: false,
+          statusType: "absent_untested",
+          statusLabel: "缺席未受測",
+          levelClass: "h-status-red",
+          badgeTier: "tier-status-red"
+        };
+      }
+      taskDayStatCache.set(norm, res);
+      return res;
     }
+
+    const isExplicitlyNotFinished = statusStr.includes("中斷") || statusStr.includes("未完成") || statusStr.includes("作答中") || tRec.inProgress === true;
+    const isFinished = !isExplicitlyNotFinished && (statusStr.includes("已完成") || ((tAtt > 0 && tAtt >= taskWordsCount) || (resolvedAnsCount > 0 && resolvedAnsCount >= taskWordsCount)));
+
+    const isUnfinishedAttempt = !isFinished && (
+      (taskWordsCount > 0 && resolvedAnsCount > 0 && resolvedAnsCount < taskWordsCount) ||
+      (taskWordsCount > 0 && tAtt > 0 && tAtt < taskWordsCount)
+    );
+
+    // 判定是否有未作答單字 (未作答視同答錯)
+    const actualAnswered = resolvedAnsCount > 0 ? resolvedAnsCount : tAtt;
+    const hasUnanswered = (taskWordsCount > actualAnswered && actualAnswered > 0) || (resolved.unansweredList && resolved.unansweredList.length > 0) || isUnfinishedAttempt;
+
+    // 全卷正確率 (未作答視同答錯失分，以全卷總題數為分母)
+    const overallRate = taskWordsCount > 0 ? Math.round((tCor / taskWordsCount) * 100) : 0;
+    const tRate = overallRate;
+
+    // 藍色系六階量級映射 (與成績卡全卷正確率色階 100% 嚴格一致)
+    const level = tRate >= 100 ? 6 : (tRate >= 90 ? 5 : (tRate >= 80 ? 4 : (tRate >= 70 ? 3 : (tRate >= 60 ? 2 : (tRate > 0 ? 1 : 0)))));
+    const badgeTier = tRate >= 100 ? "tier-blue-perfect" : (tRate >= 80 ? "tier-blue-high" : (tRate >= 60 ? "tier-blue-mid" : (tRate > 0 ? "tier-blue-low" : "tier-gray")));
+
+    res = {
+      a: actualAnswered, c: tCor, rate: tRate,
+      wordsCount: taskWordsCount,
+      hasUnanswered: hasUnanswered,
+      statusType: hasUnanswered ? "incomplete" : "completed",
+      statusLabel: hasUnanswered ? `全卷正確率 ${tRate}%` : `正確率 ${tRate}%`,
+      levelClass: `h${level}`,
+      badgeTier: badgeTier
+    };
     taskDayStatCache.set(norm, res);
     return res;
   };
