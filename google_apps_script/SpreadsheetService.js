@@ -670,11 +670,16 @@ function getStudentDailyTaskHistory(ss, username) {
     const hasTaskAssigned = !isUntestedOrUnassigned && (taskName.length > 0);
     
     if (dStr && (hasValidQuizScore || isQuizCompleted || hasTaskAssigned || hasFreePractice)) {
-      let tAtt = 0, tCor = 0;
+      const taskAssignedVal = parseInt(vals[i][hMap.taskAssigned], 10) || 0;
+      const taskAnsweredVal = parseInt(vals[i][hMap.taskAnswered], 10) || 0;
+      const taskCorrectVal  = parseInt(vals[i][hMap.taskCorrect], 10) || 0;
+
+      let tAtt = taskAnsweredVal;
+      let tCor = taskCorrectVal;
       if (hasValidQuizScore) {
         const parts = scoreVal.split("/");
-        tCor = parseInt(parts[0], 10) || 0;
-        tAtt = parseInt(parts[1], 10) || 0;
+        if (!tCor && !isNaN(parseInt(parts[0], 10))) tCor = parseInt(parts[0], 10);
+        if (!tAtt && !isNaN(parseInt(parts[1], 10))) tAtt = parseInt(parts[1], 10);
       }
       let matchedWords = taskWordsDict[dStr + "_" + taskName.toLowerCase()] ||
                          taskWordsDict[taskName.toLowerCase()] ||
@@ -682,10 +687,12 @@ function getStudentDailyTaskHistory(ss, username) {
       if ((!matchedWords || matchedWords.length === 0) && wrongStr.includes("應測單字") && rawWrongTokens.length > 0) {
         matchedWords = rawWrongTokens;
       }
+      const taskTot = taskAssignedVal > 0 ? taskAssignedVal : (tAtt > 0 ? tAtt : (matchedWords.length > 0 ? matchedWords.length : 5));
+
       // 未作答題目視同答錯：若有出題總數且答對數小於出題總數，未作答單字納入錯題單字列表
       let finalWrongWords = [...wrongWords];
-      if (tAtt > 0 && tCor < tAtt && Array.isArray(matchedWords) && matchedWords.length > 0) {
-        const expWrong = tAtt - tCor;
+      if (taskTot > 0 && tCor < taskTot && Array.isArray(matchedWords) && matchedWords.length > 0) {
+        const expWrong = taskTot - tCor;
         matchedWords.forEach(w => {
           const cleanW = String(w).trim();
           if (finalWrongWords.length < expWrong && !finalWrongWords.some(fw => fw.toLowerCase() === cleanW.toLowerCase())) {
@@ -694,9 +701,10 @@ function getStudentDailyTaskHistory(ss, username) {
         });
       }
 
+      // 嚴格以全卷應測單字數為分母計算全卷正確率，若表內已記錄且非空則優先採用
       let resolvedRate = rateVal;
-      if (tAtt > 0) {
-        resolvedRate = Math.round((tCor / tAtt) * 100) + "%";
+      if ((!resolvedRate || resolvedRate === "—" || !resolvedRate.includes("%")) && taskTot > 0) {
+        resolvedRate = Math.round((tCor / taskTot) * 100) + "%";
       }
       // 狀態嚴格尊重試算表「練習狀態」欄位：未完成 (如 10-12) 顯示未完成，已完成 (如 10-13 答對 4 題錯 1 題) 顯示已完成
       let resolvedStatus = statusVal;
@@ -704,7 +712,7 @@ function getStudentDailyTaskHistory(ss, username) {
         resolvedStatus = hasValidQuizScore ? "🟢 已完成" : (hasTaskAssigned ? "⏳ 尚未開始" : "⚪ 未指派");
       }
 
-      const isIncompleteQuiz = (tAtt > 0 && tCor < tAtt) || statusVal.includes("未完成") || statusVal.includes("作答中") || statusVal.includes("中斷");
+      const isIncompleteQuiz = (taskTot > 0 && tAtt < taskTot) || statusVal.includes("未完成") || statusVal.includes("作答中") || statusVal.includes("中斷");
       const isSpecialTask = statusVal.includes("未受測") || statusVal.includes("中斷") || statusVal.includes("缺席") || statusVal.includes("作答中") || statusVal.includes("未作答") || statusVal.includes("未完成") || isIncompleteQuiz;
       const defaultTaskName = (hasTaskAssigned || isSpecialTask) ? "每日指定測驗" : (hasFreePractice ? "自主練習" : "每日指定測驗");
       list.push({
@@ -715,8 +723,11 @@ function getStudentDailyTaskHistory(ss, username) {
         status      : resolvedStatus,
         attempts    : tAtt,
         correct     : tCor,
+        testedCount : taskTot,
+        answeredCount: tAtt,
+        total       : taskTot,
         accuracy    : resolvedRate,
-        updatedAt   : formatStandardDateTime(vals[i][0]),
+        updatedAt   : formatStandardDateTime(vals[i][hMap.date !== undefined ? hMap.date : 0]),
         wrongWords  : finalWrongWords,
         words       : matchedWords,
         freeTested  : freeTestedVal,

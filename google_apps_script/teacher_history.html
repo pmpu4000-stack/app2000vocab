@@ -16083,15 +16083,19 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
     if (!isNaN(sTot) && sTot > 0) actualAnswered = sTot;
   } else if (record.attempts !== undefined && !isNaN(parseInt(record.attempts, 10)) && parseInt(record.attempts, 10) > 0) {
     actualAnswered = parseInt(record.attempts, 10);
+  } else if (totalAnswered > 0) {
+    actualAnswered = totalAnswered;
   } else {
-    actualAnswered = totalAnswered > 0 ? totalAnswered : (taskCorrWords + wrongList.length);
+    actualAnswered = taskCorrWords + wrongList.length;
   }
   if (actualAnswered <= 0 && taskCorrWords > 0) actualAnswered = taskCorrWords;
+  if (actualAnswered > quizTotal) quizTotal = actualAnswered;
 
-  const assignedTotWords = quizTotal;
   const actualWrong = wrongList.length > 0 ? wrongList.length : Math.max(0, actualAnswered - taskCorrWords);
   const actualUnanswered = Math.max(0, quizTotal - actualAnswered);
-  const hasUnanswered = actualUnanswered > 0 || (quizTotal > actualAnswered && actualAnswered > 0);
+  taskTotWords = quizTotal;
+  const assignedTotWords = quizTotal;
+  const hasUnanswered = actualUnanswered > 0;
 
   // (A) 作答正確率 (針對實際受測有作答題目的答對率，如 3/4 = 75%)
   const attemptedRate = actualAnswered > 0 ? Math.round((taskCorrWords / actualAnswered) * 100) : 0;
@@ -18699,6 +18703,12 @@ function renderStudentSummary(resp) {
           let arr = taskByDateMap.get(nd);
           if (!arr) { arr = []; taskByDateMap.set(nd, arr); }
           arr.push(item);
+          const md = nd.slice(5);
+          if (md && md !== nd) {
+            let mArr = taskByDateMap.get(md);
+            if (!mArr) { mArr = []; taskByDateMap.set(md, mArr); }
+            mArr.push(item);
+          }
         }
       }
     }

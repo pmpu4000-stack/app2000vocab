@@ -1444,27 +1444,25 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
   let actualAnswered = 0;
   if (record.answeredCount && !isNaN(parseInt(record.answeredCount, 10)) && parseInt(record.answeredCount, 10) > 0) {
     actualAnswered = parseInt(record.answeredCount, 10);
-  } else if (totalAnswered > 0) {
-    actualAnswered = totalAnswered;
-  } else if (record.attempts !== undefined && !isNaN(parseInt(record.attempts, 10)) && parseInt(record.attempts, 10) > 0) {
-    actualAnswered = parseInt(record.attempts, 10);
   } else if (scoreVal && String(scoreVal).includes("/")) {
     const parts = String(scoreVal).split("/");
     const sTot = parseInt(parts[1], 10);
     if (!isNaN(sTot) && sTot > 0) actualAnswered = sTot;
+  } else if (record.attempts !== undefined && !isNaN(parseInt(record.attempts, 10)) && parseInt(record.attempts, 10) > 0) {
+    actualAnswered = parseInt(record.attempts, 10);
+  } else if (totalAnswered > 0) {
+    actualAnswered = totalAnswered;
   } else {
-    actualAnswered = totalAnswered > 0 ? totalAnswered : (taskCorrWords + wrongList.length);
+    actualAnswered = taskCorrWords + wrongList.length;
   }
   if (actualAnswered <= 0 && taskCorrWords > 0) actualAnswered = taskCorrWords;
+  if (actualAnswered > quizTotal) quizTotal = actualAnswered;
 
   const actualWrong = wrongList.length > 0 ? wrongList.length : Math.max(0, actualAnswered - taskCorrWords);
-  const actualUnanswered = unansweredList.length > 0 ? unansweredList.length : Math.max(0, quizTotal - actualAnswered);
-  if (actualUnanswered > 0 && quizTotal < actualAnswered + actualUnanswered) {
-    quizTotal = actualAnswered + actualUnanswered;
-  }
+  const actualUnanswered = Math.max(0, quizTotal - actualAnswered);
   taskTotWords = quizTotal;
   const assignedTotWords = quizTotal;
-  const hasUnanswered = actualUnanswered > 0 || (quizTotal > actualAnswered && actualAnswered > 0);
+  const hasUnanswered = actualUnanswered > 0;
 
   // (A) 作答正確率 (針對實際受測有作答題目的答對率，如 3/4 = 75%)
   const attemptedRate = actualAnswered > 0 ? Math.round((taskCorrWords / actualAnswered) * 100) : 0;
@@ -3237,6 +3235,12 @@ export function renderSummary(d) {
           let arr = taskByDateMap.get(nd);
           if (!arr) { arr = []; taskByDateMap.set(nd, arr); }
           arr.push(item);
+          const md = nd.slice(5);
+          if (md && md !== nd) {
+            let mArr = taskByDateMap.get(md);
+            if (!mArr) { mArr = []; taskByDateMap.set(md, mArr); }
+            mArr.push(item);
+          }
         }
       }
     }
@@ -3320,10 +3324,21 @@ export function renderSummary(d) {
     const norm = normalizeDateStr(dateKey);
     if (taskDayStatCache.has(norm)) return taskDayStatCache.get(norm);
 
-    const tArr = taskByDateMap.get(norm);
+    let tArr = taskByDateMap.get(norm);
+    if (!tArr && norm && norm.length >= 10) {
+      tArr = taskByDateMap.get(norm.slice(5));
+    }
     const tRec = (tArr && (tArr.find(r => r && r.status && r.status.includes("已完成")) || tArr.find(r => r && r.score && r.score !== "—" && r.score !== "尚未開始") || tArr[0])) || null;
+
+    const hasActualTestRec = tRec && (
+      (tRec.score && tRec.score !== "—" && tRec.score !== "尚未開始" && String(tRec.score).includes("/")) ||
+      (parseInt(tRec.attempts) > 0) ||
+      (parseInt(tRec.correct) > 0) ||
+      (tRec.status && (tRec.status.includes("已完成") || tRec.status.includes("未完成") || tRec.status.includes("作答中") || tRec.status.includes("中斷")))
+    );
+
     const isExplicitUntested = tRec && tRec.status && (tRec.status.includes("未受測") || tRec.status.includes("缺席") || tRec.status.includes("缺考") || tRec.status.includes("未作答"));
-    const isUnassignedTask = !tRec || (!isExplicitUntested && (!tRec.taskName || tRec.taskName === "⚪ 未指派" || tRec.taskName === "未指派" || tRec.taskName === "自主練習" || String(tRec.taskName).includes("未指派") || (tRec.status && tRec.status.includes("未指派"))));
+    const isUnassignedTask = !tRec || (!hasActualTestRec && !isExplicitUntested && (!tRec.taskName || tRec.taskName === "⚪ 未指派" || tRec.taskName === "未指派" || tRec.taskName === "自主練習" || String(tRec.taskName).includes("未指派") || (tRec.status && tRec.status.includes("未指派"))));
     if (isUnassignedTask) {
       const res = {
         a: 0, c: 0, rate: 0,
@@ -3342,8 +3357,8 @@ export function renderSummary(d) {
 
     if (tRec.testedCount && !isNaN(parseInt(tRec.testedCount, 10)) && parseInt(tRec.testedCount, 10) > 0) {
       taskWordsCount = parseInt(tRec.testedCount, 10);
-    } else if (tRec.status && /\/\s*(\d+)\s*\)/.test(tRec.status)) {
-      const m = tRec.status.match(/\/\s*(\d+)\s*\)/);
+    } else if (tRec.status && //s*(d+)s*)/.test(tRec.status)) {
+      const m = tRec.status.match(//s*(d+)s*)/);
       if (m) taskWordsCount = parseInt(m[1], 10);
     } else if (tRec.total && !isNaN(parseInt(tRec.total, 10)) && parseInt(tRec.total, 10) > 0) {
       taskWordsCount = parseInt(tRec.total, 10);
@@ -3355,33 +3370,32 @@ export function renderSummary(d) {
       const sTot = parseInt(sp[1], 10);
       if (!isNaN(sTot) && sTot > 0) {
         if (!taskWordsCount) taskWordsCount = sTot;
+        if (!tAtt) tAtt = sTot;
       }
-      if (!isNaN(sCorr)) tCor = sCorr;
+      if (!isNaN(sCorr) && !tCor) tCor = sCorr;
     }
 
     const statusStr = String(tRec.status || "");
-    // 計算單字數量 (wordsCount)
     const resolved = resolveTaskWords(tRec, norm, d);
     const resolvedRaw = resolved.rawWords || [];
     const resolvedCorr = resolved.correctList || [];
     const resolvedWrong = resolved.wrongList || [];
     const resolvedAnsCount = resolvedCorr.length + resolvedWrong.length;
 
-    if (resolvedAnsCount > 0) {
+    if (resolvedAnsCount > tAtt) {
       tAtt = resolvedAnsCount;
     } else if (!tAtt && tRec.answeredCount) {
       tAtt = parseInt(tRec.answeredCount, 10) || 0;
     }
-    if (resolvedCorr.length > 0) {
-      tCor = Math.max(tCor, resolvedCorr.length);
+    if (resolvedCorr.length > tCor) {
+      tCor = resolvedCorr.length;
     }
     if (!taskWordsCount) {
-      taskWordsCount = (resolvedCorr.length + resolvedWrong.length) > 0
-        ? (resolvedCorr.length + resolvedWrong.length)
-        : (resolvedRaw.length || (Array.isArray(tRec.words) && tRec.words.length) || tAtt || 5);
+      taskWordsCount = resolvedRaw.length || (Array.isArray(tRec.words) && tRec.words.length) || (resolvedCorr.length + resolvedWrong.length) || tAtt || 5;
     }
-    if (taskWordsCount < resolvedAnsCount) taskWordsCount = resolvedAnsCount;
+    if (resolvedRaw.length > taskWordsCount) taskWordsCount = resolvedRaw.length;
     if (taskWordsCount < tAtt) taskWordsCount = tAtt;
+    if (taskWordsCount <= 0) taskWordsCount = 5;
 
     // 判定是否為未受測狀態 (缺席未受測 / 登入未受測)
     const isUntested = isExplicitUntested || (
@@ -3397,7 +3411,6 @@ export function renderSummary(d) {
     let res;
     if (isUntested) {
       if (hasLoggedInOrFree) {
-        // 登入未受測 (保持清新綠色)
         res = {
           a: 0, c: 0, rate: 0,
           wordsCount: taskWordsCount,
@@ -3408,7 +3421,6 @@ export function renderSummary(d) {
           badgeTier: "tier-status-yellow"
         };
       } else {
-        // 缺席未受測 (保持極致電光翠綠)
         res = {
           a: 0, c: 0, rate: 0,
           wordsCount: taskWordsCount,
@@ -3423,22 +3435,20 @@ export function renderSummary(d) {
       return res;
     }
 
-    // 核心完成判定：只要狀態明確為已完成、或無未作答且已全數作答完畢
     const isExplicitlyNotFinished = statusStr.includes("中斷") || statusStr.includes("未完成") || statusStr.includes("作答中") || tRec.inProgress === true;
     const isFinished = !isExplicitlyNotFinished && (statusStr.includes("已完成") || ((tAtt > 0 && tAtt >= taskWordsCount) || (resolvedAnsCount > 0 && resolvedAnsCount >= taskWordsCount)));
 
-    // 核心中斷判定：已作答但未答滿全部題目 (resolvedAnsCount < taskWordsCount 或 tAtt < taskWordsCount)，或狀態明確含中斷/未完成/作答中
-    const isUnfinishedAttempt = !isFinished && (
-      (taskWordsCount > 0 && resolvedAnsCount > 0 && resolvedAnsCount < taskWordsCount) ||
-      (taskWordsCount > 0 && tAtt > 0 && tAtt < taskWordsCount)
-    );
-
     // 判定是否有未作答單字 (未作答視同答錯)
-    const actualAnswered = resolvedAnsCount > 0 ? resolvedAnsCount : tAtt;
-    const hasUnanswered = (taskWordsCount > actualAnswered && actualAnswered > 0) || (resolved.unansweredList && resolved.unansweredList.length > 0) || isUnfinishedAttempt;
+    const actualAnswered = tAtt;
+    const hasUnanswered = taskWordsCount > actualAnswered && actualAnswered > 0;
 
     // 全卷正確率 (未作答視同答錯失分，以全卷總題數為分母)
-    const overallRate = taskWordsCount > 0 ? Math.round((tCor / taskWordsCount) * 100) : 0;
+    let overallRate = 0;
+    if (taskWordsCount > 0) {
+      overallRate = Math.round((tCor / taskWordsCount) * 100);
+    } else if (tRec.rate && !isNaN(parseInt(tRec.rate, 10))) {
+      overallRate = parseInt(tRec.rate, 10);
+    }
     const tRate = overallRate;
 
     // 藍色系六階量級映射 (與成績卡全卷正確率色階 100% 嚴格一致)
