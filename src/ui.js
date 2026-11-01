@@ -1810,7 +1810,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
       <div class="task-score-grid">
         <div class="task-score-subgrid-4">
           <div class="task-score-item score-corr-item">
-            <div class="task-score-label">已答對</div>
+            <div class="task-score-label">答對</div>
             <div class="task-score-val task-score-num-corr">${taskCorrWords}</div>
           </div>
           <div class="task-score-item score-wrong-item">
