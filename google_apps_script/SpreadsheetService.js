@@ -830,20 +830,14 @@ function getClassOverviewRaw(ss, forceRefresh) {
 
   let rowsMap = {};
   let cpCoveredCount = 0;
-  // 🚀 優先從【學生歷程總庫】一次性批量提取所有學生最新紀錄 (零 API 浪費、超高速)
+  // 🚀 優先從【學生歷程總庫】輕量讀取（略過完整JSON欄）各生最新一列
   try {
-    const cpSheet = getCentralPortfolioSheet(ss, false);
-    if (cpSheet && cpSheet.getLastRow() >= 2) {
-      const lastRow = cpSheet.getLastRow();
-      const lastCol = Math.min(cpSheet.getLastColumn(), 35);
-      const cpVals = cpSheet.getRange(2, 1, lastRow - 1, lastCol).getDisplayValues();
-      const cpHdrs = cpSheet.getRange(1, 2, 1, lastCol - 1).getDisplayValues()[0];
-      for (let i = 0; i < cpVals.length; i++) {
-        const u = String(cpVals[i][0] || "").trim().toLowerCase();
-        if (u && !rowsMap[u]) {
-          rowsMap[u] = [cpHdrs, cpVals[i].slice(1)];
-          cpCoveredCount++;
-        }
+    const lite = cpReadAllLite_(ss);
+    for (let i = 0; i < lite.rows.length; i++) {
+      const u = lite.rows[i][0];
+      if (!rowsMap[u]) {
+        rowsMap[u] = [lite.headers, lite.rows[i][1]];
+        cpCoveredCount++;
       }
     }
   } catch(errCP) {
@@ -2707,26 +2701,54 @@ function clearDeviceLoginLogs(creds) {
   }
 }
 
-
 // ════════════════════════════════════════════════════════════════════
 // 9. 【學生歷程總庫】單一資料庫表集中管理模組
+//    - 欄位：A 學號 + 原學生分頁 34 欄（B 備份時間、C 完整JSON ...）
+//    - 新紀錄插入第 2 列（新→舊）；舊分頁歷史回填附加於底部（同生仍維持新→舊）
+//    - 讀取：先讀 A:B 索引定位，再批次讀取該生列，絕不整表讀取 JSON 欄
 // ════════════════════════════════════════════════════════════════════
+
+const CP_SHEET_NAME = "學生歷程總庫";
+const CP_DATA_COLS  = 34;               // 不含學號
+const CP_TOTAL_COLS = CP_DATA_COLS + 1; // 含學號 (A~AI)
+const CP_LAST_COL_A1 = "AI";
+var __CP_MEMO = null;                   // 單次執行記憶體快取
+
+function cpMemo_() {
+  if (!__CP_MEMO) __CP_MEMO = { colAB: null, headers: null, lite: null, rows: {}, marks: {} };
+  return __CP_MEMO;
+}
+function cpInvalidate_() { __CP_MEMO = null; }
+
+/** 對應原學生分頁欄位格式：全文字，數值欄 G~K 與百分比 L（總庫位移 +1 欄） */
+function cpRowFormats_() {
+  const f = new Array(CP_TOTAL_COLS).fill("@");
+  for (let c = 7; c <= 11; c++) f[c] = "0";
+  f[12] = "0%";
+  return f;
+}
+
+function cpPadRow_(r) {
+  const out = (r || []).slice(0, CP_DATA_COLS);
+  while (out.length < CP_DATA_COLS) out.push("");
+  return out;
+}
 
 /**
  * 取得或建立【學生歷程總庫】工作表
  */
 function getCentralPortfolioSheet(ss, autoCreate) {
   if (!ss) return null;
-  let s = ss.getSheetByName("學生歷程總庫");
+  let s = ss.getSheetByName(CP_SHEET_NAME);
   if (!s && autoCreate) {
-    s = ss.insertSheet("學生歷程總庫");
+    s = ss.insertSheet(CP_SHEET_NAME);
     ensureCentralPortfolioColumns(s);
   }
   return s;
 }
 
 /**
- * 確保【學生歷程總庫】包含 35 個標準欄位（以學號起首）
+ * 確保【學生歷程總庫】包含 35 個標準欄位（以學號起首）與文字格式（防 3/4 被轉成日期）
  */
 function ensureCentralPortfolioColumns(sheet) {
   if (!sheet) return;
@@ -2743,83 +2765,115 @@ function ensureCentralPortfolioColumns(sheet) {
     ];
     if (sheet.getLastRow() < 1) {
       sheet.getRange(1, 1, 1, headers.length).setValues([headers])
-        .setBackground("#1a73e8").setFontColor("#ffffff").setFontWeight("bold").setHorizontalAlignment("center");
+        .setBackground("#1a73e8").setFontColor("#ffffff").setFontWeight("bold").setHorizontalAlignment("center").setWrap(true);
       sheet.setFrozenRows(1);
       sheet.setFrozenColumns(1);
+      try { sheet.hideColumns(3); } catch(_) {}
+    }
+    // 一次性套用整欄文字格式（舊版建立之總庫自動補正）
+    const props = PropertiesService.getScriptProperties();
+    if (!props.getProperty("CP_FMT_V1")) {
+      const maxR = sheet.getMaxRows();
+      sheet.getRange(1, 1, maxR, CP_TOTAL_COLS).setNumberFormat("@");
+      sheet.getRange(2, 8, Math.max(1, maxR - 1), 5).setNumberFormat("0");
+      sheet.getRange(2, 13, Math.max(1, maxR - 1), 1).setNumberFormat("0%");
+      try { sheet.hideColumns(3); } catch(_) {}
+      props.setProperty("CP_FMT_V1", "1");
     }
   } catch(e) {
     Logger.log("ensureCentralPortfolioColumns error: " + e.message);
   }
 }
 
-/**
- * 儲存學生紀錄至【學生歷程總庫】
- */
-function saveToCentralPortfolio(ss, username, rowData, shouldInsertNewRow, todayStr, taskName) {
-  try {
-    const cpSheet = getCentralPortfolioSheet(ss, true);
-    if (!cpSheet) return;
-    ensureCentralPortfolioColumns(cpSheet);
+/** A:B 索引（學號、備份時間），單次執行快取 */
+function cpGetColAB_(ss) {
+  const m = cpMemo_();
+  if (m.colAB) return m.colAB;
+  const s = getCentralPortfolioSheet(ss, false);
+  if (!s || s.getLastRow() < 2) { m.colAB = []; return m.colAB; }
+  m.colAB = s.getRange(2, 1, s.getLastRow() - 1, 2).getDisplayValues();
+  return m.colAB;
+}
 
-    const fullRow = [String(username).trim(), ...rowData];
-    const cleanU = String(username).trim().toLowerCase();
+function cpGetHeaders_(ss) {
+  const m = cpMemo_();
+  if (m.headers) return m.headers;
+  const s = getCentralPortfolioSheet(ss, false);
+  m.headers = s ? s.getRange(1, 2, 1, CP_DATA_COLS).getDisplayValues()[0] : [];
+  return m.headers;
+}
 
-    const lastRow = cpSheet.getLastRow();
-    let replacedRow = -1;
-    if (lastRow >= 2) {
-      const checkCount = Math.min(lastRow - 1, 60);
-      const vals = cpSheet.getRange(2, 1, checkCount, 25).getValues();
-      for (let i = 0; i < vals.length; i++) {
-        const u = String(vals[i][0] || "").trim().toLowerCase();
-        const d = formatStandardDateYMD(vals[i][1]);
-        const t = String(vals[i][22] || "").trim(); // 任務名稱 (index 22 in fullRow)
-        if (u === cleanU && d === todayStr) {
-          if ((taskName === "自主練習" && t === "自主練習") || (taskName !== "自主練習" && t === taskName)) {
-            replacedRow = i + 2;
-            break;
-          }
-        }
-      }
+/** 回傳該生在總庫的實際列號（新→舊） */
+function cpFindUserRowNums_(ss, username, limit) {
+  const u = String(username || "").trim().toLowerCase();
+  const ab = cpGetColAB_(ss);
+  const out = [];
+  for (let i = 0; i < ab.length; i++) {
+    if (String(ab[i][0]).trim().toLowerCase() === u) {
+      out.push(i + 2);
+      if (limit && out.length >= limit) break;
     }
-
-    if (replacedRow > 0 && !shouldInsertNewRow) {
-      cpSheet.getRange(replacedRow, 1, 1, fullRow.length).setValues([fullRow]);
-    } else {
-      cpSheet.insertRowBefore(2);
-      cpSheet.getRange(2, 1, 1, fullRow.length).setValues([fullRow]);
-    }
-  } catch(e) {
-    Logger.log("saveToCentralPortfolio error: " + e.message);
   }
+  return out;
+}
+
+/** 批次讀取指定列（A~AI），回傳去除學號後之 34 欄陣列 */
+function cpReadRows_(ss, rowNums) {
+  if (!rowNums.length) return [];
+  const s = getCentralPortfolioSheet(ss, false);
+  // 將連續列合併成區塊
+  const blocks = [];
+  rowNums.forEach(r => {
+    const last = blocks[blocks.length - 1];
+    if (last && r === last.end + 1) last.end = r; else blocks.push({ start: r, end: r });
+  });
+  const byRow = {};
+  if (blocks.length > 3) {
+    try {
+      const sheetRef = "'" + CP_SHEET_NAME + "'!";
+      const resp = Sheets.Spreadsheets.Values.batchGet(ss.getId(), {
+        ranges: blocks.map(b => sheetRef + "A" + b.start + ":" + CP_LAST_COL_A1 + b.end),
+        valueRenderOption: "FORMATTED_VALUE",
+        majorDimension: "ROWS"
+      });
+      (resp.valueRanges || []).forEach((vr, bi) => {
+        const vals = vr.values || [];
+        for (let k = 0; k <= blocks[bi].end - blocks[bi].start; k++) {
+          byRow[blocks[bi].start + k] = vals[k] || [];
+        }
+      });
+    } catch(e) {
+      Logger.log("[CP] batchGet fallback: " + e.message);
+    }
+  }
+  blocks.forEach(b => {
+    if (byRow[b.start] !== undefined) return;
+    const vals = s.getRange(b.start, 1, b.end - b.start + 1, CP_TOTAL_COLS).getDisplayValues();
+    vals.forEach((v, k) => { byRow[b.start + k] = v; });
+  });
+  return rowNums.map(r => cpPadRow_((byRow[r] || []).slice(1)));
 }
 
 /**
- * 從【學生歷程總庫】快速取得指定學生歷程列
+ * 從【學生歷程總庫】快速取得指定學生歷程列（新→舊）
  */
 function getStudentRowsFromCentralPortfolio(ss, username, maxRows) {
   try {
-    const cpSheet = getCentralPortfolioSheet(ss, false);
-    if (!cpSheet || cpSheet.getLastRow() < 2) return null;
-    const cleanU = String(username).trim().toLowerCase();
-    const lastRow = cpSheet.getLastRow();
-    const lastCol = cpSheet.getLastColumn();
-    if (lastCol < 2) return null;
+    const cleanU = String(username || "").trim();
+    if (!cleanU) return null;
+    const s = getCentralPortfolioSheet(ss, false);
+    if (!s) return null;
+    ensureCentralPortfolioBackfilled_(ss, cleanU, {});
 
-    const vals = cpSheet.getRange(2, 1, lastRow - 1, lastCol).getDisplayValues();
-    const headers = cpSheet.getRange(1, 2, 1, lastCol - 1).getDisplayValues()[0];
-    const studentRows = [];
-
-    for (let i = 0; i < vals.length; i++) {
-      if (String(vals[i][0]).trim().toLowerCase() === cleanU) {
-        studentRows.push(vals[i].slice(1)); // 去除第 1 欄學號
-        if (studentRows.length >= (maxRows || 60)) break;
-      }
+    const m = cpMemo_();
+    const key = cleanU.toLowerCase();
+    if (!m.rows[key]) {
+      const nums = cpFindUserRowNums_(ss, cleanU, 60);
+      m.rows[key] = nums.length ? cpReadRows_(ss, nums) : [];
     }
-
-    if (studentRows.length > 0) {
-      return { headers: headers, rawData: studentRows };
-    }
-    return null;
+    const all = m.rows[key];
+    if (!all.length) return null;
+    return { headers: cpGetHeaders_(ss), rawData: all.slice(0, maxRows || 60).map(r => r.slice()) };
   } catch(e) {
     Logger.log("getStudentRowsFromCentralPortfolio error: " + e.message);
     return null;
@@ -2827,59 +2881,174 @@ function getStudentRowsFromCentralPortfolio(ss, username, maxRows) {
 }
 
 /**
- * 背景回填：將舊學生工作表資料遷移至【學生歷程總庫】
+ * 全表輕量讀取（略過 C 欄完整JSON），供班級總覽、大數據分析使用
+ * 回傳 { headers, rows: [[usernameLower, row34]] }
  */
-function backfillOldStudentDataToCentralPortfolio(ss, username, rawData) {
-  if (!rawData || rawData.length === 0) return;
-  const cpSheet = getCentralPortfolioSheet(ss, true);
-  if (!cpSheet) return;
-  ensureCentralPortfolioColumns(cpSheet);
+function cpReadAllLite_(ss) {
+  const m = cpMemo_();
+  if (m.lite) return m.lite;
+  const s = getCentralPortfolioSheet(ss, false);
+  if (!s || s.getLastRow() < 2) { m.lite = { headers: [], rows: [] }; return m.lite; }
+  const n = s.getLastRow() - 1;
+  const ab = cpGetColAB_(ss);
+  const rest = s.getRange(2, 4, n, CP_TOTAL_COLS - 3).getDisplayValues(); // D~AI
+  const rows = [];
+  for (let i = 0; i < n; i++) {
+    const u = String((ab[i] || [])[0] || "").trim().toLowerCase();
+    if (!u) continue;
+    rows.push([u, cpPadRow_([(ab[i] || [])[1] || "", ""].concat(rest[i]))]);
+  }
+  m.lite = { headers: cpGetHeaders_(ss), rows: rows };
+  return m.lite;
+}
 
-  const cleanU = String(username).trim();
-  const rowsToInsert = rawData.map(r => [cleanU, ...r]);
+/** 正規化時間鍵（相容 2026-11-01 08:00:00 / 2026/11/1 下午 1:00:00） */
+function cpTimeKey_(v) {
+  const s = String(v || "").trim();
+  if (!s) return "";
+  const nums = s.split(/\D+/).filter(Boolean).map(x => parseInt(x, 10));
+  if (nums.length >= 4 && /下午|PM/i.test(s) && nums[3] < 12) nums[3] += 12;
+  if (nums.length >= 4 && /上午|AM/i.test(s) && nums[3] === 12) nums[3] = 0;
+  return nums.join("-");
+}
 
-  if (rowsToInsert.length > 0) {
-    const startRow = cpSheet.getLastRow() + 1;
-    cpSheet.getRange(startRow, 1, rowsToInsert.length, rowsToInsert[0].length).setValues(rowsToInsert);
+function cpAppendRows_(ss, rows) {
+  if (!rows.length) return;
+  const s = getCentralPortfolioSheet(ss, true);
+  ensureCentralPortfolioColumns(s);
+  const start = s.getLastRow() + 1;
+  const need = start + rows.length - 1 - s.getMaxRows();
+  if (need > 0) s.insertRowsAfter(s.getMaxRows(), need);
+  const rng = s.getRange(start, 1, rows.length, CP_TOTAL_COLS);
+  const f = cpRowFormats_();
+  rng.setNumberFormats(rows.map(() => f));
+  rng.setValues(rows);
+  cpInvalidate_();
+}
+
+/**
+ * 確保該生舊分頁歷史已完整回填至總庫（每生僅執行一次，以 Script Properties 標記）
+ * opts.locked：呼叫端已持有 Script Lock
+ * opts.skipFirstOldRow：儲存流程中舊分頁第 2 列為本次新資料，若總庫已有該生紀錄則略過
+ * 回傳 { backfilledAll }：true 表示該生原本不在總庫，已整批寫入（含本次新資料）
+ */
+function ensureCentralPortfolioBackfilled_(ss, username, opts) {
+  opts = opts || {};
+  const u = String(username || "").trim();
+  if (!u) return {};
+  const markKey = "cpbf_" + u.toLowerCase();
+  const m = cpMemo_();
+  if (m.marks[markKey]) return {};
+  const props = PropertiesService.getScriptProperties();
+  if (props.getProperty(markKey)) { m.marks[markKey] = true; return {}; }
+
+  let lock = null;
+  if (!opts.locked) {
+    lock = LockService.getScriptLock();
+    if (!lock.tryLock(3000)) return {};
+  }
+  try {
+    if (props.getProperty(markKey)) { m.marks[markKey] = true; return {}; }
+    cpInvalidate_();
+    const old = getStudentSheet(ss, u);
+    let result = {};
+    if (old && old.getLastRow() >= 2) {
+      const oldRows = old.getRange(2, 1, old.getLastRow() - 1, Math.min(old.getLastColumn(), CP_DATA_COLS)).getDisplayValues();
+      const nums = cpFindUserRowNums_(ss, u, 0);
+      let toAppend;
+      if (!nums.length) {
+        toAppend = oldRows;
+        result.backfilledAll = true;
+      } else {
+        const ab = cpGetColAB_(ss);
+        const have = new Set(nums.map(r => cpTimeKey_(ab[r - 2][1])));
+        toAppend = oldRows.filter((r, i) => !(opts.skipFirstOldRow && i === 0) && !have.has(cpTimeKey_(r[0])));
+      }
+      toAppend = toAppend.filter(r => String(r[0] || "").trim());
+      cpAppendRows_(ss, toAppend.map(r => [u].concat(cpPadRow_(r))));
+      if (!toAppend.length) result.backfilledAll = false;
+    }
+    props.setProperty(markKey, "1");
+    cpMemo_().marks[markKey] = true;
+    return result;
+  } catch(e) {
+    Logger.log("ensureCentralPortfolioBackfilled_ error: " + e.message);
+    return {};
+  } finally {
+    if (lock) try { lock.releaseLock(); } catch(_) {}
+  }
+}
+
+/** 相容舊呼叫：改為完整、去重之一次性回填 */
+function backfillOldStudentDataToCentralPortfolio(ss, username) {
+  return ensureCentralPortfolioBackfilled_(ss, username, {});
+}
+
+/**
+ * 儲存學生紀錄至【學生歷程總庫】（呼叫端 handleSaveRecord 已持有 Script Lock）
+ * 與原學生分頁同步：shouldInsertNewRow → 插入新列；否則覆寫該生最新一列
+ */
+function saveToCentralPortfolio(ss, username, rowData, shouldInsertNewRow, todayStr, taskName) {
+  try {
+    const u = String(username || "").trim();
+    if (!u) return;
+    const cpSheet = getCentralPortfolioSheet(ss, true);
+    ensureCentralPortfolioColumns(cpSheet);
+
+    const bf = ensureCentralPortfolioBackfilled_(ss, u, { locked: true, skipFirstOldRow: true });
+    if (bf.backfilledAll) return; // 舊分頁（已含本次資料）已整批寫入
+
+    const fullRow = [u].concat(cpPadRow_(rowData));
+    const f = cpRowFormats_();
+    const latest = cpFindUserRowNums_(ss, u, 1)[0];
+
+    if (latest && !shouldInsertNewRow) {
+      const rng = cpSheet.getRange(latest, 1, 1, CP_TOTAL_COLS);
+      rng.setNumberFormats([f]);
+      rng.setValues([fullRow]);
+    } else {
+      cpSheet.insertRowBefore(2);
+      const rng = cpSheet.getRange(2, 1, 1, CP_TOTAL_COLS);
+      rng.setNumberFormats([f]);
+      rng.setValues([fullRow]);
+    }
+    cpInvalidate_();
+  } catch(e) {
+    Logger.log("saveToCentralPortfolio error: " + e.message);
+    try { logError("saveToCentralPortfolio", e, username, ""); } catch(_) {}
   }
 }
 
 /**
- * 一鍵將所有學生歷史分頁遷移至【學生歷程總庫】
+ * 一鍵將所有學生歷史分頁遷移至【學生歷程總庫】（可重複執行，不會產生重複列）
  */
 function migrateAllStudentsToCentralPortfolio(ss) {
   if (!ss) ss = SpreadsheetApp.getActiveSpreadsheet();
   const cpSheet = getCentralPortfolioSheet(ss, true);
   ensureCentralPortfolioColumns(cpSheet);
-
-  const sheets = ss.getSheets();
-  let migratedStudents = 0;
-  let totalRows = 0;
-
-  sheets.forEach(s => {
-    const name = s.getName().trim();
-    if (isSystemSheet(name) || name === "學生歷程總庫") return;
-    const lastRow = s.getLastRow();
-    const lastCol = s.getLastColumn();
-    if (lastRow < 2 || lastCol < 2) return;
-
-    try {
-      const data = s.getRange(2, 1, lastRow - 1, Math.min(lastCol, 34)).getValues();
-      if (data.length > 0) {
-        const rows = data.map(r => {
-          while (r.length < 34) r.push("");
-          return [name, ...r];
-        });
-        const targetRow = cpSheet.getLastRow() + 1;
-        cpSheet.getRange(targetRow, 1, rows.length, rows[0].length).setValues(rows);
-        migratedStudents++;
-        totalRows += rows.length;
-      }
-    } catch(e) {
-      Logger.log("Migrate sheet " + name + " failed: " + e.message);
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  let migratedStudents = 0, totalRows = 0;
+  try {
+    const userSet = new Set();
+    const uSheet = ss.getSheetByName("使用者清單");
+    if (uSheet && uSheet.getLastRow() >= 2) {
+      uSheet.getRange(2, 1, uSheet.getLastRow() - 1, 1).getValues()
+        .forEach(r => { const v = String(r[0] || "").trim().toLowerCase(); if (v) userSet.add(v); });
     }
-  });
-
+    ss.getSheets().forEach(s => {
+      const name = s.getName().trim();
+      if (isSystemSheet(name) || name === CP_SHEET_NAME) return;
+      if (!userSet.has(name.toLowerCase())) return;
+      if (s.getLastRow() < 2) return;
+      const before = cpGetColAB_(ss).length;
+      ensureCentralPortfolioBackfilled_(ss, name, { locked: true });
+      const added = cpGetColAB_(ss).length - before;
+      if (added > 0) { migratedStudents++; totalRows += added; }
+    });
+  } finally {
+    try { lock.releaseLock(); } catch(_) {}
+  }
   clearOverviewCache();
   return { status: "success", migratedStudents, totalRows };
 }
@@ -2889,7 +3058,7 @@ function migrateAllStudentsToCentralPortfolioUi() {
   const res = migrateAllStudentsToCentralPortfolio();
   ui.alert(
     "🚀 學生歷程總庫遷移完成",
-    "✅ 已成功將 " + res.migratedStudents + " 位學生、共 " + res.totalRows + " 筆歷史紀錄整合成【學生歷程總庫】！\n\n日後可隨時安心使用【一鍵清理無用分頁】安全移除個人舊分頁。",
+    "✅ 本次新增遷移 " + res.migratedStudents + " 位學生、共 " + res.totalRows + " 筆歷史紀錄至【學生歷程總庫】（已遷移者自動略過，不會重複）。",
     ui.ButtonSet.OK
   );
 }

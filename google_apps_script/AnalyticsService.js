@@ -673,43 +673,39 @@ function collectAnalyticsTaskRecords(ss, allStudents) {
     studentMap[st.username.toLowerCase()] = st;
   });
 
-  const cpSheet = getCentralPortfolioSheet(ss, false);
   const coveredStudents = new Set();
-
-  if (cpSheet && cpSheet.getLastRow() >= 2) {
-    try {
-      const lastRow = cpSheet.getLastRow();
-      const lastCol = Math.min(cpSheet.getLastColumn(), 35);
-      const cpVals = cpSheet.getRange(2, 1, lastRow - 1, lastCol).getValues();
-      const cpHdrs = cpSheet.getRange(1, 2, 1, lastCol - 1).getValues()[0];
-      const hMap = getHeaderIndexMap(cpHdrs);
-
-      for (let i = 0; i < cpVals.length; i++) {
-        const u = String(cpVals[i][0] || "").trim().toLowerCase();
-        const st = studentMap[u];
-        if (st) {
-          coveredStudents.add(u);
-          const row = cpVals[i].slice(1);
-          const dateStr = formatStandardDateYMD(row[hMap.date]);
-          if (dateStr && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-            recData.push([
-              dateStr, st.className, st.username, st.realName || st.username,
-              row[hMap.taskName] || "自主練習",
-              row[hMap.taskScore] || "—",
-              row[hMap.taskRate] || "—",
-              row[hMap.correct] || 0,
-              row[hMap.attempts] || 0,
-              row[hMap.accuracy] || "0%",
-              row[hMap.status] || "—",
-              formatStandardDateTime(row[hMap.date]),
-              row[hMap.wrong] || ""
-            ]);
-          }
-        }
+  try {
+    // 僅採用「已完成舊分頁回填」之學生（cpbf_ 標記），其餘回退讀取舊分頁以確保歷史完整
+    const marks = PropertiesService.getScriptProperties().getProperties();
+    const lite = cpReadAllLite_(ss);
+    const hMap = getHeaderIndexMap(lite.headers);
+    const perUser = {};
+    for (let i = 0; i < lite.rows.length; i++) {
+      const u = lite.rows[i][0];
+      const st = studentMap[u];
+      if (!st || !marks["cpbf_" + u]) continue;
+      coveredStudents.add(u);
+      perUser[u] = (perUser[u] || 0) + 1;
+      if (perUser[u] > 60) continue;
+      const row = lite.rows[i][1];
+      const dateStr = formatStandardDateYMD(row[hMap.date]);
+      if (dateStr && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+        recData.push([
+          dateStr, st.className, st.username, st.realName || st.username,
+          row[hMap.taskName] || "自主練習",
+          row[hMap.taskScore] || "—",
+          row[hMap.taskRate] || "—",
+          row[hMap.correct] || 0,
+          row[hMap.attempts] || 0,
+          row[hMap.accuracy] || "0%",
+          row[hMap.status] || "—",
+          formatStandardDateTime(row[hMap.date]),
+          row[hMap.wrong] || ""
+        ]);
       }
-    } catch(errCP) {
-      Logger.log("[Analytics] CP batch read error: " + errCP.message);
     }
+  } catch(errCP) {
+    Logger.log("[Analytics] CP batch read error: " + errCP.message);
   }
 
   // 尚未被總庫覆蓋的學生，fallback 讀取個別分頁
