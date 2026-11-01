@@ -3400,25 +3400,39 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   font-weight: 700 !important;
   border-radius: 7px !important;
   cursor: pointer !important;
-  transition: all 0.15s ease !important;
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease !important;
   line-height: 1.25 !important;
   user-select: none !important;
   box-shadow: none !important;
   white-space: nowrap !important;
+  transform: none !important;
+  min-width: 66px !important;
+  text-align: center !important;
+  box-sizing: border-box !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 .weak-range-tabs .tab-btn:hover,
 #weak-range-tabs .tab-btn:hover,
 #st-weak-range-tabs .tab-btn:hover {
   color: var(--ink, #232A4D) !important;
   background: rgba(255, 255, 255, 0.55) !important;
+  transform: none !important;
+}
+.weak-range-tabs .tab-btn:active,
+#weak-range-tabs .tab-btn:active,
+#st-weak-range-tabs .tab-btn:active {
+  transform: none !important;
 }
 .weak-range-tabs .tab-btn.active,
 #weak-range-tabs .tab-btn.active,
 #st-weak-range-tabs .tab-btn.active {
   background: var(--card, #FFFFFF) !important;
   color: var(--violet, #6C4CE0) !important;
-  font-weight: 800 !important;
-  box-shadow: 0 1.5px 5px rgba(35, 42, 77, 0.12) !important;
+  font-weight: 700 !important;
+  box-shadow: 0 1px 4px rgba(35, 42, 77, 0.12) !important;
+  transform: none !important;
 }
 
 [data-theme="dark"] .weak-range-tabs .tab-btn,
@@ -3431,13 +3445,15 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 [data-theme="dark"] #st-weak-range-tabs .tab-btn:hover {
   color: #F0F3FA !important;
   background: rgba(255, 255, 255, 0.08) !important;
+  transform: none !important;
 }
 [data-theme="dark"] .weak-range-tabs .tab-btn.active,
 [data-theme="dark"] #weak-range-tabs .tab-btn.active,
 [data-theme="dark"] #st-weak-range-tabs .tab-btn.active {
   background: #20263A !important;
   color: #38BDF8 !important;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45) !important;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4) !important;
+  transform: none !important;
 }
 
 /* 操作按鈕組 */
