@@ -85,13 +85,13 @@ export function initWeakWordsCard() {
       if (words.length === 0) {
         statText.innerHTML = `🎉 <strong>太棒了！</strong> 目前無任何雙週待攻克弱點單字。`;
       } else {
-        statText.innerHTML = `👾 期末必考單字表：共 <strong>${words.length}</strong> 字`;
+        statText.innerHTML = `👾 期末大挑戰單字表：共 <strong>${words.length}</strong> 字`;
       }
     }
 
     if (!grid) return;
     if (words.length === 0) {
-      grid.innerHTML = `<div style="padding:16px 8px; text-align:center; color:var(--ink3, #94A3B8); font-size:13px; width:100%;">✨ 雙週測驗全數答對，無期末待攻克弱點單字！</div>`;
+      grid.innerHTML = `<div style="padding:16px 8px; text-align:center; color:var(--ink3, #94A3B8); font-size:13px; width:100%;">✨ 雙週測驗全數答對，無期末大挑戰弱點單字！</div>`;
       return;
     }
 
@@ -128,7 +128,7 @@ export function initWeakWordsCard() {
     btnCopy.onclick = () => {
       const words = getBiweeklyFailedFinalBossWords();
       if (words.length === 0) {
-        alert("目前無期末待攻克單字可複製。");
+        alert("目前無期末大挑戰單字可複製。");
         return;
       }
       navigator.clipboard.writeText(words.join(", ")).then(() => {
