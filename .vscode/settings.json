@@ -1,0 +1,23 @@
+{
+  "editor.inlineSuggest.enabled": false,
+  "editor.tabCompletion": "off",
+  "editor.quickSuggestions": {
+    "other": false,
+    "comments": false,
+    "strings": false
+  },
+  "editor.suggestOnTriggerCharacters": false,
+  "editor.wordBasedSuggestions": "off",
+  "editor.parameterHints.enabled": false,
+  "antigravity.tab.enabled": false,
+  "antigravity.autocomplete.enabled": false,
+  "ai.tabCompletion.enabled": false,
+  "ai.autocomplete.enabled": false,
+  "workbench.editor.limit.enabled": true,
+  "workbench.editor.limit.max": 2,
+  "workbench.editor.limit.perEditorGroup": true,
+  "workbench.editor.closeEmptyGroups": true,
+  "workbench.editor.enablePreview": true,
+  "workbench.editor.enablePreviewFromQuickOpen": true,
+  "workbench.editor.closeOnFileDelete": true
+}
