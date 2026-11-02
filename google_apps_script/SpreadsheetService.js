@@ -1603,6 +1603,13 @@ function auditComplianceDataUi() {
 
 function onOpen(e) {
   try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    if (ss) {
+      const cpSheet = ss.getSheetByName(CP_SHEET_NAME);
+      if (cpSheet) ensureCentralPortfolioColumns(cpSheet);
+    }
+  } catch(_) {}
+  try {
     SpreadsheetApp.getUi()
       .createMenu("🎯 系統維護")
       .addItem("🚀 一鍵遷移所有學生至【學生歷程總庫】","migrateAllStudentsToCentralPortfolioUi")
@@ -2773,7 +2780,7 @@ function ensureCentralPortfolioColumns(sheet) {
       "學習中", "練習中", "精通", "共答對單字", "累積受測單字", "單字掌握率",
       "LEVEL 1 入門\n(答對/受測字數)", "LEVEL 2 基礎\n(答對/受測字數)",
       "LEVEL 3 進階\n(答對/受測字數)", "LEVEL 4 挑戰\n(答對/受測字數)", "LEVEL 5 精熟\n(答對/受測字數)",
-      "🎧 聽與拼\n(答對/受測字數)", "✅ 選拼法\n(答對/受測字數)", "🧩 字母重組\n(答對/受測字數)", "🖍️ 填空陷阱\n(答對/受測字數)",
+      "🎧 聽與拼\n(答對/受測字數)", "🔤 選拼法\n(答對/受測字數)", "🧩 字母重組\n(答對/受測字數)", "🖍️ 填空陷阱\n(答對/受測字數)",
       "任務名稱", "施測單字數", "作答單字數", "答對單字數", "指定測驗成績", "指定測驗正確率", "練習狀態", "測驗錯題單字",
       "自由練習受測字數", "自由練習答對字數", "自由練習正確率", "自由練習錯題單字",
       "防偽驗證"
@@ -2785,14 +2792,12 @@ function ensureCentralPortfolioColumns(sheet) {
       sheet.setFrozenColumns(1);
       try { sheet.hideColumns(3); } catch(_) {}
     }
-    // 自動更新總庫第 1 列的欄位標題與護眼色塊樣式，100% 比照使用者分頁
-    const hdrProp = PropertiesService.getScriptProperties();
-    if (!hdrProp.getProperty("CP_HDR_STYLE_MATCH_V1")) {
-      try {
-        sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-        applyCentralPortfolioHeaderStyle_(sheet);
-        hdrProp.setProperty("CP_HDR_STYLE_MATCH_V1", "1");
-      } catch(_) {}
+    // 檢查總庫表頭是否已套用護眼色塊與比照分頁欄名，若尚未套用則立即更新
+    const curD1Bg = String(sheet.getRange("D1").getBackground() || "").toLowerCase();
+    const curW1Val = String(sheet.getRange("W1").getValue() || "").trim();
+    if (curD1Bg !== "#dbeafe" || curW1Val !== "任務名稱") {
+      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+      applyCentralPortfolioHeaderStyle_(sheet);
     }
     // 一次性套用整欄文字格式（舊版建立之總庫自動補正）
     const props = PropertiesService.getScriptProperties();

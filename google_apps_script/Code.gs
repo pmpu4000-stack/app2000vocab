@@ -825,6 +825,13 @@ function include(filename) {
 }
 
 function doGet(e) {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    if (ss) {
+      const cpSheet = ss.getSheetByName("學生歷程總庫");
+      if (cpSheet) ensureCentralPortfolioColumns(cpSheet);
+    }
+  } catch(_) {}
   // 嚴格資安防護：doGet 僅回傳安全之 Web 介面，透過 HtmlTemplate 動態模組化引入 Style 與 ClientJs
   return HtmlService.createTemplateFromFile("Index").evaluate()
     .setTitle("學習歷程管理系統")
