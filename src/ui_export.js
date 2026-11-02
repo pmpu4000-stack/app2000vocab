@@ -567,7 +567,7 @@ async function _exportRecordToExcel(payload) {
   const fileName = `學習歷程_${payload.studentId}_${payload.fileScopeTag}`;
 
   // 1. 標準 34 欄欄位標題 (1:1 鏡像對齊試算表學生分頁)
-  const headers = [
+  const defaultHeaders = [
     "備份時間", "完整JSON", "等級", "分數", "連勝", "最佳連勝",
     "學習中", "練習中", "精通", "共答對單字", "累積受測單字", "單字掌握率",
     "LEVEL 1 入門\n(答對/受測字數)", "LEVEL 2 基礎\n(答對/受測字數)",
@@ -578,43 +578,99 @@ async function _exportRecordToExcel(payload) {
     "防偽驗證"
   ];
 
-  const normalizeDateKey = (ds) => {
+  const headers = (payload.rawSheetHeaders && payload.rawSheetHeaders.length >= 30)
+    ? payload.rawSheetHeaders
+    : defaultHeaders;
+
+  const extractDateYMD = (ds) => {
     if (!ds) return "";
-    const clean = String(ds).trim().split(" ")[0].replace(/\//g, "-");
-    const parts = clean.split("-");
-    if (parts.length === 3) {
-      return `${parts[0]}-${String(parts[1]).padStart(2, "0")}-${String(parts[2]).padStart(2, "0")}`;
+    if (ds instanceof Date) {
+      const y = ds.getFullYear();
+      const m = String(ds.getMonth() + 1).padStart(2, "0");
+      const d = String(ds.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
     }
-    return clean;
+    const s = String(ds).trim();
+    const match = s.match(/(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/);
+    if (match) {
+      return `${match[1]}-${match[2].padStart(2, "0")}-${match[3].padStart(2, "0")}`;
+    }
+    return "";
   };
 
   const sDate = payload.startDate;
   const eDate = payload.endDate;
   const isMatchDate = (dt) => {
-    const nd = normalizeDateKey(dt);
+    const nd = extractDateYMD(dt);
     if (!nd) return false;
     if (payload.mode === "single") return nd === sDate;
     return nd >= sDate && nd <= eDate;
   };
 
-  // 2. 1:1 鏡像提取指定日期區間之原始歷程列
+  // 2. 1:1 鏡像提取真實試算表歷程列
   const matchedRows = [];
   const coveredDates = new Set();
 
+  const sourceRows = (Array.isArray(payload.rawSheetData) && payload.rawSheetData.length > 0)
+    ? payload.rawSheetData
+    : (Array.isArray(window.cachedStudentRawData) && window.cachedStudentRawData.length > 0)
+      ? window.cachedStudentRawData
+      : (window.cachedStudentExportResp && Array.isArray(window.cachedStudentExportResp.data))
+        ? window.cachedStudentExportResp.data
+        : [];
+
+  sourceRows.forEach(rawRow => {
+    if (!rawRow || rawRow.length === 0) return;
+    let r = [...rawRow];
+    if (r.length === 35 && !extractDateYMD(r[0]) && extractDateYMD(r[1])) {
+      r = r.slice(1);
+    }
+    const rowDateStr = r[0];
+    if (isMatchDate(rowDateStr)) {
+      while (r.length < 34) r.push("");
+      if (r[25] && typeof r[25] === "string") {
+        r[25] = r[25].replace(/^'/, "");
+      }
+      matchedRows.push(r.slice(0, 34));
+      coveredDates.add(extractDateYMD(rowDateStr));
+    }
+  });
+
+  // 補正未儲存/未寫入之真實活動紀錄（如今日新測驗/自主練習）
   if (Array.isArray(payload.dailyRecords)) {
     payload.dailyRecords.forEach(r => {
-      const dKey = normalizeDateKey(r.date);
+      const dKey = extractDateYMD(r.date);
       if (!dKey || !isMatchDate(dKey) || coveredDates.has(dKey)) return;
       coveredDates.add(dKey);
 
       const ov = payload.overall || {};
-      const lv = ov.levels || {};
-      const ms = ov.modeStats || {};
+      const agent = (payload.effectiveResp && payload.effectiveResp.agentData) || window.cachedStudentAgentData || {};
+      const ms = ov.modeStats || agent.mstat || {};
 
-      const row = new Array(headers.length).fill("");
-      row[0] = `${r.date} 23:59:59`;
+      const curLevel = (agent.level && agent.level.current) || (ov.level) || 1;
+
+      const getLvStr = (lvNum, defaultTot) => {
+        if (Array.isArray(ov.levels)) {
+          const item = ov.levels.find(x => x.level === lvNum);
+          if (item) {
+            const corr = (item.correct !== undefined) ? item.correct : ((item.learn || 0) + (item.prac || 0) + (item.mast || 0));
+            return `${corr}/${item.total || defaultTot}`;
+          }
+        }
+        return `0/${defaultTot}`;
+      };
+
+      const getModStr = (key) => {
+        const m = ms[key] || {};
+        const c = m.correct !== undefined ? m.correct : (m.c || 0);
+        const a = m.attempts !== undefined ? m.attempts : (m.a || 0);
+        return `${c}/${a}`;
+      };
+
+      const row = new Array(34).fill("");
+      row[0] = `${dKey} 23:59:59`;
       row[1] = "";
-      row[2] = ov.points ? Math.floor(ov.points / 100) + 1 : 1;
+      row[2] = curLevel;
       row[3] = ov.points || 0;
       row[4] = ov.streak || 0;
       row[5] = ov.best || ov.streak || 0;
@@ -623,46 +679,83 @@ async function _exportRecordToExcel(payload) {
       row[8] = ov.mast || 0;
       row[9] = ov.distinctCorrect || ((ov.learn || 0) + (ov.prac || 0) + (ov.mast || 0));
       row[10] = ov.attempts || 0;
-      row[11] = `${ov.passRate || 0}%`;
-      row[12] = (lv[1] && lv[1].learn !== undefined) ? `${lv[1].learn + lv[1].prac + lv[1].mast}/${lv[1].total || 400}` : "0/400";
-      row[13] = (lv[2] && lv[2].learn !== undefined) ? `${lv[2].learn + lv[2].prac + lv[2].mast}/${lv[2].total || 400}` : "0/400";
-      row[14] = (lv[3] && lv[3].learn !== undefined) ? `${lv[3].learn + lv[3].prac + lv[3].mast}/${lv[3].total || 400}` : "0/400";
-      row[15] = (lv[4] && lv[4].learn !== undefined) ? `${lv[4].learn + lv[4].prac + lv[4].mast}/${lv[4].total || 400}` : "0/400";
-      row[16] = (lv[5] && lv[5].learn !== undefined) ? `${lv[5].learn + lv[5].prac + lv[5].mast}/${lv[5].total || 455}` : "0/455";
-      row[17] = ms.mListen ? `${ms.mListen.correct || 0}/${ms.mListen.attempts || 0}` : "0/0";
-      row[18] = ms.mPick ? `${ms.mPick.correct || 0}/${ms.mPick.attempts || 0}` : "0/0";
-      row[19] = ms.mScramble ? `${ms.mScramble.correct || 0}/${ms.mScramble.attempts || 0}` : "0/0";
-      row[20] = ms.mTrap ? `${ms.mTrap.correct || 0}/${ms.mTrap.attempts || 0}` : "0/0";
-      row[21] = r.hasTask ? (r.taskName || "每日指定測驗") : "⚪ 未指派";
-      row[22] = r.hasTask ? (r.assignedTotWords || 0) : 0;
-      row[23] = r.hasTask ? (r.taskCorrWords + r.actualWrong) : 0;
-      row[24] = r.hasTask ? r.taskCorrWords : 0;
-      row[25] = r.hasTask ? (r.taskScore || "—") : "—";
+      row[11] = ov.passRate !== undefined ? `${ov.passRate}%` : "0%";
+      row[12] = getLvStr(1, 411);
+      row[13] = getLvStr(2, 411);
+      row[14] = getLvStr(3, 411);
+      row[15] = getLvStr(4, 411);
+      row[16] = getLvStr(5, 411);
+      row[17] = getModStr("listen");
+      row[18] = getModStr("pick");
+      row[19] = getModStr("scramble");
+      row[20] = getModStr("trap");
+      row[21] = r.hasTask ? (r.taskName || "每日指定測驗") : (r.hasFree ? "自主練習" : "⚪ 未指派");
+      row[22] = r.hasTask ? (r.assignedTotWords || 0) : "—";
+      row[23] = r.hasTask ? (r.actualAnswered || (r.taskCorrWords + r.actualWrong) || 0) : "—";
+      row[24] = r.hasTask ? (r.taskCorrWords || 0) : "—";
+      row[25] = r.hasTask ? String(r.taskScore || "—").replace(/^'/, "") : "—";
       row[26] = r.hasTask ? (r.taskRate || "—") : "—";
-      row[27] = r.hasTask ? r.taskStatus : (r.hasFree ? "當日無指派（已自主練習）" : "當日無指派測驗");
+      row[27] = r.hasTask ? (r.taskStatus || "已完成") : (r.hasFree ? "自主練習已完成" : "⚪ 未指派");
       row[28] = (r.taskWrongDetails && r.taskWrongDetails.length > 0) ? r.taskWrongDetails.map(d => d.word).join(", ") : "";
-      row[29] = r.hasFree ? (r.freeAttempts || 0) : 0;
-      row[30] = r.hasFree ? (r.freeCorrect || 0) : 0;
-      row[31] = r.hasFree ? `${r.freeRate || 0}%` : "0%";
+      row[29] = r.hasFree ? (r.freeAttempts || 0) : "—";
+      row[30] = r.hasFree ? (r.freeCorrect || 0) : "—";
+      row[31] = r.hasFree ? `${r.freeRate || 0}%` : "—";
       row[32] = (r.freeWrongDetails && r.freeWrongDetails.length > 0) ? r.freeWrongDetails.map(d => d.word).join(", ") : "";
-      row[33] = "OK";
+      row[33] = "⚪ 系統自驗";
       matchedRows.push(row);
     });
   }
 
+  // 依日期時間倒序排列（新→舊，與試算表 100% 一致）
   matchedRows.sort((a, b) => String(b[0] || "").localeCompare(String(a[0] || "")));
 
+  // 3. 輸出為 Excel (.xlsx) 檔案
   const fullSheetData = [headers, ...matchedRows];
 
   try {
-    const XLSX = await _ensureScriptLoaded(
+    const XLSX = await _ensureExternalScript(
       "XLSX",
       "https:\x2F\x2Fcdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js",
       "https:\x2F\x2Fcdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"
     );
     const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.aoa_to_sheet(fullSheetData);
+    const ws = XLSX.utils.aoa_to_sheet(fullSheetData, { cellDates: false });
 
+    // 強制型別防護：比率與代碼（如 3/5, 12/15）強制標記為字串，徹底防止 Excel 自動轉成日期（如 3月5日）
+    for (let r = 1; r <= matchedRows.length; r++) {
+      for (let c = 0; c < 34; c++) {
+        const addr = XLSX.utils.encode_cell({ r: r, c: c });
+        const cell = ws[addr];
+        if (!cell) continue;
+
+        let val = cell.v;
+        if (typeof val === "string") {
+          val = val.replace(/^'/, "");
+          cell.v = val;
+        }
+
+        const isNumericCol = [2, 3, 4, 5, 6, 7, 8, 9, 10, 22, 23, 24, 29, 30].includes(c);
+        if (isNumericCol && val !== "" && val !== "—" && !isNaN(Number(val))) {
+          cell.t = 'n';
+          cell.v = Number(val);
+          cell.z = '0';
+        } else if ([11, 26, 31].includes(c)) {
+          cell.t = 's';
+          if (typeof val === "number") {
+            cell.v = `${Math.round(val * 100)}%`;
+          } else {
+            cell.v = String(val ?? "");
+          }
+          cell.z = '@';
+        } else {
+          cell.t = 's';
+          cell.v = String(val ?? "");
+          cell.z = '@';
+        }
+      }
+    }
+
+    // 100% 比照試算表學生分頁的護眼色塊與表頭樣式
     const getHeaderStyle = (colIdx) => {
       let bg = "F1F5F9", fg = "334155";
       if (colIdx === 0) { bg = "F1F5F9"; fg = "334155"; }
@@ -733,10 +826,7 @@ async function _exportRecordToExcel(payload) {
     console.warn("XLSX 輸出失敗，降級輸出 1:1 CSV 鏡像格式:", err);
     const csvContent = "\uFEFF" + fullSheetData.map(row => row.map(c => `"${String(c ?? "").replace(/"/g, '""')}"`).join(",")).join("\r\n");
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `${fileName}.csv`;
-    a.click();
+    triggerBlobDownload(blob, `${fileName}.csv`);
   }
 }
 

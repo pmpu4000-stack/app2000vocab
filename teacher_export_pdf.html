@@ -1194,7 +1194,7 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
           return `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); speakMasteredWord('${w.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`;
         }).join("");
       } else if (isTrulyPerfect) {
-        wrongContentHtml = `<span class="perfect-score-msg">🎉 全數答對，無答錯單字！</span>`;
+        wrongContentHtml = "";
       } else if (missedCount > 0) {
         const unmastered = (rawWords.length > 0)
           ? rawWords.filter(w => !correctList.includes(String(w).toLowerCase()))
@@ -1291,71 +1291,51 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
         </div>
       </div>
     `
-    : (hasUnanswered ? `
-      <div class="task-score-grid">
-        <div class="task-score-subgrid">
-          <div class="task-score-item" style="display:flex; flex-direction:column; justify-content:center; ">
-            <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap; font-size:11px;" title="答對單字 / 已施測單字">
-              <span style="flex:1; text-align:right;">答對</span>
-              <span style="padding:0 2px; opacity:0.6;">/</span>
-              <span style="flex:1; text-align:left;">已施測</span>
+    : (() => {
+      const ansCount = hasUnanswered ? actualAnswered : taskTotWords;
+      const wrgCount = hasUnanswered ? actualWrong : Math.max(0, taskTotWords - taskCorrWords);
+      const unansCount = hasUnanswered ? actualUnanswered : 0;
+      const attRate = hasUnanswered ? attemptedRate : taskRate;
+      const ovrRate = hasUnanswered ? overallScoreRate : taskRate;
+      const getTier = (r) => (r >= 100 ? 'tier-6' : (r >= 90 ? 'tier-5' : (r >= 80 ? 'tier-4' : (r >= 70 ? 'tier-3' : (r >= 60 ? 'tier-2' : (r > 0 ? 'tier-1' : 'tier-0'))))));
+
+      return `
+        <div class="task-score-grid">
+          <div class="task-score-subgrid-4">
+            <div class="task-score-item score-corr-item" style="display:flex; flex-direction:column; justify-content:center;">
+              <div class="task-score-label" style="font-size:11px;">答對</div>
+              <div class="task-score-val task-score-num-corr">${taskCorrWords}</div>
             </div>
-            <div class="task-score-val heat-rate-val ${attemptedRate >= 100 ? 'tier-6' : (attemptedRate >= 90 ? 'tier-5' : (attemptedRate >= 80 ? 'tier-4' : (attemptedRate >= 70 ? 'tier-3' : (attemptedRate >= 60 ? 'tier-2' : 'tier-1'))))}" style="display:flex; align-items:center; justify-content:center; color:${actualAnswered > 0 ? (attemptedRate >= 100 ? '#00D2FF' : (attemptedRate >= 90 ? '#00B4D8' : (attemptedRate >= 80 ? '#38BDF8' : (attemptedRate >= 70 ? '#7DD3FC' : (attemptedRate >= 60 ? '#93C5FD' : '#94A3B8'))))) : 'var(--ink3)'};">
-              <span class="task-score-num-corr" style="flex:1; text-align:right;">${taskCorrWords}</span>
-              <span style="padding:0 4px; font-weight:700; color:var(--ink3); opacity:0.6; font-size:18px;">/</span>
-              <span class="task-score-num-tot" style="flex:1; text-align:left;">${actualAnswered}</span>
+            <div class="task-score-item score-wrong-item" style="display:flex; flex-direction:column; justify-content:center;">
+              <div class="task-score-label" style="font-size:11px;">答錯</div>
+              <div class="task-score-val task-score-num-wrong">${wrgCount}</div>
+            </div>
+            <div class="task-score-item score-ans-item" style="display:flex; flex-direction:column; justify-content:center;">
+              <div class="task-score-label" style="font-size:11px;">已作答</div>
+              <div class="task-score-val task-score-num-ans">${ansCount}</div>
+            </div>
+            <div class="task-score-item score-unans-item" style="display:flex; flex-direction:column; justify-content:center;">
+              <div class="task-score-label" style="font-size:11px;">未作答</div>
+              <div class="task-score-val task-score-num-unans">${unansCount}</div>
             </div>
           </div>
-          <div class="task-score-item" style="display:flex; flex-direction:column; justify-content:center; ">
-            <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap; font-size:11px;" title="答錯單字 / 未作答單字">
-              <span style="flex:1; text-align:right; color:var(--ink2);">答錯</span>
-              <span style="padding:0 2px; opacity:0.6;">/</span>
-              <span style="flex:1; text-align:left; color:var(--ink2);">未作答</span>
+          <div class="task-score-subgrid-2">
+            <div class="task-score-item rate-tier-item ${getTier(attRate)}" style="display:flex; flex-direction:column; justify-content:center;">
+              <div class="task-score-label" style="font-size:11px;" title="實際有作答題目的答對率">作答正確率</div>
+              <div class="task-score-val heat-rate-val ${getTier(attRate)}" style="font-size:22px; font-weight:800; line-height:1.2;">
+                ${ansCount > 0 ? attRate + '%' : '—'}
+              </div>
             </div>
-            <div class="task-score-val" style="display:flex; align-items:center; justify-content:center;">
-              <span style="flex:1; text-align:right; color:${actualWrong > 0 ? '#ef4444' : 'var(--ink3)'};">${actualWrong}</span>
-              <span style="padding:0 4px; font-weight:700; color:var(--ink3); opacity:0.6; font-size:18px;">/</span>
-              <span style="flex:1; text-align:left; color:${actualUnanswered > 0 ? '#0284c7' : 'var(--ink3)'};">${actualUnanswered}</span>
+            <div class="task-score-item rate-tier-item ${getTier(ovrRate)}" style="display:flex; flex-direction:column; justify-content:center;">
+              <div class="task-score-label" style="font-size:11px;" title="以全卷應測總單字數為分母計算之正確率">全卷正確率</div>
+              <div class="task-score-val heat-rate-val ${getTier(ovrRate)}" style="font-size:22px; font-weight:800; line-height:1.2;">
+                ${ovrRate}%
+              </div>
             </div>
           </div>
         </div>
-        <div class="task-score-subgrid">
-          <div class="task-score-item" style="display:flex; flex-direction:column; justify-content:center; ">
-            <div class="task-score-label" style="font-size:11px;" title="實際有作答題目的答對率">作答正確率</div>
-            <div class="task-score-val heat-rate-val ${attemptedRate >= 100 ? 'tier-6' : (attemptedRate >= 90 ? 'tier-5' : (attemptedRate >= 80 ? 'tier-4' : (attemptedRate >= 70 ? 'tier-3' : (attemptedRate >= 60 ? 'tier-2' : 'tier-1'))))}" style="color:${actualAnswered > 0 ? (attemptedRate >= 100 ? '#00D2FF' : (attemptedRate >= 90 ? '#00B4D8' : (attemptedRate >= 80 ? '#38BDF8' : (attemptedRate >= 70 ? '#7DD3FC' : (attemptedRate >= 60 ? '#93C5FD' : '#94A3B8'))))) : 'var(--ink3)'}; font-size:22px; font-weight:800; line-height:1.2;">
-              ${actualAnswered > 0 ? attemptedRate + '%' : '—'}
-            </div>
-          </div>
-          <div class="task-score-item" style="display:flex; flex-direction:column; justify-content:center; ">
-            <div class="task-score-label" style="font-size:11px;" title="以全卷應測總單字數為分母計算之正確率">全卷正確率</div>
-            <div class="task-score-val heat-rate-val ${overallScoreRate >= 100 ? 'tier-6' : (overallScoreRate >= 90 ? 'tier-5' : (overallScoreRate >= 80 ? 'tier-4' : (overallScoreRate >= 70 ? 'tier-3' : (overallScoreRate >= 60 ? 'tier-2' : 'tier-1'))))}" style="color:${overallScoreRate >= 100 ? '#00D2FF' : (overallScoreRate >= 90 ? '#00B4D8' : (overallScoreRate >= 80 ? '#38BDF8' : (overallScoreRate >= 70 ? '#7DD3FC' : (overallScoreRate >= 60 ? '#93C5FD' : '#94A3B8'))))}; font-size:22px; font-weight:800; line-height:1.2;">
-              ${overallScoreRate}%
-            </div>
-          </div>
-        </div>
-      </div>
-    ` : `
-      <div class="task-score-grid">
-        <div class="task-score-item">
-          <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap;">
-            <span style="flex:1; text-align:right;">答對單字</span>
-            <span style="padding:0 6px; opacity:0.6;">/</span>
-            <span style="flex:1; text-align:left;">已施測單字</span>
-          </div>
-          <div class="task-score-val heat-rate-val ${taskRate >= 100 ? 'tier-6' : (taskRate >= 90 ? 'tier-5' : (taskRate >= 80 ? 'tier-4' : (taskRate >= 70 ? 'tier-3' : (taskRate >= 60 ? 'tier-2' : 'tier-1'))))}" style="display:flex; align-items:center; justify-content:center; color:${taskRate >= 100 ? '#00D2FF' : (taskRate >= 90 ? '#00B4D8' : (taskRate >= 80 ? '#38BDF8' : (taskRate >= 70 ? '#7DD3FC' : (taskRate >= 60 ? '#93C5FD' : '#94A3B8'))))};">
-            <span class="task-score-num-corr" style="flex:1; text-align:right;">${taskCorrWords}</span>
-            <span style="padding:0 6px; font-weight:700; color:var(--ink3); opacity:0.6; font-size:18px;">/</span>
-            <span class="task-score-num-tot" style="flex:1; text-align:left;">${taskTotWords}</span>
-          </div>
-        </div>
-        <div class="task-score-item">
-          <div class="task-score-label">正確率</div>
-          <div class="task-score-val heat-rate-val ${taskRate >= 100 ? 'tier-6' : (taskRate >= 90 ? 'tier-5' : (taskRate >= 80 ? 'tier-4' : (taskRate >= 70 ? 'tier-3' : (taskRate >= 60 ? 'tier-2' : 'tier-1'))))}" style="color:${taskRate >= 100 ? '#00D2FF' : (taskRate >= 90 ? '#00B4D8' : (taskRate >= 80 ? '#38BDF8' : (taskRate >= 70 ? '#7DD3FC' : (taskRate >= 60 ? '#93C5FD' : '#94A3B8'))))}; font-size:22px; font-weight:800;">
-            ${taskRate}%
-          </div>
-        </div>
-      </div>
-    `));
+      `;
+    })());
 
   return `
     <div class="task-single-record-block" style="${blockStyle}">
@@ -1927,7 +1907,7 @@ function buildFreeDetailsHtml(record, selectedDate, agent) {
     wrongContentHtml = `<span class="perfect-score-msg">🎉 太棒了！當日自由練習全數答對，無任何答錯單字！</span>`;
   }
 
-  const freeRateColor = wordRate >= 100 ? "#059669" : (wordRate >= 80 ? "#16a34a" : (wordRate >= 60 ? "#ca8a04" : "#ea580c"));
+  const getTier = (r) => (r >= 100 ? 'tier-6' : (r >= 90 ? 'tier-5' : (r >= 80 ? 'tier-4' : (r >= 70 ? 'tier-3' : (r >= 60 ? 'tier-2' : (r > 0 ? 'tier-1' : 'tier-0'))))));
 
   return `
     <div>
@@ -1938,21 +1918,21 @@ function buildFreeDetailsHtml(record, selectedDate, agent) {
       </div>
 
       <div class="task-score-grid">
-        <div class="task-score-item">
-          <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap;">
-            <span style="flex:1; text-align:right;">答對單字數</span>
-            <span style="padding:0 6px; opacity:0.6;">/</span>
-            <span style="flex:1; text-align:left;">施測單字數</span>
+        <div class="task-score-subgrid" style="display:grid; grid-template-columns:repeat(2,1fr); gap:6px; width:100%; box-sizing:border-box; height:60px;">
+          <div class="task-score-item score-corr-item" style="display:flex; flex-direction:column; justify-content:center;">
+            <div class="task-score-label" style="font-size:11px;">答對</div>
+            <div class="task-score-val task-score-num-corr">${correctWords}</div>
           </div>
-          <div class="task-score-val" style="color:#0284c7; display:flex; align-items:center; justify-content:center;">
-            <span style="flex:1; text-align:right;">${correctWords}</span>
-            <span style="padding:0 6px; font-weight:700; color:var(--ink3); opacity:0.6; font-size:18px;">/</span>
-            <span style="flex:1; text-align:left;">${totalWords}</span>
+          <div class="task-score-item score-wrong-item" style="display:flex; flex-direction:column; justify-content:center;">
+            <div class="task-score-label" style="font-size:11px;">答錯</div>
+            <div class="task-score-val task-score-num-wrong">${displayWrongBoxCount}</div>
           </div>
         </div>
-        <div class="task-score-item">
-          <div class="task-score-label">正確率</div>
-          <div class="task-score-val" style="color:${freeRateColor};">${wordRate}%</div>
+        <div class="task-score-item rate-tier-item ${getTier(wordRate)}" style="display:flex; flex-direction:column; justify-content:center;">
+          <div class="task-score-label" style="font-size:11px;">全卷正確率</div>
+          <div class="task-score-val heat-rate-val ${getTier(wordRate)}" style="font-size:22px; font-weight:800; line-height:1.2;">
+            ${totalWords > 0 ? wordRate + '%' : '—'}
+          </div>
         </div>
       </div>
 
@@ -3570,7 +3550,12 @@ function renderStudentSummary(resp) {
             taskName: (isExpUntested && (!info.taskName || info.taskName === "自主練習" || info.taskName.includes("未指派"))) ? "每日指定測驗" : (info.taskName || "指定測驗"),
             score: info.score || "—",
             rate: info.rate || "—",
-            status: isExpUntested ? "⚪ 未受測" : "● 已完成",
+            status: isExpUntested ? "⚪ 未受測" : (info.status || "● 已完成"),
+            attempts: info.answeredWords || 0,
+            answeredCount: info.answeredWords || 0,
+            correct: info.correctWords || 0,
+            testedCount: info.assignedWords || 0,
+            total: info.assignedWords || 0,
             wrongWords: info.wrongWords || [],
             words: []
           };
@@ -3861,7 +3846,6 @@ function renderStudentSummary(resp) {
       } else {
         badgeEl.innerHTML = `<b>${shortDate}</b> ｜ <b>${stat.statusLabel}</b>`;
       }
-    }
       taskHeatGrid.querySelectorAll(".hc").forEach((cell, cIdx) => {
         cell.classList.toggle("hc-active", cIdx === activeCellIdx);
       });
@@ -4040,7 +4024,6 @@ function renderStudentSummary(resp) {
         badgeEl.className = "heat-day-info tier-gray";
         badgeEl.innerHTML = `<b>${shortDate}</b> ｜ 無自由練習紀錄`;
       }
-    }
       freeHeatGrid.querySelectorAll(".hc").forEach((cell, cIdx) => {
         cell.classList.toggle("hc-active", cIdx === activeCellIdx);
       });
@@ -4876,8 +4859,9 @@ function _buildStudentExportPayload(resp, mode, startDate, endDate) {
     dailyRecords,
     uniqueWrongWords,
     pendingConquerWords: _getTeacherPendingConquerWords(effectiveResp, agent),
-    rawSheetData: (effectiveResp && Array.isArray(effectiveResp.data)) ? effectiveResp.data : [],
-    rawSheetHeaders: (effectiveResp && Array.isArray(effectiveResp.headers)) ? effectiveResp.headers : []
+    rawSheetData: (effectiveResp && Array.isArray(effectiveResp.data)) ? effectiveResp.data : (window.cachedStudentRawData || []),
+    rawSheetHeaders: (effectiveResp && Array.isArray(effectiveResp.headers)) ? effectiveResp.headers : (window.cachedStudentRawHeaders || []),
+    effectiveResp: effectiveResp
   };
 }
 
@@ -4969,6 +4953,8 @@ function initStudentExportRecordsCard(resp) {
     _latestStudentExportResp = resp;
     window.cachedStudentExportResp = resp;
     if (resp.agentData) window.cachedStudentAgentData = resp.agentData;
+    if (resp.data) window.cachedStudentRawData = resp.data;
+    if (resp.headers) window.cachedStudentRawHeaders = resp.headers;
   }
   const sec = document.getElementById("export-records-section");
   if (!sec) return;

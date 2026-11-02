@@ -4859,8 +4859,9 @@ function _buildStudentExportPayload(resp, mode, startDate, endDate) {
     dailyRecords,
     uniqueWrongWords,
     pendingConquerWords: _getTeacherPendingConquerWords(effectiveResp, agent),
-    rawSheetData: (effectiveResp && Array.isArray(effectiveResp.data)) ? effectiveResp.data : [],
-    rawSheetHeaders: (effectiveResp && Array.isArray(effectiveResp.headers)) ? effectiveResp.headers : []
+    rawSheetData: (effectiveResp && Array.isArray(effectiveResp.data)) ? effectiveResp.data : (window.cachedStudentRawData || []),
+    rawSheetHeaders: (effectiveResp && Array.isArray(effectiveResp.headers)) ? effectiveResp.headers : (window.cachedStudentRawHeaders || []),
+    effectiveResp: effectiveResp
   };
 }
 
@@ -4952,6 +4953,8 @@ function initStudentExportRecordsCard(resp) {
     _latestStudentExportResp = resp;
     window.cachedStudentExportResp = resp;
     if (resp.agentData) window.cachedStudentAgentData = resp.agentData;
+    if (resp.data) window.cachedStudentRawData = resp.data;
+    if (resp.headers) window.cachedStudentRawHeaders = resp.headers;
   }
   const sec = document.getElementById("export-records-section");
   if (!sec) return;
