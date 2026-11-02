@@ -1606,6 +1606,7 @@ function onOpen(e) {
     SpreadsheetApp.getUi()
       .createMenu("🎯 系統維護")
       .addItem("🚀 一鍵遷移所有學生至【學生歷程總庫】","migrateAllStudentsToCentralPortfolioUi")
+      .addItem("🎨 比照學生分頁美化【學生歷程總庫】欄位與色彩","applyCentralPortfolioStyleUi")
       .addItem("📊 一鍵整理所有學生分頁欄位與數值 (單字數)","migrateAllSheetsToVocabBasedUi")
       .addItem("📋 重新產生全班學習總覽","generateClassDashboardSheetUi")
       .addItem("🎨 美化所有學生分頁格式與欄寬","formatAllStudentSheetsUi")
@@ -2726,9 +2727,39 @@ function getCentralPortfolioSheet(ss, autoCreate) {
   let s = ss.getSheetByName(CP_SHEET_NAME);
   if (!s && autoCreate) {
     s = ss.insertSheet(CP_SHEET_NAME);
+  }
+  if (s) {
     ensureCentralPortfolioColumns(s);
   }
   return s;
+}
+
+/**
+ * 100% 比照使用者分頁之色塊分組安排與表頭排版美化【學生歷程總庫】
+ */
+function applyCentralPortfolioHeaderStyle_(sheet) {
+  if (!sheet) return;
+  try {
+    sheet.setRowHeight(1, 45);
+    if (sheet.getFrozenRows() < 1) sheet.setFrozenRows(1);
+    if (sheet.getFrozenColumns() < 1) sheet.setFrozenColumns(1);
+    sheet.getRange("1:1").setWrap(true).setHorizontalAlignment("center").setVerticalAlignment("middle");
+
+    // 比照使用者分頁 (AuthService.js lines 210-217) 之色塊分組（Col 1 為學號）
+    sheet.getRange("A1").setBackground("#e2e8f0").setFontColor("#1e293b").setFontWeight("bold"); // 學號 (專屬柔和深灰標識)
+    sheet.getRange("B1").setBackground("#f1f5f9").setFontColor("#334155").setFontWeight("bold"); // 備份時間
+    sheet.getRange("C1").setBackground("#e2e8f0").setFontColor("#64748b").setFontWeight("normal"); // 完整JSON
+    sheet.getRange("D1:G1").setBackground("#dbeafe").setFontColor("#1e40af").setFontWeight("bold"); // 遊戲狀態 (等級、分數、連勝、最佳連勝)
+    sheet.getRange("H1:M1").setBackground("#dcfce7").setFontColor("#065f46").setFontWeight("bold"); // 整體進度 (學習中、練習中、精通、共答對、受測、掌握率)
+    sheet.getRange("N1:R1").setBackground("#f3e8ff").setFontColor("#6b21a8").setFontWeight("bold"); // 關卡進度 (LEVEL 1~5)
+    sheet.getRange("S1:V1").setBackground("#ccfbf1").setFontColor("#0f766e").setFontWeight("bold"); // 四大練習模式
+    sheet.getRange("W1:AD1").setBackground("#e0e7ff").setFontColor("#3730a3").setFontWeight("bold"); // 指定測驗專屬區塊 (靛青色，含任務名稱/施測/作答/答對/成績)
+    sheet.getRange("AE1:AH1").setBackground("#fef3c7").setFontColor("#92400e").setFontWeight("bold"); // 自由練習專屬區塊 (琥珀黃色)
+    sheet.getRange("AI1").setBackground("#f1f5f9").setFontColor("#64748b").setFontWeight("bold"); // 防偽驗證
+    try { sheet.hideColumns(3); } catch(_) {}
+  } catch(e) {
+    Logger.log("applyCentralPortfolioHeaderStyle_ error: " + e.message);
+  }
 }
 
 /**
@@ -2743,23 +2774,24 @@ function ensureCentralPortfolioColumns(sheet) {
       "LEVEL 1 入門\n(答對/受測字數)", "LEVEL 2 基礎\n(答對/受測字數)",
       "LEVEL 3 進階\n(答對/受測字數)", "LEVEL 4 挑戰\n(答對/受測字數)", "LEVEL 5 精熟\n(答對/受測字數)",
       "🎧 聽與拼\n(答對/受測字數)", "✅ 選拼法\n(答對/受測字數)", "🧩 字母重組\n(答對/受測字數)", "🖍️ 填空陷阱\n(答對/受測字數)",
-      "指定測驗任務名稱", "指定測驗施測字數", "指定測驗作答字數", "指定測驗答對字數", "指定測驗答對比例", "指定測驗正確率", "練習狀態", "測驗錯題單字",
+      "任務名稱", "施測單字數", "作答單字數", "答對單字數", "指定測驗成績", "指定測驗正確率", "練習狀態", "測驗錯題單字",
       "自由練習受測字數", "自由練習答對字數", "自由練習正確率", "自由練習錯題單字",
       "防偽驗證"
     ];
     if (sheet.getLastRow() < 1) {
-      sheet.getRange(1, 1, 1, headers.length).setValues([headers])
-        .setBackground("#1a73e8").setFontColor("#ffffff").setFontWeight("bold").setHorizontalAlignment("center").setWrap(true);
+      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+      applyCentralPortfolioHeaderStyle_(sheet);
       sheet.setFrozenRows(1);
       sheet.setFrozenColumns(1);
       try { sheet.hideColumns(3); } catch(_) {}
     }
-        // 一次性自動更新總庫第 1 列的 W1~AA1 欄位標題，保持與最新命名同步
+    // 自動更新總庫第 1 列的欄位標題與護眼色塊樣式，100% 比照使用者分頁
     const hdrProp = PropertiesService.getScriptProperties();
-    if (!hdrProp.getProperty("CP_HDR_V2")) {
+    if (!hdrProp.getProperty("CP_HDR_STYLE_MATCH_V1")) {
       try {
-        sheet.getRange(1, 23, 1, 5).setValues([["指定測驗任務名稱", "指定測驗施測字數", "指定測驗作答字數", "指定測驗答對字數", "指定測驗答對比例"]]);
-        hdrProp.setProperty("CP_HDR_V2", "1");
+        sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+        applyCentralPortfolioHeaderStyle_(sheet);
+        hdrProp.setProperty("CP_HDR_STYLE_MATCH_V1", "1");
       } catch(_) {}
     }
     // 一次性套用整欄文字格式（舊版建立之總庫自動補正）
@@ -3053,4 +3085,27 @@ function migrateAllStudentsToCentralPortfolioUi() {
     "✅ 本次新增遷移 " + res.migratedStudents + " 位學生、共 " + res.totalRows + " 筆歷史紀錄至【學生歷程總庫】（已遷移者自動略過，不會重複）。",
     ui.ButtonSet.OK
   );
+}
+
+function applyCentralPortfolioStyleUi() {
+  const ui = SpreadsheetApp.getUi();
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const s = getCentralPortfolioSheet(ss, false);
+  if (!s) {
+    ui.alert("⚠️ 找不到【學生歷程總庫】工作表！");
+    return;
+  }
+  const headers = [
+    "學號", "備份時間", "完整JSON", "等級", "分數", "連勝", "最佳連勝",
+    "學習中", "練習中", "精通", "共答對單字", "累積受測單字", "單字掌握率",
+    "LEVEL 1 入門\n(答對/受測字數)", "LEVEL 2 基礎\n(答對/受測字數)",
+    "LEVEL 3 進階\n(答對/受測字數)", "LEVEL 4 挑戰\n(答對/受測字數)", "LEVEL 5 精熟\n(答對/受測字數)",
+    "🎧 聽與拼\n(答對/受測字數)", "✅ 選拼法\n(答對/受測字數)", "🧩 字母重組\n(答對/受測字數)", "🖍️ 填空陷阱\n(答對/受測字數)",
+    "任務名稱", "施測單字數", "作答單字數", "答對單字數", "指定測驗成績", "指定測驗正確率", "練習狀態", "測驗錯題單字",
+    "自由練習受測字數", "自由練習答對字數", "自由練習正確率", "自由練習錯題單字",
+    "防偽驗證"
+  ];
+  s.getRange(1, 1, 1, headers.length).setValues([headers]);
+  applyCentralPortfolioHeaderStyle_(s);
+  ui.alert("🎨 美化完成", "✅【學生歷程總庫】表頭欄位名稱與顏色安排已完美比照使用者分頁！", ui.ButtonSet.OK);
 }
