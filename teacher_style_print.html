@@ -4163,13 +4163,14 @@ table{page-break-inside:auto!important;break-inside:auto!important;}tr{page-brea
       max-height: none !important;
       overflow: visible !important;
     }
+    /* 歷程檔案（一頁檢視 / 匯出預覽）：高度沒有受限，依照單字字數需求彈性調整 */
     .summary-embedded .word-split-grid,
     .daily-footprint-block .word-split-grid,
-    #export-web-preview-body .word-split-grid,
-    .word-split-grid {
-      height: 180px !important;
-      min-height: 180px !important;
-      max-height: 180px !important;
+    #export-web-preview-body .word-split-grid {
+      height: auto !important;
+      min-height: auto !important;
+      max-height: none !important;
+      overflow: visible !important;
       display: grid !important;
       grid-template-columns: 1fr 1fr !important;
       gap: 8px !important;
@@ -4177,43 +4178,69 @@ table{page-break-inside:auto!important;break-inside:auto!important;}tr{page-brea
     }
     .summary-embedded .word-split-box,
     .daily-footprint-block .word-split-box,
-    #export-web-preview-body .word-split-box,
-    .word-split-box {
-      height: 180px !important;
-      min-height: 180px !important;
-      max-height: 180px !important;
+    #export-web-preview-body .word-split-box {
+      height: auto !important;
+      min-height: auto !important;
+      max-height: none !important;
+      overflow: visible !important;
       display: flex !important;
       flex-direction: column !important;
       padding: 8px 10px !important;
       border-radius: 10px !important;
       box-sizing: border-box !important;
-      overflow: hidden !important;
     }
     .summary-embedded .word-split-tags,
     .daily-footprint-block .word-split-tags,
     #export-web-preview-body .word-split-tags,
-    .word-split-tags,
     .summary-embedded .word-split-content,
     .daily-footprint-block .word-split-content,
     #export-web-preview-body .word-split-content,
-    .word-split-content,
-    .word-split-box > div:not(.word-split-title) {
+    .summary-embedded .word-split-box > div:not(.word-split-title),
+    .daily-footprint-block .word-split-box > div:not(.word-split-title),
+    #export-web-preview-body .word-split-box > div:not(.word-split-title) {
+      flex: 1 1 auto !important;
+      height: auto !important;
+      min-height: auto !important;
+      max-height: none !important;
+      overflow: visible !important;
+      overscroll-behavior: auto !important;
+      display: flex !important;
+      flex-wrap: wrap !important;
+      align-items: flex-start !important;
+      align-content: flex-start !important;
+      gap: 5px !important;
+      padding: 2px 0 !important;
+      box-sizing: border-box !important;
+    }
+
+    /* 學習足跡（作答紀錄與自由練習成果）：維持固定 180px 高度對齊，單字多時內部上下滾動不受影響 */
+    #task-record-details .word-split-grid,
+    #free-record-details .word-split-grid,
+    .task-single-record-block .word-split-grid {
+      height: 180px !important;
+      min-height: 180px !important;
+      max-height: 180px !important;
+      box-sizing: border-box !important;
+    }
+    #task-record-details .word-split-box,
+    #free-record-details .word-split-box,
+    .task-single-record-block .word-split-box {
+      height: 180px !important;
+      min-height: 180px !important;
+      max-height: 180px !important;
+      overflow: hidden !important;
+      display: flex !important;
+      flex-direction: column !important;
+    }
+    #task-record-details .word-split-content,
+    #free-record-details .word-split-content,
+    .task-single-record-block .word-split-content {
       flex: 1 1 auto !important;
       height: 0 !important;
       min-height: 0 !important;
       max-height: 100% !important;
       overflow-y: auto !important;
       overscroll-behavior: contain !important;
-      display: flex !important;
-      flex-wrap: wrap !important;
-      align-items: flex-start !important;
-      align-content: flex-start !important;
-      gap: 4px !important;
-      padding-right: 4px !important;
-      scrollbar-gutter: stable !important;
-      scrollbar-width: thin !important;
-      scrollbar-color: rgba(100, 116, 139, 0.45) transparent !important;
-      box-sizing: border-box !important;
     }
 
 </style>
