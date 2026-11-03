@@ -683,11 +683,6 @@ function _buildStudentReportHtml(payload) {
           `;
         }
       })()}
-      <!-- 🔒 系統防偽數位認證章 -->
-      <div style="margin-top:14px; padding-top:8px; border-top:1px dashed #CBD5E1; display:flex; justify-content:space-between; align-items:center; font-size:11px; color:#94A3B8; font-family:monospace;">
-        <span style="display:inline-flex; align-items:center; gap:5px;">🔒 拼字小特工系統防偽數位認證 · 平面點陣像素鎖定防篡改</span>
-        <span>防偽驗證碼：${esc(payload.studentId)}-${esc(payload.fileScopeTag)}-${Math.abs((payload.studentId + payload.fileScopeTag + (payload.exportTime || '')).split('').reduce((a,b)=>((a<<5)-a)+b.charCodeAt(0),0)).toString(36).toUpperCase()}</span>
-      </div>
     </div>
   `;
 }
