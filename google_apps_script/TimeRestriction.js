@@ -178,8 +178,8 @@ function getTimeRestrictionRulesCached_(ss, todayYMD) {
           }
         }
 
-        // 3. 特別日期全天解除
-        if (isEnabled && (type === "特別日期解除" || (startD && endD))) {
+        // 3. 特別日期全天解除（嚴格限定設定類型為「特別日期解除」，防止其他規則誤判）
+        if (isEnabled && type === "特別日期解除" && startD && endD) {
           if (todayYMD >= startD && todayYMD <= endD) {
             rules.activeDateOverride = {
               name: name || "特別開放",
@@ -648,7 +648,7 @@ function getTimeRestrictions(param1, optAuth) {
           updatedAt: updatedAt,
           remark: remark
         });
-      } else if (type === "特別日期解除" || (startD && endD)) {
+      } else if (type === "特別日期解除" && startD && endD) {
         dateRules.push({
           rowIdx: i + 1,
           name: name || "特別開放",
