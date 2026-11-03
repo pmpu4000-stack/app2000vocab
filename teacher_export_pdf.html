@@ -4976,7 +4976,6 @@ function initStudentExportRecordsCard(resp) {
   const inputEnd = document.getElementById("export-end-date");
   const formatSelect = document.getElementById("export-format-select");
   const btnDlPdf = document.getElementById("btn-export-download-pdf");
-  const btnDlExcel = document.getElementById("btn-export-download-excel");
   const statusMsg = document.getElementById("export-status-msg");
 
   const recPicker = document.getElementById("record-date-picker");
@@ -5104,27 +5103,22 @@ function initStudentExportRecordsCard(resp) {
       : (inputEnd && inputEnd.value ? inputEnd.value : todayDash);
 
     if (btnDlPdf) btnDlPdf.disabled = true;
-    if (btnDlExcel) btnDlExcel.disabled = true;
     if (statusMsg) {
       statusMsg.style.display = "block";
-      statusMsg.innerHTML = `⏳ 正在準備 <b>${chosenFmt === "excel" ? "Excel (.xlsx)" : "PDF (.pdf)"}</b> 歷程檔案報表，請稍候...`;
+      statusMsg.innerHTML = `⏳ 正在準備 <b>PDF (.pdf)</b> 歷程檔案報表，請稍候...`;
     }
 
     try {
       const payload = _buildStudentExportPayload(_latestStudentExportResp || window.cachedStudentExportResp || {}, currentMode, sDate, eDate);
       if (statusMsg) {
         statusMsg.style.display = "block";
-        statusMsg.innerHTML = `⏳ 正在產生 <b>${chosenFmt === "excel" ? "Excel (.xlsx)" : "PDF (.pdf)"}</b> 歷程檔案（${payload.scopeTitle}），請稍候...`;
+        statusMsg.innerHTML = `⏳ 正在產生 <b>PDF (.pdf)</b> 歷程檔案（${payload.scopeTitle}），請稍候...`;
       }
 
-      if (chosenFmt === "excel") {
-        await _exportStudentRecordToExcel(payload);
-      } else {
-        await _exportStudentRecordToPdf(payload);
-      }
+      await _exportStudentRecordToPdf(payload);
       if (statusMsg) {
         statusMsg.style.display = "block";
-        statusMsg.innerHTML = `✅ 已成功下載 <b>${chosenFmt === "excel" ? "Excel (.xlsx)" : "PDF (.pdf)"}</b> 歷程檔案（${payload.scopeTitle}）！`;
+        statusMsg.innerHTML = `✅ 已成功下載 <b>PDF (.pdf)</b> 歷程檔案（${payload.scopeTitle}）！`;
       }
     } catch (err) {
       console.error("Student export error:", err);
@@ -5135,12 +5129,10 @@ function initStudentExportRecordsCard(resp) {
       alert("匯出下載失敗：" + (err.message || "請稍後再試"));
     } finally {
       if (btnDlPdf) btnDlPdf.disabled = false;
-      if (btnDlExcel) btnDlExcel.disabled = false;
     }
   };
 
   if (btnDlPdf) btnDlPdf.onclick = () => runDownload("pdf");
-  if (btnDlExcel) btnDlExcel.onclick = () => runDownload("excel");
 
   const btnPreviewWeb = document.getElementById("btn-export-preview-web");
   const btnCloseWeb = document.getElementById("btn-close-web-preview");

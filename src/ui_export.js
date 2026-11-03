@@ -1272,7 +1272,6 @@ export function initExportRecordsCard(getSummaryFn) {
   const inputEnd = document.getElementById("export-end-date");
   const formatSelect = document.getElementById("export-format-select");
   const btnDlPdf = document.getElementById("btn-export-download-pdf");
-  const btnDlExcel = document.getElementById("btn-export-download-excel");
   const statusMsg = document.getElementById("export-status-msg");
 
   if (inputSingle && !inputSingle.value) {
@@ -1416,19 +1415,14 @@ export function initExportRecordsCard(getSummaryFn) {
     const payload = _buildExportPayload(d, currentMode, sDate, eDate);
 
     if (btnDlPdf) btnDlPdf.disabled = true;
-    if (btnDlExcel) btnDlExcel.disabled = true;
     if (statusMsg) {
-      statusMsg.innerHTML = `⏳ 正在產生 <b>${chosenFmt === "excel" ? "Excel (.xlsx)" : "PDF (.pdf)"}</b> 作答歷程記錄檔案（${payload.scopeTitle}），請稍候...`;
+      statusMsg.innerHTML = `⏳ 正在產生 <b>PDF (.pdf)</b> 作答歷程記錄檔案（${payload.scopeTitle}），請稍候...`;
     }
 
     try {
-      if (chosenFmt === "excel") {
-        await _exportRecordToExcel(payload);
-      } else {
-        await _exportRecordToPdf(payload);
-      }
+      await _exportRecordToPdf(payload);
       if (statusMsg) {
-        statusMsg.innerHTML = `✅ 已成功下載 <b>${chosenFmt === "excel" ? "Excel (.xlsx)" : "PDF (.pdf)"}</b> 作答歷程記錄（${payload.scopeTitle}）！`;
+        statusMsg.innerHTML = `✅ 已成功下載 <b>PDF (.pdf)</b> 作答歷程記錄（${payload.scopeTitle}）！`;
       }
     } catch (err) {
       console.error("Export error:", err);
@@ -1437,12 +1431,10 @@ export function initExportRecordsCard(getSummaryFn) {
       }
     } finally {
       if (btnDlPdf) btnDlPdf.disabled = false;
-      if (btnDlExcel) btnDlExcel.disabled = false;
     }
   };
 
   if (btnDlPdf) btnDlPdf.onclick = () => runDownload("pdf");
-  if (btnDlExcel) btnDlExcel.onclick = () => runDownload("excel");
 
   // 網頁長幅檢視預覽事件綁定
   const btnPreviewWeb = document.getElementById("btn-export-preview-web");
