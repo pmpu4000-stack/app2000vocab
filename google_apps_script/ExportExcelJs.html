@@ -351,7 +351,7 @@ function _buildStudentReportHtml(payload) {
         : `<span style="font-size:12px; color:var(--ink3, #94A3B8); font-style:italic;">（待測單字清單載入中）</span>`;
 
       taskCardHtml = `
-        <div class="task-history-card">
+        <div class="task-history-card" style="height:auto !important; overflow:visible !important; margin-bottom:8px;">
           <div class="task-history-header">
             <div>
               <span class="task-card-title task-title-assigned">${esc(formattedTaskName)}</span>
@@ -370,7 +370,7 @@ function _buildStudentReportHtml(payload) {
               <div class="task-score-val" style="color:#059669; font-size:14.5px; font-weight:800;">📴 當日無登入受測紀錄</div>
             </div>
           </div>
-          <div class="word-split-grid">
+          <div class="word-split-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px; height:auto !important; min-height:auto !important; overflow:visible !important;">
             <div class="word-split-box advice-box">
               <div class="word-split-title advice-title"><span class="card-icon-slot">💡</span><span>測驗狀態說明</span></div>
               <div class="word-split-tags" style="font-size:12.5px; line-height:1.55; color:var(--ink2, #475569); padding:4px 0;">
@@ -379,7 +379,7 @@ function _buildStudentReportHtml(payload) {
             </div>
             <div class="word-split-box untested-box">
               <div class="word-split-title untested-title"><span class="card-icon-slot">📋</span><span>本次應測單字範圍 (${unansWords.length} 字)</span></div>
-              <div class="word-split-tags">${unansTags}</div>
+              <div class="word-split-tags" style="height:auto !important; min-height:auto !important; max-height:none !important; overflow:visible !important; display:flex; flex-wrap:wrap; gap:5px; padding:2px 0;">${unansTags}</div>
             </div>
           </div>
         </div>
@@ -400,7 +400,7 @@ function _buildStudentReportHtml(payload) {
       const unansCount = r.actualUnanswered !== undefined ? r.actualUnanswered : Math.max(0, (r.assignedTotWords || 5) - ansCount);
 
       taskCardHtml = `
-        <div class="task-history-card">
+        <div class="task-history-card" style="height:auto !important; overflow:visible !important; margin-bottom:8px;">
           <div class="task-history-header">
             <div>
               <span class="task-card-title task-title-assigned">${esc(formattedTaskName)}</span>
@@ -440,14 +440,14 @@ function _buildStudentReportHtml(payload) {
               </div>
             </div>
           </div>
-          <div class="word-split-grid">
-            <div class="word-split-box correct-box">
+          <div class="word-split-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px; height:auto !important; min-height:auto !important; overflow:visible !important;">
+            <div class="word-split-box correct-box" style="height:auto !important; min-height:54px !important; overflow:visible !important;">
               <div class="word-split-title correct-title"><span class="card-icon-slot">✔</span><span>答對的單字 (${corrList.length} 字)</span></div>
-              <div class="word-split-tags">${corrTags}</div>
+              <div class="word-split-tags" style="height:auto !important; min-height:auto !important; max-height:none !important; overflow:visible !important; display:flex; flex-wrap:wrap; gap:5px; padding:2px 0;">${corrTags}</div>
             </div>
-            <div class="word-split-box wrong-box">
+            <div class="word-split-box wrong-box" style="height:auto !important; min-height:54px !important; overflow:visible !important;">
               <div class="word-split-title wrong-title"><span class="card-icon-slot">✖</span><span>答錯的單字 (${wrgList.length} 字)</span></div>
-              <div class="word-split-tags">${wrgTags}</div>
+              <div class="word-split-tags" style="height:auto !important; min-height:auto !important; max-height:none !important; overflow:visible !important; display:flex; flex-wrap:wrap; gap:5px; padding:2px 0;">${wrgTags}</div>
             </div>
           </div>
         </div>
@@ -468,7 +468,7 @@ function _buildStudentReportHtml(payload) {
 
       const fRate = parseInt(r.freeRate, 10) || 0;
       freeCardHtml = `
-        <div class="task-history-card">
+        <div class="task-history-card" style="height:auto !important; overflow:visible !important; margin-bottom:8px;">
           <div class="task-history-header">
             <div>
               <span class="task-card-title task-title-free">🎮 自由練習成果</span>
@@ -492,14 +492,14 @@ function _buildStudentReportHtml(payload) {
               </div>
             </div>
           </div>
-          <div class="word-split-grid">
-            <div class="word-split-box correct-box">
+          <div class="word-split-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px; height:auto !important; min-height:auto !important; overflow:visible !important;">
+            <div class="word-split-box correct-box" style="height:auto !important; min-height:54px !important; overflow:visible !important;">
               <div class="word-split-title correct-title"><span class="card-icon-slot">✔</span><span>答對的單字 (${fCorrList.length} 字)</span></div>
-              <div class="word-split-tags">${fCorrTags}</div>
+              <div class="word-split-tags" style="height:auto !important; min-height:auto !important; max-height:none !important; overflow:visible !important; display:flex; flex-wrap:wrap; gap:5px; padding:2px 0;">${fCorrTags}</div>
             </div>
-            <div class="word-split-box wrong-box">
+            <div class="word-split-box wrong-box" style="height:auto !important; min-height:54px !important; overflow:visible !important;">
               <div class="word-split-title wrong-title"><span class="card-icon-slot">✖</span><span>答錯的單字 (${fWrgList.length} 字)</span></div>
-              <div class="word-split-tags">${fWrgTags}</div>
+              <div class="word-split-tags" style="height:auto !important; min-height:auto !important; max-height:none !important; overflow:visible !important; display:flex; flex-wrap:wrap; gap:5px; padding:2px 0;">${fWrgTags}</div>
             </div>
           </div>
         </div>

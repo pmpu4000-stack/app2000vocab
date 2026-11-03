@@ -4082,4 +4082,49 @@
 
 /* ═══ 列印專用樣式 ═══ */
 table{page-break-inside:auto!important;break-inside:auto!important;}tr{page-break-inside:auto!important;break-inside:auto!important;}
+
+    /* === 確保歷程檔案與學習足跡單字清單永不被截斷 === */
+    .summary-embedded .task-history-card,
+    .daily-footprint-block .task-history-card,
+    #export-web-preview-body .task-history-card,
+    .task-history-card {
+      height: auto !important;
+      min-height: auto !important;
+      max-height: none !important;
+      overflow: visible !important;
+    }
+    .summary-embedded .word-split-grid,
+    .daily-footprint-block .word-split-grid,
+    #export-web-preview-body .word-split-grid,
+    .word-split-grid {
+      height: auto !important;
+      min-height: auto !important;
+      max-height: none !important;
+      overflow: visible !important;
+    }
+    .summary-embedded .word-split-box,
+    .daily-footprint-block .word-split-box,
+    #export-web-preview-body .word-split-box,
+    .word-split-box {
+      height: auto !important;
+      min-height: 54px !important;
+      max-height: none !important;
+      overflow: visible !important;
+    }
+    .summary-embedded .word-split-tags,
+    .daily-footprint-block .word-split-tags,
+    #export-web-preview-body .word-split-tags,
+    .word-split-tags,
+    .summary-embedded .word-split-content,
+    .daily-footprint-block .word-split-content,
+    #export-web-preview-body .word-split-content,
+    .word-split-content,
+    .word-split-box > div:not(.word-split-title) {
+      height: auto !important;
+      min-height: auto !important;
+      max-height: none !important;
+      overflow: visible !important;
+      overflow-y: visible !important;
+    }
+
 </style>
