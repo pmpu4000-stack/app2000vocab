@@ -431,6 +431,25 @@ function checkAndGetData(formData) {
 
     const todayStr = Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy-MM-dd");
 
+    if (auth.role === "parent") {
+      const targetStudent = String(formData.targetStudent || auth.studentBinding || "").trim();
+      if (!targetStudent) {
+        return { status: "error", message: "此家長帳號尚未綁定學生學號，請洽任課老師。" };
+      }
+      const result = _getStudentData(ss, targetStudent);
+      if (result.status === "success") {
+        result.role = "parent";
+        result.parentUsername = auth.username;
+        result.parentRealName = auth.realName;
+        result.todayTaskResult = getStudentTodayTaskResult(ss, targetStudent, todayStr);
+        result.dailyTaskHistory = getStudentDailyTaskHistory(ss, targetStudent);
+        result.assignedTask = getActiveTaskForClass(ss, result.className, targetStudent);
+        result.taskWordsMap = getTaskWordsDictCached_(ss);
+        try { result.leaderboard = _getLeaderboard(ss, targetStudent, "class"); } catch(_) {}
+      }
+      return result;
+    }
+
     if (auth.role === "teacher") {
       if (formData.targetStudent) {
         const target = String(formData.targetStudent).trim();

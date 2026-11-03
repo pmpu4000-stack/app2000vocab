@@ -8575,6 +8575,19 @@ function safeCsvCell(val) {
 })();
 
 document.addEventListener("DOMContentLoaded", () => {
+  // 🚀 自動橋接遊戲入口的登入憑證（支援家長免二次輸入帳密秒開）
+  const bridgeUser = sessionStorage.getItem("history_auth_user");
+  const bridgePass = sessionStorage.getItem("history_auth_pass");
+  if (bridgeUser && bridgePass) {
+    sessionStorage.removeItem("history_auth_user");
+    sessionStorage.removeItem("history_auth_pass");
+    const uInp = document.getElementById("login-user") || document.getElementById("username");
+    const pInp = document.getElementById("login-pass") || document.getElementById("password");
+    if (uInp) uInp.value = bridgeUser;
+    if (pInp) pInp.value = bridgePass;
+    setTimeout(() => { if (typeof login === "function") login(); }, 150);
+  }
+
   document.getElementById("username").addEventListener("keyup", e => { if (e.key === "Enter") login(); });
   document.getElementById("password").addEventListener("keyup", e => { if (e.key === "Enter") login(); });
   document.getElementById("startDate").addEventListener("keyup", e => { if (e.key === "Enter") applyFilter(); });
