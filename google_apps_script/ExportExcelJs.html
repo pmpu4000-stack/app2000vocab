@@ -312,27 +312,36 @@ function _buildStudentReportHtml(payload) {
   const dailyCardsHtml = payload.dailyRecords.map(r => {
     const isTaskUntested = !r.isUnassigned && String(r.taskStatus || "").includes("未受測");
 
+    // 格式化任務標題 (與學習足跡完全一致)
+    const cleanDateSlash = String(r.date || "").trim().split(" ")[0].replace(/-/g, "/");
+    let formattedTaskName = "";
+    const isWeekend = (function(ds) {
+      if (!ds) return false;
+      const d = new Date(ds.replace(/-/g, "/"));
+      return d.getDay() === 0 || d.getDay() === 6;
+    })(r.date);
+
+    if (isWeekend) {
+      const isBoss = String(r.taskName || "").includes("雙週") || (typeof getBiweeklyCycleInfo === "function" && getBiweeklyCycleInfo(r.date).isBiweeklyBossWeek);
+      formattedTaskName = `🎯 ${cleanDateSlash} ${isBoss ? "雙週指定單字大消滅戰" : "週末待攻克測驗"}作答紀錄`;
+    } else {
+      let cleanTaskName = String(r.taskName || "平日指定測驗").trim().replace(/^[📝📑s]+/, "");
+      cleanTaskName = cleanTaskName.replace(/指定單字隨堂測驗/g, "平日指定測驗作答紀錄").replace(/隨堂測驗/g, "測驗結果");
+      if (!cleanTaskName || cleanTaskName === "指定測驗" || cleanTaskName === "指定測驗作答紀錄" || cleanTaskName === "平日指定測驗") {
+        formattedTaskName = `📝 ${cleanDateSlash} 平日指定測驗作答紀錄`;
+      } else {
+        formattedTaskName = `📝 ${cleanDateSlash} ${cleanTaskName}`;
+      }
+    }
+
     // 1. 指定測驗卡片
     let taskCardHtml = "";
     if (r.isUnassigned) {
       taskCardHtml = `
-        <div class="task-history-card">
-          <div class="task-history-header">
-            <div>
-              <span class="task-card-title">📝 當日無指定測驗</span>
-              <span class="task-status-pill" style="color:#64748B; background:rgba(148,163,184,0.15);">無指派</span>
-            </div>
-          </div>
-          <div class="task-score-grid">
-            <div class="task-score-item">
-              <div class="task-score-label">指派情形</div>
-              <div class="task-score-val" style="color:var(--ink2, #475569); font-size:15px; font-weight:700;">當日無指派</div>
-            </div>
-            <div class="task-score-item">
-              <div class="task-score-label">作答狀態</div>
-              <div class="task-score-val" style="color:#64748B; font-size:14.5px; font-weight:800;">當日老師無指派測驗</div>
-            </div>
-          </div>
+        <div class="task-empty-notice-box" style="margin-top:6px;">
+          <div class="task-empty-notice-icon" style="font-size:24px; margin-bottom:4px; line-height:1;">☕</div>
+          <div class="task-empty-notice-title" style="font-size:13px; font-weight:700; color:var(--ink2, #475569); margin-bottom:4px;">該日未指派指定測驗（${esc(r.date)}）</div>
+          <div class="task-empty-notice-desc" style="font-size:11.5px; margin-top:2px; color:var(--ink3, #94A3B8); max-width:380px; margin-left:auto; margin-right:auto; line-height:1.5;">老師當日未指派指定測驗</div>
         </div>
       `;
     } else if (isTaskUntested) {
@@ -345,8 +354,7 @@ function _buildStudentReportHtml(payload) {
         <div class="task-history-card">
           <div class="task-history-header">
             <div>
-              <span class="task-card-title">${esc(r.formattedTaskName || r.taskName || "📝 平日指定測驗作答紀錄")}</span>
-              <span class="task-status-pill" style="color:#059669; background:rgba(16,185,129,0.22);">${esc(r.taskStatus || "未受測")}</span>
+              <span class="task-card-title task-title-assigned">${esc(formattedTaskName)}</span>
             </div>
           </div>
           <div class="task-score-grid">
@@ -384,17 +392,18 @@ function _buildStudentReportHtml(payload) {
         : `<span style="font-size:12px; color:var(--ink3, #94A3B8); font-style:italic;">（本次測驗無答對單字）</span>`;
       const wrgTags = wrgList.length > 0
         ? wrgList.map(w => `<span class="word-pill-tag wrong" onclick="event.stopPropagation(); if (typeof speakMasteredWord === 'function') speakMasteredWord('${esc(w).replace(/'/g, "\\\'")}');" style="cursor:pointer;" title="點擊聆聽發音">${esc(w)}</span>`).join("")
-        : `<span class="perfect-score-msg">🎉 全數答對，無答錯單字！</span>`;
+        : "";
 
-      const ovrRate = parseInt(r.overallScoreRate || r.taskRate, 10) || 0;
-      const attRate = parseInt(r.attemptedRate, 10) || ovrRate;
+      const ovrRate = parseInt(r.overallScoreRate !== undefined ? r.overallScoreRate : r.taskRate, 10) || 0;
+      const attRate = parseInt(r.attemptedRate !== undefined ? r.attemptedRate : ovrRate, 10) || ovrRate;
+      const ansCount = (r.taskCorrWords || 0) + (r.actualWrong || 0);
+      const unansCount = r.actualUnanswered !== undefined ? r.actualUnanswered : Math.max(0, (r.assignedTotWords || 5) - ansCount);
 
       taskCardHtml = `
         <div class="task-history-card">
           <div class="task-history-header">
             <div>
-              <span class="task-card-title">${esc(r.formattedTaskName || r.taskName || "📝 平日指定測驗作答紀錄")}</span>
-              <span class="task-status-pill" style="color:#047857; background:rgba(16,185,129,0.15);">${esc(r.taskStatus || "已完成")}</span>
+              <span class="task-card-title task-title-assigned">${esc(formattedTaskName)}</span>
             </div>
           </div>
           <div class="task-score-grid">
@@ -407,19 +416,27 @@ function _buildStudentReportHtml(payload) {
                 <div class="task-score-label" style="font-size:11px;">答錯</div>
                 <div class="task-score-val task-score-num-wrong">${r.actualWrong || 0}</div>
               </div>
-              <div class="task-score-item" style="display:flex; flex-direction:column; justify-content:center;">
-                <div class="task-score-label" style="font-size:11px;">未作答</div>
-                <div class="task-score-val task-score-num-unans" style="font-size:18px; font-weight:800; color:var(--ink, #334155);">${r.actualUnanswered || 0}</div>
+              <div class="task-score-item score-ans-item" style="display:flex; flex-direction:column; justify-content:center;">
+                <div class="task-score-label" style="font-size:11px;">已作答</div>
+                <div class="task-score-val task-score-num-ans">${ansCount}</div>
               </div>
-              <div class="task-score-item" style="display:flex; flex-direction:column; justify-content:center;">
-                <div class="task-score-label" style="font-size:11px;">作答正確率</div>
-                <div class="task-score-val task-score-num-rate" style="font-size:18px; font-weight:800; color:#0284C7;">${attRate}%</div>
+              <div class="task-score-item score-unans-item" style="display:flex; flex-direction:column; justify-content:center;">
+                <div class="task-score-label" style="font-size:11px;">未作答</div>
+                <div class="task-score-val task-score-num-unans">${unansCount}</div>
               </div>
             </div>
-            <div class="task-score-item rate-tier-item ${getTier(ovrRate)}" style="display:flex; flex-direction:column; justify-content:center;">
-              <div class="task-score-label" style="font-size:11px;">全卷正確率</div>
-              <div class="task-score-val heat-rate-val ${getTier(ovrRate)}" style="font-size:22px; font-weight:800; line-height:1.2;">
-                ${ovrRate}%
+            <div class="task-score-subgrid-2">
+              <div class="task-score-item rate-tier-item ${getTier(attRate)}" style="display:flex; flex-direction:column; justify-content:center;">
+                <div class="task-score-label" style="font-size:11px;" title="實際有作答題目的答對率">作答正確率</div>
+                <div class="task-score-val heat-rate-val ${getTier(attRate)}" style="font-size:22px; font-weight:800; line-height:1.2;">
+                  ${ansCount > 0 ? attRate + '%' : '—'}
+                </div>
+              </div>
+              <div class="task-score-item rate-tier-item ${getTier(ovrRate)}" style="display:flex; flex-direction:column; justify-content:center;">
+                <div class="task-score-label" style="font-size:11px;" title="以全卷應測總單字數為分母計算之正確率">全卷正確率</div>
+                <div class="task-score-val heat-rate-val ${getTier(ovrRate)}" style="font-size:22px; font-weight:800; line-height:1.2;">
+                  ${ovrRate}%
+                </div>
               </div>
             </div>
           </div>
@@ -497,14 +514,6 @@ function _buildStudentReportHtml(payload) {
       `;
     }
 
-    const subhTitle = (function(ds) {
-      if (!ds) return "📝 平日指定測驗作答紀錄";
-      const clean = String(ds).trim().split(" ")[0].replace(/-/g, "/");
-      const d = new Date(clean);
-      const day = d.getDay();
-      return (day === 0 || day === 6) ? `🎯 週末待攻克測驗作答紀錄` : "📝 平日指定測驗作答紀錄";
-    })(r.date);
-
     return `
       <div class="daily-footprint-block" style="border:1.5px solid var(--line, #E7E9F5); border-radius:14px; padding:12px 14px; margin-bottom:14px; background:var(--card-bg, #FFFFFF); page-break-inside:avoid; box-shadow:0 2px 6px rgba(0,0,0,0.03);">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; padding-bottom:6px; border-bottom:1px solid var(--line, #E7E9F5);">
@@ -518,12 +527,12 @@ function _buildStudentReportHtml(payload) {
 
         <!-- 1. 平日指定測驗 / 週末待攻克測驗作答紀錄 -->
         <div class="subh" style="margin-bottom:6px;">
-          <span>${esc(subhTitle)}</span>
+          <span>${esc(formattedTaskName)}</span>
         </div>
         ${taskCardHtml}
 
         <!-- 2. 自由練習作答紀錄 -->
-        <div class="subh" style="margin-top:12px; margin-bottom:6px;">
+        <div class="subh" style="margin-top:14px; margin-bottom:6px;">
           <span>🎮 自由練習作答紀錄</span>
         </div>
         ${freeCardHtml}
