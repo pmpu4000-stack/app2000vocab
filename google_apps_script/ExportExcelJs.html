@@ -387,12 +387,28 @@ function _buildStudentReportHtml(payload) {
     } else {
       const corrList = r.taskCorrectWords || [];
       const wrgList = r.taskWrongWords || [];
+      const unansList = r.unansweredWords || [];
       const corrTags = corrList.length > 0
         ? corrList.map(w => `<span class="word-pill-tag correct" onclick="event.stopPropagation(); if (typeof speakMasteredWord === 'function') speakMasteredWord('${esc(w).replace(/'/g, "\\\'")}');" style="cursor:pointer;" title="點擊聆聽發音">${esc(w)}</span>`).join("")
         : `<span style="font-size:12px; color:var(--ink3, #94A3B8); font-style:italic;">（本次測驗無答對單字）</span>`;
-      const wrgTags = wrgList.length > 0
+      let wrgTags = wrgList.length > 0
         ? wrgList.map(w => `<span class="word-pill-tag wrong" onclick="event.stopPropagation(); if (typeof speakMasteredWord === 'function') speakMasteredWord('${esc(w).replace(/'/g, "\\\'")}');" style="cursor:pointer;" title="點擊聆聽發音">${esc(w)}</span>`).join("")
-        : "";
+        : `<span style="font-size:12px; color:var(--ink3, #94A3B8); font-style:italic;">（受測題目無答錯）</span>`;
+
+      if (unansList.length > 0) {
+        const unansPills = unansList.map(w => `<span class="word-pill-tag neutral" onclick="event.stopPropagation(); if (typeof speakMasteredWord === 'function') speakMasteredWord('${esc(w).replace(/'/g, "\\\'")}');" style="cursor:pointer;" title="未作答單字">${esc(w)}</span>`).join("");
+        wrgTags += `
+          <div style="${wrgList.length > 0 ? 'margin-top:10px; padding-top:8px; border-top:1px dashed var(--line, rgba(148,163,184,0.25));' : 'margin-top:6px;'} width:100%;">
+            <div style="display:flex; align-items:center; font-size:12px; font-weight:700; color:var(--ink2, #475569); padding:4px 0; gap:6px; width:100%;">
+              <span class="card-icon-slot">⏳</span>
+              <span style="flex:1;">未作答的單字 (${unansList.length} 字)</span>
+            </div>
+            <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:4px; padding:6px 8px; background:rgba(2,132,199,0.06); border-radius:8px; border:1px solid rgba(2,132,199,0.18);">
+              ${unansPills}
+            </div>
+          </div>
+        `;
+      }
 
       const ovrRate = parseInt(r.overallScoreRate !== undefined ? r.overallScoreRate : r.taskRate, 10) || 0;
       const attRate = parseInt(r.attemptedRate !== undefined ? r.attemptedRate : ovrRate, 10) || ovrRate;
@@ -463,7 +479,17 @@ function _buildStudentReportHtml(payload) {
         ? fCorrList.map(w => `<span class="word-pill-tag correct" onclick="event.stopPropagation(); if (typeof speakMasteredWord === 'function') speakMasteredWord('${esc(w).replace(/'/g, "\\\'")}');" style="cursor:pointer;" title="點擊聆聽發音">${esc(w)}</span>`).join("")
         : `<span style="font-size:12px; color:var(--ink3, #94A3B8); font-style:italic;">（當日尚無全對單字）</span>`;
       const fWrgTags = fWrgList.length > 0
-        ? fWrgList.map(w => `<span class="word-pill-tag wrong" onclick="event.stopPropagation(); if (typeof speakMasteredWord === 'function') speakMasteredWord('${esc(w).replace(/'/g, "\\\'")}');" style="cursor:pointer;" title="點擊聆聽發音">${esc(w)}</span>`).join("")
+        ? fWrgList.map(w => {
+            const isHadCW = w.includes("(曾對後錯⚠️)");
+            const isCorr = w.includes("(已訂正)");
+            const cleanWord = w.replace(/\(曾對後錯⚠️\)|\(已訂正\)/g, "");
+            if (isHadCW) {
+              return `<span class="word-pill-tag warning" onclick="event.stopPropagation(); if (typeof speakMasteredWord === 'function') speakMasteredWord('${esc(cleanWord).replace(/'/g, "\\\'")}');" style="border:1.5px dashed #f59e0b; background:rgba(245,158,11,0.1); color:#b45309; cursor:pointer;" title="當日曾答對，但後續作答時答錯 (點擊聆聽發音)">${esc(cleanWord)} <small style="font-size:10px; font-weight:700;">(曾對後錯⚠️)</small></span>`;
+            } else if (isCorr) {
+              return `<span class="word-pill-tag correct" onclick="event.stopPropagation(); if (typeof speakMasteredWord === 'function') speakMasteredWord('${esc(cleanWord).replace(/'/g, "\\\'")}');" style="border:1.5px dashed var(--green, #10B981); cursor:pointer;" title="當日曾答錯，已訂正答對 (點擊聆聽發音)">${esc(cleanWord)} <small style="font-size:10px; opacity:0.85;">(已訂正)</small></span>`;
+            }
+            return `<span class="word-pill-tag wrong" onclick="event.stopPropagation(); if (typeof speakMasteredWord === 'function') speakMasteredWord('${esc(cleanWord).replace(/'/g, "\\\'")}');" style="cursor:pointer;" title="點擊聆聽發音">${esc(cleanWord)}</span>`;
+          }).join("")
         : `<span class="perfect-score-msg">🌟 太棒了！當日自由練習全數答對，無任何答錯單字！</span>`;
 
       const fRate = parseInt(r.freeRate, 10) || 0;

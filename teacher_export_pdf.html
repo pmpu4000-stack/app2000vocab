@@ -4159,22 +4159,26 @@ function _extractStFreeWordsForExport(record, agent) {
     const wName = resolveWord(rawW).toLowerCase();
     if (!wName || /^w\d+$/i.test(wName)) return;
 
-    const wAtt = (typeof info === "object" && info) ? (info.attempts !== undefined ? info.attempts : (info.a !== undefined ? info.a : 1)) : 1;
-    const wCor = (typeof info === "object" && info) ? (info.correct !== undefined ? info.correct : (info.c !== undefined ? info.c : (info.passed ? 1 : 0))) : 0;
-    const wWrg = (typeof info === "object" && info) ? (info.wrong !== undefined ? info.wrong : Math.max(0, wAtt - wCor)) : 0;
-    const hasWrong = wWrg > 0 || (info && (info.lastResult === "wrong" || info.ew));
-    const hasCorrect = wCor > 0 || (info && (info.passed || info.lastResult === "correct"));
+    const hasWrong = (typeof info === "object" && info.wrong > 0);
+    const hasCorrect = (typeof info === "object" && (info.correct > 0 || info.passed));
 
     if (hasWrong) {
       wrongList.push({
         word: wName,
-        correct: wCor || 0,
-        wrong: wWrg || 1,
-        hadCorrectThenWrong: !!(info && (info.hadCorrectThenWrong || (info.lastResult === "wrong" && wCor > 0))),
-        lastResult: (info && info.lastResult) ? info.lastResult : ""
+        attempts: (typeof info === "object" && info.attempts) ? info.attempts : 1,
+        wrong: (typeof info === "object" && info.wrong) ? info.wrong : 1,
+        correct: (typeof info === "object" && info.correct) ? info.correct : (info && info.passed ? 1 : 0),
+        hadCorrectThenWrong: !!(typeof info === "object" && (info.hadCorrectThenWrong || (info.lastResult === "wrong" && info.correct > 0))),
+        lastResult: (typeof info === "object" && info.lastResult) ? info.lastResult : ""
       });
     } else if (hasCorrect) {
-      correctList.push({ word: wName, correct: wCor || 1 });
+      correctList.push({
+        word: wName,
+        attempts: (typeof info === "object" && info.attempts) ? info.attempts : 1,
+        correct: (typeof info === "object" && info.correct) ? info.correct : 1
+      });
+    } else {
+      correctList.push({ word: wName, attempts: 1, correct: 1 });
     }
   });
 
@@ -4484,9 +4488,36 @@ function _buildStudentExportPayload(resp, mode, startDate, endDate) {
     const dObj = new Date(slashDt);
     const dayOfWeek = isNaN(dObj.getTime()) ? "" : dayNames[dObj.getDay()];
 
-    // 優先從 Excel / 試算表該學生分頁對應列提取自由練習紀錄
+    // 優先從 agent.dailyPractice / historyData 提取自由練習紀錄 (與學習足跡完全一致)
     let matchedFree = null;
-    if (effectiveResp && Array.isArray(effectiveResp.data)) {
+    let dpFree = dpMap[dt] || dpMap[unpadDt] || dpMap[slashDt] || null;
+    let hFree = historyData[dt] || historyData[unpadDt] || historyData[slashDt] || null;
+    if (dpFree && (dpFree.attempts > 0 || (dpFree.words && Object.keys(dpFree.words).length > 0))) {
+      let att = dpFree.attempts || 0;
+      let cor = dpFree.correct || 0;
+      if (!att && dpFree.words) {
+        att = Object.keys(dpFree.words).length;
+        cor = Object.values(dpFree.words).filter(w => (typeof w === "object" && (w.correct > 0 || w.passed))).length;
+      }
+      matchedFree = {
+        date: dt,
+        attempts: att,
+        correct: cor,
+        wrong: (dpFree.wrong !== undefined) ? dpFree.wrong : Math.max(0, att - cor),
+        words: dpFree.words || {}
+      };
+    } else if (hFree && (hFree.a || hFree.c || hFree.words)) {
+      matchedFree = {
+        date: dt,
+        attempts: hFree.a || 0,
+        correct: hFree.c || 0,
+        wrong: (hFree.a && hFree.c) ? Math.max(0, hFree.a - hFree.c) : 0,
+        words: hFree.words || {}
+      };
+    }
+
+    // 備援：若 JSON 無該日自由練習，再從試算表該列自由練習欄位提取
+    if (!matchedFree && effectiveResp && Array.isArray(effectiveResp.data)) {
       for (const r of effectiveResp.data) {
         if (!r) continue;
         if (normKey(r[0]) === dt) {
@@ -4502,28 +4533,6 @@ function _buildStudentExportPayload(resp, mode, startDate, endDate) {
             break;
           }
         }
-      }
-    }
-
-    if (!matchedFree) {
-      let dpFree = dpMap[dt] || dpMap[unpadDt] || dpMap[slashDt] || null;
-      let hFree = historyData[dt] || historyData[unpadDt] || historyData[slashDt] || null;
-      if (dpFree && (dpFree.attempts > 0 || (dpFree.words && Object.keys(dpFree.words).length > 0))) {
-        matchedFree = {
-          date: dt,
-          attempts: dpFree.attempts || 0,
-          correct: dpFree.correct || 0,
-          wrong: (dpFree.wrong !== undefined) ? dpFree.wrong : Math.max(0, (dpFree.attempts || 0) - (dpFree.correct || 0)),
-          words: dpFree.words || {}
-        };
-      } else if (hFree && (hFree.a || hFree.c || hFree.words)) {
-        matchedFree = {
-          date: dt,
-          attempts: hFree.a || 0,
-          correct: hFree.c || 0,
-          wrong: (hFree.a && hFree.c) ? Math.max(0, hFree.a - hFree.c) : 0,
-          words: hFree.words || {}
-        };
       }
     }
 
@@ -4548,52 +4557,134 @@ function _buildStudentExportPayload(resp, mode, startDate, endDate) {
       periodFreeCorrect += fInfo.correctCount;
     }
 
-    // 優先從 Excel / 試算表該學生分頁對應列提取指定測驗紀錄
-    let matchedTask = null;
+    // 匹配教師指定測驗紀錄 (與學習足跡 switchRecordDate 完全一致)
+    let taskCandidates = [];
+    const mergeOrPushExportTask = (item) => {
+      if (!item || !item.taskName) return;
+      const cleanName = String(item.taskName).replace(/^[📝🎯📑\s]+/, "").trim();
+      const existIdx = taskCandidates.findIndex(t => {
+        const tClean = String(t.taskName || "").replace(/^[📝🎯📑\s]+/, "").trim();
+        return tClean === cleanName || tClean.includes(cleanName) || cleanName.includes(tClean);
+      });
+      if (existIdx >= 0) {
+        const old = taskCandidates[existIdx];
+        const oldIsDone = old.status && (old.status.includes("已完成") || old.status.includes("●") || old.status.includes("🟢"));
+        const newIsDone = item.status && (item.status.includes("已完成") || item.status.includes("●") || item.status.includes("🟢"));
+        if (!oldIsDone && newIsDone) {
+          taskCandidates[existIdx] = { ...old, ...item };
+        } else {
+          if ((!old.words || old.words.length === 0) && item.words && item.words.length > 0) old.words = item.words;
+          if ((!old.wrongWords || old.wrongWords.length === 0) && item.wrongWords && item.wrongWords.length > 0) old.wrongWords = item.wrongWords;
+          if ((!old.correctWords || old.correctWords.length === 0) && item.correctWords && item.correctWords.length > 0) old.correctWords = item.correctWords;
+          if ((!old.score || old.score === "—") && item.score && item.score !== "—") {
+            old.score = item.score;
+            old.rate = item.rate;
+            if (item.status) old.status = item.status;
+          }
+        }
+      } else {
+        taskCandidates.push(item);
+      }
+    };
+
+    if (Array.isArray(dailyTaskHistory)) {
+      dailyTaskHistory.forEach(h => {
+        if (!h || !h.date) return;
+        const hdNorm = normKey(h.date);
+        const st = String(h.status || "");
+        const isExpUntested = st.includes("未受測") || st.includes("缺席") || st.includes("缺考") || st.includes("未作答");
+        const isUnassigned = !isExpUntested && (!h.taskName || h.taskName === "自主練習" || h.taskName.includes("自由練習") || h.taskName.includes("未指派"));
+        if ((hdNorm === dt || unpadDt === normKey(h.date)) && !isUnassigned) {
+          mergeOrPushExportTask({
+            ...h,
+            taskName: (isExpUntested && (!h.taskName || h.taskName === "自主練習" || h.taskName.includes("未指派"))) ? "每日指定測驗" : h.taskName
+          });
+        }
+      });
+    }
+
+    if (todayTask && todayTask.date && todayTask.hasDone && todayTask.taskName !== "自主練習" && !todayTask.taskName.includes("未指派")) {
+      const tdNorm = normKey(todayTask.date);
+      if (tdNorm === dt || tdNorm === unpadDt) {
+        mergeOrPushExportTask({
+          date: dt,
+          taskName: todayTask.taskName || "每日指定測驗",
+          score: todayTask.score || "—",
+          rate: todayTask.rate || "—",
+          status: "● 已完成",
+          words: todayTask.words || [],
+          wrongWords: todayTask.wrongWords || []
+        });
+      }
+    }
+
     if (effectiveResp && Array.isArray(effectiveResp.data)) {
       for (const r of effectiveResp.data) {
         if (!r) continue;
         if (normKey(r[0]) === dt) {
           const info = extractRowTaskInfo(r, effectiveResp.headers);
-          if (info && info.taskName && info.taskName !== "自主練習" && !info.taskName.includes("自由練習")) {
-            matchedTask = {
-              date: dt,
-              taskName: info.taskName || "教師指定測驗",
-              score: info.score || "—",
-              rate: formatRatePercentage(info.rate, info.score),
-              status: info.status || "已完成",
-              words: [],
-              wrongWords: info.wrongWords
-            };
-            break;
+          if (info) {
+            const st = String(info.status || "");
+            const isExpUntested = st.includes("未受測") || st.includes("缺席") || st.includes("缺考") || st.includes("未作答");
+            if (isExpUntested || (info.taskName && info.taskName !== "自主練習" && !info.taskName.includes("自由練習"))) {
+              if (!isExpUntested && ((info.taskName && info.taskName.includes("未指派")) || st.includes("未指派"))) continue;
+              mergeOrPushExportTask({
+                date: dt,
+                taskName: (isExpUntested && (!info.taskName || info.taskName === "自主練習" || info.taskName.includes("未指派"))) ? "每日指定測驗" : (info.taskName || "每日指定測驗"),
+                score: info.score || "—",
+                rate: info.rate || "—",
+                status: info.status || (isExpUntested ? "⚪ 未受測" : "● 已完成"),
+                words: [],
+                wrongWords: info.wrongWords || []
+              });
+            }
           }
         }
       }
     }
 
-    if (!matchedTask) {
-      matchedTask = dailyTaskHistory.find(h => normKey(h.date) === dt && (!h.taskName || h.taskName !== "自主練習")) || null;
+    // 檢查 weekend_remedy
+    const tRecords = (agent && agent._taskRecords) || (window.currentStudentData && window.currentStudentData.agentData && window.currentStudentData.agentData._taskRecords) || {};
+    const dtDay = dObj.getDay();
+    if (dtDay === 0 || dtDay === 6) {
+      const diffMon = dObj.getDate() - dtDay + (dtDay === 0 ? -6 : 1);
+      const mObj = new Date(dObj.getFullYear(), dObj.getMonth(), diffMon);
+      const monKey = mObj.getFullYear() + "-" + String(mObj.getMonth() + 1).padStart(2, "0") + "-" + String(mObj.getDate()).padStart(2, "0");
+      let rem = tRecords["weekend_remedy_" + monKey];
+      if (typeof rem === "string") { try { rem = JSON.parse(rem); } catch(_) {} }
+      if (!rem) { try { const raw = localStorage.getItem("weekend_remedy_" + monKey); if (raw) rem = JSON.parse(raw); } catch(_) {} }
+      if (rem) {
+        const satClearedAll = rem.satCompleted && (!rem.satWrongWords || rem.satWrongWords.length === 0);
+        if ((dtDay === 6 && rem.satCompleted) || (dtDay === 0 && rem.sunCompleted && !satClearedAll)) {
+          const corr = dtDay === 6 ? (rem.satCorrectWords || []) : (rem.sunCorrectWords || []);
+          const wrg = dtDay === 6 ? (rem.satWrongWords || []) : (rem.sunWrongWords || []);
+          const sc = dtDay === 6 ? rem.satScore : rem.sunScore;
+          const rt = dtDay === 6 ? rem.satRate : rem.sunRate;
+          const wList = Array.from(new Set([...corr, ...wrg]));
+          mergeOrPushExportTask({
+            date: dt,
+            taskName: `🎯 ${formatWeekendTaskDate(dt)} 週末待攻克測驗作答紀錄`,
+            score: sc || (wList.length ? `${corr.length}/${wList.length}` : "已完成"),
+            rate: rt || "100%",
+            status: "● 已完成",
+            wrongWords: wrg,
+            correctWords: corr,
+            words: wList,
+            isWeekend: true
+          });
+        }
+      }
     }
-    if (!matchedTask && todayTask && normKey(todayTask.date) === dt && todayTask.hasDone && todayTask.taskName !== "自主練習") {
-      matchedTask = {
-        date: dt,
-        taskName: todayTask.taskName || "每日指定測驗",
-        score: todayTask.score || "—",
-        rate: formatRatePercentage(todayTask.rate, todayTask.score),
-        status: "已完成",
-        words: todayTask.words || [],
-        wrongWords: todayTask.wrongWords || []
-      };
-    }
+
     let isUntestedAssigned = false;
-    if (!matchedTask && Array.isArray(window.cachedBackupTaskHistory)) {
+    if (taskCandidates.length === 0 && Array.isArray(window.cachedBackupTaskHistory)) {
       const bTask = window.cachedBackupTaskHistory.find(h => {
         const hDate = normKey(h.date || "");
-        return hDate === dt && h.taskName && h.taskName !== "自主練習" && !String(h.taskName).includes("未指派");
+        return (hDate === dt || hDate === unpadDt) && h.taskName && h.taskName !== "自主練習" && !String(h.taskName).includes("未指派");
       });
       if (bTask) {
         isUntestedAssigned = true;
-        matchedTask = {
+        taskCandidates.push({
           date: dt,
           taskName: bTask.taskName || bTask.name || "教師指定測驗",
           score: "—",
@@ -4601,9 +4692,11 @@ function _buildStudentExportPayload(resp, mode, startDate, endDate) {
           status: "未受測",
           words: Array.isArray(bTask.words) ? bTask.words : [],
           wrongWords: []
-        };
+        });
       }
     }
+
+    let matchedTask = taskCandidates.length > 0 ? taskCandidates[0] : null;
 
     let hasTask = false, taskName = "⚪ 未指派", formattedTaskName = "⚪ 當日無指派測驗", taskStatus = hasFree ? "當日無指派（已自主練習）" : "當日無指派測驗", taskScore = "—", taskRate = "—";
     let isUnassigned = true;
@@ -4697,13 +4790,8 @@ function _buildStudentExportPayload(resp, mode, startDate, endDate) {
         const isIncomplete = hasUnanswered || rawStatus.includes("作答中") || rawStatus.includes("中斷") || rawStatus.includes("未完成") || matchedTask.inProgress === true;
         const isUntested = isUntestedAssigned || rawStatus.includes("未受測") || (!isIncomplete && !rawStatus.includes("已完成") && (matchedTask.score === "—" || matchedTask.score === "尚未開始" || rawStatus.includes("待完成")));
 
-        // 測驗者有參與但未作答之單字，視同錯字納入錯題清單（並滾入週末消滅戰）
-        if (unansweredWords.length > 0 && !isUntested && (actualAnswered > 0 || rawStatus.includes("已完成") || rawStatus.includes("作答中") || matchedTask.inProgress === true)) {
-          unansweredWords.forEach(uw => {
-            if (!taskWrongWords.includes(uw)) taskWrongWords.push(uw);
-          });
-          actualWrong = taskWrongWords.length;
-        }
+        // 保持與學習足跡完全一致：taskWrongWords 純粹代表實際答錯之單字，未作答則獨立歸入 unansweredWords
+        actualWrong = taskWrongWords.length;
 
         if (isUntested) {
           taskStatus = hasLoggedInOrFree ? "🟡 登入未受測" : "🟢 缺席未受測";
