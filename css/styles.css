@@ -2673,24 +2673,25 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 /* 固定方塊高度：平日指定測驗與自由作答紀錄統一固定 290px，零跳動，內部介面自適應佈局 */
 #task-record-details,
 #free-record-details {
-  height: 290px !important;
+  height: auto !important;
   min-height: 290px !important;
-  max-height: 290px !important;
+  max-height: none !important;
   box-sizing: border-box !important;
   display: flex !important;
   flex-direction: column !important;
-  overflow-y: auto !important;
+  overflow-y: visible !important;
 }
 
 #task-record-details > div,
 #free-record-details > div,
 .task-single-record-block {
-  height: 100% !important;
+  height: auto !important;
   min-height: 100% !important;
-  max-height: 100% !important;
+  max-height: none !important;
   display: flex !important;
   flex-direction: column !important;
   box-sizing: border-box !important;
+  overflow: visible !important;
 }
 
 .task-history-header {
@@ -2707,26 +2708,27 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 .word-split-grid,
 .word-split-grid.grid-2 {
   flex: 1 1 auto !important;
-  height: 0 !important;
-  min-height: 0 !important;
-  max-height: 100% !important;
+  height: auto !important;
+  min-height: auto !important;
+  max-height: none !important;
   display: grid !important;
   grid-template-columns: 1fr 1fr !important;
   gap: 8px !important;
   margin-top: 0 !important;
   box-sizing: border-box !important;
+  overflow: visible !important;
 }
 
 .word-split-box {
-  height: 100% !important;
-  min-height: 0 !important;
-  max-height: 100% !important;
+  height: auto !important;
+  min-height: 54px !important;
+  max-height: none !important;
   display: flex !important;
   flex-direction: column !important;
   padding: 8px 10px !important;
   border-radius: 10px !important;
   box-sizing: border-box !important;
-  overflow: hidden !important;
+  overflow: visible !important;
 }
 
 .word-split-title {
@@ -2740,15 +2742,15 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 .word-split-content,
 .word-split-box > div:not(.word-split-title) {
   flex: 1 1 auto !important;
-  height: 0 !important;
-  min-height: 0 !important;
-  max-height: 100% !important;
+  height: auto !important;
+  min-height: auto !important;
+  max-height: none !important;
   display: flex !important;
   flex-wrap: wrap !important;
   align-items: flex-start !important;
   align-content: flex-start !important;
   gap: 4px !important;
-  overflow-y: auto !important;
+  overflow-y: visible !important;
   overscroll-behavior: contain !important;
   padding-right: 4px !important;
   scrollbar-gutter: stable !important;

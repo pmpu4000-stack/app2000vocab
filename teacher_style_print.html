@@ -449,13 +449,13 @@
     #free-record-details,
     #st-task-record-details,
     #st-free-record-details {
-      height: 290px !important;
+      height: auto !important;
       min-height: 290px !important;
-      max-height: 290px !important;
+      max-height: none !important;
       box-sizing: border-box !important;
       display: flex !important;
       flex-direction: column !important;
-      overflow-y: auto !important;
+      overflow-y: visible !important;
       scrollbar-gutter: stable;
       scrollbar-width: thin;
       scrollbar-color: rgba(100, 116, 139, 0.45) transparent;
@@ -485,13 +485,14 @@
     #st-task-record-details > div,
     #st-free-record-details > div,
     .task-single-record-block {
-      height: 100% !important;
+      height: auto !important;
       min-height: 100% !important;
-      max-height: 100% !important;
+      max-height: none !important;
       display: flex !important;
       flex-direction: column !important;
       box-sizing: border-box !important;
       width: 100% !important;
+      overflow: visible !important;
     }
 
     /* ── 列印專用樣式 (@media print) ── */
@@ -2037,9 +2038,12 @@
       border-radius: 12px !important;
       padding: 10px 12px !important;
       margin: 0 0 8px !important;
-      overflow: hidden !important;
+      overflow: visible !important;
       box-sizing: border-box !important;
       box-shadow: none !important;
+      height: auto !important;
+      min-height: auto !important;
+      max-height: none !important;
     }
     .task-history-card:last-child {
       margin-bottom: 0 !important;
@@ -2590,32 +2594,79 @@
       box-sizing: border-box !important;
       height: 60px !important;
     }
-    @media (max-width: 580px) {
-      .task-score-subgrid {
+    .task-score-subgrid-4 {
+      display: grid !important;
+      grid-template-columns: repeat(4, 1fr) !important;
+      gap: 6px !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+      height: 60px !important;
+    }
+    .task-score-subgrid-2 {
+      display: grid !important;
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 6px !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+      height: 60px !important;
+    }
+    .score-corr-item .task-score-label, .score-corr-item .task-score-val,
+    .score-ans-item .task-score-label, .score-ans-item .task-score-val,
+    .task-score-num-corr, .task-score-num-ans { color: #1D4ED8 !important; }
+
+    .score-wrong-item .task-score-label, .score-wrong-item .task-score-val,
+    .score-unans-item .task-score-label, .score-unans-item .task-score-val,
+    .task-score-num-wrong, .task-score-num-unans { color: #64748B !important; }
+
+    [data-theme="dark"] .score-corr-item .task-score-label, [data-theme="dark"] .score-corr-item .task-score-val,
+    [data-theme="dark"] .score-ans-item .task-score-label, [data-theme="dark"] .score-ans-item .task-score-val,
+    [data-theme="dark"] .task-score-num-corr, [data-theme="dark"] .task-score-num-ans { color: #7DD3FC !important; }
+
+    [data-theme="dark"] .score-wrong-item .task-score-label, [data-theme="dark"] .score-wrong-item .task-score-val,
+    [data-theme="dark"] .score-unans-item .task-score-label, [data-theme="dark"] .score-unans-item .task-score-val,
+    [data-theme="dark"] .task-score-num-wrong, [data-theme="dark"] .task-score-num-unans { color: #94A3B8 !important; }
+    @media (max-width: 640px) {
+      .task-score-grid {
+        grid-template-columns: 1fr !important;
+        gap: 8px !important;
+      }
+      .task-score-subgrid-4 {
         gap: 6px !important;
       }
-      .task-score-subgrid .task-score-label {
-        font-size: 10px !important;
+      .task-score-subgrid-4 .task-score-label {
+        font-size: 11px !important;
       }
-      .task-score-subgrid .task-score-val {
+      .task-score-subgrid-4 .task-score-val {
         font-size: 18px !important;
       }
+      .task-score-subgrid-2 {
+        gap: 8px !important;
+      }
+      .task-score-subgrid-2 .task-score-label {
+        font-size: 11.5px !important;
+      }
+      .task-score-subgrid-2 .task-score-val {
+        font-size: 20px !important;
+      }
     }
-    @media (max-width: 480px) {
+    @media (max-width: 420px) {
       .task-score-grid {
         gap: 6px !important;
       }
+      .task-score-subgrid-4 {
+        gap: 4px !important;
+      }
+      .task-score-subgrid-4 .task-score-label {
+        font-size: 10px !important;
+      }
+      .task-score-subgrid-4 .task-score-val {
+        font-size: 16px !important;
+      }
+      .task-score-subgrid-2 {
+        gap: 6px !important;
+      }
       .task-score-item {
-        padding: 4px 3px !important;
-        height: 60px !important;
-        min-height: 60px !important;
-        max-height: 60px !important;
-      }
-      .task-score-label {
-        font-size: 10.5px !important;
-      }
-      .task-score-val {
-        font-size: 18px !important;
+        padding: 4px 2px !important;
       }
     }
     .task-score-item {
@@ -2656,19 +2707,37 @@
     }
 
     /* 比照熱力圖邏輯：數值純藍階層 (低溫灰藍 -> 頂溫電光蔚藍) */
-    .heat-rate-val.tier-6 { color: #0066FF !important; }
-    .heat-rate-val.tier-5 { color: #0084FF !important; }
-    .heat-rate-val.tier-4 { color: #0284C7 !important; }
-    .heat-rate-val.tier-3 { color: #0EA5E9 !important; }
-    .heat-rate-val.tier-2 { color: #38BDF8 !important; }
-    .heat-rate-val.tier-1 { color: #64748B !important; }
+    .rate-tier-item.tier-6 .task-score-label, .rate-tier-item.tier-6 .task-score-val, .heat-rate-val.tier-6 { color: #0066FF !important; }
+    .rate-tier-item.tier-5 .task-score-label, .rate-tier-item.tier-5 .task-score-val, .heat-rate-val.tier-5 { color: #0077EE !important; }
+    .rate-tier-item.tier-4 .task-score-label, .rate-tier-item.tier-4 .task-score-val, .heat-rate-val.tier-4 { color: #0284C7 !important; }
+    .rate-tier-item.tier-3 .task-score-label, .rate-tier-item.tier-3 .task-score-val, .heat-rate-val.tier-3 { color: #0EA5E9 !important; }
+    .rate-tier-item.tier-2 .task-score-label, .rate-tier-item.tier-2 .task-score-val, .heat-rate-val.tier-2 { color: #38BDF8 !important; }
+    .rate-tier-item.tier-1 .task-score-label, .rate-tier-item.tier-1 .task-score-val, .heat-rate-val.tier-1 { color: #64748B !important; }
+    .rate-tier-item.tier-0 .task-score-label, .rate-tier-item.tier-0 .task-score-val, .heat-rate-val.tier-0 { color: #94A3B8 !important; }
 
-    [data-theme="dark"] .heat-rate-val.tier-6 { color: #00D2FF !important; text-shadow: 0 0 10px rgba(0,210,255,0.4); }
-    [data-theme="dark"] .heat-rate-val.tier-5 { color: #00B4D8 !important; }
-    [data-theme="dark"] .heat-rate-val.tier-4 { color: #38BDF8 !important; }
-    [data-theme="dark"] .heat-rate-val.tier-3 { color: #7DD3FC !important; }
-    [data-theme="dark"] .heat-rate-val.tier-2 { color: #93C5FD !important; }
-    [data-theme="dark"] .heat-rate-val.tier-1 { color: #94A3B8 !important; }
+    .rate-tier-item.tier-6 { border-color: rgba(0, 102, 255, 0.45) !important; }
+    .rate-tier-item.tier-5 { border-color: rgba(0, 119, 238, 0.38) !important; }
+    .rate-tier-item.tier-4 { border-color: rgba(2, 132, 199, 0.32) !important; }
+    .rate-tier-item.tier-3 { border-color: rgba(14, 165, 233, 0.28) !important; }
+    .rate-tier-item.tier-2 { border-color: rgba(56, 189, 248, 0.24) !important; }
+    .rate-tier-item.tier-1 { border-color: rgba(100, 116, 139, 0.24) !important; }
+    .rate-tier-item.tier-0 { border-color: rgba(148, 163, 184, 0.2) !important; }
+
+    [data-theme="dark"] .rate-tier-item.tier-6 .task-score-label, [data-theme="dark"] .rate-tier-item.tier-6 .task-score-val, [data-theme="dark"] .heat-rate-val.tier-6 { color: #00D2FF !important; text-shadow: 0 0 10px rgba(0,210,255,0.45); }
+    [data-theme="dark"] .rate-tier-item.tier-5 .task-score-label, [data-theme="dark"] .rate-tier-item.tier-5 .task-score-val, [data-theme="dark"] .heat-rate-val.tier-5 { color: #00B4D8 !important; }
+    [data-theme="dark"] .rate-tier-item.tier-4 .task-score-label, [data-theme="dark"] .rate-tier-item.tier-4 .task-score-val, [data-theme="dark"] .heat-rate-val.tier-4 { color: #0084FF !important; }
+    [data-theme="dark"] .rate-tier-item.tier-3 .task-score-label, [data-theme="dark"] .rate-tier-item.tier-3 .task-score-val, [data-theme="dark"] .heat-rate-val.tier-3 { color: #38BDF8 !important; }
+    [data-theme="dark"] .rate-tier-item.tier-2 .task-score-label, [data-theme="dark"] .rate-tier-item.tier-2 .task-score-val, [data-theme="dark"] .heat-rate-val.tier-2 { color: #7DD3FC !important; }
+    [data-theme="dark"] .rate-tier-item.tier-1 .task-score-label, [data-theme="dark"] .rate-tier-item.tier-1 .task-score-val, [data-theme="dark"] .heat-rate-val.tier-1 { color: #0284C7 !important; }
+    [data-theme="dark"] .rate-tier-item.tier-0 .task-score-label, [data-theme="dark"] .rate-tier-item.tier-0 .task-score-val, [data-theme="dark"] .heat-rate-val.tier-0 { color: #64748B !important; }
+
+    [data-theme="dark"] .rate-tier-item.tier-6 { border-color: rgba(0, 210, 255, 0.5) !important; box-shadow: 0 0 10px rgba(0, 210, 255, 0.15) !important; }
+    [data-theme="dark"] .rate-tier-item.tier-5 { border-color: rgba(0, 180, 216, 0.42) !important; }
+    [data-theme="dark"] .rate-tier-item.tier-4 { border-color: rgba(0, 132, 255, 0.38) !important; }
+    [data-theme="dark"] .rate-tier-item.tier-3 { border-color: rgba(56, 189, 248, 0.32) !important; }
+    [data-theme="dark"] .rate-tier-item.tier-2 { border-color: rgba(125, 211, 252, 0.28) !important; }
+    [data-theme="dark"] .rate-tier-item.tier-1 { border-color: rgba(2, 132, 199, 0.26) !important; }
+    [data-theme="dark"] .rate-tier-item.tier-0 { border-color: rgba(100, 116, 139, 0.22) !important; }
 
     /* 答對/答錯單字雙欄盒與單字膠囊 */
     .word-split-grid {
@@ -2705,25 +2774,26 @@
     .word-split-grid,
     .word-split-grid.grid-2 {
       flex: 1 1 auto !important;
-      height: 0 !important;
-      min-height: 0 !important;
-      max-height: 100% !important;
+      height: auto !important;
+      min-height: auto !important;
+      max-height: none !important;
       display: grid !important;
       grid-template-columns: 1fr 1fr !important;
       gap: 8px !important;
       margin-top: 0 !important;
       box-sizing: border-box !important;
+      overflow: visible !important;
     }
     .word-split-box {
-      height: 100% !important;
-      min-height: 0 !important;
-      max-height: 100% !important;
+      height: auto !important;
+      min-height: 54px !important;
+      max-height: none !important;
       display: flex !important;
       flex-direction: column !important;
       padding: 8px 10px !important;
       border-radius: 10px !important;
       box-sizing: border-box !important;
-      overflow: hidden !important;
+      overflow: visible !important;
     }
     .word-split-box.correct-box {
       background: #F0F9FF !important;
@@ -2795,9 +2865,11 @@
       align-content: flex-start !important;
       gap: 4px !important;
       flex: 1 1 auto !important;
-      height: 0 !important;
-      min-height: 0 !important;
-      overflow-y: auto !important;
+      height: auto !important;
+      min-height: auto !important;
+      max-height: none !important;
+      overflow: visible !important;
+      overflow-y: visible !important;
       overscroll-behavior: contain !important;
       padding-right: 4px !important;
       scrollbar-gutter: stable !important;
@@ -2813,12 +2885,12 @@
       display: flex !important;
       flex-direction: column !important;
       align-items: center !important;
-      justify-content: center !important;
+      justify-content: flex-start !important;
       background: #F8FAFC !important;
       border: 1.5px dashed #CBD5E1 !important;
       border-radius: 12px !important;
       margin: 0 !important;
-      padding: 16px 14px !important;
+      padding: 82px 14px 16px !important;
       text-align: center !important;
       box-sizing: border-box !important;
     }
@@ -3047,15 +3119,15 @@
       display: inline-flex !important;
       align-items: center !important;
       justify-content: center !important;
-      gap: 6px !important;
+      gap: 5px !important;
       width: auto !important;
-      min-width: 180px !important;
+      min-width: auto !important;
       max-width: 100% !important;
-      height: 32px !important;
-      padding: 0 10px !important;
+      height: 30px !important;
+      padding: 0 8px !important;
       box-sizing: border-box !important;
-      border-radius: 9px !important;
-      font-size: 12.5px !important;
+      border-radius: 8px !important;
+      font-size: 12px !important;
       font-weight: 800 !important;
       line-height: 1 !important;
       white-space: nowrap !important;
