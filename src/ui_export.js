@@ -865,7 +865,7 @@ async function _exportRecordToExcel(payload) {
 }
 
 function _wrapReportPreviewPaper(innerHtml, payload) {
-  return '<div class="summary-embedded" style="padding:4px 2px;">' + innerHtml + '</div>';
+  return '<div class="summary-embedded" style="padding:4px 2px; background:transparent; color:var(--ink, #232A4D); width:100%; box-sizing:border-box;">' + innerHtml + '</div>';
 }
 
 function _buildReportHtml(payload) {
@@ -1078,7 +1078,7 @@ function _buildReportHtml(payload) {
     }
 
     return `
-      <div class="daily-footprint-block" style="border:1.5px solid var(--line, #E7E9F5); border-radius:14px; padding:12px 14px; margin-bottom:14px; background:var(--card-bg, #FFFFFF); page-break-inside:avoid; box-shadow:0 2px 6px rgba(0,0,0,0.03);">
+      <div class="daily-footprint-block" style="border:1.5px solid var(--line, #E7E9F5); border-radius:14px; padding:12px 14px; margin-bottom:14px; background:var(--card, #FFFFFF); color:var(--ink, #232A4D); page-break-inside:avoid; box-shadow:0 2px 6px rgba(0,0,0,0.03);">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; padding-bottom:6px; border-bottom:1px solid var(--line, #E7E9F5);">
           <div style="font-size:14px; font-weight:800; color:var(--ink, #232A4D);">
             📅 日期：${esc(r.date)} (${esc(r.dayOfWeek)})
@@ -1088,16 +1088,8 @@ function _buildReportHtml(payload) {
           </div>
         </div>
 
-        <!-- 1. 平日指定測驗 / 週末待攻克測驗作答紀錄 -->
-        <div class="subh" style="margin-bottom:6px;">
-          <span>${esc(formattedTaskName)}</span>
-        </div>
         ${taskCardHtml}
-
-        <!-- 2. 自由練習作答紀錄 -->
-        <div class="subh" style="margin-top:14px; margin-bottom:6px;">
-          <span>🎮 自由練習作答紀錄</span>
-        </div>
+        <div style="margin-top:10px;"></div>
         ${freeCardHtml}
       </div>
     `;
