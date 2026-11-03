@@ -453,6 +453,7 @@ function _buildExportPayload(d, mode, startDate, endDate) {
       modeStats: (d && d.modeStats) || {}
     },
     dailyRecords,
+    finalBossWords: typeof getBiweeklyFailedFinalBossWords === "function" ? getBiweeklyFailedFinalBossWords() : [],
     pendingConquerWords: getWeekPendingConquerWords().map(w => {
       const cleanW = String(w || "").trim().toLowerCase();
       const diag = diagnoseWordMistake(cleanW);
@@ -1199,6 +1200,51 @@ function _buildReportHtml(payload) {
       <!-- 每日使用紀錄明細 -->
       <div style="font-size:13.5px; font-weight:800; color:#232A4D; margin-bottom:8px;">📋 每日使用與作答紀錄明細（共 ${payload.dailyRecords.length} 日）</div>
       ${dailyCardsHtml}
+
+      <!-- 👾 期末大挑戰單字庫 -->
+      ${(() => {
+        const bossWords = payload.finalBossWords || [];
+        if (bossWords.length > 0) {
+          const bossItemsHtml = bossWords.map(w => {
+            const cleanW = esc(String(w).trim());
+            const zh = typeof getWordZh === "function" ? (getWordZh(w) || "") : "";
+            return `
+              <div style="display:inline-flex; align-items:center; background:#FFF; border:1px solid #FECACA; border-radius:8px; padding:4px 8px; margin:3px 4px 3px 0; font-size:11.5px; vertical-align:middle;">
+                <span style="font-weight:800; color:#991B1B; margin-right:4px;">${cleanW}</span>
+                ${zh ? `<span style="color:#64748B; font-size:11px; margin-right:6px;">(${esc(zh)})</span>` : ""}
+                <span style="background:rgba(224,86,123,0.14); color:#BE123C; font-size:10px; font-weight:700; padding:1px 6px; border-radius:4px;">期末魔王弱點</span>
+              </div>
+            `;
+          }).join("");
+
+          return `
+            <div style="border:1.5px solid #FEE2E2; border-radius:12px; padding:10px 14px; margin-top:14px; background:#FFF5F5; page-break-inside:avoid; box-shadow:0 2px 6px rgba(224,86,123,0.06);">
+              <div style="font-size:13.5px; font-weight:800; color:#B91C1C; display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #FECACA; padding-bottom:6px;">
+                <span style="display:inline-flex; align-items:center; gap:6px;">👾 期末大挑戰單字庫（共 ${bossWords.length} 字）</span>
+                <span style="font-size:11px; background:#FEE2E2; color:#991B1B; padding:2px 8px; border-radius:999px; font-weight:800;">雙週未消滅弱點累積</span>
+              </div>
+              <div style="font-size:11.5px; color:#7F1D1D; margin:6px 0 8px 0; line-height:1.4;">
+                以下為全學期各次雙週測驗累積、尚未全數答對消滅之重點弱點單字，已自動滾入學期末最終大挑戰魔王考卷：
+              </div>
+              <div style="display:flex; flex-wrap:wrap; gap:4px;">
+                ${bossItemsHtml}
+              </div>
+            </div>
+          `;
+        } else {
+          return `
+            <div style="border:1.5px solid #DCFCE7; border-radius:12px; padding:10px 14px; margin-top:14px; background:#F0FDF4; page-break-inside:avoid;">
+              <div style="font-size:13.5px; font-weight:800; color:#166534; display:flex; justify-content:space-between; align-items:center;">
+                <span style="display:inline-flex; align-items:center; gap:6px;">👾 期末大挑戰單字庫</span>
+                <span style="font-size:11px; background:#DCFCE7; color:#15803D; padding:2px 8px; border-radius:999px; font-weight:800;">🎉 目前無弱點單字</span>
+              </div>
+              <div style="font-size:12px; color:#15803D; margin-top:4px;">
+                ✨ 太棒了！雙週測驗弱點已全數答對攻克，無任何滾入期末大挑戰之單字。
+              </div>
+            </div>
+          `;
+        }
+      })()}
     </div>
   `;
 }
