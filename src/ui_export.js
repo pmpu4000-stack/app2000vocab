@@ -795,7 +795,11 @@ async function _exportRecordToExcel(payload) {
         if (ws[cellAddress]) {
           ws[cellAddress].s = {
             font: { name: "微軟正黑體", sz: 9.5 },
-            alignment: { vertical: "center", horizontal: (c === 28 || c === 32 || c === 21) ? "left" : "center" },
+            alignment: {
+              vertical: "center",
+              horizontal: (c === 28 || c === 32 || c === 21) ? "left" : "center",
+              wrapText: true
+            },
             border: {
               top: { style: "thin", color: { rgb: "E2E8F0" } },
               bottom: { style: "thin", color: { rgb: "E2E8F0" } },
@@ -807,15 +811,44 @@ async function _exportRecordToExcel(payload) {
       }
     }
 
-    ws["!cols"] = [
-      { wch: 19 }, { wch: 10, hidden: true }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 9 },
-      { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 11 }, { wch: 12 }, { wch: 11 },
-      { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 14 },
-      { wch: 13 }, { wch: 13 }, { wch: 13 }, { wch: 13 },
-      { wch: 18 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 13 }, { wch: 13 }, { wch: 15 }, { wch: 25 },
-      { wch: 15 }, { wch: 15 }, { wch: 14 }, { wch: 22 },
-      { wch: 10 }
-    ];
+    // 動態自適應欄寬：精確計算每個欄位內容之顯示長度，確保所有文字完整顯示不被截斷
+    const getCellWidth = (val) => {
+      if (val === null || val === undefined) return 0;
+      const str = String(val);
+      let maxLineW = 0;
+      str.split("\n").forEach(line => {
+        let w = 0;
+        for (let i = 0; i < line.length; i++) {
+          const code = line.charCodeAt(i);
+          // 中文字元、全形標點或 Emoji 佔 2.1 字元寬，ASCII 佔 1.1 字元寬
+          if (code > 255 || (code >= 0xD800 && code <= 0xDBFF)) {
+            w += 2.1;
+          } else {
+            w += 1.1;
+          }
+        }
+        if (w > maxLineW) maxLineW = w;
+      });
+      return maxLineW;
+    };
+
+    const colDefs = [];
+    for (let c = 0; c < 34; c++) {
+      // 唯獨完整 JSON 欄位（索引 1）隱藏起來
+      if (c === 1) {
+        colDefs.push({ hidden: true, wch: 0 });
+        continue;
+      }
+      let maxW = 0;
+      for (let r = 0; r < fullSheetData.length; r++) {
+        const w = getCellWidth((fullSheetData[r] || [])[c]);
+        if (w > maxW) maxW = w;
+      }
+      // 給予適度寬裕邊距 (+3.5)，長字串欄位（如錯題單字、任務名稱）上限設 60 搭配 wrapText 完整顯示
+      const calculatedWch = Math.min(Math.max(Math.ceil(maxW + 3.5), 10), 60);
+      colDefs.push({ wch: calculatedWch });
+    }
+    ws["!cols"] = colDefs;
 
     ws["!rows"] = [{ hpt: 38 }];
 
