@@ -948,74 +948,6 @@
       }
     }
 
-    function getOrCreateDeviceId() {
-      let id = localStorage.getItem("app_device_id");
-      if (!id) {
-        id = "dev_" + Math.random().toString(36).substring(2, 9) + "_" + Date.now().toString(36);
-        localStorage.setItem("app_device_id", id);
-      }
-      return id;
-    }
-
-    function getDeviceAuditInfo() {
-      const ua = navigator.userAgent || "";
-      let os = "其他環境";
-      if (/iPad/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)) {
-        os = "iPadOS";
-      } else if (/iPhone|iPod/.test(ua)) {
-        os = "iOS";
-      } else if (/Android/.test(ua)) {
-        os = "Android";
-      } else if (/Windows NT 10.0/.test(ua)) {
-        os = "Windows 10/11";
-      } else if (/Windows/.test(ua)) {
-        os = "Windows";
-      } else if (/Macintosh|Mac OS X/.test(ua)) {
-        os = "macOS";
-      } else if (/CrOS/.test(ua)) {
-        os = "ChromeOS";
-      } else if (/Linux/.test(ua)) {
-        os = "Linux";
-      }
-
-      let browser = "瀏覽器";
-      if (/Edg\//.test(ua)) browser = "Edge";
-      else if (/Chrome\//.test(ua) && !/Edg\//.test(ua)) browser = "Chrome";
-      else if (/Safari\//.test(ua) && !/Chrome\//.test(ua)) browser = "Safari";
-      else if (/Firefox\//.test(ua)) browser = "Firefox";
-
-      let deviceType = "💻 電腦";
-      const isTouch = navigator.maxTouchPoints > 0;
-      const w = window.screen ? window.screen.width : window.innerWidth;
-      const h = window.screen ? window.screen.height : window.innerHeight;
-      const minDim = Math.min(w, h);
-      const maxDim = Math.max(w, h);
-
-      if (/iPad/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)) {
-        deviceType = "📟 平板 (iPad)";
-      } else if (/iPhone|iPod/.test(ua) || (/Android/.test(ua) && minDim < 600)) {
-        deviceType = "📱 手機";
-      } else if (/Android/.test(ua) && minDim >= 600) {
-        deviceType = "📟 平板 (Android)";
-      } else if (isTouch && minDim >= 600 && maxDim <= 1366) {
-        deviceType = "📟 觸控筆電/平板";
-      } else {
-        deviceType = "💻 電腦";
-      }
-
-      const resolution = `${w}x${h}`;
-      const devId = getOrCreateDeviceId();
-      const osBrowser = `${os} (${browser})`;
-
-      return {
-        deviceId: devId,
-        deviceType: deviceType,
-        osBrowser: osBrowser,
-        resolution: resolution,
-        deviceDesc: `${deviceType} - ${osBrowser} [${resolution}]`
-      };
-    }
-
     let isLoggingIn = false;
     const loginBtn = document.getElementById('login-btn');
     const msgEl = document.getElementById('login-msg');
@@ -1111,11 +1043,10 @@
           try {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 20000);
-const devAudit = getDeviceAuditInfo();
             response = await fetch(scriptUrl, {
               method: "POST",
               headers: { "Content-Type": "text/plain;charset=utf-8" },
-              body: JSON.stringify({ action: "login", username: user, password: pass, deviceId: devAudit.deviceId, deviceDesc: devAudit.deviceDesc, deviceDetails: devAudit }),
+              body: JSON.stringify({ action: "login", username: user, password: pass }),
               signal: controller.signal
             });
             clearTimeout(timeoutId);
@@ -1619,18 +1550,6 @@ const devAudit = getDeviceAuditInfo();
               alert("🎉 上傳成功！學習紀錄已同步至試算表。");
             }
           }
-        } else if (result && result.code === "SESSION_KICKED") {
-          if (iconEl && !isSilent) iconEl.textContent = "❌";
-          setTimeout(() => { if (iconEl) iconEl.textContent = "🌱"; }, 2500);
-          alert("⚠️ 帳號安全性提示：\n您的帳號已在其他裝置（手機/電腦）登入！\n為了防止代答與維護成績公正，本裝置已強制登出。");
-          localStorage.removeItem("session_token");
-          sessionStorage.clear();
-          const overlay = document.getElementById("login-overlay");
-          if (overlay) {
-            overlay.style.display = "flex";
-            document.body.classList.add("is-logging-in");
-          }
-          return;
         } else {
           if (iconEl && !isSilent) iconEl.textContent = "❌";
           setTimeout(() => { if (iconEl) iconEl.textContent = "🌱"; }, 2500);
@@ -2496,22 +2415,10 @@ const devAudit = getDeviceAuditInfo();
           headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify({
             action: "getDailyUsageSettings",
-            username: currentUser,
-            sessionToken: localStorage.getItem("session_token") || ""
+            username: currentUser
           })
         });
         const d = await res.json();
-        if (d && d.code === "SESSION_KICKED") {
-          alert("⚠️ 帳號安全性提示：\n您的帳號已在其他裝置（手機/電腦）登入！\n本裝置已強制登出，如有疑問請洽詢任課老師。");
-          localStorage.removeItem("session_token");
-          sessionStorage.clear();
-          const overlay = document.getElementById("login-overlay");
-          if (overlay) {
-            overlay.style.display = "flex";
-            document.body.classList.add("is-logging-in");
-          }
-          return;
-        }
         if (d.status === "success" && d.dailyUsage) {
           dailyUsageState.limitMinutes = Number(d.dailyUsage.limitMinutes) || dailyUsageState.limitMinutes;
           dailyUsageState.extendedMinutes = Number(d.dailyUsage.extendedMinutes) || 0;

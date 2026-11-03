@@ -20,7 +20,7 @@ const SYS = {
   BACKUP_FOLDER      : "【備份庫】學生學習歷程資料",
   PORTFOLIO_SHEET    : "學生歷程總庫",
   SYSTEM_SHEETS      : new Set([
-    "全班學習總覽","使用者清單","指定單字任務","錯誤日誌","時間限制設定","學生歷程總庫","裝置登入歷程","系統目標設定","學習目標"
+    "全班學習總覽","使用者清單","指定單字任務","錯誤日誌","時間限制設定","學生歷程總庫","系統目標設定","學習目標"
   ])
 };
 
@@ -397,6 +397,11 @@ function doPost(e) {
       return jsonResponse(r3);
     }
 
+    try {
+      const devS = ss.getSheetByName("裝置登入歷程");
+      if (devS) ss.deleteSheet(devS);
+    } catch(_) {}
+
     if (action === "login") {
       const auth = authenticateUser(ss, params.username, params.password);
       if (!auth.success) {
@@ -611,10 +616,7 @@ function doPost(e) {
         }
       } catch(_) {}
 
-      const sessionToken = registerStudentDevice(ss, auth.username, auth.realName, auth.className, params.deviceDetails || {
-        deviceId: params.deviceId,
-        deviceDesc: params.deviceDesc
-      });
+      const sessionToken = "ST_OK";
 
       return jsonResponse({
         status:"success", message:"驗證成功", role:"student",
@@ -636,15 +638,6 @@ function doPost(e) {
       const auth = authenticateUser(ss, params.username, params.password);
       if (!auth.success) return jsonResponse({status:"error", message:auth.message});
       
-      // 學生裝置綁定檢核：若在其他裝置登入，拒絕存檔並踢出舊裝置
-      if (auth.role === "student" && params.sessionToken && !isStudentTokenValid(auth.username, params.sessionToken)) {
-        return jsonResponse({
-          status: "error",
-          code: "SESSION_KICKED",
-          message: "您的帳號已在其他裝置登入，無法同步成績。"
-        });
-      }
-
       // 學生在非開放時間禁止同步紀錄
       if (auth.role === "student") {
         const timeAllowance = checkTimeRestrictionAllowance(ss, auth.username);
@@ -739,13 +732,6 @@ function doPost(e) {
 
     if (action === "getDailyUsageSettings") {
       const u = String(params.targetUsername || params.username || "").trim();
-      if (params.sessionToken && !isStudentTokenValid(u, params.sessionToken)) {
-        return jsonResponse({
-          status: "error",
-          code: "SESSION_KICKED",
-          message: "您的帳號已在其他裝置登入，本裝置已自動登出。"
-        });
-      }
       return jsonResponse({
         status: "success",
         dailyUsage: getDailyUsageSettings(ss, u, false),
@@ -874,12 +860,12 @@ function cleanupUnusedSheets(creds) {
 
   // 2. 系統核心必要工作表（絕不刪除）
   const essentialSheets = new Set([
-    "全班學習總覽", "使用者清單", "指定單字任務", "錯誤日誌", "時間限制設定", "學生歷程總庫", "裝置登入歷程", "系統目標設定", "學習目標"
+    "全班學習總覽", "使用者清單", "指定單字任務", "錯誤日誌", "時間限制設定", "學生歷程總庫", "系統目標設定", "學習目標"
   ]);
 
   // 3. 明確棄用、過渡或預設空白分頁清單
   const explicitlyUnused = new Set([
-    "每日任務紀錄", "工作表1", "工作表 1", "工作表2", "工作表 2", "Sheet1", "Sheet 1", "Sheet2", "Sheet 2",
+    "裝置登入歷程", "每日任務紀錄", "工作表1", "工作表 1", "工作表2", "工作表 2", "Sheet1", "Sheet 1", "Sheet2", "Sheet 2",
     "Template", "Dashboard", "班級戰力排行", "學生帳密", "系統錯誤日誌", "作弊稽核日誌", "資安入侵防禦日誌"
   ]);
 

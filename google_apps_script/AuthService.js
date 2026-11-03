@@ -673,133 +673,15 @@ function getTaskWordsDictCached_(ss) {
 
 // ════════════════════════════════════════════════════════════════════
 // ════════════════════════════════════════════════════════════════════
-// 1.5 單一裝置綁定與多開代答防護
+// 1.5 裝置登入相容介面 (依指示移除換設備認證限制)
 // ════════════════════════════════════════════════════════════════════
 
-function recordDeviceLoginLog(ss, username, realName, className, deviceDetails, statusFlag, note) {
-  try {
-    if (!ss) ss = SpreadsheetApp.getActiveSpreadsheet();
-    let sheet = ss.getSheetByName("裝置登入歷程");
-    const headers = ["登入時間", "班級", "帳號", "姓名", "狀態標記", "設備類別", "作業系統與瀏覽器", "螢幕規格", "裝置識別碼", "稽核說明 (合規技術特徵)"];
-    
-    if (!sheet) {
-      sheet = ss.insertSheet("裝置登入歷程");
-      sheet.appendRow(headers);
-      sheet.getRange("1:1")
-        .setFontWeight("bold").setBackground("#e0f2fe")
-        .setFontColor("#0369a1").setHorizontalAlignment("center").setVerticalAlignment("middle");
-      sheet.setRowHeight(1, 36);
-      [160, 90, 100, 100, 110, 110, 190, 110, 130, 280].forEach((w, i) => sheet.setColumnWidth(i + 1, w));
-      sheet.setFrozenRows(1);
-    }
+function recordDeviceLoginLog() {}
 
-    const ts = Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy-MM-dd HH:mm:ss");
-    const devType = (deviceDetails && deviceDetails.deviceType) || "💻 電腦";
-    const osBrowser = (deviceDetails && deviceDetails.osBrowser) || (deviceDetails && deviceDetails.deviceDesc) || "未知環境";
-    const resolution = (deviceDetails && deviceDetails.resolution) || "";
-    const devId = (deviceDetails && deviceDetails.deviceId) || "";
-
-    sheet.insertRowBefore(2);
-    sheet.getRange(2, 1, 1, headers.length).setValues([[
-      ts,
-      String(className || "").trim(),
-      String(username || "").trim(),
-      String(realName || "").trim(),
-      statusFlag,
-      devType,
-      osBrowser,
-      resolution,
-      devId,
-      String(note || "").trim()
-    ]]).setVerticalAlignment("middle");
-
-    // 限制最大保留 1000 筆紀錄，確保試算表讀寫極速
-    const last = sheet.getLastRow();
-    if (last > 1001) {
-      sheet.deleteRows(1002, last - 1001);
-    }
-  } catch(e) {
-    Logger.log("recordDeviceLoginLog 寫入失敗: " + e);
-  }
+function registerStudentDevice() {
+  return "ST_OK";
 }
 
-function registerStudentDevice(ss, username, realName, className, deviceDetails) {
-  if (!username) return "";
-  const cleanU = String(username).trim().toLowerCase();
-  const cleanDevId = String(deviceDetails && deviceDetails.deviceId || "").trim();
-  const cleanDevDesc = String(deviceDetails && (deviceDetails.deviceDesc || deviceDetails.osBrowser) || "未知裝置").trim();
-  const sessionToken = "ST_" + Utilities.getUuid().replace(/-/g, "");
-
-  const propKey = "DEV_" + cleanU;
-  const cache = CacheService.getScriptCache();
-  let prevInfo = null;
-
-  try {
-    const cached = cache.get(propKey);
-    if (cached) prevInfo = JSON.parse(cached);
-  } catch(_) {}
-
-  if (!prevInfo) {
-    try {
-      const val = PropertiesService.getScriptProperties().getProperty(propKey);
-      if (val) prevInfo = JSON.parse(val);
-    } catch(_) {}
-  }
-
-  let statusFlag = "🟢 同機登入";
-  let note = `正常登入：${cleanDevDesc}`;
-
-  if (!prevInfo) {
-    statusFlag = "🆕 首次登入";
-    note = `初次綁定裝置：${cleanDevDesc}`;
-  } else if (prevInfo.deviceId && cleanDevId && prevInfo.deviceId !== cleanDevId) {
-    statusFlag = "⚠️ 換機登入";
-    const oldDesc = prevInfo.deviceDesc || "舊裝置";
-    note = `原裝置：${oldDesc} ➜ 變更為：${cleanDevDesc}`;
-    logError("device_change", "更換裝置登入", cleanU, note);
-  }
-
-  // 寫入合規專屬「裝置登入歷程」試算表
-  recordDeviceLoginLog(ss, cleanU, realName, className, deviceDetails, statusFlag, note);
-
-  const newInfo = {
-    token: sessionToken,
-    deviceId: cleanDevId,
-    deviceDesc: cleanDevDesc,
-    time: Date.now()
-  };
-
-  try {
-    const jsonStr = JSON.stringify(newInfo);
-    cache.put(propKey, jsonStr, 21600); // 快取 6 小時
-    PropertiesService.getScriptProperties().setProperty(propKey, jsonStr);
-  } catch(e) {
-    Logger.log("registerStudentDevice 儲存失敗: " + e);
-  }
-
-  return sessionToken;
-}
-
-function isStudentTokenValid(username, sessionToken) {
-  if (!username || !sessionToken) return true;
-  const cleanU = String(username).trim().toLowerCase();
-  const cleanToken = String(sessionToken).trim();
-  const propKey = "DEV_" + cleanU;
-  const cache = CacheService.getScriptCache();
-  let info = null;
-
-  try {
-    const cached = cache.get(propKey);
-    if (cached) info = JSON.parse(cached);
-  } catch(_) {}
-
-  if (!info) {
-    try {
-      const val = PropertiesService.getScriptProperties().getProperty(propKey);
-      if (val) info = JSON.parse(val);
-    } catch(_) {}
-  }
-
-  if (!info || !info.token) return true;
-  return info.token === cleanToken;
+function isStudentTokenValid() {
+  return true;
 }

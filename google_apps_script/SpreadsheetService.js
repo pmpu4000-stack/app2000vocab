@@ -2644,53 +2644,12 @@ function archiveOldStudentRecordsToDrive(daysThreshold) {
   return { status: "success", message: "冷熱資料歸檔檢查完成" };
 }
 
-function getDeviceLoginLogs(creds) {
-  try {
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
-    const auth = authenticateUser(ss, creds.username, creds.password);
-    if (!auth.success || auth.role !== "teacher") return { status: "error", message: "無權限" };
-    const s = ss.getSheetByName("裝置登入歷程");
-    if (!s || s.getLastRow() < 2) return { status: "success", logs: [], total: 0 };
-    const total = s.getLastRow() - 1;
-    const num = Math.min(total, 100);
-    const isAdmin = !!auth.isAdmin;
-    const tCls = String(auth.className || "").replace(/班$/, "").trim();
-    let logs = s.getRange(2, 1, num, 10).getDisplayValues()
-      .map((r, i) => ({
-        id: i + 1,
-        time: r[0],
-        className: r[1],
-        username: r[2],
-        realName: r[3],
-        status: r[4],
-        deviceType: r[5],
-        osBrowser: r[6],
-        resolution: r[7],
-        deviceId: r[8],
-        note: r[9]
-      }));
-    if (!isAdmin && tCls) {
-      logs = logs.filter(item => String(item.className || "").replace(/班$/, "").trim() === tCls);
-    }
-    return { status: "success", logs: logs, total: isAdmin ? total : logs.length };
-  } catch(e) {
-    logError("getDeviceLoginLogs", e, creds ? creds.username : "", "");
-    return { status: "error", message: e.toString() };
-  }
+function getDeviceLoginLogs() {
+  return { status: "success", logs: [], total: 0 };
 }
 
-function clearDeviceLoginLogs(creds) {
-  try {
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
-    const auth = authenticateUser(ss, creds.username, creds.password);
-    if (!auth.success || auth.role !== "teacher") return { status: "error", message: "無權限" };
-    if (!auth.isAdmin) return { status: "error", message: "僅管理員教師可清空全校裝置登入歷程" };
-    const s = ss.getSheetByName("裝置登入歷程");
-    if (s && s.getLastRow() >= 2) s.deleteRows(2, s.getLastRow() - 1);
-    return { status: "success", message: "裝置登入歷程已清空" };
-  } catch(e) {
-    return { status: "error", message: e.toString() };
-  }
+function clearDeviceLoginLogs() {
+  return { status: "success", message: "已移除" };
 }
 
 // ════════════════════════════════════════════════════════════════════
