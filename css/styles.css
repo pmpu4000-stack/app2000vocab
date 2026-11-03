@@ -2646,6 +2646,12 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   cursor: wait !important;
   transform: none !important;
 }
+.export-dl-btn.image-btn {
+  background: linear-gradient(135deg, #6C4CE0, #8A6BF0) !important;
+  color: #FFFFFF !important;
+  border: 1px solid #573BC4 !important;
+  box-shadow: 0 3px 8px rgba(108, 76, 224, 0.25) !important;
+}
 .export-dl-btn.pdf-btn {
   background: linear-gradient(135deg, #6C4CE0, #8A6BF0) !important;
   color: #FFFFFF !important;

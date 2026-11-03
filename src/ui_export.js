@@ -1203,6 +1203,48 @@ function _buildReportHtml(payload) {
   `;
 }
 
+async function _exportRecordToImage(payload) {
+  const fileName = `拼字小特工_學習歷程_${payload.studentId}_${payload.fileScopeTag}.png`;
+  const reportHtml = _wrapReportPreviewPaper(_buildReportHtml(payload), payload);
+  const overlay = document.createElement("div");
+  overlay.id = "image-export-temp-overlay";
+  overlay.style.cssText = "position:fixed;left:-9999px;top:0;width:760px;z-index:-1;background:#FFFFFF;padding:16px;box-sizing:border-box;";
+  overlay.innerHTML = reportHtml;
+  document.body.appendChild(overlay);
+
+  try {
+    const html2pdfLib = await _ensureScriptLoaded(
+      "html2pdf",
+      "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js",
+      "https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"
+    );
+    const h2c = window.html2canvas || (typeof html2canvas !== "undefined" ? html2canvas : null) || await _ensureScriptLoaded(
+      "html2canvas",
+      "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js",
+      "https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"
+    );
+    const targetEl = overlay.querySelector(".summary-embedded") || overlay.firstElementChild || overlay;
+    const canvas = await h2c(targetEl, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: "#FFFFFF",
+      scrollY: 0,
+      windowWidth: 760
+    });
+
+    await new Promise((resolve) => {
+      canvas.toBlob((blob) => {
+        if (blob) {
+          triggerBlobDownload(blob, fileName);
+        }
+        resolve();
+      }, "image/png");
+    });
+  } finally {
+    if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
+  }
+}
+
 async function _exportRecordToPdf(payload) {
   const fileName = `拼字小特工_使用紀錄_${payload.studentId}_${payload.fileScopeTag}.pdf`;
   const reportHtml = _buildReportHtml(payload);
@@ -1271,6 +1313,7 @@ export function initExportRecordsCard(getSummaryFn) {
   const inputStart = leftStartInput;
   const inputEnd = document.getElementById("export-end-date");
   const formatSelect = document.getElementById("export-format-select");
+  const btnDlImage = document.getElementById("btn-export-download-image");
   const btnDlPdf = document.getElementById("btn-export-download-pdf");
   const statusMsg = document.getElementById("export-status-msg");
 
@@ -1414,15 +1457,16 @@ export function initExportRecordsCard(getSummaryFn) {
 
     const payload = _buildExportPayload(d, currentMode, sDate, eDate);
 
+    if (btnDlImage) btnDlImage.disabled = true;
     if (btnDlPdf) btnDlPdf.disabled = true;
     if (statusMsg) {
-      statusMsg.innerHTML = `⏳ 正在產生 <b>PDF (.pdf)</b> 作答歷程記錄檔案（${payload.scopeTitle}），請稍候...`;
+      statusMsg.innerHTML = `⏳ 正在產生 <b>長圖格式 (PNG)</b> 作答歷程記錄檔案（${payload.scopeTitle}），請稍候...`;
     }
 
     try {
-      await _exportRecordToPdf(payload);
+      await _exportRecordToImage(payload);
       if (statusMsg) {
-        statusMsg.innerHTML = `✅ 已成功下載 <b>PDF (.pdf)</b> 作答歷程記錄（${payload.scopeTitle}）！`;
+        statusMsg.innerHTML = `✅ 已成功下載 <b>長圖格式 (PNG)</b> 作答歷程記錄（${payload.scopeTitle}）！`;
       }
     } catch (err) {
       console.error("Export error:", err);
@@ -1430,11 +1474,13 @@ export function initExportRecordsCard(getSummaryFn) {
         statusMsg.innerHTML = `⚠️ 匯出時發生錯誤：${err.message || "請稍後再試"}`;
       }
     } finally {
+      if (btnDlImage) btnDlImage.disabled = false;
       if (btnDlPdf) btnDlPdf.disabled = false;
     }
   };
 
-  if (btnDlPdf) btnDlPdf.onclick = () => runDownload("pdf");
+  if (btnDlImage) btnDlImage.onclick = () => runDownload();
+  if (btnDlPdf) btnDlPdf.onclick = () => runDownload();
 
   // 網頁長幅檢視預覽事件綁定
   const btnPreviewWeb = document.getElementById("btn-export-preview-web");
