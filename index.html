@@ -71,10 +71,10 @@
       </button>
       <div style="font-size:40px; margin-bottom:8px;">🎯</div>
       <h2 style="color:var(--ink, #232A4D); margin:0 0 8px 0; font-size:22px; font-weight:800;">拼字小特工</h2>
-      <p style="color:var(--ink2, #5A6183); font-size:13px; margin-bottom:18px; line-height:1.5;">請輸入學號與密碼</p>
+      <p style="color:var(--ink2, #5A6183); font-size:13px; margin-bottom:18px; line-height:1.5;">請輸入帳號與密碼登入</p>
       
       <div class="login-box-group">
-        <input type="text" id="login-user" placeholder="請輸入學號 (如: 70101)" style="width:100%; padding:13px 14px; margin:0; border:1.5px solid var(--line, #E7E9F5); border-radius:12px; box-sizing:border-box; font-size:15px; outline:none; text-align:center; transition:all .2s; background:var(--paper, #F6F7FB); color:var(--ink, #232A4D);">
+        <input type="text" id="login-user" placeholder="請輸入帳號 (學生學號 / 家長 / 教師 / 管理員)" style="width:100%; padding:13px 14px; margin:0; border:1.5px solid var(--line, #E7E9F5); border-radius:12px; box-sizing:border-box; font-size:15px; outline:none; text-align:center; transition:all .2s; background:var(--paper, #F6F7FB); color:var(--ink, #232A4D);">
         
         <input type="password" id="login-pass" placeholder="請輸入密碼" style="width:100%; padding:13px 14px; margin:0; border:1.5px solid var(--line, #E7E9F5); border-radius:12px; box-sizing:border-box; font-size:15px; outline:none; text-align:center; transition:all .2s; background:var(--paper, #F6F7FB); color:var(--ink, #232A4D);">
         
@@ -1029,7 +1029,7 @@
       const pass = document.getElementById('login-pass').value.trim();
 
       if (!user || !pass) {
-        setLoginStatus("請輸入學號與密碼", "error");
+        setLoginStatus("請輸入帳號與密碼登入", "error");
         return;
       }
 
@@ -1108,6 +1108,25 @@
 
           localStorage.setItem("current_user", user);
           localStorage.setItem("user_role", result.role || "student");
+
+          // 角色分流導向
+          if (result.role === "parent") {
+            setLoginStatus("家長身分驗證成功，正在前往家長查閱專區...", "loading-game");
+            sessionStorage.setItem("history_auth_user", user);
+            sessionStorage.setItem("history_auth_pass", pass);
+            if (result.studentBinding) {
+              sessionStorage.setItem("parent_target_student", result.studentBinding);
+            }
+            setTimeout(() => {
+              window.location.href = "history.html?role=parent&u=" + encodeURIComponent(user);
+            }, 300);
+            return;
+          }
+          if (result.role === "admin" || (result.role === "teacher" && result.isAdmin)) {
+            // 教師 / 管理員可自由選擇使用「出題設定」或前往「總控後台」
+            const adminNotice = document.getElementById("admin-portal-link");
+            if (adminNotice) adminNotice.style.display = "inline-flex";
+          }
           if (result.realName) localStorage.setItem("user_real_name", result.realName);
           if (result.className) localStorage.setItem("user_class_name", result.className);
           if (result.cachedSummary) {

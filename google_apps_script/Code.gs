@@ -408,7 +408,18 @@ function doPost(e) {
         logError("doPost/login", auth.message, params.username, "登入驗證失敗");
         return jsonResponse({status:"error", message:auth.message});
       }
-      if (auth.role === "teacher") {
+      if (auth.role === "parent") {
+        return jsonResponse({
+          status: "success",
+          message: "家長驗證成功",
+          role: "parent",
+          username: auth.username,
+          realName: auth.realName,
+          studentBinding: auth.studentBinding,
+          className: auth.className
+        });
+      }
+      if (auth.role === "teacher" || auth.role === "admin") {
         let classList = [];
         try {
           const userSheet = ss.getSheetByName("使用者清單");

@@ -546,8 +546,13 @@ function authenticateUser(ss, inputUser, inputPass) {
   for (let i = 1; i < data.length; i++) {
     const rowUser = String(data[i][0] || "").trim();
     const rowPass = String(data[i][1] || "").trim();
-    const role    = String(data[i][2] || "student").trim().toLowerCase() || "student";
-    if (role === "teacher") foundAnyTeacher = true;
+    let role      = String(data[i][2] || "student").trim().toLowerCase() || "student";
+    if (role === "admin" || role === "administrator" || role === "管理員") role = "admin";
+    else if (role === "parent" || role === "家長") role = "parent";
+    else if (role === "teacher" || role === "教師" || role === "老師") role = "teacher";
+    else role = "student";
+
+    if (role === "teacher" || role === "admin") foundAnyTeacher = true;
 
     if (rowUser === username) {
       const match = rowPass === hashedInput || (!isHashedPassword(rowPass) && rowPass === password);
@@ -563,10 +568,11 @@ function authenticateUser(ss, inputUser, inputPass) {
 
       clearLoginFailures(username);
       const rawClass  = String(data[i][3] || "").trim();
-      const className = role === "teacher" ? (rawClass || "all") : getStudentClass(username, rawClass);
+      const className = (role === "teacher" || role === "admin") ? (rawClass || "all") : getStudentClass(username, rawClass);
       const realName  = String(data[i][4] || "").trim();
-      const isAdmin   = role === "teacher" && isAdminTeacher(className);
-      const result    = {success:true, username, role, className, realName, isAdmin};
+      const isAdmin   = (role === "admin") || (role === "teacher" && isAdminTeacher(className));
+      const studentBinding = (role === "parent") ? rawClass : "";
+      const result    = {success:true, username, role, className, realName, isAdmin, studentBinding};
       try { cache.put(cacheKey, JSON.stringify(result), SYS.CACHE_AUTH_TTL); } catch(_) {}
       return result;
     }
