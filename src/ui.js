@@ -3066,7 +3066,10 @@ export function buildWeekPendingConquerHtml(words, d = null, cycleParam = _activ
       } else {
         // 逐字點選切換模式（比照學習足跡單字方塊設計，移除手指符號）
         contentHtml = `
-          <div class="conquer-level-nav" style="display:flex; align-items:center; flex-wrap:wrap; gap:6px; margin:6px 0 8px;">
+          <div class="conquer-active-card-wrap" data-lv="${lv}" style="margin-top:6px;">
+            ${_renderConquerWordCard(activeWord, d)}
+          </div>
+          <div class="conquer-level-nav" style="display:flex; align-items:center; flex-wrap:wrap; gap:6px; margin-top:8px;">
             <div class="conquer-chip-list" style="display:flex; flex-wrap:wrap; gap:5px; align-items:center;">
               ${list.map(w => {
                 const isAct = (w === activeWord);
@@ -3075,9 +3078,6 @@ export function buildWeekPendingConquerHtml(words, d = null, cycleParam = _activ
                 </button>`;
               }).join("")}
             </div>
-          </div>
-          <div class="conquer-active-card-wrap" data-lv="${lv}">
-            ${_renderConquerWordCard(activeWord, d)}
           </div>
         `;
       }

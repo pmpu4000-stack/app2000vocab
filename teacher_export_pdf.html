@@ -2880,7 +2880,10 @@ function _renderConquerWordCard(wordStr) {
             `;
           } else {
             contentHtml = `
-              <div class="conquer-level-nav" style="display:flex; align-items:center; flex-wrap:wrap; gap:6px; margin:6px 0 8px;">
+              <div class="conquer-active-card-wrap" data-lv="${lv}" style="margin-top:6px;">
+                ${_renderConquerWordCard(activeWord)}
+              </div>
+              <div class="conquer-level-nav" style="display:flex; align-items:center; flex-wrap:wrap; gap:6px; margin-top:8px;">
                 <div class="conquer-chip-list" style="display:flex; flex-wrap:wrap; gap:5px; align-items:center;">
                   ${list.map(w => {
                     const isAct = (w === activeWord);
@@ -2889,9 +2892,6 @@ function _renderConquerWordCard(wordStr) {
                     </button>`;
                   }).join("")}
                 </div>
-              </div>
-              <div class="conquer-active-card-wrap" data-lv="${lv}">
-                ${_renderConquerWordCard(activeWord)}
               </div>
             `;
           }
