@@ -3907,3 +3907,27 @@ body.css-fullscreen-active {
       overscroll-behavior: contain !important;
     }
 
+
+/* 🚀 低階手機與節能自適應降級模式 (Adaptive Low-Power Mode) */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+body.low-end-device *,
+body.low-power-mode * {
+  animation: none !important;
+  transition: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  text-shadow: none !important;
+}
+
+body.low-end-device .btn,
+body.low-power-mode .btn {
+  transform: none !important;
+}
