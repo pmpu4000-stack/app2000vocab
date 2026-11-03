@@ -2599,7 +2599,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 }
 .export-btn-group {
   display: grid !important;
-  grid-template-columns: repeat(2, 1fr) !important;
+  grid-template-columns: 1fr !important;
   gap: 8px !important;
   width: 100% !important;
   margin-left: 0 !important;
