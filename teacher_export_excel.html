@@ -306,386 +306,285 @@ function _wrapReportPreviewPaper(innerHtml, payload) {
 }
 
 function _buildStudentReportHtml(payload) {
-  const levelColor = (lv) => ({ 1: "#2FB47C", 2: "#2D9CDB", 3: "#6C4CE0", 4: "#E8892B", 5: "#E0567B" }[lv] || "#6C4CE0");
-  const ov = payload.overall;
-  const ps = payload.periodSummary;
   const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-
-  const lvRowsHtml = (ov.levels || []).map(L => {
-    const totCorr = (L.learn || 0) + (L.prac || 0) + (L.mast || 0);
-    const color = levelColor(L.level);
-    return `
-      <tr class="st-level-row" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; padding:5px 0; border-bottom:1px solid #E7E9F5; gap:4px 8px;">
-        <td class="st-level-name" style="padding:0; border:none; font-weight:750; color:#232A4D; white-space:nowrap; flex-shrink:0;">
-          <span style="color:${color}; font-size:14px; margin-right:4px;">●</span> Level ${L.level}「${esc(L.name)}」
-        </td>
-        <td class="st-level-stats" style="padding:0; border:none; display:flex; align-items:center; justify-content:flex-end; text-align:right; flex-wrap:wrap;">
-          <div class="level-stats-grid" style="display:inline-flex; align-items:center; flex-wrap:wrap; font-size:12.5px; font-variant-numeric:tabular-nums; font-feature-settings:'tnum';">
-            <span class="st-item st-learn" style="display:inline-flex; align-items:center; color:#232A4D; font-weight:650; white-space:nowrap;">
-              <span class="st-lbl" style="color:#5A6183;">學習中</span>
-              <b class="tnum st-num st-num-learn" style="display:inline-block; width:25px; text-align:right; font-weight:800; margin-right:1px; color:#4F46E5;">${L.learn || 0}</b>字
-            </span>
-            <span class="st-sep" style="display:inline-block; width:14px; text-align:center; color:#94A3B8; font-weight:600; margin:0 3px; user-select:none;">/</span>
-            <span class="st-item st-prac" style="display:inline-flex; align-items:center; color:#232A4D; font-weight:650; white-space:nowrap;">
-              <span class="st-lbl" style="color:#5A6183;">練習中</span>
-              <b class="tnum st-num st-num-prac" style="display:inline-block; width:25px; text-align:right; font-weight:800; margin-right:1px; color:#0369A1;">${L.prac || 0}</b>字
-            </span>
-            <span class="st-sep" style="display:inline-block; width:14px; text-align:center; color:#94A3B8; font-weight:600; margin:0 3px; user-select:none;">/</span>
-            <span class="st-item st-mast" style="display:inline-flex; align-items:center; color:#232A4D; font-weight:650; white-space:nowrap;">
-              <span class="st-lbl" style="color:#5A6183;">精通</span>
-              <b class="tnum st-num st-num-mast" style="display:inline-block; width:25px; text-align:right; font-weight:800; margin-right:1px; color:#047857;">${L.mast || 0}</b>字
-            </span>
-            <span class="st-sep" style="display:inline-block; width:14px; text-align:center; color:#94A3B8; font-weight:600; margin:0 3px; user-select:none;">/</span>
-            <span class="st-item st-total" style="display:inline-flex; align-items:center; color:#232A4D; font-weight:650; white-space:nowrap;">
-              <span class="st-lbl" style="color:#5A6183;">共答對</span>
-              <b class="tnum st-num st-num-total" style="display:inline-block; width:25px; text-align:right; font-weight:800; margin-right:1px; color:#D97706;">${totCorr}</b>字
-            </span>
-          </div>
-        </td>
-      </tr>
-    `;
-  }).join("");
+  const getTier = (r) => (r >= 100 ? 'tier-6' : (r >= 90 ? 'tier-5' : (r >= 80 ? 'tier-4' : (r >= 70 ? 'tier-3' : (r >= 60 ? 'tier-2' : (r > 0 ? 'tier-1' : 'tier-0'))))));
 
   const dailyCardsHtml = payload.dailyRecords.map(r => {
-    const isTaskUntested = !r.isUnassigned && r.taskStatus.includes("未受測");
+    const isTaskUntested = !r.isUnassigned && String(r.taskStatus || "").includes("未受測");
 
-    // 1. 指定測驗 KPI 方塊
-    let taskKpiHtml = "";
+    // 1. 指定測驗卡片
+    let taskCardHtml = "";
     if (r.isUnassigned) {
-      taskKpiHtml = `
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px;">
-          <div style="background:#F8F9FD; border:1px solid #E2E8F0; border-radius:10px; padding:8px 10px; text-align:center;">
-            <div style="font-size:11px; color:#64748B; font-weight:700; margin-bottom:2px;">指派情形</div>
-            <div style="font-size:16px; font-weight:800; color:#475569;">當日無指派</div>
+      taskCardHtml = `
+        <div class="task-history-card">
+          <div class="task-history-header">
+            <div>
+              <span class="task-card-title">📝 當日無指定測驗</span>
+              <span class="task-status-pill" style="color:#64748B; background:rgba(148,163,184,0.15);">無指派</span>
+            </div>
           </div>
-          <div style="background:#F8F9FD; border:1px solid #E2E8F0; border-radius:10px; padding:8px 10px; text-align:center;">
-            <div style="font-size:11px; color:#64748B; font-weight:700; margin-bottom:2px;">作答狀態</div>
-            <div style="font-size:16px; font-weight:800; color:#64748B;">${esc(r.taskStatus)}</div>
+          <div class="task-score-grid">
+            <div class="task-score-item">
+              <div class="task-score-label">指派情形</div>
+              <div class="task-score-val" style="color:var(--ink2, #475569); font-size:15px; font-weight:700;">當日無指派</div>
+            </div>
+            <div class="task-score-item">
+              <div class="task-score-label">作答狀態</div>
+              <div class="task-score-val" style="color:#64748B; font-size:14.5px; font-weight:800;">當日老師無指派測驗</div>
+            </div>
           </div>
         </div>
       `;
     } else if (isTaskUntested) {
-      taskKpiHtml = `
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px;">
-          <div style="background:#F0F9FF; border:1px solid rgba(14,165,233,.25); border-radius:10px; padding:8px 10px; text-align:center;">
-            <div style="font-size:11px; color:#0369A1; font-weight:700; margin-bottom:2px;">📋 應測單字數</div>
-            <div style="font-size:18px; font-weight:900; color:#0284C7;">${r.assignedTotWords || 5} 字</div>
+      const unansWords = (r.unansweredWords && r.unansweredWords.length > 0) ? r.unansweredWords : (r.taskWrongWords || []);
+      const unansTags = unansWords.length > 0
+        ? unansWords.map(w => `<span class="word-pill-tag neutral" onclick="event.stopPropagation(); if (typeof speakMasteredWord === 'function') speakMasteredWord('${esc(w).replace(/'/g, "\\\'")}');" style="cursor:pointer;" title="點擊聆聽發音">${esc(w)}</span>`).join("")
+        : `<span style="font-size:12px; color:var(--ink3, #94A3B8); font-style:italic;">（待測單字清單載入中）</span>`;
+
+      taskCardHtml = `
+        <div class="task-history-card">
+          <div class="task-history-header">
+            <div>
+              <span class="task-card-title">${esc(r.formattedTaskName || r.taskName || "📝 平日指定測驗作答紀錄")}</span>
+              <span class="task-status-pill" style="color:#059669; background:rgba(16,185,129,0.22);">${esc(r.taskStatus || "未受測")}</span>
+            </div>
           </div>
-          <div style="background:#FEF2F2; border:1px solid rgba(239,68,68,.25); border-radius:10px; padding:8px 10px; text-align:center;">
-            <div style="font-size:11px; color:#B91C1C; font-weight:700; margin-bottom:2px;">測驗狀態</div>
-            <div style="font-size:16px; font-weight:800; color:#DC2626;">${esc(r.taskStatus)}</div>
+          <div class="task-score-grid">
+            <div class="task-score-item">
+              <div class="task-score-label">應測單字數</div>
+              <div class="task-score-val" style="color:#0284C7; font-weight:800;">
+                <span>${r.assignedTotWords || 5}</span>
+                <span style="font-size:13px; font-weight:700; color:var(--ink3, #94A3B8); margin-left:4px;">字</span>
+              </div>
+            </div>
+            <div class="task-score-item">
+              <div class="task-score-label">作答狀態</div>
+              <div class="task-score-val" style="color:#059669; font-size:14.5px; font-weight:800;">📴 當日無登入受測紀錄</div>
+            </div>
+          </div>
+          <div class="word-split-grid">
+            <div class="word-split-box advice-box">
+              <div class="word-split-title advice-title"><span class="card-icon-slot">💡</span><span>測驗狀態說明</span></div>
+              <div class="word-split-tags" style="font-size:12.5px; line-height:1.55; color:var(--ink2, #475569); padding:4px 0;">
+                <b>${esc(r.taskStatus || "缺席未受測")}</b>。該生當日尚未進行本次指定測驗，未測驗單字將自動排入週末弱點補強測驗。
+              </div>
+            </div>
+            <div class="word-split-box untested-box">
+              <div class="word-split-title untested-title"><span class="card-icon-slot">📋</span><span>本次應測單字範圍 (${unansWords.length} 字)</span></div>
+              <div class="word-split-tags">${unansTags}</div>
+            </div>
           </div>
         </div>
       `;
     } else {
-      taskKpiHtml = `
-        <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:6px; margin-bottom:10px;">
-          <div style="background:#F0F9FF; border:1px solid rgba(14,165,233,.25); border-radius:10px; padding:8px 4px; text-align:center;">
-            <div style="font-size:10.5px; color:#0369A1; font-weight:700; margin-bottom:2px;">答對 / 已施測</div>
-            <div style="font-size:17px; font-weight:900; color:#0284C7;"><span style="color:#0284C7;">${r.taskCorrWords || 0}</span> <span style="font-size:14px; opacity:0.6;">/</span> <span style="color:#0369A1;">${r.assignedTotWords || 5}</span></div>
+      const corrList = r.taskCorrectWords || [];
+      const wrgList = r.taskWrongWords || [];
+      const corrTags = corrList.length > 0
+        ? corrList.map(w => `<span class="word-pill-tag correct" onclick="event.stopPropagation(); if (typeof speakMasteredWord === 'function') speakMasteredWord('${esc(w).replace(/'/g, "\\\'")}');" style="cursor:pointer;" title="點擊聆聽發音">${esc(w)}</span>`).join("")
+        : `<span style="font-size:12px; color:var(--ink3, #94A3B8); font-style:italic;">（本次測驗無答對單字）</span>`;
+      const wrgTags = wrgList.length > 0
+        ? wrgList.map(w => `<span class="word-pill-tag wrong" onclick="event.stopPropagation(); if (typeof speakMasteredWord === 'function') speakMasteredWord('${esc(w).replace(/'/g, "\\\'")}');" style="cursor:pointer;" title="點擊聆聽發音">${esc(w)}</span>`).join("")
+        : `<span class="perfect-score-msg">🎉 全數答對，無答錯單字！</span>`;
+
+      const ovrRate = parseInt(r.overallScoreRate || r.taskRate, 10) || 0;
+      const attRate = parseInt(r.attemptedRate, 10) || ovrRate;
+
+      taskCardHtml = `
+        <div class="task-history-card">
+          <div class="task-history-header">
+            <div>
+              <span class="task-card-title">${esc(r.formattedTaskName || r.taskName || "📝 平日指定測驗作答紀錄")}</span>
+              <span class="task-status-pill" style="color:#047857; background:rgba(16,185,129,0.15);">${esc(r.taskStatus || "已完成")}</span>
+            </div>
           </div>
-          <div style="background:#F8FAFC; border:1px solid #CBD5E1; border-radius:10px; padding:8px 4px; text-align:center;">
-            <div style="font-size:10.5px; color:#475569; font-weight:700; margin-bottom:2px;">答錯 / 未作答</div>
-            <div style="font-size:17px; font-weight:900; color:#475569;"><span style="color:#DC2626;">${r.actualWrong || 0}</span> <span style="font-size:14px; opacity:0.6;">/</span> <span style="color:#D97706;">${r.actualUnanswered || 0}</span></div>
+          <div class="task-score-grid">
+            <div class="task-score-subgrid-4">
+              <div class="task-score-item score-corr-item" style="display:flex; flex-direction:column; justify-content:center;">
+                <div class="task-score-label" style="font-size:11px;">答對</div>
+                <div class="task-score-val task-score-num-corr">${r.taskCorrWords || 0}</div>
+              </div>
+              <div class="task-score-item score-wrong-item" style="display:flex; flex-direction:column; justify-content:center;">
+                <div class="task-score-label" style="font-size:11px;">答錯</div>
+                <div class="task-score-val task-score-num-wrong">${r.actualWrong || 0}</div>
+              </div>
+              <div class="task-score-item" style="display:flex; flex-direction:column; justify-content:center;">
+                <div class="task-score-label" style="font-size:11px;">未作答</div>
+                <div class="task-score-val task-score-num-unans" style="font-size:18px; font-weight:800; color:var(--ink, #334155);">${r.actualUnanswered || 0}</div>
+              </div>
+              <div class="task-score-item" style="display:flex; flex-direction:column; justify-content:center;">
+                <div class="task-score-label" style="font-size:11px;">作答正確率</div>
+                <div class="task-score-val task-score-num-rate" style="font-size:18px; font-weight:800; color:#0284C7;">${attRate}%</div>
+              </div>
+            </div>
+            <div class="task-score-item rate-tier-item ${getTier(ovrRate)}" style="display:flex; flex-direction:column; justify-content:center;">
+              <div class="task-score-label" style="font-size:11px;">全卷正確率</div>
+              <div class="task-score-val heat-rate-val ${getTier(ovrRate)}" style="font-size:22px; font-weight:800; line-height:1.2;">
+                ${ovrRate}%
+              </div>
+            </div>
           </div>
-          <div style="background:#ECFDF5; border:1px solid rgba(16,185,129,.25); border-radius:10px; padding:8px 4px; text-align:center;">
-            <div style="font-size:10.5px; color:#047857; font-weight:700; margin-bottom:2px;">作答正確率</div>
-            <div style="font-size:17px; font-weight:900; color:#059669;">${r.actualAnswered > 0 ? Math.round(((r.taskCorrWords || 0) / r.actualAnswered) * 100) + '%' : '—'}</div>
-          </div>
-          <div style="background:#F0FDF4; border:1px solid rgba(34,197,94,.25); border-radius:10px; padding:8px 4px; text-align:center;">
-            <div style="font-size:10.5px; color:#15803D; font-weight:700; margin-bottom:2px;">全卷正確率</div>
-            <div style="font-size:17px; font-weight:900; color:#16A34A;">${r.overallScoreRate || 0}%</div>
+          <div class="word-split-grid">
+            <div class="word-split-box correct-box">
+              <div class="word-split-title correct-title"><span class="card-icon-slot">✔</span><span>答對的單字 (${corrList.length} 字)</span></div>
+              <div class="word-split-tags">${corrTags}</div>
+            </div>
+            <div class="word-split-box wrong-box">
+              <div class="word-split-title wrong-title"><span class="card-icon-slot">✖</span><span>答錯的單字 (${wrgList.length} 字)</span></div>
+              <div class="word-split-tags">${wrgTags}</div>
+            </div>
           </div>
         </div>
       `;
     }
 
-    let taskLeftContent = "";
-    let taskRightContent = "";
-    if (r.isUnassigned) {
-      taskLeftContent = `<div style="font-size:12px; color:#64748B; padding:6px 0;">當日老師未指派測驗任務，學生無須受測。</div>`;
-      taskRightContent = `<div style="font-size:12px; color:#94A3B8; font-style:italic; padding:6px 0;">（當日無指定單字）</div>`;
-    } else if (isTaskUntested) {
-      taskLeftContent = `
-        <div style="font-size:12px; color:#475569; line-height:1.5; padding:4px 0;">
-          <b>${esc(r.taskStatus)}</b>。提醒：未測驗之指定單字將自動排入週末補強測驗。
-        </div>
-      `;
-      taskRightContent = (r.unansweredWords && r.unansweredWords.length > 0)
-        ? r.unansweredWords.map(w => `<span style="display:inline-block; padding:4px 8px; margin:2px; border-radius:6px; background:#F1F5F9; color:#475569; border:1px solid #CBD5E1; font-size:12px; font-weight:700;">${esc(w)}</span>`).join("")
-        : `<span style="font-size:12px; color:#94A3B8; font-style:italic;">（待測單字清單載入中）</span>`;
-    } else {
-      taskLeftContent = (r.taskCorrectWords && r.taskCorrectWords.length > 0)
-        ? r.taskCorrectWords.map(w => `<span style="display:inline-block; padding:4px 8px; margin:2px; border-radius:6px; background:#E4F7EE; color:#047857; border:1px solid rgba(47,180,124,.35); font-size:12px; font-weight:700;">${esc(w)}</span>`).join("")
-        : `<span style="font-size:12px; color:#94A3B8; font-style:italic;">（本次測驗無答對單字）</span>`;
-
-      if (r.taskWrongWords && r.taskWrongWords.length > 0) {
-        taskRightContent = r.taskWrongWords.map(w => `<span style="display:inline-block; padding:4px 8px; margin:2px; border-radius:6px; background:#FFE9E9; color:#D64545; border:1px solid rgba(255,107,107,.4); font-size:12px; font-weight:700;">${esc(w)}</span>`).join("");
-      } else {
-        taskRightContent = `<span style="display:inline-block; font-size:12px; font-weight:800; color:#065F46; background:#ECFDF5; border:1px solid #A7F3D0; padding:4px 10px; border-radius:8px;">🎉 全數答對，無答錯單字！</span>`;
-      }
-    }
-
-    let freeKpiHtml = "";
+    // 2. 自由練習卡片
+    let freeCardHtml = "";
     if (r.hasFree) {
-      freeKpiHtml = `
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px;">
-          <div style="background:#F0F9FF; border:1px solid rgba(14,165,233,.25); border-radius:10px; padding:8px 10px; text-align:center;">
-            <div style="font-size:11px; color:#0369A1; font-weight:700; margin-bottom:2px;">答對單字數 / 施測單字數</div>
-            <div style="font-size:18px; font-weight:900; color:#0284C7;">${r.freeCorrect || 0} <span style="font-size:14px; opacity:0.6;">/</span> ${r.freeAttempts || 0}</div>
+      const fCorrList = r.freeCorrectWords || [];
+      const fWrgList = r.freeWrongWords || [];
+      const fCorrTags = fCorrList.length > 0
+        ? fCorrList.map(w => `<span class="word-pill-tag correct" onclick="event.stopPropagation(); if (typeof speakMasteredWord === 'function') speakMasteredWord('${esc(w).replace(/'/g, "\\\'")}');" style="cursor:pointer;" title="點擊聆聽發音">${esc(w)}</span>`).join("")
+        : `<span style="font-size:12px; color:var(--ink3, #94A3B8); font-style:italic;">（當日尚無全對單字）</span>`;
+      const fWrgTags = fWrgList.length > 0
+        ? fWrgList.map(w => `<span class="word-pill-tag wrong" onclick="event.stopPropagation(); if (typeof speakMasteredWord === 'function') speakMasteredWord('${esc(w).replace(/'/g, "\\\'")}');" style="cursor:pointer;" title="點擊聆聽發音">${esc(w)}</span>`).join("")
+        : `<span class="perfect-score-msg">🎉 太棒了！當日自由練習全數答對，無任何答錯單字！</span>`;
+
+      const fRate = parseInt(r.freeRate, 10) || 0;
+      freeCardHtml = `
+        <div class="task-history-card">
+          <div class="task-history-header">
+            <div>
+              <span class="task-card-title task-title-free">🎮 自由練習成果</span>
+            </div>
           </div>
-          <div style="background:#ECFDF5; border:1px solid rgba(16,185,129,.25); border-radius:10px; padding:8px 10px; text-align:center;">
-            <div style="font-size:11px; color:#047857; font-weight:700; margin-bottom:2px;">正確率</div>
-            <div style="font-size:18px; font-weight:900; color:#059669;">${r.freeRate || 0}%</div>
+          <div class="task-score-grid">
+            <div class="task-score-subgrid" style="display:grid; grid-template-columns:repeat(2,1fr); gap:6px; width:100%; box-sizing:border-box; height:60px;">
+              <div class="task-score-item score-corr-item" style="display:flex; flex-direction:column; justify-content:center;">
+                <div class="task-score-label" style="font-size:11px;">答對</div>
+                <div class="task-score-val task-score-num-corr">${r.freeCorrect || 0}</div>
+              </div>
+              <div class="task-score-item score-wrong-item" style="display:flex; flex-direction:column; justify-content:center;">
+                <div class="task-score-label" style="font-size:11px;">答錯</div>
+                <div class="task-score-val task-score-num-wrong">${Math.max(0, (r.freeAttempts || 0) - (r.freeCorrect || 0))}</div>
+              </div>
+            </div>
+            <div class="task-score-item rate-tier-item ${getTier(fRate)}" style="display:flex; flex-direction:column; justify-content:center;">
+              <div class="task-score-label" style="font-size:11px;">全卷正確率</div>
+              <div class="task-score-val heat-rate-val ${getTier(fRate)}" style="font-size:22px; font-weight:800; line-height:1.2;">
+                ${fRate}%
+              </div>
+            </div>
+          </div>
+          <div class="word-split-grid">
+            <div class="word-split-box correct-box">
+              <div class="word-split-title correct-title"><span class="card-icon-slot">✔</span><span>答對的單字 (${fCorrList.length} 字)</span></div>
+              <div class="word-split-tags">${fCorrTags}</div>
+            </div>
+            <div class="word-split-box wrong-box">
+              <div class="word-split-title wrong-title"><span class="card-icon-slot">✖</span><span>答錯的單字 (${fWrgList.length} 字)</span></div>
+              <div class="word-split-tags">${fWrgTags}</div>
+            </div>
           </div>
         </div>
       `;
     } else {
-      freeKpiHtml = `
-        <div style="background:#F8FAFC; border:1px dashed #CBD5E1; border-radius:10px; padding:12px 14px; text-align:center; color:#64748B; font-size:12.5px; font-weight:700; margin-bottom:8px;">
-          當日尚無自由練習紀錄
+      freeCardHtml = `
+        <div class="task-empty-notice-box" style="margin-top:6px;">
+          <div class="task-empty-notice-icon" style="font-size:24px; margin-bottom:4px; line-height:1;">🎮</div>
+          <div class="task-empty-notice-title" style="font-size:13px; font-weight:700; color:var(--ink2, #475569); margin-bottom:4px;">該指定日期尚無自由練習受測紀錄</div>
+          <div class="task-empty-notice-desc" style="font-size:11.5px; margin-top:2px; color:var(--ink3, #94A3B8); max-width:380px; margin-left:auto; margin-right:auto; line-height:1.5;">學生當日未進行自由練習闖關</div>
         </div>
       `;
     }
 
-    let freeLeftContent = "";
-    let freeRightContent = "";
-    if (r.hasFree) {
-      freeLeftContent = (r.freeCorrectWords && r.freeCorrectWords.length > 0)
-        ? r.freeCorrectWords.map(w => `<span style="display:inline-block; padding:4px 8px; margin:2px; border-radius:6px; background:#E4F7EE; color:#047857; border:1px solid rgba(47,180,124,.35); font-size:12px; font-weight:700;">${esc(w)}</span>`).join("")
-        : `<span style="font-size:12px; color:#94A3B8; font-style:italic;">（當日尚無全對單字）</span>`;
-
-      if (r.freeWrongWords && r.freeWrongWords.length > 0) {
-        freeRightContent = r.freeWrongWords.map(w => `<span style="display:inline-block; padding:4px 8px; margin:2px; border-radius:6px; background:#FFE9E9; color:#D64545; border:1px solid rgba(255,107,107,.4); font-size:12px; font-weight:700;">${esc(w)}</span>`).join("");
-      } else {
-        freeRightContent = `<span style="display:inline-block; font-size:12px; font-weight:800; color:#065F46; background:#ECFDF5; border:1px solid #A7F3D0; padding:4px 10px; border-radius:8px;">🎉 太棒了！當日自由練習全數答對，無任何答錯單字！</span>`;
-      }
-    }
+    const subhTitle = (function(ds) {
+      if (!ds) return "📝 平日指定測驗作答紀錄";
+      const clean = String(ds).trim().split(" ")[0].replace(/-/g, "/");
+      const d = new Date(clean);
+      const day = d.getDay();
+      return (day === 0 || day === 6) ? `🎯 週末待攻克測驗作答紀錄` : "📝 平日指定測驗作答紀錄";
+    })(r.date);
 
     return `
-      <div style="border:1.5px solid #E7E9F5; border-radius:16px; padding:14px 16px; margin-bottom:14px; background:#FFFFFF; page-break-inside:avoid; box-shadow:0 2px 6px rgba(0,0,0,0.03);">
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #E7E9F5; padding-bottom:8px; margin-bottom:12px;">
-          <div style="font-size:14.5px; font-weight:900; color:#232A4D;">📅 日期：${esc(r.date)} (${esc(r.dayOfWeek)})</div>
-          <div style="font-size:12px; font-weight:800; color:#6C4CE0; background:#F1EDFF; padding:3px 10px; border-radius:999px; border:1px solid rgba(108,76,224,0.3);">
+      <div class="daily-footprint-block" style="border:1.5px solid var(--line, #E7E9F5); border-radius:14px; padding:12px 14px; margin-bottom:14px; background:var(--card-bg, #FFFFFF); page-break-inside:avoid; box-shadow:0 2px 6px rgba(0,0,0,0.03);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; padding-bottom:6px; border-bottom:1px solid var(--line, #E7E9F5);">
+          <div style="font-size:14px; font-weight:800; color:var(--ink, #232A4D);">
+            📅 日期：${esc(r.date)} (${esc(r.dayOfWeek)})
+          </div>
+          <div style="font-size:11.5px; font-weight:800; color:var(--violet, #6C4CE0); background:rgba(108,76,224,0.08); padding:2px 10px; border-radius:999px;">
             當日總計答對 ${r.totalCorrect} / ${r.totalAttempts} 字 · 正確率 ${r.totalRate}%
           </div>
         </div>
 
-        <!-- 1. 平日指定測驗作答紀錄 -->
-        <div style="border:1px solid #E2E8F0; border-radius:12px; padding:12px 14px; background:#F8FAFD; margin-bottom:12px;">
-          <div style="font-size:13px; font-weight:800; color:#232A4D; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
-            <span>📝 ${esc(r.isUnassigned ? "當日無指定測驗" : (r.taskName || "平日指定測驗作答紀錄"))}</span>
-            <span style="font-size:12px; color:${r.isUnassigned ? '#64748B' : (isTaskUntested ? '#DC2626' : '#0284C7')}; font-weight:800;">
-              ${r.isUnassigned ? '無指派' : (isTaskUntested ? '未受測' : `得分：${esc(r.taskScore)} (${esc(r.taskRate)})`)}
-            </span>
-          </div>
-          ${taskKpiHtml}
-          ${(!r.isUnassigned) ? `
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-              <div style="background:#F0F9FF; border:1px solid rgba(14,165,233,.35); border-radius:10px; padding:10px 12px; min-height:85px;">
-                <div style="font-size:12px; font-weight:800; color:#0284C7; margin-bottom:6px;"><span style="color:#10B981; font-weight:900; margin-right:4px;">✔</span>答對的單字 (${(r.taskCorrectWords || []).length} 字)</div>
-                <div style="display:flex; flex-wrap:wrap; gap:4px;">${taskLeftContent}</div>
-              </div>
-              <div style="background:#F8FAFC; border:1px solid #CBD5E1; border-radius:10px; padding:10px 12px; min-height:85px;">
-                <div style="font-size:12px; font-weight:800; color:#475569; margin-bottom:6px;">❌ 答錯的單字 (${(r.taskWrongWords || []).length} 字)</div>
-                <div style="display:flex; flex-wrap:wrap; gap:4px;">${taskRightContent}</div>
-              </div>
-            </div>
-          ` : ''}
+        <!-- 1. 平日指定測驗 / 週末待攻克測驗作答紀錄 -->
+        <div class="subh" style="margin-bottom:6px;">
+          <span>${esc(subhTitle)}</span>
         </div>
+        ${taskCardHtml}
 
         <!-- 2. 自由練習作答紀錄 -->
-        <div style="border:1px solid #E2E8F0; border-radius:12px; padding:12px 14px; background:#F8FAFD;">
-          <div style="font-size:13px; font-weight:800; color:#232A4D; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
-            <span>🎮 自由練習成果</span>
-            ${r.hasFree ? `<span style="font-size:12px; color:#0284C7; font-weight:800;">答對 ${r.freeCorrect} / ${r.freeAttempts} 字 (${r.freeRate}%)</span>` : ''}
-          </div>
-          ${freeKpiHtml}
-          ${r.hasFree ? `
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-              <div style="background:#F0F9FF; border:1px solid rgba(14,165,233,.35); border-radius:10px; padding:10px 12px; min-height:85px;">
-                <div style="font-size:12px; font-weight:800; color:#0284C7; margin-bottom:6px;"><span style="color:#10B981; font-weight:900; margin-right:4px;">✔</span>答對的單字 (${(r.freeCorrectWords || []).length} 字)</div>
-                <div style="display:flex; flex-wrap:wrap; gap:4px;">${freeLeftContent}</div>
-              </div>
-              <div style="background:#F8FAFC; border:1px solid #CBD5E1; border-radius:10px; padding:10px 12px; min-height:85px;">
-                <div style="font-size:12px; font-weight:800; color:#475569; margin-bottom:6px;">❌ 答錯的單字 (${(r.freeWrongWords || []).length} 字)</div>
-                <div style="display:flex; flex-wrap:wrap; gap:4px;">${freeRightContent}</div>
-              </div>
-            </div>
-          ` : ''}
+        <div class="subh" style="margin-top:12px; margin-bottom:6px;">
+          <span>🎮 自由練習作答紀錄</span>
         </div>
+        ${freeCardHtml}
       </div>
     `;
   }).join("");
 
-  const conquerList = payload.pendingConquerWords || [];
-  let conquerSectionHtml = "";
-  if (conquerList.length === 0) {
-    conquerSectionHtml = `
-      <div style="border:1px solid #C7F1DC; border-radius:12px; padding:10px 14px; margin-bottom:14px; background:#F0FDF4; page-break-inside:avoid;">
-        <div style="font-size:13px; font-weight:800; color:#166534; display:flex; justify-content:space-between; align-items:center;">
-          <span>🎯 本期待攻克單字庫（0 字）</span>
-          <span style="font-size:11px; background:#DCFCE7; color:#15803D; padding:2px 8px; border-radius:999px; font-weight:800;">🎉 太棒了！目前全數攻克</span>
+  // 👾 期末大挑戰單字庫
+  const bossWords = payload.finalBossWords || [];
+  let bossSectionHtml = "";
+  if (bossWords.length > 0) {
+    const bossTags = bossWords.map(w => {
+      const cleanW = esc(String(w).trim());
+      const escCall = cleanW.replace(/'/g, "\\'");
+      return `<span class="word-pill-tag wrong" onclick="event.stopPropagation(); if (typeof speakMasteredWord === 'function') speakMasteredWord('${escCall}');" style="cursor:pointer;" title="點擊聆聽發音">${cleanW}</span>`;
+    }).join("");
+
+    bossSectionHtml = `
+      <div class="subh" style="margin-top:16px; margin-bottom:6px;">
+        <span>👾 期末大挑戰單字庫</span>
+      </div>
+      <div class="task-history-card" style="border:1.5px solid rgba(224,86,123,0.35); background:#FFF5F5;">
+        <div style="font-size:13px; font-weight:800; color:#B91C1C; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
+          <span>👾 期末大挑戰單字表：共 <strong>${bossWords.length}</strong> 字</span>
+          <span style="font-size:11px; background:#FEE2E2; color:#991B1B; padding:2px 8px; border-radius:999px; font-weight:800;">雙週未消滅弱點滾動累積</span>
         </div>
-        <div style="font-size:12px; color:#166534; margin-top:4px;">
-          平時指定測驗的錯題皆已完全掌握，或已在自由練習中即時答對並全數消滅！請繼續保持！
+        <div style="font-size:11.5px; color:#7F1D1D; margin-bottom:8px; line-height:1.4;">
+          以下為全學期各次雙週測驗累積、尚未全數答對消滅之重點弱點單字，已自動滾入學期末最終大挑戰魔王考卷：
+        </div>
+        <div style="display:flex; flex-wrap:wrap; gap:6px; padding:4px 0;">
+          ${bossTags}
         </div>
       </div>
     `;
   } else {
-    const conquerItemsHtml = conquerList.map(w => {
-      return `
-        <div style="display:inline-flex; align-items:center; background:#FFF; border:1px solid #FECACA; border-radius:8px; padding:4px 8px; margin:3px 4px 3px 0; font-size:11.5px; vertical-align:middle;">
-          <span style="font-weight:800; color:#1E293B; margin-right:4px;">${esc(w.word)}</span>
-          ${w.zh ? `<span style="color:#64748B; font-size:11px; margin-right:6px;">(${esc(w.zh)})</span>` : ""}
-          <span style="font-size:10px; font-weight:700; color:${w.color || '#E11D48'}; background:${w.bg || 'rgba(255,107,107,0.14)'}; padding:1px 6px; border-radius:999px;">${esc(w.tag || '拼寫弱點')}</span>
-        </div>
-      `;
-    }).join("");
-
-    conquerSectionHtml = `
-      <div style="border:1px solid #FECDD3; border-radius:12px; padding:10px 14px; margin-bottom:14px; background:#FFF1F2; page-break-inside:avoid;">
-        <div style="font-size:13px; font-weight:800; color:#9F1239; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
-          <span>🎯 本期待攻克單字庫（共 ${conquerList.length} 字）</span>
-          <span style="font-size:11px; background:#FFE4E6; color:#BE123C; padding:2px 8px; border-radius:999px; font-weight:800;">平日錯題累積 · 自由練習答對可自動消除</span>
-        </div>
-        <div style="font-size:11.5px; color:#881337; margin-bottom:8px; line-height:1.4;">
-          💡 <b>複習提示</b>：以下單字源自平日指定測驗錯題。學生在平日自由練習中只要拼對該單字，即可自動從待攻克庫中消滅；週六日的週末消滅戰也會集中複習此清單！
-        </div>
-        <div style="background:#FFF; border:1px solid #FFE4E6; border-radius:8px; padding:8px 10px;">
-          ${conquerItemsHtml}
-        </div>
+    bossSectionHtml = `
+      <div class="subh" style="margin-top:16px; margin-bottom:6px;">
+        <span>👾 期末大挑戰單字庫</span>
+      </div>
+      <div class="task-history-card" style="border:1.5px solid rgba(47,180,124,0.3); background:#F0FDF4; text-align:center; padding:14px 10px;">
+        <div style="font-size:13px; font-weight:800; color:#166534; margin-bottom:4px;">✨ 雙週測驗全數答對，無期末大挑戰弱點單字！</div>
+        <div style="font-size:11.5px; color:#15803D;">所有雙週單字皆已全數消滅掌握，期末考卷無遺留弱點單字。</div>
       </div>
     `;
   }
 
   return `
-        <div id="pdf-export-paper" style="width:100%; max-width:720px; margin:0 auto; background:#FFFFFF; color:#232A4D; padding:8px 8px; font-family:ui-rounded,'SF Pro Rounded','PingFang TC','Microsoft JhengHei',sans-serif; line-height:1.45; box-sizing:border-box;">
-      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2.5px solid #6C4CE0; padding-bottom:8px; margin-bottom:8px;">
-        <div>
-          <div style="font-size:18px; font-weight:900; color:#232A4D;">🎯 拼字小特工 · 學生使用與作答紀錄報表</div>
-          <div style="font-size:12px; color:#5A6183; font-weight:700; margin-top:2px;">${esc(payload.scopeTitle)}</div>
+    <div id="pdf-export-paper" style="width:100%; max-width:720px; margin:0 auto; color:var(--ink, #232A4D); line-height:1.45; box-sizing:border-box;">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid var(--line, #E7E9F5); padding-bottom:8px; margin-bottom:12px;">
+        <div style="font-size:14.5px; font-weight:900; color:var(--ink, #232A4D); display:flex; align-items:center; gap:6px;">
+          <span>📜 學習足跡歷程檔案</span>
+          <span style="font-size:11.5px; font-weight:700; color:var(--violet, #6C4CE0); background:rgba(108,76,224,0.08); padding:2px 8px; border-radius:999px;">${esc(payload.scopeTitle)}</span>
         </div>
-        <div style="text-align:right; font-size:11.5px; color:#5A6183; font-weight:700;">
-          <div>👤 學生帳號：<b style="color:#6C4CE0; font-size:13px;">${esc(payload.studentId)}</b></div>
-          <div>🕒 匯出時間：${esc(payload.exportTime)}</div>
-        </div>
-      </div>
-
-      <!-- 區間統計摘要 -->
-      <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-bottom:8px;">
-        <div style="background:#F8F9FD; border:1px solid #E7E9F5; border-radius:8px; padding:6px 6px; text-align:center;">
-          <div style="font-size:10.5px; color:#5A6183; font-weight:700;">📅 區間練習天數</div>
-          <div style="font-size:16px; font-weight:900; color:#6C4CE0;">${ps.activeDaysCount} 天</div>
-        </div>
-        <div style="background:#F8F9FD; border:1px solid #E7E9F5; border-radius:8px; padding:6px 6px; text-align:center;">
-          <div style="font-size:10.5px; color:#5A6183; font-weight:700;">✍️ 區間施測單字數</div>
-          <div style="font-size:16px; font-weight:900; color:#0284C7;">${ps.totalAttempts} 字</div>
-        </div>
-        <div style="background:#F8F9FD; border:1px solid #E7E9F5; border-radius:8px; padding:6px 6px; text-align:center;">
-          <div style="font-size:10.5px; color:#5A6183; font-weight:700;">✅ 區間答對單字數</div>
-          <div style="font-size:16px; font-weight:900; color:#2FB47C;">${ps.totalCorrect} 字</div>
-        </div>
-        <div style="background:#F8F9FD; border:1px solid #E7E9F5; border-radius:8px; padding:6px 6px; text-align:center;">
-          <div style="font-size:10.5px; color:#5A6183; font-weight:700;">📊 區間平均正確率</div>
-          <div style="font-size:16px; font-weight:900; color:${ps.avgRate >= 80 ? '#1E9A66' : '#E8892B'};">${ps.avgRate}%</div>
+        <div style="font-size:12px; color:var(--ink3, #64748B); font-weight:700;">
+          學員帳號：<b style="color:var(--violet, #6C4CE0);">${esc(payload.studentId)}</b>
         </div>
       </div>
-
-      <!-- 整體進度 Progress 獨立方塊（比照遊戲網頁整體進度） -->
-      <div style="border:1.5px solid #E7E9F5; border-radius:12px; padding:8px 10px; margin-bottom:8px; background:#FFFFFF; page-break-inside:avoid; box-shadow:0 2px 6px rgba(0,0,0,0.03);">
-        <div style="font-size:13.5px; font-weight:800; color:#232A4D; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
-          <span>整體進度 Progress</span>
-        </div>
-        <!-- 三色三階熟練度進度條 -->
-        <div style="height:14px; border-radius:8px; background:#E8EBF5; overflow:hidden; display:flex; border:1.5px solid rgba(35,42,77,0.12); margin-bottom:6px; box-sizing:border-box;">
-          <div style="width:${Math.min(100, Math.max(0, ((ov.learn || 0) / (ov.totalVocab || 2055) * 100)))}%; height:100%; background:linear-gradient(90deg, #6366F1, #818CF8);"></div>
-          <div style="width:${Math.min(100, Math.max(0, ((ov.prac || 0) / (ov.totalVocab || 2055) * 100)))}%; height:100%; background:linear-gradient(90deg, #0284C7, #38BDF8);"></div>
-          <div style="width:${Math.min(100, Math.max(0, ((ov.mast || 0) / (ov.totalVocab || 2055) * 100)))}%; height:100%; background:linear-gradient(90deg, #10B981, #34D399);"></div>
-        </div>
-        <!-- 圖例與指標說明 -->
-        <div style="display:flex; flex-direction:column; gap:4px; font-size:12px; color:#5A6183;">
-          <div style="display:flex; align-items:center; gap:14px; font-weight:700;">
-            <span style="display:inline-flex; align-items:center; gap:5px;"><i style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#6366F1;"></i>學習中 <b style="color:#4F46E5; font-size:13px;">${ov.learn || 0}</b></span>
-            <span style="display:inline-flex; align-items:center; gap:5px;"><i style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#0284C7;"></i>練習中 <b style="color:#0284C7; font-size:13px;">${ov.prac || 0}</b></span>
-            <span style="display:inline-flex; align-items:center; gap:5px;"><i style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#10B981;"></i>精通 <b style="color:#059669; font-size:13px;">${ov.mast || 0}</b></span>
-          </div>
-          <div style="display:flex; align-items:center; gap:8px; font-weight:700; color:#232A4D; padding-top:3px; border-top:1px dashed #E7E9F5;">
-            <span>答對 <b style="color:#D97706; font-size:13px;">${ov.distinctCorrect || ((ov.learn || 0) + (ov.prac || 0) + (ov.mast || 0))}</b> 字，共 <b style="color:#D97706; font-size:13px;">${ov.totalVocab || 2055}</b> 字，掌握率 <b style="color:#D97706; font-size:13px;">${ov.passRate || 0}%</b></span>
-            <span style="color:#CBD5E1;">/</span>
-            <span>獲得 <b style="color:#D97706; font-size:13px;">${ov.points || 0}</b> 分</span>
-          </div>
-        </div>
-        <div style="font-size:11px; color:#9AA0BD; margin-top:6px; line-height:1.4;">
-          熟練度定義：<b>學習中</b>＝答對 1 次 · <b>練習中</b>＝連續答對 2 次 · <b>精通</b>＝連續答對 3 次（答錯會退回「學習中」）
-        </div>
-      </div>
-
-      <!-- 各關卡進度（比照整體進度版型） -->
-      <div style="border:1.5px solid #E7E9F5; border-radius:12px; padding:8px 10px; margin-bottom:8px; background:#FFFFFF; page-break-inside:avoid; box-shadow:0 2px 6px rgba(0,0,0,0.03);">
-        <div style="font-size:13.5px; font-weight:800; color:#232A4D; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #E7E9F5; padding-bottom:6px;">
-          <span>📊 各關卡進度</span>
-          <span style="font-size:12px; color:#5A6183; font-weight:700;">全書掌握 ${ov.distinctCorrect} 字 / 2055 字（掌握率 ${ov.passRate}%）</span>
-        </div>
-        <table class="sumtable" style="width:100%; border-collapse:collapse; font-size:12.5px;">
-          ${lvRowsHtml}
-        </table>
-      </div>
-
-      <!-- 🎯 本期待攻克單字庫 -->
-      ${conquerSectionHtml}
-
-      <!-- 每日使用紀錄明細 -->
-      <div style="font-size:13.5px; font-weight:800; color:#232A4D; margin-bottom:8px;">📋 每日使用與作答紀錄明細（共 ${payload.dailyRecords.length} 日）</div>
       ${dailyCardsHtml}
-
-      <!-- 👾 期末大挑戰單字庫 -->
-      ${(() => {
-        const bossWords = payload.finalBossWords || [];
-        if (bossWords.length > 0) {
-          const bossItemsHtml = bossWords.map(w => {
-            const cleanW = esc(String(w).trim());
-            const zh = typeof getWordZh === "function" ? (getWordZh(w) || "") : "";
-            return `
-              <div style="display:inline-flex; align-items:center; background:#FFF; border:1px solid #FECACA; border-radius:8px; padding:4px 8px; margin:3px 4px 3px 0; font-size:11.5px; vertical-align:middle;">
-                <span style="font-weight:800; color:#991B1B; margin-right:4px;">${cleanW}</span>
-                ${zh ? `<span style="color:#64748B; font-size:11px; margin-right:6px;">(${esc(zh)})</span>` : ""}
-                <span style="background:rgba(224,86,123,0.14); color:#BE123C; font-size:10px; font-weight:700; padding:1px 6px; border-radius:4px;">期末魔王弱點</span>
-              </div>
-            `;
-          }).join("");
-
-          return `
-            <div style="border:1.5px solid #FEE2E2; border-radius:12px; padding:10px 14px; margin-top:14px; background:#FFF5F5; page-break-inside:avoid; box-shadow:0 2px 6px rgba(224,86,123,0.06);">
-              <div style="font-size:13.5px; font-weight:800; color:#B91C1C; display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #FECACA; padding-bottom:6px;">
-                <span style="display:inline-flex; align-items:center; gap:6px;">👾 期末大挑戰單字庫（共 ${bossWords.length} 字）</span>
-                <span style="font-size:11px; background:#FEE2E2; color:#991B1B; padding:2px 8px; border-radius:999px; font-weight:800;">雙週未消滅弱點累積</span>
-              </div>
-              <div style="font-size:11.5px; color:#7F1D1D; margin:6px 0 8px 0; line-height:1.4;">
-                以下為全學期各次雙週測驗累積、尚未全數答對消滅之重點弱點單字，已自動滾入學期末最終大挑戰魔王考卷：
-              </div>
-              <div style="display:flex; flex-wrap:wrap; gap:4px;">
-                ${bossItemsHtml}
-              </div>
-            </div>
-          `;
-        } else {
-          return `
-            <div style="border:1.5px solid #DCFCE7; border-radius:12px; padding:10px 14px; margin-top:14px; background:#F0FDF4; page-break-inside:avoid;">
-              <div style="font-size:13.5px; font-weight:800; color:#166534; display:flex; justify-content:space-between; align-items:center;">
-                <span style="display:inline-flex; align-items:center; gap:6px;">👾 期末大挑戰單字庫</span>
-                <span style="font-size:11px; background:#DCFCE7; color:#15803D; padding:2px 8px; border-radius:999px; font-weight:800;">🎉 目前無弱點單字</span>
-              </div>
-              <div style="font-size:12px; color:#15803D; margin-top:4px;">
-                ✨ 太棒了！雙週測驗弱點已全數答對攻克，無任何滾入期末大挑戰之單字。
-              </div>
-            </div>
-          `;
-        }
-      })()}
+      ${bossSectionHtml}
     </div>
   `;
 }
-
 
 </script>
