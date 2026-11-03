@@ -35,14 +35,50 @@ if (typeof google === "undefined" || !google.script || !google.script.run) {
             if (prop === "saveStudentGoals" && args[1]) payload.goals = args[1];
             else if (prop === "saveTeacherTask" && args[1]) payload.taskData = args[1];
             else if (prop === "getTeacherTask") { payload.targetClass = args[1]; payload.targetDate = args[2]; }
-            fetch(gasUrl, {
-              method: "POST",
-              headers: { "Content-Type": "text/plain;charset=utf-8" },
-              body: JSON.stringify(payload)
-            })
-            .then(r => r.json())
-            .then(data => { if (onSuccess) onSuccess(data); })
-            .catch(err => { if (onFailure) onFailure(err); });
+            // SWR 本地快取快顯優化：偏鄉山區/極低流量學生秒開，背景再非同步更新
+            const cacheKey = `gh_cache_${prop}_${payload.username || ''}_${payload.targetStudent || ''}_${payload.targetClass || ''}`;
+            let hasCachedServed = false;
+            if (prop === "checkAndGetData" || prop === "login" || prop === "getTeacherTask") {
+              try {
+                const localRaw = localStorage.getItem(cacheKey);
+                if (localRaw) {
+                  const cachedData = JSON.parse(localRaw);
+                  if (cachedData && cachedData.status === "success") {
+                    hasCachedServed = true;
+                    if (onSuccess) setTimeout(() => onSuccess(cachedData), 10);
+                  }
+                }
+              } catch(_) {}
+            }
+
+            // 弱網重試與逾時保護 (專為偏鄉山區訊號抖動設計)
+            const doFetch = (attempt = 1) => {
+              const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+              const tid = controller ? setTimeout(() => controller.abort(), 20000) : null;
+              fetch(gasUrl, {
+                method: "POST",
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify(payload),
+                signal: controller ? controller.signal : undefined
+              })
+              .then(r => r.json())
+              .then(data => {
+                if (tid) clearTimeout(tid);
+                if (data && data.status === "success") {
+                  try { localStorage.setItem(cacheKey, JSON.stringify(data)); } catch(_) {}
+                }
+                if (onSuccess) onSuccess(data);
+              })
+              .catch(err => {
+                if (tid) clearTimeout(tid);
+                if (attempt < 2) {
+                  setTimeout(() => doFetch(attempt + 1), 1000);
+                } else {
+                  if (!hasCachedServed && onFailure) onFailure(err);
+                }
+              });
+            };
+            doFetch(1);
           };
         }
       });

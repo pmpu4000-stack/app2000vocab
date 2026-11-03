@@ -9,6 +9,7 @@ const CACHE_NAME = 'spelling-app-shell-v2';
 const STATIC_ASSETS = [
   './',
   'index.html',
+  'history.html',
   'css/styles.css',
   'src/app.js',
   'src/ui.js',
