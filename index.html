@@ -3409,6 +3409,51 @@ const devAudit = getDeviceAuditInfo();
       initPickerEvents();
       initTimeManagementEvents();
     }
+
+    // ══════════════════════════════════════════
+    // 🛡️ 學校電腦教室資安防護：防上一頁/下一頁免密跳轉與逾時閒置保護
+    // ══════════════════════════════════════════
+    (function initSchoolComputerSecurityGuard() {
+      // 1. 偵測瀏覽器上一頁/下一頁快取恢復 (bfcache pageshow)
+      window.addEventListener("pageshow", function(e) {
+        if (e.persisted) {
+          const overlay = document.getElementById("login-overlay");
+          if (overlay) {
+            overlay.style.removeProperty("display");
+            overlay.style.setProperty("display", "flex", "important");
+            overlay.classList.remove("hidden");
+            document.body.classList.add("is-logging-in");
+            const passInput = document.getElementById("login-pass");
+            if (passInput) passInput.value = "";
+            const statusEl = document.getElementById("login-status");
+            if (statusEl) {
+              statusEl.textContent = "🔒 偵測到頁面切換，為保護學校電腦帳號安全，請重新輸入密碼。";
+              statusEl.style.display = "block";
+              statusEl.className = "status-msg warning";
+            }
+          }
+        }
+      });
+
+      // 2. 學校電腦 15 分鐘無操作自動清除憑證並登出
+      let schoolIdleTimer = null;
+      const SCHOOL_IDLE_TIMEOUT_MS = 15 * 60 * 1000;
+      function resetSchoolIdleTimer() {
+        if (schoolIdleTimer) clearTimeout(schoolIdleTimer);
+        const isCurrentlyLoggedIn = !document.body.classList.contains("is-logging-in");
+        if (isCurrentlyLoggedIn) {
+          schoolIdleTimer = setTimeout(() => {
+            if (typeof window.confirmLogoutFromModal === "function") {
+              alert("⏰ 學校電腦閒置超過 15 分鐘，系統已自動登出保護您的帳號安全！");
+              window.confirmLogoutFromModal();
+            }
+          }, SCHOOL_IDLE_TIMEOUT_MS);
+        }
+      }
+      ["mousemove", "keydown", "click", "touchstart"].forEach(evt => {
+        window.addEventListener(evt, resetSchoolIdleTimer, { passive: true });
+      });
+    })();
   </script>
 
   <!-- ══════════════════════════════════════════

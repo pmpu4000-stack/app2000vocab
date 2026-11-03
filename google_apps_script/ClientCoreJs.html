@@ -631,4 +631,7 @@ function fetchData(isRefresh = false, onComplete = null) {
 // ════════════════════════════════════════
 // 教師：初始化班級總覽
 // ════════════════════════════════════════
+
+// 🛡️ 學校電腦資安防護：防上一頁/下一頁快取免密跳轉
+window.addEventListener("pageshow", function(e) { if (e.persisted && typeof logout === "function") logout(); });
 </script>
