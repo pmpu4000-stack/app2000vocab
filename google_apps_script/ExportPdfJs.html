@@ -4605,8 +4605,8 @@ function _buildStudentExportPayload(resp, mode, startDate, endDate) {
       }
     }
 
-    let hasTask = false, taskName = "無指派測驗", formattedTaskName = "無指派測驗", taskStatus = "無紀錄", taskScore = "—", taskRate = "—";
-    let isUnassigned = false;
+    let hasTask = false, taskName = "⚪ 未指派", formattedTaskName = "⚪ 當日無指派測驗", taskStatus = hasFree ? "當日無指派（已自主練習）" : "當日無指派測驗", taskScore = "—", taskRate = "—";
+    let isUnassigned = true;
     let taskCorrectWords = [], taskWrongWords = [], unansweredWords = [];
     let tAtt = 0, tCor = 0, assignedTotWords = 0, actualAnswered = 0, actualWrong = 0, actualUnanswered = 0;
     let attemptedRate = 0, overallScoreRate = 0, hasUnanswered = false;

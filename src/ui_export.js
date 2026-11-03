@@ -227,8 +227,8 @@ function _buildExportPayload(d, mode, startDate, endDate) {
       periodFreeCorrect += fInfo.correctCount;
     }
 
-    let hasTask = false, taskName = "無指派測驗", taskStatus = "無紀錄", taskScore = "—", taskRate = "—";
-    let isUnassigned = false;
+    let hasTask = false, taskName = "⚪ 未指派", taskStatus = hasFree ? "當日無指派（已自主練習）" : "當日無指派測驗", taskScore = "—", taskRate = "—";
+    let isUnassigned = true;
     let taskCorrectWords = [], taskWrongWords = [];
     let tAtt = 0, tCor = 0;
     let assignedTotWords = 0, actualAnswered = 0, actualWrong = 0, actualUnanswered = 0, hasUnanswered = false, overallScoreRate = 0;
@@ -1027,7 +1027,7 @@ function _buildReportHtml(payload) {
         : `<span style="font-size:12px; color:var(--ink3, #94A3B8); font-style:italic;">（當日尚無全對單字）</span>`;
       const fWrgTags = fWrgList.length > 0
         ? fWrgList.map(w => `<span class="word-pill-tag wrong" onclick="event.stopPropagation(); if (typeof speakMasteredWord === 'function') speakMasteredWord('${esc(w).replace(/'/g, "\\\'")}');" style="cursor:pointer;" title="點擊聆聽發音">${esc(w)}</span>`).join("")
-        : `<span class="perfect-score-msg">🎉 太棒了！當日自由練習全數答對，無任何答錯單字！</span>`;
+        : `<span class="perfect-score-msg">🌟 太棒了！當日自由練習全數答對，無任何答錯單字！</span>`;
 
       const fRate = parseInt(r.freeRate, 10) || 0;
       freeCardHtml = `
