@@ -47,6 +47,7 @@
         if (wJson) {
           pickerWords = wJson;
           if (mJson) pickerMeanings = mJson;
+          buildPickerPrefixIndex();
           return;
         }
         const [wRes, mRes] = await Promise.all([
@@ -57,9 +58,22 @@
         if (mRes && mRes.ok) {
           pickerMeanings = await mRes.json();
         }
+        buildPickerPrefixIndex();
       } catch (err) {
         console.error("載入單字庫失敗：", err);
       }
+    }
+
+    let _pickerPrefixIndex = null;
+    function buildPickerPrefixIndex() {
+      _pickerPrefixIndex = {};
+      pickerWords.forEach(item => {
+        const w = (item.w || "").trim().toLowerCase();
+        if (!w) return;
+        const init = w[0];
+        if (!_pickerPrefixIndex[init]) _pickerPrefixIndex[init] = [];
+        _pickerPrefixIndex[init].push(item);
+      });
     }
 
     function renderPickerGrid() {
@@ -87,7 +101,9 @@
         const isAscii = /^[a-z0-9]/i.test(q);
         let matches = [];
         if (isAscii) {
-          matches = pool.filter(item => (item.w || "").toLowerCase().startsWith(q));
+          const init = q[0];
+          const bucket = (_pickerPrefixIndex && _pickerPrefixIndex[init]) || pool;
+          matches = bucket.filter(item => (item.w || "").toLowerCase().startsWith(q));
           if (matches.length === 0) {
             matches = pool.filter(item => (item.w || "").toLowerCase().includes(q));
           }
@@ -359,12 +375,16 @@
         };
       });
 
-      // 搜尋
+      // 搜尋 (100ms 防抖，大幅減輕逐字重繪消耗)
       const searchInp = document.getElementById("t-modal-search");
       if (searchInp) {
+        let _srchTimer = null;
         searchInp.oninput = () => {
-          pickerSearch = searchInp.value;
-          renderPickerGrid();
+          clearTimeout(_srchTimer);
+          _srchTimer = setTimeout(() => {
+            pickerSearch = searchInp.value;
+            renderPickerGrid();
+          }, 100);
         };
       }
 

@@ -10060,12 +10060,16 @@ function initWordBankMaps() {
   if (!Array.isArray(WORD_BANK_2000) || WORD_BANK_2000.length === 0) return;
   if (!window._wordBankZhMap) window._wordBankZhMap = new Map();
   if (!window._wordBankLevelMap) window._wordBankLevelMap = new Map();
+  if (!window._wordBankPrefixMap) window._wordBankPrefixMap = new Map();
   for (let i = 0; i < WORD_BANK_2000.length; i++) {
     const item = WORD_BANK_2000[i];
     if (item && item[0]) {
       const w = String(item[0]).toLowerCase();
       if (!window._wordBankZhMap.has(w)) window._wordBankZhMap.set(w, item[1] || "");
       if (!window._wordBankLevelMap.has(w)) window._wordBankLevelMap.set(w, item[2] || 1);
+      const init = w[0];
+      if (!window._wordBankPrefixMap.has(init)) window._wordBankPrefixMap.set(init, []);
+      window._wordBankPrefixMap.get(init).push(item);
     }
   }
 }
@@ -10368,27 +10372,33 @@ function setWordPickerLevel(lv) {
 }
 
 function onWordSearchInput() {
-  pickerCurrentSearch = (document.getElementById("taskWordSearchInput").value || "").trim().toLowerCase();
-  renderWordPickerGrid();
+  clearTimeout(window._wordSearchDebounce);
+  window._wordSearchDebounce = setTimeout(() => {
+    pickerCurrentSearch = (document.getElementById("taskWordSearchInput").value || "").trim().toLowerCase();
+    renderWordPickerGrid();
+  }, 100);
 }
 
 function getFilteredWordList() {
   if (!Array.isArray(WORD_BANK_2000) || WORD_BANK_2000.length === 0) return [];
-  return WORD_BANK_2000.filter(item => {
+  const _q = (pickerCurrentSearch || "").trim().toLowerCase();
+  if (!_q) {
+    if (pickerCurrentLevel !== "all") {
+      return WORD_BANK_2000.filter(item => item[2] === Number(pickerCurrentLevel));
+    }
+    return WORD_BANK_2000;
+  }
+  const _isAsc = /^[a-z0-9]/i.test(_q);
+  const pool = (_isAsc && window._wordBankPrefixMap && window._wordBankPrefixMap.get(_q[0])) || WORD_BANK_2000;
+  return pool.filter(item => {
     const w = item[0].toLowerCase();
-    const zh = String(item[1] || "").replace(/^(n|v|a|adj|adv|prep|conj|pron|art|phr|aux|vi|vt)\.\s*/i, "");
+    const zh = String(item[1] || "").toLowerCase();
     const lv = item[2];
     if (pickerCurrentLevel !== "all" && lv !== Number(pickerCurrentLevel)) return false;
-    if (pickerCurrentSearch) {
-      const _q = pickerCurrentSearch.trim().toLowerCase();
-      const _isAsc = /^[a-z0-9]/i.test(_q);
-      if (_isAsc) {
-        if (!w.startsWith(_q) && !w.includes(_q)) return false;
-      } else {
-        if (!w.includes(_q) && !zh.includes(_q)) return false;
-      }
+    if (_isAsc) {
+      return w.startsWith(_q) || w.includes(_q);
     }
-    return true;
+    return w.includes(_q) || zh.includes(_q);
   });
 }
 
