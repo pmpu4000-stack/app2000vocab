@@ -554,14 +554,32 @@ export function historyData(n = 28, preloadedTaskHistory = null) {
     return getDayStat(k).a > 0;
   };
 
-  // 自動消耗連勝護盾機制：若昨日未作答，但前日有連續作答且存有護盾，自動消耗 1 個護盾延續連續紀錄
-  const yKey = dayAgo(1).key;
-  const d2Key = dayAgo(2).key;
-  if (getDayStat(yKey).a === 0 && !DB.streakFreezeUsed.includes(yKey)) {
-    if (isDayCovered(d2Key) && DB.streakFreezes > 0) {
-      DB.streakFreezes--;
-      DB.streakFreezeUsed.push(yKey);
-      DB.__justUsedFreeze = true;
+  // 自動消耗連勝護盾機制：支援多日未登入自動回溯守護（由最近活躍日向昨日依序消耗）
+  let lastCoveredOffset = null;
+  for (let off = 1; off <= 90; off++) {
+    const k = dayAgo(off).key;
+    if (getDayStat(k).a > 0 || DB.streakFreezeUsed.includes(k)) {
+      lastCoveredOffset = off;
+      break;
+    }
+  }
+
+  if (lastCoveredOffset !== null && lastCoveredOffset > 1) {
+    let freezeChanged = false;
+    for (let off = lastCoveredOffset - 1; off >= 1; off--) {
+      const k = dayAgo(off).key;
+      if (getDayStat(k).a === 0 && !DB.streakFreezeUsed.includes(k)) {
+        if (DB.streakFreezes > 0) {
+          DB.streakFreezes--;
+          DB.streakFreezeUsed.push(k);
+          DB.__justUsedFreeze = true;
+          freezeChanged = true;
+        } else {
+          break;
+        }
+      }
+    }
+    if (freezeChanged) {
       save();
     }
   }

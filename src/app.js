@@ -37,8 +37,8 @@ if (typeof document !== "undefined") {
 // and manages teacher-assigned tasks & weekend mistake remediation.
 // =====================================================================
 import { loadWordBank, wordsAtLevel } from "./wordbank.js?v=20261025_1618";
-import * as store from "./store.js?v=20261101_2120";
-import { normalizeDateStr } from "./store.js?v=20261101_2120";
+import * as store from "./store.js?v=20261104_1118";
+import { normalizeDateStr } from "./store.js?v=20261104_1118";
 import { nextWord } from "./srs.js?v=20261019_v228";
 import * as ui from "./ui.js?v=20261101_2145";
 import { stopAudio, prefetchAudio } from "./audio.js";
