@@ -47,6 +47,35 @@
       border-color: #2B334E !important;
       background: rgba(255, 255, 255, 0.06) !important;
     }
+  
+    /* 👨‍👩‍👧 家長專屬動態視圖過濾 (依需求隱藏作答相關元件，保留五大歷程方塊) */
+    body.role-parent #stat-daily-timer,
+    body.role-parent #stat-streak-freeze,
+    body.role-parent #btn-upload,
+    body.role-parent #levelbar,
+    body.role-parent #modes,
+    body.role-parent #card,
+    body.role-parent #session,
+    body.role-parent #screen-quiz,
+    body.role-parent #banner,
+    body.role-parent #btn-teacher-picker,
+    body.role-parent #btn-time-management,
+    body.role-parent #admin-portal-link,
+    body.role-parent #parent-portal-screen {
+      display: none !important;
+    }
+
+    body.role-parent .app {
+      display: block !important;
+    }
+
+    body.role-parent #progress-card,
+    body.role-parent #learning-record-section,
+    body.role-parent #week-conquer-section,
+    body.role-parent #weak-words-section,
+    body.role-parent #export-records-section {
+      display: block !important;
+    }
   </style>
   <link rel="stylesheet" href="css/styles.css?v=20261101_2140">
   <link rel="preload" href="data/words2000.json" as="fetch" crossorigin>
@@ -1196,17 +1225,16 @@
           localStorage.setItem("current_user", user);
           localStorage.setItem("user_role", result.role || "student");
 
-          // 角色分流導向：直接在遊戲網頁切換至對應畫面
+          // 角色分流導向：家長身分啟用專屬儀表板過濾（顯示家長帳號、隱藏作答題型、保留五大歷程方塊）
           if (result.role === "parent") {
-            setLoginStatus("家長身分驗證成功，直接載入子女學習歷程...", "loading-game");
+            setLoginStatus("家長身分驗證成功，正在載入子女學習成果...", "loading-game");
+            document.body.classList.add("role-parent");
+            localStorage.setItem("current_user", user);
+            localStorage.setItem("user_role", "parent");
             sessionStorage.setItem("current_user", user);
-            sessionStorage.setItem("current_pass", pass);
             sessionStorage.setItem("user_role", "parent");
-            setTimeout(() => {
-              applyRoleBasedView("parent", result);
-              renderParentPortalView(result, user, pass);
-            }, 250);
-            return;
+            window.__PARENT_USER = user;
+            window.__PARENT_STUDENT = result.realName || result.username || "";
           }
           if (result.role === "admin" || (result.role === "teacher" && result.isAdmin)) {
             // 教師 / 管理員可自由選擇使用「出題設定」或前往「總控後台」
@@ -1528,6 +1556,7 @@
             ov.style.setProperty("display", "flex", "important");
             ov.classList.remove("hidden");
           }
+          document.body.classList.remove("role-parent");
           document.body.classList.add("is-logging-in");
           const uInput = document.getElementById("login-user");
           const pInput = document.getElementById("login-pass");
