@@ -53,6 +53,23 @@
       border-color: #2B334E !important;
       background: rgba(255, 255, 255, 0.06) !important;
     }
+
+    /* 柔和護眼模式過渡：消除開燈刺眼感 (Smooth Theme Dimmer Transition) */
+    html.theme-transitioning,
+    html.theme-transitioning *,
+    html.theme-transitioning *::before,
+    html.theme-transitioning *::after {
+      transition: background-color 0.38s cubic-bezier(0.25, 1, 0.5, 1),
+                  color 0.35s ease,
+                  border-color 0.35s ease,
+                  box-shadow 0.35s ease !important;
+      transition-delay: 0s !important;
+    }
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+      animation-duration: 0.35s;
+      animation-timing-function: cubic-bezier(0.25, 1, 0.5, 1);
+    }
   
     /* 👨‍👩‍👧 家長專屬動態視圖過濾 (依需求隱藏作答相關元件，保留五大歷程方塊) */
     body.role-parent #stat-daily-timer,
@@ -1075,9 +1092,25 @@
       });
     }
 
+    function enableThemeTransition() {
+      document.documentElement.classList.add("theme-transitioning");
+      window.clearTimeout(window._themeTransTimer);
+      window._themeTransTimer = window.setTimeout(() => {
+        document.documentElement.classList.remove("theme-transitioning");
+      }, 450);
+    }
+
     function toggleTheme() {
       const cur = localStorage.getItem("app_theme") || "light";
-      applyAppTheme(cur === "dark" ? "light" : "dark");
+      const next = cur === "dark" ? "light" : "dark";
+      if (document.startViewTransition) {
+        document.startViewTransition(() => {
+          applyAppTheme(next);
+        });
+      } else {
+        enableThemeTransition();
+        applyAppTheme(next);
+      }
     }
 
     const savedTheme = localStorage.getItem("app_theme") || "light";

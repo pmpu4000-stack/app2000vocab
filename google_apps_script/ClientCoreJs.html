@@ -252,20 +252,35 @@ function applyPageThemeBackground(theme) {
     });
   }
 }
+function enableThemeTransition() {
+  document.documentElement.classList.add("theme-transitioning");
+  window.clearTimeout(window._themeTransTimer);
+  window._themeTransTimer = window.setTimeout(function() {
+    document.documentElement.classList.remove("theme-transitioning");
+  }, 450);
+}
 function toggleTheme() {
   const cur = document.documentElement.getAttribute("data-theme") || "light";
   const next = cur === "light" ? "dark" : "light";
-  applyPageThemeBackground(next);
-  localStorage.setItem("theme", next);
-  localStorage.setItem("app_theme", next);
-  updateThemeButtonText(next);
-  if (cumChartInstance || dailyChartInstance || wordCumChartInstance || wordDailyChartInstance || radarChartInstance) updateCharts();
-  if (forecastChartInstance) renderForecast();
-  if (freqWeekdayChartInstance || freqIntensityChartInstance) renderFrequencyAnalysis();
-  if (weaknessChartInstance) renderWeaknessAnalysis();
-  if (wordFlowStreamChartInstance || wordFlowDailyChartInstance) renderWordFlowTracking();
-  if (isTeacherChartVisible && teacherOverview && teacherOverview.length > 0) renderTeacherCharts(teacherOverview);
-  if (document.getElementById("heatmapCard") && document.getElementById("heatmapCard").style.display !== "none") renderHeatmap();
+  const doApply = function() {
+    applyPageThemeBackground(next);
+    localStorage.setItem("theme", next);
+    localStorage.setItem("app_theme", next);
+    updateThemeButtonText(next);
+    if (cumChartInstance || dailyChartInstance || wordCumChartInstance || wordDailyChartInstance || radarChartInstance) updateCharts();
+    if (forecastChartInstance) renderForecast();
+    if (freqWeekdayChartInstance || freqIntensityChartInstance) renderFrequencyAnalysis();
+    if (weaknessChartInstance) renderWeaknessAnalysis();
+    if (wordFlowStreamChartInstance || wordFlowDailyChartInstance) renderWordFlowTracking();
+    if (isTeacherChartVisible && teacherOverview && teacherOverview.length > 0) renderTeacherCharts(teacherOverview);
+    if (document.getElementById("heatmapCard") && document.getElementById("heatmapCard").style.display !== "none") renderHeatmap();
+  };
+  if (document.startViewTransition) {
+    document.startViewTransition(doApply);
+  } else {
+    enableThemeTransition();
+    doApply();
+  }
 }
 function updateThemeButtonText(theme) {
   const btn = document.getElementById("btnThemeToggle");
