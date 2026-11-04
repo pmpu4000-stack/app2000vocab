@@ -122,6 +122,8 @@
     body.role-teacher #stat-streak-freeze,
     body.role-teacher #btn-upload,
     body.role-teacher .stat.upload,
+    body.role-teacher #btn-teacher-picker,
+    body.role-teacher #btn-time-management,
     html.role-teacher body #levelbar,
     html.role-teacher body #modes,
     html.role-teacher body #card,
@@ -134,20 +136,15 @@
     html.role-teacher body #stat-daily-timer,
     html.role-teacher body #stat-streak-freeze,
     html.role-teacher body #btn-upload,
-    html.role-teacher body .stat.upload {
+    html.role-teacher body .stat.upload,
+    html.role-teacher body #btn-teacher-picker,
+    html.role-teacher body #btn-time-management {
       display: none !important;
     }
 
     body.role-teacher .app,
     html.role-teacher body .app {
       display: block !important;
-    }
-
-    body.role-teacher #btn-teacher-picker,
-    body.role-teacher #btn-time-management,
-    html.role-teacher body #btn-teacher-picker,
-    html.role-teacher body #btn-time-management {
-      display: flex !important;
     }
 
     body.role-teacher #teacher-portal-card,
@@ -1452,6 +1449,7 @@
         const hideSelectors = [
           "#stat-daily-timer", "#stat-streak-freeze", "#btn-upload", ".stat.upload",
           "#levelbar", "#modes", "#card", ".card:not(#teacher-portal-card)", "#session", "#banner", "#screen-quiz",
+          "#btn-teacher-picker", "#btn-time-management",
           "#daily-limit-reached-card", "#parent-portal-screen"
         ];
         hideSelectors.forEach(sel => {
@@ -1460,8 +1458,8 @@
           });
         });
 
-        if (teacherBtn) teacherBtn.style.setProperty("display", "flex", "important");
-        if (timeBtn) timeBtn.style.setProperty("display", "flex", "important");
+        if (teacherBtn) teacherBtn.style.setProperty("display", "none", "important");
+        if (timeBtn) timeBtn.style.setProperty("display", "none", "important");
         if (adminNotice) adminNotice.style.setProperty("display", isAdmin ? "inline-flex" : "none", "important");
 
         const teacherCard = document.getElementById("teacher-portal-card");
