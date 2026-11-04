@@ -364,7 +364,9 @@ function getTeacherTask(credentials, targetClass, targetDate) {
   try {
     const ss   = SpreadsheetApp.getActiveSpreadsheet();
     const auth = authenticateUser(ss, credentials.username, credentials.password);
-    if (!auth.success || auth.role !== "teacher") return { status: "error", message: "無權限" };
+    if (!auth.success || (auth.role !== "teacher" && auth.role !== "admin" && !auth.isAdmin)) {
+      return { status: "error", message: auth.message || "無權限：僅教師與管理員可發布指定測驗" };
+    }
 
     const cleanAuth  = String(auth.className || "").replace(/班$/, "").trim().toLowerCase();
     let effectiveClass = String(targetClass || auth.className || "all").trim();
@@ -421,7 +423,9 @@ function saveTeacherTask(credentials, taskData) {
   try {
     const ss   = SpreadsheetApp.getActiveSpreadsheet();
     const auth = authenticateUser(ss, credentials.username, credentials.password);
-    if (!auth.success || auth.role !== "teacher") return { status: "error", message: "無權限" };
+    if (!auth.success || (auth.role !== "teacher" && auth.role !== "admin" && !auth.isAdmin)) {
+      return { status: "error", message: auth.message || "無權限：僅教師與管理員可發布指定測驗" };
+    }
 
     const targetClass = String(taskData.targetClass || taskData.className || auth.className || "all").trim();
     const cleanAuth   = String(auth.className || "").replace(/班$/, "").trim().toLowerCase();
@@ -432,9 +436,18 @@ function saveTeacherTask(credentials, taskData) {
       ? auth.classList.map(c => String(c).replace(/班$/, "").trim().toLowerCase())
       : cleanAuth.split(/[,，、\s/]+/).map(c => c.replace(/班$/, "").trim().toLowerCase());
 
-    const isClassAllowed = auth.isAdmin || cleanAuth === "all" || teacherClasses.includes(cleanTarget) || cleanAuth === cleanTarget;
+    const isClassAllowed = auth.isAdmin || 
+      auth.role === "admin" || 
+      cleanAuth === "all" || 
+      cleanAuth === "全校" || 
+      cleanAuth === "系統管理員" || 
+      cleanAuth === "" || 
+      teacherClasses.includes(cleanTarget) || 
+      cleanAuth === cleanTarget ||
+      (auth.username && String(auth.username).toLowerCase().includes(cleanTarget));
+
     if (!isClassAllowed) {
-      return { status: "error", message: "權限不足：非管理員教師僅限為自身任教班級出題" };
+      return { status: "error", message: "權限不足：非管理員教師僅限為自身任教班級出題（目標：" + targetClass + "，您任教：" + (teacherClasses.join("、") || cleanAuth) + "）" };
     }
 
     let sheet = ss.getSheetByName("指定單字任務");

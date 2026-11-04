@@ -290,6 +290,16 @@
       border-color: #6366f1 !important;
       color: #6366f1 !important;
     }
+    #t-word-grid {
+      display: grid !important;
+      grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+      gap: 8px !important;
+    }
+    @media (max-width: 620px) {
+      #t-word-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      }
+    }
 
     /* 教師出題快捷按鈕與標籤雙模式適配 */
     .t-btn-action,
