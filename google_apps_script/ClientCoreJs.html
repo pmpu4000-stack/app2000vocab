@@ -259,7 +259,7 @@ function enableThemeTransition() {
   window._themeTransTimer = window.setTimeout(function() {
     document.documentElement.classList.remove("theme-transitioning");
     _isThemeSwitching = false;
-  }, 1000);
+  }, 500);
 }
 function toggleTheme() {
   if (_isThemeSwitching) return;

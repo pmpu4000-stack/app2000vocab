@@ -76,15 +76,15 @@
     html.theme-transitioning *,
     html.theme-transitioning *::before,
     html.theme-transitioning *::after {
-      transition: background-color 1.0s cubic-bezier(0.25, 1, 0.5, 1),
-                  color 1.0s ease,
-                  border-color 1.0s ease,
-                  box-shadow 1.0s ease !important;
+      transition: background-color 0.5s cubic-bezier(0.25, 1, 0.5, 1),
+                  color 0.5s cubic-bezier(0.25, 1, 0.5, 1),
+                  border-color 0.5s cubic-bezier(0.25, 1, 0.5, 1),
+                  box-shadow 0.5s cubic-bezier(0.25, 1, 0.5, 1) !important;
       transition-delay: 0s !important;
     }
     ::view-transition-old(root),
     ::view-transition-new(root) {
-      animation-duration: 1.0s;
+      animation-duration: 0.5s;
       animation-timing-function: cubic-bezier(0.25, 1, 0.5, 1);
     }
     html {
@@ -483,15 +483,31 @@ body.css-fullscreen-active {
     button:hover:not(:disabled) { background-color: var(--primary-hover); transform: translateY(-1px); }
     button:active:not(:disabled) { transform: scale(0.97); }
     button:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-    .btn-secondary { background-color: var(--card); color: var(--text); border: 1.5px solid var(--border); }
-    .btn-secondary:hover:not(:disabled) { background-color: var(--table-hover-bg); }
-    [data-theme="dark"] .btn-secondary {
+    .btn-secondary, .t-btn-action { background-color: var(--card); color: var(--text); border: 1.5px solid var(--border); transition: all 0.2s ease; }
+    .btn-secondary:hover:not(:disabled), .t-btn-action:hover:not(:disabled) { background-color: var(--table-hover-bg); }
+    .task-class-chip { background: var(--card); border: 1.5px solid var(--border); color: var(--text); }
+    [data-theme="dark"] .btn-secondary,
+    [data-theme="dark"] .t-btn-action,
+    [data-theme="dark"] #t-btn-random10,
+    [data-theme="dark"] #t-btn-random20,
+    [data-theme="dark"] #t-btn-selectall {
       background-color: #232A40 !important;
       border-color: #333D5C !important;
       color: #F0F3FA !important;
     }
-    [data-theme="dark"] .btn-secondary:hover:not(:disabled) {
+    [data-theme="dark"] .btn-secondary:hover:not(:disabled),
+    [data-theme="dark"] .t-btn-action:hover:not(:disabled),
+    [data-theme="dark"] #t-btn-random10:hover,
+    [data-theme="dark"] #t-btn-random20:hover,
+    [data-theme="dark"] #t-btn-selectall:hover {
       background-color: #2B334E !important;
+      border-color: #6366f1 !important;
+      color: #ffffff !important;
+    }
+    [data-theme="dark"] .task-class-chip {
+      background-color: #232A40 !important;
+      border-color: #333D5C !important;
+      color: #F0F3FA !important;
     }
     .btn-sm { padding: 5px 10px; font-size: 12.5px; border-radius: 6px; min-height: 34px; }
     .btn-danger { background-color: var(--danger); }

@@ -1128,10 +1128,21 @@ function openTaskModal(initialDate, initialClass, initialPreset) {
       if (raw) teacherClasses = JSON.parse(raw);
     } catch(_) {}
   }
+  const curUser = (typeof currentUser !== "undefined" && currentUser ? currentUser : localStorage.getItem("current_user") || "").trim();
   const myClass = window.teacherMyClass || localStorage.getItem("teacher_my_class") || "";
 
-  // 僅採納當前登入者自己登記的班級
-  const targetClasses = cleanAndParseClasses((teacherClasses && teacherClasses.length > 0) ? teacherClasses : [myClass]);
+  // 權威班級判讀：若名下登記具體班級，最高優先直接採納；teacher702 直接對應 702
+  let targetClasses = [];
+  if (myClass && myClass.toLowerCase() !== "all" && myClass !== "系統管理員" && myClass !== "d") {
+    targetClasses = cleanAndParseClasses([myClass]);
+  } else if (curUser.toLowerCase().startsWith("teacher") && /\d+/.test(curUser)) {
+    const m = curUser.match(/\d+/);
+    if (m) targetClasses = [m[0]];
+  } else if (teacherClasses && teacherClasses.length > 0) {
+    targetClasses = cleanAndParseClasses(teacherClasses);
+  }
+
+  try { localStorage.setItem("teacher_class_list", JSON.stringify(targetClasses)); } catch(_) {}
 
   if (wrapper) {
     let chipHtml = "";

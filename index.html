@@ -59,15 +59,15 @@
     html.theme-transitioning *,
     html.theme-transitioning *::before,
     html.theme-transitioning *::after {
-      transition: background-color 1.0s cubic-bezier(0.25, 1, 0.5, 1),
-                  color 1.0s ease,
-                  border-color 1.0s ease,
-                  box-shadow 1.0s ease !important;
+      transition: background-color 0.5s cubic-bezier(0.25, 1, 0.5, 1),
+                  color 0.5s cubic-bezier(0.25, 1, 0.5, 1),
+                  border-color 0.5s cubic-bezier(0.25, 1, 0.5, 1),
+                  box-shadow 0.5s cubic-bezier(0.25, 1, 0.5, 1) !important;
       transition-delay: 0s !important;
     }
     ::view-transition-old(root),
     ::view-transition-new(root) {
-      animation-duration: 1.0s;
+      animation-duration: 0.5s;
       animation-timing-function: cubic-bezier(0.25, 1, 0.5, 1);
     }
   
@@ -270,6 +270,60 @@
       background: rgba(99, 102, 241, 0.18) !important;
       border-color: #6366f1 !important;
       color: #6366f1 !important;
+    }
+
+    /* 教師出題快捷按鈕與標籤雙模式適配 */
+    .t-btn-action,
+    #t-btn-random10,
+    #t-btn-random20,
+    #t-btn-selectall,
+    #teacherTaskModal .btn-secondary,
+    #taskModal .btn-secondary {
+      background: var(--card, #ffffff) !important;
+      color: var(--ink, #232A4D) !important;
+      border: 1px solid var(--line, #D2D6E8) !important;
+      transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.12s ease !important;
+    }
+    .t-btn-action:hover,
+    #t-btn-random10:hover,
+    #t-btn-random20:hover,
+    #t-btn-selectall:hover,
+    #teacherTaskModal .btn-secondary:hover,
+    #taskModal .btn-secondary:hover {
+      background: #eef2ff !important;
+      border-color: #818cf8 !important;
+      color: #4338ca !important;
+    }
+    .task-class-chip {
+      background: var(--card, #ffffff) !important;
+      border: 1.5px solid var(--line, #c7d2fe) !important;
+      color: var(--ink, #1e1b4b) !important;
+      transition: all 0.2s ease !important;
+    }
+    [data-theme="dark"] .t-btn-action,
+    [data-theme="dark"] #t-btn-random10,
+    [data-theme="dark"] #t-btn-random20,
+    [data-theme="dark"] #t-btn-selectall,
+    [data-theme="dark"] #teacherTaskModal .btn-secondary,
+    [data-theme="dark"] #taskModal .btn-secondary {
+      background: #232A40 !important;
+      color: #F0F3FA !important;
+      border-color: #333D5C !important;
+    }
+    [data-theme="dark"] .t-btn-action:hover,
+    [data-theme="dark"] #t-btn-random10:hover,
+    [data-theme="dark"] #t-btn-random20:hover,
+    [data-theme="dark"] #t-btn-selectall:hover,
+    [data-theme="dark"] #teacherTaskModal .btn-secondary:hover,
+    [data-theme="dark"] #taskModal .btn-secondary:hover {
+      background: #2B334E !important;
+      border-color: #6366f1 !important;
+      color: #ffffff !important;
+    }
+    [data-theme="dark"] .task-class-chip {
+      background: #232A40 !important;
+      border-color: #333D5C !important;
+      color: #F0F3FA !important;
     }
 
     /* 深色模式深層自動調色 */
@@ -1099,7 +1153,7 @@
       window._themeTransTimer = window.setTimeout(() => {
         document.documentElement.classList.remove("theme-transitioning");
         _isThemeSwitching = false;
-      }, 1000);
+      }, 500);
     }
 
     function toggleTheme() {
