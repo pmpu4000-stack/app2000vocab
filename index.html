@@ -1185,7 +1185,9 @@
       isLoggingIn = true;
       loginBtn.disabled = true;
       loginBtn.style.opacity = "0.75";
-      setLoginStatus("正在載入個人學習資料...", "loading-data");
+      const isParentGuess = user.toLowerCase().startsWith('p') && user.length > 1;
+      const targetHint = isParentGuess ? `子女（${user.slice(1)}）` : "個人";
+      setLoginStatus(`正在載入${targetHint}學習資料...`, "loading-data");
 
       try {
         let response = null;
@@ -1260,7 +1262,8 @@
 
           // 角色分流導向：家長身分啟用專屬儀表板過濾（顯示家長帳號、隱藏作答題型、保留五大歷程方塊）
           if (result.role === "parent") {
-            setLoginStatus("家長身分驗證成功，正在載入子女學習成果...", "loading-game");
+            const childAcc = result.studentUser || (user.toLowerCase().startsWith('p') ? user.slice(1) : user);
+            setLoginStatus(`家長身分驗證成功，正在載入子女（${childAcc}）學習成果...`, "loading-game");
             document.body.classList.add("role-parent");
             document.documentElement.classList.add("role-parent");
             localStorage.setItem("current_user", user);
@@ -1809,7 +1812,7 @@
           window.__gameModuleLoaded = true;
 
           // 1. 動態載入遊戲核心模組（加上時間戳記防瀏覽器快取，此時 app.js 才會讀取剛剛存好的 LocalStorage）
-          setLoginStatus("登入成功，正在載入遊戲...", "loading-game");
+          setLoginStatus(result.role === "parent" ? "登入成功，正在載入子女學習進度..." : "登入成功，正在載入遊戲...", "loading-game");
           try {
             // ★ 進入遊戲前先比對今日剩餘時間：已歸零就不啟動單字測驗系統
             if (result.role !== "teacher" && !result.isAdmin && result.dailyUsage) {
