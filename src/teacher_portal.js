@@ -92,10 +92,10 @@
         const m = pickerMeanings[item.w] || pickerMeanings[w.toLowerCase()] || {};
         const zh = m.zh ? m.zh.split(/[,;，；]/)[0].substring(0, 10) : "";
         return `
-          <label style="display:flex; align-items:center; gap:6px; padding:4px 8px; border-radius:6px; background:${isChecked ? 'rgba(99,102,241,0.25)' : '#0f172a'}; border:1px solid ${isChecked ? '#6366f1' : '#334155'}; cursor:pointer; font-size:12.5px; user-select:none; transition:all 0.15s;">
+          <label class="picker-word-item ${isChecked ? 'is-checked' : ''}" style="display:flex; align-items:center; gap:6px; padding:4px 8px; border-radius:6px; cursor:pointer; font-size:12.5px; user-select:none; transition:all 0.15s;">
             <input type="checkbox" value="${w.toLowerCase()}" ${isChecked ? 'checked' : ''} onchange="togglePickerWord('${w.toLowerCase()}')" style="accent-color:#6366f1; width:15px; height:15px; cursor:pointer;">
-            <span style="font-weight:700; color:${isChecked ? '#c7d2fe' : '#f8fafc'};">${w}</span>
-            ${zh ? `<span style="font-size:11px; color:#94a3b8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${zh}</span>` : ''}
+            <span style="font-weight:700;">${w}</span>
+            ${zh ? `<span style="font-size:11px; opacity:0.75; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${zh}</span>` : ''}
           </label>
         `;
       }).join("");

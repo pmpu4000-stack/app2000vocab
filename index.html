@@ -172,7 +172,32 @@
       display: block !important;
     }
 
-    /* 👨‍🏫 教師專屬動態工作區樣式 (原位切換，免浮動彈窗) */
+    /* 👨‍🏫 教師專屬動態工作區樣式 (原位切換，全響應自適應 & 8px 邊距) */
+    #teacher-portal-card {
+      padding: 8px !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+    }
+    #tp-workspace-container {
+      padding: 8px !important;
+      border-radius: 12px !important;
+      background: var(--paper) !important;
+      border: 1px solid var(--line) !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+    }
+    #tp-panel-task,
+    #tp-panel-time,
+    #tp-panel-student,
+    #tp-panel-class {
+      width: 100% !important;
+      box-sizing: border-box !important;
+    }
+    #tp-panel-student {
+      padding: 8px !important;
+    }
     body.role-teacher #teacherTaskModal,
     body.role-teacher #timeManagementModal {
       position: static !important;
@@ -182,24 +207,131 @@
       backdrop-filter: none !important;
       z-index: 1 !important;
       padding: 0 !important;
+      margin: 0 !important;
       display: block !important;
     }
     body.role-teacher #teacherTaskModal > div,
     body.role-teacher #timeManagementModal > div {
       max-width: 100% !important;
+      width: 100% !important;
       box-shadow: none !important;
-      border-radius: 14px !important;
+      border-radius: 12px !important;
       max-height: none !important;
       overflow: visible !important;
       margin: 0 !important;
-      padding: 18px 20px !important;
-      border: 1.5px solid var(--line) !important;
+      padding: 8px !important;
+      border: 1px solid var(--line) !important;
       background: var(--card) !important;
       color: var(--ink) !important;
+      box-sizing: border-box !important;
     }
     body.role-teacher #btnCloseTeacherModal,
     body.role-teacher #btnCloseTimeModal {
       display: none !important;
+    }
+
+    /* 淺色與深色模式通用控制項自適應 */
+    #teacherTaskModal input,
+    #teacherTaskModal select,
+    #timeManagementModal input,
+    #timeManagementModal select,
+    #tp-workspace-container input,
+    #tp-workspace-container select {
+      background: var(--card) !important;
+      color: var(--ink) !important;
+      border: 1px solid var(--line) !important;
+      border-radius: 8px !important;
+    }
+
+    /* 單字庫勾選標籤自適應雙模式 */
+    .picker-word-item {
+      background: var(--card, #ffffff) !important;
+      border: 1px solid var(--line, #e2e8f0) !important;
+      color: var(--ink, #1e293b) !important;
+    }
+    .picker-word-item.is-checked {
+      background: rgba(99, 102, 241, 0.18) !important;
+      border-color: #6366f1 !important;
+      color: #6366f1 !important;
+    }
+
+    /* 深色模式深層自動調色 */
+    [data-theme="dark"] #teacherTaskModal,
+    [data-theme="dark"] #timeManagementModal,
+    [data-theme="dark"] #tp-workspace-container {
+      background: #1C2234 !important;
+      color: #F0F3FA !important;
+    }
+    [data-theme="dark"] #teacherTaskModal > div,
+    [data-theme="dark"] #timeManagementModal > div {
+      background: #1C2234 !important;
+      border-color: #2B334E !important;
+      color: #F0F3FA !important;
+    }
+    [data-theme="dark"] #teacherTaskModal div,
+    [data-theme="dark"] #timeManagementModal div,
+    [data-theme="dark"] #tp-workspace-container div {
+      border-color: #2B334E !important;
+    }
+    [data-theme="dark"] #teacherTaskModal [style*="background:#fff"],
+    [data-theme="dark"] #teacherTaskModal [style*="background: #fff"],
+    [data-theme="dark"] #teacherTaskModal [style*="background:#ffffff"],
+    [data-theme="dark"] #teacherTaskModal [style*="background: #ffffff"],
+    [data-theme="dark"] #teacherTaskModal [style*="background:#F6F7FB"],
+    [data-theme="dark"] #teacherTaskModal [style*="background: #F6F7FB"],
+    [data-theme="dark"] #teacherTaskModal [style*="background:#f8fafc"],
+    [data-theme="dark"] #timeManagementModal [style*="background:#fff"],
+    [data-theme="dark"] #timeManagementModal [style*="background: #fff"],
+    [data-theme="dark"] #timeManagementModal [style*="background:#ffffff"],
+    [data-theme="dark"] #timeManagementModal [style*="background: #ffffff"],
+    [data-theme="dark"] #timeManagementModal [style*="background:#F6F7FB"],
+    [data-theme="dark"] #timeManagementModal [style*="background: #F6F7FB"],
+    [data-theme="dark"] #timeManagementModal [style*="background:#f8fafc"],
+    [data-theme="dark"] #tp-workspace-container [style*="background:#fff"],
+    [data-theme="dark"] #tp-workspace-container [style*="background: #fff"],
+    [data-theme="dark"] #tp-workspace-container [style*="background:#ffffff"],
+    [data-theme="dark"] #tp-workspace-container [style*="background: #ffffff"],
+    [data-theme="dark"] #tp-workspace-container [style*="background:#F6F7FB"],
+    [data-theme="dark"] #tp-workspace-container [style*="background: #F6F7FB"],
+    [data-theme="dark"] #tp-panel-student,
+    [data-theme="dark"] #tp-panel-class {
+      background: #141826 !important;
+      border-color: #2B334E !important;
+      color: #F0F3FA !important;
+    }
+    [data-theme="dark"] #teacherTaskModal input,
+    [data-theme="dark"] #teacherTaskModal select,
+    [data-theme="dark"] #timeManagementModal input,
+    [data-theme="dark"] #timeManagementModal select,
+    [data-theme="dark"] #tp-workspace-container input,
+    [data-theme="dark"] #tp-workspace-container select {
+      background: #141826 !important;
+      border-color: #2B334E !important;
+      color: #F0F3FA !important;
+    }
+    [data-theme="dark"] .picker-word-item {
+      background: #141826 !important;
+      border-color: #2B334E !important;
+      color: #F0F3FA !important;
+    }
+    [data-theme="dark"] .picker-word-item.is-checked {
+      background: rgba(99, 102, 241, 0.3) !important;
+      border-color: #818cf8 !important;
+      color: #c7d2fe !important;
+    }
+    [data-theme="dark"] #teacherTaskModal label,
+    [data-theme="dark"] #timeManagementModal label,
+    [data-theme="dark"] #tp-workspace-container label,
+    [data-theme="dark"] #teacherTaskModal p,
+    [data-theme="dark"] #timeManagementModal p,
+    [data-theme="dark"] #tp-workspace-container p,
+    [data-theme="dark"] #teacherTaskModal h3,
+    [data-theme="dark"] #timeManagementModal h3,
+    [data-theme="dark"] #tp-workspace-container h3,
+    [data-theme="dark"] #teacherTaskModal span,
+    [data-theme="dark"] #timeManagementModal span,
+    [data-theme="dark"] #tp-workspace-container span {
+      color: inherit;
     }
 
     .tp-nav-grid {
@@ -481,7 +613,7 @@
       </div>
 
       <!-- 👨‍🏫 教師專屬教學管理中心儀表板 (四合一主工作區，原位切換) -->
-      <div id="teacher-portal-card" class="card" style="display:none; text-align:left; padding:22px; border-radius:20px; background:var(--card); border:1.5px solid var(--line); box-shadow:0 8px 30px rgba(0,0,0,0.06); margin:0 0 16px;">
+      <div id="teacher-portal-card" class="card" style="display:none; text-align:left; padding:8px; border-radius:16px; background:var(--card); border:1.5px solid var(--line); box-shadow:0 8px 30px rgba(0,0,0,0.06); margin:0 0 16px; width:100%; box-sizing:border-box;">
         <!-- 頂部四大功能導航方塊 (等寬自適應與上下 8px 間隔) -->
         <div class="tp-nav-grid">
           <div id="tp-nav-task" class="tp-nav-card active" onclick="switchTeacherTab('task')" style="cursor:pointer; padding:9px 12px; border-radius:12px; border:1.5px solid var(--line); background:var(--card); display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.2s;">
@@ -506,7 +638,7 @@
         </div>
 
         <!-- 主工作區容器：原位呈現所選功能，隱藏其餘無關介面 -->
-        <div id="tp-workspace-container" style="background:var(--paper, rgba(0,0,0,0.02)); border-radius:14px; padding:16px; border:1px solid var(--line);">
+        <div id="tp-workspace-container" style="background:var(--paper, rgba(0,0,0,0.02)); border-radius:12px; padding:8px; border:1px solid var(--line); width:100%; box-sizing:border-box;">
           <!-- 區塊 1: 每日出題 (原位顯示) -->
           <div id="tp-panel-task" class="tp-view-panel" style="display:block;"></div>
 
@@ -514,7 +646,7 @@
           <div id="tp-panel-time" class="tp-view-panel" style="display:none;"></div>
 
           <!-- 區塊 3: 個別學生區間歷程調閱選單列 -->
-          <div id="tp-panel-student" class="tp-view-panel" style="display:none; background:var(--paper, rgba(0,0,0,0.03)); border:1px solid var(--line); border-radius:14px; padding:18px 20px;">
+          <div id="tp-panel-student" class="tp-view-panel" style="display:none; background:var(--paper, rgba(0,0,0,0.03)); border:1px solid var(--line); border-radius:12px; padding:8px; width:100%; box-sizing:border-box;">
             <div style="font-size:14.5px; font-weight:700; color:var(--ink); margin-bottom:12px; display:flex; align-items:center; gap:6px;">
               <span>🔍</span> 個別學生學習成果即時調閱
             </div>
@@ -537,7 +669,7 @@
           </div>
 
           <!-- 區塊 4: 全班指定範圍記錄 -->
-          <div id="tp-panel-class" class="tp-view-panel" style="display:none; background:var(--paper, rgba(0,0,0,0.03)); border:1px solid var(--line); border-radius:14px; padding:18px 20px;">
+          <div id="tp-panel-class" class="tp-view-panel" style="display:none; background:var(--paper, rgba(0,0,0,0.03)); border:1px solid var(--line); border-radius:12px; padding:8px; width:100%; box-sizing:border-box;">
             <div style="font-size:14.5px; font-weight:700; color:var(--ink); margin-bottom:12px; display:flex; align-items:center; gap:6px;">
               <span>👥</span> 全班指定日期範圍紀錄查詢
             </div>
