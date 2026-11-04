@@ -481,7 +481,9 @@ function checkAndGetData(formData) {
       let tc = formData.targetClass || "all";
       if (!auth.isAdmin) tc = auth.className;
       const result = _getClassOverview(ss, tc, formData.forceRefresh);
-      result.isAdmin = auth.isAdmin; result.teacherClass = auth.className;
+      result.isAdmin = auth.isAdmin;
+      result.teacherClass = auth.className;
+      result.teacherClassList = auth.classList || [];
       result.todayTaskMap = getTodayTaskMap(ss, todayStr);
       return result;
     }

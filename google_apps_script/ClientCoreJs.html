@@ -571,6 +571,8 @@ function applyFetchedData(resp) {
     teacherAllOverview = resp.allOverview || resp.overview || [];
     teacherClassList = resp.classes || [];
     teacherSelectedClass = resp.currentClass || "all";
+    window.teacherMyClass = resp.teacherClass || "";
+    window.teacherMyRegisteredClasses = resp.teacherClassList || [];
     teacherStudents = resp.students || [];
     teacherOverview = resp.overview || []; latestOverviewResult = resp;
     initTeacherDashboard(resp);

@@ -1074,12 +1074,32 @@ function onTaskDateOrClassChange() {
   loadCurrentTaskForClassAndDate(targetClass, targetDate);
 }
 
+function cleanAndParseClasses(inputList) {
+  const result = new Set();
+  const invalid = new Set(["all", "全校", "系統管理員", "管理員", "admin", "d", "test", "null", "undefined"]);
+  (inputList || []).forEach(item => {
+    if (!item) return;
+    const str = String(item).trim();
+    str.split(/[,，、\s/]+/).forEach(token => {
+      let t = token.replace(/班$/, "").trim();
+      if (!t || invalid.has(t.toLowerCase())) return;
+      if (/^\d{6}$/.test(t)) {
+        result.add(t.slice(0, 3));
+        result.add(t.slice(3, 6));
+      } else {
+        result.add(t);
+      }
+    });
+  });
+  return Array.from(result).sort();
+}
+
 function openTaskModal(initialDate, initialClass, initialPreset) {
   const modal = document.getElementById("taskModal");
   if (!modal) return;
   modal.style.display = "flex";
 
-  // 1. 初始化測驗日期 (預設今天，以在地時間為準避免時區偏差)
+  // 1. 初始化測驗日期
   const dateInput = document.getElementById("taskDateInput");
   if (dateInput) {
     if (initialDate) {
@@ -1093,39 +1113,23 @@ function openTaskModal(initialDate, initialClass, initialPreset) {
     }
   }
 
-  // 2. 初始化目標班級：僅止於 Google Sheet 該老師登記有的班級
+  // 2. 初始化目標班級：僅止於該老師名下登記有的班級，過濾「系統管理員」、「d」等雜質
   const classSelect = document.getElementById("taskClassSelect");
   const wrapper = document.getElementById("taskClassPickerWrapper") || (classSelect ? classSelect.parentNode : null);
   
   let teacherClasses = [];
-  if (typeof teacherClassList !== "undefined" && Array.isArray(teacherClassList) && teacherClassList.length > 0) {
-    teacherClasses = teacherClassList.filter(c => c && c !== "all");
+  if (window.teacherMyRegisteredClasses && Array.isArray(window.teacherMyRegisteredClasses) && window.teacherMyRegisteredClasses.length > 0) {
+    teacherClasses = window.teacherMyRegisteredClasses;
   } else {
     try {
       const raw = localStorage.getItem("teacher_class_list");
       if (raw) teacherClasses = JSON.parse(raw);
     } catch(_) {}
   }
-  const myClass = (typeof teacherSelectedClass !== "undefined" && teacherSelectedClass && teacherSelectedClass !== "all")
-    ? teacherSelectedClass
-    : (localStorage.getItem("teacher_my_class") || "").trim();
+  const myClass = window.teacherMyClass || (typeof teacherSelectedClass !== "undefined" && teacherSelectedClass && teacherSelectedClass !== "all" ? teacherSelectedClass : "") || localStorage.getItem("teacher_my_class") || "";
 
-  const teacherClassSet = new Set();
-  (teacherClasses || []).forEach(c => {
-    if (c && c !== "all") {
-      String(c).split(/[,，、\s]+/).forEach(item => {
-        const clean = item.replace(/班$/, "").trim();
-        if (clean) teacherClassSet.add(clean);
-      });
-    }
-  });
-  if (myClass && myClass !== "all") {
-    String(myClass).split(/[,，、\s]+/).forEach(item => {
-      const clean = item.replace(/班$/, "").trim();
-      if (clean) teacherClassSet.add(clean);
-    });
-  }
-  const targetClasses = Array.from(teacherClassSet).sort();
+  // 僅採納當前登入者自己登記的班級
+  const targetClasses = cleanAndParseClasses([...teacherClasses, myClass]);
 
   if (wrapper) {
     let chipHtml = "";

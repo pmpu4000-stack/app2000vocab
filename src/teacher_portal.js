@@ -150,6 +150,27 @@
       return `${dateStr}指定單字測驗`;
     }
 
+    function cleanAndParseClasses(inputList) {
+      const result = new Set();
+      const invalid = new Set(["all", "全校", "系統管理員", "管理員", "admin", "d", "test", "null", "undefined"]);
+      (inputList || []).forEach(item => {
+        if (!item) return;
+        const str = String(item).trim();
+        str.split(/[,，、\s/]+/).forEach(token => {
+          let t = token.replace(/班$/, "").trim();
+          if (!t || invalid.has(t.toLowerCase())) return;
+          // 若為兩班黏在一起（如 701703 六碼數字），拆成 701 與 703
+          if (/^\d{6}$/.test(t)) {
+            result.add(t.slice(0, 3));
+            result.add(t.slice(3, 6));
+          } else {
+            result.add(t);
+          }
+        });
+      });
+      return Array.from(result).sort();
+    }
+
     function populateTeacherClassOptions() {
       const targetEl = document.getElementById("t-modal-class-container") || document.getElementById("t-modal-class-select");
       if (!targetEl) return;
@@ -163,29 +184,13 @@
         }
       } catch(_) {}
       
-      const myClass = (localStorage.getItem("teacher_my_class") || "").replace(/班$/, "").trim();
+      const myClass = localStorage.getItem("teacher_my_class") || "";
       
-      // 收集該老師在 Google Sheet 登記的任教班級，排除一切非登記班級
-      const teacherClassSet = new Set();
-      savedClasses.forEach(c => {
-        if (c && c !== "all") {
-          String(c).split(/[,，、\s]+/).forEach(item => {
-            const clean = item.replace(/班$/, "").trim();
-            if (clean) teacherClassSet.add(clean);
-          });
-        }
-      });
-      if (myClass && myClass !== "all") {
-        String(myClass).split(/[,，、\s]+/).forEach(item => {
-          const clean = item.replace(/班$/, "").trim();
-          if (clean) teacherClassSet.add(clean);
-        });
-      }
-
-      const targetClasses = Array.from(teacherClassSet).sort();
+      // 嚴格僅採納該老師在 Google Sheet 登記的任教班級，過濾排除「系統管理員」、「d」等雜質
+      const targetClasses = cleanAndParseClasses([...savedClasses, myClass]);
       let html = "";
       
-      // 改為勾選框清單：任教多班時支援同時勾選批次發布
+      // 僅止於有登記在該老師有的班級
       if (targetClasses.length > 0) {
         if (targetClasses.length > 1) {
           html += `<div style="width:100%; display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
