@@ -151,6 +151,19 @@
     html.role-teacher body #teacher-portal-card {
       display: block !important;
     }
+
+    body.role-teacher.has-inspected #progress-card,
+    body.role-teacher.has-inspected #learning-record-section,
+    body.role-teacher.has-inspected #week-conquer-section,
+    body.role-teacher.has-inspected #weak-words-section,
+    body.role-teacher.has-inspected #export-records-section,
+    html.role-teacher.has-inspected body #progress-card,
+    html.role-teacher.has-inspected body #learning-record-section,
+    html.role-teacher.has-inspected body #week-conquer-section,
+    html.role-teacher.has-inspected body #weak-words-section,
+    html.role-teacher.has-inspected body #export-records-section {
+      display: block !important;
+    }
   </style>
   <link rel="stylesheet" href="css/styles.css?v=20261101_2140">
   <link rel="preload" href="data/words2000.json" as="fetch" crossorigin>
@@ -402,20 +415,47 @@
         </div>
       </div>
 
-      <!-- 👨‍🏫 教師專屬教學管理中心儀表板 (比照家長專屬視圖，提供出題與時間管理) -->
-      <div id="teacher-portal-card" class="card" style="display:none; text-align:center; padding:32px 24px; border-radius:20px; background:var(--card); border:1.5px solid var(--line); box-shadow:0 8px 30px rgba(0,0,0,0.06); margin:0 0 16px;">
-        <div style="width:56px; height:56px; border-radius:50%; background:rgba(108,76,224,0.12); display:inline-flex; align-items:center; justify-content:center; margin:0 auto 14px; font-size:28px;">👨‍🏫</div>
-        <h2 id="teacher-portal-title" style="font-size:22px; font-weight:800; color:var(--ink); margin:0 0 8px; letter-spacing:0.3px;">教師教學管理專區</h2>
-        <p style="font-size:14px; color:var(--ink2); line-height:1.6; max-width:520px; margin:0 auto 20px;">
-          歡迎進入教師管理中心！本介面專為教學管理設計，您可直接出題、設定班級作答時間與解除學生使用限制。
-        </p>
-        <div style="display:flex; justify-content:center; gap:16px; flex-wrap:wrap;">
-          <button type="button" onclick="if(window.openTeacherModal)window.openTeacherModal();" style="display:inline-flex; align-items:center; gap:8px; padding:12px 22px; background:var(--violet); color:#fff; border:none; border-radius:12px; font-size:15px; font-weight:700; cursor:pointer; box-shadow:0 4px 14px rgba(108,76,224,0.3);">
-            <span>📝</span> 每日測驗出題
-          </button>
-          <button type="button" onclick="if(window.openTimeModal){window.openTimeModal();}else if(window.openTimeManagementModal){window.openTimeManagementModal();}" style="display:inline-flex; align-items:center; gap:8px; padding:12px 22px; background:var(--green); color:#fff; border:none; border-radius:12px; font-size:15px; font-weight:700; cursor:pointer; box-shadow:0 4px 14px rgba(47,180,124,0.3);">
-            <span>⏰</span> 學生使用時間管理
-          </button>
+      <!-- 👨‍🏫 教師專屬教學管理中心儀表板 (診斷、出題、時間管理、歷程即時調閱) -->
+      <div id="teacher-portal-card" class="card" style="display:none; text-align:left; padding:28px 24px; border-radius:20px; background:var(--card); border:1.5px solid var(--line); box-shadow:0 8px 30px rgba(0,0,0,0.06); margin:0 0 16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:18px; border-bottom:1px solid var(--line); padding-bottom:14px;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div style="width:48px; height:48px; border-radius:50%; background:rgba(108,76,224,0.12); display:inline-flex; align-items:center; justify-content:center; font-size:24px;">👨‍🏫</div>
+            <div>
+              <h2 id="teacher-portal-title" style="font-size:20px; font-weight:800; color:var(--ink); margin:0 0 4px; letter-spacing:0.3px;">教師教學管理專區</h2>
+              <div style="font-size:13px; color:var(--ink2);">全方位出題、作答時限管理與個別學生歷程即時調閱</div>
+            </div>
+          </div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button type="button" onclick="if(window.openTeacherModal)window.openTeacherModal();" style="display:inline-flex; align-items:center; gap:6px; padding:10px 16px; background:var(--violet); color:#fff; border:none; border-radius:10px; font-size:13.5px; font-weight:700; cursor:pointer; box-shadow:0 4px 12px rgba(108,76,224,0.25);">
+              <span>📝</span> 每日測驗出題
+            </button>
+            <button type="button" onclick="if(window.openTimeModal){window.openTimeModal();}else if(window.openTimeManagementModal){window.openTimeManagementModal();}" style="display:inline-flex; align-items:center; gap:6px; padding:10px 16px; background:var(--green); color:#fff; border:none; border-radius:10px; font-size:13.5px; font-weight:700; cursor:pointer; box-shadow:0 4px 12px rgba(47,180,124,0.25);">
+              <span>⏰</span> 學生使用時間管理
+            </button>
+          </div>
+        </div>
+
+        <!-- 學生歷程即時調閱選單列 -->
+        <div style="background:var(--paper, rgba(0,0,0,0.03)); border:1px solid var(--line); border-radius:14px; padding:16px 18px; margin-bottom:6px;">
+          <div style="font-size:14px; font-weight:700; color:var(--ink); margin-bottom:10px; display:flex; align-items:center; gap:6px;">
+            <span>🔍</span> 個別學生學習成果即時調閱
+          </div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+            <div style="flex:1; min-width:140px;">
+              <select id="tp-class-select" style="width:100%; padding:9px 12px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--ink); font-size:13.5px; font-weight:600; outline:none;">
+                <option value="">載入班級中...</option>
+              </select>
+            </div>
+            <div style="flex:1.5; min-width:180px;">
+              <select id="tp-student-select" style="width:100%; padding:9px 12px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--ink); font-size:13.5px; font-weight:600; outline:none;">
+                <option value="">請先選擇班級</option>
+              </select>
+            </div>
+            <button type="button" id="tp-btn-inspect" style="display:inline-flex; align-items:center; gap:6px; padding:9px 18px; background:var(--sky, #0284c7); color:#fff; border:none; border-radius:8px; font-size:13.5px; font-weight:700; cursor:pointer; box-shadow:0 4px 10px rgba(2,132,199,0.25);">
+              <span>🔎</span> 調閱學習歷程
+            </button>
+          </div>
+          <div id="tp-inspect-status" style="font-size:12.5px; color:var(--ink2); margin-top:8px; display:none;"></div>
         </div>
       </div>
 
@@ -1479,6 +1519,7 @@
             if (subLabel) subLabel.textContent = isAdmin ? "系統管理員" : "教師帳號";
           }
         }
+        if (typeof initTeacherPortalInspector === "function") initTeacherPortalInspector();
         return;
       }
 
@@ -3992,6 +4033,131 @@
       }
     }
 
+    async function initTeacherPortalInspector() {
+      const classSel = document.getElementById("tp-class-select");
+      const studentSel = document.getElementById("tp-student-select");
+      const btnInspect = document.getElementById("tp-btn-inspect");
+      const statusEl = document.getElementById("tp-inspect-status");
+      if (!classSel || !studentSel || !btnInspect) return;
+
+      async function ensureStudents() {
+        if (allStudentsList && allStudentsList.length > 0) return allStudentsList;
+        try {
+          const u = localStorage.getItem("current_user");
+          const p = sessionStorage.getItem("current_pass") || localStorage.getItem("current_pass") || "";
+          const res = await fetch(scriptUrl, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ action: "getTimeRestrictions", username: u, password: p })
+          });
+          const d = await res.json();
+          if (d.status === "success" && d.studentList) {
+            allStudentsList = d.studentList;
+          }
+        } catch (_) {}
+        return allStudentsList || [];
+      }
+
+      const list = await ensureStudents();
+      if (!list || list.length === 0) {
+        classSel.innerHTML = '<option value="">無班級資料</option>';
+        return;
+      }
+
+      const cSet = new Set();
+      list.forEach(s => {
+        const c = String(s.className || "").trim();
+        if (c) cSet.add(c);
+      });
+      const sortedClasses = Array.from(cSet).sort();
+      classSel.innerHTML = '<option value="">-- 請選擇班級 --</option>' + 
+        sortedClasses.map(c => `<option value="${c}">${c} 班</option>`).join("");
+
+      classSel.onchange = () => {
+        const selC = classSel.value;
+        if (!selC) {
+          studentSel.innerHTML = '<option value="">請先選擇班級</option>';
+          return;
+        }
+        const filtered = list.filter(s => String(s.className || "").trim() === selC);
+        studentSel.innerHTML = '<option value="">-- 請選擇學生 --</option>' + 
+          filtered.map(s => `<option value="${s.username}">${s.username} - ${s.realName || "學生"}</option>`).join("");
+      };
+
+      btnInspect.onclick = async () => {
+        const targetStudent = studentSel.value;
+        if (!targetStudent) {
+          alert("請先選擇要調閱的學生！");
+          return;
+        }
+        btnInspect.disabled = true;
+        btnInspect.style.opacity = "0.7";
+        if (statusEl) {
+          statusEl.style.display = "block";
+          statusEl.innerHTML = `<span style="color:var(--sky)">⏳ 正在從歷程總庫載入學生【${targetStudent}】學習成果...</span>`;
+        }
+
+        try {
+          const teacherUser = localStorage.getItem("current_user");
+          const teacherPass = sessionStorage.getItem("current_pass") || localStorage.getItem("current_pass") || "";
+          const res = await fetch(scriptUrl, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({
+              action: "login",
+              username: teacherUser,
+              password: teacherPass,
+              targetStudent: targetStudent
+            })
+          });
+          const result = await res.json();
+          if (result.status === "success" && result.records) {
+            for (let key in result.records) {
+              if (key === "current_user" || key === "user_role" || key === "current_pass") continue;
+              const val = result.records[key];
+              const valToStore = (typeof val === "object" && val !== null) ? JSON.stringify(val) : String(val);
+              localStorage.setItem(key, valToStore);
+            }
+            if (result.cachedSummary) {
+              try {
+                localStorage.setItem("cached_summary", JSON.stringify(result.cachedSummary));
+                window.__CACHED_SUMMARY = result.cachedSummary;
+              } catch(_) {}
+            }
+
+            document.body.classList.add("has-inspected");
+            document.documentElement.classList.add("has-inspected");
+
+            const stuLabel = `${result.className ? result.className + ' ' : ''}${result.realName ? result.realName + '（' + targetStudent + '）' : targetStudent}`;
+            if (statusEl) {
+              statusEl.innerHTML = `<span style="color:#16a34a; font-weight:700;">✅ 已成功載入【${stuLabel}】完整學習成果，下方已即時呈現！</span>`;
+            }
+
+            if (window.renderSummaryCard) window.renderSummaryCard();
+            if (window.renderLearningRecords) window.renderLearningRecords();
+            if (window.renderConquerSection) window.renderConquerSection();
+            if (window.renderWeakWords) window.renderWeakWords();
+            if (window.renderExportRecords) window.renderExportRecords();
+            if (window.renderProgressCard) window.renderProgressCard();
+
+            const progCard = document.getElementById("progress-card");
+            if (progCard) {
+              progCard.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+          } else {
+            throw new Error(result.message || "未能取得學生資料");
+          }
+        } catch (err) {
+          if (statusEl) {
+            statusEl.innerHTML = `<span style="color:#ef4444; font-weight:700;">❌ 載入失敗：${err.message}</span>`;
+          }
+        } finally {
+          btnInspect.disabled = false;
+          btnInspect.style.opacity = "1";
+        }
+      };
+    }
+
     function checkAndApplyRoleBoot() {
       const curRole = localStorage.getItem("user_role") || sessionStorage.getItem("user_role");
       if (curRole === "parent") {
@@ -4006,6 +4172,7 @@
         if (typeof applyRoleBasedView === "function") {
           applyRoleBasedView(curRole);
         }
+        initTeacherPortalInspector();
       }
     }
 

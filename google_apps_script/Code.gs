@@ -449,33 +449,42 @@ function getStudentMetaFromUserList_(ss, studentUser) {
       }
 
       if (auth.role === "teacher" || auth.role === "admin") {
-        let classList = [];
-        try {
-          const userSheet = ss.getSheetByName("使用者清單");
-          if (userSheet && userSheet.getLastRow() >= 2) {
-            const uData = userSheet.getRange(2, 4, userSheet.getLastRow() - 1, 1).getValues();
-            const cSet = new Set();
-            uData.forEach(r => {
-              const c = String(r[0] || "").replace(/班$/, "").trim();
-              if (c && c.toLowerCase() !== "all") cSet.add(c);
-            });
-            classList = Array.from(cSet).sort();
-          }
-        } catch(_) {}
+        if (!params.targetStudent) {
+          let classList = [];
+          try {
+            const userSheet = ss.getSheetByName("使用者清單");
+            if (userSheet && userSheet.getLastRow() >= 2) {
+              const uData = userSheet.getRange(2, 4, userSheet.getLastRow() - 1, 1).getValues();
+              const cSet = new Set();
+              uData.forEach(r => {
+                const c = String(r[0] || "").replace(/班$/, "").trim();
+                if (c && c.toLowerCase() !== "all") cSet.add(c);
+              });
+              classList = Array.from(cSet).sort();
+            }
+          } catch(_) {}
 
-        return jsonResponse({
-          status:"success", message:"教師驗證成功",
-          role:"teacher", className:auth.className,
-          realName:auth.realName, isAdmin:auth.isAdmin,
-          classList: classList,
-          timeRestriction: checkTimeRestrictionAllowance(ss, "")
-        });
+          return jsonResponse({
+            status:"success", message:"教師驗證成功",
+            role:"teacher", className:auth.className,
+            realName:auth.realName, isAdmin:auth.isAdmin,
+            classList: classList,
+            timeRestriction: checkTimeRestrictionAllowance(ss, "")
+          });
+        }
+        targetStudent = String(params.targetStudent || "").trim();
+        const sMeta = getStudentMetaFromUserList_(ss, targetStudent);
+        if (sMeta) {
+          activeClass = sMeta.className || activeClass;
+          activeRealName = sMeta.realName || activeRealName;
+        }
       }
 
-      const studentUser = isParent ? targetStudent : auth.username;
+      const isTeacherInspect = (auth.role === "teacher" || auth.role === "admin") && !!targetStudent;
+      const studentUser = (isParent || isTeacherInspect) ? targetStudent : auth.username;
 
-      // ── 學生時間限制管制：家長檢視子女進度不限時，學生須遵守作答時限 ──
-      const timeAllowance = isParent ? { allowed: true, isOverridden: true } : checkTimeRestrictionAllowance(ss, studentUser);
+      // ── 學生時間限制管制：家長與教師檢視進度不限時，學生須遵守作答時限 ──
+      const timeAllowance = (isParent || isTeacherInspect) ? { allowed: true, isOverridden: true } : checkTimeRestrictionAllowance(ss, studentUser);
       if (!timeAllowance.allowed) {
         logError("doPost/login/curfew", "非開放作答時間登入阻擋", studentUser, "目前時間: " + timeAllowance.timeStr + " / 允許時段: " + timeAllowance.startTime + "~" + timeAllowance.endTime);
         return jsonResponse({
@@ -535,7 +544,7 @@ function getStudentMetaFromUserList_(ss, studentUser) {
                 records = parsed;
               }
               sanitizeStudentRecordsObj_(records, dailyTaskHistory);
-              if (isParent) {
+              if (isParent || isTeacherInspect) {
                 delete records["current_user"];
                 delete records["user_role"];
                 delete records["current_pass"];
@@ -667,9 +676,9 @@ function getStudentMetaFromUserList_(ss, studentUser) {
 
       return jsonResponse({
         status: "success",
-        message: isParent ? "家長驗證成功" : "驗證成功",
-        role: isParent ? "parent" : "student",
-        username: isParent ? auth.username : studentUser,
+        message: isTeacherInspect ? "學生資料調閱成功" : (isParent ? "家長驗證成功" : "驗證成功"),
+        role: isTeacherInspect ? "teacher" : (isParent ? "parent" : "student"),
+        username: (isParent || isTeacherInspect) ? auth.username : studentUser,
         studentUser: studentUser,
         parentRealName: isParent ? (auth.realName || auth.username) : "",
         sessionToken: sessionToken,
