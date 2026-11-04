@@ -1956,33 +1956,11 @@
           style="width:100%; padding:8px 10px; border-radius:8px; border:1.5px solid var(--border); background:var(--input-bg); color:var(--text); font-size:13.5px; box-sizing:border-box;">
       </div>
       <div>
-        <label style="font-size:13px; font-weight:600; display:block; margin-bottom:4px; color:var(--text);">🏫 目標班級：</label>
-        <div style="display:flex; gap:6px; align-items:center;">
+        <label style="font-size:13px; font-weight:600; display:block; margin-bottom:4px; color:var(--text);">🏫 目標班級 (可多選)：</label>
+        <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;" id="taskClassPickerWrapper">
           <select id="taskClassSelect" onchange="handleTaskClassSelectChange()"
             style="width:100%; padding:8px 10px; border-radius:8px; border:1.5px solid var(--border); background:var(--input-bg); color:var(--text); font-size:13.5px; cursor:pointer;">
             <option value="all">🌐 全校 / 所有班級 (all)</option>
-            <optgroup label="七年級 (國一)">
-              <option value="701">🏫 701 班</option>
-              <option value="702">🏫 702 班</option>
-              <option value="703">🏫 703 班</option>
-              <option value="704">🏫 704 班</option>
-              <option value="705">🏫 705 班</option>
-            </optgroup>
-            <optgroup label="八年級 (國二)">
-              <option value="801">🏫 801 班</option>
-              <option value="802">🏫 802 班</option>
-              <option value="803">🏫 803 班</option>
-              <option value="804">🏫 804 班</option>
-              <option value="805">🏫 805 班</option>
-            </optgroup>
-            <optgroup label="九年級 (國三)">
-              <option value="901">🏫 901 班</option>
-              <option value="902">🏫 902 班</option>
-              <option value="903">🏫 903 班</option>
-              <option value="904">🏫 904 班</option>
-              <option value="905">🏫 905 班</option>
-            </optgroup>
-            <option value="custom">✏️ 自訂輸入其他班級...</option>
           </select>
           <input type="text" id="taskClassCustomInput" placeholder="請輸入班級" oninput="onTaskCustomClassInput()"
             style="display:none; width:110px; padding:8px 10px; border-radius:8px; border:1.5px solid var(--primary); background:var(--input-bg); color:var(--text); font-size:13.5px; box-sizing:border-box;">

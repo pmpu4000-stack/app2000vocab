@@ -151,8 +151,8 @@
     }
 
     function populateTeacherClassOptions() {
-      const sel = document.getElementById("t-modal-class-select");
-      if (!sel) return;
+      const targetEl = document.getElementById("t-modal-class-container") || document.getElementById("t-modal-class-select");
+      if (!targetEl) return;
       
       let savedClasses = [];
       try {
@@ -177,26 +177,49 @@
       const targetClasses = Array.from(teacherClassSet).sort();
       let html = "";
       
-      // 目標班級的list只顯示任教班級們，其他非任教班級則不顯示
+      // 改為勾選框清單：任教多班時支援同時勾選批次發布
       if (targetClasses.length > 0) {
-        html = targetClasses.map(c => `<option value="${c}">🏫 ${c} 班</option>`).join("");
+        if (targetClasses.length > 1) {
+          html += `<div style="width:100%; display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+            <span style="font-size:11.5px; color:#5A6183; font-weight:600;">已勾選目標班級：</span>
+            <button type="button" id="t-btn-toggle-all-classes" onclick="toggleAllTaskClasses()" style="font-size:11px; padding:2px 7px; border-radius:5px; border:1px solid #c7d2fe; background:#eef2ff; color:#4338ca; cursor:pointer; font-weight:700;">全選 / 全取消</button>
+          </div>`;
+        }
+        html += `<div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">`;
+        targetClasses.forEach(c => {
+          html += `<label class="task-class-chip" style="display:inline-flex; align-items:center; gap:5px; padding:4px 9px; border-radius:7px; border:1.5px solid #c7d2fe; background:#ffffff; font-size:13px; font-weight:700; color:#1e1b4b; cursor:pointer; user-select:none;">
+            <input type="checkbox" name="task_target_classes" value="${c}" checked style="accent-color:#4f46e5; width:15px; height:15px; cursor:pointer;">
+            🏫 ${c} 班
+          </label>`;
+        });
+        html += `</div>`;
       } else {
-        html = `<option value="all">🌐 全校 / 所有班級 (all)</option>`;
+        html = `<label class="task-class-chip" style="display:inline-flex; align-items:center; gap:5px; padding:4px 9px; border-radius:7px; border:1.5px solid #c7d2fe; background:#ffffff; font-size:13px; font-weight:700; color:#1e1b4b; cursor:pointer;">
+          <input type="checkbox" name="task_target_classes" value="all" checked style="accent-color:#4f46e5; width:15px; height:15px; cursor:pointer;">
+          🌐 全校 / 所有班級
+        </label>`;
       }
-      sel.innerHTML = html;
-      
-      // 標題底下的目標班級預設為該老師任教的班級
-      if (myClass && targetClasses.includes(myClass)) {
-        sel.value = myClass;
-      } else if (targetClasses.length > 0) {
-        sel.value = targetClasses[0];
+
+      if (targetEl.tagName === "SELECT") {
+        const wrapper = document.createElement("div");
+        wrapper.id = "t-modal-class-container";
+        wrapper.style.width = "100%";
+        wrapper.innerHTML = html;
+        targetEl.parentNode.replaceChild(wrapper, targetEl);
       } else {
-        sel.value = "all";
+        targetEl.innerHTML = html;
       }
 
       const customInp = document.getElementById("t-modal-class-custom");
       if (customInp) customInp.style.display = "none";
     }
+
+    window.toggleAllTaskClasses = function() {
+      const cbs = document.querySelectorAll("input[name='task_target_classes']");
+      if (cbs.length === 0) return;
+      const allChecked = Array.from(cbs).every(cb => cb.checked);
+      cbs.forEach(cb => { cb.checked = !allChecked; });
+    };
 
     window.openTeacherModal = function() {
       const modal = document.getElementById("teacherTaskModal");
@@ -343,12 +366,20 @@
           }
           const currentUser = localStorage.getItem("current_user");
           const currentPass = sessionStorage.getItem("current_pass") || localStorage.getItem("current_pass") || "";
-          const selClass = document.getElementById("t-modal-class-select");
-          const customClassInp = document.getElementById("t-modal-class-custom");
-          let targetClass = selClass ? selClass.value : "all";
-          if (targetClass === "custom") {
-            targetClass = (customClassInp && customClassInp.value ? customClassInp.value.trim() : "all");
+          
+          // 取得所有勾選的班級
+          const checkedCbs = document.querySelectorAll("input[name='task_target_classes']:checked");
+          let targetClasses = Array.from(checkedCbs).map(cb => cb.value);
+          if (targetClasses.length === 0) {
+            // fallback 若存在傳統 select
+            const selClass = document.getElementById("t-modal-class-select");
+            if (selClass && selClass.value) targetClasses = [selClass.value];
           }
+          if (targetClasses.length === 0) {
+            alert("請至少勾選 1 個目標班級！");
+            return;
+          }
+
           const todayDash = formatDateDash();
           const dateInp = document.getElementById("t-modal-date");
           const targetDate = (dateInp && dateInp.value ? dateInp.value : todayDash).trim() || todayDash;
@@ -358,36 +389,43 @@
           const wordsStr = Array.from(pickerSelectedWords).join(", ");
           const msgEl = document.getElementById("t-modal-msg");
 
-          msgEl.textContent = "正在發布至試算表...";
+          msgEl.textContent = `正在發布至 ${targetClasses.length} 個班級...`;
           pubBtn.disabled = true;
 
           try {
-            const resp = await fetch(scriptUrl, {
-              method: "POST",
-              headers: { "Content-Type": "text/plain;charset=utf-8" },
-              body: JSON.stringify({
-                action: "saveTeacherTask",
-                username: currentUser,
-                password: currentPass,
-                taskData: {
-                  targetDate: targetDate,
-                  date: targetDate,
-                  className: targetClass,
-                  taskName: taskName,
-                  words: wordsStr,
-                  mode: mode,
-                  count: count,
-                  enabled: true
-                }
-              })
+            const publishPromises = targetClasses.map(cls => {
+              return fetch(scriptUrl, {
+                method: "POST",
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify({
+                  action: "saveTeacherTask",
+                  username: currentUser,
+                  password: currentPass,
+                  taskData: {
+                    targetDate: targetDate,
+                    date: targetDate,
+                    className: cls,
+                    taskName: taskName,
+                    words: wordsStr,
+                    mode: mode,
+                    count: count,
+                    enabled: true
+                  }
+                })
+              }).then(r => r.json());
             });
-            const res = await resp.json();
-            if (res.status === "success") {
-              alert("🎉 發布成功！\n指定測驗日期：" + targetDate + "\n目標班級：" + targetClass + "\n任務名稱：" + taskName + "\n單字數量：" + pickerSelectedWords.size + " 字\n\n學生於該指定日期登入時即可進行純聽拼測驗！");
+
+            const results = await Promise.all(publishPromises);
+            const allSuccess = results.every(res => res && res.status === "success");
+
+            if (allSuccess) {
+              const classNamesStr = targetClasses.map(c => c === "all" ? "全校" : c + " 班").join("、");
+              alert("🎉 發布成功！\n指定測驗日期：" + targetDate + "\n目標班級：" + classNamesStr + "\n任務名稱：" + taskName + "\n單字數量：" + pickerSelectedWords.size + " 字\n\n學生於該指定日期登入時即可進行純聽拼測驗！");
               closeTeacherModal();
             } else {
-              alert("發布失敗：" + (res.message || "未知原因"));
-              msgEl.textContent = "發布失敗：" + (res.message || "");
+              const failed = results.filter(res => !res || res.status !== "success");
+              alert("部分班級發布失敗，請重試！");
+              msgEl.textContent = "部分班級發布失敗。";
             }
           } catch(err) {
             console.error(err);

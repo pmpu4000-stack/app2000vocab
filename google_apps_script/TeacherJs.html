@@ -1427,7 +1427,14 @@ function loadCurrentTaskForClass(targetClass) {
 }
 
 function submitTaskData() {
-  const className = getEffectiveTaskClass();
+  const checkedCbs = document.querySelectorAll("input[name='task_target_classes']:checked");
+  let targetClasses = Array.from(checkedCbs).map(cb => cb.value);
+  if (targetClasses.length === 0) {
+    const fallbackClass = getEffectiveTaskClass();
+    if (fallbackClass) targetClasses = [fallbackClass];
+  }
+  if (targetClasses.length === 0) { alert("請至少勾選 1 個目標班級！"); return; }
+  const className = targetClasses[0];
   const dateInput = document.getElementById("taskDateInput");
   const targetDate = dateInput ? dateInput.value.trim() : "";
   const taskName  = document.getElementById("taskNameInput").value.trim();
@@ -1449,7 +1456,7 @@ function submitTaskData() {
     setTimeout(() => {
       btn.disabled = false;
       btn.textContent = "💾 發布任務至試算表";
-      alert(`本機預覽模式：【${className} / ${targetDate || "通用"}】任務發布成功！共 ${wordsArr.length} 字。`);
+      alert(`本機預覽模式：【${targetClasses.join("、")} / ${targetDate || "通用"}】任務發布成功！共 ${wordsArr.length} 字。`);
       closeTaskModal();
     }, 500);
     return;
