@@ -187,7 +187,7 @@
       const myClass = localStorage.getItem("teacher_my_class") || "";
       
       // 嚴格僅採納該老師在 Google Sheet 登記的任教班級，過濾排除「系統管理員」、「d」等雜質
-      const targetClasses = cleanAndParseClasses([...savedClasses, myClass]);
+      const targetClasses = cleanAndParseClasses((savedClasses && savedClasses.length > 0) ? savedClasses : [myClass]);
       let html = "";
       
       // 僅止於有登記在該老師有的班級

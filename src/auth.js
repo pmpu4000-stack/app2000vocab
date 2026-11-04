@@ -581,6 +581,8 @@
           localStorage.removeItem("current_user");
           localStorage.removeItem("user_role");
           localStorage.removeItem("current_pass");
+          localStorage.removeItem("teacher_class_list");
+          localStorage.removeItem("teacher_my_class");
           if (portal) portal.style.display = "none";
           if (appEl) appEl.style.display = "";
           if (ov) {
@@ -625,9 +627,23 @@
             if (timerBadge) timerBadge.style.display = "none";
           }
           if (result.role === "teacher") {
-            if (Array.isArray(result.classList) && result.classList.length > 0) {
-              localStorage.setItem("teacher_class_list", JSON.stringify(result.classList));
-            }
+            let classArr = [];
+            const invalidClasses = new Set(["all", "全校", "系統管理員", "管理員", "admin", "d", "test"]);
+            const rawItems = (Array.isArray(result.classList) && result.classList.length > 0) ? result.classList : [result.className];
+            rawItems.forEach(item => {
+              if (!item) return;
+              String(item).split(/[,，、\s/]+/).forEach(token => {
+                let t = token.replace(/班$/, "").trim();
+                if (!t || invalidClasses.has(t.toLowerCase())) return;
+                if (/^\d{6}$/.test(t)) {
+                  classArr.push(t.slice(0, 3), t.slice(3, 6));
+                } else {
+                  classArr.push(t);
+                }
+              });
+            });
+            classArr = [...new Set(classArr)].sort();
+            localStorage.setItem("teacher_class_list", JSON.stringify(classArr));
             if (result.className) {
               localStorage.setItem("teacher_my_class", result.className);
             }

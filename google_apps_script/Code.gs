@@ -450,25 +450,31 @@ function getStudentMetaFromUserList_(ss, studentUser) {
 
       if (auth.role === "teacher" || auth.role === "admin") {
         if (!params.targetStudent) {
-          let classList = [];
-          try {
-            const userSheet = ss.getSheetByName("使用者清單");
-            if (userSheet && userSheet.getLastRow() >= 2) {
-              const uData = userSheet.getRange(2, 4, userSheet.getLastRow() - 1, 1).getValues();
-              const cSet = new Set();
-              uData.forEach(r => {
-                const c = String(r[0] || "").replace(/班$/, "").trim();
-                if (c && c.toLowerCase() !== "all") cSet.add(c);
-              });
-              classList = Array.from(cSet).sort();
-            }
-          } catch(_) {}
+          let teacherClasses = (auth.classList && auth.classList.length > 0) ? auth.classList : [];
+          if (teacherClasses.length === 0 && auth.className && auth.className !== "all") {
+            teacherClasses = [auth.className.replace(/班$/, "").trim()];
+          }
+          if (auth.isAdmin && (teacherClasses.length === 0 || teacherClasses.includes("all"))) {
+            try {
+              const userSheet = ss.getSheetByName("使用者清單");
+              if (userSheet && userSheet.getLastRow() >= 2) {
+                const uData = userSheet.getRange(2, 4, userSheet.getLastRow() - 1, 1).getValues();
+                const cSet = new Set();
+                uData.forEach(r => {
+                  const c = String(r[0] || "").replace(/班$/, "").trim();
+                  if (c && c.toLowerCase() !== "all" && c.toLowerCase() !== "系統管理員" && c.toLowerCase() !== "d") cSet.add(c);
+                });
+                teacherClasses = Array.from(cSet).sort();
+              }
+            } catch(_) {}
+          }
 
           return jsonResponse({
             status:"success", message:"教師驗證成功",
             role:"teacher", className:auth.className,
             realName:auth.realName, isAdmin:auth.isAdmin,
-            classList: classList,
+            classList: teacherClasses,
+            teacherClassList: teacherClasses,
             timeRestriction: checkTimeRestrictionAllowance(ss, "")
           });
         }

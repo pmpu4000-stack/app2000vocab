@@ -495,6 +495,11 @@ function logout() {
   currentUser = null; currentPass = null; currentRole = null;
   viewingStudent = null; teacherStudents = []; teacherOverview = [];
   teacherAllOverview = []; teacherClassList = []; teacherSelectedClass = "all";
+  window.teacherMyClass = ""; window.teacherMyRegisteredClasses = [];
+  try {
+    localStorage.removeItem("teacher_class_list");
+    localStorage.removeItem("teacher_my_class");
+  } catch(_) {}
   studentMyClass = ""; studentRealName = ""; leaderboardScope = "class";
   studentListWithPasswords = [];
   fullProcessedData = []; displayHeaders = []; lastFilteredData = [];

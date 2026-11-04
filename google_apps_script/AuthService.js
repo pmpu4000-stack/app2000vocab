@@ -571,10 +571,25 @@ function authenticateUser(ss, inputUser, inputPass) {
       const className = (role === "teacher" || role === "admin") ? (rawClass || "all") : getStudentClass(username, rawClass);
       let classList   = [];
       if (rawClass) {
-        classList = rawClass.split(/[,，、\s]+/).map(c => c.replace(/班$/, "").trim()).filter(Boolean);
+        const invalidClasses = new Set(["all", "全校", "系統管理員", "管理員", "admin", "d", "test"]);
+        const tokens = rawClass.split(/[,，、\s/]+/).map(c => c.replace(/班$/, "").trim()).filter(Boolean);
+        tokens.forEach(t => {
+          if (invalidClasses.has(t.toLowerCase())) return;
+          if (/^\d{6}$/.test(t)) {
+            classList.push(t.slice(0, 3), t.slice(3, 6));
+          } else {
+            classList.push(t);
+          }
+        });
+        classList = [...new Set(classList)].sort();
       }
       if (classList.length === 0 && (role === "teacher" || role === "admin")) {
-        classList = [className.replace(/班$/, "").trim() || "all"];
+        const cClean = className.replace(/班$/, "").trim();
+        if (cClean && cClean !== "all" && cClean !== "系統管理員" && cClean !== "d") {
+          classList = [cClean];
+        } else {
+          classList = (role === "admin") ? ["all"] : [];
+        }
       }
       const realName  = String(data[i][4] || "").trim();
       const isAdmin   = (role === "admin") || (role === "teacher" && isAdminTeacher(className));
