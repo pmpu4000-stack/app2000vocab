@@ -569,10 +569,17 @@ function authenticateUser(ss, inputUser, inputPass) {
       clearLoginFailures(username);
       const rawClass  = String(data[i][3] || "").trim();
       const className = (role === "teacher" || role === "admin") ? (rawClass || "all") : getStudentClass(username, rawClass);
+      let classList   = [];
+      if (rawClass) {
+        classList = rawClass.split(/[,，、\s]+/).map(c => c.replace(/班$/, "").trim()).filter(Boolean);
+      }
+      if (classList.length === 0 && (role === "teacher" || role === "admin")) {
+        classList = [className.replace(/班$/, "").trim() || "all"];
+      }
       const realName  = String(data[i][4] || "").trim();
       const isAdmin   = (role === "admin") || (role === "teacher" && isAdminTeacher(className));
       const studentBinding = (role === "parent") ? rawClass : "";
-      const result    = {success:true, username, role, className, realName, isAdmin, studentBinding};
+      const result    = {success:true, username, role, className, classList, realName, isAdmin, studentBinding};
       try { cache.put(cacheKey, JSON.stringify(result), SYS.CACHE_AUTH_TTL); } catch(_) {}
       return result;
     }

@@ -2138,9 +2138,13 @@
             if (timerBadge) timerBadge.style.display = "none";
           }
           if (result.role === "teacher") {
+            let classArr = [];
             if (Array.isArray(result.classList) && result.classList.length > 0) {
-              localStorage.setItem("teacher_class_list", JSON.stringify(result.classList));
+              classArr = result.classList;
+            } else if (result.className) {
+              classArr = result.className.split(/[,，、\s]+/).map(c => c.replace(/班$/, "").trim()).filter(Boolean);
             }
+            localStorage.setItem("teacher_class_list", JSON.stringify(classArr));
             if (result.className) {
               localStorage.setItem("teacher_my_class", result.className);
             }

@@ -165,13 +165,21 @@
       
       const myClass = (localStorage.getItem("teacher_my_class") || "").replace(/班$/, "").trim();
       
-      // 收集該老師所有任教班級，排除非任教班級
+      // 收集該老師在 Google Sheet 登記的任教班級，排除一切非登記班級
       const teacherClassSet = new Set();
       savedClasses.forEach(c => {
-        if (c && c !== "all") teacherClassSet.add(String(c).replace(/班$/, "").trim());
+        if (c && c !== "all") {
+          String(c).split(/[,，、\s]+/).forEach(item => {
+            const clean = item.replace(/班$/, "").trim();
+            if (clean) teacherClassSet.add(clean);
+          });
+        }
       });
       if (myClass && myClass !== "all") {
-        teacherClassSet.add(myClass);
+        String(myClass).split(/[,，、\s]+/).forEach(item => {
+          const clean = item.replace(/班$/, "").trim();
+          if (clean) teacherClassSet.add(clean);
+        });
       }
 
       const targetClasses = Array.from(teacherClassSet).sort();

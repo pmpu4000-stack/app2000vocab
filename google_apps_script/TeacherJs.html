@@ -1093,54 +1093,71 @@ function openTaskModal(initialDate, initialClass, initialPreset) {
     }
   }
 
-  // 2. 初始化目標班級
+  // 2. 初始化目標班級：僅止於 Google Sheet 該老師登記有的班級
   const classSelect = document.getElementById("taskClassSelect");
-  const customInput = document.getElementById("taskClassCustomInput");
+  const wrapper = document.getElementById("taskClassPickerWrapper") || (classSelect ? classSelect.parentNode : null);
   
-  // 決定目標班級 (優先權：傳入參數 > 教師當前選取的班級 > all)
+  let teacherClasses = [];
+  if (typeof teacherClassList !== "undefined" && Array.isArray(teacherClassList) && teacherClassList.length > 0) {
+    teacherClasses = teacherClassList.filter(c => c && c !== "all");
+  } else {
+    try {
+      const raw = localStorage.getItem("teacher_class_list");
+      if (raw) teacherClasses = JSON.parse(raw);
+    } catch(_) {}
+  }
   const myClass = (typeof teacherSelectedClass !== "undefined" && teacherSelectedClass && teacherSelectedClass !== "all")
     ? teacherSelectedClass
-    : "";
-  const targetClass = initialClass || myClass || "all";
+    : (localStorage.getItem("teacher_my_class") || "").trim();
 
-  if (classSelect) {
-    // 若教師有專屬班級，動態插入或更新「⭐ 我的班級」
-    let myOpt = document.getElementById("optTeacherMyClass");
-    if (myClass) {
-      if (!myOpt) {
-        myOpt = document.createElement("option");
-        myOpt.id = "optTeacherMyClass";
-        if (classSelect.options.length > 1) {
-          classSelect.insertBefore(myOpt, classSelect.options[1]);
-        } else {
-          classSelect.appendChild(myOpt);
-        }
-      }
-      myOpt.value = myClass;
-      myOpt.textContent = `⭐ 我的班級 (${myClass} 班)`;
-    } else if (myOpt) {
-      myOpt.remove();
+  const teacherClassSet = new Set();
+  (teacherClasses || []).forEach(c => {
+    if (c && c !== "all") {
+      String(c).split(/[,，、\s]+/).forEach(item => {
+        const clean = item.replace(/班$/, "").trim();
+        if (clean) teacherClassSet.add(clean);
+      });
     }
+  });
+  if (myClass && myClass !== "all") {
+    String(myClass).split(/[,，、\s]+/).forEach(item => {
+      const clean = item.replace(/班$/, "").trim();
+      if (clean) teacherClassSet.add(clean);
+    });
+  }
+  const targetClasses = Array.from(teacherClassSet).sort();
 
-    // 檢查目標班級是否存在於選項中
-    let found = false;
-    for (let i = 0; i < classSelect.options.length; i++) {
-      if (classSelect.options[i].value === targetClass) {
-        classSelect.selectedIndex = i;
-        found = true;
-        break;
+  if (wrapper) {
+    let chipHtml = "";
+    if (targetClasses.length > 0) {
+      if (targetClasses.length > 1) {
+        chipHtml += '<div style="width:100%; display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">' +
+          '<span style="font-size:11.5px; color:var(--text-muted);">已勾選目標班級：</span>' +
+          '<button type="button" onclick="toggleAllTaskClasses()" style="font-size:11px; padding:2px 7px; border-radius:5px; border:1px solid #c7d2fe; background:#eef2ff; color:#4338ca; cursor:pointer; font-weight:700;">全選 / 全取消</button>' +
+        '</div>';
       }
-    }
-
-    if (found) {
-      if (customInput) customInput.style.display = "none";
+      chipHtml += '<div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">';
+      targetClasses.forEach(c => {
+        chipHtml += '<label style="display:inline-flex; align-items:center; gap:5px; padding:4px 9px; border-radius:7px; border:1.5px solid var(--border); background:var(--input-bg); font-size:13px; font-weight:700; color:var(--text); cursor:pointer; user-select:none;">' +
+          '<input type="checkbox" name="task_target_classes" value="' + c + '" checked style="accent-color:#4f46e5; width:15px; height:15px; cursor:pointer;">' +
+          '🏫 ' + c + ' 班' +
+        '</label>';
+      });
+      chipHtml += '</div>';
     } else {
-      classSelect.value = "custom";
-      if (customInput) {
-        customInput.style.display = "inline-block";
-        customInput.value = targetClass === "all" ? "" : targetClass;
-      }
+      chipHtml = '<label style="display:inline-flex; align-items:center; gap:5px; padding:4px 9px; border-radius:7px; border:1.5px solid var(--border); background:var(--input-bg); font-size:13px; font-weight:700; color:var(--text); cursor:pointer;">' +
+        '<input type="checkbox" name="task_target_classes" value="all" checked style="accent-color:#4f46e5; width:15px; height:15px; cursor:pointer;">' +
+        '🌐 全校 / 所有班級' +
+      '</label>';
     }
+    wrapper.innerHTML = chipHtml;
+  }
+
+  // 任務名稱預設為 mm-dd指定單字測驗
+  const taskNameEl = document.getElementById("taskNameInput");
+  if (taskNameEl && (!initialPreset || !initialPreset.taskName)) {
+    const curDate = (dateInput && dateInput.value) ? dateInput.value : "";
+    taskNameEl.value = getDefaultTaskName(curDate);
   }
 
   // 3. 渲染單字庫
