@@ -1047,10 +1047,30 @@ function onTaskCustomClassInput() {
   }, 400);
 }
 
+function getDefaultTaskName(dateStr) {
+  if (!dateStr) {
+    const now = new Date();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    return `${m}-${d}指定單字測驗`;
+  }
+  const parts = dateStr.split("-");
+  if (parts.length >= 3) {
+    const m = String(parts[1]).padStart(2, '0');
+    const d = String(parts[2]).padStart(2, '0');
+    return `${m}-${d}指定單字測驗`;
+  }
+  return `${dateStr}指定單字測驗`;
+}
+
 function onTaskDateOrClassChange() {
   const targetClass = getEffectiveTaskClass();
   const dateInput = document.getElementById("taskDateInput");
   const targetDate = dateInput ? dateInput.value : "";
+  const taskNameEl = document.getElementById("taskNameInput");
+  if (taskNameEl && targetDate) {
+    taskNameEl.value = getDefaultTaskName(targetDate);
+  }
   loadCurrentTaskForClassAndDate(targetClass, targetDate);
 }
 
@@ -1399,6 +1419,10 @@ function loadCurrentTaskForClassAndDate(targetClass, targetDate) {
 function loadCurrentTaskForClass(targetClass) {
   const dateInput = document.getElementById("taskDateInput");
   const targetDate = dateInput ? dateInput.value : "";
+  const taskNameEl = document.getElementById("taskNameInput");
+  if (taskNameEl && targetDate) {
+    taskNameEl.value = getDefaultTaskName(targetDate);
+  }
   loadCurrentTaskForClassAndDate(targetClass, targetDate);
 }
 
