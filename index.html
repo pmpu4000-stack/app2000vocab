@@ -455,10 +455,19 @@
       transform: none !important;
     }
     .tp-nav-card.active {
-      border: 2px solid var(--sky, #0284c7) !important;
-      background: rgba(2, 132, 199, 0.12) !important;
-      box-shadow: 0 3px 12px rgba(2, 132, 199, 0.18) !important;
+      border: 2px solid var(--violet, #6366f1) !important;
+      background: var(--card) !important;
+      box-shadow: 0 3px 12px rgba(99, 102, 241, 0.18) !important;
       transform: none !important;
+    }
+    [data-theme="dark"] .tp-nav-card {
+      background: #1C2234 !important;
+      border-color: #2B334E !important;
+      color: #F0F3FA !important;
+    }
+    [data-theme="dark"] .tp-nav-card.active {
+      background: #232A40 !important;
+      border-color: #818cf8 !important;
     }
   </style>
   <link rel="stylesheet" href="css/styles.css?v=20261101_2140">

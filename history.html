@@ -83,6 +83,23 @@
       --bar-mast-text: #6EE7B7;
     }
     * { box-sizing: border-box; }
+
+    /* 柔和護眼模式過渡：消除開燈刺眼感 (Smooth Theme Dimmer Transition) */
+    html.theme-transitioning,
+    html.theme-transitioning *,
+    html.theme-transitioning *::before,
+    html.theme-transitioning *::after {
+      transition: background-color 0.5s cubic-bezier(0.25, 1, 0.5, 1),
+                  color 0.5s cubic-bezier(0.25, 1, 0.5, 1),
+                  border-color 0.5s cubic-bezier(0.25, 1, 0.5, 1),
+                  box-shadow 0.5s cubic-bezier(0.25, 1, 0.5, 1) !important;
+      transition-delay: 0s !important;
+    }
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+      animation-duration: 0.5s;
+      animation-timing-function: cubic-bezier(0.25, 1, 0.5, 1);
+    }
     html {
       min-height: 100%;
       background-color: var(--paper, #F6F7FB);
@@ -479,15 +496,31 @@ body.css-fullscreen-active {
     button:hover:not(:disabled) { background-color: var(--primary-hover); transform: translateY(-1px); }
     button:active:not(:disabled) { transform: scale(0.97); }
     button:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-    .btn-secondary { background-color: var(--card); color: var(--text); border: 1.5px solid var(--border); }
-    .btn-secondary:hover:not(:disabled) { background-color: var(--table-hover-bg); }
-    [data-theme="dark"] .btn-secondary {
+    .btn-secondary, .t-btn-action { background-color: var(--card); color: var(--text); border: 1.5px solid var(--border); transition: all 0.2s ease; }
+    .btn-secondary:hover:not(:disabled), .t-btn-action:hover:not(:disabled) { background-color: var(--table-hover-bg); }
+    .task-class-chip { background: var(--card); border: 1.5px solid var(--border); color: var(--text); }
+    [data-theme="dark"] .btn-secondary,
+    [data-theme="dark"] .t-btn-action,
+    [data-theme="dark"] #t-btn-random10,
+    [data-theme="dark"] #t-btn-random20,
+    [data-theme="dark"] #t-btn-selectall {
       background-color: #232A40 !important;
       border-color: #333D5C !important;
       color: #F0F3FA !important;
     }
-    [data-theme="dark"] .btn-secondary:hover:not(:disabled) {
+    [data-theme="dark"] .btn-secondary:hover:not(:disabled),
+    [data-theme="dark"] .t-btn-action:hover:not(:disabled),
+    [data-theme="dark"] #t-btn-random10:hover,
+    [data-theme="dark"] #t-btn-random20:hover,
+    [data-theme="dark"] #t-btn-selectall:hover {
       background-color: #2B334E !important;
+      border-color: #6366f1 !important;
+      color: #ffffff !important;
+    }
+    [data-theme="dark"] .task-class-chip {
+      background-color: #232A40 !important;
+      border-color: #333D5C !important;
+      color: #F0F3FA !important;
     }
     .btn-sm { padding: 5px 10px; font-size: 12.5px; border-radius: 6px; min-height: 34px; }
     .btn-danger { background-color: var(--danger); }
@@ -8080,7 +8113,7 @@ table{page-break-inside:auto!important;break-inside:auto!important;}tr{page-brea
   <div id="taskModalInner" style="background:var(--card); border-radius:16px; padding:24px 28px; max-width:680px; width:95%; box-shadow:0 20px 60px rgba(0,0,0,0.35); max-height:92vh; overflow-y:auto; border:1px solid var(--border);">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
       <h3 style="margin:0; color:var(--text); font-size:18px; display:flex; align-items:center; gap:8px;">
-        📝 每日測驗出題 (可指定測驗日期與班級)
+        📝 每日指定單字測驗
       </h3>
       <button onclick="closeTaskModal()" style="background:none; border:none; font-size:22px; cursor:pointer; color:var(--text-muted);">&times;</button>
     </div>
@@ -8097,33 +8130,11 @@ table{page-break-inside:auto!important;break-inside:auto!important;}tr{page-brea
           style="width:100%; padding:8px 10px; border-radius:8px; border:1.5px solid var(--border); background:var(--input-bg); color:var(--text); font-size:13.5px; box-sizing:border-box;">
       </div>
       <div>
-        <label style="font-size:13px; font-weight:600; display:block; margin-bottom:4px; color:var(--text);">🏫 目標班級：</label>
-        <div style="display:flex; gap:6px; align-items:center;">
+        <label style="font-size:13px; font-weight:600; display:block; margin-bottom:4px; color:var(--text);">🏫 目標班級 (可多選)：</label>
+        <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;" id="taskClassPickerWrapper">
           <select id="taskClassSelect" onchange="handleTaskClassSelectChange()"
             style="width:100%; padding:8px 10px; border-radius:8px; border:1.5px solid var(--border); background:var(--input-bg); color:var(--text); font-size:13.5px; cursor:pointer;">
             <option value="all">🌐 全校 / 所有班級 (all)</option>
-            <optgroup label="七年級 (國一)">
-              <option value="701">🏫 701 班</option>
-              <option value="702">🏫 702 班</option>
-              <option value="703">🏫 703 班</option>
-              <option value="704">🏫 704 班</option>
-              <option value="705">🏫 705 班</option>
-            </optgroup>
-            <optgroup label="八年級 (國二)">
-              <option value="801">🏫 801 班</option>
-              <option value="802">🏫 802 班</option>
-              <option value="803">🏫 803 班</option>
-              <option value="804">🏫 804 班</option>
-              <option value="805">🏫 805 班</option>
-            </optgroup>
-            <optgroup label="九年級 (國三)">
-              <option value="901">🏫 901 班</option>
-              <option value="902">🏫 902 班</option>
-              <option value="903">🏫 903 班</option>
-              <option value="904">🏫 904 班</option>
-              <option value="905">🏫 905 班</option>
-            </optgroup>
-            <option value="custom">✏️ 自訂輸入其他班級...</option>
           </select>
           <input type="text" id="taskClassCustomInput" placeholder="請輸入班級" oninput="onTaskCustomClassInput()"
             style="display:none; width:110px; padding:8px 10px; border-radius:8px; border:1.5px solid var(--primary); background:var(--input-bg); color:var(--text); font-size:13.5px; box-sizing:border-box;">
@@ -8131,7 +8142,7 @@ table{page-break-inside:auto!important;break-inside:auto!important;}tr{page-brea
       </div>
       <div>
         <label style="font-size:13px; font-weight:600; display:block; margin-bottom:4px; color:var(--text);">📝 任務名稱：</label>
-        <input type="text" id="taskNameInput" placeholder="例：第1課重要單字隨堂考" value="每日指定單字隨堂測驗"
+        <input type="text" id="taskNameInput" placeholder="例：11-04指定單字測驗" value=""
           style="width:100%; padding:8px 10px; border-radius:8px; border:1.5px solid var(--border); background:var(--input-bg); color:var(--text); box-sizing:border-box; font-size:14px;">
       </div>
     </div>
@@ -8663,20 +8674,39 @@ function applyPageThemeBackground(theme) {
     });
   }
 }
+var _isThemeSwitching = false;
+function enableThemeTransition() {
+  document.documentElement.classList.add("theme-transitioning");
+  window.clearTimeout(window._themeTransTimer);
+  window._themeTransTimer = window.setTimeout(function() {
+    document.documentElement.classList.remove("theme-transitioning");
+    _isThemeSwitching = false;
+  }, 500);
+}
 function toggleTheme() {
+  if (_isThemeSwitching) return;
+  _isThemeSwitching = true;
   const cur = document.documentElement.getAttribute("data-theme") || "light";
   const next = cur === "light" ? "dark" : "light";
-  applyPageThemeBackground(next);
-  localStorage.setItem("theme", next);
-  localStorage.setItem("app_theme", next);
-  updateThemeButtonText(next);
-  if (cumChartInstance || dailyChartInstance || wordCumChartInstance || wordDailyChartInstance || radarChartInstance) updateCharts();
-  if (forecastChartInstance) renderForecast();
-  if (freqWeekdayChartInstance || freqIntensityChartInstance) renderFrequencyAnalysis();
-  if (weaknessChartInstance) renderWeaknessAnalysis();
-  if (wordFlowStreamChartInstance || wordFlowDailyChartInstance) renderWordFlowTracking();
-  if (isTeacherChartVisible && teacherOverview && teacherOverview.length > 0) renderTeacherCharts(teacherOverview);
-  if (document.getElementById("heatmapCard") && document.getElementById("heatmapCard").style.display !== "none") renderHeatmap();
+  enableThemeTransition();
+  const doApply = function() {
+    applyPageThemeBackground(next);
+    localStorage.setItem("theme", next);
+    localStorage.setItem("app_theme", next);
+    updateThemeButtonText(next);
+    if (cumChartInstance || dailyChartInstance || wordCumChartInstance || wordDailyChartInstance || radarChartInstance) updateCharts();
+    if (forecastChartInstance) renderForecast();
+    if (freqWeekdayChartInstance || freqIntensityChartInstance) renderFrequencyAnalysis();
+    if (weaknessChartInstance) renderWeaknessAnalysis();
+    if (wordFlowStreamChartInstance || wordFlowDailyChartInstance) renderWordFlowTracking();
+    if (isTeacherChartVisible && teacherOverview && teacherOverview.length > 0) renderTeacherCharts(teacherOverview);
+    if (document.getElementById("heatmapCard") && document.getElementById("heatmapCard").style.display !== "none") renderHeatmap();
+  };
+  if (document.startViewTransition) {
+    document.startViewTransition(doApply);
+  } else {
+    doApply();
+  }
 }
 function updateThemeButtonText(theme) {
   const btn = document.getElementById("btnThemeToggle");
@@ -8887,6 +8917,11 @@ function logout() {
   currentUser = null; currentPass = null; currentRole = null;
   viewingStudent = null; teacherStudents = []; teacherOverview = [];
   teacherAllOverview = []; teacherClassList = []; teacherSelectedClass = "all";
+  window.teacherMyClass = ""; window.teacherMyRegisteredClasses = [];
+  try {
+    localStorage.removeItem("teacher_class_list");
+    localStorage.removeItem("teacher_my_class");
+  } catch(_) {}
   studentMyClass = ""; studentRealName = ""; leaderboardScope = "class";
   studentListWithPasswords = [];
   fullProcessedData = []; displayHeaders = []; lastFilteredData = [];
@@ -8963,6 +8998,8 @@ function applyFetchedData(resp) {
     teacherAllOverview = resp.allOverview || resp.overview || [];
     teacherClassList = resp.classes || [];
     teacherSelectedClass = resp.currentClass || "all";
+    window.teacherMyClass = resp.teacherClass || "";
+    window.teacherMyRegisteredClasses = resp.teacherClassList || [];
     teacherStudents = resp.students || [];
     teacherOverview = resp.overview || []; latestOverviewResult = resp;
     initTeacherDashboard(resp);
@@ -9134,6 +9171,8 @@ function initTeacherDashboard(resp) {
   teacherAllOverview = resp.allOverview || resp.overview || [];
   teacherClassList = resp.classes || [];
   teacherSelectedClass = resp.currentClass || "all";
+  window.teacherMyClass = resp.teacherClass || "";
+  window.teacherMyRegisteredClasses = resp.teacherClassList || [];
   teacherStudents = resp.students || [];
   teacherOverview = resp.overview || []; latestOverviewResult = resp;
 
@@ -10152,11 +10191,51 @@ function onTaskCustomClassInput() {
   }, 400);
 }
 
+function getDefaultTaskName(dateStr) {
+  if (!dateStr) {
+    const now = new Date();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    return `${m}-${d}指定單字測驗`;
+  }
+  const parts = dateStr.split("-");
+  if (parts.length >= 3) {
+    const m = String(parts[1]).padStart(2, '0');
+    const d = String(parts[2]).padStart(2, '0');
+    return `${m}-${d}指定單字測驗`;
+  }
+  return `${dateStr}指定單字測驗`;
+}
+
 function onTaskDateOrClassChange() {
   const targetClass = getEffectiveTaskClass();
   const dateInput = document.getElementById("taskDateInput");
   const targetDate = dateInput ? dateInput.value : "";
+  const taskNameEl = document.getElementById("taskNameInput");
+  if (taskNameEl && targetDate) {
+    taskNameEl.value = getDefaultTaskName(targetDate);
+  }
   loadCurrentTaskForClassAndDate(targetClass, targetDate);
+}
+
+function cleanAndParseClasses(inputList) {
+  const result = new Set();
+  const invalid = new Set(["all", "全校", "系統管理員", "管理員", "admin", "d", "test", "null", "undefined"]);
+  (inputList || []).forEach(item => {
+    if (!item) return;
+    const str = String(item).trim();
+    str.split(/[,，、\s/]+/).forEach(token => {
+      let t = token.replace(/班$/, "").trim();
+      if (!t || invalid.has(t.toLowerCase())) return;
+      if (/^\d{6}$/.test(t)) {
+        result.add(t.slice(0, 3));
+        result.add(t.slice(3, 6));
+      } else {
+        result.add(t);
+      }
+    });
+  });
+  return Array.from(result).sort();
 }
 
 function openTaskModal(initialDate, initialClass, initialPreset) {
@@ -10164,7 +10243,7 @@ function openTaskModal(initialDate, initialClass, initialPreset) {
   if (!modal) return;
   modal.style.display = "flex";
 
-  // 1. 初始化測驗日期 (預設今天，以在地時間為準避免時區偏差)
+  // 1. 初始化測驗日期
   const dateInput = document.getElementById("taskDateInput");
   if (dateInput) {
     if (initialDate) {
@@ -10178,54 +10257,66 @@ function openTaskModal(initialDate, initialClass, initialPreset) {
     }
   }
 
-  // 2. 初始化目標班級
+  // 2. 初始化目標班級：僅止於該老師名下登記有的班級，過濾「系統管理員」、「d」等雜質
   const classSelect = document.getElementById("taskClassSelect");
-  const customInput = document.getElementById("taskClassCustomInput");
+  const wrapper = document.getElementById("taskClassPickerWrapper") || (classSelect ? classSelect.parentNode : null);
   
-  // 決定目標班級 (優先權：傳入參數 > 教師當前選取的班級 > all)
-  const myClass = (typeof teacherSelectedClass !== "undefined" && teacherSelectedClass && teacherSelectedClass !== "all")
-    ? teacherSelectedClass
-    : "";
-  const targetClass = initialClass || myClass || "all";
+  let teacherClasses = [];
+  if (window.teacherMyRegisteredClasses && Array.isArray(window.teacherMyRegisteredClasses) && window.teacherMyRegisteredClasses.length > 0) {
+    teacherClasses = window.teacherMyRegisteredClasses;
+  } else {
+    try {
+      const raw = localStorage.getItem("teacher_class_list");
+      if (raw) teacherClasses = JSON.parse(raw);
+    } catch(_) {}
+  }
+  const curUser = (typeof currentUser !== "undefined" && currentUser ? currentUser : localStorage.getItem("current_user") || "").trim();
+  const myClass = window.teacherMyClass || localStorage.getItem("teacher_my_class") || "";
 
-  if (classSelect) {
-    // 若教師有專屬班級，動態插入或更新「⭐ 我的班級」
-    let myOpt = document.getElementById("optTeacherMyClass");
-    if (myClass) {
-      if (!myOpt) {
-        myOpt = document.createElement("option");
-        myOpt.id = "optTeacherMyClass";
-        if (classSelect.options.length > 1) {
-          classSelect.insertBefore(myOpt, classSelect.options[1]);
-        } else {
-          classSelect.appendChild(myOpt);
-        }
+  // 權威班級判讀：若名下登記具體班級，最高優先直接採納；teacher702 直接對應 702
+  let targetClasses = [];
+  if (myClass && myClass.toLowerCase() !== "all" && myClass !== "系統管理員" && myClass !== "d") {
+    targetClasses = cleanAndParseClasses([myClass]);
+  } else if (curUser.toLowerCase().startsWith("teacher") && /\d+/.test(curUser)) {
+    const m = curUser.match(/\d+/);
+    if (m) targetClasses = [m[0]];
+  } else if (teacherClasses && teacherClasses.length > 0) {
+    targetClasses = cleanAndParseClasses(teacherClasses);
+  }
+
+  try { localStorage.setItem("teacher_class_list", JSON.stringify(targetClasses)); } catch(_) {}
+
+  if (wrapper) {
+    let chipHtml = "";
+    if (targetClasses.length > 0) {
+      if (targetClasses.length > 1) {
+        chipHtml += '<div style="width:100%; display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">' +
+          '<span style="font-size:11.5px; color:var(--text-muted);">已勾選目標班級：</span>' +
+          '<button type="button" onclick="toggleAllTaskClasses()" style="font-size:11px; padding:2px 7px; border-radius:5px; border:1px solid #c7d2fe; background:#eef2ff; color:#4338ca; cursor:pointer; font-weight:700;">全選 / 全取消</button>' +
+        '</div>';
       }
-      myOpt.value = myClass;
-      myOpt.textContent = `⭐ 我的班級 (${myClass} 班)`;
-    } else if (myOpt) {
-      myOpt.remove();
-    }
-
-    // 檢查目標班級是否存在於選項中
-    let found = false;
-    for (let i = 0; i < classSelect.options.length; i++) {
-      if (classSelect.options[i].value === targetClass) {
-        classSelect.selectedIndex = i;
-        found = true;
-        break;
-      }
-    }
-
-    if (found) {
-      if (customInput) customInput.style.display = "none";
+      chipHtml += '<div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">';
+      targetClasses.forEach(c => {
+        chipHtml += '<label style="display:inline-flex; align-items:center; gap:5px; padding:4px 9px; border-radius:7px; border:1.5px solid var(--border); background:var(--input-bg); font-size:13px; font-weight:700; color:var(--text); cursor:pointer; user-select:none;">' +
+          '<input type="checkbox" name="task_target_classes" value="' + c + '" checked style="accent-color:#4f46e5; width:15px; height:15px; cursor:pointer;">' +
+          '🏫 ' + c + ' 班' +
+        '</label>';
+      });
+      chipHtml += '</div>';
     } else {
-      classSelect.value = "custom";
-      if (customInput) {
-        customInput.style.display = "inline-block";
-        customInput.value = targetClass === "all" ? "" : targetClass;
-      }
+      chipHtml = '<label style="display:inline-flex; align-items:center; gap:5px; padding:4px 9px; border-radius:7px; border:1.5px solid var(--border); background:var(--input-bg); font-size:13px; font-weight:700; color:var(--text); cursor:pointer;">' +
+        '<input type="checkbox" name="task_target_classes" value="all" checked style="accent-color:#4f46e5; width:15px; height:15px; cursor:pointer;">' +
+        '🌐 全校 / 所有班級' +
+      '</label>';
     }
+    wrapper.innerHTML = chipHtml;
+  }
+
+  // 任務名稱預設為 mm-dd指定單字測驗
+  const taskNameEl = document.getElementById("taskNameInput");
+  if (taskNameEl && (!initialPreset || !initialPreset.taskName)) {
+    const curDate = (dateInput && dateInput.value) ? dateInput.value : "";
+    taskNameEl.value = getDefaultTaskName(curDate);
   }
 
   // 3. 渲染單字庫
@@ -10504,11 +10595,22 @@ function loadCurrentTaskForClassAndDate(targetClass, targetDate) {
 function loadCurrentTaskForClass(targetClass) {
   const dateInput = document.getElementById("taskDateInput");
   const targetDate = dateInput ? dateInput.value : "";
+  const taskNameEl = document.getElementById("taskNameInput");
+  if (taskNameEl && targetDate) {
+    taskNameEl.value = getDefaultTaskName(targetDate);
+  }
   loadCurrentTaskForClassAndDate(targetClass, targetDate);
 }
 
 function submitTaskData() {
-  const className = getEffectiveTaskClass();
+  const checkedCbs = document.querySelectorAll("input[name='task_target_classes']:checked");
+  let targetClasses = Array.from(checkedCbs).map(cb => cb.value);
+  if (targetClasses.length === 0) {
+    const fallbackClass = getEffectiveTaskClass();
+    if (fallbackClass) targetClasses = [fallbackClass];
+  }
+  if (targetClasses.length === 0) { alert("請至少勾選 1 個目標班級！"); return; }
+  const className = targetClasses[0];
   const dateInput = document.getElementById("taskDateInput");
   const targetDate = dateInput ? dateInput.value.trim() : "";
   const taskName  = document.getElementById("taskNameInput").value.trim();
@@ -10530,7 +10632,7 @@ function submitTaskData() {
     setTimeout(() => {
       btn.disabled = false;
       btn.textContent = "💾 發布任務至試算表";
-      alert(`本機預覽模式：【${className} / ${targetDate || "通用"}】任務發布成功！共 ${wordsArr.length} 字。`);
+      alert(`本機預覽模式：【${targetClasses.join("、")} / ${targetDate || "通用"}】任務發布成功！共 ${wordsArr.length} 字。`);
       closeTaskModal();
     }, 500);
     return;

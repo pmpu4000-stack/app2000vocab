@@ -427,9 +427,14 @@ function saveTeacherTask(credentials, taskData) {
     const cleanAuth   = String(auth.className || "").replace(/班$/, "").trim().toLowerCase();
     const cleanTarget = String(targetClass || "").replace(/班$/, "").trim().toLowerCase();
 
-    // 非管理員教師嚴格限制只能為自身班級出題 (不可指定全校或跨班)
-    if (!auth.isAdmin && cleanAuth && cleanAuth !== "all" && cleanTarget !== cleanAuth) {
-      return { status: "error", message: "權限不足：非管理員教師僅限為自身班級出題" };
+    // 授權班級判定：管理員、全校教師、或任教班級清單內包含目標班級
+    const teacherClasses = (auth.classList && auth.classList.length > 0)
+      ? auth.classList.map(c => String(c).replace(/班$/, "").trim().toLowerCase())
+      : cleanAuth.split(/[,，、\s/]+/).map(c => c.replace(/班$/, "").trim().toLowerCase());
+
+    const isClassAllowed = auth.isAdmin || cleanAuth === "all" || teacherClasses.includes(cleanTarget) || cleanAuth === cleanTarget;
+    if (!isClassAllowed) {
+      return { status: "error", message: "權限不足：非管理員教師僅限為自身任教班級出題" };
     }
 
     let sheet = ss.getSheetByName("指定單字任務");
