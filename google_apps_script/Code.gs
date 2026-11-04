@@ -402,23 +402,52 @@ function doPost(e) {
       if (devS) ss.deleteSheet(devS);
     } catch(_) {}
 
+    
+function getStudentMetaFromUserList_(ss, studentUser) {
+  try {
+    const s = ss.getSheetByName("使用者清單");
+    if (!s || s.getLastRow() < 2) return null;
+    const data = s.getRange(2, 1, s.getLastRow() - 1, 5).getValues();
+    const cleanU = String(studentUser || "").trim().toLowerCase();
+    for (let i = 0; i < data.length; i++) {
+      if (String(data[i][0] || "").trim().toLowerCase() === cleanU) {
+        return {
+          className: String(data[i][3] || "").trim(),
+          realName: String(data[i][4] || "").trim()
+        };
+      }
+    }
+  } catch(_) {}
+  return null;
+}
+
     if (action === "login") {
       const auth = authenticateUser(ss, params.username, params.password);
       if (!auth.success) {
         logError("doPost/login", auth.message, params.username, "登入驗證失敗");
         return jsonResponse({status:"error", message:auth.message});
       }
-      if (auth.role === "parent") {
-        return jsonResponse({
-          status: "success",
-          message: "家長驗證成功",
-          role: "parent",
-          username: auth.username,
-          realName: auth.realName,
-          studentBinding: auth.studentBinding,
-          className: auth.className
-        });
+
+      const isParent = (auth.role === "parent");
+      let targetStudent = "";
+      let activeClass = auth.className || "";
+      let activeRealName = auth.realName || "";
+
+      if (isParent) {
+        targetStudent = String(auth.studentBinding || "").trim();
+        if (!targetStudent) {
+          return jsonResponse({
+            status: "error",
+            message: "此家長帳號尚未綁定學生學號，請洽任課老師設定。"
+          });
+        }
+        const sMeta = getStudentMetaFromUserList_(ss, targetStudent);
+        if (sMeta) {
+          activeClass = sMeta.className || activeClass;
+          activeRealName = sMeta.realName || activeRealName;
+        }
       }
+
       if (auth.role === "teacher" || auth.role === "admin") {
         let classList = [];
         try {
@@ -443,10 +472,12 @@ function doPost(e) {
         });
       }
 
-      // ── 學生時間限制管制：可個別學生設定，預設套用全校設定，除非老師設定解除指定日期或範圍 ──
-      const timeAllowance = checkTimeRestrictionAllowance(ss, auth.username);
+      const studentUser = isParent ? targetStudent : auth.username;
+
+      // ── 學生時間限制管制：家長檢視子女進度不限時，學生須遵守作答時限 ──
+      const timeAllowance = isParent ? { allowed: true, isOverridden: true } : checkTimeRestrictionAllowance(ss, studentUser);
       if (!timeAllowance.allowed) {
-        logError("doPost/login/curfew", "非開放作答時間登入阻擋", auth.username, "目前時間: " + timeAllowance.timeStr + " / 允許時段: " + timeAllowance.startTime + "~" + timeAllowance.endTime);
+        logError("doPost/login/curfew", "非開放作答時間登入阻擋", studentUser, "目前時間: " + timeAllowance.timeStr + " / 允許時段: " + timeAllowance.startTime + "~" + timeAllowance.endTime);
         return jsonResponse({
           status: "error",
           curfew: true,
@@ -461,7 +492,7 @@ function doPost(e) {
 
       // 🚀 優先從【學生歷程總庫】秒速提取最新進度備份 (零分頁尋找延遲)
       try {
-        const cpRes = getStudentRowsFromCentralPortfolio(ss, auth.username, 1);
+        const cpRes = getStudentRowsFromCentralPortfolio(ss, studentUser, 1);
         if (cpRes && cpRes.rawData && cpRes.rawData.length > 0) {
           const cellVal = String(cpRes.rawData[0][1] || "").trim();
           if (cellVal && (cellVal.startsWith("GZ:") || cellVal.startsWith("{"))) {
@@ -471,7 +502,7 @@ function doPost(e) {
       } catch(_) {}
 
       if (!raw) {
-        const uSheet = getStudentSheet(ss, auth.username);
+        const uSheet = getStudentSheet(ss, studentUser);
         if (uSheet && uSheet.getLastRow() >= 2) {
           const checkCount = Math.min(uSheet.getLastRow() - 1, 35);
           const bVals = uSheet.getRange(2, 2, checkCount, 1).getValues();
@@ -485,9 +516,9 @@ function doPost(e) {
         }
       }
 
-      const assignedTask = getActiveTaskForClass(ss, auth.className, auth.username);
+      const assignedTask = getActiveTaskForClass(ss, activeClass, studentUser);
       let dailyTaskHistory = [];
-      try { dailyTaskHistory = getStudentDailyTaskHistory(ss, auth.username); } catch(_) {}
+      try { dailyTaskHistory = getStudentDailyTaskHistory(ss, studentUser); } catch(_) {}
 
       if (raw) {
         const decomp = decompressData(raw);
@@ -517,8 +548,8 @@ function doPost(e) {
         }
       }
 
-      const uSheet = !raw ? getStudentSheet(ss, auth.username) : null;
-      const cpResFallback = !raw ? getStudentRowsFromCentralPortfolio(ss, auth.username, 15) : null;
+      const uSheet = !raw ? getStudentSheet(ss, studentUser) : null;
+      const cpResFallback = !raw ? getStudentRowsFromCentralPortfolio(ss, studentUser, 15) : null;
       const hasCpRows = !!(cpResFallback && cpResFallback.rawData && cpResFallback.rawData.length > 0);
       const isNewStudent = !raw && !hasCpRows && (!uSheet || uSheet.getLastRow() < 2);
 
@@ -630,16 +661,23 @@ function doPost(e) {
       const sessionToken = "ST_OK";
 
       return jsonResponse({
-        status:"success", message:"驗證成功", role:"student",
+        status: "success",
+        message: isParent ? "家長驗證成功" : "驗證成功",
+        role: isParent ? "parent" : "student",
+        username: isParent ? auth.username : studentUser,
+        studentUser: studentUser,
+        parentRealName: isParent ? (auth.realName || auth.username) : "",
         sessionToken: sessionToken,
-        className:auth.className, realName:auth.realName, records,
+        className: activeClass,
+        realName: activeRealName,
+        records: records,
         isNewStudent: isNewStudent,
         assignedTask: assignedTask,
         taskWordsMap: getTaskWordsDictCached_(ss),
         dailyTaskHistory: dailyTaskHistory,
         timeRestriction: timeAllowance,
         conquerSettings: getConquerRollSettings(),
-        dailyUsage: getDailyUsageSettings(ss, auth.username, true),
+        dailyUsage: getDailyUsageSettings(ss, studentUser, true),
         cachedSummary: cachedSummary
       });
     }
