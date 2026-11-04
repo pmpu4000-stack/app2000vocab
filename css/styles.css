@@ -3931,3 +3931,14 @@ body.low-end-device .btn,
 body.low-power-mode .btn {
   transform: none !important;
 }
+
+/* 🚀 現代瀏覽器渲染管線最佳化：非可見區域跳過佈局與繪製 (零代價巨幅加速) */
+.picker-word-item,
+#wordPickerGrid > div,
+#t-word-grid > label,
+.history-row,
+.task-history-item,
+.report-document tr {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 42px;
+}

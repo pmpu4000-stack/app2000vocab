@@ -182,4 +182,15 @@
     /* ── 稀疏資料提示 ── */
     #sparseDataNotice { display:none; margin-bottom:14px; padding: 12px 16px; border-radius: 10px; background: var(--warning-bg); color: var(--warning); font-size: 13px; font-weight: 500; line-height: 1.6; }
 
+    /* 🚀 現代瀏覽器渲染管線最佳化：非可見區域跳過佈局與繪製 */
+    .picker-word-item,
+    #wordPickerGrid > div,
+    #t-word-grid > label,
+    .history-row,
+    .task-history-item,
+    .report-document tr {
+      content-visibility: auto;
+      contain-intrinsic-size: 0 42px;
+    }
+
 </style>
