@@ -211,7 +211,6 @@
       });
     }
   </script>
-  <script src="src/teacher_portal.js?v=20261104_1340" defer></script>
   <script src="src/time_limits.js?v=20261104_1400" defer></script>
 </head>
 <body class="is-logging-in">
@@ -1642,7 +1641,13 @@
             if (subLabel) subLabel.textContent = isAdmin ? "系統管理員" : "教師帳號";
           }
         }
-        if (typeof initTeacherInlineWorkspace === "function") initTeacherInlineWorkspace();
+        if (typeof loadTeacherPortalScript === "function") {
+          loadTeacherPortalScript(() => {
+            if (typeof initTeacherInlineWorkspace === "function") initTeacherInlineWorkspace();
+          });
+        } else if (typeof initTeacherInlineWorkspace === "function") {
+          initTeacherInlineWorkspace();
+        }
         return;
       }
 
@@ -2509,7 +2514,32 @@
     // 教師線上出題核心邏輯已模組化至 src/teacher_portal.js
     // 學生每日開放時間與宵禁限制核心邏輯已模組化至 src/time_limits.js
 
-    // 教師時間管理與後台管理邏輯已模組化至 src/teacher_portal.js
+    function loadTeacherPortalScript(callback) {
+      if (window.__teacherPortalLoaded) {
+        if (callback) callback();
+        return;
+      }
+      let s = document.getElementById("teacher-portal-script");
+      if (!s) {
+        s = document.createElement("script");
+        s.id = "teacher-portal-script";
+        s.src = "src/teacher_portal.js?v=20261104_1420";
+        s.onload = () => {
+          window.__teacherPortalLoaded = true;
+          if (typeof ensureTeacherModalsMounted === "function") ensureTeacherModalsMounted();
+          if (typeof initPickerEvents === "function") initPickerEvents();
+          if (typeof initTimeManagementEvents === "function") initTimeManagementEvents();
+          if (typeof initTeacherInlineWorkspace === "function") initTeacherInlineWorkspace();
+          if (callback) callback();
+        };
+        document.head.appendChild(s);
+      } else if (callback) {
+        s.addEventListener("load", callback);
+      }
+    }
+    window.loadTeacherPortalScript = loadTeacherPortalScript;
+
+    // 教師時間管理與後台管理邏輯已模組化至 src/teacher_portal.js (按需動態載入)
     function checkAndApplyRoleBoot() {
       const curRole = localStorage.getItem("user_role") || sessionStorage.getItem("user_role");
       if (curRole === "parent") {
@@ -2521,22 +2551,20 @@
       } else if (curRole === "teacher" || curRole === "admin") {
         document.documentElement.classList.add("role-teacher");
         document.body.classList.add("role-teacher");
-        if (typeof applyRoleBasedView === "function") {
-          applyRoleBasedView(curRole);
-        }
-        if (typeof initTeacherInlineWorkspace === "function") initTeacherInlineWorkspace();
+        loadTeacherPortalScript(() => {
+          if (typeof applyRoleBasedView === "function") {
+            applyRoleBasedView(curRole);
+          }
+          if (typeof initTeacherInlineWorkspace === "function") initTeacherInlineWorkspace();
+        });
       }
     }
 
     if (document.readyState === "loading") {
       document.addEventListener("DOMContentLoaded", () => {
-        if (typeof initPickerEvents === "function") initPickerEvents();
-        if (typeof initTimeManagementEvents === "function") initTimeManagementEvents();
         checkAndApplyRoleBoot();
       });
     } else {
-      if (typeof initPickerEvents === "function") initPickerEvents();
-      if (typeof initTimeManagementEvents === "function") initTimeManagementEvents();
       checkAndApplyRoleBoot();
     }
 
@@ -2587,422 +2615,7 @@
   </script>
 
   <!-- ══════════════════════════════════════════
-       老師線上出題 (挑選 2000 單字) Modal
-  ══════════════════════════════════════════ -->
-  <div id="teacherTaskModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
-    <div style="background:#ffffff; border-radius:16px; padding:22px 24px; max-width:680px; width:94%; box-shadow:0 25px 60px rgba(0,0,0,0.5); max-height:92vh; overflow-y:auto; border:1.5px solid #D2D6E8; color:#232A4D; font-family:system-ui, sans-serif;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-        <h3 style="margin:0; font-size:18px; display:flex; align-items:center; gap:8px; color:#fff;">
-          📝 每日測驗出題 (可指定測驗日期)
-        </h3>
-        <button id="btnCloseTeacherModal" style="background:none; border:none; font-size:24px; cursor:pointer; color:#94a3b8;">&times;</button>
-      </div>
-
-      <p style="font-size:13px; color:#94a3b8; margin:0 0 14px 0; line-height:1.5;">
-        可指定測驗日期與目標班級，從 2000 單字庫勾選或隨機抽單字。學生於指定日期登入時將優先進行純聽拼測驗！
-      </p>
-
-      <div style="display:grid; grid-template-columns: 1.15fr 1fr 1.6fr; gap:12px; margin-bottom:12px;">
-        <div>
-          <label style="font-size:13px; font-weight:600; display:block; margin-bottom:4px; color:#5A6183;">📅 指定測驗日期：</label>
-          <input type="date" id="t-modal-date"
-            style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #D2D6E8; background:#F6F7FB; color:#fff; font-size:13.5px; box-sizing:border-box;">
-        </div>
-        <div>
-          <label style="font-size:13px; font-weight:600; display:block; margin-bottom:4px; color:#5A6183;">🏫 目標班級：</label>
-          <div style="display:flex; gap:6px; align-items:center;">
-            <select id="t-modal-class-select"
-              style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #D2D6E8; background:#F6F7FB; color:#fff; font-size:13.5px; box-sizing:border-box; cursor:pointer;">
-              <option value="all">🌐 全校 / 所有班級 (all)</option>
-              <optgroup label="七年級 (國一)">
-                <option value="701">🏫 701 班</option>
-                <option value="702">🏫 702 班</option>
-                <option value="703">🏫 703 班</option>
-                <option value="704">🏫 704 班</option>
-                <option value="705">🏫 705 班</option>
-              </optgroup>
-              <optgroup label="八年級 (國二)">
-                <option value="801">🏫 801 班</option>
-                <option value="802">🏫 802 班</option>
-                <option value="803">🏫 803 班</option>
-                <option value="804">🏫 804 班</option>
-                <option value="805">🏫 805 班</option>
-              </optgroup>
-              <optgroup label="九年級 (國三)">
-                <option value="901">🏫 901 班</option>
-                <option value="902">🏫 902 班</option>
-                <option value="903">🏫 903 班</option>
-                <option value="904">🏫 904 班</option>
-                <option value="905">🏫 905 班</option>
-              </optgroup>
-              <option value="custom">✏️ 自訂輸入其他班級...</option>
-            </select>
-            <input type="text" id="t-modal-class-custom" placeholder="請輸入班級"
-              style="display:none; width:110px; padding:8px 10px; border-radius:8px; border:1px solid #6366f1; background:#F6F7FB; color:#fff; font-size:13.5px; box-sizing:border-box;">
-          </div>
-        </div>
-        <div>
-          <label style="font-size:13px; font-weight:600; display:block; margin-bottom:4px; color:#5A6183;">📝 任務名稱：</label>
-          <input type="text" id="t-modal-name" placeholder="例：第1課重要單字隨堂考" value="每日指定單字隨堂測驗"
-            style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #D2D6E8; background:#F6F7FB; color:#fff; font-size:14px; box-sizing:border-box;">
-        </div>
-      </div>
-
-      <div style="border:1px solid #E7E9F5; border-radius:12px; padding:12px 14px; background:#F6F7FB; margin-bottom:12px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
-          <span style="font-size:13.5px; font-weight:700; color:#232A4D; display:flex; align-items:center; gap:6px;">
-            📚 從 2000 單字庫勾選單字
-          </span>
-          <span id="t-modal-count-badge" style="font-size:13px; color:#818cf8; font-weight:700; background:rgba(99,102,241,0.2); padding:3px 10px; border-radius:6px; border:1px solid rgba(99,102,241,0.3);">
-            已選取 0 個單字
-          </span>
-        </div>
-
-        <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px;" id="t-filter-chips">
-          <button type="button" class="btn-picker-chip active" data-lv="all" style="padding:4px 10px; font-size:12px; border-radius:6px; border:1px solid #6366f1; background:#6366f1; color:#fff; cursor:pointer;">全部 (2055)</button>
-          <button type="button" class="btn-picker-chip" data-lv="1" style="padding:4px 10px; font-size:12px; border-radius:6px; border:1px solid #D2D6E8; background:#ffffff; color:#5A6183; cursor:pointer;">Lv1 入門</button>
-          <button type="button" class="btn-picker-chip" data-lv="2" style="padding:4px 10px; font-size:12px; border-radius:6px; border:1px solid #D2D6E8; background:#ffffff; color:#5A6183; cursor:pointer;">Lv2 基礎</button>
-          <button type="button" class="btn-picker-chip" data-lv="3" style="padding:4px 10px; font-size:12px; border-radius:6px; border:1px solid #D2D6E8; background:#ffffff; color:#5A6183; cursor:pointer;">Lv3 進階</button>
-          <button type="button" class="btn-picker-chip" data-lv="4" style="padding:4px 10px; font-size:12px; border-radius:6px; border:1px solid #D2D6E8; background:#ffffff; color:#5A6183; cursor:pointer;">Lv4 挑戰</button>
-          <button type="button" class="btn-picker-chip" data-lv="5" style="padding:4px 10px; font-size:12px; border-radius:6px; border:1px solid #D2D6E8; background:#ffffff; color:#5A6183; cursor:pointer;">Lv5 大師</button>
-        </div>
-
-        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:10px;">
-          <input type="text" id="t-modal-search" placeholder="🔍 搜尋單字或中文..."
-            style="flex:1; min-width:140px; padding:6px 10px; border-radius:6px; border:1px solid #D2D6E8; font-size:13px; background:#ffffff; color:#fff; box-sizing:border-box;">
-          <button type="button" id="t-btn-random10" style="padding:6px 12px; font-size:12.5px; border-radius:6px; border:1px solid #D2D6E8; background:#E7E9F5; color:#fff; cursor:pointer;">🎲 隨機10字</button>
-          <button type="button" id="t-btn-random20" style="padding:6px 12px; font-size:12.5px; border-radius:6px; border:1px solid #D2D6E8; background:#E7E9F5; color:#fff; cursor:pointer;">🎲 隨機20字</button>
-          <button type="button" id="t-btn-selectall" style="padding:6px 12px; font-size:12.5px; border-radius:6px; border:1px solid #D2D6E8; background:#E7E9F5; color:#fff; cursor:pointer;">➕ 全選本組</button>
-          <button type="button" id="t-btn-clear" style="padding:6px 12px; font-size:12.5px; border-radius:6px; border:1px solid #dc2626; background:#991b1b; color:#fff; cursor:pointer;">🧹 清空</button>
-        </div>
-
-        <div id="t-word-grid" style="max-height:180px; overflow-y:auto; display:grid; grid-template-columns:repeat(auto-fill, minmax(130px, 1fr)); gap:6px; padding:6px; background:#ffffff; border:1px solid #E7E9F5; border-radius:8px;">
-          <div style="grid-column:1/-1; text-align:center; padding:15px; color:#94a3b8; font-size:13px;">載入單字庫中...</div>
-        </div>
-
-        <div style="margin-top:8px;">
-          <details open style="font-size:12.5px; color:#94a3b8;">
-            <summary style="cursor:pointer; font-weight:600; color:#818cf8; user-select:none; margin-bottom:4px;">
-              👁️ 已選單字預覽 (<span id="t-preview-count">0</span> 字，點擊 ✕ 可移除)
-            </summary>
-            <div id="t-preview-tags" style="display:flex; flex-wrap:wrap; gap:4px; max-height:85px; overflow-y:auto; padding:6px; background:#ffffff; border:1px solid #E7E9F5; border-radius:6px;">
-              <span style="color:#64748b; font-size:12px;">尚未選取任何單字</span>
-            </div>
-          </details>
-        </div>
-      </div>
-
-      <div style="display:flex; gap:12px; align-items:center; margin-bottom:12px;">
-        <div style="flex:1;">
-          <label style="font-size:13px; font-weight:600; display:block; margin-bottom:4px; color:#5A6183;">測驗模式：</label>
-          <select id="t-modal-mode" style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #D2D6E8; background:#F6F7FB; color:#fff; font-size:13.5px;">
-            <option value="抽測">🎲 隨機抽測 N 題</option>
-            <option value="全考">💯 全部都考 (考所選的所有單字)</option>
-          </select>
-        </div>
-        <div id="t-modal-count-wrap" style="width:130px;">
-          <label style="font-size:13px; font-weight:600; display:block; margin-bottom:4px; color:#5A6183;">抽測題數：</label>
-          <input type="number" id="t-modal-count" value="5" min="1" max="100"
-            style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid #D2D6E8; background:#F6F7FB; color:#fff; font-size:13.5px; box-sizing:border-box;">
-        </div>
-      </div>
-
-      <div style="display:flex; gap:10px;">
-        <button id="t-btn-publish" style="flex:1.2; padding:11px; font-weight:bold; font-size:14px; border-radius:8px; background:#2563eb; color:#fff; border:none; cursor:pointer;">
-          💾 發布任務至試算表 (同步給全班)
-        </button>
-        <button id="t-btn-preview-run" style="flex:1; padding:11px; font-weight:bold; font-size:14px; border-radius:8px; background:#7c3aed; color:#fff; border:none; cursor:pointer;">
-          🎯 立即以此單字開始測驗 (預覽)
-        </button>
-      </div>
-
-      <div id="t-modal-msg" style="font-size:13px; text-align:center; min-height:18px; margin-top:8px; color:#38bdf8;"></div>
-    </div>
-  </div>
-
-  <!-- ══════════════════════════════════════════
-       教師使用時間與解除限制管理 Modal
-  ══════════════════════════════════════════ -->
-  <div id="timeManagementModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
-    <div style="background:#ffffff; border-radius:16px; padding:22px 24px; max-width:680px; width:94%; box-shadow:0 25px 60px rgba(0,0,0,0.5); max-height:92vh; overflow-y:auto; border:1.5px solid #D2D6E8; color:#232A4D; font-family:system-ui, sans-serif;">
-      
-      <!-- 標題與關閉按鈕 -->
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-        <h3 style="margin:0; font-size:18px; display:flex; align-items:center; gap:8px; color:#fff;">
-          ⏰ 學生開放時間管制與自訂設定
-        </h3>
-        <button id="btnCloseTimeModal" style="background:none; border:none; font-size:24px; cursor:pointer; color:#94a3b8;">&times;</button>
-      </div>
-
-      <!-- 分頁頁籤切換按鈕 -->
-      <div style="display:flex; gap:6px; margin-bottom:16px; border-bottom:1px solid #E7E9F5; padding-bottom:10px; flex-wrap:wrap;">
-        <button id="tm-tab-btn-limit" style="flex:1; min-width:140px; padding:9px 10px; border-radius:8px; border:1px solid #3b82f6; background:#3b82f6; color:#fff; font-size:12.5px; font-weight:700; cursor:pointer; transition:all 0.2s;">
-          ⏱️ 每日10分鐘限制與延長
-        </button>
-        <button id="tm-tab-btn-global" style="flex:1; min-width:130px; padding:9px 10px; border-radius:8px; border:1px solid #D2D6E8; background:#ffffff; color:#5A6183; font-size:12.5px; font-weight:700; cursor:pointer; transition:all 0.2s;">
-          ⚙️ 全校預設時段
-        </button>
-        <button id="tm-tab-btn-student" style="flex:1; min-width:130px; padding:9px 10px; border-radius:8px; border:1px solid #D2D6E8; background:#ffffff; color:#5A6183; font-size:12.5px; font-weight:700; cursor:pointer; transition:all 0.2s;">
-          👤 個別學生時段
-        </button>
-        <button id="tm-tab-btn-date" style="flex:1; min-width:130px; padding:9px 10px; border-radius:8px; border:1px solid #D2D6E8; background:#ffffff; color:#5A6183; font-size:12.5px; font-weight:700; cursor:pointer; transition:all 0.2s;">
-          📅 特別日期全天解除
-        </button>
-      </div>
-
-      <!-- 分頁 1: 全校預設作答時間 -->
-      <div id="tm-tab-panel-global" style="display:none;">
-        <div style="background:#F6F7FB; border-radius:10px; padding:12px 16px; border:1px solid #E7E9F5; margin-bottom:14px;">
-          <div style="font-size:13.5px; font-weight:700; color:#38bdf8; margin-bottom:4px;">📌 全校預設作答時間說明</div>
-          <div style="font-size:13px; color:#94a3b8; line-height:1.6;">
-            • <b>預設時段</b>：每次設定將自動保存，日後一律以<b>上次教師修改之設定</b>為基準（預設為 07:30 ～ 22:00）。<br>
-            • <b>適用對象</b>：全校所有學生作答與登入皆受此時段管制。<br>
-            • <b>個別彈性</b>：若有特定學生需要不同時段，可切換至「個別學生自訂時間」單獨微調。
-          </div>
-        </div>
-
-        <div style="border:1px solid #E7E9F5; border-radius:12px; padding:16px; background:#F6F7FB; margin-bottom:14px;">
-          <div style="font-size:14px; font-weight:700; color:#232A4D; margin-bottom:12px;">
-            🕒 設定全校每日作答時間範圍
-          </div>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
-            <div>
-              <label style="font-size:12.5px; color:#5A6183; display:block; margin-bottom:4px;">每日開始作答時間：</label>
-              <input type="time" id="tm-global-start" value="07:30" style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #D2D6E8; background:#ffffff; color:#fff; font-size:14px; box-sizing:border-box;">
-            </div>
-            <div>
-              <label style="font-size:12.5px; color:#5A6183; display:block; margin-bottom:4px;">每日結束作答時間：</label>
-              <input type="time" id="tm-global-end" value="22:00" style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #D2D6E8; background:#ffffff; color:#fff; font-size:14px; box-sizing:border-box;">
-            </div>
-          </div>
-          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-            <div id="tm-global-last-updated" style="font-size:12px; color:#64748b;">
-              目前套用上次儲存設定
-            </div>
-            <button id="tm-btn-save-global" style="padding:9px 20px; border-radius:8px; background:#4f46e5; color:#fff; border:none; font-weight:700; font-size:13.5px; cursor:pointer;">
-              💾 儲存並套用全校預設作答時間
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- 分頁 2: 個別學生自訂時間 -->
-      <div id="tm-tab-panel-student" style="display:none;">
-        <div style="background:#F6F7FB; border-radius:10px; padding:12px 16px; border:1px solid #E7E9F5; margin-bottom:14px;">
-          <div style="font-size:13.5px; font-weight:700; color:#38bdf8; margin-bottom:4px;">👤 個別學生自訂時段說明</div>
-          <div style="font-size:13px; color:#94a3b8; line-height:1.6;">
-            • 若學生有特例需求（如放學輔導、特定作答許可），可在此為其指定專屬開始與結束時間。<br>
-            • <b>優先權判定</b>：具專屬設定之學生將優先採用該時段，不受全校預設時段限制。
-          </div>
-        </div>
-
-        <div style="border:1px solid #E7E9F5; border-radius:12px; padding:16px; background:#F6F7FB; margin-bottom:14px;">
-          <div style="font-size:14px; font-weight:700; color:#232A4D; margin-bottom:10px;">
-            ➕ 新增或修改學生專屬作答時間
-          </div>
-          <div style="display:grid; grid-template-columns:1fr 2fr; gap:10px; margin-bottom:10px;">
-            <div>
-              <label style="font-size:12.5px; color:#5A6183; display:block; margin-bottom:4px;">篩選班級：</label>
-              <select id="tm-student-class-filter" style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #D2D6E8; background:#ffffff; color:#fff; font-size:13px; box-sizing:border-box;">
-                <option value="all">所有班級</option>
-              </select>
-            </div>
-            <div>
-              <label style="font-size:12.5px; color:#5A6183; display:block; margin-bottom:4px;">選擇學生：</label>
-              <select id="tm-student-select" style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #D2D6E8; background:#ffffff; color:#fff; font-size:13px; box-sizing:border-box;">
-                <option value="">-- 請選擇學生 --</option>
-              </select>
-            </div>
-          </div>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
-            <div>
-              <label style="font-size:12.5px; color:#5A6183; display:block; margin-bottom:4px;">該學生可作答開始時間：</label>
-              <input type="time" id="tm-student-start" value="07:30" style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #D2D6E8; background:#ffffff; color:#fff; font-size:13.5px; box-sizing:border-box;">
-            </div>
-            <div>
-              <label style="font-size:12.5px; color:#5A6183; display:block; margin-bottom:4px;">該學生可作答結束時間：</label>
-              <input type="time" id="tm-student-end" value="22:00" style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #D2D6E8; background:#ffffff; color:#fff; font-size:13.5px; box-sizing:border-box;">
-            </div>
-          </div>
-          <div style="display:flex; gap:10px; align-items:center;">
-            <input type="text" id="tm-student-remark" placeholder="備註說明（例：留校輔導、自學延長）" style="flex:1; padding:8px 10px; border-radius:6px; border:1px solid #D2D6E8; background:#ffffff; color:#fff; font-size:13px; box-sizing:border-box;">
-            <button id="tm-btn-save-student" style="padding:8px 18px; border-radius:6px; background:#059669; color:#fff; border:none; font-weight:700; font-size:13px; cursor:pointer; white-space:nowrap;">
-              💾 儲存該學生專屬作答時間
-            </button>
-          </div>
-        </div>
-
-        <div>
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-            <span style="font-size:13.5px; font-weight:700; color:#232A4D;">📋 已設定專屬時段學生清單</span>
-            <span id="tm-student-rules-count" style="font-size:12px; color:#94a3b8;">共 0 位學生</span>
-          </div>
-          <div id="tm-student-rules-list" style="background:#F6F7FB; border:1px solid #E7E9F5; border-radius:8px; max-height:180px; overflow-y:auto; padding:8px;">
-            <div style="text-align:center; padding:15px; color:#64748b; font-size:13px;">載入中...</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 分頁 3: 特別日期全天解除 -->
-      <div id="tm-tab-panel-date" style="display:none;">
-        <div style="background:#F6F7FB; border-radius:10px; padding:12px 16px; border:1px solid #E7E9F5; margin-bottom:14px;">
-          <div style="font-size:13.5px; font-weight:700; color:#38bdf8; margin-bottom:4px;">📅 特別日期全天開放說明</div>
-          <div style="font-size:13px; color:#94a3b8; line-height:1.6;">
-            • 當設定特別解除日期時，該指定日<b>全天 24 小時暢行開放</b>。<br>
-            • 可用於週末集訓、段考衝刺週、或是臨時全天開放練習。
-          </div>
-        </div>
-
-        <!-- 今日即時狀態與一鍵快捷操作 -->
-        <div style="background:#ffffff; border:1px solid #3b82f6; border-radius:10px; padding:12px 16px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-          <div>
-            <div style="font-size:12.5px; color:#94a3b8;">📅 今日系統狀態：</div>
-            <div id="tm-today-status-badge" style="font-size:14px; font-weight:700; color:#10b981; margin-top:2px;">
-              載入狀態中...
-            </div>
-          </div>
-          <div>
-            <button id="tm-btn-quick-toggle" style="padding:9px 16px; border-radius:8px; background:#10b981; color:#fff; border:none; font-size:13px; font-weight:700; cursor:pointer; transition:all 0.2s;">
-              ⚡ 一鍵解除今日限制 (今日全天開放)
-            </button>
-          </div>
-        </div>
-
-        <!-- 新增解除限制設定區 -->
-        <div style="border:1px solid #E7E9F5; border-radius:12px; padding:14px 16px; background:#F6F7FB; margin-bottom:14px;">
-          <div style="font-size:13.5px; font-weight:700; color:#232A4D; margin-bottom:10px; display:flex; align-items:center; gap:6px;">
-            ➕ 新增解除限制 (指定單日或日期範圍)
-          </div>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
-            <div>
-              <label style="font-size:12.5px; color:#5A6183; display:block; margin-bottom:4px;">起始日期：</label>
-              <input type="date" id="tm-input-start" style="width:100%; padding:7px 10px; border-radius:6px; border:1px solid #D2D6E8; background:#ffffff; color:#fff; font-size:13px; box-sizing:border-box;">
-            </div>
-            <div>
-              <label style="font-size:12.5px; color:#5A6183; display:block; margin-bottom:4px;">結束日期 (單日請填相同日期)：</label>
-              <input type="date" id="tm-input-end" style="width:100%; padding:7px 10px; border-radius:6px; border:1px solid #D2D6E8; background:#ffffff; color:#fff; font-size:13px; box-sizing:border-box;">
-            </div>
-          </div>
-          <div style="display:flex; gap:10px; align-items:center;">
-            <input type="text" id="tm-input-name" placeholder="設定名稱或備註（例：段考衝刺溫書週、週末集訓開放）" style="flex:1; padding:8px 10px; border-radius:6px; border:1px solid #D2D6E8; background:#ffffff; color:#fff; font-size:13px; box-sizing:border-box;">
-            <button id="tm-btn-save-override" style="padding:8px 18px; border-radius:6px; background:#2563eb; color:#fff; border:none; font-weight:700; font-size:13px; cursor:pointer; white-space:nowrap;">
-              💾 儲存並生效
-            </button>
-          </div>
-        </div>
-
-        <!-- 已生效解除規則清單 -->
-        <div>
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-            <span style="font-size:13.5px; font-weight:700; color:#232A4D;">📋 目前生效的解除限制清單</span>
-            <button id="tm-btn-refresh" style="background:none; border:1px solid #D2D6E8; padding:3px 8px; border-radius:6px; color:#94a3b8; font-size:12px; cursor:pointer;">🔄 重新整理</button>
-          </div>
-          <div id="tm-rules-list" style="background:#F6F7FB; border:1px solid #E7E9F5; border-radius:8px; max-height:180px; overflow-y:auto; padding:8px;">
-            <div style="text-align:center; padding:15px; color:#64748b; font-size:13px;">載入中...</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 分頁 4: 每日 10 分鐘限制與延長 -->
-      <div id="tm-tab-panel-limit" style="display:block;">
-        <div style="background:#F6F7FB; border-radius:10px; padding:12px 16px; border:1px solid #E7E9F5; margin-bottom:14px;">
-          <div style="font-size:13.5px; font-weight:700; color:#38bdf8; margin-bottom:4px;">⏱️ 每日使用時長與延長限制說明</div>
-          <div style="font-size:13px; color:#94a3b8; line-height:1.6;">
-            • <b>計時規則</b>：學生當天第一次登入後開始起算時間（預設每日 10 分鐘）。<br>
-            • <b>到期保護</b>：時間到了之後，系統自動鎖定作答卡片，<b>僅顯示學習進度 Progress 方塊</b>與作答紀錄供學生複習。<br>
-            • <b>教師彈性控制</b>：教師可隨時於下方為全校或個別學生<b>設定每日時間、即時延長時間、或一鍵完全解除限制</b>。
-          </div>
-        </div>
-
-        <!-- 區塊 A: 全校每日預設時長設定 -->
-        <div style="border:1px solid #E7E9F5; border-radius:12px; padding:14px 16px; background:#F6F7FB; margin-bottom:14px;">
-          <div style="font-size:13.5px; font-weight:700; color:#232A4D; margin-bottom:10px;">
-            ⚙️ 設定全校每日預設練習時間上限
-          </div>
-          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-            <select id="tm-limit-default-minutes" style="padding:8px 12px; border-radius:6px; border:1px solid #D2D6E8; background:#ffffff; color:#fff; font-size:13.5px;">
-              <option value="5">5 分鐘</option>
-              <option value="10" selected>10 分鐘 (預設)</option>
-              <option value="15">15 分鐘</option>
-              <option value="20">20 分鐘</option>
-              <option value="30">30 分鐘</option>
-              <option value="45">45 分鐘</option>
-              <option value="60">60 分鐘</option>
-            </select>
-            <button id="tm-btn-save-limit-minutes" style="padding:8px 16px; border-radius:6px; background:#4f46e5; color:#fff; border:none; font-weight:700; font-size:13px; cursor:pointer;">
-              💾 儲存全校預設時長
-            </button>
-            <span id="tm-limit-current-display" style="font-size:12.5px; color:#38bdf8; margin-left:auto;">
-              目前全校預設：10 分鐘
-            </span>
-          </div>
-        </div>
-
-        <!-- 區塊 B: 個別學生延長時間或解除限制 -->
-        <div style="border:1px solid #E7E9F5; border-radius:12px; padding:14px 16px; background:#F6F7FB; margin-bottom:14px;">
-          <div style="font-size:13.5px; font-weight:700; color:#232A4D; margin-bottom:10px;">
-            👤 個別學生即時延長時間或解除限制
-          </div>
-          <div style="display:grid; grid-template-columns:1fr 2fr; gap:10px; margin-bottom:10px;">
-            <div>
-              <label style="font-size:12px; color:#5A6183; display:block; margin-bottom:4px;">篩選班級：</label>
-              <select id="tm-limit-class-filter" style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #D2D6E8; background:#ffffff; color:#fff; font-size:13px; box-sizing:border-box;">
-                <option value="all">所有班級</option>
-              </select>
-            </div>
-            <div>
-              <label style="font-size:12px; color:#5A6183; display:block; margin-bottom:4px;">選擇學生：</label>
-              <select id="tm-limit-student-select" style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid #D2D6E8; background:#ffffff; color:#fff; font-size:13px; box-sizing:border-box;">
-                <option value="">-- 請選擇學生 --</option>
-              </select>
-            </div>
-          </div>
-
-          <!-- 學生當日狀態資訊卡 -->
-          <div id="tm-limit-student-status-box" style="padding:10px 14px; background:#F6F7FB; border-radius:8px; border:1px solid #E7E9F5; margin-bottom:12px; font-size:13px; color:#5A6183;">
-            請選擇學生以查看其今日練習時間與即時狀態
-          </div>
-
-          <!-- 快捷操作按鈕群 -->
-          <div style="display:flex; gap:8px; flex-wrap:wrap;">
-            <button id="tm-btn-extend-5" style="padding:8px 14px; border-radius:6px; background:#059669; color:#fff; border:none; font-weight:700; font-size:12.5px; cursor:pointer;">
-              ⚡ 延長 5 分鐘
-            </button>
-            <button id="tm-btn-extend-10" style="padding:8px 14px; border-radius:6px; background:#059669; color:#fff; border:none; font-weight:700; font-size:12.5px; cursor:pointer;">
-              ⚡ 延長 10 分鐘
-            </button>
-            <button id="tm-btn-extend-15" style="padding:8px 14px; border-radius:6px; background:#059669; color:#fff; border:none; font-weight:700; font-size:12.5px; cursor:pointer;">
-              ⚡ 延長 15 分鐘
-            </button>
-            <button id="tm-btn-unlock-student" style="padding:8px 14px; border-radius:6px; background:#2563eb; color:#fff; border:none; font-weight:700; font-size:12.5px; cursor:pointer;">
-              🔓 今日完全解除限制 (不限時)
-            </button>
-            <button id="tm-btn-lock-student" style="padding:8px 14px; border-radius:6px; background:#dc2626; color:#fff; border:none; font-weight:700; font-size:12.5px; cursor:pointer;">
-              🔒 恢復時間限制
-            </button>
-          </div>
-        </div>
-
-        <!-- 區塊 C: 全校快速操作 -->
-        <div style="border:1px solid #E7E9F5; border-radius:12px; padding:12px 16px; background:#F6F7FB; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-          <div>
-            <div style="font-size:13px; font-weight:700; color:#232A4D;">⚡ 全校快速時長控制</div>
-            <div style="font-size:12px; color:#94a3b8;">可一鍵為全體學生今日延長時間或解除限制</div>
-          </div>
-          <div style="display:flex; gap:8px;">
-            <button id="tm-btn-extend-all-10" style="padding:8px 14px; border-radius:6px; background:#059669; color:#fff; border:none; font-weight:700; font-size:12.5px; cursor:pointer;">
-              ⚡ 全校今日延長 10 分鐘
-            </button>
-            <button id="tm-btn-unlock-all" style="padding:8px 14px; border-radius:6px; background:#2563eb; color:#fff; border:none; font-weight:700; font-size:12.5px; cursor:pointer;">
-              🔓 全校今日解除限制
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div id="tm-modal-msg" style="font-size:13px; text-align:center; min-height:18px; margin-top:10px; color:#38bdf8;"></div>
-    </div>
-  </div>
+  <!-- 📝 教師管理專區彈窗 DOM 已改為按身分動態掛載 (src/teacher_portal.js)，學生首屏完全免載 -->
 
 </body>
 </html>
