@@ -152,17 +152,53 @@
       display: block !important;
     }
 
-    body.role-teacher.has-inspected #progress-card,
-    body.role-teacher.has-inspected #learning-record-section,
-    body.role-teacher.has-inspected #week-conquer-section,
-    body.role-teacher.has-inspected #weak-words-section,
-    body.role-teacher.has-inspected #export-records-section,
-    html.role-teacher.has-inspected body #progress-card,
-    html.role-teacher.has-inspected body #learning-record-section,
-    html.role-teacher.has-inspected body #week-conquer-section,
-    html.role-teacher.has-inspected body #weak-words-section,
-    html.role-teacher.has-inspected body #export-records-section {
+    body.role-teacher.has-inspected.show-student-records #progress-card,
+    body.role-teacher.has-inspected.show-student-records #learning-record-section,
+    body.role-teacher.has-inspected.show-student-records #week-conquer-section,
+    body.role-teacher.has-inspected.show-student-records #weak-words-section,
+    body.role-teacher.has-inspected.show-student-records #export-records-section,
+    html.role-teacher.has-inspected.show-student-records body #progress-card,
+    html.role-teacher.has-inspected.show-student-records body #learning-record-section,
+    html.role-teacher.has-inspected.show-student-records body #week-conquer-section,
+    html.role-teacher.has-inspected.show-student-records body #weak-words-section,
+    html.role-teacher.has-inspected.show-student-records body #export-records-section {
       display: block !important;
+    }
+
+    /* 👨‍🏫 教師專屬動態工作區樣式 (原位切換，免浮動彈窗) */
+    body.role-teacher #teacherTaskModal,
+    body.role-teacher #timeManagementModal {
+      position: static !important;
+      width: 100% !important;
+      height: auto !important;
+      background: transparent !important;
+      backdrop-filter: none !important;
+      z-index: 1 !important;
+      padding: 0 !important;
+      display: block !important;
+    }
+    body.role-teacher #teacherTaskModal > div,
+    body.role-teacher #timeManagementModal > div {
+      max-width: 100% !important;
+      box-shadow: none !important;
+      border-radius: 14px !important;
+      max-height: none !important;
+      overflow: visible !important;
+      margin: 0 !important;
+      padding: 18px 20px !important;
+      border: 1.5px solid var(--line) !important;
+      background: var(--card) !important;
+      color: var(--ink) !important;
+    }
+    body.role-teacher #btnCloseTeacherModal,
+    body.role-teacher #btnCloseTimeModal {
+      display: none !important;
+    }
+
+    .tp-nav-card.active {
+      border: 2px solid var(--sky, #0284c7) !important;
+      background: rgba(2, 132, 199, 0.08) !important;
+      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.15) !important;
     }
   </style>
   <link rel="stylesheet" href="css/styles.css?v=20261101_2140">
@@ -415,47 +451,129 @@
         </div>
       </div>
 
-      <!-- 👨‍🏫 教師專屬教學管理中心儀表板 (診斷、出題、時間管理、歷程即時調閱) -->
-      <div id="teacher-portal-card" class="card" style="display:none; text-align:left; padding:28px 24px; border-radius:20px; background:var(--card); border:1.5px solid var(--line); box-shadow:0 8px 30px rgba(0,0,0,0.06); margin:0 0 16px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:18px; border-bottom:1px solid var(--line); padding-bottom:14px;">
-          <div style="display:flex; align-items:center; gap:12px;">
-            <div style="width:48px; height:48px; border-radius:50%; background:rgba(108,76,224,0.12); display:inline-flex; align-items:center; justify-content:center; font-size:24px;">👨‍🏫</div>
-            <div>
-              <h2 id="teacher-portal-title" style="font-size:20px; font-weight:800; color:var(--ink); margin:0 0 4px; letter-spacing:0.3px;">教師教學管理專區</h2>
-              <div style="font-size:13px; color:var(--ink2);">全方位出題、作答時限管理與個別學生歷程即時調閱</div>
-            </div>
+      <!-- 👨‍🏫 教師專屬教學管理中心儀表板 (四合一主工作區，原位切換) -->
+      <div id="teacher-portal-card" class="card" style="display:none; text-align:left; padding:22px; border-radius:20px; background:var(--card); border:1.5px solid var(--line); box-shadow:0 8px 30px rgba(0,0,0,0.06); margin:0 0 16px;">
+        <!-- 頂部四大功能導航方塊 (Grid 並列排版) -->
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:12px; margin-bottom:16px;">
+          <div id="tp-nav-task" class="tp-nav-card active" onclick="switchTeacherTab('task')" style="cursor:pointer; padding:15px; border-radius:14px; border:2px solid var(--violet); background:rgba(108,76,224,0.08); text-align:center; transition:all 0.2s;">
+            <div style="font-size:26px; margin-bottom:4px;">📝</div>
+            <div style="font-size:15px; font-weight:800; color:var(--violet);">每日測驗出題</div>
+            <div style="font-size:12px; color:var(--ink2); margin-top:2px;">指定日期單字任務設定</div>
           </div>
-          <div style="display:flex; gap:10px; flex-wrap:wrap;">
-            <button type="button" onclick="if(window.openTeacherModal)window.openTeacherModal();" style="display:inline-flex; align-items:center; gap:6px; padding:10px 16px; background:var(--violet); color:#fff; border:none; border-radius:10px; font-size:13.5px; font-weight:700; cursor:pointer; box-shadow:0 4px 12px rgba(108,76,224,0.25);">
-              <span>📝</span> 每日測驗出題
-            </button>
-            <button type="button" onclick="if(window.openTimeModal){window.openTimeModal();}else if(window.openTimeManagementModal){window.openTimeManagementModal();}" style="display:inline-flex; align-items:center; gap:6px; padding:10px 16px; background:var(--green); color:#fff; border:none; border-radius:10px; font-size:13.5px; font-weight:700; cursor:pointer; box-shadow:0 4px 12px rgba(47,180,124,0.25);">
-              <span>⏰</span> 學生使用時間管理
-            </button>
+
+          <div id="tp-nav-time" class="tp-nav-card" onclick="switchTeacherTab('time')" style="cursor:pointer; padding:15px; border-radius:14px; border:1.5px solid var(--line); background:var(--card); text-align:center; transition:all 0.2s;">
+            <div style="font-size:26px; margin-bottom:4px;">⏰</div>
+            <div style="font-size:15px; font-weight:800; color:var(--green);">學生使用時間管理</div>
+            <div style="font-size:12px; color:var(--ink2); margin-top:2px;">作答時限與解鎖設定</div>
+          </div>
+
+          <div id="tp-nav-student" class="tp-nav-card" onclick="switchTeacherTab('student')" style="cursor:pointer; padding:15px; border-radius:14px; border:1.5px solid var(--line); background:var(--card); text-align:center; transition:all 0.2s;">
+            <div style="font-size:26px; margin-bottom:4px;">👤</div>
+            <div style="font-size:15px; font-weight:800; color:var(--sky, #0284c7);">個別學生區間歷程</div>
+            <div style="font-size:12px; color:var(--ink2); margin-top:2px;">調閱個別學生五大成果</div>
+          </div>
+
+          <div id="tp-nav-class" class="tp-nav-card" onclick="switchTeacherTab('class')" style="cursor:pointer; padding:15px; border-radius:14px; border:1.5px solid var(--line); background:var(--card); text-align:center; transition:all 0.2s;">
+            <div style="font-size:26px; margin-bottom:4px;">👥</div>
+            <div style="font-size:15px; font-weight:800; color:#eab308;">全班指定範圍記錄</div>
+            <div style="font-size:12px; color:var(--ink2); margin-top:2px;">班級區間參與率與總覽</div>
           </div>
         </div>
 
-        <!-- 學生歷程即時調閱選單列 -->
-        <div style="background:var(--paper, rgba(0,0,0,0.03)); border:1px solid var(--line); border-radius:14px; padding:16px 18px; margin-bottom:6px;">
-          <div style="font-size:14px; font-weight:700; color:var(--ink); margin-bottom:10px; display:flex; align-items:center; gap:6px;">
-            <span>🔍</span> 個別學生學習成果即時調閱
-          </div>
-          <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-            <div style="flex:1; min-width:140px;">
-              <select id="tp-class-select" style="width:100%; padding:9px 12px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--ink); font-size:13.5px; font-weight:600; outline:none;">
-                <option value="">載入班級中...</option>
-              </select>
+        <!-- 主工作區容器：原位呈現所選功能，隱藏其餘無關介面 -->
+        <div id="tp-workspace-container" style="background:var(--paper, rgba(0,0,0,0.02)); border-radius:14px; padding:16px; border:1px solid var(--line);">
+          <!-- 區塊 1: 每日出題 (原位顯示) -->
+          <div id="tp-panel-task" class="tp-view-panel" style="display:block;"></div>
+
+          <!-- 區塊 2: 學生使用時間管理 (原位顯示) -->
+          <div id="tp-panel-time" class="tp-view-panel" style="display:none;"></div>
+
+          <!-- 區塊 3: 個別學生區間歷程調閱選單列 -->
+          <div id="tp-panel-student" class="tp-view-panel" style="display:none; background:var(--paper, rgba(0,0,0,0.03)); border:1px solid var(--line); border-radius:14px; padding:18px 20px;">
+            <div style="font-size:14.5px; font-weight:700; color:var(--ink); margin-bottom:12px; display:flex; align-items:center; gap:6px;">
+              <span>🔍</span> 個別學生學習成果即時調閱
             </div>
-            <div style="flex:1.5; min-width:180px;">
-              <select id="tp-student-select" style="width:100%; padding:9px 12px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--ink); font-size:13.5px; font-weight:600; outline:none;">
-                <option value="">請先選擇班級</option>
-              </select>
+            <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+              <div style="flex:1; min-width:140px;">
+                <select id="tp-class-select" style="width:100%; padding:9px 12px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--ink); font-size:13.5px; font-weight:600; outline:none;">
+                  <option value="">載入班級中...</option>
+                </select>
+              </div>
+              <div style="flex:1.5; min-width:180px;">
+                <select id="tp-student-select" style="width:100%; padding:9px 12px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--ink); font-size:13.5px; font-weight:600; outline:none;">
+                  <option value="">請先選擇班級</option>
+                </select>
+              </div>
+              <button type="button" id="tp-btn-inspect" style="display:inline-flex; align-items:center; gap:6px; padding:9px 18px; background:var(--sky, #0284c7); color:#fff; border:none; border-radius:8px; font-size:13.5px; font-weight:700; cursor:pointer; box-shadow:0 4px 10px rgba(2,132,199,0.25);">
+                <span>🔎</span> 調閱學習歷程
+              </button>
             </div>
-            <button type="button" id="tp-btn-inspect" style="display:inline-flex; align-items:center; gap:6px; padding:9px 18px; background:var(--sky, #0284c7); color:#fff; border:none; border-radius:8px; font-size:13.5px; font-weight:700; cursor:pointer; box-shadow:0 4px 10px rgba(2,132,199,0.25);">
-              <span>🔎</span> 調閱學習歷程
-            </button>
+            <div id="tp-inspect-status" style="font-size:12.5px; color:var(--ink2); margin-top:10px; display:none;"></div>
           </div>
-          <div id="tp-inspect-status" style="font-size:12.5px; color:var(--ink2); margin-top:8px; display:none;"></div>
+
+          <!-- 區塊 4: 全班指定範圍記錄 -->
+          <div id="tp-panel-class" class="tp-view-panel" style="display:none; background:var(--paper, rgba(0,0,0,0.03)); border:1px solid var(--line); border-radius:14px; padding:18px 20px;">
+            <div style="font-size:14.5px; font-weight:700; color:var(--ink); margin-bottom:12px; display:flex; align-items:center; gap:6px;">
+              <span>👥</span> 全班指定日期範圍紀錄查詢
+            </div>
+            <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:14px;">
+              <div style="min-width:140px;">
+                <select id="cr-class-select" style="width:100%; padding:8px 12px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--ink); font-size:13px; font-weight:600; outline:none;">
+                  <option value="all">🌐 全校 / 全部班級</option>
+                </select>
+              </div>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <input type="date" id="cr-start-date" style="padding:7px 10px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--ink); font-size:13px;">
+                <span style="color:var(--ink2);">至</span>
+                <input type="date" id="cr-end-date" style="padding:7px 10px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--ink); font-size:13px;">
+              </div>
+              <button type="button" id="cr-btn-query" style="display:inline-flex; align-items:center; gap:6px; padding:8px 18px; background:#eab308; color:#fff; border:none; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; box-shadow:0 4px 10px rgba(234,179,8,0.3);">
+                <span>📊</span> 查詢全班紀錄
+              </button>
+              <div style="display:flex; gap:6px;">
+                <button type="button" onclick="setCrDateShortcut(7)" style="padding:6px 10px; border-radius:6px; border:1px solid var(--line); background:var(--card); color:var(--ink2); font-size:12px; cursor:pointer;">近7天</button>
+                <button type="button" onclick="setCrDateShortcut(14)" style="padding:6px 10px; border-radius:6px; border:1px solid var(--line); background:var(--card); color:var(--ink2); font-size:12px; cursor:pointer;">近14天</button>
+                <button type="button" onclick="setCrDateShortcut(30)" style="padding:6px 10px; border-radius:6px; border:1px solid var(--line); background:var(--card); color:var(--ink2); font-size:12px; cursor:pointer;">近30天</button>
+              </div>
+            </div>
+
+            <!-- 全班統計結果容器 -->
+            <div id="cr-results-container" style="display:none;">
+              <!-- KPI 卡片 -->
+              <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:10px; margin-bottom:14px;">
+                <div style="background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px; text-align:center;">
+                  <div style="font-size:11.5px; color:var(--ink2);">👥 班級參與率</div>
+                  <div id="cr-kpi-part" style="font-size:20px; font-weight:800; color:var(--green); margin-top:2px;">-</div>
+                  <div id="cr-kpi-part-sub" style="font-size:11px; color:var(--ink3);">0 / 0 人</div>
+                </div>
+                <div style="background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px; text-align:center;">
+                  <div style="font-size:11.5px; color:var(--ink2);">🎯 區間平均正確率</div>
+                  <div id="cr-kpi-acc" style="font-size:20px; font-weight:800; color:var(--sky); margin-top:2px;">-</div>
+                </div>
+                <div style="background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px; text-align:center;">
+                  <div style="font-size:11.5px; color:var(--ink2);">📝 期間總作答單字</div>
+                  <div id="cr-kpi-attempts" style="font-size:20px; font-weight:800; color:var(--ink); margin-top:2px;">-</div>
+                </div>
+              </div>
+
+              <!-- 學生明細清單表格 -->
+              <div style="overflow-x:auto; background:var(--card); border-radius:10px; border:1px solid var(--line);">
+                <table style="width:100%; border-collapse:collapse; font-size:13px; text-align:left;">
+                  <thead>
+                    <tr style="background:rgba(0,0,0,0.03); border-bottom:1px solid var(--line); color:var(--ink2);">
+                      <th style="padding:10px 12px;">班級</th>
+                      <th style="padding:10px 12px;">帳號 / 姓名</th>
+                      <th style="padding:10px 12px; text-align:center;">練習天數</th>
+                      <th style="padding:10px 12px; text-align:center;">作答字數</th>
+                      <th style="padding:10px 12px; text-align:center;">正確率</th>
+                      <th style="padding:10px 12px; text-align:center;">狀態</th>
+                    </tr>
+                  </thead>
+                  <tbody id="cr-students-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1522,7 +1640,7 @@
             if (subLabel) subLabel.textContent = isAdmin ? "系統管理員" : "教師帳號";
           }
         }
-        if (typeof initTeacherPortalInspector === "function") initTeacherPortalInspector();
+        if (typeof initTeacherInlineWorkspace === "function") initTeacherInlineWorkspace();
         return;
       }
 
@@ -4181,6 +4299,170 @@
       };
     }
 
+    window.switchTeacherTab = function(tabName) {
+      const tabs = ["task", "time", "student", "class"];
+      tabs.forEach(t => {
+        const nav = document.getElementById("tp-nav-" + t);
+        const panel = document.getElementById("tp-panel-" + t);
+        if (nav) {
+          if (t === tabName) nav.classList.add("active");
+          else nav.classList.remove("active");
+        }
+        if (panel) {
+          panel.style.display = (t === tabName) ? "block" : "none";
+        }
+      });
+
+      // 只有在個別學生歷程 (student) 且已調閱學生時，才顯示下方的五大歷程方塊，其餘分頁一律嚴格隱藏
+      if (tabName === "student" && document.body.classList.contains("has-inspected")) {
+        document.body.classList.add("show-student-records");
+        document.documentElement.classList.add("show-student-records");
+      } else {
+        document.body.classList.remove("show-student-records");
+        document.documentElement.classList.remove("show-student-records");
+      }
+
+      if (tabName === "task") {
+        const todayDash = formatDateDash();
+        const dateInp = document.getElementById("t-modal-date");
+        if (dateInp && !dateInp.value) dateInp.value = todayDash;
+        if (typeof populateTeacherClassOptions === "function") populateTeacherClassOptions();
+        if (typeof loadPickerData === "function") {
+          loadPickerData().then(() => {
+            if (typeof renderPickerGrid === "function") renderPickerGrid();
+            if (typeof updatePickerPreview === "function") updatePickerPreview();
+          });
+        }
+      } else if (tabName === "time") {
+        if (typeof loadTimeRestrictions === "function") loadTimeRestrictions();
+      } else if (tabName === "student") {
+        if (typeof initTeacherPortalInspector === "function") initTeacherPortalInspector();
+      } else if (tabName === "class") {
+        if (typeof initClassRangeAnalytics === "function") initClassRangeAnalytics();
+      }
+    };
+
+    window.setCrDateShortcut = function(days) {
+      const eDateInp = document.getElementById("cr-end-date");
+      const sDateInp = document.getElementById("cr-start-date");
+      const now = new Date();
+      const past = new Date(now.getTime() - (days - 1) * 24 * 60 * 60 * 1000);
+      if (eDateInp) eDateInp.value = formatDateDash(now);
+      if (sDateInp) sDateInp.value = formatDateDash(past);
+    };
+
+    function initClassRangeAnalytics() {
+      const cSel = document.getElementById("cr-class-select");
+      const sDateInp = document.getElementById("cr-start-date");
+      const eDateInp = document.getElementById("cr-end-date");
+      const btnQuery = document.getElementById("cr-btn-query");
+      if (!cSel || !btnQuery) return;
+
+      if (!sDateInp.value || !eDateInp.value) {
+        setCrDateShortcut(7);
+      }
+
+      // 載入班級清單
+      if (allStudentsList && allStudentsList.length > 0) {
+        const cSet = new Set();
+        allStudentsList.forEach(s => {
+          const c = String(s.className || "").trim();
+          if (c) cSet.add(c);
+        });
+        const sorted = Array.from(cSet).sort();
+        const cur = cSel.value || "all";
+        cSel.innerHTML = '<option value="all">🌐 全校 / 全部班級</option>' + 
+          sorted.map(c => `<option value="${c}">${c} 班</option>`).join("");
+        cSel.value = cur;
+      }
+
+      btnQuery.onclick = async () => {
+        btnQuery.disabled = true;
+        btnQuery.style.opacity = "0.7";
+        btnQuery.textContent = "⏳ 查詢中...";
+        const resBox = document.getElementById("cr-results-container");
+        const tbody = document.getElementById("cr-students-tbody");
+
+        try {
+          const u = localStorage.getItem("current_user");
+          const p = sessionStorage.getItem("current_pass") || localStorage.getItem("current_pass") || "";
+          const res = await fetch(scriptUrl, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({
+              action: "getDateRangePerformanceAnalytics",
+              username: u,
+              password: p,
+              targetClass: cSel.value,
+              startDate: sDateInp.value,
+              endDate: eDateInp.value
+            })
+          });
+          const data = await res.json();
+          if (data.status === "success" && data.summary) {
+            const sm = data.summary;
+            if (resBox) resBox.style.display = "block";
+            const kpiPart = document.getElementById("cr-kpi-part");
+            const kpiPartSub = document.getElementById("cr-kpi-part-sub");
+            const kpiAcc = document.getElementById("cr-kpi-acc");
+            const kpiAtt = document.getElementById("cr-kpi-attempts");
+
+            if (kpiPart) kpiPart.textContent = sm.participationRate;
+            if (kpiPartSub) kpiPartSub.textContent = `${sm.activeStudents} / ${sm.totalStudents} 人實測`;
+            if (kpiAcc) kpiAcc.textContent = sm.classAvgAccuracy;
+            if (kpiAtt) kpiAtt.textContent = (sm.totalAttempts || 0).toLocaleString() + " 字";
+
+            if (tbody && Array.isArray(data.studentRows)) {
+              if (data.studentRows.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="padding:16px; text-align:center; color:var(--ink2);">此區間尚無學生作答紀錄</td></tr>';
+              } else {
+                tbody.innerHTML = data.studentRows.map(r => {
+                  const accColor = r.accuracy >= 85 ? "#16a34a" : r.accuracy >= 60 ? "var(--sky)" : "#ef4444";
+                  const statusBg = r.status === "精熟" ? "rgba(22,163,74,0.1)" : r.status === "及格" ? "rgba(2,132,199,0.1)" : r.status === "未作答" ? "rgba(0,0,0,0.05)" : "rgba(239,68,68,0.1)";
+                  const statusColor = r.status === "精熟" ? "#16a34a" : r.status === "及格" ? "var(--sky)" : r.status === "未作答" ? "var(--ink2)" : "#ef4444";
+                  return `<tr style="border-bottom:1px solid var(--line);">
+                    <td style="padding:10px 12px; font-weight:600;">${r.className || '-'} 班</td>
+                    <td style="padding:10px 12px;"><b>${r.username}</b> <span style="color:var(--ink2); font-size:12px;">(${r.realName || '-'})</span></td>
+                    <td style="padding:10px 12px; text-align:center;">${r.testedDays} 天</td>
+                    <td style="padding:10px 12px; text-align:center; font-weight:700;">${r.attempts} 字</td>
+                    <td style="padding:10px 12px; text-align:center; font-weight:800; color:${accColor};">${r.accuracy}%</td>
+                    <td style="padding:10px 12px; text-align:center;"><span style="padding:3px 8px; border-radius:6px; font-size:12px; font-weight:700; background:${statusBg}; color:${statusColor};">${r.status}</span></td>
+                  </tr>`;
+                }).join("");
+              }
+            }
+          } else {
+            alert(data.message || "查詢失敗");
+          }
+        } catch (err) {
+          alert("連線失敗：" + err.message);
+        } finally {
+          btnQuery.disabled = false;
+          btnQuery.style.opacity = "1";
+          btnQuery.textContent = "📊 查詢全班紀錄";
+        }
+      };
+    }
+
+    function initTeacherInlineWorkspace() {
+      // 將 teacherTaskModal 和 timeManagementModal 動態移入主工作區 panel，原位顯示
+      const pTask = document.getElementById("tp-panel-task");
+      const mTask = document.getElementById("teacherTaskModal");
+      if (pTask && mTask && mTask.parentElement !== pTask) {
+        pTask.appendChild(mTask);
+        mTask.style.display = "block";
+      }
+
+      const pTime = document.getElementById("tp-panel-time");
+      const mTime = document.getElementById("timeManagementModal");
+      if (pTime && mTime && mTime.parentElement !== pTime) {
+        pTime.appendChild(mTime);
+        mTime.style.display = "block";
+      }
+
+      switchTeacherTab("task");
+    }
+
     function checkAndApplyRoleBoot() {
       const curRole = localStorage.getItem("user_role") || sessionStorage.getItem("user_role");
       if (curRole === "parent") {
@@ -4195,7 +4477,7 @@
         if (typeof applyRoleBasedView === "function") {
           applyRoleBasedView(curRole);
         }
-        initTeacherPortalInspector();
+        initTeacherInlineWorkspace();
       }
     }
 

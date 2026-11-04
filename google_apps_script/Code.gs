@@ -736,8 +736,11 @@ function getStudentMetaFromUserList_(ss, studentUser) {
 
     // ── 6. 讀取指定日期區間所有學生答題狀況比較表 ──
     if (action === "getDateRangePerformanceAnalytics") {
-      const rangeRes = getDateRangePerformanceAnalytics(params);
-      return jsonResponse(rangeRes);
+      const auth = authenticateUser(ss, params.username, params.password);
+      if (!auth.success || (auth.role !== "teacher" && auth.role !== "admin")) {
+        return jsonResponse({ status: "error", message: "無教師權限" });
+      }
+      return jsonResponse(getDateRangePerformanceAnalytics(ss, params));
     }
 
     // ── 7. 學生使用時間管理 API ──
@@ -1199,4 +1202,95 @@ function syncAllTaskRecords(ss) {
     message: "智慧同步完成：共檢查 " + checkedUsers.size + " 位學生，修復回填 " + totalFixed + " 筆指定測驗紀錄！",
     details: results
   };
+}
+
+/**
+ * 讀取指定日期區間全班學生作答狀況與數據分析
+ */
+function getDateRangePerformanceAnalytics(ss, params) {
+  try {
+    const sDate = String(params.startDate || "").trim();
+    const eDate = String(params.endDate || "").trim();
+    const tClass = String(params.targetClass || "all").trim();
+
+    const uSheet = ss.getSheetByName("使用者清單");
+    if (!uSheet || uSheet.getLastRow() < 2) {
+      return { status: "error", message: "找不到使用者清單" };
+    }
+    const uData = uSheet.getRange(2, 1, uSheet.getLastRow() - 1, 5).getValues();
+    let students = [];
+    uData.forEach(r => {
+      const u = String(r[0] || "").trim();
+      const role = String(r[2] || "").trim().toLowerCase();
+      const c = String(r[3] || "").replace(/班$/, "").trim();
+      const name = String(r[4] || "").trim();
+      if (role === "student" || role === "" || !role.includes("teacher")) {
+        if (tClass === "all" || c === tClass) {
+          students.push({ username: u, realName: name, className: c });
+        }
+      }
+    });
+
+    const cpSheet = getCentralPortfolioSheet(ss, false);
+    let allRows = [];
+    if (cpSheet && cpSheet.getLastRow() >= 2) {
+      allRows = cpSheet.getRange(2, 1, cpSheet.getLastRow() - 1, 10).getValues();
+    }
+
+    let totalAttempts = 0, totalCorrect = 0, activeCount = 0;
+    const studentRows = students.map(s => {
+      let att = 0, cor = 0;
+      const seenDates = new Set();
+      for (let i = 0; i < allRows.length; i++) {
+        const rowU = String(allRows[i][0] || "").trim().toLowerCase();
+        if (rowU === s.username.toLowerCase()) {
+          const rowD = formatStandardDateYMD(allRows[i][3] || allRows[i][2]);
+          if (rowD && (!sDate || rowD >= sDate) && (!eDate || rowD <= eDate)) {
+            const rowAtt = Number(allRows[i][6]) || Number(allRows[i][5]) || 0;
+            const rowCor = Number(allRows[i][7]) || Number(allRows[i][6]) || 0;
+            att += rowAtt;
+            cor += rowCor;
+            seenDates.add(rowD);
+          }
+        }
+      }
+      const days = seenDates.size;
+      const acc = att > 0 ? Math.round((cor / att) * 100) : 0;
+      if (att > 0) activeCount++;
+      totalAttempts += att;
+      totalCorrect += cor;
+      return {
+        username: s.username,
+        realName: s.realName,
+        className: s.className,
+        attempts: att,
+        correct: cor,
+        accuracy: acc,
+        testedDays: days,
+        status: att > 0 ? (acc >= 85 ? "精熟" : acc >= 60 ? "及格" : "待加強") : "未作答"
+      };
+    });
+
+    const totalStudents = students.length;
+    const partRate = totalStudents > 0 ? Math.round((activeCount / totalStudents) * 100) + "%" : "0%";
+    const classAvgAcc = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) + "%" : "0%";
+
+    return {
+      status: "success",
+      targetClass: tClass,
+      startDate: sDate,
+      endDate: eDate,
+      summary: {
+        totalStudents: totalStudents,
+        activeStudents: activeCount,
+        participationRate: partRate,
+        totalAttempts: totalAttempts,
+        totalCorrect: totalCorrect,
+        classAvgAccuracy: classAvgAcc
+      },
+      studentRows: studentRows
+    };
+  } catch (err) {
+    return { status: "error", message: err.message };
+  }
 }
