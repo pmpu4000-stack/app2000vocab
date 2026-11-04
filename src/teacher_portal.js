@@ -1546,15 +1546,22 @@
         const todayDash = formatDateDash();
         const dateInp = document.getElementById("t-modal-date");
         if (dateInp && !dateInp.value) dateInp.value = todayDash;
-        if (typeof populateTeacherClassOptions === "function") populateTeacherClassOptions();
-        if (typeof loadPickerData === "function") {
-          loadPickerData().then(() => {
-            if (typeof renderPickerGrid === "function") renderPickerGrid();
-            if (typeof updatePickerPreview === "function") updatePickerPreview();
-          });
+        const grid = document.getElementById("t-word-grid");
+        const needsInit = !grid || !grid.children || grid.children.length === 0 || grid.innerText.includes("載入單字庫中");
+        if (needsInit) {
+          if (typeof populateTeacherClassOptions === "function") populateTeacherClassOptions();
+          if (typeof loadPickerData === "function") {
+            loadPickerData().then(() => {
+              if (typeof renderPickerGrid === "function") renderPickerGrid();
+              if (typeof updatePickerPreview === "function") updatePickerPreview();
+            });
+          }
         }
       } else if (tabName === "time") {
-        if (typeof loadTimeRestrictions === "function") loadTimeRestrictions();
+        const list = document.getElementById("tm-rules-list");
+        if (!list || list.innerText.includes("載入中")) {
+          if (typeof loadTimeRestrictions === "function") loadTimeRestrictions();
+        }
       } else if (tabName === "student") {
         if (typeof initTeacherPortalInspector === "function") initTeacherPortalInspector();
       } else if (tabName === "class") {

@@ -236,11 +236,30 @@
       max-height: none !important;
       overflow: visible !important;
       margin: 0 !important;
-      padding: 8px !important;
-      border: 1px solid var(--line) !important;
-      background: var(--card) !important;
+      padding: 4px 0 0 0 !important;
+      border: none !important;
+      background: transparent !important;
       color: var(--ink) !important;
       box-sizing: border-box !important;
+    }
+    #tp-workspace-container {
+      border: none !important;
+      background: transparent !important;
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+    /* 移除多層冗餘框線，使介面通透乾淨 */
+    body.role-teacher #teacherTaskModal div[style*="border:1px solid #E7E9F5"],
+    body.role-teacher #teacherTaskModal div[style*="border: 1px solid #E7E9F5"],
+    body.role-teacher #timeManagementModal div[style*="border:1px solid #E7E9F5"],
+    body.role-teacher #timeManagementModal div[style*="border: 1px solid #E7E9F5"] {
+      border: none !important;
+      box-shadow: none !important;
+    }
+    [data-theme="dark"] body.role-teacher #teacherTaskModal > div,
+    [data-theme="dark"] body.role-teacher #timeManagementModal > div {
+      background: transparent !important;
+      border: none !important;
     }
     body.role-teacher #btnCloseTeacherModal,
     body.role-teacher #btnCloseTimeModal {
@@ -424,15 +443,22 @@
       user-select: none;
       box-sizing: border-box;
       width: 100%;
+      border: 2px solid var(--line) !important;
+      transform: none !important;
+      transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease !important;
     }
     .tp-nav-card:hover {
       border-color: var(--sky, #0284c7) !important;
-      transform: translateY(-1px);
+      transform: none !important;
+    }
+    .tp-nav-card:active {
+      transform: none !important;
     }
     .tp-nav-card.active {
       border: 2px solid var(--sky, #0284c7) !important;
       background: rgba(2, 132, 199, 0.12) !important;
       box-shadow: 0 3px 12px rgba(2, 132, 199, 0.18) !important;
+      transform: none !important;
     }
   </style>
   <link rel="stylesheet" href="css/styles.css?v=20261101_2140">
@@ -690,22 +716,22 @@
       <div id="teacher-portal-card" class="card" style="display:none; text-align:left; padding:14px 8px 8px 8px; border-radius:16px; background:var(--card); border:1.5px solid var(--line); box-shadow:0 8px 30px rgba(0,0,0,0.06); margin:0 0 16px; width:100%; box-sizing:border-box;">
         <!-- 頂部四大功能導航方塊 (等寬自適應與上下 8px 間隔) -->
         <div class="tp-nav-grid">
-          <div id="tp-nav-task" class="tp-nav-card active" onclick="switchTeacherTab('task')" style="cursor:pointer; padding:9px 12px; border-radius:12px; border:1.5px solid var(--line); background:var(--card); display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.2s;">
+          <div id="tp-nav-task" class="tp-nav-card active" onclick="switchTeacherTab('task')" style="cursor:pointer; padding:9px 12px; border-radius:12px; border:2px solid var(--sky, #0284c7); background:rgba(2, 132, 199, 0.12); display:flex; align-items:center; justify-content:center; gap:8px;">
             <span style="font-size:18px; line-height:1;">📝</span>
             <span style="font-size:14px; font-weight:800; color:var(--violet); white-space:nowrap;">指定單字</span>
           </div>
 
-          <div id="tp-nav-time" class="tp-nav-card" onclick="switchTeacherTab('time')" style="cursor:pointer; padding:9px 12px; border-radius:12px; border:1.5px solid var(--line); background:var(--card); display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.2s;">
+          <div id="tp-nav-time" class="tp-nav-card" onclick="switchTeacherTab('time')" style="cursor:pointer; padding:9px 12px; border-radius:12px; border:2px solid var(--line); background:var(--card); display:flex; align-items:center; justify-content:center; gap:8px;">
             <span style="font-size:18px; line-height:1;">⏰</span>
             <span style="font-size:14px; font-weight:800; color:var(--green, #10b981); white-space:nowrap;">使用時間</span>
           </div>
 
-          <div id="tp-nav-student" class="tp-nav-card" onclick="switchTeacherTab('student')" style="cursor:pointer; padding:9px 12px; border-radius:12px; border:1.5px solid var(--line); background:var(--card); display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.2s;">
+          <div id="tp-nav-student" class="tp-nav-card" onclick="switchTeacherTab('student')" style="cursor:pointer; padding:9px 12px; border-radius:12px; border:2px solid var(--line); background:var(--card); display:flex; align-items:center; justify-content:center; gap:8px;">
             <span style="font-size:18px; line-height:1;">👤</span>
             <span style="font-size:14px; font-weight:800; color:var(--sky, #0284c7); white-space:nowrap;">個人歷程</span>
           </div>
 
-          <div id="tp-nav-class" class="tp-nav-card" onclick="switchTeacherTab('class')" style="cursor:pointer; padding:9px 12px; border-radius:12px; border:1.5px solid var(--line); background:var(--card); display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.2s;">
+          <div id="tp-nav-class" class="tp-nav-card" onclick="switchTeacherTab('class')" style="cursor:pointer; padding:9px 12px; border-radius:12px; border:2px solid var(--line); background:var(--card); display:flex; align-items:center; justify-content:center; gap:8px;">
             <span style="font-size:18px; line-height:1;">👥</span>
             <span style="font-size:14px; font-weight:800; color:#eab308; white-space:nowrap;">全班紀錄</span>
           </div>
