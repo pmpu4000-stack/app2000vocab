@@ -855,9 +855,6 @@ function getStudentMetaFromUserList_(ss, studentUser) {
   }
 }
 
-function include(filename) {
-  return HtmlService.createHtmlOutputFromFile(filename).getContent();
-}
 
 function doGet(e) {
   try {
