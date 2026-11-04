@@ -252,16 +252,21 @@ function applyPageThemeBackground(theme) {
     });
   }
 }
+var _isThemeSwitching = false;
 function enableThemeTransition() {
   document.documentElement.classList.add("theme-transitioning");
   window.clearTimeout(window._themeTransTimer);
   window._themeTransTimer = window.setTimeout(function() {
     document.documentElement.classList.remove("theme-transitioning");
-  }, 450);
+    _isThemeSwitching = false;
+  }, 1000);
 }
 function toggleTheme() {
+  if (_isThemeSwitching) return;
+  _isThemeSwitching = true;
   const cur = document.documentElement.getAttribute("data-theme") || "light";
   const next = cur === "light" ? "dark" : "light";
+  enableThemeTransition();
   const doApply = function() {
     applyPageThemeBackground(next);
     localStorage.setItem("theme", next);
@@ -278,7 +283,6 @@ function toggleTheme() {
   if (document.startViewTransition) {
     document.startViewTransition(doApply);
   } else {
-    enableThemeTransition();
     doApply();
   }
 }

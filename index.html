@@ -59,15 +59,15 @@
     html.theme-transitioning *,
     html.theme-transitioning *::before,
     html.theme-transitioning *::after {
-      transition: background-color 0.38s cubic-bezier(0.25, 1, 0.5, 1),
-                  color 0.35s ease,
-                  border-color 0.35s ease,
-                  box-shadow 0.35s ease !important;
+      transition: background-color 1.0s cubic-bezier(0.25, 1, 0.5, 1),
+                  color 1.0s ease,
+                  border-color 1.0s ease,
+                  box-shadow 1.0s ease !important;
       transition-delay: 0s !important;
     }
     ::view-transition-old(root),
     ::view-transition-new(root) {
-      animation-duration: 0.35s;
+      animation-duration: 1.0s;
       animation-timing-function: cubic-bezier(0.25, 1, 0.5, 1);
     }
   
@@ -1092,23 +1092,27 @@
       });
     }
 
+    let _isThemeSwitching = false;
     function enableThemeTransition() {
       document.documentElement.classList.add("theme-transitioning");
       window.clearTimeout(window._themeTransTimer);
       window._themeTransTimer = window.setTimeout(() => {
         document.documentElement.classList.remove("theme-transitioning");
-      }, 450);
+        _isThemeSwitching = false;
+      }, 1000);
     }
 
     function toggleTheme() {
+      if (_isThemeSwitching) return;
+      _isThemeSwitching = true;
       const cur = localStorage.getItem("app_theme") || "light";
       const next = cur === "dark" ? "light" : "dark";
+      enableThemeTransition();
       if (document.startViewTransition) {
         document.startViewTransition(() => {
           applyAppTheme(next);
         });
       } else {
-        enableThemeTransition();
         applyAppTheme(next);
       }
     }
