@@ -405,12 +405,15 @@
       color: inherit;
     }
 
+    #teacher-portal-card {
+      padding: 14px 8px 8px 8px !important;
+    }
     .tp-nav-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      row-gap: 8px;
-      column-gap: 10px;
-      margin-bottom: 16px;
+      gap: 8px !important;
+      margin-top: 0 !important;
+      margin-bottom: 8px !important;
     }
     @media (min-width: 768px) {
       .tp-nav-grid {
@@ -684,7 +687,7 @@
       </div>
 
       <!-- 👨‍🏫 教師專屬教學管理中心儀表板 (四合一主工作區，原位切換) -->
-      <div id="teacher-portal-card" class="card" style="display:none; text-align:left; padding:8px; border-radius:16px; background:var(--card); border:1.5px solid var(--line); box-shadow:0 8px 30px rgba(0,0,0,0.06); margin:0 0 16px; width:100%; box-sizing:border-box;">
+      <div id="teacher-portal-card" class="card" style="display:none; text-align:left; padding:14px 8px 8px 8px; border-radius:16px; background:var(--card); border:1.5px solid var(--line); box-shadow:0 8px 30px rgba(0,0,0,0.06); margin:0 0 16px; width:100%; box-sizing:border-box;">
         <!-- 頂部四大功能導航方塊 (等寬自適應與上下 8px 間隔) -->
         <div class="tp-nav-grid">
           <div id="tp-nav-task" class="tp-nav-card active" onclick="switchTeacherTab('task')" style="cursor:pointer; padding:9px 12px; border-radius:12px; border:1.5px solid var(--line); background:var(--card); display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.2s;">
