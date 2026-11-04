@@ -280,7 +280,14 @@ function doPost(e) {
   let params = {};
   try {
     params = JSON.parse((e && e.postData && e.postData.contents) || "{}");
-    const ss     = SpreadsheetApp.getActiveSpreadsheet();
+    const action = params.action || "login";
+
+    // ── 0. 快速 Ping / 預先喚醒（極速秒回，完全零試算表 I/O） ──
+    if (action === "ping") {
+      return jsonResponse({ status: "success", pong: true, time: Date.now() });
+    }
+
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
 
     // ── 0. 應用程式防火牆 (WAF) 深度封包安全檢測 ──
     const attackDetected = inspectRequestForAttacks(ss, params, e);
@@ -290,13 +297,6 @@ function doPost(e) {
         code: 403,
         message: "【資安防禦警示】系統偵測到未授權之異常攻擊載荷，連線已即時中斷並依法保全紀錄存查。"
       });
-    }
-
-    const action = params.action || "login";
-
-    // ── 0. 快速 Ping / 預先喚醒（零試算表讀取，毫秒級秒回） ──
-    if (action === "ping") {
-      return jsonResponse({ status: "success", pong: true, time: Date.now() });
     }
 
     // ── 1. 學生 / 教師登入 ──
@@ -857,13 +857,6 @@ function getStudentMetaFromUserList_(ss, studentUser) {
 
 
 function doGet(e) {
-  try {
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
-    if (ss) {
-      const cpSheet = ss.getSheetByName("學生歷程總庫");
-      if (cpSheet) ensureCentralPortfolioColumns(cpSheet);
-    }
-  } catch(_) {}
   return jsonResponse({
     status: "success",
     service: "app2000vocab Backend API",
