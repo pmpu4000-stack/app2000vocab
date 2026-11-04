@@ -466,9 +466,158 @@
     }
     .tp-nav-card.active {
       border: 2px solid var(--violet, #6366f1) !important;
-      background: var(--card) !important;
+      background: rgba(99, 102, 241, 0.08) !important;
       box-shadow: 0 3px 12px rgba(99, 102, 241, 0.18) !important;
       transform: none !important;
+    }
+    .tp-nav-card {
+      background: var(--card, #ffffff) !important;
+      border: 2px solid var(--line, #E7E9F5) !important;
+    }
+
+    /* ⏱️ 使用時間管理 4 個次級導航方塊 (比照指定單字導航卡片，寬螢幕同行，窄螢幕兩行) */
+    .tm-nav-grid {
+      display: grid !important;
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 8px !important;
+      margin-bottom: 14px !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+    }
+    @media (min-width: 768px) {
+      .tm-nav-grid {
+        grid-template-columns: repeat(4, 1fr) !important;
+      }
+    }
+    .tm-nav-card {
+      user-select: none;
+      box-sizing: border-box;
+      width: 100%;
+      padding: 9px 10px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      text-align: center;
+      border: 2px solid var(--line, #E7E9F5) !important;
+      background: var(--card, #ffffff) !important;
+      color: var(--ink, #232A4D) !important;
+      transition: all 0.15s ease !important;
+    }
+    .tm-nav-card:hover {
+      border-color: #6366f1 !important;
+    }
+    .tm-nav-card.active {
+      border-color: #6366f1 !important;
+      background: rgba(99, 102, 241, 0.1) !important;
+      color: #6366f1 !important;
+      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.15) !important;
+    }
+    [data-theme="dark"] .tm-nav-card {
+      background: #1C2234 !important;
+      border-color: #2B334E !important;
+      color: #cbd5e1 !important;
+    }
+    [data-theme="dark"] .tm-nav-card.active {
+      background: #232A40 !important;
+      border-color: #818cf8 !important;
+      color: #818cf8 !important;
+    }
+
+    /* 🏷️ 六個單字關卡篩選標籤晶片雙模式色彩優化 */
+    .btn-picker-chip {
+      padding: 5px 12px !important;
+      font-size: 12.5px !important;
+      border-radius: 8px !important;
+      font-weight: 700 !important;
+      cursor: pointer !important;
+      user-select: none !important;
+      border: 1.5px solid var(--line, #D2D6E8) !important;
+      background: var(--card, #ffffff) !important;
+      color: var(--ink, #232A4D) !important;
+      transition: all 0.15s ease !important;
+    }
+    .btn-picker-chip:hover {
+      background: #f1f5f9 !important;
+      border-color: #818cf8 !important;
+    }
+    .btn-picker-chip.active {
+      background: #6366f1 !important;
+      border-color: #6366f1 !important;
+      color: #ffffff !important;
+      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.35) !important;
+    }
+    [data-theme="dark"] .btn-picker-chip {
+      background: #1C2234 !important;
+      border-color: #2B334E !important;
+      color: #cbd5e1 !important;
+    }
+    [data-theme="dark"] .btn-picker-chip:hover {
+      background: #232A40 !important;
+      border-color: #475569 !important;
+    }
+    [data-theme="dark"] .btn-picker-chip.active {
+      background: #6366f1 !important;
+      border-color: #6366f1 !important;
+      color: #ffffff !important;
+      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.45) !important;
+    }
+
+    /* 🏷️ 班級勾選晶片樣式 (雙模式適應) */
+    .task-class-chip {
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 6px !important;
+      padding: 5px 12px !important;
+      border-radius: 8px !important;
+      border: 1.5px solid var(--line, #D2D6E8) !important;
+      background: var(--card, #ffffff) !important;
+      color: var(--ink, #232A4D) !important;
+      font-size: 13.5px !important;
+      font-weight: 700 !important;
+      cursor: pointer !important;
+      user-select: none !important;
+      transition: all 0.15s ease !important;
+    }
+    .task-class-chip:hover {
+      border-color: #6366f1 !important;
+    }
+    [data-theme="dark"] .task-class-chip {
+      background: #1C2234 !important;
+      border-color: #2B334E !important;
+      color: #cbd5e1 !important;
+    }
+
+    /* 📚 單字標題文字雙模式適應 */
+    .t-word-heading {
+      color: var(--ink, #1e293b) !important;
+    }
+    [data-theme="dark"] .t-word-heading {
+      color: #ffffff !important;
+    }
+
+    /* 🎨 淺色模式下文字對齊學習歷程檔案 (深色墨水高清晰度，消除蒼白灰字) */
+    :root:not([data-theme="dark"]) #teacherTaskModal label,
+    :root:not([data-theme="dark"]) #timeManagementModal label,
+    :root:not([data-theme="dark"]) #tp-workspace-container label {
+      color: var(--ink, #1e293b) !important;
+      font-weight: 700 !important;
+    }
+    :root:not([data-theme="dark"]) #teacherTaskModal h3,
+    :root:not([data-theme="dark"]) #timeManagementModal h3 {
+      color: var(--ink, #0f172a) !important;
+    }
+    :root:not([data-theme="dark"]) #teacherTaskModal [style*="color:#5A6183"],
+    :root:not([data-theme="dark"]) #timeManagementModal [style*="color:#5A6183"] {
+      color: var(--ink, #1e293b) !important;
+    }
+    :root:not([data-theme="dark"]) #teacherTaskModal [style*="color:#94a3b8"],
+    :root:not([data-theme="dark"]) #timeManagementModal [style*="color:#94a3b8"] {
+      color: var(--ink2, #475569) !important;
     }
     [data-theme="dark"] .tp-nav-card {
       background: #1C2234 !important;
@@ -735,22 +884,22 @@
       <div id="teacher-portal-card" class="card" style="display:none; text-align:left; padding:14px 8px 8px 8px; border-radius:16px; background:var(--card); border:1.5px solid var(--line); box-shadow:0 8px 30px rgba(0,0,0,0.06); margin:0 0 16px; width:100%; box-sizing:border-box;">
         <!-- 頂部四大功能導航方塊 (等寬自適應與上下 8px 間隔) -->
         <div class="tp-nav-grid">
-          <div id="tp-nav-task" class="tp-nav-card active" onclick="switchTeacherTab('task')" style="cursor:pointer; padding:9px 12px; border-radius:12px; border:2px solid var(--sky, #0284c7); background:rgba(2, 132, 199, 0.12); display:flex; align-items:center; justify-content:center; gap:8px;">
+          <div id="tp-nav-task" class="tp-nav-card active" onclick="switchTeacherTab('task')" style="cursor:pointer; padding:9px 12px; border-radius:12px; display:flex; align-items:center; justify-content:center; gap:8px;">
             <span style="font-size:18px; line-height:1;">📝</span>
             <span style="font-size:14px; font-weight:800; color:var(--violet); white-space:nowrap;">指定單字</span>
           </div>
 
-          <div id="tp-nav-time" class="tp-nav-card" onclick="switchTeacherTab('time')" style="cursor:pointer; padding:9px 12px; border-radius:12px; border:2px solid var(--line); background:var(--card); display:flex; align-items:center; justify-content:center; gap:8px;">
+          <div id="tp-nav-time" class="tp-nav-card" onclick="switchTeacherTab('time')" style="cursor:pointer; padding:9px 12px; border-radius:12px; display:flex; align-items:center; justify-content:center; gap:8px;">
             <span style="font-size:18px; line-height:1;">⏰</span>
             <span style="font-size:14px; font-weight:800; color:var(--green, #10b981); white-space:nowrap;">使用時間</span>
           </div>
 
-          <div id="tp-nav-student" class="tp-nav-card" onclick="switchTeacherTab('student')" style="cursor:pointer; padding:9px 12px; border-radius:12px; border:2px solid var(--line); background:var(--card); display:flex; align-items:center; justify-content:center; gap:8px;">
+          <div id="tp-nav-student" class="tp-nav-card" onclick="switchTeacherTab('student')" style="cursor:pointer; padding:9px 12px; border-radius:12px; display:flex; align-items:center; justify-content:center; gap:8px;">
             <span style="font-size:18px; line-height:1;">👤</span>
             <span style="font-size:14px; font-weight:800; color:var(--sky, #0284c7); white-space:nowrap;">個人歷程</span>
           </div>
 
-          <div id="tp-nav-class" class="tp-nav-card" onclick="switchTeacherTab('class')" style="cursor:pointer; padding:9px 12px; border-radius:12px; border:2px solid var(--line); background:var(--card); display:flex; align-items:center; justify-content:center; gap:8px;">
+          <div id="tp-nav-class" class="tp-nav-card" onclick="switchTeacherTab('class')" style="cursor:pointer; padding:9px 12px; border-radius:12px; display:flex; align-items:center; justify-content:center; gap:8px;">
             <span style="font-size:18px; line-height:1;">👥</span>
             <span style="font-size:14px; font-weight:800; color:#eab308; white-space:nowrap;">全班紀錄</span>
           </div>
@@ -2835,7 +2984,7 @@
       if (!s) {
         s = document.createElement("script");
         s.id = "teacher-portal-script";
-        s.src = "src/teacher_portal.js?v=20261104_1420";
+        s.src = "src/teacher_portal.js?v=20261105_0530";
         s.onload = () => {
           window.__teacherPortalLoaded = true;
           if (typeof ensureTeacherModalsMounted === "function") ensureTeacherModalsMounted();
