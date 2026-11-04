@@ -1366,8 +1366,9 @@
               } catch(_) {}
             }
 
-            document.body.classList.add("has-inspected");
-            document.documentElement.classList.add("has-inspected");
+            document.body.classList.add("has-inspected", "show-student-records");
+            document.documentElement.classList.add("has-inspected", "show-student-records");
+            document.querySelectorAll("section.progress").forEach(el => el.style.setProperty("display", "block", "important"));
 
             const stuLabel = `${result.className ? result.className + ' ' : ''}${result.realName ? result.realName + '（' + targetStudent + '）' : targetStudent}`;
             if (statusEl) {
@@ -1433,13 +1434,16 @@
         }
       });
 
-      // 只有在個別學生歷程 (student) 且已調閱學生時，才顯示下方的五大歷程方塊，其餘分頁一律嚴格隱藏
+      // 只有在個人歷程 (student) 且已調閱學生時，才顯示下方的五大歷程方塊，其餘分頁 (task, time, class) 一律嚴格隱藏
+      const progSections = document.querySelectorAll("section.progress");
       if (tabName === "student" && document.body.classList.contains("has-inspected")) {
         document.body.classList.add("show-student-records");
         document.documentElement.classList.add("show-student-records");
+        progSections.forEach(el => el.style.setProperty("display", "block", "important"));
       } else {
         document.body.classList.remove("show-student-records");
         document.documentElement.classList.remove("show-student-records");
+        progSections.forEach(el => el.style.setProperty("display", "none", "important"));
       }
 
       if (tabName === "task") {

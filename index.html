@@ -152,6 +152,11 @@
       display: block !important;
     }
 
+    body.role-teacher section.progress,
+    html.role-teacher body section.progress {
+      display: none !important;
+    }
+
     body.role-teacher.has-inspected.show-student-records #progress-card,
     body.role-teacher.has-inspected.show-student-records #learning-record-section,
     body.role-teacher.has-inspected.show-student-records #week-conquer-section,
@@ -161,7 +166,9 @@
     html.role-teacher.has-inspected.show-student-records body #learning-record-section,
     html.role-teacher.has-inspected.show-student-records body #week-conquer-section,
     html.role-teacher.has-inspected.show-student-records body #weak-words-section,
-    html.role-teacher.has-inspected.show-student-records body #export-records-section {
+    html.role-teacher.has-inspected.show-student-records body #export-records-section,
+    body.role-teacher.has-inspected.show-student-records section.progress,
+    html.role-teacher.has-inspected.show-student-records body section.progress {
       display: block !important;
     }
 
@@ -479,22 +486,22 @@
         <div class="tp-nav-grid">
           <div id="tp-nav-task" class="tp-nav-card active" onclick="switchTeacherTab('task')" style="cursor:pointer; padding:9px 12px; border-radius:12px; border:1.5px solid var(--line); background:var(--card); display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.2s;">
             <span style="font-size:18px; line-height:1;">📝</span>
-            <span style="font-size:14px; font-weight:800; color:var(--violet); white-space:nowrap;">每日測驗出題</span>
+            <span style="font-size:14px; font-weight:800; color:var(--violet); white-space:nowrap;">指定單字</span>
           </div>
 
           <div id="tp-nav-time" class="tp-nav-card" onclick="switchTeacherTab('time')" style="cursor:pointer; padding:9px 12px; border-radius:12px; border:1.5px solid var(--line); background:var(--card); display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.2s;">
             <span style="font-size:18px; line-height:1;">⏰</span>
-            <span style="font-size:14px; font-weight:800; color:var(--green, #10b981); white-space:nowrap;">學生使用時間管理</span>
+            <span style="font-size:14px; font-weight:800; color:var(--green, #10b981); white-space:nowrap;">使用時間</span>
           </div>
 
           <div id="tp-nav-student" class="tp-nav-card" onclick="switchTeacherTab('student')" style="cursor:pointer; padding:9px 12px; border-radius:12px; border:1.5px solid var(--line); background:var(--card); display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.2s;">
             <span style="font-size:18px; line-height:1;">👤</span>
-            <span style="font-size:14px; font-weight:800; color:var(--sky, #0284c7); white-space:nowrap;">個別學生區間歷程</span>
+            <span style="font-size:14px; font-weight:800; color:var(--sky, #0284c7); white-space:nowrap;">個人歷程</span>
           </div>
 
           <div id="tp-nav-class" class="tp-nav-card" onclick="switchTeacherTab('class')" style="cursor:pointer; padding:9px 12px; border-radius:12px; border:1.5px solid var(--line); background:var(--card); display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.2s;">
             <span style="font-size:18px; line-height:1;">👥</span>
-            <span style="font-size:14px; font-weight:800; color:#eab308; white-space:nowrap;">全班指定範圍記錄</span>
+            <span style="font-size:14px; font-weight:800; color:#eab308; white-space:nowrap;">全班紀錄</span>
           </div>
         </div>
 
@@ -1629,7 +1636,8 @@
           "#stat-daily-timer", "#stat-streak-freeze", "#btn-upload", ".stat.upload",
           "#levelbar", "#modes", "#card", ".card:not(#teacher-portal-card)", "#session", "#banner", "#screen-quiz",
           "#btn-teacher-picker", "#btn-time-management",
-          "#daily-limit-reached-card", "#parent-portal-screen"
+          "#daily-limit-reached-card", "#parent-portal-screen",
+          "section.progress"
         ];
         hideSelectors.forEach(sel => {
           document.querySelectorAll(sel).forEach(el => {
