@@ -5,15 +5,4 @@
 !TimeRestriction.js
 !AnalyticsService.js
 !SpreadsheetService.js
-!Index.html
-!StyleBase.html
-!StyleTeacher.html
-!StyleStudent.html
-!StylePrint.html
-!ClientCoreJs.html
-!TeacherJs.html
-!StudentAnalyticsJs.html
-!StudentChipsJs.html
-!ExportPdfJs.html
-!ExportExcelJs.html
 !appsscript.json

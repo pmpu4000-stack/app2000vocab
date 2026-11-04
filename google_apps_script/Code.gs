@@ -829,11 +829,13 @@ function doGet(e) {
       if (cpSheet) ensureCentralPortfolioColumns(cpSheet);
     }
   } catch(_) {}
-  // 嚴格資安防護：doGet 僅回傳安全之 Web 介面，透過 HtmlTemplate 動態模組化引入 Style 與 ClientJs
-  return HtmlService.createTemplateFromFile("Index").evaluate()
-    .setTitle("學習歷程管理系統")
-    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
-    .addMetaTag("viewport", "width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover");
+  // 🚀 純後端 API 微服務極致瘦身：免除龐大 HTML 解析開銷，秒開零延遲
+  return jsonResponse({
+    status: "ok",
+    service: "app2000vocab Backend API",
+    mode: "headless-api",
+    timestamp: new Date().toISOString()
+  });
 }
 
 function jsonResponse(obj) {
