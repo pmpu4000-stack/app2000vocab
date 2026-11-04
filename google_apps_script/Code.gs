@@ -535,6 +535,11 @@ function getStudentMetaFromUserList_(ss, studentUser) {
                 records = parsed;
               }
               sanitizeStudentRecordsObj_(records, dailyTaskHistory);
+              if (isParent) {
+                delete records["current_user"];
+                delete records["user_role"];
+                delete records["current_pass"];
+              }
               // 確保 records 內所有屬性值皆為字串型態，防止前端寫入 localStorage 時變為 [object Object]
               for (let k in records) {
                 if (typeof records[k] === "object" && records[k] !== null) {

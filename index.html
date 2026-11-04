@@ -578,9 +578,10 @@
     function updateAccountDisplay(username, role) {
       const sUser = document.getElementById("s-user");
       const statEl = document.getElementById("stat-user");
+      const roleText = role === 'teacher' ? '教師' : role === 'parent' ? '家長' : '學生';
       if (sUser) {
         sUser.textContent = username || "-";
-        sUser.title = username || "";
+        sUser.title = username ? `${roleText}帳號：${username}` : "";
         // 寬度隨帳號名稱長度自適應展開，字體維持清晰易讀
         if (username && username.length > 16) {
           sUser.style.fontSize = "13px";
@@ -592,8 +593,10 @@
       }
       if (statEl) {
         statEl.title = username
-          ? `目前登入帳號：${username}${role ? ` (${role === 'teacher' ? '教師' : '學生'})` : ''}\n（點擊可查看帳號詳情或切換）`
+          ? `目前登入帳號：${username} (${roleText})\n（點擊可查看帳號詳情或切換）`
           : "登入帳號";
+        const subSpan = statEl.querySelector("span");
+        if (subSpan) subSpan.textContent = role === "parent" ? "家長帳號" : "登入帳號";
       }
     }
 
@@ -1679,9 +1682,16 @@
             // 雲端有存檔：將雲端最新進度寫入 LocalStorage（跳過舊備份中的 task_words_*，統一由下方權威 taskWordsMap 寫入）
             for (let key in result.records) {
               if (key.startsWith("task_words_")) continue;
+              if (result.role === "parent" && (key === "current_user" || key === "user_role" || key === "current_pass")) continue;
               const val = result.records[key];
               const valToStore = (typeof val === "object" && val !== null) ? JSON.stringify(val) : String(val);
               localStorage.setItem(key, valToStore);
+            }
+            if (result.role === "parent") {
+              localStorage.setItem("current_user", user);
+              localStorage.setItem("user_role", "parent");
+              localStorage.setItem("parent_user", user);
+              if (result.studentUser) localStorage.setItem("bound_student", result.studentUser);
             }
           } else if (!isDifferentUser && localAgentData) {
             // 雲端無紀錄，但本機同帳號已有有效學習進度：保留本機進度（登入時絕不上傳，確保純下載無覆蓋風險）
