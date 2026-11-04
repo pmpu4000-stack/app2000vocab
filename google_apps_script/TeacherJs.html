@@ -1245,7 +1245,7 @@ function getFilteredWordList() {
   if (!Array.isArray(WORD_BANK_2000) || WORD_BANK_2000.length === 0) return [];
   return WORD_BANK_2000.filter(item => {
     const w = item[0].toLowerCase();
-    const zh = item[1];
+    const zh = String(item[1] || "").replace(/^(n|v|a|adj|adv|prep|conj|pron|art|phr|aux|vi|vt)\.\s*/i, "");
     const lv = item[2];
     if (pickerCurrentLevel !== "all" && lv !== Number(pickerCurrentLevel)) return false;
     if (pickerCurrentSearch) {
@@ -1279,7 +1279,7 @@ function renderWordPickerGrid() {
   let html = "";
   displayList.forEach(item => {
     const w = item[0];
-    const zh = item[1];
+    const zh = String(item[1] || "").replace(/^(n|v|a|adj|adv|prep|conj|pron|art|phr|aux|vi|vt)\.\s*/i, "");
     const lv = item[2];
     const isSelected = selectedWordsSet.has(w.toLowerCase());
     const bg = isSelected ? "var(--primary)" : "var(--table-header-bg)";

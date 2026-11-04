@@ -1984,16 +1984,6 @@
         </span>
       </div>
 
-      <!-- 等級過濾按鈕列 -->
-      <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px;" id="taskLevelFilterGroup">
-        <button type="button" class="btn-sm filter-chip active" id="chip-lv-all" onclick="setWordPickerLevel('all')">全部 (2055)</button>
-        <button type="button" class="btn-sm filter-chip" id="chip-lv-1" onclick="setWordPickerLevel(1)">Lv1 入門</button>
-        <button type="button" class="btn-sm filter-chip" id="chip-lv-2" onclick="setWordPickerLevel(2)">Lv2 基礎</button>
-        <button type="button" class="btn-sm filter-chip" id="chip-lv-3" onclick="setWordPickerLevel(3)">Lv3 進階</button>
-        <button type="button" class="btn-sm filter-chip" id="chip-lv-4" onclick="setWordPickerLevel(4)">Lv4 挑戰</button>
-        <button type="button" class="btn-sm filter-chip" id="chip-lv-5" onclick="setWordPickerLevel(5)">Lv5 精熟</button>
-      </div>
-
       <!-- 搜尋與快捷挑選列 -->
       <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:10px;">
         <div style="position:relative; flex:1; min-width:160px;">
@@ -2002,7 +1992,6 @@
         </div>
         <button type="button" class="btn-secondary btn-sm" onclick="quickPickRandomWords(10)" title="在目前範圍隨機挑10個字">🎲 隨機10字</button>
         <button type="button" class="btn-secondary btn-sm" onclick="quickPickRandomWords(20)" title="在目前範圍隨機挑20個字">🎲 隨機20字</button>
-        <button type="button" class="btn-secondary btn-sm" onclick="selectAllFilteredWords()" title="選取目前清單上所有單字">➕ 全選本組</button>
         <button type="button" class="btn-secondary btn-sm" onclick="clearSelectedWords()" title="清空全部已選單字" style="color:var(--danger);">🧹 清空</button>
       </div>
 
