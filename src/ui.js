@@ -657,18 +657,6 @@ export function renderProgress(s) {
 
   const sStreak = el.sStreak || (el.sStreak = $("#s-streak"));
   if (sStreak) sStreak.textContent = s.streak !== undefined ? s.streak : 0;
-  const sFreeze = $("#s-freeze-val");
-  if (sFreeze) {
-    const fCount = (typeof s.streakFreezes === "number") ? s.streakFreezes : 0;
-    sFreeze.textContent = fCount === 0 ? "已用完" : (fCount >= 2 ? "2 個(滿)" : `剩 ${fCount} 個`);
-    sFreeze.style.color = fCount > 0 ? "#2563eb" : "#94a3b8";
-    const fParent = sFreeze.closest ? sFreeze.closest(".stat") : null;
-    if (fParent) {
-      fParent.title = `連勝護盾（點擊查看說明）：目前剩餘 ${fCount} 個（${fCount > 0 ? "尚未用完，仍有守護機會" : "已用完，無剩餘護盾"}，上限 2 個）。若當日未練習，自動消耗 1 個護盾守護連續紀錄，每達 50 題答對自動補充`;
-      fParent.style.cursor = "pointer";
-      fParent.onclick = () => { if (typeof window.openStreakFreezeModal === "function") window.openStreakFreezeModal(); };
-    }
-  }
 
   const total = s.total || 2055;
   const vocabRate = total > 0 ? Math.round((distinctCorr / total) * 100) : 0;
