@@ -612,13 +612,18 @@ export function renderProgress(s) {
   initProgressCard();
   if (!s) return;
   const u = localStorage.getItem("current_user");
+  const isParent = localStorage.getItem("user_role") === "parent";
   const userEl = el.sUser || (el.sUser = $("#s-user"));
   if (userEl && u) {
     userEl.textContent = u;
-    userEl.title = u;
+    userEl.title = isParent ? `家長帳號：${u}` : u;
     const statEl = el.statUser || (el.statUser = document.getElementById("stat-user"));
     if (statEl) {
-      statEl.title = `目前登入帳號：${u}\n（點擊可查看帳號詳情或切換）`;
+      statEl.title = isParent ? `家長帳號：${u}\n（點擊可查看帳號詳情或切換）` : `目前登入帳號：${u}\n（點擊可查看帳號詳情或切換）`;
+      if (isParent) {
+        const subSpan = statEl.querySelector("span");
+        if (subSpan) subSpan.textContent = "家長帳號";
+      }
     }
     userEl.style.fontSize = u.length > 16 ? "13px" : u.length > 12 ? "14.5px" : "17px";
   }

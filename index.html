@@ -11,6 +11,10 @@
         if (t === "dark" || (!t && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
           document.documentElement.setAttribute("data-theme", "dark");
         }
+        var r = localStorage.getItem("user_role") || sessionStorage.getItem("user_role");
+        if (r === "parent") {
+          document.documentElement.classList.add("role-parent");
+        }
       } catch (e) {}
     })();
   </script>
@@ -52,20 +56,40 @@
     body.role-parent #stat-daily-timer,
     body.role-parent #stat-streak-freeze,
     body.role-parent #btn-upload,
+    body.role-parent .stat.upload,
     body.role-parent #levelbar,
     body.role-parent #modes,
     body.role-parent #card,
+    body.role-parent .card,
     body.role-parent #session,
     body.role-parent #screen-quiz,
     body.role-parent #banner,
     body.role-parent #btn-teacher-picker,
     body.role-parent #btn-time-management,
     body.role-parent #admin-portal-link,
-    body.role-parent #parent-portal-screen {
+    body.role-parent #parent-portal-screen,
+    body.role-parent #daily-limit-reached-card,
+    html.role-parent body #stat-daily-timer,
+    html.role-parent body #stat-streak-freeze,
+    html.role-parent body #btn-upload,
+    html.role-parent body .stat.upload,
+    html.role-parent body #levelbar,
+    html.role-parent body #modes,
+    html.role-parent body #card,
+    html.role-parent body .card,
+    html.role-parent body #session,
+    html.role-parent body #screen-quiz,
+    html.role-parent body #banner,
+    html.role-parent body #btn-teacher-picker,
+    html.role-parent body #btn-time-management,
+    html.role-parent body #admin-portal-link,
+    html.role-parent body #parent-portal-screen,
+    html.role-parent body #daily-limit-reached-card {
       display: none !important;
     }
 
-    body.role-parent .app {
+    body.role-parent .app,
+    html.role-parent body .app {
       display: block !important;
     }
 
@@ -73,7 +97,12 @@
     body.role-parent #learning-record-section,
     body.role-parent #week-conquer-section,
     body.role-parent #weak-words-section,
-    body.role-parent #export-records-section {
+    body.role-parent #export-records-section,
+    html.role-parent body #progress-card,
+    html.role-parent body #learning-record-section,
+    html.role-parent body #week-conquer-section,
+    html.role-parent body #weak-words-section,
+    html.role-parent body #export-records-section {
       display: block !important;
     }
   </style>
@@ -911,7 +940,8 @@
     // 點擊「登入帳號」欄位彈出帳號資訊與切換視窗（連勝護盾同款毛玻璃樣式）
     window.openAccountModal = function() {
       const cur = localStorage.getItem("current_user") || "尚未登入";
-      const role = localStorage.getItem("user_role") === "teacher" ? "教師" : "學生";
+      const uRole = localStorage.getItem("user_role");
+      const role = uRole === "teacher" ? "教師" : uRole === "parent" ? "家長" : "學生";
       let mEl = document.getElementById("account-info-modal");
       if (!mEl) {
         mEl = document.createElement("div");
@@ -1229,12 +1259,14 @@
           if (result.role === "parent") {
             setLoginStatus("家長身分驗證成功，正在載入子女學習成果...", "loading-game");
             document.body.classList.add("role-parent");
+            document.documentElement.classList.add("role-parent");
             localStorage.setItem("current_user", user);
             localStorage.setItem("user_role", "parent");
             sessionStorage.setItem("current_user", user);
             sessionStorage.setItem("user_role", "parent");
             window.__PARENT_USER = user;
             window.__PARENT_STUDENT = result.realName || result.username || "";
+            applyRoleBasedView("parent", result);
           }
           if (result.role === "admin" || (result.role === "teacher" && result.isAdmin)) {
             // 教師 / 管理員可自由選擇使用「出題設定」或前往「總控後台」
@@ -1262,34 +1294,72 @@
     // 🛡️ 角色權限動態視圖管理 (Role-Based Dynamic View Controller)
     // ══════════════════════════════════════════════════════════════
     function applyRoleBasedView(role, result) {
-      const isParent = role === "parent";
-      const isTeacher = role === "teacher";
+      const isParent = role === "parent" || localStorage.getItem("user_role") === "parent";
+      const isTeacher = role === "teacher" || localStorage.getItem("user_role") === "teacher";
       const isAdmin = role === "admin" || (result && result.isAdmin);
       const isStudent = !isParent && !isTeacher && !isAdmin;
 
       const appEl = document.querySelector(".app");
+      if (appEl) appEl.style.display = "block";
+
       const parentScreen = document.getElementById("parent-portal-screen");
+      if (parentScreen) parentScreen.style.display = "none";
+
       const teacherBtn = document.getElementById("btn-teacher-picker");
       const timeBtn = document.getElementById("btn-time-management");
       const adminNotice = document.getElementById("admin-portal-link");
       const timerBadge = document.getElementById("stat-daily-timer");
       const uploadBtn = document.getElementById("btn-upload") || document.querySelector(".stat.upload");
 
-      // 1. 家長身分：隱藏遊戲作答區與控制項，直接切換為專屬子女學習歷程視圖
+      // 1. 家長身分：精準過濾視圖（顯示家長帳號、隱藏作答與控制項、完整保留五大歷程方塊）
       if (isParent) {
-        if (appEl) appEl.style.display = "none";
-        if (parentScreen) parentScreen.style.display = "block";
-        if (teacherBtn) teacherBtn.style.display = "none";
-        if (timeBtn) timeBtn.style.display = "none";
-        if (adminNotice) adminNotice.style.display = "none";
-        if (timerBadge) timerBadge.style.display = "none";
-        if (uploadBtn) uploadBtn.style.display = "none";
+        document.body.classList.add("role-parent");
+        document.documentElement.classList.add("role-parent");
+
+        // 依使用者需求精確隱藏的方塊
+        const hideSelectors = [
+          "#stat-daily-timer", "#stat-streak-freeze", "#btn-upload", ".stat.upload",
+          "#levelbar", "#modes", "#card", ".card", "#session", "#banner", "#screen-quiz",
+          "#btn-teacher-picker", "#btn-time-management", "#admin-portal-link",
+          "#daily-limit-reached-card"
+        ];
+        hideSelectors.forEach(sel => {
+          document.querySelectorAll(sel).forEach(el => {
+            el.style.setProperty("display", "none", "important");
+          });
+        });
+
+        // 依使用者需求完整保留呈現的五大歷程方塊
+        const showSelectors = [
+          "#progress-card", "#learning-record-section", "#week-conquer-section",
+          "#weak-words-section", "#export-records-section"
+        ];
+        showSelectors.forEach(sel => {
+          document.querySelectorAll(sel).forEach(el => {
+            el.style.setProperty("display", "block", "important");
+          });
+        });
+
+        // 登入帳號方塊：即時顯示家長帳號與身分標記
+        const sUser = document.getElementById("s-user");
+        const curUser = localStorage.getItem("current_user") || (result && (result.username || result.parentUser)) || "";
+        const studentInfo = (result && (result.realName || result.studentUser)) || localStorage.getItem("user_real_name") || "";
+        if (sUser && curUser) {
+          sUser.textContent = curUser;
+          sUser.title = `家長帳號：${curUser}${studentInfo ? `（綁定子女：${studentInfo}）` : ""}`;
+          const statUser = document.getElementById("stat-user");
+          if (statUser) {
+            statUser.title = `家長帳號：${curUser}${studentInfo ? `（綁定子女：${studentInfo}）` : ""}`;
+            const subLabel = statUser.querySelector("span");
+            if (subLabel) subLabel.textContent = "家長帳號";
+          }
+        }
         return;
       }
 
-      // 2. 非家長身分（學生、教師、管理員）：顯示遊戲/作答容器，隱藏家長視圖
-      if (parentScreen) parentScreen.style.display = "none";
-      if (appEl) appEl.style.display = "";
+      // 2. 非家長身分：移除家長樣式
+      document.body.classList.remove("role-parent");
+      document.documentElement.classList.remove("role-parent");
 
       // 3. 教師 / 管理員工具列控制
       if (teacherBtn) {
@@ -1309,7 +1379,7 @@
         if (timerBadge) timerBadge.style.display = "flex";
       }
       if (uploadBtn) {
-        uploadBtn.style.display = (isStudent || isTeacher || isAdmin) ? "flex" : "none";
+        uploadBtn.style.display = isStudent ? "flex" : "none";
       }
     }
 
@@ -1754,10 +1824,13 @@
             await import(`./src/app.js?v=${cacheBuster}`);
             const _ov = document.getElementById('login-overlay'); if (_ov) { _ov.style.setProperty('display', 'none', 'important'); _ov.classList.add('hidden'); }
             document.body.classList.remove('is-logging-in');
-            checkCurfewStatus();
 
-            // ★ 學生完整載入進度、單字庫與畫面後，才正式啟動每日練習倒數計時！
-            if (result.role !== "teacher" && !result.isAdmin) {
+            // 🚀 核心：模組載入後立即套用角色視圖（家長帳號精準隱藏作答區並呈現五大歷程）
+            applyRoleBasedView(result.role || localStorage.getItem("user_role") || "student", result);
+
+            // ★ 學生完整載入進度、單字庫與畫面後，才正式啟動每日練習倒數計時（家長與教師豁免）
+            if (result.role !== "teacher" && !result.isAdmin && result.role !== "parent") {
+              checkCurfewStatus();
               const pendingUsage = result.dailyUsage;
               if (pendingUsage) {
                 const nowMs = Date.now();
@@ -2548,7 +2621,7 @@
 
     function checkCurfewStatus() {
       const role = localStorage.getItem("user_role") || "student";
-      if (role === "teacher" || role === "admin") return;
+      if (role === "teacher" || role === "admin" || role === "parent") return;
       const overlay = document.getElementById("curfew-overlay");
       if (!overlay) return;
 
@@ -2600,7 +2673,7 @@
 
     function initDailyUsageTimer(dailyUsage) {
       const role = localStorage.getItem("user_role") || "student";
-      if (role === "teacher" || role === "admin") {
+      if (role === "teacher" || role === "admin" || role === "parent") {
         const timerBadge = document.getElementById("stat-daily-timer");
         if (timerBadge) timerBadge.style.display = "none";
         liftDailyUsageLockdown();
@@ -2708,7 +2781,7 @@
 
     function updateDailyUsageTick() {
       const role = localStorage.getItem("user_role") || "student";
-      if (role === "teacher" || role === "admin") return;
+      if (role === "teacher" || role === "admin" || role === "parent") return;
 
       const valEl = document.getElementById("s-timer-val");
       if (!valEl) return;
@@ -2889,7 +2962,7 @@
 
     async function pollDailyUsageStatus() {
       const role = localStorage.getItem("user_role") || "student";
-      if (role === "teacher" || role === "admin") return;
+      if (role === "teacher" || role === "admin" || role === "parent") return;
       const currentUser = localStorage.getItem("current_user");
       if (!currentUser) return;
 
@@ -3791,14 +3864,27 @@
       }
     }
 
+    function checkAndApplyRoleBoot() {
+      const curRole = localStorage.getItem("user_role") || sessionStorage.getItem("user_role");
+      if (curRole === "parent") {
+        document.documentElement.classList.add("role-parent");
+        document.body.classList.add("role-parent");
+        if (typeof applyRoleBasedView === "function") {
+          applyRoleBasedView("parent");
+        }
+      }
+    }
+
     if (document.readyState === "loading") {
       document.addEventListener("DOMContentLoaded", () => {
         initPickerEvents();
         initTimeManagementEvents();
+        checkAndApplyRoleBoot();
       });
     } else {
       initPickerEvents();
       initTimeManagementEvents();
+      checkAndApplyRoleBoot();
     }
 
     // ══════════════════════════════════════════
