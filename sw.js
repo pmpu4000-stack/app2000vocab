@@ -5,12 +5,14 @@
 // 3. 單字庫與音檔永久快取
 // =====================================================================
 
-const CACHE_NAME = 'spelling-app-shell-v3';
+const CACHE_NAME = 'spelling-app-shell-v4';
 const STATIC_ASSETS = [
   './',
   'index.html',
   'history.html',
   'css/styles.css',
+  'src/auth.js',
+  'src/time_limits.js',
   'src/app.js',
   'src/ui.js',
   'src/ui_export.js',
