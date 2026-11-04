@@ -83,16 +83,25 @@
         // 未搜尋時：直接取 12 個單字（4 欄 x 3 列完整呈現）
         displayWords = pool.slice(0, 12);
       } else {
-        // 搜尋單字或中文：找到第一個符合的單字索引，顯示包含該單字及其後續共 12 個單字
-        const matchIdx = pool.findIndex(item => {
-          const w = (item.w || "").toLowerCase();
-          const m = pickerMeanings[item.w] || pickerMeanings[w] || {};
-          const zh = (m.zh || "").toLowerCase();
-          return w.includes(q) || zh.includes(q);
-        });
+        // 搜尋單字或中文：英文優先依開頭字母 (startsWith) 依序顯示，中文支援包含比對
+        const isAscii = /^[a-z0-9]/i.test(q);
+        let matches = [];
+        if (isAscii) {
+          matches = pool.filter(item => (item.w || "").toLowerCase().startsWith(q));
+          if (matches.length === 0) {
+            matches = pool.filter(item => (item.w || "").toLowerCase().includes(q));
+          }
+        } else {
+          matches = pool.filter(item => {
+            const w = (item.w || "").toLowerCase();
+            const m = pickerMeanings[item.w] || pickerMeanings[w] || {};
+            const zh = (m.zh || "").toLowerCase();
+            return zh.includes(q) || w.includes(q);
+          });
+        }
 
-        if (matchIdx !== -1) {
-          displayWords = pool.slice(matchIdx, matchIdx + 12);
+        if (matches.length > 0) {
+          displayWords = matches.slice(0, 80);
         } else {
           grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:15px;color:#94a3b8;">無符合條件的單字</div>';
           return;

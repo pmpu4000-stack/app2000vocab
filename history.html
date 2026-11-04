@@ -10380,7 +10380,13 @@ function getFilteredWordList() {
     const lv = item[2];
     if (pickerCurrentLevel !== "all" && lv !== Number(pickerCurrentLevel)) return false;
     if (pickerCurrentSearch) {
-      if (!w.includes(pickerCurrentSearch) && !zh.includes(pickerCurrentSearch)) return false;
+      const _q = pickerCurrentSearch.trim().toLowerCase();
+      const _isAsc = /^[a-z0-9]/i.test(_q);
+      if (_isAsc) {
+        if (!w.startsWith(_q) && !w.includes(_q)) return false;
+      } else {
+        if (!w.includes(_q) && !zh.includes(_q)) return false;
+      }
     }
     return true;
   });
@@ -10389,7 +10395,17 @@ function getFilteredWordList() {
 function renderWordPickerGrid() {
   const grid = document.getElementById("wordPickerGrid");
   if (!grid) return;
-  const list = getFilteredWordList();
+  let list = getFilteredWordList();
+  if (pickerCurrentSearch && /^[a-z0-9]/i.test(pickerCurrentSearch.trim())) {
+    const _sq = pickerCurrentSearch.trim().toLowerCase();
+    list.sort((a, b) => {
+      const aStarts = a[0].toLowerCase().startsWith(_sq);
+      const bStarts = b[0].toLowerCase().startsWith(_sq);
+      if (aStarts && !bStarts) return -1;
+      if (!aStarts && bStarts) return 1;
+      return a[0].localeCompare(b[0]);
+    });
+  }
   
   if (list.length === 0) {
     if (!Array.isArray(WORD_BANK_2000) || WORD_BANK_2000.length === 0) {
