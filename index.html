@@ -14,6 +14,8 @@
         var r = localStorage.getItem("user_role") || sessionStorage.getItem("user_role");
         if (r === "parent") {
           document.documentElement.classList.add("role-parent");
+        } else if (r === "teacher" || r === "admin") {
+          document.documentElement.classList.add("role-teacher");
         }
       } catch (e) {}
     })();
@@ -103,6 +105,53 @@
     html.role-parent body #week-conquer-section,
     html.role-parent body #weak-words-section,
     html.role-parent body #export-records-section {
+      display: block !important;
+    }
+
+    /* 👨‍🏫 教師專屬動態視圖過濾 (比照家長畫面隱藏作答元件，顯示教學管理中心) */
+    body.role-teacher #levelbar,
+    body.role-teacher #modes,
+    body.role-teacher #card,
+    body.role-teacher .card:not(#teacher-portal-card),
+    body.role-teacher #session,
+    body.role-teacher #screen-quiz,
+    body.role-teacher #banner,
+    body.role-teacher #parent-portal-screen,
+    body.role-teacher #daily-limit-reached-card,
+    body.role-teacher #stat-daily-timer,
+    body.role-teacher #stat-streak-freeze,
+    body.role-teacher #btn-upload,
+    body.role-teacher .stat.upload,
+    html.role-teacher body #levelbar,
+    html.role-teacher body #modes,
+    html.role-teacher body #card,
+    html.role-teacher body .card:not(#teacher-portal-card),
+    html.role-teacher body #session,
+    html.role-teacher body #screen-quiz,
+    html.role-teacher body #banner,
+    html.role-teacher body #parent-portal-screen,
+    html.role-teacher body #daily-limit-reached-card,
+    html.role-teacher body #stat-daily-timer,
+    html.role-teacher body #stat-streak-freeze,
+    html.role-teacher body #btn-upload,
+    html.role-teacher body .stat.upload {
+      display: none !important;
+    }
+
+    body.role-teacher .app,
+    html.role-teacher body .app {
+      display: block !important;
+    }
+
+    body.role-teacher #btn-teacher-picker,
+    body.role-teacher #btn-time-management,
+    html.role-teacher body #btn-teacher-picker,
+    html.role-teacher body #btn-time-management {
+      display: flex !important;
+    }
+
+    body.role-teacher #teacher-portal-card,
+    html.role-teacher body #teacher-portal-card {
       display: block !important;
     }
   </style>
@@ -353,6 +402,23 @@
         </div>
         <div style="font-size:12px; color:var(--ink3); opacity:0.85;">
           💡 若有補測或特別練習需求，請向任課老師申請延長時間或解除限制。
+        </div>
+      </div>
+
+      <!-- 👨‍🏫 教師專屬教學管理中心儀表板 (比照家長專屬視圖，提供出題與時間管理) -->
+      <div id="teacher-portal-card" class="card" style="display:none; text-align:center; padding:32px 24px; border-radius:20px; background:var(--card); border:1.5px solid var(--line); box-shadow:0 8px 30px rgba(0,0,0,0.06); margin:0 0 16px;">
+        <div style="width:56px; height:56px; border-radius:50%; background:rgba(108,76,224,0.12); display:inline-flex; align-items:center; justify-content:center; margin:0 auto 14px; font-size:28px;">👨‍🏫</div>
+        <h2 id="teacher-portal-title" style="font-size:22px; font-weight:800; color:var(--ink); margin:0 0 8px; letter-spacing:0.3px;">教師教學管理專區</h2>
+        <p style="font-size:14px; color:var(--ink2); line-height:1.6; max-width:520px; margin:0 auto 20px;">
+          歡迎進入教師管理中心！本介面專為教學管理設計，您可直接出題、設定班級作答時間與解除學生使用限制。
+        </p>
+        <div style="display:flex; justify-content:center; gap:16px; flex-wrap:wrap;">
+          <button type="button" onclick="if(window.openTeacherModal)window.openTeacherModal();" style="display:inline-flex; align-items:center; gap:8px; padding:12px 22px; background:var(--violet); color:#fff; border:none; border-radius:12px; font-size:15px; font-weight:700; cursor:pointer; box-shadow:0 4px 14px rgba(108,76,224,0.3);">
+            <span>📝</span> 每日測驗出題
+          </button>
+          <button type="button" onclick="if(window.openTimeManagementModal)window.openTimeManagementModal();" style="display:inline-flex; align-items:center; gap:8px; padding:12px 22px; background:var(--green); color:#fff; border:none; border-radius:12px; font-size:15px; font-weight:700; cursor:pointer; box-shadow:0 4px 14px rgba(47,180,124,0.3);">
+            <span>⏰</span> 學生使用時間管理
+          </button>
         </div>
       </div>
 
@@ -1186,8 +1252,11 @@
       loginBtn.disabled = true;
       loginBtn.style.opacity = "0.75";
       const isParentGuess = user.toLowerCase().startsWith('p') && user.length > 1;
-      const targetHint = isParentGuess ? `子女（${user.slice(1)}）` : "個人";
-      setLoginStatus(`正在載入${targetHint}學習資料...`, "loading-data");
+      const isTeacherGuess = user.toLowerCase().startsWith('t') || user.toLowerCase().startsWith('admin');
+      let targetHint = "個人學習";
+      if (isParentGuess) targetHint = `子女（${user.slice(1)}）學習`;
+      else if (isTeacherGuess) targetHint = "教學管理";
+      setLoginStatus(`正在載入${targetHint}資料...`, "loading-data");
 
       try {
         let response = null;
@@ -1273,6 +1342,16 @@
             window.__PARENT_USER = user;
             window.__PARENT_STUDENT = result.realName || result.username || "";
             applyRoleBasedView("parent", result);
+          }
+          if (result.role === "teacher" || result.role === "admin") {
+            setLoginStatus("教師身分驗證成功，正在載入教學管理介面...", "loading-game");
+            document.body.classList.add("role-teacher");
+            document.documentElement.classList.add("role-teacher");
+            localStorage.setItem("current_user", user);
+            localStorage.setItem("user_role", result.role);
+            sessionStorage.setItem("current_user", user);
+            sessionStorage.setItem("user_role", result.role);
+            applyRoleBasedView(result.role, result);
           }
           if (result.role === "admin" || (result.role === "teacher" && result.isAdmin)) {
             // 教師 / 管理員可自由選擇使用「出題設定」或前往「總控後台」
@@ -1363,30 +1442,59 @@
         return;
       }
 
-      // 2. 非家長身分：移除家長樣式
-      document.body.classList.remove("role-parent");
-      document.documentElement.classList.remove("role-parent");
-
-      // 3. 教師 / 管理員工具列控制
-      if (teacherBtn) {
-        teacherBtn.style.display = (isTeacher || isAdmin) ? "flex" : "none";
-      }
-      if (timeBtn) {
-        timeBtn.style.display = (isTeacher || isAdmin) ? "flex" : "none";
-      }
-      if (adminNotice) {
-        adminNotice.style.display = isAdmin ? "inline-flex" : "none";
-      }
-
-      // 4. 計時器與上傳控制
+      // 2. 教師 / 管理員身分：比照家長規格精準過濾視圖（隱藏作答題型與計時，呈現教學管理看板與工具）
       if (isTeacher || isAdmin) {
-        if (timerBadge) timerBadge.style.display = "none";
-      } else {
-        if (timerBadge) timerBadge.style.display = "flex";
+        document.body.classList.add("role-teacher");
+        document.documentElement.classList.add("role-teacher");
+        document.body.classList.remove("role-parent");
+        document.documentElement.classList.remove("role-parent");
+
+        const hideSelectors = [
+          "#stat-daily-timer", "#stat-streak-freeze", "#btn-upload", ".stat.upload",
+          "#levelbar", "#modes", "#card", ".card:not(#teacher-portal-card)", "#session", "#banner", "#screen-quiz",
+          "#daily-limit-reached-card", "#parent-portal-screen"
+        ];
+        hideSelectors.forEach(sel => {
+          document.querySelectorAll(sel).forEach(el => {
+            el.style.setProperty("display", "none", "important");
+          });
+        });
+
+        if (teacherBtn) teacherBtn.style.setProperty("display", "flex", "important");
+        if (timeBtn) timeBtn.style.setProperty("display", "flex", "important");
+        if (adminNotice) adminNotice.style.setProperty("display", isAdmin ? "inline-flex" : "none", "important");
+
+        const teacherCard = document.getElementById("teacher-portal-card");
+        if (teacherCard) teacherCard.style.setProperty("display", "block", "important");
+
+        // 登入帳號方塊：即時顯示教師帳號與身分標記
+        const sUser = document.getElementById("s-user");
+        const curUser = localStorage.getItem("current_user") || (result && result.username) || "";
+        const realName = (result && result.realName) || localStorage.getItem("user_real_name") || "";
+        if (sUser && curUser) {
+          sUser.textContent = curUser;
+          sUser.title = `教師帳號：${curUser}${realName ? `（${realName}）` : ""}`;
+          const statUser = document.getElementById("stat-user");
+          if (statUser) {
+            statUser.title = `教師帳號：${curUser}${realName ? `（${realName}）` : ""}`;
+            const subLabel = statUser.querySelector("span");
+            if (subLabel) subLabel.textContent = isAdmin ? "系統管理員" : "教師帳號";
+          }
+        }
+        return;
       }
-      if (uploadBtn) {
-        uploadBtn.style.display = isStudent ? "flex" : "none";
-      }
+
+      // 3. 學生身分：移除家長與教師樣式，復原完整遊戲作答與計時元件
+      document.body.classList.remove("role-parent", "role-teacher");
+      document.documentElement.classList.remove("role-parent", "role-teacher");
+      const teacherCard = document.getElementById("teacher-portal-card");
+      if (teacherCard) teacherCard.style.display = "none";
+
+      if (teacherBtn) teacherBtn.style.display = "none";
+      if (timeBtn) timeBtn.style.display = "none";
+      if (adminNotice) adminNotice.style.display = "none";
+      if (timerBadge) timerBadge.style.display = "flex";
+      if (uploadBtn) uploadBtn.style.display = "flex";
     }
 
 
@@ -1632,7 +1740,10 @@
             ov.style.setProperty("display", "flex", "important");
             ov.classList.remove("hidden");
           }
-          document.body.classList.remove("role-parent");
+          document.body.classList.remove("role-parent", "role-teacher");
+          document.documentElement.classList.remove("role-parent", "role-teacher");
+          const teacherCard = document.getElementById("teacher-portal-card");
+          if (teacherCard) teacherCard.style.display = "none";
           document.body.classList.add("is-logging-in");
           const uInput = document.getElementById("login-user");
           const pInput = document.getElementById("login-pass");
@@ -1812,7 +1923,10 @@
           window.__gameModuleLoaded = true;
 
           // 1. 動態載入遊戲核心模組（加上時間戳記防瀏覽器快取，此時 app.js 才會讀取剛剛存好的 LocalStorage）
-          setLoginStatus(result.role === "parent" ? "登入成功，正在載入子女學習進度..." : "登入成功，正在載入遊戲...", "loading-game");
+          let loadPrompt = "登入成功，正在載入遊戲...";
+          if (result.role === "parent") loadPrompt = "登入成功，正在載入子女學習進度...";
+          else if (result.role === "teacher" || result.role === "admin") loadPrompt = "教師驗證成功，正在載入教學管理介面...";
+          setLoginStatus(loadPrompt, "loading-game");
           try {
             // ★ 進入遊戲前先比對今日剩餘時間：已歸零就不啟動單字測驗系統
             if (result.role !== "teacher" && !result.isAdmin && result.dailyUsage) {
@@ -3884,6 +3998,12 @@
         document.body.classList.add("role-parent");
         if (typeof applyRoleBasedView === "function") {
           applyRoleBasedView("parent");
+        }
+      } else if (curRole === "teacher" || curRole === "admin") {
+        document.documentElement.classList.add("role-teacher");
+        document.body.classList.add("role-teacher");
+        if (typeof applyRoleBasedView === "function") {
+          applyRoleBasedView(curRole);
         }
       }
     }
