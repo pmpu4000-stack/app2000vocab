@@ -183,7 +183,7 @@
             applyRoleBasedView("parent", result);
           }
           if (result.role === "teacher" || result.role === "admin") {
-            setLoginStatus("教師身分驗證成功，正在載入教學管理介面...", "loading-game");
+            setLoginStatus("載入完成", "loading-game");
             document.body.classList.add("role-teacher");
             document.documentElement.classList.add("role-teacher");
             localStorage.setItem("current_user", user);
@@ -773,7 +773,7 @@
           // 1. 動態載入遊戲核心模組（加上時間戳記防瀏覽器快取，此時 app.js 才會讀取剛剛存好的 LocalStorage）
           let loadPrompt = "登入成功，正在載入遊戲...";
           if (result.role === "parent") loadPrompt = "登入成功，正在載入子女學習進度...";
-          else if (result.role === "teacher" || result.role === "admin") loadPrompt = "教師驗證成功，正在載入教學管理介面...";
+          else if (result.role === "teacher" || result.role === "admin") loadPrompt = "載入完成";
           setLoginStatus(loadPrompt, "loading-game");
           try {
             // ★ 進入遊戲前先比對今日剩餘時間：已歸零就不啟動單字測驗系統
