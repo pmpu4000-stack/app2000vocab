@@ -867,13 +867,18 @@ function doGet(e) {
       if (cpSheet) ensureCentralPortfolioColumns(cpSheet);
     }
   } catch(_) {}
-  // 🚀 純後端 API 微服務極致瘦身：免除龐大 HTML 解析開銷，秒開零延遲
-  return jsonResponse({
-    status: "ok",
-    service: "app2000vocab Backend API",
-    mode: "headless-api",
-    timestamp: new Date().toISOString()
-  });
+  // 🚀 舊歷程網頁已全面整合至 GitHub Pages，直接造訪時自動轉跳至統一官方入口
+  const targetUrl = "https://pmpu4000-stack.github.io/app2000vocab/";
+  return HtmlService.createHtmlOutput(
+    '<!DOCTYPE html><html><head>' +
+    '<meta charset="utf-8">' +
+    '<meta http-equiv="refresh" content="0;url=' + targetUrl + '">' +
+    '<script>window.location.replace("' + targetUrl + '");</script>' +
+    '</head><body style="font-family:sans-serif;text-align:center;padding:50px;background:#F6F7FB;color:#232A4D;">' +
+    '<h2>🚀 正在前往官方統一入口...</h2>' +
+    '<p><a href="' + targetUrl + '" style="color:#6C4CE0;font-weight:700;">若未自動跳轉，請點擊此處前往</a></p>' +
+    '</body></html>'
+  ).setTitle("拼字小特工 - 重新導向中");
 }
 
 function jsonResponse(obj) {
