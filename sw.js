@@ -11,6 +11,7 @@ const STATIC_ASSETS = [
   'index.html',
   'history.html',
   'css/styles.css',
+  'src/sync.js',
   'src/auth.js',
   'src/time_limits.js',
   'src/app.js',
