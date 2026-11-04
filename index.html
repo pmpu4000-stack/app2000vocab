@@ -195,9 +195,22 @@
       display: none !important;
     }
 
+    .tp-nav-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      row-gap: 8px;
+      column-gap: 10px;
+      margin-bottom: 16px;
+    }
+    @media (min-width: 768px) {
+      .tp-nav-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
     .tp-nav-card {
       user-select: none;
       box-sizing: border-box;
+      width: 100%;
     }
     .tp-nav-card:hover {
       border-color: var(--sky, #0284c7) !important;
@@ -462,26 +475,26 @@
 
       <!-- 👨‍🏫 教師專屬教學管理中心儀表板 (四合一主工作區，原位切換) -->
       <div id="teacher-portal-card" class="card" style="display:none; text-align:left; padding:22px; border-radius:20px; background:var(--card); border:1.5px solid var(--line); box-shadow:0 8px 30px rgba(0,0,0,0.06); margin:0 0 16px;">
-        <!-- 頂部四大功能導航方塊 (自適應寬度與水平排列) -->
-        <div style="display:flex; flex-wrap:wrap; gap:8px 10px; margin-bottom:16px;">
-          <div id="tp-nav-task" class="tp-nav-card active" onclick="switchTeacherTab('task')" style="cursor:pointer; padding:9px 15px; border-radius:12px; border:1.5px solid var(--line); background:var(--card); display:inline-flex; align-items:center; justify-content:center; gap:8px; flex:1 1 auto; transition:all 0.2s;">
+        <!-- 頂部四大功能導航方塊 (等寬自適應與上下 8px 間隔) -->
+        <div class="tp-nav-grid">
+          <div id="tp-nav-task" class="tp-nav-card active" onclick="switchTeacherTab('task')" style="cursor:pointer; padding:9px 12px; border-radius:12px; border:1.5px solid var(--line); background:var(--card); display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.2s;">
             <span style="font-size:18px; line-height:1;">📝</span>
-            <span style="font-size:14px; font-weight:800; color:var(--violet);">每日測驗出題</span>
+            <span style="font-size:14px; font-weight:800; color:var(--violet); white-space:nowrap;">每日測驗出題</span>
           </div>
 
-          <div id="tp-nav-time" class="tp-nav-card" onclick="switchTeacherTab('time')" style="cursor:pointer; padding:9px 15px; border-radius:12px; border:1.5px solid var(--line); background:var(--card); display:inline-flex; align-items:center; justify-content:center; gap:8px; flex:1 1 auto; transition:all 0.2s;">
+          <div id="tp-nav-time" class="tp-nav-card" onclick="switchTeacherTab('time')" style="cursor:pointer; padding:9px 12px; border-radius:12px; border:1.5px solid var(--line); background:var(--card); display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.2s;">
             <span style="font-size:18px; line-height:1;">⏰</span>
-            <span style="font-size:14px; font-weight:800; color:var(--green, #10b981);">學生使用時間管理</span>
+            <span style="font-size:14px; font-weight:800; color:var(--green, #10b981); white-space:nowrap;">學生使用時間管理</span>
           </div>
 
-          <div id="tp-nav-student" class="tp-nav-card" onclick="switchTeacherTab('student')" style="cursor:pointer; padding:9px 15px; border-radius:12px; border:1.5px solid var(--line); background:var(--card); display:inline-flex; align-items:center; justify-content:center; gap:8px; flex:1 1 auto; transition:all 0.2s;">
+          <div id="tp-nav-student" class="tp-nav-card" onclick="switchTeacherTab('student')" style="cursor:pointer; padding:9px 12px; border-radius:12px; border:1.5px solid var(--line); background:var(--card); display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.2s;">
             <span style="font-size:18px; line-height:1;">👤</span>
-            <span style="font-size:14px; font-weight:800; color:var(--sky, #0284c7);">個別學生區間歷程</span>
+            <span style="font-size:14px; font-weight:800; color:var(--sky, #0284c7); white-space:nowrap;">個別學生區間歷程</span>
           </div>
 
-          <div id="tp-nav-class" class="tp-nav-card" onclick="switchTeacherTab('class')" style="cursor:pointer; padding:9px 15px; border-radius:12px; border:1.5px solid var(--line); background:var(--card); display:inline-flex; align-items:center; justify-content:center; gap:8px; flex:1 1 auto; transition:all 0.2s;">
+          <div id="tp-nav-class" class="tp-nav-card" onclick="switchTeacherTab('class')" style="cursor:pointer; padding:9px 12px; border-radius:12px; border:1.5px solid var(--line); background:var(--card); display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.2s;">
             <span style="font-size:18px; line-height:1;">👥</span>
-            <span style="font-size:14px; font-weight:800; color:#eab308;">全班指定範圍記錄</span>
+            <span style="font-size:14px; font-weight:800; color:#eab308; white-space:nowrap;">全班指定範圍記錄</span>
           </div>
         </div>
 
