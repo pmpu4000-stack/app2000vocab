@@ -887,105 +887,108 @@
     if (btnFontInc) btnFontInc.onclick = (e) => { e.stopPropagation(); adjustFontScale(1); };
 
     // 啟動前優先從本機存檔還原頂端答對字、答對率與連勝數值，防止顯示為 0
-    try {
-      const sa = JSON.parse(localStorage.getItem("spellAgent.v2"));
-      const sc = document.getElementById("s-correct");
-      const nc = document.getElementById("n-correct");
-      const ss = document.getElementById("s-streak");
-      const sr = document.getElementById("s-rate");
-      const nr = document.getElementById("n-rate");
-      const sp = document.getElementById("s-score");
-      const np = document.getElementById("n-score");
-      if (sa) {
-        const pts = String(sa.points !== undefined ? sa.points : 0);
-        if (sp) sp.textContent = pts;
-        if (np) np.textContent = pts;
+    window.updateProgressDOMFromLocalStorage = function() {
+      try {
+        const sa = JSON.parse(localStorage.getItem("spellAgent.v2"));
+        const sc = document.getElementById("s-correct");
+        const nc = document.getElementById("n-correct");
+        const ss = document.getElementById("s-streak");
+        const sr = document.getElementById("s-rate");
+        const nr = document.getElementById("n-rate");
+        const sp = document.getElementById("s-score");
+        const np = document.getElementById("n-score");
+        if (sa) {
+          const pts = String(sa.points !== undefined ? sa.points : 0);
+          if (sp) sp.textContent = pts;
+          if (np) np.textContent = pts;
 
-        let distinctCorrect = 0;
-        let learning = 0, practicing = 0, mastered = 0, passRate = "0%", testedVocab = 0;
-        try {
-          const cachedSum = JSON.parse(localStorage.getItem("cached_summary") || "null");
-          if (cachedSum) {
-            if (typeof cachedSum.distinctCorrect === "number") distinctCorrect = cachedSum.distinctCorrect;
-            if (typeof cachedSum.learning === "number") learning = cachedSum.learning;
-            if (typeof cachedSum.practicing === "number") practicing = cachedSum.practicing;
-            if (typeof cachedSum.mastered === "number") mastered = cachedSum.mastered;
-            if (cachedSum.passRate) passRate = cachedSum.passRate;
-            if (typeof cachedSum.testedVocab === "number") testedVocab = cachedSum.testedVocab;
-          }
-        } catch(_) {}
+          let distinctCorrect = 0;
+          let learning = 0, practicing = 0, mastered = 0, passRate = "0%", testedVocab = 0;
+          try {
+            const cachedSum = JSON.parse(localStorage.getItem("cached_summary") || "null");
+            if (cachedSum) {
+              if (typeof cachedSum.distinctCorrect === "number") distinctCorrect = cachedSum.distinctCorrect;
+              if (typeof cachedSum.learning === "number") learning = cachedSum.learning;
+              if (typeof cachedSum.practicing === "number") practicing = cachedSum.practicing;
+              if (typeof cachedSum.mastered === "number") mastered = cachedSum.mastered;
+              if (cachedSum.passRate) passRate = cachedSum.passRate;
+              if (typeof cachedSum.testedVocab === "number") testedVocab = cachedSum.testedVocab;
+            }
+          } catch(_) {}
 
-        if (distinctCorrect === 0) {
-          if (sa.stat) {
-            distinctCorrect = Object.values(sa.stat).filter(s => s && s.c > 0).length;
-          } else if (sa.box) {
-            distinctCorrect = Object.values(sa.box).filter(b => b >= 1).length;
+          if (distinctCorrect === 0) {
+            if (sa.stat) {
+              distinctCorrect = Object.values(sa.stat).filter(s => s && s.c > 0).length;
+            } else if (sa.box) {
+              distinctCorrect = Object.values(sa.box).filter(b => b >= 1).length;
+            }
           }
-        }
-        // 🚀 若快取無細項，直接由本機 sa.stat 與 sa.box 統計學習中、練習中、精通
-        if (learning === 0 && practicing === 0 && mastered === 0) {
-          if (sa.stat) {
-            for (const k in sa.stat) {
-              const st = sa.stat[k];
-              if (st && st.c > 0) {
-                const b = sa.box ? (sa.box[k] || 0) : 0;
+          // 🚀 若快取無細項，直接由本機 sa.stat 與 sa.box 統計學習中、練習中、精通
+          if (learning === 0 && practicing === 0 && mastered === 0) {
+            if (sa.stat) {
+              for (const k in sa.stat) {
+                const st = sa.stat[k];
+                if (st && st.c > 0) {
+                  const b = sa.box ? (sa.box[k] || 0) : 0;
+                  if (b >= 3) mastered++;
+                  else if (b === 2) practicing++;
+                  else learning++;
+                }
+              }
+            } else if (sa.box) {
+              for (const k in sa.box) {
+                const b = sa.box[k] || 0;
                 if (b >= 3) mastered++;
                 else if (b === 2) practicing++;
-                else learning++;
+                else if (b >= 1) learning++;
               }
             }
-          } else if (sa.box) {
-            for (const k in sa.box) {
-              const b = sa.box[k] || 0;
-              if (b >= 3) mastered++;
-              else if (b === 2) practicing++;
-              else if (b >= 1) learning++;
-            }
           }
+          if (distinctCorrect === 0) {
+            distinctCorrect = learning + practicing + mastered;
+          }
+
+          if (sc) sc.textContent = String(distinctCorrect);
+          if (nc) nc.textContent = String(distinctCorrect);
+
+          // 🚀 極速秒開：即時更新整體進度條與數值，免除額外等待計算
+          const nLearn = document.getElementById("n-learn");
+          const nPrac = document.getElementById("n-prac");
+          const nMast = document.getElementById("n-mast");
+          const bLearn = document.getElementById("b-learn");
+          const bPrac = document.getElementById("b-prac");
+          const bMast = document.getElementById("b-mast");
+          const totalWords = 2055;
+          if (nLearn) nLearn.textContent = String(learning);
+          if (nPrac) nPrac.textContent = String(practicing);
+          if (nMast) nMast.textContent = String(mastered);
+          if (bLearn) bLearn.style.width = Math.min(100, (learning / totalWords * 100)) + "%";
+          if (bPrac) bPrac.style.width = Math.min(100, (practicing / totalWords * 100)) + "%";
+          if (bMast) bMast.style.width = Math.min(100, (mastered / totalWords * 100)) + "%";
+
+          if (ss) ss.textContent = String(sa.streak !== undefined ? sa.streak : 0);
+          const vocabRateStr = Math.round((distinctCorrect / totalWords) * 100) + "%";
+          if (sr) sr.textContent = passRate;
+          if (nr) nr.textContent = vocabRateStr;
+        } else {
+          if (sp) sp.textContent = "0";
+          if (np) np.textContent = "0";
+          if (sc) sc.textContent = "0";
+          if (nc) nc.textContent = "0";
+          if (ss) ss.textContent = "0";
+          if (sr) sr.textContent = "0%";
+          if (nr) nr.textContent = "0%";
         }
-        if (distinctCorrect === 0) {
-          distinctCorrect = learning + practicing + mastered;
-        }
-
-        if (sc) sc.textContent = String(distinctCorrect);
-        if (nc) nc.textContent = String(distinctCorrect);
-
-        // 🚀 極速秒開：即時更新整體進度條與數值，免除額外等待計算
-        const nLearn = document.getElementById("n-learn");
-        const nPrac = document.getElementById("n-prac");
-        const nMast = document.getElementById("n-mast");
-        const bLearn = document.getElementById("b-learn");
-        const bPrac = document.getElementById("b-prac");
-        const bMast = document.getElementById("b-mast");
-        const totalWords = 2055;
-        if (nLearn) nLearn.textContent = String(learning);
-        if (nPrac) nPrac.textContent = String(practicing);
-        if (nMast) nMast.textContent = String(mastered);
-        if (bLearn) bLearn.style.width = Math.min(100, (learning / totalWords * 100)) + "%";
-        if (bPrac) bPrac.style.width = Math.min(100, (practicing / totalWords * 100)) + "%";
-        if (bMast) bMast.style.width = Math.min(100, (mastered / totalWords * 100)) + "%";
-
-        if (ss) ss.textContent = String(sa.streak !== undefined ? sa.streak : 0);
-        const vocabRateStr = Math.round((distinctCorrect / totalWords) * 100) + "%";
-        if (sr) sr.textContent = passRate;
-        if (nr) nr.textContent = vocabRateStr;
-      } else {
-        if (sp) sp.textContent = "0";
-        if (np) np.textContent = "0";
-        if (sc) sc.textContent = "0";
-        if (nc) nc.textContent = "0";
-        if (ss) ss.textContent = "0";
-        if (sr) sr.textContent = "0%";
-        if (nr) nr.textContent = "0%";
+      } catch(_) {
+        const sp = document.getElementById("s-score");   if (sp) sp.textContent = "0";
+        const np = document.getElementById("n-score");   if (np) np.textContent = "0";
+        const sc = document.getElementById("s-correct"); if (sc) sc.textContent = "0";
+        const nc = document.getElementById("n-correct"); if (nc) nc.textContent = "0";
+        const ss = document.getElementById("s-streak");  if (ss) ss.textContent = "0";
+        const sr = document.getElementById("s-rate");    if (sr) sr.textContent = "0%";
       }
-    } catch(_) {
-      const sp = document.getElementById("s-score");   if (sp) sp.textContent = "0";
-      const np = document.getElementById("n-score");   if (np) np.textContent = "0";
-      const sc = document.getElementById("s-correct"); if (sc) sc.textContent = "0";
-      const nc = document.getElementById("n-correct"); if (nc) nc.textContent = "0";
-      const ss = document.getElementById("s-streak");  if (ss) ss.textContent = "0";
-      const sr = document.getElementById("s-rate");    if (sr) sr.textContent = "0%";
-    }
+    };
+    window.updateProgressDOMFromLocalStorage();
 
     // 綁定「學習進度 Progress」展開/收起
     const btnProg = document.getElementById("btn-toggle-progress-card");
@@ -4130,15 +4133,35 @@
 
             const stuLabel = `${result.className ? result.className + ' ' : ''}${result.realName ? result.realName + '（' + targetStudent + '）' : targetStudent}`;
             if (statusEl) {
-              statusEl.innerHTML = `<span style="color:#16a34a; font-weight:700;">✅ 已成功載入【${stuLabel}】完整學習成果，下方已即時呈現！</span>`;
+              statusEl.innerHTML = `<span style="color:#16a34a; font-weight:700;">✅ 已成功載入【${stuLabel}】完整學習成果，下方整體進度已即時呈現！</span>`;
             }
+
+            // 同步記憶體 store 與進度渲染
+            if (window.__store && typeof window.__store.reload === "function") {
+              try { window.__store.reload(); } catch(_) {}
+            }
+            if (typeof window.refreshChrome === "function") {
+              try { window.refreshChrome(); } catch(_) {}
+            }
+            if (typeof window.updateProgressDOMFromLocalStorage === "function") {
+              try { window.updateProgressDOMFromLocalStorage(); } catch(_) {}
+            }
+
+            // 自動展開整體進度卡片並清楚標記受測學生姓名
+            const bodyProg = document.getElementById("progress-collapsible-body");
+            const btnProg = document.getElementById("btn-toggle-progress-card");
+            const secProg = document.getElementById("progress-card");
+            if (bodyProg) bodyProg.style.display = "block";
+            if (secProg) secProg.classList.remove("is-collapsed");
+            if (btnProg) btnProg.textContent = "收合";
+            const titleSpan = secProg ? secProg.querySelector("h3 span:first-child") : null;
+            if (titleSpan) titleSpan.innerHTML = `整體進度 Progress <span style="font-size:14px; color:var(--sky); font-weight:700; margin-left:8px;">【${stuLabel}】</span>`;
 
             if (window.renderSummaryCard) window.renderSummaryCard();
             if (window.renderLearningRecords) window.renderLearningRecords();
             if (window.renderConquerSection) window.renderConquerSection();
             if (window.renderWeakWords) window.renderWeakWords();
             if (window.renderExportRecords) window.renderExportRecords();
-            if (window.renderProgressCard) window.renderProgressCard();
 
             const progCard = document.getElementById("progress-card");
             if (progCard) {

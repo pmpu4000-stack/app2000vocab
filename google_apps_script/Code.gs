@@ -621,7 +621,7 @@ function getStudentMetaFromUserList_(ss, studentUser) {
       let cachedSummary = null;
       try {
         let firstRow = null, rowVals = null;
-        const cpResSum = cpResFallback || getStudentRowsFromCentralPortfolio(ss, auth.username, 1);
+        const cpResSum = cpResFallback || getStudentRowsFromCentralPortfolio(ss, studentUser, 1);
         if (cpResSum && cpResSum.rawData && cpResSum.rawData.length > 0) {
           firstRow = cpResSum.headers || [];
           rowVals = cpResSum.rawData[0] || [];
