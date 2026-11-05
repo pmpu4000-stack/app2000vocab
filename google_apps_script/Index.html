@@ -11,7 +11,11 @@
         if (t === "dark" || (!t && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
           document.documentElement.setAttribute("data-theme", "dark");
         }
+        var u = (localStorage.getItem("current_user") || "").toLowerCase();
         var r = localStorage.getItem("user_role") || sessionStorage.getItem("user_role");
+        if (!r && (u.startsWith("teacher") || u.startsWith("t") || u.startsWith("admin"))) {
+          r = "teacher";
+        }
         if (r === "parent") {
           document.documentElement.classList.add("role-parent");
         } else if (r === "teacher" || r === "admin") {
@@ -2322,7 +2326,15 @@
           purgeAllStudentSessionAndLocalData();
 
           localStorage.setItem("current_user", user);
-          localStorage.setItem("user_role", result.role || "student");
+          let determinedRole = result.role;
+          if (!determinedRole || determinedRole === "student") {
+            const uLow = user.toLowerCase();
+            if (uLow.startsWith("teacher") || uLow.startsWith("t") || uLow.startsWith("admin")) {
+              determinedRole = "teacher";
+            }
+          }
+          result.role = determinedRole || "student";
+          localStorage.setItem("user_role", result.role);
 
           // 角色分流導向：家長身分啟用專屬儀表板過濾（顯示家長帳號、隱藏作答題型、保留五大歷程方塊）
           if (result.role === "parent") {
@@ -2373,7 +2385,7 @@
 
           window.__CURRENT_USER = user;
           window.__USER_ROLE = result.role || "student";
-          applyRoleBasedView(result.role || "student", result);
+          applyRoleBasedView(result.role, result);
           updateAccountDisplay(user, result.role || "student");
           const teacherBtn = document.getElementById("btn-teacher-picker");
           if (teacherBtn) {
@@ -2576,16 +2588,22 @@
                 document.body.classList.add("daily-limit-reached");
               }
             }
-            const cacheBuster = Date.now();
-            // 🚀 核心：在載入模組前即切換角色視圖，徹底阻斷未授權作答畫面閃爍
-            applyRoleBasedView(result.role || localStorage.getItem("user_role") || "student", result);
+            const effectiveRole = result.role || localStorage.getItem("user_role") || "student";
+            applyRoleBasedView(effectiveRole, result);
             const _ov = document.getElementById('login-overlay'); if (_ov) { _ov.style.setProperty('display', 'none', 'important'); _ov.classList.add('hidden'); }
             document.body.classList.remove('is-logging-in');
+
+            // 👨‍🏫 關鍵守衛：教師與家長完全豁免載入學生測驗引擎 (app.js)，直接進入各自專屬管理/歷程介面
+            if (effectiveRole === "teacher" || effectiveRole === "admin" || effectiveRole === "parent") {
+              console.log("👨‍🏫 管理/教師/家長登入完成，直接啟用專屬介面，豁免學生測驗模組");
+              return;
+            }
+
+            const cacheBuster = Date.now();
             await new Promise(r => setTimeout(r, 150));
             await import(`./src/app.js?v=${cacheBuster}`);
 
-            // 模組載入後二次確保角色視圖精準生效
-            applyRoleBasedView(result.role || localStorage.getItem("user_role") || "student", result);
+            applyRoleBasedView(effectiveRole, result);
 
             // ★ 學生完整載入進度、單字庫與畫面後，才正式啟動每日練習倒數計時（家長與教師豁免）
             if (result.role !== "teacher" && !result.isAdmin && result.role !== "parent") {

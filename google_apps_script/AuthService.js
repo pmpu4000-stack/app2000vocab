@@ -550,6 +550,7 @@ function authenticateUser(ss, inputUser, inputPass) {
     if (role === "admin" || role === "administrator" || role === "管理員") role = "admin";
     else if (role === "parent" || role === "家長") role = "parent";
     else if (role === "teacher" || role === "教師" || role === "老師") role = "teacher";
+    else if (rowUser.toLowerCase().startsWith("teacher") || rowUser.toLowerCase().startsWith("admin")) role = "teacher";
     else role = "student";
 
     if (role === "teacher" || role === "admin") foundAnyTeacher = true;
