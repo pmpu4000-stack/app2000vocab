@@ -306,6 +306,25 @@
       overscroll-behavior: contain !important;
       scroll-behavior: smooth !important;
       scrollbar-width: thin !important;
+      scrollbar-color: #8b5cf6 transparent !important;
+    }
+    #t-word-grid::-webkit-scrollbar {
+      width: 6px !important;
+    }
+    #t-word-grid::-webkit-scrollbar-track {
+      background: transparent !important;
+    }
+    #t-word-grid::-webkit-scrollbar-thumb {
+      background-color: #8b5cf6 !important;
+      border-radius: 4px !important;
+    }
+    #t-word-grid::-webkit-scrollbar-thumb:hover {
+      background-color: #7c3aed !important;
+    }
+    #t-btn-publish,
+    #t-btn-preview-run {
+      flex: 1 1 0 !important;
+      min-width: 0 !important;
     }
     @media (max-width: 620px) {
       #t-word-grid {
