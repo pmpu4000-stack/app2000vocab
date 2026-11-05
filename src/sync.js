@@ -101,7 +101,7 @@
         }
       } catch(_) {}
 
-      const allowedPrefixes = ["spellAgent", "today_task", "task_done", "task_words", "task_summary", "student_task_history", "current_user", "user_role"];
+      const allowedPrefixes = ["spellAgent", "today_task", "task_done", "task_words", "task_summary", "student_task_history", "current_user"];
       const localData = {};
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);

@@ -228,6 +228,7 @@ function getDailyUsageSettings(param1, username, isLogin) {
   if (extUser && cleanUser !== "all") { addedMinutes += extUser.added; if (extUser.unlocked) isUnlocked = true; }
 
   // 2. 今日首次登入時間 — 先讀快取，快取沒有才讀 PropertiesService
+  const serverNow = now.getTime();
   let firstLoginTime = null;
   if (cleanUser && cleanUser !== "all") {
     const propKey = "FIRST_LOGIN_" + cleanUser + "_" + todayStr;
@@ -243,8 +244,8 @@ function getDailyUsageSettings(param1, username, isLogin) {
         const val = scriptProps.getProperty(propKey);
         if (val) {
           firstLoginTime = Number(val);
-        } else if (isLogin) {
-          firstLoginTime = Date.now();
+        } else {
+          firstLoginTime = serverNow;
           scriptProps.setProperty(propKey, String(firstLoginTime));
         }
         if (firstLoginTime) cache.put(propKey, String(firstLoginTime), 21600);
@@ -256,8 +257,10 @@ function getDailyUsageSettings(param1, username, isLogin) {
   }
 
   if (!firstLoginTime) {
-    firstLoginTime = Date.now();
+    firstLoginTime = serverNow;
   }
+
+  const elapsedMs = Math.max(0, serverNow - firstLoginTime);
 
   return {
     todayDate: todayStr,
@@ -266,7 +269,9 @@ function getDailyUsageSettings(param1, username, isLogin) {
     studentMinutes: studentMinutes,
     extendedMinutes: addedMinutes,
     unlocked: isUnlocked,
-    firstLoginTime: firstLoginTime
+    firstLoginTime: firstLoginTime,
+    serverNow: serverNow,
+    elapsedMs: elapsedMs
   };
 }
 

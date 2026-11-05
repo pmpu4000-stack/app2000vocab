@@ -133,7 +133,7 @@
     body.role-teacher #levelbar,
     body.role-teacher #modes,
     body.role-teacher #card,
-    body.role-teacher .card:not(#teacher-portal-card),
+    body.role-teacher .card:not(#teacher-portal-card):not(.preview-native-card),
     body.role-teacher #session,
     body.role-teacher #screen-quiz,
     body.role-teacher #banner,
@@ -148,7 +148,7 @@
     html.role-teacher body #levelbar,
     html.role-teacher body #modes,
     html.role-teacher body #card,
-    html.role-teacher body .card:not(#teacher-portal-card),
+    html.role-teacher body .card:not(#teacher-portal-card):not(.preview-native-card),
     html.role-teacher body #session,
     html.role-teacher body #screen-quiz,
     html.role-teacher body #banner,
@@ -334,10 +334,79 @@
       box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3) !important;
       outline: none !important;
     }
+
+    /* 遊戲網頁單字發音鈕與例句發音鈕大小完全一致且垂直對齊 */
+    .card .word-speech-btn,
+    .sent-speaker-btn {
+      width: 32px !important;
+      height: 32px !important;
+      min-width: 32px !important;
+      border-radius: 8px !important;
+      box-sizing: border-box !important;
+    }
+    .card .zh-row {
+      padding-left: 9px !important;
+    }
+    .sent-row {
+      padding-left: 9px !important;
+    }
     @media (max-width: 620px) {
       #t-word-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
       }
+    }
+
+    
+    /* 預覽測驗 1:1 原生卡片與挖空保護樣式 */
+    #t-preview-quiz-card .card.preview-native-card {
+      display: flex !important;
+      position: relative !important;
+      background: var(--card) !important;
+      border: 1px solid var(--line) !important;
+      border-radius: 18px !important;
+      padding: 12px 14px 12px !important;
+      box-shadow: var(--shadow) !important;
+      overflow: hidden !important;
+      min-height: 270px !important;
+      margin: 8px 0 !important;
+    }
+    #t-preview-quiz-card .card.preview-native-card::before {
+      content: "" !important;
+      position: absolute !important;
+      inset: 0 0 auto 0 !important;
+      height: 6px !important;
+      background: linear-gradient(90deg, #ec4899 0%, #8b5cf6 25%, #06b6d4 50%, #10b981 75%, #f59e0b 100%) !important;
+    }
+    #t-preview-quiz-card .spellbox {
+      width: 100% !important;
+      max-width: 420px !important;
+      height: 54px !important;
+      font-family: ui-rounded, "SF Mono", inherit !important;
+      font-size: 26px !important;
+      font-weight: 800 !important;
+      text-align: center !important;
+      letter-spacing: 6px !important;
+      padding: 8px 12px !important;
+      border-radius: 14px !important;
+      border: 2.5px solid var(--line) !important;
+      background: #FBFBFE !important;
+      color: var(--ink) !important;
+      outline: none !important;
+      box-sizing: border-box !important;
+    }
+    #t-preview-quiz-card .spellbox:focus {
+      border-color: var(--violet) !important;
+      background: #fff !important;
+      box-shadow: 0 0 0 4px #EDE7FF !important;
+    }
+    [data-theme="dark"] #t-preview-quiz-card .spellbox {
+      background: #131624 !important;
+      border-color: #2A314A !important;
+      color: #F0F3FA !important;
+    }
+    [data-theme="dark"] #t-preview-quiz-card .spellbox:focus {
+      border-color: var(--violet) !important;
+      box-shadow: 0 0 0 4px rgba(108,76,224,0.3) !important;
     }
 
     /* 教師出題快捷按鈕與標籤雙模式適配 */
@@ -2360,7 +2429,7 @@
           let determinedRole = result.role;
           if (!determinedRole || determinedRole === "student") {
             const uLow = user.toLowerCase();
-            if (uLow.startsWith("teacher") || uLow.startsWith("t") || uLow.startsWith("admin")) {
+            if (uLow.startsWith("teacher") || uLow.startsWith("admin")) {
               determinedRole = "teacher";
             }
           }
@@ -2469,7 +2538,7 @@
             // 雲端有存檔：將雲端最新進度寫入 LocalStorage（跳過舊備份中的 task_words_*，統一由下方權威 taskWordsMap 寫入）
             for (let key in result.records) {
               if (key.startsWith("task_words_")) continue;
-              if (result.role === "parent" && (key === "current_user" || key === "user_role" || key === "current_pass")) continue;
+              if (key === "current_user" || key === "user_role" || key === "current_pass") continue;
               const val = result.records[key];
               const valToStore = (typeof val === "object" && val !== null) ? JSON.stringify(val) : String(val);
               localStorage.setItem(key, valToStore);
@@ -2639,14 +2708,7 @@
             // ★ 學生完整載入進度、單字庫與畫面後，才正式啟動每日練習倒數計時（家長與教師豁免）
             if (result.role !== "teacher" && !result.isAdmin && result.role !== "parent") {
               if (typeof checkCurfewStatus === "function") checkCurfewStatus();
-              const pendingUsage = result.dailyUsage;
-              if (pendingUsage) {
-                const nowMs = Date.now();
-                if (!pendingUsage.firstLoginTime || Math.abs(nowMs - Number(pendingUsage.firstLoginTime)) < 120000) {
-                  pendingUsage.firstLoginTime = nowMs;
-                }
-              }
-              if (typeof initDailyUsageTimer === "function") initDailyUsageTimer(pendingUsage);
+              if (typeof initDailyUsageTimer === "function") initDailyUsageTimer(result.dailyUsage);
             }
           } catch(importErr) {
             console.error("載入遊戲失敗：", importErr);
@@ -2764,7 +2826,7 @@
         }
       } catch(_) {}
 
-      const allowedPrefixes = ["spellAgent", "today_task", "task_done", "task_words", "task_summary", "student_task_history", "current_user", "user_role"];
+      const allowedPrefixes = ["spellAgent", "today_task", "task_done", "task_words", "task_summary", "student_task_history", "current_user"];
       const localData = {};
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);

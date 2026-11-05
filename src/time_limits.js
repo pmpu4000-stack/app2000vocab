@@ -70,10 +70,47 @@
     extendedMinutes: 0,
     unlocked: false,
     firstLoginTime: null,
+    anchorPerfNow: 0,
+    anchorElapsedMs: 0,
     isLockedDown: false
   };
   let dailyTimerInterval = null;
   let dailyPollingInterval = null;
+
+  function getMonotonicNow() {
+    return (typeof performance !== "undefined" && typeof performance.now === "function")
+      ? performance.now()
+      : Date.now();
+  }
+
+  function resolveClientFirstLoginTime(dailyUsage, currentUser, todayStr) {
+    const nowWall = Date.now();
+    let candidate = nowWall;
+
+    if (dailyUsage) {
+      if (typeof dailyUsage.elapsedMs === "number" && !isNaN(dailyUsage.elapsedMs) && dailyUsage.elapsedMs >= 0) {
+        candidate = nowWall - Number(dailyUsage.elapsedMs);
+      } else if (dailyUsage.serverNow && dailyUsage.firstLoginTime) {
+        const srvElapsed = Math.max(0, Number(dailyUsage.serverNow) - Number(dailyUsage.firstLoginTime));
+        candidate = nowWall - srvElapsed;
+      } else if (dailyUsage.firstLoginTime) {
+        const rawFirst = Number(dailyUsage.firstLoginTime);
+        // 若客戶端時鐘比伺服器慢導致 rawFirst > nowWall，改以 nowWall 為基準避免倒數卡死在 0
+        candidate = rawFirst > nowWall ? nowWall : rawFirst;
+      }
+    }
+
+    // 結合本機當日已記錄之首次登入時間（取較早者，防止重整網頁或時鐘誤差重置倒數）
+    if (currentUser && todayStr) {
+      const savedDate = localStorage.getItem(`daily_usage_${currentUser}_date`);
+      const savedFirst = Number(localStorage.getItem(`daily_usage_${currentUser}_first_login_time`));
+      if (savedDate === todayStr && savedFirst > 0 && savedFirst <= nowWall) {
+        candidate = Math.min(candidate, savedFirst);
+      }
+    }
+
+    return candidate;
+  }
 
   function initDailyUsageTimer(dailyUsage) {
     const role = localStorage.getItem("user_role") || "student";
@@ -94,13 +131,9 @@
 
     const todayStr = getFormatDateDash();
 
-    // ★ 核心準則：以 Google 伺服器端確認之當日首次登入時間為唯一準則！
-    let firstLogin = null;
-    if (dailyUsage && dailyUsage.firstLoginTime) {
-      firstLogin = Number(dailyUsage.firstLoginTime);
-    } else {
-      firstLogin = Date.now();
-    }
+    // ★ 核心準則：以伺服器端已耗用時間對齊本機時間，並結合單調計時器防止暫停或重整重置！
+    const firstLogin = resolveClientFirstLoginTime(dailyUsage, currentUser, todayStr);
+    const initialElapsedMs = Math.max(0, Date.now() - firstLogin);
 
     dailyUsageState = {
       todayDate: todayStr,
@@ -110,6 +143,8 @@
       extendedMinutes: (dailyUsage && Number(dailyUsage.extendedMinutes)) || 0,
       unlocked: (dailyUsage && dailyUsage.unlocked === true),
       firstLoginTime: firstLogin,
+      anchorPerfNow: getMonotonicNow(),
+      anchorElapsedMs: initialElapsedMs,
       isLockedDown: false
     };
 
@@ -203,7 +238,10 @@
     }
 
     const totalAllowedMs = (dailyUsageState.limitMinutes + dailyUsageState.extendedMinutes) * 60 * 1000;
-    const elapsedMs = Math.max(0, Date.now() - dailyUsageState.firstLoginTime);
+    const wallElapsedMs = Math.max(0, Date.now() - (dailyUsageState.firstLoginTime || Date.now()));
+    const monoDeltaMs = Math.max(0, getMonotonicNow() - (dailyUsageState.anchorPerfNow || 0));
+    const monoElapsedMs = (dailyUsageState.anchorElapsedMs || 0) + monoDeltaMs;
+    const elapsedMs = Math.max(wallElapsedMs, monoElapsedMs);
     const remainingMs = totalAllowedMs - elapsedMs;
 
     if (remainingMs <= 0) {
@@ -390,8 +428,13 @@
         dailyUsageState.limitMinutes = Number(d.dailyUsage.limitMinutes) || dailyUsageState.limitMinutes;
         dailyUsageState.extendedMinutes = Number(d.dailyUsage.extendedMinutes) || 0;
         dailyUsageState.unlocked = d.dailyUsage.unlocked === true;
-        if (d.dailyUsage.firstLoginTime) {
-          dailyUsageState.firstLoginTime = Math.min(dailyUsageState.firstLoginTime, Number(d.dailyUsage.firstLoginTime));
+        const todayStr = getFormatDateDash();
+        const alignedFirst = resolveClientFirstLoginTime(d.dailyUsage, currentUser, todayStr);
+        if (alignedFirst && (!dailyUsageState.firstLoginTime || alignedFirst < dailyUsageState.firstLoginTime)) {
+          dailyUsageState.firstLoginTime = alignedFirst;
+          dailyUsageState.anchorElapsedMs = Math.max(dailyUsageState.anchorElapsedMs || 0, Date.now() - alignedFirst);
+          dailyUsageState.anchorPerfNow = getMonotonicNow();
+          localStorage.setItem(`daily_usage_${currentUser}_first_login_time`, String(dailyUsageState.firstLoginTime));
         }
         localStorage.setItem(`daily_usage_${currentUser}_extended_minutes`, String(dailyUsageState.extendedMinutes));
         localStorage.setItem(`daily_usage_${currentUser}_limit_minutes`, String(dailyUsageState.limitMinutes));
@@ -399,9 +442,11 @@
         if (d.timeRestriction) applyTimeRestrictionFromServer(d.timeRestriction);
 
         // 開機時因時間歸零而未啟動測驗，若老師之後解除或延長 → 重新載入以啟動測驗
+        const wallElapsedMs = Math.max(0, Date.now() - (dailyUsageState.firstLoginTime || Date.now()));
+        const monoElapsedMs = (dailyUsageState.anchorElapsedMs || 0) + Math.max(0, getMonotonicNow() - (dailyUsageState.anchorPerfNow || 0));
+        const curElapsedMs = Math.max(wallElapsedMs, monoElapsedMs);
         const remainMs =
-          (dailyUsageState.limitMinutes + dailyUsageState.extendedMinutes) * 60000 -
-          (Date.now() - dailyUsageState.firstLoginTime);
+          (dailyUsageState.limitMinutes + dailyUsageState.extendedMinutes) * 60000 - curElapsedMs;
         if (window.__bootedLocked && (dailyUsageState.unlocked || remainMs > 0)) {
           alert("老師已解除或延長今日練習時間，將重新載入以開始練習，請重新登入。");
           location.reload();

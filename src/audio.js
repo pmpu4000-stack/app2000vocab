@@ -207,7 +207,7 @@ export function getUSMaleVoice() {
 export function parseDialogue(text) {
   if (!text) return null;
   const raw = String(text).trim();
-  const match = raw.match(/^(?:A|甲):\s*(.+?)\s*(?:\n|\/|\s{1,4})\s*(?:B|乙):\s*(.+)$/is);
+  const match = raw.match(/^(?:A|甲)\s*[:：]\s*(.+?)\s*(?:\n|\/|--|—|\s{1,6})\s*(?:B|乙)\s*[:：]\s*(.+)$/is);\n  if (!match) {\n    const mEmb = raw.match(/(?:^|(?:\n|\/|\s{2,}))(?:A|甲)\s*[:：]\s*(.+?)(?:\s*(?:\n|\/|\s{2,})|(?:(?<=[.?!。？！])\s+))(?:B|乙)\s*[:：]\s*(.+)$/is);\n    if (mEmb) return { partA: mEmb[1].trim(), partB: mEmb[2].trim(), isDialogue: true };\n  }
   if (match) {
     return {
       partA: match[1].trim(),

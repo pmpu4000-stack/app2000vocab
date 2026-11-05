@@ -228,10 +228,27 @@ export function renderRound(word, mode, { onAnswer, onCheck }) {
         `;
         if (s.sentZh) {
           const dlgZh = parseDialogue(s.sentZh);
+          let zhA = '', zhB = '';
           if (dlgZh) {
+            zhA = dlgZh.partA;
+            zhB = dlgZh.partB;
+          } else {
+            const zhParts = s.sentZh.split(/\s*[\/\n;；]+\s*|\s+(?=(?:B|乙)[:：])/i);
+            if (zhParts.length >= 2) {
+              zhA = zhParts[0].replace(/^(?:A|甲)[:：]\s*/i, '').trim();
+              zhB = zhParts.slice(1).join(' ').replace(/^(?:B|乙)[:：]\s*/i, '').trim();
+            } else {
+              const pSplit = s.sentZh.match(/^(.+?[？?。!！])\s*(.+)$/);
+              if (pSplit) {
+                zhA = pSplit[1].replace(/^(?:A|甲)[:：]\s*/i, '').trim();
+                zhB = pSplit[2].replace(/^(?:B|乙)[:：]\s*/i, '').trim();
+              }
+            }
+          }
+          if (zhA && zhB) {
             zhHtml = `
-              <div class="sent-dialogue-turn"><span class="dlg-badge dlg-a">👩 A</span><span class="dlg-text">${dlgZh.partA}</span></div>
-              <div class="sent-dialogue-turn"><span class="dlg-badge dlg-b">👨 B</span><span class="dlg-text">${dlgZh.partB}</span></div>
+              <div class="sent-dialogue-turn sent-dialogue-zh" style="margin-top:3px;"><span class="dlg-badge dlg-a">👩 A</span><span class="dlg-text">${zhA}</span></div>
+              <div class="sent-dialogue-turn sent-dialogue-zh"><span class="dlg-badge dlg-b">👨 B</span><span class="dlg-text">${zhB}</span></div>
             `;
           } else {
             zhHtml = s.sentZh;

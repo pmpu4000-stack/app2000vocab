@@ -557,11 +557,11 @@
           function renderQuizQuestion() {
             if (curIdx >= wordsArr.length) {
               previewCard.innerHTML = `
-                <div style="text-align:center; padding:24px; background:#0f172a; border-radius:16px; border:1.5px solid #1e293b; color:#fff; font-family:system-ui, sans-serif;">
+                <div style="text-align:center; padding:24px; background:var(--card, #1C2234); border-radius:18px; border:1px solid var(--line, #2B334E); color:var(--ink, #fff); font-family:system-ui, sans-serif;">
                   <div style="font-size:32px; margin-bottom:8px;">🎉</div>
-                  <div style="font-size:18px; font-weight:800; color:#38bdf8; margin-bottom:6px;">預覽測驗完成！</div>
-                  <div style="font-size:14px; color:#94a3b8; margin-bottom:16px;">答對題數：${correctCount} / ${wordsArr.length} 題</div>
-                  <button type="button" onclick="document.getElementById('t-preview-quiz-card').style.display='none'" style="padding:9px 24px; border-radius:10px; border:none; background:#8b5cf6; color:#fff; font-weight:700; font-size:14px; cursor:pointer;">關閉預覽</button>
+                  <div style="font-size:18px; font-weight:800; color:var(--sky, #38bdf8); margin-bottom:6px;">預覽測驗完成！</div>
+                  <div style="font-size:14px; color:var(--ink2, #94a3b8); margin-bottom:16px;">答對題數：${correctCount} / ${wordsArr.length} 題</div>
+                  <button type="button" onclick="document.getElementById('t-preview-quiz-card').style.display='none'" class="btn primary" style="padding:9px 24px; border-radius:10px; font-weight:700; font-size:14px; cursor:pointer;">關閉預覽</button>
                 </div>
               `;
               return;
@@ -571,65 +571,161 @@
             const meta = pickerMeanings[curWord] || pickerMeanings[curWord.toLowerCase()] || {};
             const wordObj = pickerWords.find(item => (item.w || "").toLowerCase() === curWord.toLowerCase()) || {};
             const lv = wordObj.lv || meta.lv || 1;
-            const zhDef = meta.zh || wordObj.zh || "聽音拼字";
-            const pos = meta.pos || (zhDef.includes("名") ? "名詞" : zhDef.includes("動") ? "動詞" : zhDef.includes("形") ? "形容詞" : "單字");
-            const ipa = meta.ph || meta.ipa || "";
-            const phoneticDisplay = ipa ? (ipa.startsWith("/") ? ipa : `/${ipa}/`) : "";
+
+            const posMap = {
+              n: '名詞', v: '動詞', vt: '及物動詞', vi: '不及物動詞',
+              a: '形容詞', adj: '形容詞', adv: '副詞', prep: '介系詞',
+              conj: '連接詞', pron: '代名詞', num: '數詞', aux: '助動詞',
+              art: '冠詞', int: '感嘆詞', interj: '感嘆詞', phr: '片語'
+            };
+            const rawZh = meta.zh || wordObj.zh || "聽音拼字";
+            const parts = rawZh.split('；');
+            const transList = [];
+            const posList = [];
+            for (const part of parts) {
+              const trimmed = part.trim();
+              const m = trimmed.match(/^([a-zA-Z\.\s\/]+?)[\s]+(.*)$/);
+              if (m) {
+                const posStr = m[1].trim();
+                const defStr = m[2].trim();
+                transList.push(defStr);
+                const tags = posStr.split(/[\/\s]+/).map(p => p.replace(/\./g, '').trim()).filter(Boolean);
+                tags.forEach(t => {
+                  const zhPos = posMap[t.toLowerCase()] || t;
+                  if (!posList.includes(zhPos)) posList.push(zhPos);
+                });
+              } else {
+                transList.push(trimmed);
+              }
+            }
+            if (posList.length === 0 && meta.pos) {
+              const p = posMap[String(meta.pos).toLowerCase().replace(/\./g, '')] || meta.pos;
+              posList.push(p);
+            }
+            const defHtml = `<b class="zh-def">${transList.join('； ') || rawZh}</b>`;
+            const posHtml = posList.length > 0 ? `<span class="zh-pos">${posList.join(' · ')}</span>` : '';
+
+            const cleanPh = String(meta.ph || meta.ipa || wordObj.ph || "").replace(/^[\/\[\s]+|[\/\]\s]+$/g, "");
+            const phonHtml = cleanPh ? `<span class="phon">/${cleanPh}/</span>` : '';
 
             let sentEn = meta.sent || (meta.sents && meta.sents[0] && meta.sents[0].sent) || "";
             let sentZh = meta.sentZh || (meta.sents && meta.sents[0] && meta.sents[0].sentZh) || "";
             if (!sentEn) {
               sentEn = `Please spell the word: ${curWord}.`;
-              sentZh = `請拼出單字：${zhDef}`;
+              sentZh = `請拼出單字：${transList.join('； ') || rawZh}`;
             }
+
+            function parseSentDialogue(text) {
+              if (!text) return null;
+              const m = text.match(/(?:^|\n|\s+)(?:A|👩\s*A|甲)[:：]\s*(.+?)(?:\s+(?:B|👨\s*B|乙)[:：]|\n(?:B|👨\s*B|乙)[:：]|\s*$)([\s\S]*)/i);
+              if (m) {
+                const partA = m[1].trim();
+                let rest = m[2] || '';
+                const mB = rest.match(/(?:B|👨\s*B|乙)[:：]\s*([\s\S]+)/i);
+                const partB = mB ? mB[1].trim() : rest.trim();
+                if (partA && partB) return { partA, partB };
+              }
+              const plain = text.match(/^(.*?)[?？!！。]\s*([A-Za-z0-9].*)$/);
+              if (plain && (text.includes('A:') || text.includes('B:') || text.includes('甲') || text.includes('乙'))) {
+                return { partA: plain[1].trim(), partB: plain[2].trim() };
+              }
+              return null;
+            }
+
             const wordRegex = new RegExp(`\\b${curWord}\\b`, "i");
-            const blankBox = `<span style="display:inline-block; width:44px; height:15px; border:2px solid #38bdf8; border-radius:6px; vertical-align:middle; margin:0 4px; background:rgba(56,189,248,0.12);"></span>`;
-            const sentDisplayHtml = sentEn.replace(wordRegex, blankBox);
+            const dlgEn = parseSentDialogue(sentEn);
+            let enHtml = '';
+            let zhHtml = '';
+            const isDlg = Boolean(dlgEn);
+
+            if (dlgEn) {
+              const maskedA = dlgEn.partA.replace(wordRegex, '<u class="sent-blank"></u>');
+              const maskedB = dlgEn.partB.replace(wordRegex, '<u class="sent-blank"></u>');
+              enHtml = `
+                <div class="sent-dialogue-turn"><span class="dlg-badge dlg-a">👩 A</span><span class="dlg-text">${maskedA}</span></div>
+                <div class="sent-dialogue-turn"><span class="dlg-badge dlg-b">👨 B</span><span class="dlg-text">${maskedB}</span></div>
+              `;
+              if (sentZh) {
+                const dlgZh = parseSentDialogue(sentZh);
+                let zhA = '', zhB = '';
+                if (dlgZh) {
+                  zhA = dlgZh.partA;
+                  zhB = dlgZh.partB;
+                } else {
+                  const zhParts = sentZh.split(/\s*[\/\n;；]+\s*|\s+(?=(?:B|乙)[:：])/i);
+                  if (zhParts.length >= 2) {
+                    zhA = zhParts[0].replace(/^(?:A|甲)[:：]\s*/i, '').trim();
+                    zhB = zhParts.slice(1).join(' ').replace(/^(?:B|乙)[:：]\s*/i, '').trim();
+                  } else {
+                    const pSplit = sentZh.match(/^(.+?[？?。!！])\s*(.+)$/);
+                    if (pSplit) {
+                      zhA = pSplit[1].replace(/^(?:A|甲)[:：]\s*/i, '').trim();
+                      zhB = pSplit[2].replace(/^(?:B|乙)[:：]\s*/i, '').trim();
+                    }
+                  }
+                }
+                if (zhA && zhB) {
+                  zhHtml = `
+                    <div class="sent-dialogue-turn sent-dialogue-zh" style="margin-top:3px;"><span class="dlg-badge dlg-a">👩 A</span><span class="dlg-text">${zhA}</span></div>
+                    <div class="sent-dialogue-turn sent-dialogue-zh"><span class="dlg-badge dlg-b">👨 B</span><span class="dlg-text">${zhB}</span></div>
+                  `;
+                } else {
+                  zhHtml = sentZh;
+                }
+              }
+            } else {
+              enHtml = sentEn.replace(wordRegex, '<u class="sent-blank"></u>');
+              zhHtml = sentZh || '';
+            }
+
+            const SVG_SPEAKER = '<svg class="icon-speaker" viewBox="0 0 24 24" width="17" height="17" fill="currentColor" style="vertical-align:middle;display:inline-block;"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>';
 
             let isAnswered = false;
 
             previewCard.innerHTML = `
-              <div style="position:relative; border-radius:16px; padding:18px 20px; background:#0f172a; border:1.5px solid #1e293b; box-shadow:0 10px 35px rgba(0,0,0,0.65); overflow:hidden; font-family:system-ui, sans-serif;">
-                <!-- 1:1 頂部彩虹漸層條 -->
-                <div style="background:linear-gradient(90deg, #ec4899 0%, #8b5cf6 25%, #06b6d4 50%, #10b981 75%, #f59e0b 100%); height:4px; margin:-18px -20px 14px -20px;"></div>
-                
-                <!-- 關卡徽章與提示語 -->
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                  <span style="background:#10b981; color:#fff; font-size:12px; font-weight:800; padding:3px 12px; border-radius:12px; letter-spacing:0.5px;">LEVEL ${lv}</span>
-                  <span style="color:#cbd5e1; font-size:13px; font-weight:500;">聽發音，把單字拼出來</span>
+              <div class="card preview-native-card">
+                <!-- 1:1 頂部提示行 (關卡徽章與模式提示) -->
+                <div class="prompt-row">
+                  <span class="catlabel" style="background:#10B981;">LEVEL ${lv}</span>
+                  <span class="modehint">聽發音，把單字拼出來</span>
                 </div>
 
-                <!-- 單字中文釋義、詞性、音標與發音鈕 -->
-                <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap;">
-                  <button type="button" id="t-preview-audio-word" style="background:#38bdf8; width:34px; height:34px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; border:none; color:#fff; cursor:pointer; font-size:16px; flex-shrink:0;" title="聆聽單字發音">🔊</button>
-                  <span style="font-size:19px; font-weight:800; color:#ffffff; letter-spacing:0.3px;">${zhDef}</span>
-                  <span style="background:rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(16,185,129,0.3); border-radius:4px; padding:2px 8px; font-size:12px; font-weight:700;">${pos}</span>
-                  ${phoneticDisplay ? `<span style="color:#38bdf8; font-size:15px; font-weight:700;">${phoneticDisplay}</span>` : ''}
+                <!-- 1:1 單字中文釋義、詞性、音標與單字播放鈕 -->
+                <div class="zh">
+                  <div class="zh-row">
+                    <button type="button" class="word-speech-btn" id="t-preview-audio-word" aria-label="播放單字發音" title="播放單字發音">${SVG_SPEAKER}</button>
+                    <div class="zh-text">${defHtml}${posHtml}${phonHtml}</div>
+                  </div>
                 </div>
 
-                <!-- 例句挖空區塊 -->
-                <div style="background:rgba(10,15,26,0.6); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:10px 14px; display:flex; gap:12px; align-items:flex-start; margin-bottom:16px;">
-                  <button type="button" id="t-preview-audio-sent" style="background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.35); border-radius:8px; width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; color:#34d399; cursor:pointer; font-size:15px; flex-shrink:0;" title="聆聽例句發音">🔊</button>
-                  <div style="display:flex; flex-direction:column; gap:3px;">
-                    <div style="color:#f1f5f9; font-size:15px; font-weight:700; line-height:1.4;">${sentDisplayHtml}</div>
-                    <div style="color:#94a3b8; font-size:12.5px;">${sentZh}</div>
+                <!-- 1:1 例句挖空區塊 (含對話分行、原生挖空方框與例句播放鈕) -->
+                <div class="sent">
+                  <div class="sent-row">
+                    <button type="button" class="sent-speaker-btn ${isDlg ? 'level-dialogue' : 'level-normal'}" id="t-preview-audio-sent" aria-label="例句朗讀" title="例句朗讀">${SVG_SPEAKER}</button>
+                    <div class="sent-text-wrap">
+                      <div class="sent-en">${enHtml}</div>
+                      ${zhHtml ? `<div class="sent-zh">${zhHtml}</div>` : ''}
+                    </div>
                   </div>
                 </div>
 
                 <!-- 1:1 大型拼字外框 -->
-                <div style="margin:20px auto 12px auto; display:flex; justify-content:center; width:100%;">
-                  <input type="text" id="t-preview-ans-input" placeholder="在 這 裡 拼 字 ..." autocomplete="off" style="width:100%; max-width:440px; height:56px; border-radius:18px; border:3px solid #cbd5e1; background:rgba(10,14,25,0.9); color:#ffffff; font-size:24px; font-weight:800; text-align:center; outline:none; box-shadow:0 0 16px rgba(196,181,253,0.35); letter-spacing:1px; box-sizing:border-box;">
+                <div class="stage" style="margin:16px 0 10px;">
+                  <input type="text" id="t-preview-ans-input" class="spellbox" placeholder="在 這 裡 拼 字 …" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
                 </div>
 
                 <!-- 1:1 作答回饋行 -->
-                <div id="t-preview-feedback" style="min-height:26px; display:flex; align-items:center; justify-content:center; margin-bottom:12px; font-size:15px; font-weight:700;"></div>
+                <div class="feedback" id="t-preview-feedback"></div>
 
                 <!-- 1:1 底部檢查 / 下一個按鈕 -->
-                <button type="button" id="t-preview-submit-btn" style="width:100%; height:46px; border-radius:12px; background:#8b5cf6; color:#ffffff; border:none; font-size:16px; font-weight:800; cursor:pointer; transition:all 0.15s;">檢查 Check</button>
+                <div class="actions">
+                  <button type="button" class="btn primary" id="t-preview-submit-btn">檢查 Check</button>
+                </div>
 
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px; font-size:12px; color:#64748b; border-top:1px solid rgba(255,255,255,0.06); padding-top:8px;">
-                  <span>🎯 每日指定單字測驗（第 ${curIdx + 1} / ${wordsArr.length} 題）</span>
-                  <button type="button" onclick="document.getElementById('t-preview-quiz-card').style.display='none'" style="background:none; border:none; color:#94a3b8; font-size:12px; cursor:pointer; text-decoration:underline;">✕ 關閉預覽</button>
+                <!-- 預覽進度 footer -->
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px; font-size:12px; color:var(--ink3, #64748b); border-top:1px solid var(--line, rgba(255,255,255,0.06)); padding-top:8px;">
+                  <span>🎯 每日指定單字測驗預覽（第 ${curIdx + 1} / ${wordsArr.length} 題）</span>
+                  <button type="button" onclick="document.getElementById('t-preview-quiz-card').style.display='none'" style="background:none; border:none; color:var(--ink2, #94a3b8); font-size:12px; cursor:pointer; text-decoration:underline;">✕ 關閉預覽</button>
                 </div>
               </div>
             `;
@@ -648,13 +744,34 @@
               } catch(_) {}
             }
 
-            document.getElementById("t-preview-audio-word").onclick = () => speakText(curWord);
-            document.getElementById("t-preview-audio-sent").onclick = () => speakText(sentEn);
+            const wBtn = document.getElementById("t-preview-audio-word");
+            const sBtn = document.getElementById("t-preview-audio-sent");
+            if (wBtn) {
+              wBtn.onclick = () => {
+                wBtn.classList.add("playing");
+                speakText(curWord);
+                setTimeout(() => wBtn.classList.remove("playing"), 500);
+              };
+            }
+            if (sBtn) {
+              sBtn.onclick = () => {
+                sBtn.classList.add("playing");
+                speakText(sentEn);
+                setTimeout(() => sBtn.classList.remove("playing"), 1200);
+              };
+            }
             speakText(curWord);
 
             const ansInput = document.getElementById("t-preview-ans-input");
             const submitBtn = document.getElementById("t-preview-submit-btn");
             const feedbackEl = document.getElementById("t-preview-feedback");
+
+            if (ansInput && submitBtn) {
+              ansInput.addEventListener("input", () => {
+                if (ansInput.value.trim().length > 0) submitBtn.classList.add("ready");
+                else submitBtn.classList.remove("ready");
+              });
+            }
 
             function checkAns() {
               if (isAnswered) {
@@ -668,35 +785,30 @@
               isAnswered = true;
               if (val === curWord.toLowerCase()) {
                 correctCount++;
-                feedbackEl.style.color = "#34d399";
+                feedbackEl.className = "feedback ok";
                 feedbackEl.innerHTML = "✅ 答對啦！ +10";
+                ansInput.classList.add("ok");
                 ansInput.value = curWord.split("").join("  ");
-                ansInput.style.letterSpacing = "6px";
-                ansInput.style.fontWeight = "900";
                 ansInput.disabled = true;
                 submitBtn.textContent = "下一個 Next →";
-                submitBtn.style.background = "#10b981";
-                submitBtn.style.border = "2px solid #000";
+                submitBtn.className = "btn go ready";
                 submitBtn.focus();
               } else {
-                feedbackEl.style.color = "#ef4444";
+                feedbackEl.className = "feedback bad";
                 feedbackEl.innerHTML = "❌ 答錯了！正確答案是：" + curWord;
+                ansInput.classList.add("bad");
                 ansInput.value = curWord.split("").join("  ");
-                ansInput.style.letterSpacing = "6px";
                 ansInput.disabled = true;
                 submitBtn.textContent = "下一個 Next →";
-                submitBtn.style.background = "#10b981";
-                submitBtn.style.border = "2px solid #000";
+                submitBtn.className = "btn go ready";
                 submitBtn.focus();
               }
             }
 
             submitBtn.onclick = checkAns;
             ansInput.onkeydown = (e) => { if (e.key === "Enter") checkAns(); };
-            ansInput.focus();
-          }
-
-          renderQuizQuestion();
+            setTimeout(() => ansInput.focus(), 60);
+          }          renderQuizQuestion();
         };
       }
     }
