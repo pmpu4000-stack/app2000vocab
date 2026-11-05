@@ -4,7 +4,7 @@
  * 包含：
  * 1. 每日測驗線上挑選單字出題 (Teacher Task Picker)
  * 2. 學生使用時間與宵禁限制管理 (Time Management)
- * 3. 個別學生學習歷程即時調閱 (Student Portfolio Inspector)
+ * 3. 個別學生學習成果 (Student Portfolio Inspector)
  * 4. 全班指定日期區間練習成效分析 (Class Range Analytics)
  * 5. 4 大功能方塊原位工作區切換 (Inline Workspace)
  * ════════════════════════════════════════════════════════════════════
@@ -1534,18 +1534,51 @@
             body: JSON.stringify({ action: "getTimeRestrictions", username: u, password: p })
           });
           const d = await res.json();
-          if (d.status === "success" && d.studentList) {
+          if (d.status === "success" && Array.isArray(d.studentList) && d.studentList.length > 0) {
             allStudentsList = d.studentList;
+            try { localStorage.setItem("all_students_cache", JSON.stringify(d.studentList)); } catch(_) {}
           }
         } catch (_) {}
+        
+        if (!allStudentsList || allStudentsList.length === 0) {
+          try {
+            const cached = localStorage.getItem("all_students_cache");
+            if (cached) allStudentsList = JSON.parse(cached);
+          } catch(_) {}
+        }
         return allStudentsList || [];
       }
 
       const list = await ensureStudents();
-      if (!list || list.length === 0) {
-        classSel.innerHTML = '<option value="">無班級資料</option>';
+      const cSet = new Set();
+      if (Array.isArray(list)) {
+        list.forEach(s => {
+          const c = String(s.className || "").trim();
+          if (c) cSet.add(c);
+        });
+      }
+      
+      // 若後端尚未回傳學生清單，優先採用登入時存入的權威班級清單
+      if (cSet.size === 0) {
+        try {
+          const teacherClasses = JSON.parse(localStorage.getItem("teacher_class_list") || "[]");
+          if (Array.isArray(teacherClasses)) {
+            teacherClasses.forEach(c => { if (c) cSet.add(String(c).trim()); });
+          }
+          const myC = localStorage.getItem("teacher_my_class");
+          if (myC && myC.toLowerCase() !== "all" && myC !== "系統管理員") {
+            cSet.add(myC.replace(/班$/, "").trim());
+          }
+        } catch(_) {}
+      }
+
+      const sortedClasses = Array.from(cSet).sort();
+      if (sortedClasses.length === 0) {
+        classSel.innerHTML = '<option value="">載入班級中...</option>';
         return;
       }
+      classSel.innerHTML = '<option value="">-- 請選擇班級 --</option>' + 
+        sortedClasses.map(c => `<option value="${c}">${c} 班</option>`).join("");
 
       const cSet = new Set();
       list.forEach(s => {
