@@ -1632,333 +1632,6 @@
     }
 
     // 徹底清除本機所有學生快取與學習歷程，確保電腦教室共用時零污染、零個資外洩
-    function purgeAllStudentSessionAndLocalData() {
-      try {
-        const keysToRemove = [];
-        for (let i = 0; i < localStorage.length; i++) {
-          const k = localStorage.key(i);
-          if (!k) continue;
-          if (
-            k.startsWith("spellAgent") ||
-            k.startsWith("today_task") ||
-            k.startsWith("task_done") ||
-            k.startsWith("task_words") ||
-            k.startsWith("task_summary") ||
-            k.startsWith("assigned_task") ||
-            k.startsWith("weekend_remedy") ||
-            k === "vacation_pending_mistakes" ||
-            k === "student_task_history" ||
-            k === "cached_summary" ||
-            k === "weekTaskMistakes" ||
-            k === "remedy_learned_words" ||
-            k === "current_user" ||
-            k === "current_pass" ||
-            k === "user_role" ||
-            k === "user_real_name" ||
-            k === "user_class_name"
-          ) {
-            keysToRemove.push(k);
-          }
-        }
-        keysToRemove.forEach(k => localStorage.removeItem(k));
-        sessionStorage.clear();
-        window.__CURRENT_USER = "";
-        window.__CACHED_SUMMARY = null;
-      } catch(_) {}
-    }
-
-    // 點擊「登入帳號」欄位彈出帳號資訊與切換視窗
-    window.openAccountModal = function() {
-      const cur = localStorage.getItem("current_user") || "尚未登入";
-      const uRole = localStorage.getItem("user_role");
-      const role = uRole === "teacher" ? "教師" : uRole === "parent" ? "家長" : "學生";
-      let mEl = document.getElementById("account-info-modal");
-      if (!mEl) {
-        mEl = document.createElement("div");
-        mEl.id = "account-info-modal";
-        mEl.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.65);backdrop-filter:blur(4px);z-index:999999;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;";
-        mEl.onclick = (e) => { if (e.target === mEl) mEl.style.display = "none"; };
-        document.body.appendChild(mEl);
-      }
-      mEl.innerHTML = `
-        <div style="background:var(--card, #FFFFFF); color:var(--ink, #1E293B); border-radius:18px; max-width:400px; width:100%; padding:24px 22px; box-shadow:0 12px 36px rgba(0,0,0,0.25); border:1.5px solid var(--line, #E2E8F0); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; line-height:1.6;">
-          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; border-bottom:1px solid var(--line, #E2E8F0); padding-bottom:10px;">
-            <div style="font-size:18px; font-weight:800; display:flex; align-items:center; gap:8px;">
-              <span>👤 目前登入帳號</span>
-            </div>
-            <button onclick="document.getElementById('account-info-modal').style.display='none'" style="background:none; border:none; font-size:20px; cursor:pointer; color:var(--ink3, #94A3B8); padding:0 4px;">✕</button>
-          </div>
-          <div style="background:rgba(59,130,246,0.08); border:1px solid #3B82F6; border-radius:12px; padding:14px; margin-bottom:16px; text-align:center;">
-            <div style="font-size:13px; color:var(--ink2, #475569); font-weight:600; margin-bottom:2px;">登入身分</div>
-            <div style="font-size:22px; font-weight:900; color:#2563EB;">${cur}</div>
-            <div style="font-size:13px; font-weight:700; color:#3B82F6; margin-top:2px;">身分別：${role}</div>
-          </div>
-          <div style="font-size:13.5px; color:var(--ink2, #475569); margin-bottom:18px; text-align:center;">
-            若需更換使用者，請點選下方切換帳號。
-          </div>
-          <div style="display:flex; gap:10px;">
-            <button onclick="document.getElementById('account-info-modal').style.display='none'" style="flex:1; padding:10px 0; background:rgba(148,163,184,0.15); color:var(--ink, #334155); border:1px solid var(--line, #CBD5E1); border-radius:10px; font-size:14px; font-weight:700; cursor:pointer;">
-              關閉
-            </button>
-            <button onclick="window.confirmLogoutFromModal()" style="flex:1; padding:10px 0; background:linear-gradient(135deg,#EF4444,#DC2626); color:#FFFFFF; border:none; border-radius:10px; font-size:14px; font-weight:800; cursor:pointer; box-shadow:0 2px 8px rgba(220,38,38,0.3);">
-              切換登出
-            </button>
-          </div>
-        </div>
-      `;
-      mEl.style.display = "flex";
-    };
-
-    window.confirmLogoutFromModal = function() {
-      const cur = localStorage.getItem("current_user") || "";
-      try {
-        const rawProg = localStorage.getItem("today_task_in_progress");
-        if (rawProg && cur) {
-          localStorage.setItem("today_task_in_progress_" + cur.toLowerCase(), rawProg);
-        }
-        if (window.uploadLocalStorageData) {
-          window.uploadLocalStorageData(true, true);
-        }
-      } catch(_) {}
-      purgeAllStudentSessionAndLocalData();
-      location.reload();
-    };
-
-    const statUser = document.getElementById("stat-user");
-    if (statUser) {
-      statUser.style.cursor = "pointer";
-      statUser.onclick = () => window.openAccountModal();
-    }
-
-    window.openStreakFreezeModal = function() {};
-
-    // 支援輸入框按下 Enter 鍵直接登入
-    ['login-user', 'login-pass'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) {
-        el.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter') {
-            document.getElementById('login-btn').click();
-          }
-        });
-      }
-    });
-
-    // 自動填入前次登入帳號並聚焦密碼輸入框
-    if (rememberedUser) {
-      const uEl = document.getElementById("login-user");
-      if (uEl && !uEl.value) {
-        uEl.value = rememberedUser;
-        const pEl = document.getElementById("login-pass");
-        if (pEl) pEl.focus();
-      }
-    }
-
-    let isLoggingIn = false;
-    const loginBtn = document.getElementById('login-btn');
-    const msgEl = document.getElementById('login-msg');
-
-    const setLoginStatus = (text, type = "loading-data") => {
-      if (!msgEl) return;
-      if (!text) {
-        msgEl.className = "login-status-banner";
-        msgEl.innerHTML = "&nbsp;";
-        return;
-      }
-      msgEl.className = `login-status-banner active msg-${type}`;
-      let icon = "⚡";
-      if (type === "loading-data" || type === "loading") icon = "📦";
-      else if (type === "loading-game" || type === "success") icon = "🎮";
-      else if (type === "error") icon = "❌";
-      else if (type === "warning") icon = "⏰";
-      msgEl.innerHTML = `<span style="font-size:16px;">${icon}</span> <span>${text}</span>`;
-    };
-
-    
-// 行動裝置輸入時自動滾動至可視區域中央，避免被虛擬鍵盤遮擋
-(function bindMobileKeyboardHandler() {
-  function scrollIntoSafeView(el) {
-    if (!el) return;
-    setTimeout(() => {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-    }, 120);
-    setTimeout(() => {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-    }, 350);
-  }
-
-  ['login-user', 'login-pass'].forEach(id => {
-    const inp = document.getElementById(id);
-    if (inp) {
-      inp.addEventListener('focus', function() {
-        scrollIntoSafeView(this);
-      });
-    }
-  });
-
-  // 🚀 全局智慧避讓手機虛擬鍵盤：涵蓋登入、拼字、修正模式與所有操作按鈕
-  function autoAvoidKeyboard(el) {
-    if (!el) return;
-    setTimeout(() => {
-      const parentCard = el.closest('#login-overlay, .quiz-screen, .card') || el;
-      if (parentCard && typeof parentCard.scrollIntoView === 'function') {
-        parentCard.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-      } else {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-      }
-    }, 120);
-  }
-
-  document.addEventListener('focusin', (e) => { /* passive */
-    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
-      autoAvoidKeyboard(e.target);
-    }
-  });
-
-  if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', () => {
-      const activeEl = document.activeElement;
-      if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) {
-        autoAvoidKeyboard(activeEl);
-      }
-    });
-  }
-})();
-
-    loginBtn.addEventListener('click', async () => {
-      if (isLoggingIn) return;
-      const user = document.getElementById('login-user').value.trim();
-      const pass = document.getElementById('login-pass').value.trim();
-
-      if (!user || !pass) {
-        setLoginStatus("請輸入帳號與密碼登入", "error");
-        return;
-      }
-
-      isLoggingIn = true;
-      loginBtn.disabled = true;
-      loginBtn.style.opacity = "0.75";
-      const isParentGuess = user.toLowerCase().startsWith('p') && user.length > 1;
-      const isTeacherGuess = user.toLowerCase().startsWith('t') || user.toLowerCase().startsWith('admin');
-      let targetHint = "個人學習";
-      if (isParentGuess) targetHint = `子女（${user.slice(1)}）學習`;
-      else if (isTeacherGuess) targetHint = "教學管理";
-      setLoginStatus(`正在載入${targetHint}資料...`, "loading-data");
-
-      try {
-        let response = null;
-        let lastError = null;
-
-        // 健全重試機制：處理 GAS 冷啟動或暫時性網路抖動 (最多嘗試 3 次)
-        for (let attempt = 1; attempt <= 3; attempt++) {
-          try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 20000);
-            response = await fetch(scriptUrl, {
-              method: "POST",
-              headers: { "Content-Type": "text/plain;charset=utf-8" },
-              body: JSON.stringify({ action: "login", username: user, password: pass }),
-              signal: controller.signal
-            });
-            clearTimeout(timeoutId);
-            if (response && response.ok) break;
-          } catch (netErr) {
-            lastError = netErr;
-            if (attempt < 3) {
-              setLoginStatus(`伺服器喚醒中，正在進行第 ${attempt} 次連線...`, "loading-data");
-              await new Promise(r => setTimeout(r, 1200));
-            }
-          }
-        }
-
-        if (!response) {
-          throw (lastError || new Error("連線逾時"));
-        }
-
-        const rawText = await response.text();
-        let result = {};
-        try {
-          result = JSON.parse(rawText);
-        } catch (_) {
-          if (rawText.includes("帳號或密碼錯誤")) {
-            result = { status: "error", message: "帳號或密碼錯誤" };
-          } else {
-            throw new Error("伺服器回應格式異常");
-          }
-        }
-
-        if (result.status === "success") {
-          // ── 帳號資料完全隔離與安全零污染保證 ──
-          const lastUser = (localStorage.getItem("current_user") || "").trim();
-          const isDifferentUser = !lastUser || lastUser.toLowerCase() !== user.toLowerCase();
-
-          // 判定雲端是否有實質紀錄（必須是含有有效 spellAgent.v2 的物件）
-          const hasCloudRecords = result.records && 
-                                  typeof result.records === "object" && 
-                                  !Array.isArray(result.records) && 
-                                  Object.keys(result.records).length > 0 &&
-                                  !!result.records["spellAgent.v2"];
-
-          let localAgentData = null;
-          try {
-            const rawLocal = localStorage.getItem("spellAgent.v2");
-            if (rawLocal) {
-              const parsed = JSON.parse(rawLocal);
-              if (parsed && (parsed.attempts > 0 || parsed.points > 0 || (parsed.stat && Object.keys(parsed.stat).length > 0))) {
-                localAgentData = parsed;
-              }
-            }
-          } catch(_) {}
-
-          // 🚀 核心規範：每次登入時徹底清除所有本機快取與歷史紀錄，確保一人一機絕對純淨隔離，完全免除他人帳號影響
-          purgeAllStudentSessionAndLocalData();
-
-          localStorage.setItem("current_user", user);
-          localStorage.setItem("user_role", result.role || "student");
-
-          // 角色分流導向：家長身分啟用專屬儀表板過濾（顯示家長帳號、隱藏作答題型、保留五大歷程方塊）
-          if (result.role === "parent") {
-            const childAcc = result.studentUser || (user.toLowerCase().startsWith('p') ? user.slice(1) : user);
-            setLoginStatus(`家長身分驗證成功，正在載入子女（${childAcc}）學習成果...`, "loading-game");
-            document.body.classList.add("role-parent");
-            document.documentElement.classList.add("role-parent");
-            localStorage.setItem("current_user", user);
-            localStorage.setItem("user_role", "parent");
-            sessionStorage.setItem("current_user", user);
-            sessionStorage.setItem("user_role", "parent");
-            window.__PARENT_USER = user;
-            window.__PARENT_STUDENT = result.realName || result.username || "";
-            applyRoleBasedView("parent", result);
-          }
-          if (result.role === "teacher" || result.role === "admin") {
-            setLoginStatus("載入完成", "loading-game");
-            document.body.classList.add("role-teacher");
-            document.documentElement.classList.add("role-teacher");
-            localStorage.setItem("current_user", user);
-            localStorage.setItem("user_role", result.role);
-            sessionStorage.setItem("current_user", user);
-            sessionStorage.setItem("user_role", result.role);
-            
-            localStorage.removeItem("today_task_in_progress");
-            localStorage.removeItem("today_task_in_progress_" + user.toLowerCase());
-            sessionStorage.removeItem("assigned_task");
-            localStorage.removeItem("assigned_task_active");
-            applyRoleBasedView(result.role, result);
-          }
-          if (result.role === "admin" || (result.role === "teacher" && result.isAdmin)) {
-            // 教師 / 管理員可自由選擇使用「出題設定」或前往「總控後台」
-            const adminNotice = document.getElementById("admin-portal-link");
-            if (adminNotice) adminNotice.style.display = "inline-flex";
-          }
-          if (result.realName) localStorage.setItem("user_real_name", result.realName);
-          if (result.className) localStorage.setItem("user_class_name", result.className);
-          if (result.cachedSummary) {
-            try {
-              localStorage.setItem("cached_summary", JSON.stringify(result.cachedSummary));
-              window.__CACHED_SUMMARY = result.cachedSummary;
-            } catch(_) {}
-          }
-          
     // ══════════════════════════════════════════════════════════════
     // 👨‍👩‍👧 家長專屬視圖渲染引擎 (免跳轉、零延遲、直接在遊戲網頁切換)
     // ══════════════════════════════════════════════════════════════
@@ -2305,7 +1978,7 @@
           refreshBtn.disabled = true;
           refreshBtn.textContent = "⏳ 載入中...";
           try {
-            const resp = await fetch(GAS_URL + "?action=checkAndGetData", {
+            const resp = await fetch(scriptUrl + "?action=checkAndGetData", {
               method: "POST",
               headers: { "Content-Type": "text/plain;charset=utf-8" },
               body: JSON.stringify({ user: __currentParentUser, pass: __currentParentPass })
@@ -2356,6 +2029,337 @@
         };
       }
     }
+
+    function purgeAllStudentSessionAndLocalData() {
+      try {
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (!k) continue;
+          if (
+            k.startsWith("spellAgent") ||
+            k.startsWith("today_task") ||
+            k.startsWith("task_done") ||
+            k.startsWith("task_words") ||
+            k.startsWith("task_summary") ||
+            k.startsWith("assigned_task") ||
+            k.startsWith("weekend_remedy") ||
+            k === "vacation_pending_mistakes" ||
+            k === "student_task_history" ||
+            k === "cached_summary" ||
+            k === "weekTaskMistakes" ||
+            k === "remedy_learned_words" ||
+            k === "current_user" ||
+            k === "current_pass" ||
+            k === "user_role" ||
+            k === "user_real_name" ||
+            k === "user_class_name"
+          ) {
+            keysToRemove.push(k);
+          }
+        }
+        keysToRemove.forEach(k => localStorage.removeItem(k));
+        sessionStorage.clear();
+        window.__CURRENT_USER = "";
+        window.__CACHED_SUMMARY = null;
+      } catch(_) {}
+    }
+
+    // 點擊「登入帳號」欄位彈出帳號資訊與切換視窗
+    window.openAccountModal = function() {
+      const cur = localStorage.getItem("current_user") || "尚未登入";
+      const uRole = localStorage.getItem("user_role");
+      const role = uRole === "teacher" ? "教師" : uRole === "parent" ? "家長" : "學生";
+      let mEl = document.getElementById("account-info-modal");
+      if (!mEl) {
+        mEl = document.createElement("div");
+        mEl.id = "account-info-modal";
+        mEl.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.65);backdrop-filter:blur(4px);z-index:999999;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;";
+        mEl.onclick = (e) => { if (e.target === mEl) mEl.style.display = "none"; };
+        document.body.appendChild(mEl);
+      }
+      mEl.innerHTML = `
+        <div style="background:var(--card, #FFFFFF); color:var(--ink, #1E293B); border-radius:18px; max-width:400px; width:100%; padding:24px 22px; box-shadow:0 12px 36px rgba(0,0,0,0.25); border:1.5px solid var(--line, #E2E8F0); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; line-height:1.6;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; border-bottom:1px solid var(--line, #E2E8F0); padding-bottom:10px;">
+            <div style="font-size:18px; font-weight:800; display:flex; align-items:center; gap:8px;">
+              <span>👤 目前登入帳號</span>
+            </div>
+            <button onclick="document.getElementById('account-info-modal').style.display='none'" style="background:none; border:none; font-size:20px; cursor:pointer; color:var(--ink3, #94A3B8); padding:0 4px;">✕</button>
+          </div>
+          <div style="background:rgba(59,130,246,0.08); border:1px solid #3B82F6; border-radius:12px; padding:14px; margin-bottom:16px; text-align:center;">
+            <div style="font-size:13px; color:var(--ink2, #475569); font-weight:600; margin-bottom:2px;">登入身分</div>
+            <div style="font-size:22px; font-weight:900; color:#2563EB;">${cur}</div>
+            <div style="font-size:13px; font-weight:700; color:#3B82F6; margin-top:2px;">身分別：${role}</div>
+          </div>
+          <div style="font-size:13.5px; color:var(--ink2, #475569); margin-bottom:18px; text-align:center;">
+            若需更換使用者，請點選下方切換帳號。
+          </div>
+          <div style="display:flex; gap:10px;">
+            <button onclick="document.getElementById('account-info-modal').style.display='none'" style="flex:1; padding:10px 0; background:rgba(148,163,184,0.15); color:var(--ink, #334155); border:1px solid var(--line, #CBD5E1); border-radius:10px; font-size:14px; font-weight:700; cursor:pointer;">
+              關閉
+            </button>
+            <button onclick="window.confirmLogoutFromModal()" style="flex:1; padding:10px 0; background:linear-gradient(135deg,#EF4444,#DC2626); color:#FFFFFF; border:none; border-radius:10px; font-size:14px; font-weight:800; cursor:pointer; box-shadow:0 2px 8px rgba(220,38,38,0.3);">
+              切換登出
+            </button>
+          </div>
+        </div>
+      `;
+      mEl.style.display = "flex";
+    };
+
+    window.confirmLogoutFromModal = function() {
+      const cur = localStorage.getItem("current_user") || "";
+      try {
+        const rawProg = localStorage.getItem("today_task_in_progress");
+        if (rawProg && cur) {
+          localStorage.setItem("today_task_in_progress_" + cur.toLowerCase(), rawProg);
+        }
+        if (window.uploadLocalStorageData) {
+          window.uploadLocalStorageData(true, true);
+        }
+      } catch(_) {}
+      purgeAllStudentSessionAndLocalData();
+      location.reload();
+    };
+
+    const statUser = document.getElementById("stat-user");
+    if (statUser) {
+      statUser.style.cursor = "pointer";
+      statUser.onclick = () => window.openAccountModal();
+    }
+
+    window.openStreakFreezeModal = function() {};
+
+    // 支援輸入框按下 Enter 鍵直接登入
+    ['login-user', 'login-pass'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            document.getElementById('login-btn').click();
+          }
+        });
+      }
+    });
+
+    // 自動填入前次登入帳號並聚焦密碼輸入框
+    if (rememberedUser) {
+      const uEl = document.getElementById("login-user");
+      if (uEl && !uEl.value) {
+        uEl.value = rememberedUser;
+        const pEl = document.getElementById("login-pass");
+        if (pEl) pEl.focus();
+      }
+    }
+
+    let isLoggingIn = false;
+    const loginBtn = document.getElementById('login-btn');
+    const msgEl = document.getElementById('login-msg');
+
+    const setLoginStatus = (text, type = "loading-data") => {
+      if (!msgEl) return;
+      if (!text) {
+        msgEl.className = "login-status-banner";
+        msgEl.innerHTML = "&nbsp;";
+        return;
+      }
+      msgEl.className = `login-status-banner active msg-${type}`;
+      let icon = "⚡";
+      if (type === "loading-data" || type === "loading") icon = "📦";
+      else if (type === "loading-game" || type === "success") icon = "🎮";
+      else if (type === "error") icon = "❌";
+      else if (type === "warning") icon = "⏰";
+      msgEl.innerHTML = `<span style="font-size:16px;">${icon}</span> <span>${text}</span>`;
+    };
+
+    
+// 行動裝置輸入時自動滾動至可視區域中央，避免被虛擬鍵盤遮擋
+(function bindMobileKeyboardHandler() {
+  function scrollIntoSafeView(el) {
+    if (!el) return;
+    setTimeout(() => {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+    }, 120);
+    setTimeout(() => {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+    }, 350);
+  }
+
+  ['login-user', 'login-pass'].forEach(id => {
+    const inp = document.getElementById(id);
+    if (inp) {
+      inp.addEventListener('focus', function() {
+        scrollIntoSafeView(this);
+      });
+    }
+  });
+
+  // 🚀 全局智慧避讓手機虛擬鍵盤：涵蓋登入、拼字、修正模式與所有操作按鈕
+  function autoAvoidKeyboard(el) {
+    if (!el) return;
+    setTimeout(() => {
+      const parentCard = el.closest('#login-overlay, .quiz-screen, .card') || el;
+      if (parentCard && typeof parentCard.scrollIntoView === 'function') {
+        parentCard.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+      } else {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+      }
+    }, 120);
+  }
+
+  document.addEventListener('focusin', (e) => { /* passive */
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
+      autoAvoidKeyboard(e.target);
+    }
+  });
+
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', () => {
+      const activeEl = document.activeElement;
+      if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) {
+        autoAvoidKeyboard(activeEl);
+      }
+    });
+  }
+})();
+
+    loginBtn.addEventListener('click', async () => {
+      if (isLoggingIn) return;
+      console.log("[Login] 按下確認登入按鈕");
+      const user = document.getElementById('login-user').value.trim();
+      const pass = document.getElementById('login-pass').value.trim();
+
+      if (!user || !pass) {
+        setLoginStatus("請輸入帳號與密碼登入", "error");
+        return;
+      }
+
+      isLoggingIn = true;
+      loginBtn.disabled = true;
+      loginBtn.style.opacity = "0.75";
+      const isParentGuess = user.toLowerCase().startsWith('p') && user.length > 1;
+      const isTeacherGuess = user.toLowerCase().startsWith('t') || user.toLowerCase().startsWith('admin');
+      let targetHint = "個人學習";
+      if (isParentGuess) targetHint = `子女（${user.slice(1)}）學習`;
+      else if (isTeacherGuess) targetHint = "教學管理";
+      setLoginStatus(`正在載入${targetHint}資料...`, "loading-data");
+
+      try {
+        let response = null;
+        let lastError = null;
+
+        // 健全重試機制：處理 GAS 冷啟動或暫時性網路抖動 (最多嘗試 3 次)
+        for (let attempt = 1; attempt <= 3; attempt++) {
+          try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 20000);
+            response = await fetch(scriptUrl, {
+              method: "POST",
+              headers: { "Content-Type": "text/plain;charset=utf-8" },
+              body: JSON.stringify({ action: "login", username: user, password: pass }),
+              signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+            if (response && response.ok) break;
+          } catch (netErr) {
+            lastError = netErr;
+            if (attempt < 3) {
+              setLoginStatus(`伺服器喚醒中，正在進行第 ${attempt} 次連線...`, "loading-data");
+              await new Promise(r => setTimeout(r, 1200));
+            }
+          }
+        }
+
+        if (!response) {
+          throw (lastError || new Error("連線逾時"));
+        }
+
+        const rawText = await response.text();
+        let result = {};
+        try {
+          result = JSON.parse(rawText);
+        } catch (_) {
+          if (rawText.includes("帳號或密碼錯誤")) {
+            result = { status: "error", message: "帳號或密碼錯誤" };
+          } else {
+            throw new Error("伺服器回應格式異常");
+          }
+        }
+
+        if (result.status === "success") {
+          // ── 帳號資料完全隔離與安全零污染保證 ──
+          const lastUser = (localStorage.getItem("current_user") || "").trim();
+          const isDifferentUser = !lastUser || lastUser.toLowerCase() !== user.toLowerCase();
+
+          // 判定雲端是否有實質紀錄（必須是含有有效 spellAgent.v2 的物件）
+          const hasCloudRecords = result.records && 
+                                  typeof result.records === "object" && 
+                                  !Array.isArray(result.records) && 
+                                  Object.keys(result.records).length > 0 &&
+                                  !!result.records["spellAgent.v2"];
+
+          let localAgentData = null;
+          try {
+            const rawLocal = localStorage.getItem("spellAgent.v2");
+            if (rawLocal) {
+              const parsed = JSON.parse(rawLocal);
+              if (parsed && (parsed.attempts > 0 || parsed.points > 0 || (parsed.stat && Object.keys(parsed.stat).length > 0))) {
+                localAgentData = parsed;
+              }
+            }
+          } catch(_) {}
+
+          // 🚀 核心規範：每次登入時徹底清除所有本機快取與歷史紀錄，確保一人一機絕對純淨隔離，完全免除他人帳號影響
+          purgeAllStudentSessionAndLocalData();
+
+          localStorage.setItem("current_user", user);
+          localStorage.setItem("user_role", result.role || "student");
+
+          // 角色分流導向：家長身分啟用專屬儀表板過濾（顯示家長帳號、隱藏作答題型、保留五大歷程方塊）
+          if (result.role === "parent") {
+            const childAcc = result.studentUser || (user.toLowerCase().startsWith('p') ? user.slice(1) : user);
+            setLoginStatus(`家長身分驗證成功，正在載入子女（${childAcc}）學習成果...`, "loading-game");
+            document.body.classList.add("role-parent");
+            document.documentElement.classList.add("role-parent");
+            localStorage.setItem("current_user", user);
+            localStorage.setItem("user_role", "parent");
+            sessionStorage.setItem("current_user", user);
+            sessionStorage.setItem("user_role", "parent");
+            window.__PARENT_USER = user;
+            window.__PARENT_STUDENT = result.realName || result.username || "";
+            applyRoleBasedView("parent", result);
+          }
+          if (result.role === "teacher" || result.role === "admin") {
+            setLoginStatus("載入完成", "loading-game");
+            document.body.classList.add("role-teacher");
+            document.documentElement.classList.add("role-teacher");
+            localStorage.setItem("current_user", user);
+            localStorage.setItem("user_role", result.role);
+            sessionStorage.setItem("current_user", user);
+            sessionStorage.setItem("user_role", result.role);
+            
+            localStorage.removeItem("today_task_in_progress");
+            localStorage.removeItem("today_task_in_progress_" + user.toLowerCase());
+            sessionStorage.removeItem("assigned_task");
+            localStorage.removeItem("assigned_task_active");
+            applyRoleBasedView(result.role, result);
+          }
+          if (result.role === "admin" || (result.role === "teacher" && result.isAdmin)) {
+            // 教師 / 管理員可自由選擇使用「出題設定」或前往「總控後台」
+            const adminNotice = document.getElementById("admin-portal-link");
+            if (adminNotice) adminNotice.style.display = "inline-flex";
+          }
+          if (result.realName) localStorage.setItem("user_real_name", result.realName);
+          if (result.className) localStorage.setItem("user_class_name", result.className);
+          if (result.cachedSummary) {
+            try {
+              localStorage.setItem("cached_summary", JSON.stringify(result.cachedSummary));
+              window.__CACHED_SUMMARY = result.cachedSummary;
+            } catch(_) {}
+          }
+          
+
+
 
 
           window.__CURRENT_USER = user;
@@ -2568,8 +2572,6 @@
             applyRoleBasedView(result.role || localStorage.getItem("user_role") || "student", result);
             const _ov = document.getElementById('login-overlay'); if (_ov) { _ov.style.setProperty('display', 'none', 'important'); _ov.classList.add('hidden'); }
             document.body.classList.remove('is-logging-in');
-
-            const cacheBuster = Date.now();
             await new Promise(r => setTimeout(r, 150));
             await import(`./src/app.js?v=${cacheBuster}`);
 
