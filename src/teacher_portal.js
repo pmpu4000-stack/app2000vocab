@@ -138,13 +138,10 @@
       grid.innerHTML = displayWords.map(item => {
         const w = item.w;
         const isChecked = pickerSelectedWords.has(w.toLowerCase());
-        const m = pickerMeanings[item.w] || pickerMeanings[w.toLowerCase()] || {};
-        const zh = (m.zh ? m.zh.split(/[,;，；]/)[0].substring(0, 12) : "").replace(/^(n|v|a|adj|adv|prep|conj|pron|art|phr|aux|vi|vt)\.\s*/i, "");
         return `
-          <label class="picker-word-item ${isChecked ? 'is-checked' : ''}" style="display:flex; align-items:center; gap:8px; padding:5px 8px; border-radius:8px; border:1.5px solid var(--border, #333D5C); min-width:0; background:var(--card, #1C2234); cursor:pointer; font-size:13px; user-select:none; transition:all 0.15s; box-sizing:border-box;">
+          <label class="picker-word-item ${isChecked ? 'is-checked' : ''}" style="display:flex; align-items:center; gap:8px; padding:6px 10px; border-radius:8px; border:1.5px solid var(--border, #333D5C); min-width:0; background:var(--card, #1C2234); cursor:pointer; font-size:13.5px; user-select:none; transition:all 0.15s; box-sizing:border-box;">
             <input type="checkbox" value="${w.toLowerCase()}" ${isChecked ? 'checked' : ''} onchange="togglePickerWord('${w.toLowerCase()}')" style="accent-color:#6366f1; width:16px; height:16px; cursor:pointer; flex-shrink:0;">
-            <span style="font-weight:700; white-space:nowrap;">${w}</span>
-            ${zh ? `<span style="font-size:12px; opacity:0.8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-left:auto;">${zh}</span>` : ''}
+            <span style="font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${w}</span>
           </label>
         `;
       }).join("");
