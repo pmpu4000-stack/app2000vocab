@@ -290,9 +290,18 @@
       color: #6366f1 !important;
     }
     #t-word-grid {
+      height: 180px !important;
+      max-height: 180px !important;
+      overflow-y: auto !important;
+      overflow-x: hidden !important;
       display: grid !important;
       grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
       gap: 8px !important;
+      padding: 6px !important;
+      box-sizing: border-box !important;
+      overscroll-behavior: contain !important;
+      scroll-behavior: smooth !important;
+      scrollbar-width: thin !important;
     }
     @media (max-width: 620px) {
       #t-word-grid {
