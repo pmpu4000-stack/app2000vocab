@@ -954,6 +954,9 @@ async function startChallenge() {
 // ════════════════════════════════════════════════════════════════════
 
 function isDesignatedTaskPendingToday() {
+  const curRole = localStorage.getItem("user_role") || sessionStorage.getItem("user_role");
+  if (curRole === "teacher" || curRole === "admin" || curRole === "parent") return false;
+
   const todayDash = todayDateStr();
   const todaySlash = todayDash.replace(/-/g, "/");
 
@@ -1823,6 +1826,13 @@ ui.initConquerCard();
 
   // 2. 確保存檔模組與 LocalStorage 最新同步
   if (typeof store.reload === "function") store.reload();
+
+  // 2.5 角色守衛：若為教師/家長身分，絕不執行學生測驗出題或鎖定畫面
+  const curUserRole = localStorage.getItem("user_role") || sessionStorage.getItem("user_role");
+  if (curUserRole === "teacher" || curUserRole === "admin" || curUserRole === "parent") {
+    console.log("👨‍🏫 偵測為管理/教師/家長身分，跳過學生出題與作答引擎");
+    return;
+  }
 
   // 3. ── 若今日練習時間已用盡，直接鎖定作答並正常呈現學習進度與紀錄 ──
   const isTimeLocked = () => {

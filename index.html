@@ -191,7 +191,6 @@
 
     /* 👨‍🏫 教師專屬動態工作區樣式 (原位切換，全響應自適應 & 8px 邊距) */
     #teacher-portal-card {
-      padding: 8px !important;
       width: 100% !important;
       max-width: 100% !important;
       box-sizing: border-box !important;
@@ -435,44 +434,107 @@
     }
 
     #teacher-portal-card {
-      padding: 14px 8px 8px 8px !important;
+      padding: 24px 22px 22px !important;
+      border-radius: 24px !important;
+      border: 1px solid var(--line) !important;
+      background: var(--card) !important;
+      box-shadow: var(--shadow) !important;
+      min-height: 360px !important;
+      position: relative !important;
+      overflow: hidden !important;
+      margin: 0 0 14px !important;
+    }
+    #teacher-portal-card::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 6px;
+      background: linear-gradient(90deg, var(--catA), var(--catB), var(--catC), var(--catD), var(--catE));
+      z-index: 1;
     }
     .tp-nav-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      display: flex;
+      flex-wrap: wrap;
       gap: 8px !important;
-      margin-top: 0 !important;
-      margin-bottom: 8px !important;
-    }
-    @media (min-width: 768px) {
-      .tp-nav-grid {
-        grid-template-columns: repeat(4, 1fr);
-      }
+      margin: 0 0 14px !important;
+      width: 100%;
+      box-sizing: border-box;
     }
     .tp-nav-card {
-      user-select: none;
+      flex: 1 1 135px;
+      min-width: 105px;
+      border: 1.5px solid var(--line) !important;
+      background: var(--card) !important;
+      border-radius: 13px !important;
+      padding: 9px 8px !important;
+      cursor: pointer;
+      text-align: center;
+      font-weight: 700;
+      color: var(--ink2) !important;
+      font-size: 13px !important;
+      transition: transform .12s, border-color .12s, background .12s, box-shadow .12s !important;
       box-sizing: border-box;
-      width: 100%;
-      border: 2px solid var(--line) !important;
-      transform: none !important;
-      transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease !important;
+      user-select: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+    }
+    .tp-nav-card .tp-nav-icon {
+      font-size: 20px;
+      display: block;
+      line-height: 1.3;
+      margin-bottom: 2px;
+    }
+    .tp-nav-card .tp-nav-label {
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.3;
+      white-space: nowrap;
     }
     .tp-nav-card:hover {
+      transform: translateY(-1px) !important;
       border-color: var(--sky, #0284c7) !important;
-      transform: none !important;
     }
     .tp-nav-card:active {
-      transform: none !important;
+      transform: translateY(1px) !important;
     }
     .tp-nav-card.active {
-      border: 2px solid var(--violet, #6366f1) !important;
-      background: rgba(99, 102, 241, 0.08) !important;
-      box-shadow: 0 3px 12px rgba(99, 102, 241, 0.18) !important;
-      transform: none !important;
+      border-color: var(--violet, #6C4CE0) !important;
+      background: #F1EDFF !important;
+      color: var(--violet-d, #4C1D95) !important;
+      box-shadow: 0 2px 8px rgba(108,76,224,.15) !important;
     }
-    .tp-nav-card {
-      background: var(--card, #ffffff) !important;
-      border: 2px solid var(--line, #E7E9F5) !important;
+    @media (max-width: 580px) {
+      .tp-nav-card {
+        flex: 1 1 calc(50% - 8px);
+        min-width: 115px;
+        padding: 10px 6px !important;
+        font-size: 13px !important;
+      }
+    }
+    @media (max-width: 420px) {
+      .tp-nav-card {
+        flex: 1 1 calc(50% - 6px);
+        font-size: 12.5px !important;
+        padding: 9px 4px !important;
+      }
+    }
+    @media (max-width: 320px) {
+      .tp-nav-card {
+        flex: 1 1 100%;
+      }
+    }
+    [data-theme="dark"] .tp-nav-card {
+      background: #181C2A !important;
+      border-color: #262C42 !important;
+      color: #A5B0CF !important;
+    }
+    [data-theme="dark"] .tp-nav-card.active {
+      background: #232A40 !important;
+      border-color: #818cf8 !important;
+      color: #F0F3FA !important;
     }
 
     /* ⏱️ 使用時間管理 4 個次級導航方塊 (比照指定單字導航卡片，寬螢幕同行，窄螢幕兩行) */
@@ -877,27 +939,27 @@
       </div>
 
       <!-- 👨‍🏫 教師專屬教學管理中心儀表板 (四合一主工作區，原位切換) -->
-      <div id="teacher-portal-card" class="card" style="display:none; text-align:left; padding:14px 8px 8px 8px; border-radius:16px; background:var(--card); border:1.5px solid var(--line); box-shadow:0 8px 30px rgba(0,0,0,0.06); margin:0 0 16px; width:100%; box-sizing:border-box;">
+      <div id="teacher-portal-card" class="card" style="display:none; text-align:left; padding:24px 22px 22px; border-radius:24px; background:var(--card); border:1px solid var(--line); box-shadow:var(--shadow); margin:0 0 14px; width:100%; box-sizing:border-box;">
         <!-- 頂部四大功能導航方塊 (等寬自適應與上下 8px 間隔) -->
         <div class="tp-nav-grid">
-          <div id="tp-nav-task" class="tp-nav-card active" onclick="switchTeacherTab('task')" style="cursor:pointer; padding:9px 12px; border-radius:12px; display:flex; align-items:center; justify-content:center; gap:8px;">
-            <span style="font-size:18px; line-height:1;">📝</span>
-            <span style="font-size:14px; font-weight:800; color:var(--violet); white-space:nowrap;">指定單字</span>
+          <div id="tp-nav-task" class="tp-nav-card active" onclick="switchTeacherTab('task')">
+            <span class="tp-nav-icon">📝</span>
+            <span class="tp-nav-label">指定單字</span>
           </div>
 
-          <div id="tp-nav-time" class="tp-nav-card" onclick="switchTeacherTab('time')" style="cursor:pointer; padding:9px 12px; border-radius:12px; display:flex; align-items:center; justify-content:center; gap:8px;">
-            <span style="font-size:18px; line-height:1;">⏰</span>
-            <span style="font-size:14px; font-weight:800; color:var(--green, #10b981); white-space:nowrap;">使用時間</span>
+          <div id="tp-nav-time" class="tp-nav-card" onclick="switchTeacherTab('time')">
+            <span class="tp-nav-icon">⏰</span>
+            <span class="tp-nav-label">使用時間</span>
           </div>
 
-          <div id="tp-nav-student" class="tp-nav-card" onclick="switchTeacherTab('student')" style="cursor:pointer; padding:9px 12px; border-radius:12px; display:flex; align-items:center; justify-content:center; gap:8px;">
-            <span style="font-size:18px; line-height:1;">👤</span>
-            <span style="font-size:14px; font-weight:800; color:var(--sky, #0284c7); white-space:nowrap;">個人歷程</span>
+          <div id="tp-nav-student" class="tp-nav-card" onclick="switchTeacherTab('student')">
+            <span class="tp-nav-icon">👤</span>
+            <span class="tp-nav-label">個人歷程</span>
           </div>
 
-          <div id="tp-nav-class" class="tp-nav-card" onclick="switchTeacherTab('class')" style="cursor:pointer; padding:9px 12px; border-radius:12px; display:flex; align-items:center; justify-content:center; gap:8px;">
-            <span style="font-size:18px; line-height:1;">👥</span>
-            <span style="font-size:14px; font-weight:800; color:#eab308; white-space:nowrap;">全班紀錄</span>
+          <div id="tp-nav-class" class="tp-nav-card" onclick="switchTeacherTab('class')">
+            <span class="tp-nav-icon">👥</span>
+            <span class="tp-nav-label">全班紀錄</span>
           </div>
         </div>
 
@@ -911,7 +973,7 @@
 
           <!-- 區塊 3: 個別學生區間歷程調閱選單列 -->
           <div id="tp-panel-student" class="tp-view-panel" style="display:none; background:var(--paper, rgba(0,0,0,0.03)); border:1px solid var(--line); border-radius:12px; padding:8px; width:100%; box-sizing:border-box;">
-            <div style="font-size:14.5px; font-weight:700; color:var(--ink); margin-bottom:12px; display:flex; align-items:center; gap:6px;">
+            <div style="font-size:16.5px; font-weight:800; color:var(--ink); margin-bottom:12px; display:flex; align-items:center; gap:8px;">
               <span>🔍</span> 個別學生學習成果即時調閱
             </div>
             <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
@@ -934,7 +996,7 @@
 
           <!-- 區塊 4: 全班指定範圍記錄 -->
           <div id="tp-panel-class" class="tp-view-panel" style="display:none; background:var(--paper, rgba(0,0,0,0.03)); border:1px solid var(--line); border-radius:12px; padding:8px; width:100%; box-sizing:border-box;">
-            <div style="font-size:14.5px; font-weight:700; color:var(--ink); margin-bottom:12px; display:flex; align-items:center; gap:6px;">
+            <div style="font-size:16.5px; font-weight:800; color:var(--ink); margin-bottom:12px; display:flex; align-items:center; gap:8px;">
               <span>👥</span> 全班指定日期範圍紀錄查詢
             </div>
             <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:14px;">
@@ -1876,6 +1938,11 @@
             localStorage.setItem("user_role", result.role);
             sessionStorage.setItem("current_user", user);
             sessionStorage.setItem("user_role", result.role);
+            
+            localStorage.removeItem("today_task_in_progress");
+            localStorage.removeItem("today_task_in_progress_" + user.toLowerCase());
+            sessionStorage.removeItem("assigned_task");
+            localStorage.removeItem("assigned_task_active");
             applyRoleBasedView(result.role, result);
           }
           if (result.role === "admin" || (result.role === "teacher" && result.isAdmin)) {
@@ -2497,12 +2564,16 @@
               }
             }
             const cacheBuster = Date.now();
-            await new Promise(r => setTimeout(r, 450));
-            await import(`./src/app.js?v=${cacheBuster}`);
+            // 🚀 核心：在載入模組前即切換角色視圖，徹底阻斷未授權作答畫面閃爍
+            applyRoleBasedView(result.role || localStorage.getItem("user_role") || "student", result);
             const _ov = document.getElementById('login-overlay'); if (_ov) { _ov.style.setProperty('display', 'none', 'important'); _ov.classList.add('hidden'); }
             document.body.classList.remove('is-logging-in');
 
-            // 🚀 核心：模組載入後立即套用角色視圖（家長帳號精準隱藏作答區並呈現五大歷程）
+            const cacheBuster = Date.now();
+            await new Promise(r => setTimeout(r, 150));
+            await import(`./src/app.js?v=${cacheBuster}`);
+
+            // 模組載入後二次確保角色視圖精準生效
             applyRoleBasedView(result.role || localStorage.getItem("user_role") || "student", result);
 
             // ★ 學生完整載入進度、單字庫與畫面後，才正式啟動每日練習倒數計時（家長與教師豁免）
