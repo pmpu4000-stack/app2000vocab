@@ -479,9 +479,9 @@
       border: 1.5px solid var(--line) !important;
       background: var(--card) !important;
       border-radius: 13px !important;
-      padding: 9px 8px !important;
+      padding: 8px 12px !important;
       cursor: pointer;
-      text-align: center;
+      text-align: left;
       font-weight: 700;
       color: var(--ink2) !important;
       font-size: 13px !important;
@@ -489,22 +489,26 @@
       box-sizing: border-box;
       user-select: none;
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       align-items: center;
       justify-content: center;
-      gap: 2px;
+      gap: 10px;
     }
     .tp-nav-card .tp-nav-icon {
-      font-size: 20px;
-      display: block;
-      line-height: 1.3;
-      margin-bottom: 2px;
+      font-size: 22px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      margin-bottom: 0;
+      flex-shrink: 0;
     }
     .tp-nav-card .tp-nav-label {
-      font-size: 13px;
+      font-size: 13.5px;
       font-weight: 700;
-      line-height: 1.3;
-      white-space: nowrap;
+      line-height: 1.25;
+      text-align: left;
+      white-space: normal;
     }
     .tp-nav-card:hover {
       transform: translateY(-1px) !important;
@@ -957,22 +961,22 @@
         <div class="tp-nav-grid">
           <div id="tp-nav-task" class="tp-nav-card active" onclick="switchTeacherTab('task')">
             <span class="tp-nav-icon">📝</span>
-            <span class="tp-nav-label">指定單字</span>
+            <span class="tp-nav-label">指定<br>單字</span>
           </div>
 
           <div id="tp-nav-time" class="tp-nav-card" onclick="switchTeacherTab('time')">
             <span class="tp-nav-icon">⏰</span>
-            <span class="tp-nav-label">使用時間</span>
+            <span class="tp-nav-label">使用<br>時間</span>
           </div>
 
           <div id="tp-nav-student" class="tp-nav-card" onclick="switchTeacherTab('student')">
             <span class="tp-nav-icon">👤</span>
-            <span class="tp-nav-label">個人歷程</span>
+            <span class="tp-nav-label">個人<br>歷程</span>
           </div>
 
           <div id="tp-nav-class" class="tp-nav-card" onclick="switchTeacherTab('class')">
             <span class="tp-nav-icon">👥</span>
-            <span class="tp-nav-label">全班紀錄</span>
+            <span class="tp-nav-label">全班<br>紀錄</span>
           </div>
         </div>
 
