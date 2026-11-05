@@ -642,7 +642,8 @@ function getTeacherTasksCached_(ss) {
           mode     : String(data[i][3] || "抽測").trim(),
           countVal : String(data[i][4] || "ALL").trim().toUpperCase(),
           enabled  : data[i][5] === true || String(data[i][5]).trim().toUpperCase() === "TRUE",
-          taskDate : data[i][6] ? formatStandardDateYMD(data[i][6]) : ""
+          taskDate : data[i][6] ? formatStandardDateYMD(data[i][6]) : "",
+          targetStudents: String(data[i][7] || "").trim()
         });
       }
     }
