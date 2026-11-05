@@ -1580,14 +1580,7 @@
       classSel.innerHTML = '<option value="">-- 請選擇班級 --</option>' + 
         sortedClasses.map(c => `<option value="${c}">${c} 班</option>`).join("");
 
-      const cSet = new Set();
-      list.forEach(s => {
-        const c = String(s.className || "").trim();
-        if (c) cSet.add(c);
-      });
-      const sortedClasses = Array.from(cSet).sort();
-      classSel.innerHTML = '<option value="">-- 請選擇班級 --</option>' + 
-        sortedClasses.map(c => `<option value="${c}">${c} 班</option>`).join("");
+
 
       classSel.onchange = () => {
         const selC = classSel.value;
