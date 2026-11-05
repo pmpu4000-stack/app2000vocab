@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>?��?小特�?· Spelling Agent</title>
+  <title>拼字小特工 · Spelling Agent</title>
   <script>
     (function() {
       try {
@@ -25,7 +25,7 @@
     })();
   </script>
   <style>
-    /* 立即套用深色主�??��?底色，�?絕白?��???(Zero FOUC) */
+    /* 立即套用深色主題基礎底色，杜絕白光閃爍 (Zero FOUC) */
     html[data-theme="dark"],
     html[data-theme="dark"] body {
       background-color: #141826 !important;
@@ -58,7 +58,7 @@
       background: rgba(255, 255, 255, 0.06) !important;
     }
 
-    /* ?��?護眼模�??�渡：�??��??�刺?��? (Smooth Theme Dimmer Transition) */
+    /* 柔和護眼模式過渡：消除開燈刺眼感 (Smooth Theme Dimmer Transition) */
     html.theme-transitioning,
     html.theme-transitioning *,
     html.theme-transitioning *::before,
@@ -75,7 +75,7 @@
       animation-timing-function: cubic-bezier(0.25, 1, 0.5, 1);
     }
   
-    /* ?��?��?�‍�??家長專屬?��?視�??�濾 (依�?求隱?��?答相?��?件�?保�?五大歷�??��?) */
+    /* 👨‍👩‍👧 家長專屬動態視圖過濾 (依需求隱藏作答相關元件，保留五大歷程方塊) */
     body.role-parent #stat-daily-timer,
     body.role-parent #stat-streak-freeze,
     body.role-parent #btn-upload,
@@ -129,7 +129,7 @@
       display: block !important;
     }
 
-    /* ?��?��???�師專屬?��?視�??�濾 (比照家長?�面?��?作�??�件，顯示�?學管?�中�? */
+    /* 👨‍🏫 教師專屬動態視圖過濾 (比照家長畫面隱藏作答元件，顯示教學管理中心) */
     body.role-teacher #levelbar,
     body.role-teacher #modes,
     body.role-teacher #card,
@@ -193,7 +193,7 @@
       display: block !important;
     }
 
-    /* ?��?��???�師專屬?��?工�??��?? (?��??��?，全?��??�適??& 8px ?��?) */
+    /* 👨‍🏫 教師專屬動態工作區樣式 (原位切換，全響應自適應 & 8px 邊距) */
     #teacher-portal-card {
       width: 100% !important;
       max-width: 100% !important;
@@ -251,7 +251,7 @@
       padding: 0 !important;
       margin: 0 !important;
     }
-    /* 移除多層?��?框�?，使介面?�透乾�?*/
+    /* 移除多層冗餘框線，使介面通透乾淨 */
     body.role-teacher #teacherTaskModal div[style*="border:1px solid #E7E9F5"],
     body.role-teacher #teacherTaskModal div[style*="border: 1px solid #E7E9F5"],
     body.role-teacher #timeManagementModal div[style*="border:1px solid #E7E9F5"],
@@ -269,7 +269,7 @@
       display: none !important;
     }
 
-    /* 淺色?�深?�模式通用?�制?�自?��? */
+    /* 淺色與深色模式通用控制項自適應 */
     #teacherTaskModal input,
     #teacherTaskModal select,
     #timeManagementModal input,
@@ -282,7 +282,7 @@
       border-radius: 8px !important;
     }
 
-    /* ?��?庫勾?��?籤自?��??�模�?*/
+    /* 單字庫勾選標籤自適應雙模式 */
     .picker-word-item {
       background: var(--card, #ffffff) !important;
       border: 1px solid var(--line, #e2e8f0) !important;
@@ -335,7 +335,7 @@
       outline: none !important;
     }
 
-    /* ?�戲網�??��??�音?��?例句?�音?�大小�??��??��??�直對�? */
+    /* 遊戲網頁單字發音鈕與例句發音鈕大小完全一致且垂直對齊 */
     .card .word-speech-btn,
     .sent-speaker-btn {
       width: 32px !important;
@@ -357,7 +357,7 @@
     }
 
     
-    /* ?�覽測�? 1:1 ?��??��??��?空�?護樣�?*/
+    /* 預覽測驗 1:1 原生卡片與挖空保護樣式 */
     #t-preview-quiz-card .card.preview-native-card {
       display: flex !important;
       position: relative !important;
@@ -410,7 +410,7 @@
     }
 
     
-    /* ?�師專�??��??��?一律嚴?�為 8px */
+    /* 教師專區方塊間隔一律嚴格為 8px */
     #t-preview-quiz-card,
     .tp-task-notice-box,
     #t-preview-quiz-card .card.preview-native-card {
@@ -421,7 +421,7 @@
       margin-bottom: 8px !important;
     }
 
-    /* ?�師?��?快捷?��??��?籤�?模�??��? */
+    /* 教師出題快捷按鈕與標籤雙模式適配 */
     .t-btn-action,
     #t-btn-random10,
     #t-btn-random20,
@@ -475,7 +475,7 @@
       color: #F0F3FA !important;
     }
 
-    /* 深色模�?深層?��?調色 */
+    /* 深色模式深層自動調色 */
     [data-theme="dark"] #teacherTaskModal,
     [data-theme="dark"] #timeManagementModal,
     [data-theme="dark"] #tp-workspace-container {
@@ -662,7 +662,7 @@
       color: #F0F3FA !important;
     }
 
-    /* ?��? 使用?��?管�? 4 ?�次級�??�方�?(比照?��??��?導航?��?，寬?��??��?，�??��??��?) */
+    /* ⏱️ 使用時間管理 4 個次級導航方塊 (比照指定單字導航卡片，寬螢幕同行，窄螢幕兩行) */
     .tm-nav-grid {
       display: grid !important;
       grid-template-columns: repeat(2, 1fr) !important;
@@ -715,7 +715,7 @@
       color: #818cf8 !important;
     }
 
-    /* ?���??�個單字�??�篩?��?籤晶?��?模�??�彩?��? */
+    /* 🏷️ 六個單字關卡篩選標籤晶片雙模式色彩優化 */
     .btn-picker-chip {
       padding: 5px 12px !important;
       font-size: 12.5px !important;
@@ -754,7 +754,7 @@
       box-shadow: 0 2px 8px rgba(99, 102, 241, 0.45) !important;
     }
 
-    /* ?���??��??�選?��?�?? (?�模式適?? */
+    /* 🏷️ 班級勾選晶片樣式 (雙模式適應) */
     .task-class-chip {
       display: inline-flex !important;
       align-items: center !important;
@@ -779,7 +779,7 @@
       color: #cbd5e1 !important;
     }
 
-    /* ?? ?��?標�??��??�模式適??*/
+    /* 📚 單字標題文字雙模式適應 */
     .t-word-heading {
       color: var(--ink, #1e293b) !important;
     }
@@ -787,7 +787,7 @@
       color: #ffffff !important;
     }
 
-    /* ?�� 淺色模�?下�?字�?齊學習歷程�?�?(深色墨水高�??�度，�??�蒼?�灰�? */
+    /* 🎨 淺色模式下文字對齊學習歷程檔案 (深色墨水高清晰度，消除蒼白灰字) */
     :root:not([data-theme="dark"]) #teacherTaskModal label,
     :root:not([data-theme="dark"]) #timeManagementModal label,
     :root:not([data-theme="dark"]) #tp-workspace-container label {
@@ -830,152 +830,157 @@
 </head>
 <body class="is-logging-in">
 
-  <!-- ?�入驗�??�罩 -->
+  <!-- 登入驗證遮罩 -->
   <div id="login-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:var(--paper, #F6F7FB); z-index:9999; display:flex; justify-content:center; align-items:center;">
     <div style="background:var(--card, #ffffff); padding:36px 32px; border-radius:24px; box-shadow:0 20px 45px -10px rgba(35,42,77,0.22); width:320px; text-align:center; border:1px solid var(--line, #E7E9F5); position:relative;">
-      <!-- ?�入視�??��??��? -->
-      <button type="button" id="btn-login-theme-toggle" title="?��?深色/淺色模�?"
+      <!-- 登入視窗切換按鈕 -->
+      <button type="button" id="btn-login-theme-toggle" title="切換深色/淺色模式"
         style="position:absolute; top:16px; right:16px; background:rgba(108,76,224,0.08); border:1px solid var(--line, #E7E9F5); border-radius:20px; padding:5px 11px; font-size:12.5px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:4px; color:var(--ink2);">
-        <span class="theme-icon">??</span><span class="theme-text">深色</span>
+        <span class="theme-icon">🌙</span><span class="theme-text">深色</span>
       </button>
-      <div style="font-size:40px; margin-bottom:8px;">?��</div>
-      <h2 style="color:var(--ink, #232A4D); margin:0 0 8px 0; font-size:22px; font-weight:800;">?��?小特�?/h2>
-      <p style="color:var(--ink2, #5A6183); font-size:13px; margin-bottom:18px; line-height:1.5;">請輸?�帳?��?密碼?�入</p>
+      <div style="font-size:40px; margin-bottom:8px;">🎯</div>
+      <h2 style="color:var(--ink, #232A4D); margin:0 0 8px 0; font-size:22px; font-weight:800;">拼字小特工</h2>
+      <p style="color:var(--ink2, #5A6183); font-size:13px; margin-bottom:18px; line-height:1.5;">請輸入帳號與密碼登入</p>
       
       <div class="login-box-group">
-        <input type="text" id="login-user" placeholder="帳�?" style="width:100%; padding:13px 14px; margin:0; border:1.5px solid var(--line, #E7E9F5); border-radius:12px; box-sizing:border-box; font-size:15px; outline:none; text-align:center; transition:all .2s; background:var(--paper, #F6F7FB); color:var(--ink, #232A4D);">
+        <input type="text" id="login-user" placeholder="帳號" style="width:100%; padding:13px 14px; margin:0; border:1.5px solid var(--line, #E7E9F5); border-radius:12px; box-sizing:border-box; font-size:15px; outline:none; text-align:center; transition:all .2s; background:var(--paper, #F6F7FB); color:var(--ink, #232A4D);">
         
         <input type="password" id="login-pass" placeholder="密碼" style="width:100%; padding:13px 14px; margin:0; border:1.5px solid var(--line, #E7E9F5); border-radius:12px; box-sizing:border-box; font-size:15px; outline:none; text-align:center; transition:all .2s; background:var(--paper, #F6F7FB); color:var(--ink, #232A4D);">
         
         <button type="button" id="login-btn" 
           style="width:100%; padding:13px; margin:0; background:#6C4CE0; color:white; border:none; border-radius:12px; font-weight:700; font-size:15px; cursor:pointer; box-shadow:0 8px 20px -6px rgba(108,76,224,0.45); transition:all 0.2s;">
-          確�??�入
+          確認登入
         </button>
 
         <div id="login-msg" class="login-status-banner">&nbsp;</div>
 
         <div class="login-study-note">
-          <span class="note-icon">?��</span>
+          <span class="note-icon">💡</span>
           <div class="note-body">
-            <div>?�入將�??�班級座?��?答�??�績</div>
-            <div>作為?��?科學習歷程�??�學輔�?使用</div>
+            <div>登入將記錄班級座號與答題成績</div>
+            <div>作為英語科學習歷程與教學輔導使用</div>
           </div>
         </div>
 
         <div class="login-upload-note">
-          <span class="note-icon">?��</span>
+          <span class="note-icon">🌱</span>
           <div class="note-body">
-            <div>完�?作�??��??��??��??�戲??/div>
-            <div>請�?必�?點�??��??��??�」進�?存�?</div>
+            <div>完成作答或要暫時離開遊戲前</div>
+            <div>請務必先點擊「上傳紀錄」進行存檔</div>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ?��??��?段阻?�遮�?-->
+  <!-- 非開放時段阻擋遮罩 -->
   <div id="curfew-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(35,42,77,0.45); z-index:99999; backdrop-filter:blur(8px); justify-content:center; align-items:center; text-align:center; padding:20px; box-sizing:border-box;">
     <div style="background:#ffffff; border:1px solid #E7E9F5; border-radius:24px; padding:36px 28px; max-width:440px; width:100%; box-shadow:0 24px 50px -10px rgba(35,42,77,0.25);">
-      <div style="font-size:48px; margin-bottom:12px;">??</div>
-      <h2 style="color:#232A4D; margin:0 0 10px 0; font-size:22px; font-weight:800;">休息?��??��?�?/h2>
+      <div style="font-size:48px; margin-bottom:12px;">🌙</div>
+      <h2 style="color:#232A4D; margin:0 0 10px 0; font-size:22px; font-weight:800;">休息時間到囉！</h2>
       <p style="color:#5A6183; font-size:14.5px; line-height:1.6; margin-bottom:16px;">
-        ?��??�系統�??��?答�??��?br>
-        ?��??�放練�??��???<b id="curfew-time-range" style="color:#6C4CE0;">07:30 ??22:00</b>??br>
-        系統已自?�為你儲存學習進度，�?好好休息?��??��?�?      </p>
+        目前非系統開放作答時間。<br>
+        您的開放練習時間為 <b id="curfew-time-range" style="color:#6C4CE0;">07:30 至 22:00</b>。<br>
+        系統已自動為你儲存學習進度，請好好休息放鬆眼睛！
+      </p>
       <div class="curfew-note-box" style="padding:10px 14px; border-radius:12px; font-size:12.5px; margin-bottom:20px; line-height:1.5;">
-        ?�� ?��??��?學�??�求�?請�?任課?�師?��??�調?�個別作�??��??�解?��??��?      </div>
+        💡 若有特殊學習需求，請請任課老師於後台調整個別作答時間或解除限制。
+      </div>
       <button onclick="location.reload()" style="padding:12px 28px; background:#6C4CE0; color:#fff; border:none; border-radius:12px; font-weight:700; font-size:14px; cursor:pointer; box-shadow:0 8px 20px -6px rgba(108,76,224,0.45);">
-        ?? ?�新?��?
+        🔄 重新整理
       </button>
     </div>
   </div>
 
   <canvas id="fx"></canvas>
 
-    <!-- ?��?��?�‍�??家長專屬學�?歷�??�面 (?��??�網?�直?��??��??? -->
+    <!-- 👨‍👩‍👧 家長專屬學習歷程畫面 (在遊戲網頁直接切換呈現) -->
   <div id="parent-portal-screen" style="display:none; max-width:960px; margin:0 auto; padding:24px 16px 60px; box-sizing:border-box;">
-    <!-- ?�部資�???-->
+    <!-- 頂部資訊列 -->
     <header style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:24px; padding-bottom:16px; border-bottom:1.5px solid var(--line, #E7E9F5);">
       <div style="display:flex; align-items:center; gap:12px;">
         <div style="width:44px; height:44px; border-radius:12px; background:linear-gradient(135deg, #6C4CE0, #4A2BB0); color:#fff; display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:800; box-shadow:0 6px 14px -3px rgba(108,76,224,0.4);">
-          ?��?��?�‍�??        </div>
+          👨‍👩‍👧
+        </div>
         <div>
           <h1 style="font-size:20px; font-weight:800; margin:0; color:var(--ink, #232A4D); display:flex; align-items:center; gap:8px;">
-            ?��?小特�?<span style="font-size:12.5px; font-weight:700; padding:3px 9px; border-radius:8px; background:rgba(108,76,224,0.1); color:var(--violet, #6C4CE0);">家長專屬視�?</span>
+            拼字小特工 <span style="font-size:12.5px; font-weight:700; padding:3px 9px; border-radius:8px; background:rgba(108,76,224,0.1); color:var(--violet, #6C4CE0);">家長專屬視圖</span>
           </h1>
           <div style="font-size:13px; color:var(--ink2, #5A6183); margin-top:3px;">
-            家長�?b id="pp-parent-name" style="color:var(--ink, #232A4D);">-</b> �?
-            子女�?b id="pp-student-name" style="color:#2563eb;">-</b> (<span id="pp-student-class">-</span> <span id="pp-student-user">-</span>)
+            家長：<b id="pp-parent-name" style="color:var(--ink, #232A4D);">-</b> ｜ 
+            子女：<b id="pp-student-name" style="color:#2563eb;">-</b> (<span id="pp-student-class">-</span> <span id="pp-student-user">-</span>)
           </div>
         </div>
       </div>
       <div style="display:flex; align-items:center; gap:10px;">
         <button id="pp-btn-refresh" type="button" style="display:flex; align-items:center; gap:6px; padding:9px 16px; border-radius:10px; border:1px solid var(--line, #E7E9F5); background:var(--card, #fff); color:var(--ink, #232A4D); font-weight:700; font-size:13.5px; cursor:pointer; transition:all .2s; box-shadow:0 2px 6px rgba(0,0,0,0.04);">
-          ?? ?�新?��?
+          🔄 重新整理
         </button>
         <button id="pp-btn-logout" type="button" style="display:flex; align-items:center; gap:6px; padding:9px 16px; border-radius:10px; border:none; background:#ef4444; color:#fff; font-weight:700; font-size:13.5px; cursor:pointer; transition:all .2s; box-shadow:0 4px 12px -3px rgba(239,68,68,0.4);">
-          ?�� ?�出
+          🚪 登出
         </button>
       </div>
     </header>
 
-    <!-- ?�?��?要�??��? -->
+    <!-- 狀態摘要三卡片 -->
     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:16px; margin-bottom:24px;">
-      <!-- 今日任�???-->
+      <!-- 今日任務卡 -->
       <div style="background:var(--card, #fff); border:1.5px solid var(--line, #E7E9F5); border-radius:16px; padding:18px 20px; box-shadow:0 6px 16px -4px rgba(35,42,77,0.06);">
         <div style="font-size:13px; font-weight:700; color:var(--ink2, #5A6183); margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
-          <span>?? 今日?��?測�?</span>
+          <span>📌 今日指定測驗</span>
           <span id="pp-today-badge" style="font-size:11.5px; padding:2px 7px; border-radius:6px; font-weight:700; background:#f1f5f9; color:#475569;">-</span>
         </div>
         <div id="pp-today-score" style="font-size:26px; font-weight:800; color:var(--ink, #232A4D); line-height:1.2;">-</div>
         <div id="pp-today-desc" style="font-size:12.5px; color:var(--ink2, #5A6183); margin-top:6px;">-</div>
       </div>
 
-      <!-- 累�?作�?統�???-->
+      <!-- 累計作答統計卡 -->
       <div style="background:var(--card, #fff); border:1.5px solid var(--line, #E7E9F5); border-radius:16px; padding:18px 20px; box-shadow:0 6px 16px -4px rgba(35,42,77,0.06);">
-        <div style="font-size:13px; font-weight:700; color:var(--ink2, #5A6183); margin-bottom:8px;">?�� 累�?作�?概�?</div>
+        <div style="font-size:13px; font-weight:700; color:var(--ink2, #5A6183); margin-bottom:8px;">🎯 累計作答概況</div>
         <div id="pp-total-answered" style="font-size:26px; font-weight:800; color:#2563eb; line-height:1.2;">-</div>
-        <div id="pp-total-accuracy" style="font-size:12.5px; color:var(--ink2, #5A6183); margin-top:6px;">平�?�???��?-</div>
+        <div id="pp-total-accuracy" style="font-size:12.5px; color:var(--ink2, #5A6183); margin-top:6px;">平均正答率：-</div>
       </div>
 
-      <!-- ????��??��?級卡 -->
+      <!-- 連勝與闖關等級卡 -->
       <div style="background:var(--card, #fff); border:1.5px solid var(--line, #E7E9F5); border-radius:16px; padding:18px 20px; box-shadow:0 6px 16px -4px rgba(35,42,77,0.06);">
-        <div style="font-size:13px; font-weight:700; color:var(--ink2, #5A6183); margin-bottom:8px;">?�� ?��??��??�單�?/div>
+        <div style="font-size:13px; font-weight:700; color:var(--ink2, #5A6183); margin-bottom:8px;">🔥 闖關與掌握單字</div>
         <div id="pp-mastered-words" style="font-size:26px; font-weight:800; color:#10b981; line-height:1.2;">-</div>
-        <div id="pp-streak-info" style="font-size:12.5px; color:var(--ink2, #5A6183); margin-top:6px;">???學�?天數�?</div>
+        <div id="pp-streak-info" style="font-size:12.5px; color:var(--ink2, #5A6183); margin-top:6px;">連續學習天數：-</div>
       </div>
     </div>
 
-    <!-- 歷�?表格?��? -->
+    <!-- 歷程表格卡片 -->
     <div style="background:var(--card, #fff); border:1.5px solid var(--line, #E7E9F5); border-radius:16px; padding:20px; box-shadow:0 6px 16px -4px rgba(35,42,77,0.06); margin-bottom:24px;">
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:16px;">
         <h3 style="margin:0; font-size:16.5px; font-weight:800; color:var(--ink, #232A4D); display:flex; align-items:center; gap:6px;">
-          <span>??</span> 子女學�??�測驗歷程�?�?        </h3>
-        <input type="text" id="pp-history-filter" placeholder="?��??��??�任?��?�?.." style="padding:7px 12px; border:1px solid var(--line, #E7E9F5); border-radius:8px; font-size:13px; outline:none; background:var(--paper, #F6F7FB); color:var(--ink, #232A4D); width:200px;">
+          <span>📊</span> 子女學習與測驗歷程明細
+        </h3>
+        <input type="text" id="pp-history-filter" placeholder="搜尋日期或任務名稱..." style="padding:7px 12px; border:1px solid var(--line, #E7E9F5); border-radius:8px; font-size:13px; outline:none; background:var(--paper, #F6F7FB); color:var(--ink, #232A4D); width:200px;">
       </div>
       <div style="overflow-x:auto;">
         <table style="width:100%; border-collapse:collapse; font-size:13.5px; text-align:left;">
           <thead>
             <tr style="border-bottom:1.5px solid var(--line, #E7E9F5); color:var(--ink2, #5A6183);">
-              <th style="padding:10px 8px; font-weight:700;">?��?</th>
-              <th style="padding:10px 8px; font-weight:700;">練�?/測�??�目</th>
-              <th style="padding:10px 8px; font-weight:700; text-align:center;">作�?題數</th>
-              <th style="padding:10px 8px; font-weight:700; text-align:center;">答�?題數</th>
-              <th style="padding:10px 8px; font-weight:700; text-align:center;">�????/th>
-              <th style="padding:10px 8px; font-weight:700; text-align:right;">?�?��?�?/th>
+              <th style="padding:10px 8px; font-weight:700;">日期</th>
+              <th style="padding:10px 8px; font-weight:700;">練習/測驗項目</th>
+              <th style="padding:10px 8px; font-weight:700; text-align:center;">作答題數</th>
+              <th style="padding:10px 8px; font-weight:700; text-align:center;">答對題數</th>
+              <th style="padding:10px 8px; font-weight:700; text-align:center;">正答率</th>
+              <th style="padding:10px 8px; font-weight:700; text-align:right;">狀態評定</th>
             </tr>
           </thead>
           <tbody id="pp-history-tbody">
-            <tr><td colspan="6" style="text-align:center; padding:24px; color:var(--ink2, #5A6183);">尚無歷�?資�?</td></tr>
+            <tr><td colspan="6" style="text-align:center; padding:24px; color:var(--ink2, #5A6183);">尚無歷程資料</td></tr>
           </tbody>
         </table>
       </div>
     </div>
 
-    <!-- 弱�??��?清單?��? -->
+    <!-- 弱項單字清單卡片 -->
     <div id="pp-weak-section" style="background:var(--card, #fff); border:1.5px solid var(--line, #E7E9F5); border-radius:16px; padding:20px; box-shadow:0 6px 16px -4px rgba(35,42,77,0.06); display:none;">
       <h3 style="margin:0 0 12px 0; font-size:16.5px; font-weight:800; color:var(--ink, #232A4D); display:flex; align-items:center; gap:6px;">
-        <span>?��</span> 建議?�強練�?之單�?      </h3>
+        <span>💡</span> 建議加強練習之單字
+      </h3>
       <div id="pp-weak-words-list" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
     </div>
   </div>
@@ -983,54 +988,54 @@
   <div class="app">
     <header>
       <div class="brand">
-        <div class="logo">??/div>
+        <div class="logo">拼</div>
         <div class="title">
-          <h1>?��?小特�?<span style="font-size:13px;color:var(--ink3)">Spelling Agent</span></h1>
-          <p>?�解?��??��??�卡，�?�?10 ?��?</p>
+          <h1>拼字小特工 <span style="font-size:13px;color:var(--ink3)">Spelling Agent</span></h1>
+          <p>破解英文拼字關卡，每天 10 分鐘</p>
         </div>
       </div>
       <div class="stats">
-        <!-- 學�??�人?�?�群組�?帳�??��??��? -->
-        <div class="stats-group stats-status-group" aria-label="?�人?�??>
-          <div class="stat user" id="stat-user" title="?��??�入帳�?">
+        <!-- 學生個人狀態群組（帳號、時間） -->
+        <div class="stats-group stats-status-group" aria-label="個人狀態">
+          <div class="stat user" id="stat-user" title="目前登入帳號">
             <b id="s-user" class="tnum">-</b>
-            <span>?�入帳�?</span>
+            <span>登入帳號</span>
           </div>
-          <div class="stat timer" id="stat-daily-timer" style="cursor:pointer; display:none;" title="今日?��?練�??��?（�??�查?�說?��?">
+          <div class="stat timer" id="stat-daily-timer" style="cursor:pointer; display:none;" title="今日剩餘練習時間（點擊查看說明）">
             <b id="s-timer-val" class="tnum" style="color:var(--violet);">10:00</b>
-            <span>今日?��??��?</span>
+            <span>今日剩餘時間</span>
           </div>
         </div>
 
-        <!-- 系統?��??��?好設定群組�?存�??�顯示�?觀?��?師工?��? -->
-        <div class="stats-group stats-action-group" aria-label="快捷?��?">
-          <div class="stat" id="btn-teacher-picker" style="cursor:pointer; display:none; background:rgba(108,76,224,0.08); border:1.5px solid rgba(108,76,224,0.3); border-radius:12px;" title="?�師/管�??�出題�??��?定日?�出題�?">
-            <b class="tnum" style="color:var(--violet)">??</b>
-            <span style="color:var(--violet); font-weight:700;">每日測�??��?</span>
+        <!-- 系統操作與偏好設定群組（存檔、顯示外觀、教師工具） -->
+        <div class="stats-group stats-action-group" aria-label="快捷操作">
+          <div class="stat" id="btn-teacher-picker" style="cursor:pointer; display:none; background:rgba(108,76,224,0.08); border:1.5px solid rgba(108,76,224,0.3); border-radius:12px;" title="老師/管理員出題（可指定日期出題）">
+            <b class="tnum" style="color:var(--violet)">📝</b>
+            <span style="color:var(--violet); font-weight:700;">每日測驗出題</span>
           </div>
-          <div class="stat" id="btn-time-management" style="cursor:pointer; display:none; background:rgba(47,180,124,0.1); border:1.5px solid rgba(47,180,124,0.35); border-radius:12px;" title="學�?使用?��?管�??�解?��???>
-            <b class="tnum" style="color:var(--green)">??/b>
-            <span style="color:var(--green); font-weight:700;">使用?��?管�?</span>
+          <div class="stat" id="btn-time-management" style="cursor:pointer; display:none; background:rgba(47,180,124,0.1); border:1.5px solid rgba(47,180,124,0.35); border-radius:12px;" title="學生使用時間管理與解除限制">
+            <b class="tnum" style="color:var(--green)">⏰</b>
+            <span style="color:var(--green); font-weight:700;">使用時間管理</span>
           </div>
-          <div class="stat upload" id="btn-upload" onclick="if(window.uploadLocalStorageData)window.uploadLocalStorageData(false);" style="cursor:pointer;" title="點�?上傳?��?學�??�度">
-            <b id="s-upload" class="tnum">?��</b>
-            <span>上傳紀??/span>
+          <div class="stat upload" id="btn-upload" onclick="if(window.uploadLocalStorageData)window.uploadLocalStorageData(false);" style="cursor:pointer;" title="點擊上傳目前學習進度">
+            <b id="s-upload" class="tnum">🌱</b>
+            <span>上傳紀錄</span>
           </div>
-          <div class="stat theme" id="btn-theme-toggle" style="cursor:pointer; display:flex;" title="點�??��?深色/淺色模�?">
-            <b id="s-theme-icon" class="tnum">??</b>
+          <div class="stat theme" id="btn-theme-toggle" style="cursor:pointer; display:flex;" title="點擊切換深色/淺色模式">
+            <b id="s-theme-icon" class="tnum">🌙</b>
             <span id="s-theme-text">深色</span>
           </div>
-          <div class="stat font-size-btn" id="btn-font-dec" style="cursor:pointer;" title="縮�?字�? (A-)">
+          <div class="stat font-size-btn" id="btn-font-dec" style="cursor:pointer;" title="縮小字體 (A-)">
             <b class="tnum">A-</b>
-            <span>縮�?</span>
+            <span>縮小</span>
           </div>
-          <div class="stat font-size-btn" id="btn-font-inc" style="cursor:pointer;" title="?�大字�? (A+)">
+          <div class="stat font-size-btn" id="btn-font-inc" style="cursor:pointer;" title="放大字體 (A+)">
             <b class="tnum">A+</b>
-            <span>?�大</span>
+            <span>放大</span>
           </div>
-          <div class="stat fullscreen-btn" id="btn-fullscreen-toggle" style="cursor:pointer; display:flex;" title="?�螢幕�?注�?答模�?(?��?網�??��?工具??">
-            <b id="s-fullscreen-icon" class="tnum">??/b>
-            <span id="s-fullscreen-text">?�螢�?/span>
+          <div class="stat fullscreen-btn" id="btn-fullscreen-toggle" style="cursor:pointer; display:flex;" title="全螢幕專注作答模式 (隱藏網址列與工具列)">
+            <b id="s-fullscreen-icon" class="tnum">⛶</b>
+            <span id="s-fullscreen-text">全螢幕</span>
           </div>
         </div>
       </div>
@@ -1040,133 +1045,136 @@
     <div id="screen-play">
       <div class="session" id="session" style="display:none;" hidden></div>
 
-      <nav class="levelbar" id="levelbar" aria-label="?��??�卡"></nav>
+      <nav class="levelbar" id="levelbar" aria-label="選擇關卡"></nav>
 
-      <!-- 每日練�??��??�止?�示?��? (?��??��?顯示 Progress ?��?) -->
+      <!-- 每日練習時間截止提示卡片 (時間到僅顯示 Progress 方塊) -->
       <div id="daily-limit-reached-card" style="display:none; text-align:center; padding:30px 24px 26px; border-radius:20px; background:var(--card); border:1.5px solid var(--line); box-shadow:0 8px 30px rgba(0,0,0,0.06); margin:0 0 8px;">
-        <div style="width:52px; height:52px; border-radius:50%; background:rgba(99,102,241,0.12); display:inline-flex; align-items:center; justify-content:center; margin:0 auto 12px; font-size:26px;">??/div>
-        <h2 style="font-size:20px; font-weight:800; color:var(--ink); margin:0 0 8px; letter-spacing:0.3px;">今日練�??��?已�???/h2>
+        <div style="width:52px; height:52px; border-radius:50%; background:rgba(99,102,241,0.12); display:inline-flex; align-items:center; justify-content:center; margin:0 auto 12px; font-size:26px;">⏰</div>
+        <h2 style="font-size:20px; font-weight:800; color:var(--ink); margin:0 0 8px; letter-spacing:0.3px;">今日練習時間已結束</h2>
         <p style="font-size:14px; color:var(--ink2); line-height:1.6; max-width:440px; margin:0 auto 14px;">
-          今天已�???<span id="limit-minutes-display-text" style="color:var(--sky); font-weight:800;">10</span> ?��??�練習�?表現很�?�?br>
-          ?�度讓眼?��??��??�天?�繼續�??��?
+          今天已完成 <span id="limit-minutes-display-text" style="color:var(--sky); font-weight:800;">10</span> 分鐘的練習，表現很棒！<br>
+          適度讓眼睛休息，明天再繼續挑戰！
         </p>
         <div style="display:inline-flex; align-items:center; gap:6px; padding:6px 14px; background:rgba(56,189,248,0.08); border:1px solid rgba(56,189,248,0.25); border-radius:999px; font-size:12.5px; font-weight:700; color:var(--sky); margin:0 auto 12px;">
-          <span>?? 完整作�?紀?��??�度已�??�於下方</span>
+          <span>📋 完整作答紀錄與進度已保留於下方</span>
         </div>
         <div style="font-size:12px; color:var(--ink3); opacity:0.85;">
-          ?�� ?��?補測?�特?�練習�?求�?請�?任課?�師?��?延長?��??�解?��??��?        </div>
+          💡 若有補測或特別練習需求，請向任課老師申請延長時間或解除限制。
+        </div>
       </div>
 
-      <!-- ?��?��???�師專屬?�學管�?中�??�表板 (?��?一主工作�?，�?位�??? -->
+      <!-- 👨‍🏫 教師專屬教學管理中心儀表板 (四合一主工作區，原位切換) -->
       <div id="teacher-portal-card" class="card" style="display:none; text-align:left; padding:24px 22px 22px; border-radius:24px; background:var(--card); border:1px solid var(--line); box-shadow:var(--shadow); margin:0 0 14px; width:100%; box-sizing:border-box;">
-        <!-- ?�部?�大?�能導航?��? (等寬?�適?��?上�? 8px ?��?) -->
+        <!-- 頂部四大功能導航方塊 (等寬自適應與上下 8px 間隔) -->
         <div class="tp-nav-grid">
           <div id="tp-nav-task" class="tp-nav-card active" onclick="switchTeacherTab('task')">
-            <span class="tp-nav-icon">??</span>
-            <span class="tp-nav-label">?��?<br>?��?</span>
+            <span class="tp-nav-icon">📝</span>
+            <span class="tp-nav-label">指定<br>單字</span>
           </div>
 
           <div id="tp-nav-time" class="tp-nav-card" onclick="switchTeacherTab('time')">
-            <span class="tp-nav-icon">??/span>
-            <span class="tp-nav-label">使用<br>?��?</span>
+            <span class="tp-nav-icon">⏰</span>
+            <span class="tp-nav-label">使用<br>時間</span>
           </div>
 
           <div id="tp-nav-student" class="tp-nav-card" onclick="switchTeacherTab('student')">
-            <span class="tp-nav-icon">?��</span>
-            <span class="tp-nav-label">?�人<br>歷�?</span>
+            <span class="tp-nav-icon">👤</span>
+            <span class="tp-nav-label">個人<br>歷程</span>
           </div>
 
           <div id="tp-nav-class" class="tp-nav-card" onclick="switchTeacherTab('class')">
-            <span class="tp-nav-icon">?��</span>
-            <span class="tp-nav-label">?�班<br>紀??/span>
+            <span class="tp-nav-icon">👥</span>
+            <span class="tp-nav-label">全班<br>紀錄</span>
           </div>
         </div>
 
-        <!-- 主工作�?容器：�?位�??��??��??��??��??��??��?介面 -->
+        <!-- 主工作區容器：原位呈現所選功能，隱藏其餘無關介面 -->
         <div id="tp-workspace-container" style="background:var(--paper, rgba(0,0,0,0.02)); border-radius:12px; padding:8px; border:1px solid var(--line); width:100%; box-sizing:border-box;">
-          <!-- ?��?1: 每日?��? (?��?顯示) -->
+          <!-- 區塊 1: 每日出題 (原位顯示) -->
           <div id="tp-panel-task" class="tp-view-panel" style="display:block;"></div>
 
-          <!-- ?��?2: 學�?使用?��?管�? (?��?顯示) -->
+          <!-- 區塊 2: 學生使用時間管理 (原位顯示) -->
           <div id="tp-panel-time" class="tp-view-panel" style="display:none;"></div>
 
-          <!-- ?��?3: ?�別學�??�?�歷程調?�選?��? -->
+          <!-- 區塊 3: 個別學生區間歷程調閱選單列 -->
           <div id="tp-panel-student" class="tp-view-panel" style="display:none; background:var(--paper, rgba(0,0,0,0.03)); border:1px solid var(--line); border-radius:12px; padding:8px; width:100%; box-sizing:border-box;">
             <div style="font-size:16.5px; font-weight:800; color:var(--ink); margin-bottom:12px; display:flex; align-items:center; gap:8px;">
-              <span>??</span> ?�別學�?學�??��?
+              <span>🔍</span> 個別學生學習成果
             </div>
             <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
               <div style="flex:1; min-width:140px;">
                 <select id="tp-class-select" style="width:100%; padding:9px 12px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--ink); font-size:13.5px; font-weight:600; outline:none;">
-                  <option value="">載入?��?�?..</option>
+                  <option value="">載入班級中...</option>
                 </select>
               </div>
               <div style="flex:1.5; min-width:180px;">
                 <select id="tp-student-select" style="width:100%; padding:9px 12px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--ink); font-size:13.5px; font-weight:600; outline:none;">
-                  <option value="">請�??��??��?</option>
+                  <option value="">請先選擇班級</option>
                 </select>
               </div>
               <button type="button" id="tp-btn-inspect" style="display:inline-flex; align-items:center; gap:6px; padding:9px 18px; background:var(--sky, #0284c7); color:#fff; border:none; border-radius:8px; font-size:13.5px; font-weight:700; cursor:pointer; box-shadow:0 4px 10px rgba(2,132,199,0.25);">
-                <span>??</span> 調閱學�?歷�?
+                <span>🔎</span> 調閱學習歷程
               </button>
             </div>
             <div id="tp-inspect-status" style="font-size:12.5px; color:var(--ink2); margin-top:10px; display:none;"></div>
           </div>
 
-          <!-- ?��?4: ?�班?��?範�?記�? -->
+          <!-- 區塊 4: 全班指定範圍記錄 -->
           <div id="tp-panel-class" class="tp-view-panel" style="display:none; background:var(--paper, rgba(0,0,0,0.03)); border:1px solid var(--line); border-radius:12px; padding:8px; width:100%; box-sizing:border-box;">
             <div style="font-size:16.5px; font-weight:800; color:var(--ink); margin-bottom:12px; display:flex; align-items:center; gap:8px;">
-              <span>?��</span> ?�班?��??��?範�?紀?�查�?            </div>
+              <span>👥</span> 全班指定日期範圍紀錄查詢
+            </div>
             <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:14px;">
               <div style="min-width:140px;">
                 <select id="cr-class-select" style="width:100%; padding:8px 12px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--ink); font-size:13px; font-weight:600; outline:none;">
-                  <option value="all">?? ?�校 / ?�部?��?</option>
+                  <option value="all">🌐 全校 / 全部班級</option>
                 </select>
               </div>
               <div style="display:flex; align-items:center; gap:6px;">
                 <input type="date" id="cr-start-date" style="padding:7px 10px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--ink); font-size:13px;">
-                <span style="color:var(--ink2);">??/span>
+                <span style="color:var(--ink2);">至</span>
                 <input type="date" id="cr-end-date" style="padding:7px 10px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--ink); font-size:13px;">
               </div>
               <button type="button" id="cr-btn-query" style="display:inline-flex; align-items:center; gap:6px; padding:8px 18px; background:#eab308; color:#fff; border:none; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; box-shadow:0 4px 10px rgba(234,179,8,0.3);">
-                <span>??</span> ?�詢?�班紀??              </button>
+                <span>📊</span> 查詢全班紀錄
+              </button>
               <div style="display:flex; gap:6px;">
-                <button type="button" onclick="setCrDateShortcut(7)" style="padding:6px 10px; border-radius:6px; border:1px solid var(--line); background:var(--card); color:var(--ink2); font-size:12px; cursor:pointer;">�?�?/button>
-                <button type="button" onclick="setCrDateShortcut(14)" style="padding:6px 10px; border-radius:6px; border:1px solid var(--line); background:var(--card); color:var(--ink2); font-size:12px; cursor:pointer;">�?4�?/button>
-                <button type="button" onclick="setCrDateShortcut(30)" style="padding:6px 10px; border-radius:6px; border:1px solid var(--line); background:var(--card); color:var(--ink2); font-size:12px; cursor:pointer;">�?0�?/button>
+                <button type="button" onclick="setCrDateShortcut(7)" style="padding:6px 10px; border-radius:6px; border:1px solid var(--line); background:var(--card); color:var(--ink2); font-size:12px; cursor:pointer;">近7天</button>
+                <button type="button" onclick="setCrDateShortcut(14)" style="padding:6px 10px; border-radius:6px; border:1px solid var(--line); background:var(--card); color:var(--ink2); font-size:12px; cursor:pointer;">近14天</button>
+                <button type="button" onclick="setCrDateShortcut(30)" style="padding:6px 10px; border-radius:6px; border:1px solid var(--line); background:var(--card); color:var(--ink2); font-size:12px; cursor:pointer;">近30天</button>
               </div>
             </div>
 
-            <!-- ?�班統�?結�?容器 -->
+            <!-- 全班統計結果容器 -->
             <div id="cr-results-container" style="display:none;">
-              <!-- KPI ?��? -->
+              <!-- KPI 卡片 -->
               <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:10px; margin-bottom:14px;">
                 <div style="background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px; text-align:center;">
-                  <div style="font-size:11.5px; color:var(--ink2);">?�� ?��??��???/div>
+                  <div style="font-size:11.5px; color:var(--ink2);">👥 班級參與率</div>
                   <div id="cr-kpi-part" style="font-size:20px; font-weight:800; color:var(--green); margin-top:2px;">-</div>
-                  <div id="cr-kpi-part-sub" style="font-size:11px; color:var(--ink3);">0 / 0 �?/div>
+                  <div id="cr-kpi-part-sub" style="font-size:11px; color:var(--ink3);">0 / 0 人</div>
                 </div>
                 <div style="background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px; text-align:center;">
-                  <div style="font-size:11.5px; color:var(--ink2);">?�� ?�?�平?�正確�?</div>
+                  <div style="font-size:11.5px; color:var(--ink2);">🎯 區間平均正確率</div>
                   <div id="cr-kpi-acc" style="font-size:20px; font-weight:800; color:var(--sky); margin-top:2px;">-</div>
                 </div>
                 <div style="background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px; text-align:center;">
-                  <div style="font-size:11.5px; color:var(--ink2);">?? ?��?總�?答單�?/div>
+                  <div style="font-size:11.5px; color:var(--ink2);">📝 期間總作答單字</div>
                   <div id="cr-kpi-attempts" style="font-size:20px; font-weight:800; color:var(--ink); margin-top:2px;">-</div>
                 </div>
               </div>
 
-              <!-- 學�??�細清單表格 -->
+              <!-- 學生明細清單表格 -->
               <div style="overflow-x:auto; background:var(--card); border-radius:10px; border:1px solid var(--line);">
                 <table style="width:100%; border-collapse:collapse; font-size:13px; text-align:left;">
                   <thead>
                     <tr style="background:rgba(0,0,0,0.03); border-bottom:1px solid var(--line); color:var(--ink2);">
-                      <th style="padding:10px 12px;">?��?</th>
-                      <th style="padding:10px 12px;">帳�? / 姓�?</th>
-                      <th style="padding:10px 12px; text-align:center;">練�?天數</th>
-                      <th style="padding:10px 12px; text-align:center;">作�?字數</th>
-                      <th style="padding:10px 12px; text-align:center;">�?��??/th>
-                      <th style="padding:10px 12px; text-align:center;">?�??/th>
+                      <th style="padding:10px 12px;">班級</th>
+                      <th style="padding:10px 12px;">帳號 / 姓名</th>
+                      <th style="padding:10px 12px; text-align:center;">練習天數</th>
+                      <th style="padding:10px 12px; text-align:center;">作答字數</th>
+                      <th style="padding:10px 12px; text-align:center;">正確率</th>
+                      <th style="padding:10px 12px; text-align:center;">狀態</th>
                     </tr>
                   </thead>
                   <tbody id="cr-students-tbody"></tbody>
@@ -1177,11 +1185,11 @@
         </div>
       </div>
 
-      <div class="modes" id="modes" role="tablist" aria-label="練�?模�?"></div>
+      <div class="modes" id="modes" role="tablist" aria-label="練習模式"></div>
 
       <main class="card" id="card">
         <div class="prompt-row">
-          <span class="catlabel" id="catlabel">?�卡</span>
+          <span class="catlabel" id="catlabel">關卡</span>
           <span class="modehint" id="modehint"></span>
         </div>
         <div class="zh" id="zh"></div>
@@ -1195,88 +1203,88 @@
 
       <div class="banner" id="banner"></div>
 
-      <!-- ?��??�度 Progress ?��??��? -->
+      <!-- 整體進度 Progress 獨立方塊 -->
       <section class="progress learning-progress-card is-collapsed" id="progress-card">
         <h3>
-          <span>?��??�度 Progress</span>
+          <span>整體進度 Progress</span>
           <span style="display:flex;gap:14px">
-            <a id="btn-toggle-progress-card" class="sum-toggle-btn" title="展�??�收?�整體進度">展�?</a>
+            <a id="btn-toggle-progress-card" class="sum-toggle-btn" title="展開或收合整體進度">展開</a>
           </span>
         </h3>
         <div class="progress-collapsible-body" id="progress-collapsible-body" style="display:none;">
-          <div class="bar" title="???答�?越�?次�?字就越�?�?>
+          <div class="bar" title="連續答對越多次，字就越熟練">
             <i class="learn" id="b-learn"></i>
             <i class="prac" id="b-prac"></i>
             <i class="mast" id="b-mast"></i>
           </div>
           <div class="legend">
             <div class="legend-row legend-row-mastery">
-              <span title="答�? 1 次�??��?近�??��??�要�?練�?"><i style="background:#D9D5F2"></i>學�?�?<b id="n-learn" class="tnum">0</b></span>
-              <span title="???答�? 2 �?><i style="background:#B9E8D3"></i>練�?�?<b id="n-prac" class="tnum">0</b></span>
-              <span title="???答�? 3 次�??��? �?><i style="background:var(--green)"></i>精�?<b id="n-mast" class="tnum">0</b></span>
+              <span title="答對 1 次（或最近答錯，需要再練）"><i style="background:#D9D5F2"></i>學習中 <b id="n-learn" class="tnum">0</b></span>
+              <span title="連續答對 2 次"><i style="background:#B9E8D3"></i>練習中 <b id="n-prac" class="tnum">0</b></span>
+              <span title="連續答對 3 次，獲得 ⭐"><i style="background:var(--green)"></i>精通 <b id="n-mast" class="tnum">0</b></span>
             </div>
             <div class="legend-row legend-row-stats">
-              <span title="?��??�握?��?已�?對�??��??��? 2055 字�??��?�?>答�? <b id="n-correct" class="tnum">0</b> 字�???<b id="n-total" class="tnum">2055</b> 字�??�握??<b id="n-rate" class="tnum">0%</b></span>
+              <span title="單字掌握率：已答對字數占全體 2055 字的百分比">答對 <b id="n-correct" class="tnum">0</b> 字，共 <b id="n-total" class="tnum">2055</b> 字，掌握率 <b id="n-rate" class="tnum">0%</b></span>
               <span class="stat-sep">/</span>
-              <span title="?��??��?累�?總�?">?��? <b id="n-score" class="tnum">0</b> ??/span>
+              <span title="目前獲得累積總分">獲得 <b id="n-score" class="tnum">0</b> 分</span>
             </div>
           </div>
-          <p class="defs">?�練度�?義�?<b>學�?�?/b>＝�?�?1 �?· <b>練�?�?/b>＝�??答�? 2 �?· <b>精�?/b>＝�??答�? 3 次�?答錯?�退?�「學習中?��?</p>
+          <p class="defs">熟練度定義：<b>學習中</b>＝答對 1 次 · <b>練習中</b>＝連續答對 2 次 · <b>精通</b>＝連續答對 3 次（答錯會退回「學習中」）</p>
 
-          <div class="subh" style="margin-top:8px;">?��??�進度</div>
+          <div class="subh" style="margin-top:8px;">各關卡進度</div>
           <table class="sumtable">
             <tbody id="progress-level-tbody"></tbody>
           </table>
 
-          <div class="subh">?�� ?�大練�?模�?答�??��???/div>
+          <div class="subh">🎮 四大練習模式答對單字數</div>
           <div class="mode-stat-grid">
             <div class="mode-stat-card mode-card-listen">
-              <div class="mode-stat-title">?�� ?��???/div>
-              <div class="mode-stat-num" id="p-mode-listen-num">0 �?/div>
-              <div class="mode-stat-sub" id="p-mode-listen-sub">?�測 0 �?(0%)</div>
+              <div class="mode-stat-title">🎧 聽與拼</div>
+              <div class="mode-stat-num" id="p-mode-listen-num">0 字</div>
+              <div class="mode-stat-sub" id="p-mode-listen-sub">受測 0 字 (0%)</div>
             </div>
             <div class="mode-stat-card mode-card-pick">
-              <div class="mode-stat-title">???�拼�?/div>
-              <div class="mode-stat-num" id="p-mode-pick-num">0 �?/div>
-              <div class="mode-stat-sub" id="p-mode-pick-sub">?�測 0 �?(0%)</div>
+              <div class="mode-stat-title">✅ 選拼法</div>
+              <div class="mode-stat-num" id="p-mode-pick-num">0 字</div>
+              <div class="mode-stat-sub" id="p-mode-pick-sub">受測 0 字 (0%)</div>
             </div>
             <div class="mode-stat-card mode-card-scramble">
-              <div class="mode-stat-title">?�� ?��?</div>
-              <div class="mode-stat-num" id="p-mode-scramble-num">0 �?/div>
-              <div class="mode-stat-sub" id="p-mode-scramble-sub">?�測 0 �?(0%)</div>
+              <div class="mode-stat-title">🧩 重組</div>
+              <div class="mode-stat-num" id="p-mode-scramble-num">0 字</div>
+              <div class="mode-stat-sub" id="p-mode-scramble-sub">受測 0 字 (0%)</div>
             </div>
             <div class="mode-stat-card mode-card-trap">
-              <div class="mode-stat-title">??�?填陷??/div>
-              <div class="mode-stat-num" id="p-mode-trap-num">0 �?/div>
-              <div class="mode-stat-sub" id="p-mode-trap-sub">?�測 0 �?(0%)</div>
+              <div class="mode-stat-title">🖍️ 填陷阱</div>
+              <div class="mode-stat-num" id="p-mode-trap-num">0 字</div>
+              <div class="mode-stat-sub" id="p-mode-trap-sub">受測 0 字 (0%)</div>
             </div>
           </div>
           <div class="formula-note-box" style="margin-top:0; margin-bottom:8px; font-size:12px; display:flex; align-items:center; gap:8px; padding:8px 12px;">
-            <span style="font-size:15px; flex-shrink:0; line-height:1;">?��</span>
-            <div style="flex:1; line-height:1.55;"><b>小�?�?/b>：�?一?�單字若?��??�玩法�?對�??�自累�?，�?此�??��?總�?大於上方?�「共答�??��??�」�?/div>
+            <span style="font-size:15px; flex-shrink:0; line-height:1;">💡</span>
+            <div style="flex:1; line-height:1.55;"><b>小提示</b>：同一個單字若在不同玩法答對會各自累計，因此四項加總會大於上方的「共答對單字數」。</div>
           </div>
         </div>
       </section>
 
-      <!-- 學�?足跡 Records ?��??��? -->
+      <!-- 學習足跡 Records 獨立方塊 -->
       <section class="progress learning-record-card is-collapsed" id="learning-record-section">
         <h3>
-          <span>學�?足跡 Records</span>
+          <span>學習足跡 Records</span>
           <span style="display:flex;gap:14px">
-            <a id="sumBtn" class="sum-toggle-btn" title="展�??�收?�學習足�?>展�?</a>
+            <a id="sumBtn" class="sum-toggle-btn" title="展開或收合學習足跡">展開</a>
           </span>
         </h3>
         <div id="summary" class="summary-embedded" hidden></div>
       </section>
 
-      <!-- 待攻?�單�?Conquer ?��??��? (併入 Level 1~5 ?��?標�??�特徵�?�? -->
+      <!-- 待攻克單字 Conquer 獨立方塊 (併入 Level 1~5 分級標準與特徵一覽) -->
       <section class="progress week-conquer-section is-collapsed" id="week-conquer-section">
         <h3>
           <span>
-            <span id="week-conquer-card-title">待攻?�單�?Conquer</span>
+            <span id="week-conquer-card-title">待攻克單字 Conquer</span>
           </span>
           <span style="display:flex;gap:14px;align-items:center;">
-            <a id="btn-toggle-conquer-card" class="sum-toggle-btn" style="display:inline-flex; align-items:center; justify-content:center; text-align:center; min-width:44px;" title="展�??�收?��??��??��?">展�?</a>
+            <a id="btn-toggle-conquer-card" class="sum-toggle-btn" style="display:inline-flex; align-items:center; justify-content:center; text-align:center; min-width:44px;" title="展開或收合待攻克單字">展開</a>
           </span>
         </h3>
         <div class="week-conquer-container" id="week-conquer-container" style="display:none; margin-top:8px;">
@@ -1284,46 +1292,46 @@
         </div>
       </section>
 
-      <!-- ?�� ?�人常錯?��?複�?小卡?��? (?�援?��?範�??��??�單字發?�、PDF/Excel 一?��?�? -->
+      <!-- 🎯 個人常錯單字複習小卡方塊 (支援時間範圍切換、單字發音、PDF/Excel 一鍵下載) -->
       <section class="progress weak-words-card is-collapsed" id="weak-words-section">
         <h3>
           <span>
-            <span>?�末大�???Final</span>
+            <span>期末大挑戰 Final</span>
           </span>
           <span style="display:flex;gap:14px;align-items:center;">
-            <a id="btn-toggle-weak-words-card" class="sum-toggle-btn" style="display:inline-flex; align-items:center; justify-content:center; text-align:center; min-width:44px;" title="展�??�收?�單字表">展�?</a>
+            <a id="btn-toggle-weak-words-card" class="sum-toggle-btn" style="display:inline-flex; align-items:center; justify-content:center; text-align:center; min-width:44px;" title="展開或收合單字表">展開</a>
           </span>
         </h3>
         <div class="weak-words-container" id="weak-words-container" style="display:none; margin-top:8px;">
           <div class="weak-words-toolbar" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
-            <div id="weak-words-stat-text" style="font-size:13px; font-weight:700; color:var(--ink, #232A4D);">載入?��?�?..</div>
+            <div id="weak-words-stat-text" style="font-size:13px; font-weight:700; color:var(--ink, #232A4D);">載入單字中...</div>
           </div>
           <div id="weak-words-grid" class="weak-words-grid" style="display:flex; flex-wrap:wrap; gap:6px; padding:6px 0;"></div>
         </div>
       </section>
 
-      <!-- ?�� 底部作�?歷�?紀?�匯?��?載方�?(?�援?��??��??��?定�??��?PDF / Excel ?�格式輸?? -->
+      <!-- 📥 底部作答歷程紀錄匯出下載方塊 (支援指定日期或指定範圍，PDF / Excel 雙格式輸出) -->
       <section class="progress export-records-card is-collapsed" id="export-records-section">
         <h3>
-          <span>歷�?檔�? History</span>
+          <span>歷程檔案 History</span>
           <span style="display:flex;gap:14px">
-            <a id="btn-toggle-export-card" class="sum-toggle-btn" title="展�??�收?�歷程�?案�?�?>展�?</a>
+            <a id="btn-toggle-export-card" class="sum-toggle-btn" title="展開或收合歷程檔案下載">展開</a>
           </span>
         </h3>
         <div class="export-navigator-card" id="export-navigator-card" style="display:none;">
           <div class="export-controls-wrap">
-            <!-- 1. 範�?標籤 -->
+            <!-- 1. 範圍標籤 -->
             <div class="export-row export-label-row">
-              <span class="date-nav-title"><span>??</span> ?�出範�?�?/span>
+              <span class="date-nav-title"><span>📅</span> 匯出範圍：</span>
             </div>
 
-            <!-- 2. 模�??��? (?��??��??��? / ?��?範�??�?��?左右??50%，�?齊�??��?載�??? -->
-            <div class="export-mode-tabs" role="group" aria-label="?��??�出?��?模�?">
-              <button type="button" id="btn-export-mode-single" class="date-nav-btn export-mode-btn active" data-mode="single">?��??��??��?</button>
-              <button type="button" id="btn-export-mode-range" class="date-nav-btn export-mode-btn" data-mode="range">?��?範�??�??/button>
+            <!-- 2. 模式選擇 (單一指定日期 / 自訂範圍區間，左右各 50%，對齊下方下載按鈕) -->
+            <div class="export-mode-tabs" role="group" aria-label="選擇匯出日期模式">
+              <button type="button" id="btn-export-mode-single" class="date-nav-btn export-mode-btn active" data-mode="single">單一指定日期</button>
+              <button type="button" id="btn-export-mode-range" class="date-nav-btn export-mode-btn" data-mode="range">自訂範圍區間</button>
             </div>
 
-            <!-- 3. ?��?欄�? (左�?：單一?��?/起�??��?，右欄�??��?結�??��?) -->
+            <!-- 3. 日期欄位 (左欄：單一日期/起始日期，右欄：自訂結束日期) -->
             <div class="export-date-row-grid" id="export-date-row-grid">
               <div class="export-date-cell export-date-cell-left" id="export-left-date-cell">
                 <input type="date" id="export-single-date" class="date-picker-input">
@@ -1334,44 +1342,45 @@
               </div>
             </div>
 
-            <!-- 4. 快捷範�??�??(佔�?保�?，自訂�??��??��?顯示，單一模�??��??�空?�防跳�?) -->
+            <!-- 4. 快捷範圍區間 (佔位保留，自訂範圍區間時顯示，單一模式時保留空間防跳動) -->
             <div class="export-row export-presets-row" id="export-presets-row" style="visibility:hidden; opacity:0; pointer-events:none;">
               <div class="export-quick-btns">
-                <button type="button" class="date-nav-btn" id="btn-export-preset-today" title="設�??��???>?? 今日</button>
-                <button type="button" id="btn-export-preset-7d" class="date-nav-btn" title="?��?7 �?>�?7 �?/button>
-                <button type="button" id="btn-export-preset-30d" class="date-nav-btn" title="?��?28 �?>�?28 �?/button>
-                <button type="button" id="btn-export-preset-all" class="date-nav-btn" title="?�部?��??�日??>?�部紀??/button>
+                <button type="button" class="date-nav-btn" id="btn-export-preset-today" title="設定為今日">📍 今日</button>
+                <button type="button" id="btn-export-preset-7d" class="date-nav-btn" title="最近 7 天">近 7 天</button>
+                <button type="button" id="btn-export-preset-30d" class="date-nav-btn" title="最近 28 天">近 28 天</button>
+                <button type="button" id="btn-export-preset-all" class="date-nav-btn" title="全部有紀錄日期">全部紀錄</button>
               </div>
             </div>
 
-            <!-- 5. 輸出?��?標�??��?載�???(左右??50%，�?�?2 行模式�??�長寬�??��?位置完全一?? -->
+            <!-- 5. 輸出格式標題與下載按鈕 (左右各 50%，與第 2 行模式按鈕長寬高相對位置完全一致) -->
             <div class="export-row export-action-row">
               <div class="export-label-row" style="width:100%;margin-bottom:2px;">
-                <span class="date-nav-title"><span>??</span> 輸出?��?�?/span>
+                <span class="date-nav-title"><span>📄</span> 輸出格式：</span>
               </div>
               <div class="export-btn-group">
-                <button type="button" id="btn-export-preview-web" class="export-dl-btn preview-btn" title="?��?網�??��??��??�覽檢�?">
-                  ?? 一?�檢�?                </button>
+                <button type="button" id="btn-export-preview-web" class="export-dl-btn preview-btn" title="長幅網頁版型即時預覽檢視">
+                  📜 一頁檢視
+                </button>
               </div>
             </div>
           </div>
         </div>
         <div class="defs" id="export-status-msg" style="margin-top:8px; display:none;"></div>
-        <!-- 網�??��?檢�??�??(A4 寬無?�長) -->
+        <!-- 網頁長幅檢視區域 (A4 寬無限長) -->
         <div id="export-web-preview-container" style="display:none; margin-top:8px; border-top:1.5px dashed var(--line, #E7E9F5); padding-top:8px;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
             <div style="font-size:13.5px; font-weight:800; color:var(--violet, #6C4CE0); display:flex; align-items:center; gap:6px;">
-              <span>?? 一?�檢�?/span>
-              <span style="font-size:11px; font-weight:700; color:var(--ink3); background:rgba(108,76,224,0.08); padding:2px 8px; border-radius:999px;">一?�捲軸到�?/span>
+              <span>📜 一頁檢視</span>
+              <span style="font-size:11px; font-weight:700; color:var(--ink3); background:rgba(108,76,224,0.08); padding:2px 8px; border-radius:999px;">一頁捲軸到底</span>
             </div>
-            <button type="button" id="btn-close-web-preview" style="background:#F1F5F9; border:1px solid #CBD5E1; border-radius:8px; padding:3px 10px; font-size:12px; font-weight:700; cursor:pointer; color:var(--ink2);">???�起檢�?</button>
+            <button type="button" id="btn-close-web-preview" style="background:#F1F5F9; border:1px solid #CBD5E1; border-radius:8px; padding:3px 10px; font-size:12px; font-weight:700; cursor:pointer; color:var(--ink2);">✖ 收起檢視</button>
           </div>
           <div id="export-web-preview-body" style="background:var(--paper, #F6F7FB); color:var(--ink, #232A4D); border:1.5px solid var(--line, #E7E9F5); border-radius:12px; padding:8px 8px; box-shadow:0 4px 14px rgba(0,0,0,0.05); overflow-x:auto;"></div>
         </div>
       </section>
 
       <p class="foot">
-        ?? ?�要�??�聲?��??�聽?�音?�進度?��?要�?上傳紀?��?br>
+        🔊 需要開啟聲音才能聽發音。進度儲存要按上傳紀錄。<br>
       </p>
     </div>
 
@@ -1386,22 +1395,23 @@
   </div>
 
   <script type="module">
-    // ?��? 請替?�為你實?�部署�??��? Apps Script Web App 網�?
+    // ⚠️ 請替換為你實際部署成功的 Apps Script Web App 網址
     const bootTime = Date.now();
     try { import(`./src/wordbank.js?v=20261019_v228`).then(m => m.loadWordBank()).catch(() => {}); } catch(_) {}
 
     const scriptUrl = "https://script.google.com/macros/s/AKfycbx1hyCNJxqFMoaJgIxfZqLYIYH00NegI1Yd8NJP6gRjqwOndWGkmr-H9tGvVwK_axM9/exec";
     window.__SCRIPT_URL = scriptUrl;
-    // ?? ?��??��? GAS 容器：學?�進入?�入?�面?��??��??��?消�??��??�延??    try { fetch(scriptUrl, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "ping" }) }).catch(() => {}); } catch(_) {}
+    // 🚀 預先喚醒 GAS 容器：學生進入登入畫面時立即預熱，消滅冷啟動延遲
+    try { fetch(scriptUrl, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "ping" }) }).catch(() => {}); } catch(_) {}
 
     function updateAccountDisplay(username, role) {
       const sUser = document.getElementById("s-user");
       const statEl = document.getElementById("stat-user");
-      const roleText = role === 'teacher' ? '?�師' : role === 'parent' ? '家長' : '學�?';
+      const roleText = role === 'teacher' ? '教師' : role === 'parent' ? '家長' : '學生';
       if (sUser) {
         sUser.textContent = username || "-";
-        sUser.title = username ? `${roleText}帳�?�?{username}` : "";
-        // 寬度?�帳?��?稱長度自?��?展�?，�?體維?��??��?讀
+        sUser.title = username ? `${roleText}帳號：${username}` : "";
+        // 寬度隨帳號名稱長度自適應展開，字體維持清晰易讀
         if (username && username.length > 16) {
           sUser.style.fontSize = "13px";
         } else if (username && username.length > 12) {
@@ -1412,25 +1422,27 @@
       }
       if (statEl) {
         statEl.title = username
-          ? `?��??�入帳�?�?{username} (${roleText})\n（�??�可?��?帳�?詳�??��??��?`
-          : "?�入帳�?";
+          ? `目前登入帳號：${username} (${roleText})\n（點擊可查看帳號詳情或切換）`
+          : "登入帳號";
         const subSpan = statEl.querySelector("span");
-        if (subSpan) subSpan.textContent = role === "parent" ? "家長帳�?" : "?�入帳�?";
+        if (subSpan) subSpan.textContent = role === "parent" ? "家長帳號" : "登入帳號";
       }
     }
 
     const formatDateDash = (dt = new Date()) => `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
     const formatDateSlash = (dt = new Date()) => formatDateDash(dt).replace(/-/g, "/");
 
-    // ?�?� ?��?網�??�檢?��?安全維護紀???�?�
+    // ── 開啟網頁時檢查與安全維護紀錄 ──
     const rememberedUser = localStorage.getItem("current_user");
     const todayDashStr = formatDateDash();
 
-    // 安全清�?：�?清除跨日?��??�快?��??��?殘�?，嚴?��??�「�??�進�?中未完�??��?測�??�度 (today_task_in_progress)??    const initialKeysToPurge = [];
+    // 安全清理：僅清除跨日過期的快取或無效殘留，嚴格保留「今日進行中未完之指定測驗進度 (today_task_in_progress)」
+    const initialKeysToPurge = [];
     for (let i = 0; i < localStorage.length; i++) {
       const k = localStorage.key(i);
       if (!k) continue;
-      // 1. ?�為?��?測�??��?中進度：檢?�日?��??��?今日?��??��??��??��?安全保�?�?      if (k.startsWith("today_task_in_progress")) {
+      // 1. 若為指定測驗進行中進度：檢查日期，若非今日才清除，是今日則安全保留！
+      if (k.startsWith("today_task_in_progress")) {
         try {
           const p = JSON.parse(localStorage.getItem(k));
           const pDate = p ? String(p.date || "").replace(/\//g, "-") : "";
@@ -1442,7 +1454,7 @@
         }
         continue;
       }
-      // 2. ?��??��??��??��? task_done 清除
+      // 2. 其餘舊版非今日的 task_done 清除
       if (k.startsWith("task_done_")) {
         const dPart = k.replace("task_done_", "").replace(/\//g, "-");
         if (dPart && dPart !== todayDashStr) {
@@ -1450,7 +1462,8 @@
         }
         continue;
       }
-      // 3. 跨日?��?定任?�快?��???      if (k.startsWith("task_words_")) {
+      // 3. 跨日的指定任務快取清除
+      if (k.startsWith("task_words_")) {
         const dPart = k.replace("task_words_", "").replace(/\//g, "-");
         if (dPart && dPart !== todayDashStr) {
           initialKeysToPurge.push(k);
@@ -1461,9 +1474,10 @@
     initialKeysToPurge.forEach(k => localStorage.removeItem(k));
     sessionStorage.clear();
 
-    // ?�?��?維�?純淨?��??�?��??�登?��?不顯示任何�?人�???    updateAccountDisplay("-", "");
+    // 狀態列維持純淨初始狀態，未登入前不顯示任何前人紀錄
+    updateAccountDisplay("-", "");
 
-    // ?�?� ?��? / ?�亮模�??��??��??��????�?�
+    // ── 暗黑 / 明亮模式切換與記憶機制 ──
     function applyAppTheme(theme) {
       const isDark = (theme === "dark");
       if (isDark) {
@@ -1474,21 +1488,22 @@
       localStorage.setItem("app_theme", isDark ? "dark" : "light");
       localStorage.setItem("theme", isDark ? "dark" : "light");
       
-      // ?�步?�端?��??��??��?�?      const icon = document.getElementById("s-theme-icon");
+      // 同步頂端按鈕文字與圖示
+      const icon = document.getElementById("s-theme-icon");
       const txt = document.getElementById("s-theme-text");
-      if (icon) icon.textContent = isDark ? "?��? : "??";
+      if (icon) icon.textContent = isDark ? "☀️" : "🌙";
       if (txt) txt.textContent = isDark ? "淺色" : "深色";
 
-      // ?�步?�入?��?上�??��?
+      // 同步登入卡片上的按鈕
       const loginBtn = document.getElementById("btn-login-theme-toggle");
       if (loginBtn) {
         const lIcon = loginBtn.querySelector(".theme-icon");
         const lTxt = loginBtn.querySelector(".theme-text");
-        if (lIcon) lIcon.textContent = isDark ? "?��? : "??";
+        if (lIcon) lIcon.textContent = isDark ? "☀️" : "🌙";
         if (lTxt) lTxt.textContent = isDark ? "淺色" : "深色";
       }
 
-      // ?�步?�入?��??�輸?��?底色
+      // 同步登入卡片與輸入框底色
       const loginCard = document.querySelector("#login-overlay > div");
       if (loginCard) {
         loginCard.style.background = isDark ? "#1C2234" : "#ffffff";
@@ -1545,7 +1560,7 @@
     const loginThemeBtn = document.getElementById("btn-login-theme-toggle");
     if (loginThemeBtn) loginThemeBtn.onclick = toggleTheme;
 
-    // ============ 字�?大�?縮放?�制 ============
+    // ============ 字體大小縮放控制 ============
     const FONT_LEVELS = [0.9, 1.0, 1.1, 1.2, 1.3];
     function applyAppFontScale(scale, showFeedback = false) {
       scale = parseFloat(scale) || 1.0;
@@ -1566,11 +1581,11 @@
       if (showFeedback) {
         const pct = Math.round(scale * 100);
         let label = `${pct}%`;
-        if (scale === 1.0) label += " (?�設)";
-        else if (scale < 1.0) label += " (�?";
-        else if (scale === 1.3) label += " (?��?";
-        else label += " (�?";
-        showFontScaleToast(`?? 字�?大�?�?{label}`);
+        if (scale === 1.0) label += " (預設)";
+        else if (scale < 1.0) label += " (小)";
+        else if (scale === 1.3) label += " (最大)";
+        else label += " (大)";
+        showFontScaleToast(`🔍 字體大小：${label}`);
       }
     }
 
@@ -1580,11 +1595,11 @@
       if (idx === -1) idx = 1;
       const nextIdx = idx + step;
       if (nextIdx < 0) {
-        showFontScaleToast("?��? 已是?�小�?�?(90%)");
+        showFontScaleToast("⚠️ 已是最小字體 (90%)");
         return;
       }
       if (nextIdx >= FONT_LEVELS.length) {
-        showFontScaleToast("?��? 已是?�大�?�?(130%)");
+        showFontScaleToast("⚠️ 已是最大字體 (130%)");
         return;
       }
       applyAppFontScale(FONT_LEVELS[nextIdx], true);
@@ -1617,7 +1632,7 @@
     const btnFontInc = document.getElementById("btn-font-inc");
     if (btnFontInc) btnFontInc.onclick = (e) => { e.stopPropagation(); adjustFontScale(1); };
 
-    // ?��??�優?��??��?存�??��??�端答�?字、�?對�??��???�值�??�止顯示??0
+    // 啟動前優先從本機存檔還原頂端答對字、答對率與連勝數值，防止顯示為 0
     window.updateProgressDOMFromLocalStorage = function() {
       try {
         const sa = JSON.parse(localStorage.getItem("spellAgent.v2"));
@@ -1654,7 +1669,8 @@
               distinctCorrect = Object.values(sa.box).filter(b => b >= 1).length;
             }
           }
-          // ?? ?�快?�無細�?，直?�由?��? sa.stat ??sa.box 統�?學�?中、練習中?�精??          if (learning === 0 && practicing === 0 && mastered === 0) {
+          // 🚀 若快取無細項，直接由本機 sa.stat 與 sa.box 統計學習中、練習中、精通
+          if (learning === 0 && practicing === 0 && mastered === 0) {
             if (sa.stat) {
               for (const k in sa.stat) {
                 const st = sa.stat[k];
@@ -1681,7 +1697,7 @@
           if (sc) sc.textContent = String(distinctCorrect);
           if (nc) nc.textContent = String(distinctCorrect);
 
-          // ?? 極速�??��??��??�新?��??�度條�??�值�??�除額�?等�?計�?
+          // 🚀 極速秒開：即時更新整體進度條與數值，免除額外等待計算
           const nLearn = document.getElementById("n-learn");
           const nPrac = document.getElementById("n-prac");
           const nMast = document.getElementById("n-mast");
@@ -1720,7 +1736,7 @@
     };
     window.updateProgressDOMFromLocalStorage();
 
-    // 綁�??�學習進度 Progress?��????�起
+    // 綁定「學習進度 Progress」展開/收起
     const btnProg = document.getElementById("btn-toggle-progress-card");
     const secProg = document.getElementById("progress-card") || document.getElementById("learning-progress-section");
     const bodyProg = document.getElementById("progress-collapsible-body");
@@ -1731,27 +1747,27 @@
         if (isHidden) {
           if (bodyProg) bodyProg.style.display = "block";
           secProg.classList.remove("is-collapsed");
-          btnProg.innerHTML = "?��?";
+          btnProg.innerHTML = "收合";
         } else {
           if (bodyProg) bodyProg.style.display = "none";
           secProg.classList.add("is-collapsed");
-          btnProg.innerHTML = "展�?";
+          btnProg.innerHTML = "展開";
         }
       };
     }
 
-    // 徹�?清除?��??�?�學?�快?��?學�?歷�?，確保電?��?室共?��??�污?�、零?��?外洩
-    // ?��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��?
-    // ?��?��?�‍�??家長專屬視�?渲�?引�? (?�跳轉、零延遲?�直?�在?�戲網�??��?)
-    // ?��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��?
+    // 徹底清除本機所有學生快取與學習歷程，確保電腦教室共用時零污染、零個資外洩
+    // ══════════════════════════════════════════════════════════════
+    // 👨‍👩‍👧 家長專屬視圖渲染引擎 (免跳轉、零延遲、直接在遊戲網頁切換)
+    // ══════════════════════════════════════════════════════════════
     let __currentParentResult = null;
     let __currentParentUser = null;
     let __currentParentPass = null;
 
     
-    // ?��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��?
-    // ?���?角色權�??��?視�?管�? (Role-Based Dynamic View Controller)
-    // ?��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��?
+    // ══════════════════════════════════════════════════════════════
+    // 🛡️ 角色權限動態視圖管理 (Role-Based Dynamic View Controller)
+    // ══════════════════════════════════════════════════════════════
     function applyRoleBasedView(role, result) {
       const isParent = role === "parent" || localStorage.getItem("user_role") === "parent";
       const isTeacher = role === "teacher" || localStorage.getItem("user_role") === "teacher";
@@ -1770,12 +1786,12 @@
       const timerBadge = document.getElementById("stat-daily-timer");
       const uploadBtn = document.getElementById("btn-upload") || document.querySelector(".stat.upload");
 
-      // 1. 家長身�?：精準�?濾�??��?顯示家長帳�??�隱?��?答�??�制?�、�??��??��?大歷程方塊�?
+      // 1. 家長身分：精準過濾視圖（顯示家長帳號、隱藏作答與控制項、完整保留五大歷程方塊）
       if (isParent) {
         document.body.classList.add("role-parent");
         document.documentElement.classList.add("role-parent");
 
-        // 依使?�者�?求精確隱?��??��?
+        // 依使用者需求精確隱藏的方塊
         const hideSelectors = [
           "#stat-daily-timer", "#stat-streak-freeze", "#btn-upload", ".stat.upload",
           "#levelbar", "#modes", "#card", ".card", "#session", "#banner", "#screen-quiz",
@@ -1788,7 +1804,7 @@
           });
         });
 
-        // 依使?�者�?求�??��??��??��?五大歷�??��?
+        // 依使用者需求完整保留呈現的五大歷程方塊
         const showSelectors = [
           "#progress-card", "#learning-record-section", "#week-conquer-section",
           "#weak-words-section", "#export-records-section"
@@ -1799,24 +1815,25 @@
           });
         });
 
-        // ?�入帳�??��?：即?�顯示家?�帳?��?身�?標�?
+        // 登入帳號方塊：即時顯示家長帳號與身分標記
         const sUser = document.getElementById("s-user");
         const curUser = localStorage.getItem("current_user") || (result && (result.username || result.parentUser)) || "";
         const studentInfo = (result && (result.realName || result.studentUser)) || localStorage.getItem("user_real_name") || "";
         if (sUser && curUser) {
           sUser.textContent = curUser;
-          sUser.title = `家長帳�?�?{curUser}${studentInfo ? `（�?定�?女�?${studentInfo}）` : ""}`;
+          sUser.title = `家長帳號：${curUser}${studentInfo ? `（綁定子女：${studentInfo}）` : ""}`;
           const statUser = document.getElementById("stat-user");
           if (statUser) {
-            statUser.title = `家長帳�?�?{curUser}${studentInfo ? `（�?定�?女�?${studentInfo}）` : ""}`;
+            statUser.title = `家長帳號：${curUser}${studentInfo ? `（綁定子女：${studentInfo}）` : ""}`;
             const subLabel = statUser.querySelector("span");
-            if (subLabel) subLabel.textContent = "家長帳�?";
+            if (subLabel) subLabel.textContent = "家長帳號";
           }
         }
         return;
       }
 
-      // 2. ?�師 / 管�??�身?��?比照家長規格精�??�濾視�?（隱?��?答�??��?計�?，�??��?學管?��??��?工具�?      if (isTeacher || isAdmin) {
+      // 2. 教師 / 管理員身分：比照家長規格精準過濾視圖（隱藏作答題型與計時，呈現教學管理看板與工具）
+      if (isTeacher || isAdmin) {
         document.body.classList.add("role-teacher");
         document.documentElement.classList.add("role-teacher");
         document.body.classList.remove("role-parent");
@@ -1842,18 +1859,18 @@
         const teacherCard = document.getElementById("teacher-portal-card");
         if (teacherCard) teacherCard.style.setProperty("display", "block", "important");
 
-        // ?�入帳�??��?：即?�顯示�?師帳?��?身�?標�?
+        // 登入帳號方塊：即時顯示教師帳號與身分標記
         const sUser = document.getElementById("s-user");
         const curUser = localStorage.getItem("current_user") || (result && result.username) || "";
         const realName = (result && result.realName) || localStorage.getItem("user_real_name") || "";
         if (sUser && curUser) {
           sUser.textContent = curUser;
-          sUser.title = `?�師帳�?�?{curUser}${realName ? `�?{realName}）` : ""}`;
+          sUser.title = `教師帳號：${curUser}${realName ? `（${realName}）` : ""}`;
           const statUser = document.getElementById("stat-user");
           if (statUser) {
-            statUser.title = `?�師帳�?�?{curUser}${realName ? `�?{realName}）` : ""}`;
+            statUser.title = `教師帳號：${curUser}${realName ? `（${realName}）` : ""}`;
             const subLabel = statUser.querySelector("span");
-            if (subLabel) subLabel.textContent = isAdmin ? "系統管�??? : "?�師帳�?";
+            if (subLabel) subLabel.textContent = isAdmin ? "系統管理員" : "教師帳號";
           }
         }
         if (typeof loadTeacherPortalScript === "function") {
@@ -1866,7 +1883,7 @@
         return;
       }
 
-      // 3. 學�?身�?：移?�家?��??�師�??，復?��??��??��?答�?計�??�件
+      // 3. 學生身分：移除家長與教師樣式，復原完整遊戲作答與計時元件
       document.body.classList.remove("role-parent", "role-teacher");
       document.documentElement.classList.remove("role-parent", "role-teacher");
       const teacherCard = document.getElementById("teacher-portal-card");
@@ -1885,7 +1902,8 @@
       __currentParentUser = user;
       __currentParentPass = pass;
 
-      // ?��??�入?�罩並�??�畫?��???      const ov = document.getElementById("login-overlay");
+      // 關閉登入遮罩並切換畫面視圖
+      const ov = document.getElementById("login-overlay");
       if (ov) {
         ov.style.setProperty("display", "none", "important");
         ov.classList.add("hidden");
@@ -1898,10 +1916,11 @@
       const portal = document.getElementById("parent-portal-screen");
       if (portal) portal.style.display = "block";
 
-      // 1. 填入家長?��?女身份�?�?      const pName = result.parentRealName || result.parentUsername || user;
-      const sName = result.realName || result.username || "貴�?�?;
-      const sClass = result.className ? "?��?�? + result.className : "";
-      const sUser = result.username ? "學�?�? + result.username : "";
+      // 1. 填入家長與子女身份資訊
+      const pName = result.parentRealName || result.parentUsername || user;
+      const sName = result.realName || result.username || "貴子弟";
+      const sClass = result.className ? "班級：" + result.className : "";
+      const sUser = result.username ? "學號：" + result.username : "";
 
       const pNameEl = document.getElementById("pp-parent-name");
       if (pNameEl) pNameEl.textContent = pName;
@@ -1912,7 +1931,7 @@
       const sUserEl = document.getElementById("pp-student-user");
       if (sUserEl) sUserEl.textContent = sUser;
 
-      // 2. 今日測�??��?
+      // 2. 今日測驗成果
       const todayBadge = document.getElementById("pp-today-badge");
       const todayScore = document.getElementById("pp-today-score");
       const todayDesc = document.getElementById("pp-today-desc");
@@ -1923,48 +1942,48 @@
         const correct = Number(t.correct || 0);
         const score = (t.score !== undefined) ? Number(t.score) : (total > 0 ? Math.round((correct / total) * 100) : 0);
         if (todayBadge) {
-          todayBadge.textContent = "已�??�測�?;
+          todayBadge.textContent = "已完成測驗";
           todayBadge.style.background = "#dcfce7";
           todayBadge.style.color = "#15803d";
         }
         if (todayScore) {
-          todayScore.textContent = score + " ??;
+          todayScore.textContent = score + " 分";
           todayScore.style.color = score >= 80 ? "#16a34a" : (score >= 60 ? "#2563eb" : "#ea580c");
         }
         if (todayDesc) {
-          todayDesc.textContent = total > 0 ? ("??" + total + " 題�?答�? " + correct + " �?(�????" + Math.round((correct/total)*100) + "%)") : "今日測�?已�???;
+          todayDesc.textContent = total > 0 ? ("共 " + total + " 題，答對 " + correct + " 題 (正答率 " + Math.round((correct/total)*100) + "%)") : "今日測驗已完成";
         }
       } else if (result.assignedTask) {
         if (todayBadge) {
-          todayBadge.textContent = "今日待�???;
+          todayBadge.textContent = "今日待完成";
           todayBadge.style.background = "#fef3c7";
           todayBadge.style.color = "#b45309";
         }
         if (todayScore) {
-          todayScore.textContent = "尚未測�?";
+          todayScore.textContent = "尚未測驗";
           todayScore.style.color = "#64748b";
         }
         if (todayDesc) {
-          const tName = result.assignedTask.taskName || "每日?��?測�?";
+          const tName = result.assignedTask.taskName || "每日指定測驗";
           const cnt = (Array.isArray(result.assignedTask.words)) ? result.assignedTask.words.length : "";
-          todayDesc.textContent = tName + (cnt ? " (??" + cnt + " �?" : "");
+          todayDesc.textContent = tName + (cnt ? " (共 " + cnt + " 題)" : "");
         }
       } else {
         if (todayBadge) {
-          todayBadge.textContent = "?�主學�???;
+          todayBadge.textContent = "自主學習日";
           todayBadge.style.background = "#f1f5f9";
           todayBadge.style.color = "#475569";
         }
         if (todayScore) {
-          todayScore.textContent = "?�主練�?";
+          todayScore.textContent = "自主練習";
           todayScore.style.color = "#64748b";
         }
         if (todayDesc) {
-          todayDesc.textContent = "今日?�師?��?定全?�測驗�?鼓勵?�主練�?�?;
+          todayDesc.textContent = "今日老師未指定全班測驗，鼓勵自主練習！";
         }
       }
 
-      // 3. 累�?作�?概�??��??�度
+      // 3. 累計作答概況與掌握度
       let agentData = null;
       try {
         if (result.records && result.records["spellAgent.v2"]) {
@@ -1985,12 +2004,12 @@
       const mastered = agentData && agentData.session ? Number(agentData.session.mastered || 0) : (agentData && agentData.box ? Object.keys(agentData.box).length : 0);
       const streak = agentData ? Number(agentData.streak || 0) : 0;
 
-      if (totalAnsEl) totalAnsEl.textContent = attempts + " �?;
-      if (totalAccEl) totalAccEl.textContent = "答�? " + correct + " �?�?�????" + accuracy + "%";
-      if (masteredEl) masteredEl.textContent = mastered + " ??;
-      if (streakEl) streakEl.textContent = "???學�? " + streak + " �?;
+      if (totalAnsEl) totalAnsEl.textContent = attempts + " 題";
+      if (totalAccEl) totalAccEl.textContent = "答對 " + correct + " 題 ｜ 正答率 " + accuracy + "%";
+      if (masteredEl) masteredEl.textContent = mastered + " 個";
+      if (streakEl) streakEl.textContent = "連續學習 " + streak + " 天";
 
-      // 4. 歷�?表格渲�?
+      // 4. 歷程表格渲染
       const historyList = Array.isArray(result.dailyTaskHistory) ? result.dailyTaskHistory.slice() : [];
       historyList.sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
 
@@ -1998,13 +2017,13 @@
         const tbody = document.getElementById("pp-history-tbody");
         if (!tbody) return;
         if (!items || items.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:24px; color:var(--ink2, #5A6183);">尚無歷�?資�?</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:24px; color:var(--ink2, #5A6183);">尚無歷程資料</td></tr>';
           return;
         }
         tbody.innerHTML = items.map(item => {
           const dStr = String(item.date || "").split(/[Ts]/)[0];
-          const taskName = item.taskName || (item.mode === "daily_task" ? "每日測�?" : "?�主練�?");
-          const isExam = taskName !== "?�主練�?" && !String(taskName).includes("?��?�?);
+          const taskName = item.taskName || (item.mode === "daily_task" ? "每日測驗" : "自主練習");
+          const isExam = taskName !== "自主練習" && !String(taskName).includes("未指派");
           const modeBadge = isExam 
             ? '<span style="background:rgba(108,76,224,0.1); color:#6C4CE0; padding:2px 8px; border-radius:6px; font-weight:700; font-size:12px;">' + taskName + '</span>'
             : '<span style="background:#f1f5f9; color:#475569; padding:2px 8px; border-radius:6px; font-weight:700; font-size:12px;">' + taskName + '</span>';
@@ -2014,13 +2033,13 @@
           const acc = ans > 0 ? Math.round((cor / ans) * 100) : (item.accuracy ? Math.round(Number(item.accuracy)) : 0);
           
           let accColor = "#16a34a";
-          let statusText = "?? ?��??��?";
+          let statusText = "🌟 優秀卓越";
           if (acc < 60) {
             accColor = "#ef4444";
-            statusText = "?�� 建議?�強";
+            statusText = "💪 建議加強";
           } else if (acc < 80) {
             accColor = "#2563eb";
-            statusText = "?? ?�好?��?";
+            statusText = "👍 良好過關";
           }
 
           return '<tr style="border-bottom:1px solid var(--line, #E7E9F5);">' +
@@ -2036,7 +2055,7 @@
 
       renderHistoryRows(historyList);
 
-      // 歷�??�濾?�能
+      // 歷程過濾功能
       const filterInput = document.getElementById("pp-history-filter");
       if (filterInput) {
         filterInput.oninput = () => {
@@ -2053,7 +2072,7 @@
         };
       }
 
-      // 5. 弱�??��?清單
+      // 5. 弱項單字清單
       const weakSection = document.getElementById("pp-weak-section");
       const weakListEl = document.getElementById("pp-weak-words-list");
       let weakWords = [];
@@ -2069,7 +2088,7 @@
         weakWords.sort((a, b) => b.wrong - a.wrong);
         weakListEl.innerHTML = weakWords.slice(0, 20).map(item => 
           '<span style="padding:4px 10px; border-radius:8px; background:#fef2f2; border:1px solid #fee2e2; color:#991b1b; font-size:13px; font-weight:700; display:inline-flex; align-items:center; gap:5px;">' +
-            item.word + ' <small style="font-size:11px; opacity:0.8;">(??' + item.wrong + ' �?</small>' +
+            item.word + ' <small style="font-size:11px; opacity:0.8;">(錯 ' + item.wrong + ' 次)</small>' +
           '</span>'
         ).join("");
         weakSection.style.display = "block";
@@ -2077,12 +2096,12 @@
         weakSection.style.display = "none";
       }
 
-      // 6. ?�新?��??��?事件
+      // 6. 重新整理按鈕事件
       const refreshBtn = document.getElementById("pp-btn-refresh");
       if (refreshBtn) {
         refreshBtn.onclick = async () => {
           refreshBtn.disabled = true;
-          refreshBtn.textContent = "??載入�?..";
+          refreshBtn.textContent = "⏳ 載入中...";
           try {
             const resp = await fetch(scriptUrl + "?action=checkAndGetData", {
               method: "POST",
@@ -2093,19 +2112,19 @@
             if (latestResult.status === "success") {
               renderParentPortalView(latestResult, __currentParentUser, __currentParentPass);
             } else {
-              alert(latestResult.message || "?�新失�?，�?稍候�?�?);
+              alert(latestResult.message || "更新失敗，請稍候重試");
             }
           } catch(err) {
-            console.error("?�新歷�?失�?�?, err);
-            alert("網路???不穩，�?稍候�?�?);
+            console.error("更新歷程失敗：", err);
+            alert("網路連線不穩，請稍候再試");
           } finally {
             refreshBtn.disabled = false;
-            refreshBtn.textContent = "?? ?�新?��?";
+            refreshBtn.textContent = "🔄 重新整理";
           }
         };
       }
 
-      // 7. ?�出?��?事件
+      // 7. 登出按鈕事件
       const logoutBtn = document.getElementById("pp-btn-logout");
       if (logoutBtn) {
         logoutBtn.onclick = () => {
@@ -2131,7 +2150,7 @@
           const pInput = document.getElementById("login-pass");
           if (pInput) pInput.value = "";
           if (uInput) { uInput.value = ""; uInput.focus(); }
-          setLoginStatus("已�??�登??, "success");
+          setLoginStatus("已安全登出", "success");
         };
       }
     }
@@ -2171,11 +2190,11 @@
       } catch(_) {}
     }
 
-    // 點�??�登?�帳?�」�?位�??�帳?��?訊�??��?視�?
+    // 點擊「登入帳號」欄位彈出帳號資訊與切換視窗
     window.openAccountModal = function() {
-      const cur = localStorage.getItem("current_user") || "尚未?�入";
+      const cur = localStorage.getItem("current_user") || "尚未登入";
       const uRole = localStorage.getItem("user_role");
-      const role = uRole === "teacher" ? "?�師" : uRole === "parent" ? "家長" : "學�?";
+      const role = uRole === "teacher" ? "教師" : uRole === "parent" ? "家長" : "學生";
       let mEl = document.getElementById("account-info-modal");
       if (!mEl) {
         mEl = document.createElement("div");
@@ -2188,23 +2207,24 @@
         <div style="background:var(--card, #FFFFFF); color:var(--ink, #1E293B); border-radius:18px; max-width:400px; width:100%; padding:24px 22px; box-shadow:0 12px 36px rgba(0,0,0,0.25); border:1.5px solid var(--line, #E2E8F0); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; line-height:1.6;">
           <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; border-bottom:1px solid var(--line, #E2E8F0); padding-bottom:10px;">
             <div style="font-size:18px; font-weight:800; display:flex; align-items:center; gap:8px;">
-              <span>?�� ?��??�入帳�?</span>
+              <span>👤 目前登入帳號</span>
             </div>
-            <button onclick="document.getElementById('account-info-modal').style.display='none'" style="background:none; border:none; font-size:20px; cursor:pointer; color:var(--ink3, #94A3B8); padding:0 4px;">??/button>
+            <button onclick="document.getElementById('account-info-modal').style.display='none'" style="background:none; border:none; font-size:20px; cursor:pointer; color:var(--ink3, #94A3B8); padding:0 4px;">✕</button>
           </div>
           <div style="background:rgba(59,130,246,0.08); border:1px solid #3B82F6; border-radius:12px; padding:14px; margin-bottom:16px; text-align:center;">
-            <div style="font-size:13px; color:var(--ink2, #475569); font-weight:600; margin-bottom:2px;">?�入身�?</div>
+            <div style="font-size:13px; color:var(--ink2, #475569); font-weight:600; margin-bottom:2px;">登入身分</div>
             <div style="font-size:22px; font-weight:900; color:#2563EB;">${cur}</div>
-            <div style="font-size:13px; font-weight:700; color:#3B82F6; margin-top:2px;">身�??��?${role}</div>
+            <div style="font-size:13px; font-weight:700; color:#3B82F6; margin-top:2px;">身分別：${role}</div>
           </div>
           <div style="font-size:13.5px; color:var(--ink2, #475569); margin-bottom:18px; text-align:center;">
-            ?��??��?使用?��?請�??��??��??�帳?��?          </div>
+            若需更換使用者，請點選下方切換帳號。
+          </div>
           <div style="display:flex; gap:10px;">
             <button onclick="document.getElementById('account-info-modal').style.display='none'" style="flex:1; padding:10px 0; background:rgba(148,163,184,0.15); color:var(--ink, #334155); border:1px solid var(--line, #CBD5E1); border-radius:10px; font-size:14px; font-weight:700; cursor:pointer;">
-              ?��?
+              關閉
             </button>
             <button onclick="window.confirmLogoutFromModal()" style="flex:1; padding:10px 0; background:linear-gradient(135deg,#EF4444,#DC2626); color:#FFFFFF; border:none; border-radius:10px; font-size:14px; font-weight:800; cursor:pointer; box-shadow:0 2px 8px rgba(220,38,38,0.3);">
-              ?��??�出
+              切換登出
             </button>
           </div>
         </div>
@@ -2235,7 +2255,8 @@
 
     window.openStreakFreezeModal = function() {};
 
-    // ?�援輸入框�?�?Enter ?�直?�登??    ['login-user', 'login-pass'].forEach(id => {
+    // 支援輸入框按下 Enter 鍵直接登入
+    ['login-user', 'login-pass'].forEach(id => {
       const el = document.getElementById(id);
       if (el) {
         el.addEventListener('keydown', (e) => {
@@ -2246,7 +2267,7 @@
       }
     });
 
-    // ?��?填入?�次?�入帳�?並�??��?碼輸?��?
+    // 自動填入前次登入帳號並聚焦密碼輸入框
     if (rememberedUser) {
       const uEl = document.getElementById("login-user");
       if (uEl && !uEl.value) {
@@ -2268,16 +2289,17 @@
         return;
       }
       msgEl.className = `login-status-banner active msg-${type}`;
-      let icon = "??;
-      if (type === "loading-data" || type === "loading") icon = "?��";
-      else if (type === "loading-game" || type === "success") icon = "?��";
-      else if (type === "error") icon = "??;
-      else if (type === "warning") icon = "??;
+      let icon = "⚡";
+      if (type === "loading-data" || type === "loading") icon = "📦";
+      else if (type === "loading-game" || type === "success") icon = "🎮";
+      else if (type === "error") icon = "❌";
+      else if (type === "warning") icon = "⏰";
       msgEl.innerHTML = `<span style="font-size:16px;">${icon}</span> <span>${text}</span>`;
     };
 
     
-// 行�?裝置輸入?�自?�滾?�至?��??�?�中央�??��?被�??�鍵?�遮??(function bindMobileKeyboardHandler() {
+// 行動裝置輸入時自動滾動至可視區域中央，避免被虛擬鍵盤遮擋
+(function bindMobileKeyboardHandler() {
   function scrollIntoSafeView(el) {
     if (!el) return;
     setTimeout(() => {
@@ -2297,7 +2319,8 @@
     }
   });
 
-  // ?? ?��??�慧?��??��??�擬?�盤：涵?�登?�、拼字、修�?��式�??�?��?作�???  function autoAvoidKeyboard(el) {
+  // 🚀 全局智慧避讓手機虛擬鍵盤：涵蓋登入、拼字、修正模式與所有操作按鈕
+  function autoAvoidKeyboard(el) {
     if (!el) return;
     setTimeout(() => {
       const parentCard = el.closest('#login-overlay, .quiz-screen, .card') || el;
@@ -2327,12 +2350,12 @@
 
     loginBtn.addEventListener('click', async () => {
       if (isLoggingIn) return;
-      console.log("[Login] ?��?確�??�入?��?");
+      console.log("[Login] 按下確認登入按鈕");
       const user = document.getElementById('login-user').value.trim();
       const pass = document.getElementById('login-pass').value.trim();
 
       if (!user || !pass) {
-        setLoginStatus("請輸?�帳?��?密碼?�入", "error");
+        setLoginStatus("請輸入帳號與密碼登入", "error");
         return;
       }
 
@@ -2341,16 +2364,16 @@
       loginBtn.style.opacity = "0.75";
       const isParentGuess = user.toLowerCase().startsWith('p') && user.length > 1;
       const isTeacherGuess = user.toLowerCase().startsWith('t') || user.toLowerCase().startsWith('admin');
-      let targetHint = "?�人學�?";
-      if (isParentGuess) targetHint = `子女�?{user.slice(1)}）學習`;
-      else if (isTeacherGuess) targetHint = "?�學管�?";
-      setLoginStatus(`�?��載入${targetHint}資�?...`, "loading-data");
+      let targetHint = "個人學習";
+      if (isParentGuess) targetHint = `子女（${user.slice(1)}）學習`;
+      else if (isTeacherGuess) targetHint = "教學管理";
+      setLoginStatus(`正在載入${targetHint}資料...`, "loading-data");
 
       try {
         let response = null;
         let lastError = null;
 
-        // ?�全?�試機制：�???GAS ?��??��??��??�網路�???(?�多�?�?3 �?
+        // 健全重試機制：處理 GAS 冷啟動或暫時性網路抖動 (最多嘗試 3 次)
         for (let attempt = 1; attempt <= 3; attempt++) {
           try {
             const controller = new AbortController();
@@ -2366,14 +2389,14 @@
           } catch (netErr) {
             lastError = netErr;
             if (attempt < 3) {
-              setLoginStatus(`伺�??��??�中，正?�進�?�?${attempt} 次�??...`, "loading-data");
+              setLoginStatus(`伺服器喚醒中，正在進行第 ${attempt} 次連線...`, "loading-data");
               await new Promise(r => setTimeout(r, 1200));
             }
           }
         }
 
         if (!response) {
-          throw (lastError || new Error("????��?"));
+          throw (lastError || new Error("連線逾時"));
         }
 
         const rawText = await response.text();
@@ -2381,19 +2404,19 @@
         try {
           result = JSON.parse(rawText);
         } catch (_) {
-          if (rawText.includes("帳�??��?碼錯�?)) {
-            result = { status: "error", message: "帳�??��?碼錯�? };
+          if (rawText.includes("帳號或密碼錯誤")) {
+            result = { status: "error", message: "帳號或密碼錯誤" };
           } else {
-            throw new Error("伺�??��??�格式異�?);
+            throw new Error("伺服器回應格式異常");
           }
         }
 
         if (result.status === "success") {
-          // ?�?� 帳�?資�?完全?�離?��??�零污�?保�? ?�?�
+          // ── 帳號資料完全隔離與安全零污染保證 ──
           const lastUser = (localStorage.getItem("current_user") || "").trim();
           const isDifferentUser = !lastUser || lastUser.toLowerCase() !== user.toLowerCase();
 
-          // ?��??�端?�否?�實質�??��?必�??�含?��???spellAgent.v2 ?�物件�?
+          // 判定雲端是否有實質紀錄（必須是含有有效 spellAgent.v2 的物件）
           const hasCloudRecords = result.records && 
                                   typeof result.records === "object" && 
                                   !Array.isArray(result.records) && 
@@ -2411,7 +2434,7 @@
             }
           } catch(_) {}
 
-          // ?? ?��?規�?：�?次登?��?徹�?清除?�?�本機快?��?歷史紀?��?確�?一人�?機�?對�?淨�??��?完全?�除他人帳�?影響
+          // 🚀 核心規範：每次登入時徹底清除所有本機快取與歷史紀錄，確保一人一機絕對純淨隔離，完全免除他人帳號影響
           purgeAllStudentSessionAndLocalData();
 
           localStorage.setItem("current_user", user);
@@ -2425,10 +2448,10 @@
           result.role = determinedRole || "student";
           localStorage.setItem("user_role", result.role);
 
-          // 角色?��?導�?：家?�身?��??��?屬�?表板?�濾（顯示家?�帳?�、隱?��?答�??�、�??��?大歷程方塊�?
+          // 角色分流導向：家長身分啟用專屬儀表板過濾（顯示家長帳號、隱藏作答題型、保留五大歷程方塊）
           if (result.role === "parent") {
             const childAcc = result.studentUser || (user.toLowerCase().startsWith('p') ? user.slice(1) : user);
-            setLoginStatus(`家長身�?驗�??��?，正?��??��?女�?${childAcc}）學習�???..`, "loading-game");
+            setLoginStatus(`家長身分驗證成功，正在載入子女（${childAcc}）學習成果...`, "loading-game");
             document.body.classList.add("role-parent");
             document.documentElement.classList.add("role-parent");
             localStorage.setItem("current_user", user);
@@ -2440,7 +2463,7 @@
             applyRoleBasedView("parent", result);
           }
           if (result.role === "teacher" || result.role === "admin") {
-            setLoginStatus("載入完�?", "loading-game");
+            setLoginStatus("載入完成", "loading-game");
             document.body.classList.add("role-teacher");
             document.documentElement.classList.add("role-teacher");
             localStorage.setItem("current_user", user);
@@ -2455,7 +2478,8 @@
             applyRoleBasedView(result.role, result);
           }
           if (result.role === "admin" || (result.role === "teacher" && result.isAdmin)) {
-            // ?�師 / 管�??�可?�由?��?使用?�出題設定」�??��??�總?��??��?            const adminNotice = document.getElementById("admin-portal-link");
+            // 教師 / 管理員可自由選擇使用「出題設定」或前往「總控後台」
+            const adminNotice = document.getElementById("admin-portal-link");
             if (adminNotice) adminNotice.style.display = "inline-flex";
           }
           if (result.realName) localStorage.setItem("user_real_name", result.realName);
@@ -2494,12 +2518,12 @@
           }
           if (result.role === "teacher") {
             let classArr = [];
-            const invalidClasses = new Set(["all", "?�校", "系統管�???, "管�???, "admin", "d", "test"]);
+            const invalidClasses = new Set(["all", "全校", "系統管理員", "管理員", "admin", "d", "test"]);
             const rawItems = (Array.isArray(result.classList) && result.classList.length > 0) ? result.classList : [result.className];
             rawItems.forEach(item => {
               if (!item) return;
               String(item).split(/[,，、\s/]+/).forEach(token => {
-                let t = token.replace(/??/, "").trim();
+                let t = token.replace(/班$/, "").trim();
                 if (!t || invalidClasses.has(t.toLowerCase())) return;
                 if (/^\d{6}$/.test(t)) {
                   classArr.push(t.slice(0, 3), t.slice(3, 6));
@@ -2513,7 +2537,8 @@
             if (result.className) {
               localStorage.setItem("teacher_my_class", result.className);
             }
-            // ?? ?�能?��?：�?師登?��??��?，於?�景?��?步�?載單字庫，�??�出題�?窗�??�延?�即?��???            try { loadPickerData(); } catch(_) {}
+            // 🚀 效能優化：教師登入成功後，於背景非同步預載單字庫，開啟出題彈窗時零延遲即時呈現
+            try { loadPickerData(); } catch(_) {}
           }
           sessionStorage.setItem("current_pass", pass);
           localStorage.setItem("current_pass", pass);
@@ -2522,7 +2547,8 @@
           }
 
           if (hasCloudRecords) {
-            // ?�端?��?檔�?將雲端�??�進度寫入 LocalStorage（跳?��??�份中�? task_words_*，統一?��??��?�?taskWordsMap 寫入�?            for (let key in result.records) {
+            // 雲端有存檔：將雲端最新進度寫入 LocalStorage（跳過舊備份中的 task_words_*，統一由下方權威 taskWordsMap 寫入）
+            for (let key in result.records) {
               if (key.startsWith("task_words_")) continue;
               if (key === "current_user" || key === "user_role" || key === "current_pass") continue;
               const val = result.records[key];
@@ -2536,9 +2562,9 @@
               if (result.studentUser) localStorage.setItem("bound_student", result.studentUser);
             }
           } else if (!isDifferentUser && localAgentData) {
-            // ?�端?��??��?但本機�?帳�?已�??��?學�??�度：�??�本機進度（登?��?絕�?上傳，確保�?下�??��??�風?��?
+            // 雲端無紀錄，但本機同帳號已有有效學習進度：保留本機進度（登入時絕不上傳，確保純下載無覆蓋風險）
           } else if (result.isNewStudent === true) {
-            // ?�當?�端確�??�無?��??��??��??��??�無任�?紀?�」�?，�??��??�全?�帳?��?始�?
+            // 僅當雲端確認「無分頁」或「分頁完全無任何紀錄」時，才判定為全新帳號初始化
             const freshStore = {
               box: {}, stat: {}, lstat: {},
               mstat: { listen: { a: 0, c: 0 }, pick: { a: 0, c: 0 }, scramble: { a: 0, c: 0 }, trap: { a: 0, c: 0 } },
@@ -2551,7 +2577,7 @@
             localStorage.setItem("spellAgent.v2", JSON.stringify(freshStore));
           }
 
-          // ?��?任�??��?庫�??�表??localStorage 供歷?�查詢�??��???dailyTaskHistory ?�併?�寫?��?
+          // 儲存任務單字庫對應表至 localStorage 供歷史查詢（優先於 dailyTaskHistory 合併前寫入）
           if (result.taskWordsMap && typeof result.taskWordsMap === "object") {
             for (const tk in result.taskWordsMap) {
               const twVal = result.taskWordsMap[tk];
@@ -2561,11 +2587,11 @@
             }
           }
 
-          // ?��??��?序修�?��在?��? result.records ?�份?��?�?taskWordsMap 之�?，寫?�伺?�器?�?��?算�? dailyTaskHistory
+          // 【關鍵順序修正】在還原 result.records 備份與權威 taskWordsMap 之後，寫入伺服器最新計算的 dailyTaskHistory
           if (Array.isArray(result.dailyTaskHistory)) {
             let mergedHist = result.dailyTaskHistory.map(cloudItem => {
               const cloudWords = (Array.isArray(cloudItem.words) && cloudItem.words.length > 0) ? cloudItem.words : [];
-              if (cloudWords.length === 0 && cloudItem.taskName && cloudItem.taskName !== "?�主練�?" && !String(cloudItem.taskName).includes("?��?�?)) {
+              if (cloudWords.length === 0 && cloudItem.taskName && cloudItem.taskName !== "自主練習" && !String(cloudItem.taskName).includes("未指派")) {
                 const cDate = String(cloudItem.date || "").trim().split(/[T\s]/)[0].replace(/\//g, "-");
                 const cachedW = localStorage.getItem("task_words_" + cDate) || localStorage.getItem("task_words_" + cDate.replace(/-/g, "/"));
                 if (cachedW) {
@@ -2584,7 +2610,7 @@
             localStorage.setItem("conquer_roll_settings", JSON.stringify(result.conquerSettings));
           }
 
-          // ?��?今日?��?任�?，�???sessionStorage ??localStorage �?app.js ?��?
+          // 若有今日指定任務，存入 sessionStorage 與 localStorage 供 app.js 抓取
           if (result.assignedTask) {
             sessionStorage.setItem("assigned_task", JSON.stringify(result.assignedTask));
             localStorage.setItem("assigned_task_active", JSON.stringify(result.assignedTask));
@@ -2595,7 +2621,8 @@
               localStorage.setItem("task_done_" + ds2, "true");
               localStorage.removeItem("today_task_in_progress");
             } else {
-              // ?�師?�派了新任�??��??��??��??��?清除?��??�日?��?標�?，避?�誤??              localStorage.removeItem("task_done_" + ds1);
+              // 老師指派了新任務或今日尚未完成，清除舊的當日鎖定標記，避免誤鎖
+              localStorage.removeItem("task_done_" + ds1);
               localStorage.removeItem("task_done_" + ds2);
             }
           } else {
@@ -2603,11 +2630,12 @@
             localStorage.removeItem("assigned_task_active");
           }
 
-          // ?�?� 今日?��?測�??��?中進度?�縫?��?比�?（支?�斷線、�??�、�??�電?��? ?�?�
+          // ── 今日指定測驗進行中進度無縫接續比對（支援斷線、重整、切換電腦） ──
           const currentTodayDash = formatDateDash();
           let bestProg = null;
 
-          // 1. ?��??�度（本帳�?�?          try {
+          // 1. 本機進度（本帳號）
+          try {
             const rawLocal = localStorage.getItem("today_task_in_progress_" + user.toLowerCase()) || localStorage.getItem("today_task_in_progress");
             if (rawLocal) {
               const p = JSON.parse(rawLocal);
@@ -2619,7 +2647,7 @@
             }
           } catch(_) {}
 
-          // 2. ?�端?�度比�?
+          // 2. 雲端進度比對
           try {
             if (result.records) {
               const rawCloud = result.records["today_task_in_progress_" + user.toLowerCase()] || result.records.today_task_in_progress;
@@ -2635,24 +2663,26 @@
             }
           } catch(_) {}
 
-          // ?�測驗�??��??��?寫入?�?�進�?中進度
+          // 若測驗尚未完成，寫入最新進行中進度
           if (bestProg && (!result.assignedTask || !result.assignedTask.alreadyCompleted)) {
             localStorage.setItem("today_task_in_progress", JSON.stringify(bestProg));
             localStorage.setItem("today_task_in_progress_" + user.toLowerCase(), JSON.stringify(bestProg));
           }
 
-          // ?��??�已載入?��??�核心模組�?例�??��?帳�??��?）�?強制?�新?��?以徹底銷毀記憶體�???          if (window.__gameModuleLoaded) {
+          // 若先前已載入過遊戲核心模組（例如切換帳號情境），強制重新整理以徹底銷毀記憶體殘留
+          if (window.__gameModuleLoaded) {
             location.reload();
             return;
           }
           window.__gameModuleLoaded = true;
 
-          // 1. ?��?載入?�戲?��?模�?（�?上�??�戳記防?�覽?�快?��?此�? app.js ?��?讀?��??��?好�? LocalStorage�?          let loadPrompt = "?�入?��?，正?��??��???..";
-          if (result.role === "parent") loadPrompt = "?�入?��?，正?��??��?女學習進度...";
-          else if (result.role === "teacher" || result.role === "admin") loadPrompt = "載入完�?";
+          // 1. 動態載入遊戲核心模組（加上時間戳記防瀏覽器快取，此時 app.js 才會讀取剛剛存好的 LocalStorage）
+          let loadPrompt = "登入成功，正在載入遊戲...";
+          if (result.role === "parent") loadPrompt = "登入成功，正在載入子女學習進度...";
+          else if (result.role === "teacher" || result.role === "admin") loadPrompt = "載入完成";
           setLoginStatus(loadPrompt, "loading-game");
           try {
-            // ???�入?�戲?��?比�?今日?��??��?：已歸零就�??��??��?測�?系統
+            // ★ 進入遊戲前先比對今日剩餘時間：已歸零就不啟動單字測驗系統
             if (result.role !== "teacher" && !result.isAdmin && result.dailyUsage) {
               const du = result.dailyUsage;
               const uName = localStorage.getItem("current_user");
@@ -2675,9 +2705,9 @@
             const _ov = document.getElementById('login-overlay'); if (_ov) { _ov.style.setProperty('display', 'none', 'important'); _ov.classList.add('hidden'); }
             document.body.classList.remove('is-logging-in');
 
-            // ?��?��???�鍵守�?：�?師�?家長完全豁�?載入學�?測�?引�? (app.js)，直?�進入?�自專屬管�?/歷�?介面
+            // 👨‍🏫 關鍵守衛：教師與家長完全豁免載入學生測驗引擎 (app.js)，直接進入各自專屬管理/歷程介面
             if (effectiveRole === "teacher" || effectiveRole === "admin" || effectiveRole === "parent") {
-              console.log("?��?��??管�?/?�師/家長?�入完�?，直?��??��?屬�??��?豁�?學�?測�?模�?");
+              console.log("👨‍🏫 管理/教師/家長登入完成，直接啟用專屬介面，豁免學生測驗模組");
               return;
             }
 
@@ -2687,18 +2717,19 @@
 
             applyRoleBasedView(effectiveRole, result);
 
-            // ??學�?完整載入?�度?�單字庫?�畫?��?，�?�???��?每日練�??�數計�?（家?��??�師豁�?�?            if (result.role !== "teacher" && !result.isAdmin && result.role !== "parent") {
+            // ★ 學生完整載入進度、單字庫與畫面後，才正式啟動每日練習倒數計時（家長與教師豁免）
+            if (result.role !== "teacher" && !result.isAdmin && result.role !== "parent") {
               if (typeof checkCurfewStatus === "function") checkCurfewStatus();
               if (typeof initDailyUsageTimer === "function") initDailyUsageTimer(result.dailyUsage);
             }
           } catch(importErr) {
-            console.error("載入?�戲失�?�?, importErr);
-            alert("載入?�戲模�?失�?�? + importErr.message + "\n請�? Ctrl + F5 強制?�新?��??��??��?試�?");
-            setLoginStatus("載入?�戲模�?失�?�? + importErr.message, "error");
+            console.error("載入遊戲失敗：", importErr);
+            alert("載入遊戲模組失敗：" + importErr.message + "\n請按 Ctrl + F5 強制重新整理或稍候再試！");
+            setLoginStatus("載入遊戲模組失敗：" + importErr.message, "error");
             return;
           }
 
-          // 2. 綁�?上傳?��?事件
+          // 2. 綁定上傳按鈕事件
           const uploadBtn = document.getElementById("btn-upload") || document.querySelector(".stat.upload");
           if (uploadBtn) {
             uploadBtn.style.cursor = "pointer";
@@ -2706,20 +2737,20 @@
           }
         } else {
           if (result.curfew) {
-            setLoginStatus("?��??�您?��??��?答�??��?如�??�求�?洽任課老師調整設�???, "warning");
+            setLoginStatus("目前非您的開放作答時間，如有需求請洽任課老師調整設定。", "warning");
           } else {
-            setLoginStatus(result.message || "帳�??��?碼錯�?, "error");
+            setLoginStatus(result.message || "帳號或密碼錯誤", "error");
           }
         }
       } catch (err) {
-        console.error("?�入請�??�常�?, err);
+        console.error("登入請求異常：", err);
         let extra = "";
         if (window.location.protocol === "file:") {
-          extra = "（本�?file:// 模�?被瀏覽?��?止跨?��??，�?使用 GitHub Pages ??Web Server ?��?�?;
+          extra = "（本機 file:// 模式被瀏覽器禁止跨域連線，請使用 GitHub Pages 或 Web Server 開啟）";
         } else if (err && err.message) {
-          extra = err.name === "AbortError" ? "（�???��?，�??�試�? : `�?{err.message}）`;
+          extra = err.name === "AbortError" ? "（連線逾時，請重試）" : `（${err.message}）`;
         }
-        setLoginStatus("???失�?，�?檢查網路?��?後�?試�? + extra, "error");
+        setLoginStatus("連線失敗，請檢查網路或稍後再試。" + extra, "error");
       } finally {
         isLoggingIn = false;
         if (loginBtn) {
@@ -2729,14 +2760,23 @@
       }
     });
 
-    // 上傳 LocalStorage 紀?�至 Google 試�?表�??�防????��?證�??�入?�容?�防護�?
+    // 上傳 LocalStorage 紀錄至 Google 試算表（含防連點、憑證重登入與容量防護）
     let isUploading = false;
     let hasPendingUpload = false;
     let uploadDebounceTimer = null;
 
     /**
-     * ?? ?�慧?�層上傳機制 (Tiered & Debounced Upload Architecture)�?     * 1. ?�地 LocalStorage 永�??�延?�即?�寫?��?絕�?保�?中途�?答進度??     * 2. ?�景?��??��??�步 (isSilent=true, immediate=false)�?     *    ?�用 2.5 秒智?�防??(Debounce)，�?答中不頻繁發起�?餘網路�?求�?大�??��?等�??��??�頻寬�??��?
-     * 3. 測�?交卷?��??��???(immediate=true)�?     *    立即�?��?��?，�?高優?��?立即?�出，並給�??��??��???     * 4. 併發?�護?�自?��???(hasPendingUpload)�?     *    ?��?次�?求傳輸中?��??�進度，自?��?程於完�?後�??��??�度 100% 完整?�遺漏�?     * 5. ?�面?��??�景存�? (keepalive: true)�?     *    ?��??�直?��??��?，瀏覽?��?層確保�??�送�?，學?�無?�在?�面乾�???     */
+     * 🚀 智慧分層上傳機制 (Tiered & Debounced Upload Architecture)：
+     * 1. 本地 LocalStorage 永遠零延遲即時寫入，絕對保障中途作答進度。
+     * 2. 背景靜默自動同步 (isSilent=true, immediate=false)：
+     *    採用 2.5 秒智慧防抖 (Debounce)，作答中不頻繁發起多餘網路請求，大幅降低等待時間與頻寬壓力！
+     * 3. 測驗交卷與手動上傳 (immediate=true)：
+     *    立即解除防抖，最高優先級立即送出，並給予即時回饋。
+     * 4. 併發防護與自動補單 (hasPendingUpload)：
+     *    若前次請求傳輸中又有新進度，自動排程於完成後補送，進度 100% 完整無遺漏。
+     * 5. 頁面卸載背景存檔 (keepalive: true)：
+     *    切頁或直接關閉時，瀏覽器底層確保資料送達，學生無須在頁面乾等。
+     */
     async function uploadLocalStorageData(isSilent = false, immediate = false) {
       if (uploadDebounceTimer) {
         clearTimeout(uploadDebounceTimer);
@@ -2745,7 +2785,7 @@
 
       if (isUploading) {
         hasPendingUpload = true;
-        if (!isSilent) console.log("資�??�步中�??�?�進度將自?�接續�?程送出...");
+        if (!isSilent) console.log("資料同步中，最新進度將自動接續排程送出...");
         return;
       }
       isUploading = true;
@@ -2761,7 +2801,7 @@
             overlay.style.display = "flex";
             document.body.classList.add("is-logging-in");
           }
-          alert("?�偵測到?�入?�?��?請�??�入帳�?�?);
+          alert("未偵測到登入狀態，請先登入帳號！");
         }
         return;
       }
@@ -2774,13 +2814,13 @@
             overlay.style.display = "flex";
             document.body.classList.add("is-logging-in");
           }
-          alert("?�入?��?已失?��?尚未?�入，�??��??�登?��?");
+          alert("登入憑證已失效或尚未登入，請先完成登入！");
         }
         return;
       }
 
       const iconEl = document.getElementById("s-upload");
-      if (iconEl && !isSilent) iconEl.textContent = "??;
+      if (iconEl && !isSilent) iconEl.textContent = "⏳";
 
       const todayDash = formatDateDash();
       const todaySlash = formatDateSlash();
@@ -2790,7 +2830,7 @@
         const histArr = JSON.parse(localStorage.getItem("student_task_history") || "[]");
         if (Array.isArray(histArr)) {
           histArr.forEach(item => {
-            if (item && item.date && item.taskName && item.taskName !== "?�主練�?" && !String(item.taskName).includes("?��?�?)) {
+            if (item && item.date && item.taskName && item.taskName !== "自主練習" && !String(item.taskName).includes("未指派")) {
               const dNorm = String(item.date).trim().split(/[T\s]/)[0].replace(/\//g, "-");
               if (dNorm) validHistTaskDates.add(dNorm);
             }
@@ -2812,7 +2852,9 @@
         }
       }
 
-      // ?? 極致?��??��?弱網?��?（�??�山?�弱網/低�?租�?機�??�學?�設計�?�?      // 上傳?��?保�??��?14 天�??�日作�??�細，既?�累積總?��??��?精通�?級�??��??�影?��?使傳輸�??�暴�?80%~90%�?秒內?�可完�?上傳�?      if (localData["spellAgent.v2"]) {
+      // 🚀 極致省流量與弱網優化（專為山區弱網/低月租手機流量學生設計）：
+      // 上傳前僅保留最近 14 天的逐日作答明細，既有累積總分與單字精通等級完全不受影響，使傳輸封包暴減 80%~90%，1秒內即可完成上傳！
+      if (localData["spellAgent.v2"]) {
         try {
           const ag = JSON.parse(localData["spellAgent.v2"]);
           if (ag && typeof ag === "object") {
@@ -2851,11 +2893,11 @@
               ? prog.words
               : (prog.pool || []).map(w => typeof w === "string" ? w : (w.word || w.display || w.w)).filter(Boolean);
             todayTaskSummary = {
-              taskName   : prog.task ? prog.task.taskName : "今日?��?練�?",
+              taskName   : prog.task ? prog.task.taskName : "今日指定練習",
               score      : prog.correct || 0,
               total      : prog.pool.length,
               attempts   : prog.index !== undefined ? prog.index : ((prog.correct || 0) + (prog.wrongWords ? prog.wrongWords.length : 0)),
-              rate       : "??,
+              rate       : "—",
               completed  : false,
               inProgress : true,
               date       : progDate,
@@ -2894,7 +2936,7 @@
       } catch(_) {}
 
       try {
-        // ?? 計�??��??�數位簽??(SHA-256 HMAC 簽�?，防 F12 竄改?�數)
+        // 🚀 計算防竄改數位簽名 (SHA-256 HMAC 簽名，防 F12 竄改分數)
         let authSignature = "";
         try {
           const cWords = todayTaskSummary ? (todayTaskSummary.score || 0) : 0;
@@ -2922,7 +2964,7 @@
           headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: payloadStr
         };
-        // ?�在封�?小於 60KB ?��??�用 keepalive，避?��??�瀏覽??64KB ?�制?�錯
+        // 僅在封包小於 60KB 時才啟用 keepalive，避免超出瀏覽器 64KB 限制拋錯
         if (payloadStr.length < 60000) {
           fetchOpts.keepalive = true;
         }
@@ -2933,42 +2975,43 @@
         if (result.status === "success") {
           window.hasUnsavedChanges = false;
           try { localStorage.removeItem("offline_pending_upload_payload"); } catch(_) {}
-          if (iconEl) iconEl.textContent = "??;
-          setTimeout(() => { if (iconEl) iconEl.textContent = "?��"; }, 2500);
+          if (iconEl) iconEl.textContent = "✅";
+          setTimeout(() => { if (iconEl) iconEl.textContent = "🌱"; }, 2500);
 
           if (!isSilent) {
             if (inProgressTask) {
               const currentQ = (inProgressTask.index !== undefined ? inProgressTask.index + 1 : 1);
               const totalQ   = (inProgressTask.pool ? inProgressTask.pool.length : "?");
-              alert("?�� ?��?作�??�度已�??�暫存�?\n\n?��? 注�?：�??��?定練習�??��?答�??��??��??�度：第 " + currentQ + " / " + totalQ + " 題�??�\n?�中存�?不代表測驗�??��?請�??�「�?始�?天�?練�??�繼續�?答�?");
+              alert("💾 目前作答進度已成功暫存！\n\n⚠️ 注意：今日指定練習尚未作答結束（目前進度：第 " + currentQ + " / " + totalQ + " 題）。\n途中存檔不代表測驗結束，請點選「開始今天的練習」繼續作答！");
             } else if (todayTaskSummary && todayTaskSummary.completed) {
-              alert("?? 上傳?��?！�??��?定練習�??��?學�?紀?�已?�步?�試算表??);
+              alert("🎉 上傳成功！今日指定練習成果與學習紀錄已同步至試算表。");
             } else {
-              alert("?? 上傳?��?！學習�??�已?�步?�試算表??);
+              alert("🎉 上傳成功！學習紀錄已同步至試算表。");
             }
           }
         } else {
-          if (iconEl && !isSilent) iconEl.textContent = "??;
-          setTimeout(() => { if (iconEl) iconEl.textContent = "?��"; }, 2500);
-          if (!isSilent) alert("?��?失�?�? + (result.message || "?�知?��?"));
+          if (iconEl && !isSilent) iconEl.textContent = "❌";
+          setTimeout(() => { if (iconEl) iconEl.textContent = "🌱"; }, 2500);
+          if (!isSilent) alert("儲存失敗：" + (result.message || "未知原因"));
         }
       } catch (err) {
-        console.error("上傳失�?�?, err);
-        // ?? ?�網?��?待傳佇�?：�?完整?�度?��??�本機�?網路?�復?�自?��??��??��?絕�?丟失任�??�績�?        try {
+        console.error("上傳失敗：", err);
+        // 🚀 斷網離線待傳佇列：將完整進度暫存於本機，網路恢復時自動背景重傳，絕不丟失任何成績！
+        try {
           localStorage.setItem("offline_pending_upload_payload", payloadStr);
-          if (iconEl) iconEl.textContent = "?��";
+          if (iconEl) iconEl.textContent = "📡";
         } catch(_) {}
 
         if (!isSilent) {
           let extra = "";
           if (window.location.protocol === "file:") {
-            extra = "\n\n?��? ?�示：您?��?�?��以本機�?�?(file://) ?��?，瀏覽?��??��??��?封�?跨網?��???��??�用 GitHub Pages 線�?網�??�透�??��? Web Server ?��?�?;
+            extra = "\n\n⚠️ 提示：您目前正在以本機檔案 (file://) 開啟，瀏覽器安全機制會封鎖跨網域連線。請改用 GitHub Pages 線上網址或透過本機 Web Server 開啟！";
           } else if (err && err.message) {
             extra = "\n(" + err.message + ")";
           }
-          alert("?�� 網路?��?中斷，您?��?績�??�度已�??�暫存在?��??��?佇�?！\n????�復?�系統�??��?補傳，�??��?繼�?練�??? + extra);
+          alert("📶 網路暫時中斷，您的成績與進度已完整暫存在手機排隊佇列！\n連線恢復時系統將自動補傳，請放心繼續練習。" + extra);
         } else {
-          setTimeout(() => { if (iconEl) iconEl.textContent = "?��"; }, 3500);
+          setTimeout(() => { if (iconEl) iconEl.textContent = "🌱"; }, 3500);
         }
       } finally {
         isUploading = false;
@@ -2979,25 +3022,28 @@
       }
     }
 
-    // ?��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��?
-    // ???�完�??��??��?檔設計�?
-    // 1. 平�?�?5 ?��??��??�景存�?（若?�未?�步?�度�?    // 2. ?��??�面（�??��??�、�??��?窗、�??��??��??��??�景存�?
-    // 3. 完�??��?測�??��??�自?��?檔�???finishTodayTask 觸發�?    // ?��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��?
+    // ════════════════════════════════════════════════════════════════════
+    // ★ 最完美的保險存檔設計：
+    // 1. 平時每 5 分鐘自動背景存檔（若有未同步進度）
+    // 2. 離開頁面（關閉分頁、切換視窗、切換分頁）自動背景存檔
+    // 3. 完成指定測驗時立即自動存檔（由 finishTodayTask 觸發）
+    // ════════════════════════════════════════════════════════════════════
     window.hasUnsavedChanges = false;
 
-    // 依�?求調?��??�面?�用 5 ?��??��?存�??�離?��??�自?��??��?步�??�由使用?��??��??�「�??��??�」�?�?
+    // 依需求調整：全面停用 5 分鐘自動存檔與離開頁面自動背景同步，僅由使用者手動點擊「上傳紀錄」存檔
+
     window.uploadLocalStorageData = uploadLocalStorageData;
-    // ???�網?��??��?補傳??��：當?�覽?�由?�網?�復????��??��??��??��?上傳?��??�度
+    // ★ 斷網離線自動補傳監聽：當瀏覽器由斷網恢復連線時，無感接續自動上傳暫存進度
     window.addEventListener("online", () => {
       const pending = localStorage.getItem("offline_pending_upload_payload");
       if (pending && typeof window.uploadLocalStorageData === "function") {
-        console.log("網路???已恢復�??��?補傳?��??��?步�???..");
+        console.log("網路連線已恢復，自動補傳離線未同步資料...");
         window.uploadLocalStorageData(true, true);
       }
     });
 
 
-    // ?? ?�螢幕�?浸�?注�?答模�?(Fullscreen API + CSS Fallback)
+    // 🚀 全螢幕沉浸專注作答模式 (Fullscreen API + CSS Fallback)
     function toggleImmersiveFullscreen() {
       const isFull = !!(document.fullscreenElement || document.webkitFullscreenElement || document.body.classList.contains("css-fullscreen-active"));
       const icon = document.getElementById("s-fullscreen-icon");
@@ -3014,8 +3060,8 @@
         } else {
           document.body.classList.add("css-fullscreen-active");
         }
-        if (icon) icon.textContent = "??";
-        if (text) text.textContent = "?��?";
+        if (icon) icon.textContent = "🗗";
+        if (text) text.textContent = "還原";
       } else {
         if (document.exitFullscreen) {
           document.exitFullscreen().catch(() => {});
@@ -3023,8 +3069,8 @@
           document.webkitExitFullscreen();
         }
         document.body.classList.remove("css-fullscreen-active");
-        if (icon) icon.textContent = "??;
-        if (text) text.textContent = "?�螢�?;
+        if (icon) icon.textContent = "⛶";
+        if (text) text.textContent = "全螢幕";
       }
     }
 
@@ -3037,23 +3083,24 @@
       const text = document.getElementById("s-fullscreen-text");
       if (!isFull) {
         document.body.classList.remove("css-fullscreen-active");
-        if (icon) icon.textContent = "??;
-        if (text) text.textContent = "?�螢�?;
+        if (icon) icon.textContent = "⛶";
+        if (text) text.textContent = "全螢幕";
       } else {
-        if (icon) icon.textContent = "??";
-        if (text) text.textContent = "?��?";
+        if (icon) icon.textContent = "🗗";
+        if (text) text.textContent = "還原";
       }
     });
 
 
-    // 立即綁�??��?點�?事件（無論是?�登?��??�刻綁�?�?    const uploadBtnEl = document.getElementById("btn-upload") || document.querySelector(".stat.upload");
+    // 立即綁定按鈕點擊事件（無論是否登入皆即刻綁定）
+    const uploadBtnEl = document.getElementById("btn-upload") || document.querySelector(".stat.upload");
     if (uploadBtnEl) {
       uploadBtnEl.style.cursor = "pointer";
       uploadBtnEl.onclick = () => uploadLocalStorageData(false);
     }
 
-    // ?�師線�??��??��??�輯已模組�???src/teacher_portal.js
-    // 學�?每日?�放?��??�宵禁�??�核心�?輯已模�??�至 src/time_limits.js
+    // 教師線上出題核心邏輯已模組化至 src/teacher_portal.js
+    // 學生每日開放時間與宵禁限制核心邏輯已模組化至 src/time_limits.js
 
     function loadTeacherPortalScript(callback) {
       if (window.__teacherPortalLoaded) {
@@ -3064,7 +3111,7 @@
       if (!s) {
         s = document.createElement("script");
         s.id = "teacher-portal-script";
-        s.src = "src/teacher_portal.js?v=20261105_2000";
+        s.src = "src/teacher_portal.js?v=20261105_0530";
         s.onload = () => {
           window.__teacherPortalLoaded = true;
           if (typeof ensureTeacherModalsMounted === "function") ensureTeacherModalsMounted();
@@ -3080,7 +3127,7 @@
     }
     window.loadTeacherPortalScript = loadTeacherPortalScript;
 
-    // ?�師?��?管�??��??�管?��?輯已模�??�至 src/teacher_portal.js (?��??��?載入)
+    // 教師時間管理與後台管理邏輯已模組化至 src/teacher_portal.js (按需動態載入)
     function checkAndApplyRoleBoot() {
       const curRole = localStorage.getItem("user_role") || sessionStorage.getItem("user_role");
       if (curRole === "parent") {
@@ -3109,11 +3156,11 @@
       checkAndApplyRoleBoot();
     }
 
-    // ?��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��?
-    // ?���?學校?�腦?�室資�??�護：防上�???下�??��?密跳轉�??��??�置保護
-    // ?��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��?
+    // ══════════════════════════════════════════
+    // 🛡️ 學校電腦教室資安防護：防上一頁/下一頁免密跳轉與逾時閒置保護
+    // ══════════════════════════════════════════
     (function initSchoolComputerSecurityGuard() {
-      // 1. ?�測?�覽?��?一??下�??�快?�恢�?(bfcache pageshow)
+      // 1. 偵測瀏覽器上一頁/下一頁快取恢復 (bfcache pageshow)
       window.addEventListener("pageshow", function(e) {
         if (e.persisted) {
           const overlay = document.getElementById("login-overlay");
@@ -3126,7 +3173,7 @@
             if (passInput) passInput.value = "";
             const statusEl = document.getElementById("login-status");
             if (statusEl) {
-              statusEl.textContent = "?? ?�測?��??��??��??��?護學?�電?�帳?��??��?請�??�輸?��?碼�?;
+              statusEl.textContent = "🔒 偵測到頁面切換，為保護學校電腦帳號安全，請重新輸入密碼。";
               statusEl.style.display = "block";
               statusEl.className = "status-msg warning";
             }
@@ -3134,7 +3181,7 @@
         }
       });
 
-      // 2. 學校?�腦 15 ?��??��?作自?��??��?證並?�出
+      // 2. 學校電腦 15 分鐘無操作自動清除憑證並登出
       let schoolIdleTimer = null;
       const SCHOOL_IDLE_TIMEOUT_MS = 15 * 60 * 1000;
       function resetSchoolIdleTimer() {
@@ -3143,7 +3190,7 @@
         if (isCurrentlyLoggedIn) {
           schoolIdleTimer = setTimeout(() => {
             if (typeof window.confirmLogoutFromModal === "function") {
-              alert("??學校?�腦?�置超�? 15 ?��?，系統已?��??�出保護?��?帳�?安全�?);
+              alert("⏰ 學校電腦閒置超過 15 分鐘，系統已自動登出保護您的帳號安全！");
               window.confirmLogoutFromModal();
             }
           }, SCHOOL_IDLE_TIMEOUT_MS);
@@ -3155,8 +3202,8 @@
     })();
   </script>
 
-  <!-- ?��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��??��?
-  <!-- ?? ?�師管�?專�?彈�? DOM 已改?��?身�??��??��? (src/teacher_portal.js)，學?��?屏�??��?�?-->
+  <!-- ══════════════════════════════════════════
+  <!-- 📝 教師管理專區彈窗 DOM 已改為按身分動態掛載 (src/teacher_portal.js)，學生首屏完全免載 -->
 
 </body>
 </html>

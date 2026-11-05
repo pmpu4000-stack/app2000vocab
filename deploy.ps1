@@ -1,19 +1,38 @@
-# deploy.ps1 — 標準部署腳本，每次部署必跑
-# 1. 重建 TeacherJs.html（src/teacher_portal.js → GAS 內嵌格式）
-$src = Get-Content "src\teacher_portal.js" -Raw -Encoding UTF8
-"<script>`n$src`n</script>" | Set-Content "google_apps_script\TeacherJs.html" -Encoding UTF8 -NoNewline
+# deploy.ps1 — 標準部署腳本
+# 用法: .\deploy.ps1 "commit message"
+# ─────────────────────────────────────────────────────
+# 【根本問題】Windows Copy-Item 預設以系統 ANSI/cp950 讀寫，
+#            導致 CJK 字符在 GAS/Index.html 中全部變成 ? (3f)。
+#            解法：全程改用 node 讀寫，確保 UTF-8 編碼一致。
+# ─────────────────────────────────────────────────────
 
-# 2. 同步鏡像
-Copy-Item "index.html"                       "google_apps_script\Index.html"      -Force
-Copy-Item "google_apps_script\Index.html"    "teacher_history.html"               -Force
-Copy-Item "google_apps_script\Index.html"    "google_apps_script\teacher_history.html" -Force
+param([string]$msg = "deploy: update")
+
+$root = $PSScriptRoot
+
+node -e "
+const fs = require('fs');
+const root = '$($root -replace '\\\\','\\\\\\\\')';
+
+// 1. 重建 TeacherJs.html（src/teacher_portal.js → GAS 內嵌格式，UTF-8）
+const tpSrc = fs.readFileSync(root + '/src/teacher_portal.js', 'utf8');
+fs.writeFileSync(root + '/google_apps_script/TeacherJs.html', '<script>\n' + tpSrc + '\n</script>', 'utf8');
+
+// 2. 以 UTF-8 同步鏡像（index.html → GAS/Index.html → 所有鏡像）
+const idx = fs.readFileSync(root + '/index.html', 'utf8');
+fs.writeFileSync(root + '/google_apps_script/Index.html', idx, 'utf8');
+fs.writeFileSync(root + '/teacher_history.html', idx, 'utf8');
+fs.writeFileSync(root + '/google_apps_script/teacher_history.html', idx, 'utf8');
+
+console.log('Files synced (UTF-8).');
+"
 
 # 3. GAS 推送
-Push-Location "google_apps_script"
+Push-Location "$root\google_apps_script"
 cmd /c "clasp push -f" | Out-Null
 Pop-Location
 
 # 4. Git
-git add -A | Out-Null
-git commit -q -m $args[0]
-git push -q
+git -C $root add -A
+git -C $root commit -q -m $msg
+git -C $root push -q
