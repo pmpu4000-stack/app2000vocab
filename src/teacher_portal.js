@@ -557,11 +557,11 @@
           function renderQuizQuestion() {
             if (curIdx >= wordsArr.length) {
               previewCard.innerHTML = `
-                <div style="text-align:center; padding:20px; background:#161b26; border-radius:16px; border:1.5px solid #2d3748; color:#fff;">
-                  <div style="font-size:28px; margin-bottom:8px;">🎉</div>
-                  <div style="font-size:17px; font-weight:800; color:#38bdf8; margin-bottom:6px;">預覽測驗完成！</div>
-                  <div style="font-size:14px; color:#94a3b8; margin-bottom:14px;">答對題數：${correctCount} / ${wordsArr.length} 題</div>
-                  <button type="button" onclick="document.getElementById('t-preview-quiz-card').style.display='none'" style="padding:8px 22px; border-radius:10px; border:none; background:#8b5cf6; color:#fff; font-weight:700; font-size:14px; cursor:pointer;">關閉預覽</button>
+                <div style="text-align:center; padding:24px; background:#0f172a; border-radius:16px; border:1.5px solid #1e293b; color:#fff; font-family:system-ui, sans-serif;">
+                  <div style="font-size:32px; margin-bottom:8px;">🎉</div>
+                  <div style="font-size:18px; font-weight:800; color:#38bdf8; margin-bottom:6px;">預覽測驗完成！</div>
+                  <div style="font-size:14px; color:#94a3b8; margin-bottom:16px;">答對題數：${correctCount} / ${wordsArr.length} 題</div>
+                  <button type="button" onclick="document.getElementById('t-preview-quiz-card').style.display='none'" style="padding:9px 24px; border-radius:10px; border:none; background:#8b5cf6; color:#fff; font-weight:700; font-size:14px; cursor:pointer;">關閉預覽</button>
                 </div>
               `;
               return;
@@ -583,42 +583,51 @@
               sentZh = `請拼出單字：${zhDef}`;
             }
             const wordRegex = new RegExp(`\\b${curWord}\\b`, "i");
-            const blankBox = `<span style="display:inline-block; width:52px; height:15px; border:2px solid #38bdf8; border-radius:10px; vertical-align:middle; margin:0 4px; background:rgba(56,189,248,0.15);"></span>`;
+            const blankBox = `<span style="display:inline-block; width:44px; height:15px; border:2px solid #38bdf8; border-radius:6px; vertical-align:middle; margin:0 4px; background:rgba(56,189,248,0.12);"></span>`;
             const sentDisplayHtml = sentEn.replace(wordRegex, blankBox);
 
+            let isAnswered = false;
+
             previewCard.innerHTML = `
-              <div style="position:relative; border-radius:16px; padding:18px 20px; background:#161b26; border:1.5px solid #2d3748; box-shadow:0 8px 30px rgba(0,0,0,0.6); overflow:hidden; font-family:system-ui, sans-serif;">
-                <div style="background:linear-gradient(90deg, #38bdf8 0%, #818cf8 35%, #ec4899 70%, #f97316 100%); height:4px; margin:-18px -20px 14px -20px;"></div>
+              <div style="position:relative; border-radius:16px; padding:18px 20px; background:#0f172a; border:1.5px solid #1e293b; box-shadow:0 10px 35px rgba(0,0,0,0.65); overflow:hidden; font-family:system-ui, sans-serif;">
+                <!-- 1:1 頂部彩虹漸層條 -->
+                <div style="background:linear-gradient(90deg, #ec4899 0%, #8b5cf6 25%, #06b6d4 50%, #10b981 75%, #f59e0b 100%); height:4px; margin:-18px -20px 14px -20px;"></div>
                 
+                <!-- 關卡徽章與提示語 -->
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
                   <span style="background:#10b981; color:#fff; font-size:12px; font-weight:800; padding:3px 12px; border-radius:12px; letter-spacing:0.5px;">LEVEL ${lv}</span>
-                  <span style="color:#94a3b8; font-size:13px; font-weight:600;">聽發音，把單字拼出來</span>
+                  <span style="color:#cbd5e1; font-size:13px; font-weight:500;">聽發音，把單字拼出來</span>
                 </div>
 
+                <!-- 單字中文釋義、詞性、音標與發音鈕 -->
                 <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap;">
-                  <button type="button" id="t-preview-audio-word" style="background:#0284c7; width:36px; height:36px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; border:none; color:#fff; cursor:pointer; font-size:18px; flex-shrink:0;" title="聆聽單字發音">🔊</button>
-                  <span style="font-size:17.5px; font-weight:800; color:#ffffff; letter-spacing:0.3px;">${zhDef}</span>
-                  <span style="background:rgba(16,185,129,0.18); color:#34d399; border:1px solid rgba(16,185,129,0.4); border-radius:4px; padding:2px 7px; font-size:12px; font-weight:700;">${pos}</span>
-                  ${phoneticDisplay ? `<span style="color:#38bdf8; font-size:13.5px; font-weight:700;">${phoneticDisplay}</span>` : ''}
+                  <button type="button" id="t-preview-audio-word" style="background:#38bdf8; width:34px; height:34px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; border:none; color:#fff; cursor:pointer; font-size:16px; flex-shrink:0;" title="聆聽單字發音">🔊</button>
+                  <span style="font-size:19px; font-weight:800; color:#ffffff; letter-spacing:0.3px;">${zhDef}</span>
+                  <span style="background:rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(16,185,129,0.3); border-radius:4px; padding:2px 8px; font-size:12px; font-weight:700;">${pos}</span>
+                  ${phoneticDisplay ? `<span style="color:#38bdf8; font-size:15px; font-weight:700;">${phoneticDisplay}</span>` : ''}
                 </div>
 
-                <div style="background:rgba(15,23,42,0.7); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:10px 14px; display:flex; gap:12px; align-items:flex-start; margin-bottom:16px;">
-                  <button type="button" id="t-preview-audio-sent" style="background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.4); border-radius:8px; width:34px; height:34px; display:inline-flex; align-items:center; justify-content:center; color:#34d399; cursor:pointer; font-size:16px; flex-shrink:0;" title="聆聽例句發音">🔊</button>
+                <!-- 例句挖空區塊 -->
+                <div style="background:rgba(10,15,26,0.6); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:10px 14px; display:flex; gap:12px; align-items:flex-start; margin-bottom:16px;">
+                  <button type="button" id="t-preview-audio-sent" style="background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.35); border-radius:8px; width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; color:#34d399; cursor:pointer; font-size:15px; flex-shrink:0;" title="聆聽例句發音">🔊</button>
                   <div style="display:flex; flex-direction:column; gap:3px;">
-                    <div style="color:#f8fafc; font-size:15px; font-weight:700; line-height:1.4;">${sentDisplayHtml}</div>
+                    <div style="color:#f1f5f9; font-size:15px; font-weight:700; line-height:1.4;">${sentDisplayHtml}</div>
                     <div style="color:#94a3b8; font-size:12.5px;">${sentZh}</div>
                   </div>
                 </div>
 
-                <div style="margin:16px 0 14px; display:flex; justify-content:center;">
-                  <input type="text" id="t-preview-ans-input" placeholder="在 這 裡 拼 字 ..." autocomplete="off" style="width:100%; max-width:480px; height:50px; border-radius:16px; border:2px solid #818cf8; background:rgba(15,23,42,0.85); color:#ffffff; font-size:20px; font-weight:800; text-align:center; outline:none; box-shadow:0 0 16px rgba(129,140,248,0.25); letter-spacing:1px; box-sizing:border-box;">
+                <!-- 1:1 大型拼字外框 -->
+                <div style="margin:20px auto 12px auto; display:flex; justify-content:center; width:100%;">
+                  <input type="text" id="t-preview-ans-input" placeholder="在 這 裡 拼 字 ..." autocomplete="off" style="width:100%; max-width:440px; height:56px; border-radius:18px; border:3px solid #cbd5e1; background:rgba(10,14,25,0.9); color:#ffffff; font-size:24px; font-weight:800; text-align:center; outline:none; box-shadow:0 0 16px rgba(196,181,253,0.35); letter-spacing:1px; box-sizing:border-box;">
                 </div>
 
-                <button type="button" id="t-preview-submit-btn" style="width:100%; height:44px; border-radius:12px; background:linear-gradient(135deg, #8b5cf6, #7c3aed); color:#ffffff; border:none; font-size:16px; font-weight:800; cursor:pointer; letter-spacing:0.5px; box-shadow:0 4px 14px rgba(124,58,237,0.35); transition:all 0.15s;">檢查 Check</button>
+                <!-- 1:1 作答回饋行 -->
+                <div id="t-preview-feedback" style="min-height:26px; display:flex; align-items:center; justify-content:center; margin-bottom:12px; font-size:15px; font-weight:700;"></div>
 
-                <div id="t-preview-feedback" style="min-height:22px; text-align:center; margin-top:8px; font-size:14px; font-weight:700;"></div>
+                <!-- 1:1 底部檢查 / 下一個按鈕 -->
+                <button type="button" id="t-preview-submit-btn" style="width:100%; height:46px; border-radius:12px; background:#8b5cf6; color:#ffffff; border:none; font-size:16px; font-weight:800; cursor:pointer; transition:all 0.15s;">檢查 Check</button>
 
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; font-size:12px; color:#94a3b8; border-top:1px solid rgba(255,255,255,0.06); padding-top:8px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px; font-size:12px; color:#64748b; border-top:1px solid rgba(255,255,255,0.06); padding-top:8px;">
                   <span>🎯 每日指定單字測驗（第 ${curIdx + 1} / ${wordsArr.length} 題）</span>
                   <button type="button" onclick="document.getElementById('t-preview-quiz-card').style.display='none'" style="background:none; border:none; color:#94a3b8; font-size:12px; cursor:pointer; text-decoration:underline;">✕ 關閉預覽</button>
                 </div>
@@ -648,23 +657,37 @@
             const feedbackEl = document.getElementById("t-preview-feedback");
 
             function checkAns() {
+              if (isAnswered) {
+                curIdx++;
+                renderQuizQuestion();
+                return;
+              }
               const val = (ansInput.value || "").trim().toLowerCase();
               if (!val) return;
+
+              isAnswered = true;
               if (val === curWord.toLowerCase()) {
                 correctCount++;
-                feedbackEl.style.color = "#10b981";
-                feedbackEl.textContent = "✅ 正確！太棒了！";
-                setTimeout(() => {
-                  curIdx++;
-                  renderQuizQuestion();
-                }, 800);
+                feedbackEl.style.color = "#34d399";
+                feedbackEl.innerHTML = "✅ 答對啦！ +10";
+                ansInput.value = curWord.split("").join("  ");
+                ansInput.style.letterSpacing = "6px";
+                ansInput.style.fontWeight = "900";
+                ansInput.disabled = true;
+                submitBtn.textContent = "下一個 Next →";
+                submitBtn.style.background = "#10b981";
+                submitBtn.style.border = "2px solid #000";
+                submitBtn.focus();
               } else {
                 feedbackEl.style.color = "#ef4444";
-                feedbackEl.textContent = "❌ 正確答案是：" + curWord;
-                setTimeout(() => {
-                  curIdx++;
-                  renderQuizQuestion();
-                }, 1400);
+                feedbackEl.innerHTML = "❌ 答錯了！正確答案是：" + curWord;
+                ansInput.value = curWord.split("").join("  ");
+                ansInput.style.letterSpacing = "6px";
+                ansInput.disabled = true;
+                submitBtn.textContent = "下一個 Next →";
+                submitBtn.style.background = "#10b981";
+                submitBtn.style.border = "2px solid #000";
+                submitBtn.focus();
               }
             }
 
