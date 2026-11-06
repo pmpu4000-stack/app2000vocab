@@ -224,40 +224,13 @@
     }
 
     function renderTargetStudentCheckboxes() {
-      const container = document.getElementById("t-modal-student-checkboxes");
-      const wrap = document.getElementById("t-modal-students-wrap");
-      if (!container) return;
-
-      const normCls = v => String(v || '').replace(/班$/, '').trim().toLowerCase();
-      const checkedClasses = Array.from(document.querySelectorAll("input[name='task_target_classes']:checked")).map(cb => normCls(cb.value));
-      if (checkedClasses.length === 0 || !Array.isArray(allStudentsList) || allStudentsList.length === 0) {
-        container.innerHTML = '<span style="color:var(--ink3); font-size:12px;">載入學生名單中或請先勾選目標班級</span>';
-        return;
-      }
-
-      const filtered = (checkedClasses.includes("all"))
-        ? allStudentsList
-        : allStudentsList.filter(s => checkedClasses.includes(normCls(s.className)));
-
-      if (filtered.length === 0) {
-        container.innerHTML = '<span style="color:var(--ink3); font-size:12px;">該班級尚無學生資料</span>';
-        return;
-      }
-
-      container.innerHTML = filtered.map(s => {
-        const u = s.username;
-        const name = s.realName || u;
-        const cls = s.className ? s.className + '班' : '';
-        return `<label class="task-student-chip" style="display:inline-flex; align-items:center; gap:4px; padding:3px 8px; border-radius:6px; border:1px solid var(--line); background:var(--card); font-size:12px; cursor:pointer; user-select:none;">
-          <input type="checkbox" name="task_target_students" value="${u}" checked style="accent-color:#6366f1; width:13px; height:13px; cursor:pointer;">
-          <span>${name} (${u})</span>
-        </label>`;
-      }).join('');
+      // 相容性保留，實際已由 populateTeacherClassOptions 內各班卡片獨立渲染
+      populateTeacherClassOptions();
     }
 
     function populateTeacherClassOptions() {
-      const targetEl = document.getElementById("t-modal-class-container") || document.getElementById("t-modal-class-select");
-      if (!targetEl) return;
+      const container = document.getElementById("t-modal-class-boxes") || document.getElementById("t-modal-class-container");
+      if (!container) return;
       
       let savedClasses = [];
       try {
@@ -269,10 +242,8 @@
       } catch(_) {}
       
       const myClass = localStorage.getItem("teacher_my_class") || "";
-      
       const curUser = (localStorage.getItem("current_user") || "").trim();
       
-      // 權威班級判讀：若名下登記具體班級（非 all/admin），最高優先直接採納；teacher702 直接嚴格鎖定 702
       let targetClasses = [];
       if (myClass && myClass.toLowerCase() !== "all" && myClass !== "系統管理員" && myClass !== "d") {
         targetClasses = cleanAndParseClasses([myClass]);
@@ -285,39 +256,128 @@
         targetClasses = cleanAndParseClasses(savedClasses);
       }
       
-      // 同步校正快取，徹底根除舊版本或管理員登入殘留的全校班級快取
       try { localStorage.setItem("teacher_class_list", JSON.stringify(targetClasses)); } catch(_) {}
-      let html = "";
-      
-      // 僅止於有登記在該老師有的班級 (自適應寬度，同一行排不下自動換行，純文字無圖示與「班」後綴)
-      if (targetClasses.length > 0) {
-        html += `<div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; width:100%;">`;
-        targetClasses.forEach(c => {
-          html += `<label class="task-class-chip">
-            <input type="checkbox" name="task_target_classes" value="${c}" checked style="accent-color:#6366f1; width:15px; height:15px; cursor:pointer;">
-            ${c}
-          </label>`;
+
+      if (!targetClasses || targetClasses.length === 0) {
+        targetClasses = ["701", "702"];
+      }
+
+      if (!allStudentsList || allStudentsList.length === 0) {
+        try {
+          const cached = localStorage.getItem("all_students_cache");
+          if (cached) allStudentsList = JSON.parse(cached);
+        } catch(_) {}
+      }
+
+      const normCls = v => String(v || '').replace(/班$/, '').trim().toLowerCase();
+
+      container.innerHTML = targetClasses.map(c => {
+        const cNorm = normCls(c);
+        const stuList = (Array.isArray(allStudentsList) ? allStudentsList : []).filter(s => normCls(s.className) === cNorm);
+        const stuTotal = stuList.length;
+        const countLabel = stuTotal > 0 ? `(全選 ${stuTotal} 人)` : `(學生載入中...)`;
+
+        const stuChipsHtml = stuTotal > 0
+          ? stuList.map(s => {
+              const u = s.username;
+              const name = s.realName || u;
+              const seat = s.seat ? String(s.seat).padStart(2, '0') + ' ' : '';
+              return `<label class="task-student-chip" style="display:inline-flex; align-items:center; gap:4px; padding:3px 8px; border-radius:6px; border:1px solid var(--line, #cbd5e1); background:var(--card, #fff); font-size:12px; cursor:pointer; user-select:none;">
+                <input type="checkbox" class="t-class-stu-check" data-class="${c}" value="${u}" checked style="accent-color:#6366f1; width:13px; height:13px; cursor:pointer;">
+                <span>${seat}${name} (${u})</span>
+              </label>`;
+            }).join('')
+          : `<span style="color:var(--ink3, #64748b); font-size:12px;">載入學生名單中，請稍候...</span>`;
+
+        return `<div class="progress learning-progress-card t-class-card" data-class="${c}" style="margin:0 0 8px; border:1.5px solid var(--line, #e2e8f0); border-radius:14px; padding:10px 14px; background:var(--card, #fff); box-shadow:0 1px 3px rgba(0,0,0,0.03); transition:all .2s;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; font-size:13.5px; font-weight:800; color:var(--ink); margin:0; user-select:none;">
+              <input type="checkbox" class="t-class-box-check" name="task_target_classes" value="${c}" data-class="${c}" checked style="width:16px; height:16px; accent-color:#6366f1; cursor:pointer;">
+              <span>🏫 ${c} 班</span>
+              <span class="t-class-box-count" data-class="${c}" style="font-size:12px; font-weight:600; color:var(--ink3, #64748b); margin-left:2px;">${countLabel}</span>
+            </label>
+            <a href="javascript:void(0)" class="sum-toggle-btn t-btn-toggle-class" data-class="${c}" style="cursor:pointer;" title="展開或收合學生清單">展開</a>
+          </div>
+          <div class="t-class-box-body" data-class="${c}" style="display:none; margin-top:8px; padding-top:8px; border-top:1px dashed var(--line, #e2e8f0);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <span style="font-size:11.5px; color:var(--ink2, #475569); font-weight:700;">👤 學生名單（預設全選，可取消特定學生）：</span>
+              <button type="button" class="t-btn-class-select-all" data-class="${c}" style="font-size:11px; background:var(--card, #fff); border:1px solid rgba(99,102,241,0.35); border-radius:4px; padding:2px 8px; color:var(--violet, #6366f1); cursor:pointer; font-weight:700;">全選 / 全取消</button>
+            </div>
+            <div class="t-class-chips-wrap" data-class="${c}" style="display:flex; flex-wrap:wrap; gap:6px; max-height:130px; overflow-y:auto; padding:2px 0;">
+              ${stuChipsHtml}
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+
+      targetClasses.forEach(c => {
+        const card = container.querySelector(`.t-class-card[data-class="${c}"]`);
+        if (!card) return;
+        const toggleBtn = card.querySelector(".t-btn-toggle-class");
+        const bodyEl = card.querySelector(".t-class-box-body");
+        const classCb = card.querySelector(".t-class-box-check");
+        const selectAllBtn = card.querySelector(".t-btn-class-select-all");
+        const countEl = card.querySelector(".t-class-box-count");
+
+        function updateCount() {
+          const total = card.querySelectorAll(".t-class-stu-check").length;
+          const checked = card.querySelectorAll(".t-class-stu-check:checked").length;
+          if (total === 0) return;
+          if (checked === total) {
+            countEl.textContent = `(全選 ${total} 人)`;
+            countEl.style.color = "var(--ink3, #64748b)";
+          } else if (checked === 0) {
+            countEl.textContent = `(未選任何學生 / 共 ${total} 人)`;
+            countEl.style.color = "#ef4444";
+          } else {
+            countEl.textContent = `(已選 ${checked} / 共 ${total} 人)`;
+            countEl.style.color = "#6366f1";
+          }
+        }
+
+        if (toggleBtn && bodyEl) {
+          toggleBtn.onclick = (e) => {
+            e.preventDefault();
+            const isHidden = (bodyEl.style.display === "none");
+            bodyEl.style.display = isHidden ? "block" : "none";
+            toggleBtn.textContent = isHidden ? "收合" : "展開";
+          };
+        }
+
+        if (classCb) {
+          classCb.onchange = () => {
+            card.style.opacity = classCb.checked ? "1" : "0.5";
+            card.querySelectorAll(".t-class-stu-check").forEach(cb => { cb.disabled = !classCb.checked; });
+          };
+        }
+
+        if (selectAllBtn) {
+          selectAllBtn.onclick = (e) => {
+            e.preventDefault();
+            const currentStuCbs = card.querySelectorAll(".t-class-stu-check");
+            if (currentStuCbs.length === 0) return;
+            const allChecked = Array.from(currentStuCbs).every(cb => cb.checked);
+            currentStuCbs.forEach(cb => { cb.checked = !allChecked; });
+            if (!allChecked && !classCb.checked) {
+              classCb.checked = true;
+              card.style.opacity = "1";
+              currentStuCbs.forEach(cb => { cb.disabled = false; });
+            }
+            updateCount();
+          };
+        }
+
+        card.querySelectorAll(".t-class-stu-check").forEach(cb => {
+          cb.onchange = () => {
+            updateCount();
+            if (cb.checked && !classCb.checked) {
+              classCb.checked = true;
+              card.style.opacity = "1";
+              card.querySelectorAll(".t-class-stu-check").forEach(scb => { scb.disabled = false; });
+            }
+          };
         });
-        html += `</div>`;
-      } else {
-        html = `<label class="task-class-chip">
-          <input type="checkbox" name="task_target_classes" value="all" checked style="accent-color:#6366f1; width:15px; height:15px; cursor:pointer;">
-          全校
-        </label>`;
-      }
-
-      if (targetEl.tagName === "SELECT") {
-        const wrapper = document.createElement("div");
-        wrapper.id = "t-modal-class-container";
-        wrapper.style.width = "100%";
-        wrapper.innerHTML = html;
-        targetEl.parentNode.replaceChild(wrapper, targetEl);
-      } else {
-        targetEl.innerHTML = html;
-      }
-
-      const customInp = document.getElementById("t-modal-class-custom");
-      if (customInp) customInp.style.display = "none";
+      });
     }
 
     window.toggleAllTaskClasses = function() {
@@ -336,7 +396,34 @@
       if (dateInp && !dateInp.value) {
         dateInp.value = todayDash;
       }
+      
+      // 先以快取立即渲染方塊
+      if (!allStudentsList || allStudentsList.length === 0) {
+        try {
+          const cached = localStorage.getItem("all_students_cache");
+          if (cached) allStudentsList = JSON.parse(cached);
+        } catch(_) {}
+      }
       populateTeacherClassOptions();
+      
+      // 背景非同步載入最新學生名單並自動重繪學生清單
+      (async () => {
+        try {
+          const u = localStorage.getItem("current_user");
+          const p = sessionStorage.getItem("current_pass") || localStorage.getItem("current_pass") || "";
+          const res = await fetch(scriptUrl, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ action: "getTimeRestrictions", username: u, password: p })
+          });
+          const d = await res.json();
+          if (d.status === "success" && Array.isArray(d.studentList) && d.studentList.length > 0) {
+            allStudentsList = d.studentList;
+            try { localStorage.setItem("all_students_cache", JSON.stringify(d.studentList)); } catch(_) {}
+            populateTeacherClassOptions();
+          }
+        } catch(_) {}
+      })();
       
       // 任務名稱預設為 mm-dd指定單字測驗
       const nameInp = document.getElementById("t-modal-name");
@@ -364,49 +451,6 @@
 
       const closeBtn = document.getElementById("btnCloseTeacherModal");
       if (closeBtn) closeBtn.onclick = window.closeTeacherModal;
-
-      const toggleStudBtn = document.getElementById("t-btn-toggle-student-filter");
-      const studWrap = document.getElementById("t-modal-students-wrap");
-      if (toggleStudBtn && studWrap) {
-        toggleStudBtn.onclick = async () => {
-          const isHidden = (studWrap.style.display === "none");
-          studWrap.style.display = isHidden ? "block" : "none";
-          toggleStudBtn.textContent = isHidden ? "✖ 收起指定學生 (改為全班)" : "🎯 指定學生 (可選)";
-          if (isHidden) {
-            if (!allStudentsList || allStudentsList.length === 0) {
-              try {
-                const u = localStorage.getItem("current_user");
-                const p = sessionStorage.getItem("current_pass") || localStorage.getItem("current_pass") || "";
-                const res = await fetch(scriptUrl, {
-                  method: "POST",
-                  headers: { "Content-Type": "text/plain;charset=utf-8" },
-                  body: JSON.stringify({ action: "getTimeRestrictions", username: u, password: p })
-                });
-                const d = await res.json();
-                if (d.status === "success" && Array.isArray(d.studentList)) allStudentsList = d.studentList;
-              } catch(_) {}
-            }
-            renderTargetStudentCheckboxes();
-          }
-        };
-      }
-
-      const selectAllStudBtn = document.getElementById("t-btn-select-all-students");
-      if (selectAllStudBtn) {
-        selectAllStudBtn.onclick = () => {
-          const cbs = document.querySelectorAll("input[name='task_target_students']");
-          if (cbs.length === 0) return;
-          const allChecked = Array.from(cbs).every(cb => cb.checked);
-          cbs.forEach(cb => { cb.checked = !allChecked; });
-        };
-      }
-
-      // 監聽班級勾選變動，自動連動學生清單
-      document.addEventListener("change", (e) => {
-        if (e.target && e.target.name === "task_target_classes") {
-          renderTargetStudentCheckboxes();
-        }
-      });
 
       // 日期變更時自動同步任務名稱為 mm-dd指定單字測驗
       const dateInp = document.getElementById("t-modal-date");
@@ -525,8 +569,16 @@
           const currentPass = sessionStorage.getItem("current_pass") || localStorage.getItem("current_pass") || "";
           
           // 取得所有勾選的班級
-          const checkedCbs = document.querySelectorAll("input[name='task_target_classes']:checked");
-          let targetClasses = Array.from(checkedCbs).map(cb => cb.value);
+          const checkedCbs = document.querySelectorAll(".t-class-box-check:checked, input[name='task_target_classes']:checked");
+          const seen = new Set();
+          let targetClasses = [];
+          checkedCbs.forEach(cb => {
+            const val = cb.getAttribute("data-class") || cb.value;
+            if (val && !seen.has(val)) {
+              seen.add(val);
+              targetClasses.push(val);
+            }
+          });
           if (targetClasses.length === 0) {
             // fallback 若存在傳統 select
             const selClass = document.getElementById("t-modal-class-select");
@@ -558,10 +610,17 @@
                 password: currentPass,
                 taskData: (() => {
                   let studListStr = "";
-                  const studWrapEl = document.getElementById("t-modal-students-wrap");
-                  if (studWrapEl && studWrapEl.style.display !== "none") {
-                    const checkedStudCbs = document.querySelectorAll("input[name='task_target_students']:checked");
-                    studListStr = Array.from(checkedStudCbs).map(cb => cb.value.trim().toLowerCase()).join(", ");
+                  const classCard = document.querySelector(`.t-class-card[data-class="${cls}"]`);
+                  if (classCard) {
+                    const stuCbs = classCard.querySelectorAll(".t-class-stu-check");
+                    const checkedStuCbs = classCard.querySelectorAll(".t-class-stu-check:checked");
+                    if (stuCbs.length > 0) {
+                      if (checkedStuCbs.length === stuCbs.length) {
+                        studListStr = ""; // 全選派發全班
+                      } else {
+                        studListStr = Array.from(checkedStuCbs).map(cb => cb.value.trim().toLowerCase()).join(", ");
+                      }
+                    }
                   }
                   return {
                     targetDate: targetDate,
@@ -2165,28 +2224,26 @@
         <button id="btnCloseTeacherModal" style="background:none; border:none; font-size:24px; cursor:pointer; color:#94a3b8;">&times;</button>
       </div>
 
-            <div class="t-modal-header-row" style="display:grid; grid-template-columns:auto auto 1fr; gap:12px; align-items:end; margin-bottom:8px;">
-        <div>
+            <div class="t-modal-header-row" style="display:flex; gap:12px; align-items:flex-end; margin-bottom:10px;">
+        <div style="flex-shrink:0;">
           <label style="font-size:13px; font-weight:600; display:block; margin-bottom:4px; color:#5A6183; white-space:nowrap;">📅 安排測驗的日期：</label>
           <input type="date" id="t-modal-date" class="date-picker-input"
-            style="width:138px; height:36px; padding:6px 8px; border-radius:8px; border:1px solid var(--border, #D2D6E8); background:var(--card, #F6F7FB); color:var(--text, #fff); font-size:13px; box-sizing:border-box;">
+            style="width:142px; height:36px; padding:6px 8px; border-radius:8px; border:1px solid var(--border, #D2D6E8); background:var(--card, #F6F7FB); color:var(--text, #fff); font-size:13px; box-sizing:border-box;">
         </div>
-        <div>
-          <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
-            <label style="font-size:13px; font-weight:600; color:#5A6183; margin:0; white-space:nowrap;">🏫 目標班級：</label>
-            <button type="button" id="t-btn-toggle-student-filter" style="display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:6px; border:1px solid rgba(99,102,241,0.35); background:rgba(99,102,241,0.08); color:var(--violet, #6366f1); font-size:11.5px; font-weight:700; cursor:pointer; line-height:1.2;">🎯 指定學生</button>
-          </div>
-          <div id="t-modal-class-container" style="display:flex; gap:6px; align-items:center; height:36px; box-sizing:border-box;">
-            <select id="t-modal-class-select" style="display:none;"><option value="all">all</option></select>
-          </div>
-        </div>
-        <div class="t-modal-name-col">
-          <label style="font-size:13px; font-weight:600; display:block; margin-bottom:4px; color:#5A6183;">📝 任務名稱：</label>
+        <div class="t-modal-name-col" style="flex:1; max-width:320px;">
+          <label style="font-size:13px; font-weight:600; display:block; margin-bottom:4px; color:#5A6183; white-space:nowrap;">📝 任務名稱：</label>
           <input type="text" id="t-modal-name" placeholder="例：11-05指定單字測驗" value="11-05指定單字測驗"
             style="width:100%; height:36px; padding:6px 10px; border-radius:8px; border:1px solid var(--border, #D2D6E8); background:var(--card, #F6F7FB); color:var(--text, #fff); font-size:13px; box-sizing:border-box;">
         </div>
       </div>
-      <div id="t-modal-students-wrap" style="display:none; margin-bottom:8px; padding:10px 14px; border-radius:10px; border:1px solid rgba(99,102,241,0.25); background:rgba(99,102,241,0.06); box-sizing:border-box;"><div style="font-size:12px; font-weight:750; color:var(--violet, #6366f1); margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;"><span>👤 勾選需施測之指定學生（未勾選者不派發）：</span><button type="button" id="t-btn-select-all-students" style="font-size:11.5px; background:var(--card); border:1px solid rgba(99,102,241,0.4); border-radius:4px; padding:2px 8px; color:var(--ink); cursor:pointer; font-weight:700;">全選 / 全取消</button></div><div id="t-modal-student-checkboxes" style="display:flex; flex-wrap:wrap; gap:6px; max-height:120px; overflow-y:auto; padding:2px 0;"></div></div>
+
+      <div style="margin-bottom:12px;">
+        <div style="font-size:13px; font-weight:700; color:#5A6183; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+          <span>🏫 目標班級與施測學生：</span>
+        </div>
+        <div id="t-modal-class-boxes" style="display:flex; flex-direction:column; gap:6px;"></div>
+        <select id="t-modal-class-select" style="display:none;"><option value="all">all</option></select>
+      </div>
 
       <div style="border:1px solid #E7E9F5; border-radius:12px; padding:12px 14px; background:#F6F7FB; margin-bottom:12px;">
         <div style="margin-bottom:6px;">

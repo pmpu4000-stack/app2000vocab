@@ -822,7 +822,7 @@
   <script>
     if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=20261106_1835').catch(() => {});
+        navigator.serviceWorker.register('./sw.js?v=20261106_1855').catch(() => {});
       });
     }
   </script>
@@ -2724,8 +2724,20 @@
             }
           } catch(importErr) {
             console.error("載入遊戲失敗：", importErr);
-            alert("載入遊戲模組失敗：" + importErr.message + "\n請按 Ctrl + F5 強制重新整理或稍候再試！");
-            setLoginStatus("載入遊戲模組失敗：" + importErr.message, "error");
+            if ('serviceWorker' in navigator) {
+              try {
+                const regs = await navigator.serviceWorker.getRegistrations();
+                for (const reg of regs) { await reg.unregister(); }
+              } catch(_) {}
+            }
+            if ('caches' in window) {
+              try {
+                const keys = await caches.keys();
+                for (const key of keys) { await caches.delete(key); }
+              } catch(_) {}
+            }
+            alert("載入遊戲模組失敗：" + importErr.message + "\n已為您重置快取，請按確定重新整理！");
+            location.reload(true);
             return;
           }
 
