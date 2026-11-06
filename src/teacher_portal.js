@@ -371,7 +371,7 @@
         toggleStudBtn.onclick = async () => {
           const isHidden = (studWrap.style.display === "none");
           studWrap.style.display = isHidden ? "block" : "none";
-          toggleStudBtn.textContent = isHidden ? "✖ 收起指定學生 (改為全班)" : "🎯 指定學生補考 (可選)";
+          toggleStudBtn.textContent = isHidden ? "✖ 收起指定學生 (改為全班)" : "🎯 指定學生 (可選)";
           if (isHidden) {
             if (!allStudentsList || allStudentsList.length === 0) {
               try {
@@ -2174,7 +2174,7 @@
         <div>
           <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
             <label style="font-size:13px; font-weight:600; color:#5A6183; margin:0; white-space:nowrap;">🏫 目標班級：</label>
-            <button type="button" id="t-btn-toggle-student-filter" style="display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:6px; border:1px solid rgba(99,102,241,0.35); background:rgba(99,102,241,0.08); color:var(--violet, #6366f1); font-size:11.5px; font-weight:700; cursor:pointer; line-height:1.2;">🎯 指定學生補考</button>
+            <button type="button" id="t-btn-toggle-student-filter" style="display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:6px; border:1px solid rgba(99,102,241,0.35); background:rgba(99,102,241,0.08); color:var(--violet, #6366f1); font-size:11.5px; font-weight:700; cursor:pointer; line-height:1.2;">🎯 指定學生</button>
           </div>
           <div id="t-modal-class-container" style="display:flex; gap:6px; align-items:center; height:36px; box-sizing:border-box;">
             <select id="t-modal-class-select" style="display:none;"><option value="all">all</option></select>
@@ -2186,7 +2186,7 @@
             style="width:100%; height:36px; padding:6px 10px; border-radius:8px; border:1px solid var(--border, #D2D6E8); background:var(--card, #F6F7FB); color:var(--text, #fff); font-size:13px; box-sizing:border-box;">
         </div>
       </div>
-      <div id="t-modal-students-wrap" style="display:none; margin-bottom:8px; padding:10px 14px; border-radius:10px; border:1px solid rgba(99,102,241,0.25); background:rgba(99,102,241,0.06); box-sizing:border-box;"><div style="font-size:12px; font-weight:750; color:var(--violet, #6366f1); margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;"><span>👤 勾選需補考之學生（未勾選者不派發）：</span><button type="button" id="t-btn-select-all-students" style="font-size:11.5px; background:var(--card); border:1px solid rgba(99,102,241,0.4); border-radius:4px; padding:2px 8px; color:var(--ink); cursor:pointer; font-weight:700;">全選 / 全取消</button></div><div id="t-modal-student-checkboxes" style="display:flex; flex-wrap:wrap; gap:6px; max-height:120px; overflow-y:auto; padding:2px 0;"></div></div>
+      <div id="t-modal-students-wrap" style="display:none; margin-bottom:8px; padding:10px 14px; border-radius:10px; border:1px solid rgba(99,102,241,0.25); background:rgba(99,102,241,0.06); box-sizing:border-box;"><div style="font-size:12px; font-weight:750; color:var(--violet, #6366f1); margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;"><span>👤 勾選需施測之指定學生（未勾選者不派發）：</span><button type="button" id="t-btn-select-all-students" style="font-size:11.5px; background:var(--card); border:1px solid rgba(99,102,241,0.4); border-radius:4px; padding:2px 8px; color:var(--ink); cursor:pointer; font-weight:700;">全選 / 全取消</button></div><div id="t-modal-student-checkboxes" style="display:flex; flex-wrap:wrap; gap:6px; max-height:120px; overflow-y:auto; padding:2px 0;"></div></div>
 
       <div style="border:1px solid #E7E9F5; border-radius:12px; padding:12px 14px; background:#F6F7FB; margin-bottom:12px;">
         <div style="margin-bottom:6px;">
