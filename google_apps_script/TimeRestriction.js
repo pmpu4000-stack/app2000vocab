@@ -669,7 +669,7 @@ function getTimeRestrictions(param1, optAuth) {
   }
 
   // 讀取學生名冊
-  const studentList = [];
+  const studentList = []; const authClassSet = new Set(); String(cleanAuthClass || "").split(/[,，、\s\/]+/).forEach(t => { t = t.replace(/班$/, "").trim(); if (!t) return; if (/^\d{6}$/.test(t)) { authClassSet.add(t.slice(0, 3)); authClassSet.add(t.slice(3)); } else authClassSet.add(t); });
   try {
     const userSheet = ss.getSheetByName("使用者清單") || ss.getSheetByName("學生帳密");
     if (userSheet && userSheet.getLastRow() >= 2) {
@@ -680,7 +680,7 @@ function getTimeRestrictions(param1, optAuth) {
         const c = String(uData[i][3] || "").replace(/班$/, "").trim();
         const name = String(uData[i][4] || "").trim();
         if (u && role === "student") {
-          if (!cleanAuthClass || cleanAuthClass === "all" || c.toLowerCase() === cleanAuthClass) {
+          if (!cleanAuthClass || cleanAuthClass === "all" || authClassSet.has(c.toLowerCase())) {
             studentList.push({ username: u, className: c, realName: name || u });
           }
         }

@@ -18,6 +18,8 @@ fs.writeFileSync(path.join(root, 'google_apps_script', 'teacher_history.html'), 
 console.log("== [3/4] Pushing to Google Apps Script (clasp) ==");
 try {
   execSync('cmd /c "clasp push -f"', { cwd: path.join(root, 'google_apps_script'), stdio: 'inherit' });
+  // push 只更新 HEAD；必須 deploy -i 才會讓正式 Web App URL 生效
+  execSync('cmd /c "clasp deploy -i AKfycbx1hyCNJxqFMoaJgIxfZqLYIYH00NegI1Yd8NJP6gRjqwOndWGkmr-H9tGvVwK_axM9 -d auto"', { cwd: path.join(root, 'google_apps_script'), stdio: 'inherit' });
 } catch (e) {
   console.error("Clasp push error:", e.message);
 }

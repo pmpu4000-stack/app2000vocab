@@ -229,7 +229,8 @@
       const wrap = document.getElementById("t-modal-students-wrap");
       if (!container) return;
 
-      const checkedClasses = Array.from(document.querySelectorAll("input[name='task_target_classes']:checked")).map(cb => cb.value.toLowerCase());
+      const normCls = v => String(v || '').replace(/班$/, '').trim().toLowerCase();
+      const checkedClasses = Array.from(document.querySelectorAll("input[name='task_target_classes']:checked")).map(cb => normCls(cb.value));
       if (checkedClasses.length === 0 || !Array.isArray(allStudentsList) || allStudentsList.length === 0) {
         container.innerHTML = '<span style="color:var(--ink3); font-size:12px;">載入學生名單中或請先勾選目標班級</span>';
         return;
@@ -237,7 +238,7 @@
 
       const filtered = (checkedClasses.includes("all"))
         ? allStudentsList
-        : allStudentsList.filter(s => checkedClasses.includes(String(s.className || '').toLowerCase()));
+        : allStudentsList.filter(s => checkedClasses.includes(normCls(s.className)));
 
       if (filtered.length === 0) {
         container.innerHTML = '<span style="color:var(--ink3); font-size:12px;">該班級尚無學生資料</span>';
