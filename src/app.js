@@ -41,7 +41,7 @@ import * as store from "./store.js?v=20261104_1118";
 import { normalizeDateStr } from "./store.js?v=20261104_1118";
 import { nextWord } from "./srs.js?v=20261019_v228";
 import * as ui from "./ui.js?v=20261101_2145";
-import { stopAudio, prefetchAudio } from "./audio.js";
+import { stopAudio, prefetchAudio } from "./audio.js?v=20261106_1835";
 import { burst } from "./confetti.js?v=20261019_v228";
 import {
   LEVELS, levelColor, levelName, sample,

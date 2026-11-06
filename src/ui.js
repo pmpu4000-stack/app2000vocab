@@ -7,7 +7,7 @@ const SVG_SPEAKER = '<svg class="icon-speaker" viewBox="0 0 24 24" width="17" he
 // data and reports intent through callbacks; it never touches the store.
 // =====================================================================
 import { CATS } from "./data.js?v=20261013_1225";
-import { say, sayWord, spellOut, playContestSentence, stopAudio, parseDialogue } from "./audio.js?v=20261013_2225";
+import { say, sayWord, spellOut, playContestSentence, stopAudio, parseDialogue } from "./audio.js?v=20261106_1835";
 import { LEVELS, levelColor, levelName, misspellings, shuffle } from "./levels.js?v=20261013_1225";
 import { diagnoseWordMistake } from "./diagnostics.js";
 import { box, normalizeDateStr, formatDateYMD, getWeekRangeDates, getBiweeklyCycleInfo } from "./store.js?v=20261101_2120";

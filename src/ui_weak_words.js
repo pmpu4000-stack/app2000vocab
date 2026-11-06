@@ -1,7 +1,7 @@
 // =====================================================================
 // ui_weak_words.js — 雙週未答對滾入期末測驗單字表
 // =====================================================================
-import { sayWord } from "./audio.js?v=20261025_1618";
+import { sayWord } from "./audio.js?v=20261106_1835";
 
 export function analyzeErrorTag() {
   return { tag: "弱點單字", cls: "tag-spelling", icon: "⚠️" };
