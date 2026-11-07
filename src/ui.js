@@ -3080,7 +3080,7 @@ export function buildWeekPendingConquerHtml(words, d = null, cycleParam = _activ
             ${_renderConquerWordCard(activeWord, d)}
           </div>
           <div class="conquer-level-nav" style="display:flex; align-items:center; flex-wrap:wrap; gap:6px; margin-top:8px;">
-            <div class="conquer-chip-list" style="display:flex; flex-wrap:wrap; gap:5px; align-items:center;">
+            <div class="conquer-chip-list">
               ${list.map(w => {
                 const isAct = (w === activeWord);
                 return `<button type="button" class="conquer-word-tab ${isAct ? 'is-active' : ''}" data-lv="${lv}" data-word="${w}" title="點擊檢視單字卡並朗讀發音">

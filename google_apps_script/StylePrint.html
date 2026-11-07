@@ -2452,16 +2452,46 @@
       flex-shrink: 0 !important;
     }
 
-    /* 待攻克單字方塊樣式（比照學習足跡 word-pill-tag 設計） */
+    /* 待攻克單字方塊網格與排版（比照期末大挑戰設計：4欄響應式、高度限制可滾動） */
+    .conquer-chip-list {
+      display: grid !important;
+      grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+      gap: 8px !important;
+      width: 100% !important;
+      max-height: 180px !important;
+      overflow-y: auto !important;
+      overscroll-behavior: contain !important;
+      padding: 4px 4px 4px 0 !important;
+      box-sizing: border-box !important;
+      scrollbar-width: thin !important;
+    }
+
+    @media (max-width: 520px) {
+      .conquer-chip-list {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .conquer-chip-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      }
+    }
+
     .conquer-word-tab {
-      display: inline-flex !important;
+      display: flex !important;
       align-items: center !important;
+      justify-content: center !important;
+      text-align: center !important;
+      width: 100% !important;
+      min-width: 0 !important;
       gap: 4px !important;
-      padding: 3.5px 8.5px !important;
+      padding: 6px 4px !important;
       border-radius: 6px !important;
-      font-size: 12.5px !important;
+      font-size: 13px !important;
       font-weight: 700 !important;
-      margin: 1.5px 2px !important;
+      margin: 0 !important;
+      box-sizing: border-box !important;
       line-height: 1.25 !important;
       cursor: pointer !important;
       transition: transform .12s, box-shadow .12s, border-color .12s, background .12s !important;
