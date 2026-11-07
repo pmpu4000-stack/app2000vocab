@@ -2857,6 +2857,11 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
     margin-top: 8px !important;
     padding-top: 8px !important;
   }
+  .task-empty-notice-box {
+    height: 316px !important;
+    min-height: 316px !important;
+    max-height: 316px !important;
+  }
 }
 
 /* 🎯 本週待攻克單字 Pill 標籤與五等級分類樣式（溫和白色與中性色，無紅色扣分壓力） */
