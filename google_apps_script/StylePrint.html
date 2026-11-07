@@ -3233,13 +3233,27 @@
     }
     @media (max-width: 640px) {
       .streakline {
-        flex-wrap: wrap !important;
-        gap: 8px !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        flex-wrap: nowrap !important;
+        gap: 6px !important;
+      }
+      .streakline > span:first-child {
+        white-space: nowrap !important;
+        flex: 0 1 auto !important;
+        font-size: 11.5px !important;
+        min-width: 0 !important;
       }
       .heat-day-info {
-        width: 100% !important;
-        min-width: 0 !important;
-        max-width: 100% !important;
+        width: auto !important;
+        min-width: auto !important;
+        max-width: none !important;
+        flex-shrink: 0 !important;
+        margin-left: auto !important;
+        height: 26px !important;
+        padding: 0 6px !important;
+        font-size: 11px !important;
       }
       .date-nav-right {
         width: 100% !important;
