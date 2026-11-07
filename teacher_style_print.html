@@ -2452,16 +2452,46 @@
       flex-shrink: 0 !important;
     }
 
-    /* 待攻克單字方塊樣式（比照學習足跡 word-pill-tag 設計） */
+    /* 待攻克單字方塊網格與排版（比照期末大挑戰設計：4欄響應式、高度限制可滾動） */
+    .conquer-chip-list {
+      display: grid !important;
+      grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+      gap: 8px !important;
+      width: 100% !important;
+      max-height: 180px !important;
+      overflow-y: auto !important;
+      overscroll-behavior: contain !important;
+      padding: 4px 4px 4px 0 !important;
+      box-sizing: border-box !important;
+      scrollbar-width: thin !important;
+    }
+
+    @media (max-width: 520px) {
+      .conquer-chip-list {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .conquer-chip-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      }
+    }
+
     .conquer-word-tab {
-      display: inline-flex !important;
+      display: flex !important;
       align-items: center !important;
+      justify-content: center !important;
+      text-align: center !important;
+      width: 100% !important;
+      min-width: 0 !important;
       gap: 4px !important;
-      padding: 3.5px 8.5px !important;
+      padding: 6px 4px !important;
       border-radius: 6px !important;
-      font-size: 12.5px !important;
+      font-size: 13px !important;
       font-weight: 700 !important;
-      margin: 1.5px 2px !important;
+      margin: 0 !important;
+      box-sizing: border-box !important;
       line-height: 1.25 !important;
       cursor: pointer !important;
       transition: transform .12s, box-shadow .12s, border-color .12s, background .12s !important;
@@ -4198,14 +4228,14 @@ table{page-break-inside:auto!important;break-inside:auto!important;}tr{page-brea
       max-height: none !important;
       overflow: visible !important;
     }
-    /* 歷程檔案（一頁檢視 / 匯出預覽）：高度沒有受限，依照單字字數需求彈性調整 */
+    /* 歷程檔案（一頁檢視 / 匯出預覽）：指定測驗與自由練習單字區固定高度 140px，自適應上下滾動滑桿保持方塊整齊 */
     .summary-embedded .word-split-grid,
     .daily-footprint-block .word-split-grid,
     #export-web-preview-body .word-split-grid {
-      height: auto !important;
-      min-height: auto !important;
-      max-height: none !important;
-      overflow: visible !important;
+      height: 140px !important;
+      min-height: 140px !important;
+      max-height: 140px !important;
+      overflow: hidden !important;
       display: grid !important;
       grid-template-columns: 1fr 1fr !important;
       gap: 8px !important;
@@ -4214,10 +4244,10 @@ table{page-break-inside:auto!important;break-inside:auto!important;}tr{page-brea
     .summary-embedded .word-split-box,
     .daily-footprint-block .word-split-box,
     #export-web-preview-body .word-split-box {
-      height: auto !important;
-      min-height: auto !important;
-      max-height: none !important;
-      overflow: visible !important;
+      height: 140px !important;
+      min-height: 140px !important;
+      max-height: 140px !important;
+      overflow: hidden !important;
       display: flex !important;
       flex-direction: column !important;
       padding: 8px 10px !important;
@@ -4234,17 +4264,18 @@ table{page-break-inside:auto!important;break-inside:auto!important;}tr{page-brea
     .daily-footprint-block .word-split-box > div:not(.word-split-title),
     #export-web-preview-body .word-split-box > div:not(.word-split-title) {
       flex: 1 1 auto !important;
-      height: auto !important;
-      min-height: auto !important;
-      max-height: none !important;
-      overflow: visible !important;
-      overscroll-behavior: auto !important;
+      height: 0 !important;
+      min-height: 0 !important;
+      max-height: 100% !important;
+      overflow-y: auto !important;
+      overscroll-behavior: contain !important;
+      scrollbar-width: thin !important;
       display: flex !important;
       flex-wrap: wrap !important;
       align-items: flex-start !important;
       align-content: flex-start !important;
       gap: 5px !important;
-      padding: 2px 0 !important;
+      padding: 2px 2px 2px 0 !important;
       box-sizing: border-box !important;
     }
 
