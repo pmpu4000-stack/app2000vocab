@@ -9,7 +9,10 @@ function getDailyTaskAnalytics(formData) {
       return { status: "error", message: "無權限查看教師大數據分析" };
     }
 
-    const targetClass = (!auth.isAdmin && auth.className) ? auth.className : (formData.targetClass || "all");
+    let targetClass = formData.targetClass || "all";
+    if (!auth.isAdmin && (targetClass === "all" || !isTeacherAllowedForClass(auth, targetClass))) {
+      targetClass = (auth.classList && auth.classList.length > 0) ? auth.classList[0] : (auth.className || "all");
+    }
     const cleanTargetClass = targetClass.replace(/班$/, "").trim().toLowerCase();
     const targetDateParam = formData.targetDate ? formatStandardDateYMD(formData.targetDate) : "";
     const cacheKey = "dta_" + (auth.isAdmin ? "admin" : (auth.className || "all")) + "_" + cleanTargetClass + "_" + targetDateParam;
@@ -303,7 +306,10 @@ function getDateRangePerformanceAnalytics(formData) {
     }
 
     const userSheet = ss.getSheetByName("使用者清單");
-    const targetClass = (!auth.isAdmin && auth.className) ? auth.className : (formData.targetClass || "all");
+    let targetClass = formData.targetClass || "all";
+    if (!auth.isAdmin && (targetClass === "all" || !isTeacherAllowedForClass(auth, targetClass))) {
+      targetClass = (auth.classList && auth.classList.length > 0) ? auth.classList[0] : (auth.className || "all");
+    }
     const cleanTargetClass = targetClass.replace(/班$/, "").trim().toLowerCase();
     const startD = formData.startDate ? formatStandardDateYMD(formData.startDate) : "";
     const endD = formData.endDate ? formatStandardDateYMD(formData.endDate) : "";

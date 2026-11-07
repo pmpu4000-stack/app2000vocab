@@ -470,7 +470,7 @@ function checkAndGetData(formData) {
         if (!auth.isAdmin) {
           const all = getClassOverviewRaw(ss);
           const found = all.find(s => s.username === target);
-          if (!found || found.className !== auth.className)
+          if (!found || !isTeacherAllowedForClass(auth, found.className))
             return {status:"error",message:"無權限查看其他班級的學生資料"};
         }
         const result = _getStudentData(ss, target);
@@ -493,8 +493,10 @@ function checkAndGetData(formData) {
       }
       
       let tc = formData.targetClass || "all";
-      if (!auth.isAdmin) tc = auth.className;
-      const result = _getClassOverview(ss, tc, formData.forceRefresh);
+      if (!auth.isAdmin && (tc === "all" || !isTeacherAllowedForClass(auth, tc))) {
+        tc = (auth.classList && auth.classList.length > 0) ? auth.classList[0] : auth.className;
+      }
+      const result = _getClassOverview(ss, tc, formData.forceRefresh, auth);
       result.isAdmin = auth.isAdmin;
       result.teacherClass = auth.className;
       result.teacherClassList = auth.classList || [];
@@ -1002,11 +1004,17 @@ function getClassOverviewRaw(ss, forceRefresh) {
   return result;
 }
 
-function _getClassOverview(ss, targetClass, forceRefresh) {
+function _getClassOverview(ss, targetClass, forceRefresh, optAuth) {
   if (forceRefresh) clearOverviewCache();
-  const all     = getClassOverviewRaw(ss, forceRefresh);
+  const rawAll  = getClassOverviewRaw(ss, forceRefresh);
+  const all     = (optAuth && !optAuth.isAdmin)
+    ? rawAll.filter(s => isTeacherAllowedForClass(optAuth, s.className))
+    : rawAll;
   const classes = [...new Set(all.map(s=>s.className).filter(Boolean))].sort();
-  const list    = (targetClass && targetClass!=="all") ? all.filter(s=>s.className===targetClass) : all;
+  const cleanTC = String(targetClass || "all").replace(/班$/, "").trim();
+  const list    = (targetClass && targetClass!=="all")
+    ? all.filter(s => String(s.className || "").replace(/班$/, "").trim() === cleanTC)
+    : all;
   return {
     status:"success", role:"teacher",
     overview:list, allOverview:all, classes,

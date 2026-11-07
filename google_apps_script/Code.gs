@@ -495,6 +495,11 @@ function getStudentMetaFromUserList_(ss, studentUser) {
         if (sMeta) {
           activeClass = sMeta.className || activeClass;
           activeRealName = sMeta.realName || activeRealName;
+        } else {
+          activeClass = getStudentClass(targetStudent, "");
+        }
+        if (!auth.isAdmin && !isTeacherAllowedForClass(auth, activeClass)) {
+          return jsonResponse({ status: "error", message: "無權限調閱非任教班級學生資料" });
         }
       }
 
@@ -769,6 +774,10 @@ function getStudentMetaFromUserList_(ss, studentUser) {
     }
 
     if (action === "saveConquerRollSettings") {
+      const auth = authenticateUser(ss, params.username, params.password);
+      if (!auth.success || (auth.role !== "teacher" && auth.role !== "admin")) {
+        return jsonResponse({ status: "error", message: "無教師權限" });
+      }
       return jsonResponse(saveConquerRollSettings(ss, params));
     }
 
@@ -900,7 +909,7 @@ function getStudentMetaFromUserList_(ss, studentUser) {
     return jsonResponse({status:"error", message:"未知的 action"});
   } catch(err) {
     logError("doPost", err, params ? params.username : "", e && e.postData ? e.postData.contents.substring(0,500) : "");
-    return jsonResponse({status:"error", message:err.toString()});
+    return jsonResponse({status:"error", message:"系統處理請求時發生異常，請稍後再試"});
   }
 }
 

@@ -58,6 +58,23 @@ function isAdminTeacher(className) {
   const c = String(className || "").trim().toLowerCase();
   return !c || c === "all" || c === "全校" || c === "教師群" || c === "admin";
 }
+function constantTimeEqual(a, b) {
+  const sa = String(a || ""), sb = String(b || "");
+  if (sa.length !== sb.length) return false;
+  let diff = 0;
+  for (let i = 0; i < sa.length; i++) diff |= sa.charCodeAt(i) ^ sb.charCodeAt(i);
+  return diff === 0;
+}
+function isTeacherAllowedForClass(auth, studentClass) {
+  if (!auth || !auth.success) return false;
+  if (auth.isAdmin || auth.role === "admin") return true;
+  const cleanStu = String(studentClass || "").replace(/班$/, "").trim().toLowerCase();
+  if (!cleanStu || cleanStu === "all") return false;
+  const list = Array.isArray(auth.classList) && auth.classList.length > 0 ? auth.classList : [String(auth.className || "").replace(/班$/, "").trim()];
+  return list.some(c => { const cleanT = String(c || "").replace(/班$/, "").trim().toLowerCase(); return cleanT === "all" || cleanT === cleanStu; });
+  {
+}
+}
 
 /**
  * 標準化日期格式為 yyyy-MM-dd
@@ -572,7 +589,7 @@ function authenticateUser(ss, inputUser, inputPass) {
 
     if (rowUser === username) {
       const rowHashed = isHashedPassword(rowPass) ? rowPass : hashPassword(rowPass);
-      const match = rowHashed === hashedInput || (!isHashedPassword(rowPass) && rowPass === password);
+      const match = constantTimeEqual(rowHashed, hashedInput) || (!isHashedPassword(rowPass) && constantTimeEqual(rowPass, password));
       if (!match) { recordLoginFailure(username); return {success:false, message:"帳號或密碼錯誤"}; }
 
       // 自動無感升級明文密碼為 SHA-256 雜湊

@@ -140,6 +140,10 @@ test("Google Apps Script (Code.gs & AuthService.js): cloud sync sanitization & a
   assert.equal(sandbox.isStudentTokenValid("90102", tok), false);
   const wafHit = sandbox.inspectRequestForAttacks({}, { note: "<svg onload=alert(1)>" }, {});
   assert.ok(wafHit && wafHit.method.includes("XSS"));
+  assert.equal(sandbox.constantTimeEqual("abc123", "abc123"), true);
+  assert.equal(sandbox.constantTimeEqual("abc123", "abc124"), false);
+  assert.equal(sandbox.isTeacherAllowedForClass({ success: true, role: "teacher", isAdmin: false, classList: ["901", "902"] }, "902班"), true);
+  assert.equal(sandbox.isTeacherAllowedForClass({ success: true, role: "teacher", isAdmin: false, classList: ["901", "902"] }, "903班"), false);
 
   const summary = vm.runInContext(
     "calculateSummaryFromAgentData({ stat: { w0: { a: 3, c: 3 }, w1: { a: 2, c: 1 } }, box: { w0: 3, w1: 1 } }, null)",
