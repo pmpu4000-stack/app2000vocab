@@ -2621,8 +2621,11 @@
     [data-theme="dark"] .task-score-num-wrong, [data-theme="dark"] .task-score-num-unans { color: #94A3B8 !important; }
     @media (max-width: 640px) {
       .task-score-grid {
-        grid-template-columns: 1fr !important;
+        grid-template-columns: repeat(2, 1fr) !important;
         gap: 8px !important;
+      }
+      .task-score-grid:has(.task-score-subgrid-4) {
+        grid-template-columns: 1fr !important;
       }
       .task-score-subgrid-4 {
         gap: 6px !important;
