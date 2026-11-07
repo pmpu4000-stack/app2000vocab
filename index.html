@@ -2167,31 +2167,13 @@
       }
     }
 
-    function purgeAllStudentSessionAndLocalData() {
+        function purgeAllStudentSessionAndLocalData() {
       try {
+        const preserveKeys = new Set(["theme", "fontSize", "preferred_voice", "audio_speed"]);
         const keysToRemove = [];
         for (let i = 0; i < localStorage.length; i++) {
           const k = localStorage.key(i);
-          if (!k) continue;
-          if (
-            k.startsWith("spellAgent") ||
-            k.startsWith("today_task") ||
-            k.startsWith("task_done") ||
-            k.startsWith("task_words") ||
-            k.startsWith("task_summary") ||
-            k.startsWith("assigned_task") ||
-            k.startsWith("weekend_remedy") ||
-            k === "vacation_pending_mistakes" ||
-            k === "student_task_history" ||
-            k === "cached_summary" ||
-            k === "weekTaskMistakes" ||
-            k === "remedy_learned_words" ||
-            k === "current_user" ||
-            k === "current_pass" ||
-            k === "user_role" ||
-            k === "user_real_name" ||
-            k === "user_class_name"
-          ) {
+          if (k && !preserveKeys.has(k)) {
             keysToRemove.push(k);
           }
         }

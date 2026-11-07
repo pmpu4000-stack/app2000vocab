@@ -573,9 +573,7 @@ function isSatClearedOnSundayDate(dateStr, taskRecords = {}, histList = []) {
   // 1. 從 weekend_remedy 查
   let rem = taskRecords["weekend_remedy_" + monKey];
   if (typeof rem === "string") { try { rem = JSON.parse(rem); } catch(_) {} }
-  if (!rem) {
-    try { const raw = localStorage.getItem("weekend_remedy_" + monKey); if (raw) rem = JSON.parse(raw); } catch(_) {}
-  }
+  /* Local fallback removed for multi-user isolation */
   if (rem && rem.satCompleted && (!rem.satWrongWords || rem.satWrongWords.length === 0)) {
     return true;
   }
@@ -583,9 +581,7 @@ function isSatClearedOnSundayDate(dateStr, taskRecords = {}, histList = []) {
   // 2. 從 task_summary 查
   let sum = taskRecords["task_summary_" + satKey];
   if (typeof sum === "string") { try { sum = JSON.parse(sum); } catch(_) {} }
-  if (!sum) {
-    try { const raw = localStorage.getItem("task_summary_" + satKey); if (raw) sum = JSON.parse(raw); } catch(_) {}
-  }
+  /* Local fallback removed for multi-user isolation */
   if (sum && sum.completed && (!sum.wrongWords || sum.wrongWords.length === 0)) {
     return true;
   }
@@ -2274,7 +2270,7 @@ function renderStudentDailyTaskAndFreeSections(resp) {
       const monKey = mObj.getFullYear() + "-" + String(mObj.getMonth() + 1).padStart(2, "0") + "-" + String(mObj.getDate()).padStart(2, "0");
       let rem = taskRecords["weekend_remedy_" + monKey];
       if (typeof rem === "string") { try { rem = JSON.parse(rem); } catch(_) {} }
-      if (!rem) { try { const raw = localStorage.getItem("weekend_remedy_" + monKey); if (raw) rem = JSON.parse(raw); } catch(_) {} }
+      /* Local fallback removed for multi-user isolation */
       if (rem) {
         const satClearedAll = rem.satCompleted && (!rem.satWrongWords || rem.satWrongWords.length === 0);
         if ((dtDay === 6 && rem.satCompleted) || (dtDay === 0 && rem.sunCompleted && !satClearedAll)) {
@@ -4671,7 +4667,7 @@ function _buildStudentExportPayload(resp, mode, startDate, endDate) {
       const monKey = mObj.getFullYear() + "-" + String(mObj.getMonth() + 1).padStart(2, "0") + "-" + String(mObj.getDate()).padStart(2, "0");
       let rem = tRecords["weekend_remedy_" + monKey];
       if (typeof rem === "string") { try { rem = JSON.parse(rem); } catch(_) {} }
-      if (!rem) { try { const raw = localStorage.getItem("weekend_remedy_" + monKey); if (raw) rem = JSON.parse(raw); } catch(_) {} }
+      /* Local fallback removed for multi-user isolation */
       if (rem) {
         const satClearedAll = rem.satCompleted && (!rem.satWrongWords || rem.satWrongWords.length === 0);
         if ((dtDay === 6 && rem.satCompleted) || (dtDay === 0 && rem.sunCompleted && !satClearedAll)) {
