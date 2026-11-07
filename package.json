@@ -1,0 +1,10 @@
+{
+  "name": "app2000vocab",
+  "version": "2.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "node --test tests/core.test.mjs",
+    "deploy": "node deploy.js"
+  }
+}

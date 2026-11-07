@@ -1,9 +1,15 @@
-const fs = require('fs');
-const path = require('path');
-const { execSync } = require('child_process');
+import fs from 'fs';
+import path from 'path';
+import { execSync } from 'child_process';
+import { fileURLToPath } from 'url';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const root = __dirname;
 const commitMsg = process.argv[2] || "deploy: auto update";
+
+console.log("== [0/4] Running automated unit tests ==");
+execSync('node --test tests/core.test.mjs', { cwd: root, stdio: 'inherit' });
 
 console.log("== [1/4] Syncing TeacherJs.html from src/teacher_portal.js ==");
 const tpSrc = fs.readFileSync(path.join(root, 'src', 'teacher_portal.js'), 'utf8');
