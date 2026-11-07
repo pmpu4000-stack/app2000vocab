@@ -1258,7 +1258,7 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
 
   const scoreGridHtml = isUnassigned
     ? `
-      <div class="task-score-grid task-score-grid-vertical">
+      <div class="task-score-grid">
         <div class="task-score-item">
           <div class="task-score-label">指派情形</div>
           <div class="task-score-val" style="color:var(--ink2); font-size:15px; font-weight:700;">當日無指派</div>
@@ -1271,7 +1271,7 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
     `
     : (isUntested
     ? `
-      <div class="task-score-grid task-score-grid-vertical">
+      <div class="task-score-grid">
         <div class="task-score-item">
           <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap;">
             <span>應測單字數</span>
@@ -1426,7 +1426,7 @@ function renderUntestedTaskCardHtml(info, agent) {
         </div>
       </div>
 
-      <div class="task-score-grid task-score-grid-vertical">
+      <div class="task-score-grid">
         <div class="task-score-item">
           <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap;">
             <span>施測單字數</span>

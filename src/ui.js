@@ -1765,7 +1765,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
   let scoreGridHtml = "";
   if (isUnassigned) {
     scoreGridHtml = `
-      <div class="task-score-grid task-score-grid-vertical">
+      <div class="task-score-grid">
         <div class="task-score-item">
           <div class="task-score-label">指派情形</div>
           <div class="task-score-val" style="color:var(--ink2); font-size:15px; font-weight:700;">當日無指派</div>
@@ -1779,7 +1779,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
   } else if (isUntested) {
     const untestedWordCount = taskTotWords > 0 ? taskTotWords : (rawWords.length || 0);
     scoreGridHtml = `
-      <div class="task-score-grid task-score-grid-vertical">
+      <div class="task-score-grid">
         <div class="task-score-item">
           <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap;">
             <span>📋 應測單字數</span>
@@ -1935,7 +1935,7 @@ function renderUntestedTaskCardHtml(info, d) {
         </div>
       </div>
 
-      <div class="task-score-grid task-score-grid-vertical">
+      <div class="task-score-grid">
         <div class="task-score-item">
           <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap;">
             <span>📋 應測單字數</span>
