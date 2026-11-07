@@ -10,7 +10,7 @@ import { CATS } from "./data.js";
 import { say, sayWord, spellOut, playContestSentence, stopAudio, parseDialogue } from "./audio.js";
 import { LEVELS, levelColor, levelName, misspellings, shuffle } from "./levels.js";
 import { diagnoseWordMistake } from "./diagnostics.js";
-import { box, normalizeDateStr, formatDateYMD, getWeekRangeDates, getBiweeklyCycleInfo } from "./store.js";
+import { box, normalizeDateStr, formatDateYMD, getWeekRangeDates, getBiweeklyCycleInfo, getCachedTaskHistory, getConquerRollSettings, getRemedyLearnedSet } from "./store.js";
 
 if (typeof window !== "undefined") {
   window.__say = say;
@@ -2436,14 +2436,7 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
 }
 
 function _getCachedRawStudentTaskHistory() {
-  if (_rawStudentTaskHistCache !== null) return _rawStudentTaskHistCache;
-  try {
-    const parsed = JSON.parse(localStorage.getItem("student_task_history") || "[]");
-    _rawStudentTaskHistCache = Array.isArray(parsed) ? parsed : [];
-  } catch (_) {
-    _rawStudentTaskHistCache = [];
-  }
-  return _rawStudentTaskHistCache;
+  return getCachedTaskHistory();
 }
 
 export function resolveDailyPracticeRecord(dateStr, d, historyList) {
@@ -2622,6 +2615,7 @@ export function getWeekPendingConquerWords(cycleParam = "current") {
   };
 
   // 1. 從 student_task_history 讀取當前週期（平日指定任務）
+  const conquerSettings = getConquerRollSettings();
   try {
     const historyList = _getCachedRawStudentTaskHistory();
     if (Array.isArray(historyList)) {
@@ -2631,9 +2625,6 @@ export function getWeekPendingConquerWords(cycleParam = "current") {
         if (iDate >= scanStartStr && iDate <= scanEndStr) {
           // 判斷是否排除自主練習或自由練習記錄
           const tName = String(item.taskName || "").trim();
-          const conquerSettings = (() => {
-            try { return JSON.parse(localStorage.getItem("conquer_roll_settings") || "{}"); } catch(_) { return {}; }
-          })();
           if (tName === "自主練習" || tName.includes("自由練習")) {
             if (!conquerSettings.rollFreeMistakes) return;
           }
@@ -2727,14 +2718,8 @@ export function getWeekPendingConquerWords(cycleParam = "current") {
 
   // 4. 讀取自由練習中「已成功答對消掉」的單字 (remedy_learned_words 與 store/dailyPractice)
   try {
-    const rawLearned = localStorage.getItem("remedy_learned_words");
-    const learnedList = rawLearned ? JSON.parse(rawLearned) : [];
-    if (Array.isArray(learnedList)) {
-      learnedList.forEach(w => {
-        const cw = normalizeCleanWord(w);
-        if (cw) learnedWords.add(cw);
-      });
-    }
+    const storeLearned = getRemedyLearnedSet();
+    storeLearned.forEach(cw => learnedWords.add(cw));
   } catch(_) {}
 
   try {

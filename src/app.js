@@ -169,25 +169,22 @@ function getSaturdayRemedyRecord() {
 
   // 3. student_task_history
   try {
-    const rawHist = localStorage.getItem("student_task_history");
-    if (rawHist) {
-      const hist = JSON.parse(rawHist);
-      if (Array.isArray(hist)) {
-        const satItem = hist.find(item => {
-          if (!item || !item.date) return false;
-          const nd = normalizeDateStr(item.date);
-          return nd === satDateStr && (String(item.taskName || "").includes("週末") || item.isWeekend);
-        });
-        if (satItem) {
-          return {
-            completed: true,
-            wrongWords: Array.isArray(satItem.wrongWords) ? satItem.wrongWords : [],
-            correctWords: Array.isArray(satItem.correctWords) ? satItem.correctWords : [],
-            score: satItem.score || "",
-            rate: satItem.rate || "",
-            date: satDateStr
-          };
-        }
+    const hist = store.getCachedTaskHistory();
+    if (Array.isArray(hist) && hist.length > 0) {
+      const satItem = hist.find(item => {
+        if (!item || !item.date) return false;
+        const nd = normalizeDateStr(item.date);
+        return nd === satDateStr && (String(item.taskName || "").includes("週末") || item.isWeekend);
+      });
+      if (satItem) {
+        return {
+          completed: true,
+          wrongWords: Array.isArray(satItem.wrongWords) ? satItem.wrongWords : [],
+          correctWords: Array.isArray(satItem.correctWords) ? satItem.correctWords : [],
+          score: satItem.score || "",
+          rate: satItem.rate || "",
+          date: satDateStr
+        };
       }
     }
   } catch(_) {}
@@ -330,11 +327,7 @@ function getVacationDayAssignedWords(dayOfWeek) {
 
 // ── 錯題記錄：記錄平日測驗與自由練習中答錯的單字（滾入週末消滅戰） ──
 function getConquerRollSettings() {
-  try {
-    const raw = localStorage.getItem("conquer_roll_settings");
-    if (raw) return JSON.parse(raw);
-  } catch(_) {}
-  return { rollTaskMistakes: true, rollFreeMistakes: false };
+  return store.getConquerRollSettings();
 }
 
 function recordTaskMistake(word) {
@@ -372,41 +365,38 @@ function getMonToFriUnfinishedWords() {
 
   // 1. 從 student_task_history（由雲端試算表歷程同步）讀取本週一至週五任務與自由練習錯題
   try {
-    const rawHist = localStorage.getItem("student_task_history");
-    if (rawHist) {
-      const historyList = JSON.parse(rawHist);
-      if (Array.isArray(historyList)) {
-        historyList.forEach(item => {
-          if (!item || !item.date) return;
-          const iDate = String(item.date).trim().replace(/\//g, "-");
-          if (iDate >= mondayStr && iDate <= fridayStr) {
-            // (a) 指定測驗中答錯的單字
-            if (Array.isArray(item.wrongWords)) {
-              item.wrongWords.forEach(w => {
-                const cw = String(w).trim().toLowerCase();
-                if (cw) unfinishedWords.add(cw);
-              });
-            }
-            // (b) 自由練習中答錯的單字
-            if (Array.isArray(item.freeWrongWords)) {
-              item.freeWrongWords.forEach(w => {
-                const cw = String(w).trim().toLowerCase();
-                if (cw) unfinishedWords.add(cw);
-              });
-            }
-            // (c) 若該任務狀態未完成、缺考或沒有作答（例如尚未開始或 score 為 "—"）
-            const status = String(item.status || "");
-            const score = String(item.score || "");
-            const isUnattempted = !status.includes("已完成") || score === "—" || score === "尚未開始";
-            if (isUnattempted && Array.isArray(item.words)) {
-              item.words.forEach(w => {
-                const cw = String(w).trim().toLowerCase();
-                if (cw) unfinishedWords.add(cw);
-              });
-            }
+    const historyList = store.getCachedTaskHistory();
+    if (Array.isArray(historyList) && historyList.length > 0) {
+      historyList.forEach(item => {
+        if (!item || !item.date) return;
+        const iDate = String(item.date).trim().replace(/\//g, "-");
+        if (iDate >= mondayStr && iDate <= fridayStr) {
+          // (a) 指定測驗中答錯的單字
+          if (Array.isArray(item.wrongWords)) {
+            item.wrongWords.forEach(w => {
+              const cw = String(w).trim().toLowerCase();
+              if (cw) unfinishedWords.add(cw);
+            });
           }
-        });
-      }
+          // (b) 自由練習中答錯的單字
+          if (Array.isArray(item.freeWrongWords)) {
+            item.freeWrongWords.forEach(w => {
+              const cw = String(w).trim().toLowerCase();
+              if (cw) unfinishedWords.add(cw);
+            });
+          }
+          // (c) 若該任務狀態未完成、缺考或沒有作答（例如尚未開始或 score 為 "—"）
+          const status = String(item.status || "");
+          const score = String(item.score || "");
+          const isUnattempted = !status.includes("已完成") || score === "—" || score === "尚未開始";
+          if (isUnattempted && Array.isArray(item.words)) {
+            item.words.forEach(w => {
+              const cw = String(w).trim().toLowerCase();
+              if (cw) unfinishedWords.add(cw);
+            });
+          }
+        }
+      });
     }
   } catch(_) {}
 
@@ -459,10 +449,8 @@ function getMonToFriUnfinishedWords() {
 
   // 4. 排除已在自主練習中答對並登記為已學會的單字（不加入假日指派測驗）
   try {
-    const rawLearned = localStorage.getItem("remedy_learned_words");
-    const learnedList = rawLearned ? JSON.parse(rawLearned) : [];
-    if (Array.isArray(learnedList) && learnedList.length > 0) {
-      const learnedSet = new Set(learnedList.map(w => String(w).trim().toLowerCase()));
+    const learnedSet = store.getRemedyLearnedSet();
+    if (learnedSet && learnedSet.size > 0) {
       return Array.from(unfinishedWords).filter(w => !learnedSet.has(w));
     }
   } catch(_) {}

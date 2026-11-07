@@ -3,6 +3,7 @@
 // =====================================================================
 import { sayWord } from "./audio.js";
 import { _renderConquerWordCard } from "./ui.js";
+import { getCachedTaskHistory } from "./store.js";
 
 export function analyzeErrorTag() {
   return { tag: "弱點單字", cls: "tag-spelling", icon: "⚠️" };
@@ -36,12 +37,7 @@ export function initWeakWordsCard() {
   let activeScope = "current"; // "current" (本學期) | "all" (全歷程封存)
 
   function getBiweeklyFailedFinalBossWords(scope = activeScope) {
-    let historyList = [];
-    try {
-      historyList = JSON.parse(localStorage.getItem("student_task_history") || "[]");
-    } catch (_) {
-      historyList = [];
-    }
+    const historyList = getCachedTaskHistory();
 
     const failedMap = new Map();
     const masteredMap = new Map();

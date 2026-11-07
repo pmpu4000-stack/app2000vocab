@@ -260,9 +260,18 @@ export function flushSave() {
     clearTimeout(_saveTimer);
     _saveTimer = null;
   }
+  const str = JSON.stringify(DB);
   try {
-    localStorage.setItem(LS_KEY, JSON.stringify(DB));
-  } catch { /* storage off */ }
+    localStorage.setItem(LS_KEY, str);
+  } catch (e) {
+    try {
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith("task_words_")) localStorage.removeItem(k);
+      }
+      localStorage.setItem(LS_KEY, str);
+    } catch { /* storage off */ }
+  }
 }
 
 export function save(immediate = false) {
@@ -795,7 +804,7 @@ export function getPracticeDates() {
 let _taskHistoryCacheRaw = null;
 let _taskHistoryCacheArr = [];
 let _dailyPracticeSanitized = false;
-function _getCachedTaskHistory() {
+export function getCachedTaskHistory() {
   try {
     const raw = localStorage.getItem("student_task_history");
     if (!raw) return [];
@@ -804,6 +813,46 @@ function _getCachedTaskHistory() {
     _taskHistoryCacheArr = JSON.parse(raw) || [];
     return _taskHistoryCacheArr;
   } catch(_) { return []; }
+}
+const _getCachedTaskHistory = getCachedTaskHistory;
+
+export function getConquerRollSettings() {
+  try {
+    const raw = localStorage.getItem("conquer_roll_settings");
+    if (raw) return JSON.parse(raw);
+  } catch(_) {}
+  return { rollTaskMistakes: true, rollFreeMistakes: false };
+}
+
+export function getRemedyLearnedSet() {
+  const set = new Set();
+  try {
+    const raw = localStorage.getItem("remedy_learned_words");
+    if (raw) {
+      const list = JSON.parse(raw);
+      if (Array.isArray(list)) {
+        for (let i = 0; i < list.length; i++) {
+          const cw = String(list[i] || "").replace(/\(.*?\)/g, "").trim().toLowerCase();
+          if (cw) set.add(cw);
+        }
+      }
+    }
+  } catch(_) {}
+  if (DB && DB.dailyPractice && typeof DB.dailyPractice === "object") {
+    for (const dKey in DB.dailyPractice) {
+      const day = DB.dailyPractice[dKey];
+      if (day && day.words) {
+        for (const wKey in day.words) {
+          const info = day.words[wKey];
+          if (info && (info.correct > 0 || info.passed) && info.lastResult !== "wrong") {
+            const cw = String(wKey).replace(/\(.*?\)/g, "").trim().toLowerCase();
+            if (cw) set.add(cw);
+          }
+        }
+      }
+    }
+  }
+  return set;
 }
 
 // Everything the summary panel needs, as plain data (Single-pass over 2,055 words).
@@ -1094,7 +1143,9 @@ export function summary(words) {
  * 🚀 輕量快取摘要：提供登入與上傳時直接存取，零延遲免重新計算
  */
 export function getPrecomputedSummary(words) {
-  const s = stats(words);
+  let learn = 0, prac = 0, mast = 0, distinctCorrect = 0, totTestedWords = 0, totCorrWords = 0;
+  const levelTested = [0, 0, 0, 0, 0, 0];
+  const levelCorr = [0, 0, 0, 0, 0, 0];
   const modeStats = {
     listen: { a: 0, c: 0 },
     pick: { a: 0, c: 0 },
@@ -1102,7 +1153,6 @@ export function getPrecomputedSummary(words) {
     trap: { a: 0, c: 0 }
   };
   const mwords = (DB && DB.mwords) || {};
-  let totTestedWords = 0, totCorrWords = 0;
   if (DB && DB.stat) {
     if (!mwords.listen) mwords.listen = {};
     const pMap = mwords.pick || {};
@@ -1112,7 +1162,17 @@ export function getPrecomputedSummary(words) {
       const st = DB.stat[id];
       if (!st || st.a <= 0) continue;
       totTestedWords++;
-      if (st.c > 0) totCorrWords++;
+      const lv = getWordLevel(id);
+      levelTested[lv]++;
+      if (st.c > 0) {
+        totCorrWords++;
+        distinctCorrect++;
+        levelCorr[lv]++;
+        const b = (DB.box && DB.box[id]) || 0;
+        if (b >= 3) mast++;
+        else if (b === 2) prac++;
+        else learn++;
+      }
       if (!mwords.listen[id] && !pMap[id] && !sMap[id] && !tMap[id]) {
         mwords.listen[id] = { a: st.a, c: st.c };
       }
@@ -1157,37 +1217,21 @@ export function getPrecomputedSummary(words) {
   }
 
   const levels = {};
-  const levelTested = [0, 0, 0, 0, 0, 0];
-  const levelCorr = [0, 0, 0, 0, 0, 0];
-  if (Array.isArray(words) && words.length > 0) {
-    for (let i = 0; i < words.length; i++) {
-      const w = words[i];
-      const st = DB.stat[w.id];
-      if (st) {
-        if (st.a > 0) levelTested[w.level]++;
-        if (st.c > 0) levelCorr[w.level]++;
-      }
-    }
-  } else if (DB && DB.stat) {
-    for (const id in DB.stat) {
-      const st = DB.stat[id];
-      if (!st) continue;
-      const lv = getWordLevel(id);
-      if (st.a > 0) levelTested[lv]++;
-      if (st.c > 0) levelCorr[lv]++;
-    }
-  }
   for (let lv = 1; lv <= 5; lv++) {
     levels[lv] = `${levelCorr[lv]}/${levelTested[lv]}`;
   }
+  const statKeysCount = DB && DB.stat ? Object.keys(DB.stat).length : 0;
+  const boxKeysCount  = DB && DB.box  ? Object.keys(DB.box).length  : 0;
+  const testedVocab = Math.max(distinctCorrect, totTestedWords, statKeysCount, boxKeysCount);
+  const passRate = testedVocab > 0 ? Math.round((distinctCorrect / testedVocab) * 100) : 0;
 
   return {
-    testedVocab: s.testedVocab,
-    distinctCorrect: s.distinctCorrect,
-    passRate: s.passRate + "%",
-    mastered: s.mast,
-    practicing: s.prac,
-    learning: s.learn,
+    testedVocab,
+    distinctCorrect,
+    passRate: passRate + "%",
+    mastered: mast,
+    practicing: prac,
+    learning: learn,
     levels,
     modes: {
       listen: `${modeStats.listen.c}/${modeStats.listen.a}`,
