@@ -9,6 +9,11 @@
     (function() {
       var t = localStorage.getItem("theme") || localStorage.getItem("app_theme") || "light";
       document.documentElement.setAttribute("data-theme", t);
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(regs) {
+          regs.forEach(function(r) { r.update(); });
+        });
+      }
     })();
   </script>
   <style>
@@ -4754,60 +4759,55 @@ body.css-fullscreen-active {
     [data-theme="dark"] .rate-tier-item.tier-1 { border-color: rgba(2, 132, 199, 0.26) !important; }
     [data-theme="dark"] .rate-tier-item.tier-0 { border-color: rgba(100, 116, 139, 0.22) !important; }
 
-    /* 答對/答錯單字雙欄盒與單字膠囊 */
-    .word-split-grid {
-      display: grid !important;
-      grid-template-columns: 1fr 1fr !important;
-      gap: 10px !important;
-      margin-top: 12px !important;
-    }
-    @media (max-width: 640px) {
-      .word-split-grid {
-        grid-template-columns: 1fr !important;
-        gap: 8px !important;
-        margin-top: 10px !important;
-      }
-      .word-split-box {
-        height: auto !important;
-        min-height: 154px !important;
-        max-height: none !important;
-        padding: 10px 12px !important;
-      }
-      .word-split-title {
-        font-size: 12px !important;
-        margin-bottom: 6px !important;
-      }
-      .word-split-content,
-      .word-split-box > div:not(.word-split-title) {
-        height: 120px !important;
-        min-height: 120px !important;
-        max-height: 120px !important;
-        gap: 5px !important;
-        padding-right: 4px !important;
-      }
+    /* 答對/答錯單字雙欄盒與單字膠囊（以 CSS 變數統一控管高度，預設 180px，匯出預覽 140px） */
+    :root {
+      --word-box-height: 180px;
+      --word-box-report-height: 140px;
     }
     .word-split-grid,
     .word-split-grid.grid-2 {
       flex: 1 1 auto !important;
-      height: 180px !important;
-      min-height: 180px !important;
-      max-height: 180px !important;
+      height: var(--word-box-height, 180px) !important;
+      min-height: var(--word-box-height, 180px) !important;
+      max-height: var(--word-box-height, 180px) !important;
       display: grid !important;
       grid-template-columns: 1fr 1fr !important;
       gap: 8px !important;
-      margin-top: 0 !important;
+      margin-top: 8px !important;
       box-sizing: border-box !important;
+      overflow: hidden !important;
     }
     .word-split-box {
-      height: 180px !important;
-      min-height: 180px !important;
-      max-height: 180px !important;
+      height: var(--word-box-height, 180px) !important;
+      min-height: var(--word-box-height, 180px) !important;
+      max-height: var(--word-box-height, 180px) !important;
       display: flex !important;
       flex-direction: column !important;
       padding: 8px 10px !important;
       border-radius: 10px !important;
       box-sizing: border-box !important;
       overflow: hidden !important;
+    }
+    @media (max-width: 640px) {
+      .word-split-grid,
+      .word-split-grid.grid-2 {
+        grid-template-columns: 1fr !important;
+        height: auto !important;
+        min-height: auto !important;
+        max-height: none !important;
+        gap: 8px !important;
+        margin-top: 10px !important;
+      }
+      .word-split-box {
+        height: 154px !important;
+        min-height: 154px !important;
+        max-height: 154px !important;
+        padding: 10px 12px !important;
+      }
+      .word-split-title {
+        font-size: 12px !important;
+        margin-bottom: 6px !important;
+      }
     }
     .word-split-box.correct-box {
       background: #F0F9FF !important;
@@ -6192,13 +6192,18 @@ table{page-break-inside:auto!important;break-inside:auto!important;}tr{page-brea
       max-height: none !important;
       overflow: visible !important;
     }
-    /* 歷程檔案（一頁檢視 / 匯出預覽）：指定測驗與自由練習單字區固定高度 140px，自適應上下滾動滑桿保持方塊整齊 */
+    /* 歷程檔案（一頁檢視 / 匯出預覽）：指定測驗與自由練習單字區固定高度 var(--word-box-report-height, 140px)，自適應上下滾動滑桿保持方塊整齊 */
+    .summary-embedded,
+    .daily-footprint-block,
+    #export-web-preview-body {
+      --word-box-height: var(--word-box-report-height, 140px);
+    }
     .summary-embedded .word-split-grid,
     .daily-footprint-block .word-split-grid,
     #export-web-preview-body .word-split-grid {
-      height: 140px !important;
-      min-height: 140px !important;
-      max-height: 140px !important;
+      height: var(--word-box-report-height, 140px) !important;
+      min-height: var(--word-box-report-height, 140px) !important;
+      max-height: var(--word-box-report-height, 140px) !important;
       overflow: hidden !important;
       display: grid !important;
       grid-template-columns: 1fr 1fr !important;
@@ -6208,9 +6213,9 @@ table{page-break-inside:auto!important;break-inside:auto!important;}tr{page-brea
     .summary-embedded .word-split-box,
     .daily-footprint-block .word-split-box,
     #export-web-preview-body .word-split-box {
-      height: 140px !important;
-      min-height: 140px !important;
-      max-height: 140px !important;
+      height: var(--word-box-report-height, 140px) !important;
+      min-height: var(--word-box-report-height, 140px) !important;
+      max-height: var(--word-box-report-height, 140px) !important;
       overflow: hidden !important;
       display: flex !important;
       flex-direction: column !important;
@@ -25042,14 +25047,14 @@ function _buildStudentReportHtml(payload) {
               <div class="task-score-val" style="color:#059669; font-size:14.5px; font-weight:800;">📴 當日無登入受測紀錄</div>
             </div>
           </div>
-          <div class="word-split-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px; height:140px !important; min-height:140px !important; max-height:140px !important; overflow:hidden !important; box-sizing:border-box !important;">
-            <div class="word-split-box untested-box" style="height:140px !important; min-height:140px !important; max-height:140px !important; display:flex; flex-direction:column; overflow:hidden !important; box-sizing:border-box !important;">
+          <div class="word-split-grid">
+            <div class="word-split-box untested-box">
               <div class="word-split-title untested-title"><span class="card-icon-slot">📋</span><span>本次應測單字範圍 (${unansWords.length} 字)</span></div>
-              <div class="word-split-tags" style="flex:1 1 auto !important; height:0 !important; min-height:0 !important; max-height:100% !important; overflow-y:auto !important; overscroll-behavior:contain !important; scrollbar-width:thin !important; display:flex; flex-wrap:wrap; gap:5px; padding:2px 2px 2px 0; box-sizing:border-box;">${unansTags}</div>
+              <div class="word-split-tags">${unansTags}</div>
             </div>
-            <div class="word-split-box advice-box" style="height:140px !important; min-height:140px !important; max-height:140px !important; display:flex; flex-direction:column; overflow:hidden !important; box-sizing:border-box !important;">
+            <div class="word-split-box advice-box">
               <div class="word-split-title advice-title"><span class="card-icon-slot">💡</span><span>測驗狀態說明</span></div>
-              <div class="word-split-tags" style="flex:1 1 auto !important; height:0 !important; min-height:0 !important; max-height:100% !important; overflow-y:auto !important; overscroll-behavior:contain !important; scrollbar-width:thin !important; font-size:12.5px; line-height:1.55; color:var(--ink2, #475569); padding:4px 0;">
+              <div class="word-split-tags" style="font-size:12.5px; line-height:1.55; color:var(--ink2, #475569); padding:4px 0;">
                 <b>${esc(r.taskStatus || "缺席未受測")}</b>。該生當日尚未進行本次指定測驗，未測驗單字將自動排入週末弱點補強測驗。
               </div>
             </div>
@@ -25128,14 +25133,14 @@ function _buildStudentReportHtml(payload) {
               </div>
             </div>
           </div>
-          <div class="word-split-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px; height:140px !important; min-height:140px !important; max-height:140px !important; overflow:hidden !important; box-sizing:border-box !important;">
-            <div class="word-split-box correct-box" style="height:140px !important; min-height:140px !important; max-height:140px !important; display:flex; flex-direction:column; overflow:hidden !important; box-sizing:border-box !important;">
+          <div class="word-split-grid">
+            <div class="word-split-box correct-box">
               <div class="word-split-title correct-title"><span class="card-icon-slot">✔</span><span>答對的單字 (${corrList.length} 字)</span></div>
-              <div class="word-split-tags" style="flex:1 1 auto !important; height:0 !important; min-height:0 !important; max-height:100% !important; overflow-y:auto !important; overscroll-behavior:contain !important; scrollbar-width:thin !important; display:flex; flex-wrap:wrap; gap:5px; padding:2px 2px 2px 0; box-sizing:border-box;">${corrTags}</div>
+              <div class="word-split-tags">${corrTags}</div>
             </div>
-            <div class="word-split-box wrong-box" style="height:140px !important; min-height:140px !important; max-height:140px !important; display:flex; flex-direction:column; overflow:hidden !important; box-sizing:border-box !important;">
+            <div class="word-split-box wrong-box">
               <div class="word-split-title wrong-title"><span class="card-icon-slot">✖</span><span>答錯的單字 (${wrgList.length} 字)</span></div>
-              <div class="word-split-tags" style="flex:1 1 auto !important; height:0 !important; min-height:0 !important; max-height:100% !important; overflow-y:auto !important; overscroll-behavior:contain !important; scrollbar-width:thin !important; display:flex; flex-wrap:wrap; gap:5px; padding:2px 2px 2px 0; box-sizing:border-box;">${wrgTags}</div>
+              <div class="word-split-tags">${wrgTags}</div>
             </div>
           </div>
         </div>
@@ -25190,14 +25195,14 @@ function _buildStudentReportHtml(payload) {
               </div>
             </div>
           </div>
-          <div class="word-split-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px; height:140px !important; min-height:140px !important; max-height:140px !important; overflow:hidden !important; box-sizing:border-box !important;">
-            <div class="word-split-box correct-box" style="height:140px !important; min-height:140px !important; max-height:140px !important; display:flex; flex-direction:column; overflow:hidden !important; box-sizing:border-box !important;">
+          <div class="word-split-grid">
+            <div class="word-split-box correct-box">
               <div class="word-split-title correct-title"><span class="card-icon-slot">✔</span><span>答對的單字 (${fCorrList.length} 字)</span></div>
-              <div class="word-split-tags" style="flex:1 1 auto !important; height:0 !important; min-height:0 !important; max-height:100% !important; overflow-y:auto !important; overscroll-behavior:contain !important; scrollbar-width:thin !important; display:flex; flex-wrap:wrap; gap:5px; padding:2px 2px 2px 0; box-sizing:border-box;">${fCorrTags}</div>
+              <div class="word-split-tags">${fCorrTags}</div>
             </div>
-            <div class="word-split-box wrong-box" style="height:140px !important; min-height:140px !important; max-height:140px !important; display:flex; flex-direction:column; overflow:hidden !important; box-sizing:border-box !important;">
+            <div class="word-split-box wrong-box">
               <div class="word-split-title wrong-title"><span class="card-icon-slot">✖</span><span>答錯的單字 (${fWrgList.length} 字)</span></div>
-              <div class="word-split-tags" style="flex:1 1 auto !important; height:0 !important; min-height:0 !important; max-height:100% !important; overflow-y:auto !important; overscroll-behavior:contain !important; scrollbar-width:thin !important; display:flex; flex-wrap:wrap; gap:5px; padding:2px 2px 2px 0; box-sizing:border-box;">${fWrgTags}</div>
+              <div class="word-split-tags">${fWrgTags}</div>
             </div>
           </div>
         </div>

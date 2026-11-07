@@ -5,7 +5,7 @@
 // 3. 單字庫與音檔永久快取
 // =====================================================================
 
-const CACHE_NAME = 'spelling-app-shell-v9';
+const CACHE_NAME = 'spelling-app-shell-v10';
 const STATIC_ASSETS = [
   './',
   'index.html',
@@ -71,8 +71,20 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 3. 本機靜態資源：Stale-While-Revalidate，即時秒開並背景更新
+  // 3. 本機靜態資源：HTML 與 JS/CSS 採 Network-First（確保版本更新立即生效），其餘採 Stale-While-Revalidate
   if (req.method === 'GET' && url.origin === location.origin) {
+    if (req.mode === 'navigate' || url.pathname.endsWith('.html') || url.pathname.endsWith('.js') || url.pathname.endsWith('.css')) {
+      event.respondWith(
+        fetch(req, { cache: 'no-cache' }).then((networkResp) => {
+          if (networkResp && networkResp.ok) {
+            const clone = networkResp.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(req, clone));
+          }
+          return networkResp;
+        }).catch(() => caches.match(req))
+      );
+      return;
+    }
     event.respondWith(
       caches.open(CACHE_NAME).then(async (cache) => {
         const cached = await cache.match(req);
