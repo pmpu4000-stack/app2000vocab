@@ -3421,19 +3421,35 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   display: none !important;
 }
 
+@media (max-width: 480px) {
+  .weak-words-toolbar {
+    flex-wrap: wrap !important;
+  }
+}
+
 /* 1. 時間範圍選擇列 (Segmented Control 膠囊切換列) */
 .weak-words-toolbar {
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
-  flex-wrap: wrap !important;
+  flex-wrap: nowrap !important;
   gap: 8px !important;
   margin-bottom: 12px !important;
 }
+#weak-words-stat-text {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
 .weak-range-tabs,
 #weak-range-tabs,
-#st-weak-range-tabs {
+#st-weak-range-tabs,
+#weak-words-scope-tabs {
   display: inline-flex !important;
+  flex-shrink: 0 !important;
+  white-space: nowrap !important;
   gap: 4px !important;
   background: var(--bar-track, #E8EBF5) !important;
   border: 1px solid var(--line, #E7E9F5) !important;
@@ -3443,14 +3459,16 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 }
 [data-theme="dark"] .weak-range-tabs,
 [data-theme="dark"] #weak-range-tabs,
-[data-theme="dark"] #st-weak-range-tabs {
+[data-theme="dark"] #st-weak-range-tabs,
+[data-theme="dark"] #weak-words-scope-tabs {
   background: #0D111E !important;
   border-color: #262D44 !important;
 }
 
 .weak-range-tabs .tab-btn,
 #weak-range-tabs .tab-btn,
-#st-weak-range-tabs .tab-btn {
+#st-weak-range-tabs .tab-btn,
+#weak-words-scope-tabs .tab-btn {
   border: none !important;
   outline: none !important;
   background: transparent !important;
@@ -3475,19 +3493,22 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 }
 .weak-range-tabs .tab-btn:hover,
 #weak-range-tabs .tab-btn:hover,
-#st-weak-range-tabs .tab-btn:hover {
+#st-weak-range-tabs .tab-btn:hover,
+#weak-words-scope-tabs .tab-btn:hover {
   color: var(--ink, #232A4D) !important;
   background: rgba(255, 255, 255, 0.55) !important;
   transform: none !important;
 }
 .weak-range-tabs .tab-btn:active,
 #weak-range-tabs .tab-btn:active,
-#st-weak-range-tabs .tab-btn:active {
+#st-weak-range-tabs .tab-btn:active,
+#weak-words-scope-tabs .tab-btn:active {
   transform: none !important;
 }
 .weak-range-tabs .tab-btn.active,
 #weak-range-tabs .tab-btn.active,
-#st-weak-range-tabs .tab-btn.active {
+#st-weak-range-tabs .tab-btn.active,
+#weak-words-scope-tabs .tab-btn.active {
   background: var(--card, #FFFFFF) !important;
   color: var(--violet, #6C4CE0) !important;
   font-weight: 700 !important;
@@ -3497,19 +3518,22 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 
 [data-theme="dark"] .weak-range-tabs .tab-btn,
 [data-theme="dark"] #weak-range-tabs .tab-btn,
-[data-theme="dark"] #st-weak-range-tabs .tab-btn {
+[data-theme="dark"] #st-weak-range-tabs .tab-btn,
+[data-theme="dark"] #weak-words-scope-tabs .tab-btn {
   color: #94A3B8 !important;
 }
 [data-theme="dark"] .weak-range-tabs .tab-btn:hover,
 [data-theme="dark"] #weak-range-tabs .tab-btn:hover,
-[data-theme="dark"] #st-weak-range-tabs .tab-btn:hover {
+[data-theme="dark"] #st-weak-range-tabs .tab-btn:hover,
+[data-theme="dark"] #weak-words-scope-tabs .tab-btn:hover {
   color: #F0F3FA !important;
   background: rgba(255, 255, 255, 0.08) !important;
   transform: none !important;
 }
 [data-theme="dark"] .weak-range-tabs .tab-btn.active,
 [data-theme="dark"] #weak-range-tabs .tab-btn.active,
-[data-theme="dark"] #st-weak-range-tabs .tab-btn.active {
+[data-theme="dark"] #st-weak-range-tabs .tab-btn.active,
+[data-theme="dark"] #weak-words-scope-tabs .tab-btn.active {
   background: #20263A !important;
   color: #38BDF8 !important;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4) !important;
