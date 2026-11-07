@@ -312,7 +312,7 @@ function handleSaveRecord(ss, params, auth) {
       const expectedRaw = username + ":" + todayStr + ":" + correctWordsCount + ":" + answeredWordsCount + ":SPELL_AGENT_SECURE_V1";
       const expectedDigest = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, expectedRaw, Utilities.Charset.UTF_8);
       const expectedSig = expectedDigest.map(b => (b < 0 ? b + 256 : b).toString(16).padStart(2, "0")).join("").substring(0, 16);
-      if (params.authSignature === expectedSig) {
+      if (constantTimeEqual(params.authSignature, expectedSig)) {
         authVerificationStatus = "🟢 通過驗證 (SHA-256)";
       } else {
         authVerificationStatus = "🔴 簽名異常(疑竄改)";

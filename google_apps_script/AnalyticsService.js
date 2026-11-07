@@ -813,7 +813,7 @@ function getRotationTaskSettings(param1, param2) {
     } else {
       const { auth, params } = _resolveTeacherCall_(param1, param2);
       if (!auth || !auth.success || auth.role !== "teacher") return { status: "error", message: "無權限" };
-      targetClass = (!auth.isAdmin && auth.className) ? auth.className : (params.targetClass || auth.className || "all");
+      targetClass = (params.targetClass && isTeacherAllowedForClass(auth, params.targetClass)) ? params.targetClass : (auth.isAdmin ? (params.targetClass || "all") : (auth.className || "all"));
     }
     const cleanCls = String(targetClass || "all").replace(/班$/, "").trim().toLowerCase() || "all";
     const props = PropertiesService.getScriptProperties();
@@ -830,7 +830,7 @@ function saveRotationTaskSettings(param1, param2, param3) {
   try {
     const { auth, params } = _resolveTeacherCall_(param1, param2, param3);
     if (!auth || !auth.success || auth.role !== "teacher") return { status: "error", message: "無權限" };
-    const targetCls = (!auth.isAdmin && auth.className) ? auth.className : (params.targetClass || auth.className || "all");
+    const targetCls = (params.targetClass && isTeacherAllowedForClass(auth, params.targetClass)) ? params.targetClass : (auth.isAdmin ? (params.targetClass || "all") : (auth.className || "all"));
     const cleanCls = String(targetCls || "all").replace(/班$/, "").trim().toLowerCase() || "all";
     const cfg = {
       scope: String(params.scope || "all"),
@@ -851,7 +851,7 @@ function advanceRotationTaskPointer(param1, param2, param3) {
   try {
     const { ss, auth, params } = _resolveTeacherCall_(param1, param2, param3);
     if (!auth || !auth.success || auth.role !== "teacher") return { status: "error", message: "無權限" };
-    const targetCls = (!auth.isAdmin && auth.className) ? auth.className : (params.targetClass || auth.className || "all");
+    const targetCls = (params.targetClass && isTeacherAllowedForClass(auth, params.targetClass)) ? params.targetClass : (auth.isAdmin ? (params.targetClass || "all") : (auth.className || "all"));
     const cleanCls = String(targetCls || "all").replace(/班$/, "").trim().toLowerCase() || "all";
     const cur = getRotationTaskSettings(ss, cleanCls).settings || { scope: "all", count: 20, pointer: 0, taskName: "每日指定單字測驗" };
     const step = parseInt(params.count || cur.count, 10) || 20;
@@ -871,7 +871,7 @@ function getCycleRecordsAnalytics(param1, param2, param3) {
     const { ss, auth, params } = _resolveTeacherCall_(param1, param2, param3);
     if (!auth || !auth.success || auth.role !== "teacher") return { status: "error", message: "無權限" };
 
-    const targetClass = (!auth.isAdmin && auth.className) ? auth.className : (params.targetClass || "all");
+    const targetClass = (params.targetClass && isTeacherAllowedForClass(auth, params.targetClass)) ? params.targetClass : (auth.isAdmin ? (params.targetClass || "all") : (auth.className || "all"));
     const cleanTargetClass = String(targetClass).replace(/班$/, "").trim().toLowerCase();
 
     const now = new Date();
@@ -997,7 +997,7 @@ function getStudentDurationAnalytics(param1, param2, param3) {
     if (!auth || !auth.success || auth.role !== "teacher") return { status: "error", message: "無權限" };
 
     const targetDate = params.targetDate ? formatStandardDateYMD(params.targetDate) : Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy-MM-dd");
-    const targetClass = (!auth.isAdmin && auth.className) ? auth.className : (params.targetClass || "all");
+    const targetClass = (params.targetClass && isTeacherAllowedForClass(auth, params.targetClass)) ? params.targetClass : (auth.isAdmin ? (params.targetClass || "all") : (auth.className || "all"));
     const cleanTargetClass = String(targetClass).replace(/班$/, "").trim().toLowerCase();
 
     const userSheet = ss.getSheetByName("使用者清單");

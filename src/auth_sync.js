@@ -863,7 +863,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined") {
           </div>
           <div style="background:rgba(59,130,246,0.08); border:1px solid #3B82F6; border-radius:12px; padding:14px; margin-bottom:16px; text-align:center;">
             <div style="font-size:13px; color:var(--ink2, #475569); font-weight:600; margin-bottom:2px;">登入身分</div>
-            <div style="font-size:22px; font-weight:900; color:#2563EB;">${cur}</div>
+            <div style="font-size:22px; font-weight:900; color:#2563EB;">${String(cur).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]))}</div>
             <div style="font-size:13px; font-weight:700; color:#3B82F6; margin-top:2px;">身分別：${role}</div>
           </div>
           <div style="font-size:13.5px; color:var(--ink2, #475569); margin-bottom:18px; text-align:center;">

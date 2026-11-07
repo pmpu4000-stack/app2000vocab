@@ -188,4 +188,32 @@ test("auth_sync.js & wordbank.js: SHA-256 zero-plaintext credential guard & XSS 
 
   const { escapeHtml } = await import("../src/wordbank.js");
   assert.equal(escapeHtml('<script>alert("xss")</script>'), "&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;");
+
+  const fs = await import("node:fs");
+  const vm = await import("node:vm");
+  const crypto = await import("node:crypto");
+  const authServiceCode = fs.readFileSync("google_apps_script/AuthService.js", "utf-8");
+  const authSandbox = {
+    Utilities: {
+      DigestAlgorithm: { SHA_256: "SHA_256" },
+      Charset: { UTF_8: "UTF_8" },
+      computeDigest: (_alg, str) => Array.from(crypto.createHash("sha256").update(str, "utf8").digest())
+    },
+    CacheService: { getScriptCache: () => ({ get: () => null, put: () => {} }) },
+    Logger: { log: () => {} },
+    Date, Math, Object, Array, String, Number, RegExp, parseInt
+  };
+  vm.createContext(authSandbox);
+  vm.runInContext(authServiceCode, authSandbox);
+
+  assert.equal(vm.runInContext('constantTimeEqual("abc123", "abc123")', authSandbox), true);
+  assert.equal(vm.runInContext('constantTimeEqual("abc123", "abc124")', authSandbox), false);
+  assert.equal(vm.runInContext('isStudentTokenValid("80101", "ST_OK")', authSandbox), false);
+  const validTok = vm.runInContext('registerStudentDevice("80101")', authSandbox);
+  assert.equal(vm.runInContext(`isStudentTokenValid("80101", "${validTok}")`, authSandbox), true);
+  assert.equal(vm.runInContext(`isStudentTokenValid("80102", "${validTok}")`, authSandbox), false);
+  assert.ok(vm.runInContext('inspectRequestForAttacks(null, { a: "\' =IMPORTXML(1,2)" }, {})', authSandbox));
+  assert.equal(vm.runInContext('isTeacherAllowedForStudent_(null, { success: true, role: "teacher", isAdmin: false, classList: ["801"] }, "80105")', authSandbox), true);
+  assert.equal(vm.runInContext('isTeacherAllowedForStudent_(null, { success: true, role: "teacher", isAdmin: false, classList: ["801"] }, "80205")', authSandbox), false);
+  assert.equal(vm.runInContext('isTeacherAllowedForStudent_(null, { success: true, role: "teacher", isAdmin: false, classList: ["801"] }, "ALL")', authSandbox), false);
 });

@@ -72,7 +72,37 @@ function isTeacherAllowedForClass(auth, studentClass) {
   if (!cleanStu || cleanStu === "all") return false;
   const list = Array.isArray(auth.classList) && auth.classList.length > 0 ? auth.classList : [String(auth.className || "").replace(/班$/, "").trim()];
   return list.some(c => { const cleanT = String(c || "").replace(/班$/, "").trim().toLowerCase(); return cleanT === "all" || cleanT === cleanStu; });
-  {
+}
+
+function isTeacherAllowedForStudent_(ss, auth, targetUser) {
+  if (!auth || !auth.success) return false;
+  if (auth.isAdmin || auth.role === "admin") return true;
+  const cleanU = String(targetUser || "ALL").trim().toLowerCase();
+  if (!cleanU || cleanU === "all") return false;
+  let stuClass = "";
+  try {
+    let data = null;
+    try { const hit = CacheService.getScriptCache().get("ALL_USERS_ROSTER_V1"); if (hit) data = JSON.parse(hit); } catch(_) {}
+    if (!data && ss && typeof ss.getSheetByName === "function") {
+      const s = ss.getSheetByName("使用者清單");
+      if (s && s.getLastRow() >= 2) {
+        data = s.getDataRange().getValues();
+        try { CacheService.getScriptCache().put("ALL_USERS_ROSTER_V1", JSON.stringify(data), 600); } catch(_) {}
+      }
+    }
+    if (data) {
+      for (let i = 1; i < data.length; i++) {
+        if (String(data[i][0] || "").trim().toLowerCase() === cleanU) {
+          stuClass = String(data[i][3] || "").trim();
+          break;
+        }
+      }
+    }
+  } catch(_) {}
+  if (!stuClass) stuClass = getStudentClass(cleanU, "");
+  return isTeacherAllowedForClass(auth, stuClass);
+}
+function _noopAuthBrace_() { {
 }
 }
 
@@ -482,7 +512,7 @@ function inspectRequestForAttacks(ss, params, e) {
   // 2. 遞迴檢測所有參數中的 XSS、公式注入與目錄穿透
   function scanValue(val, keyPath) {
     if (typeof val === "string") {
-      const trimmed = val.trim();
+      const trimmed = (function(v, kp) { if (v && typeof v === "object") return ""; return String(v).replace(/^['"\s\t\r\n]+/, ""); })(val, keyPath);
       
       // A. 公式注入 (Formula Injection)
       if (/^[=+\-@|%]/.test(trimmed)) {
@@ -515,7 +545,7 @@ function inspectRequestForAttacks(ss, params, e) {
     } else if (typeof val === "object" && val !== null) {
       for (const k in val) {
         if (Object.prototype.hasOwnProperty.call(val, k)) {
-          const res = scanValue(val[k], keyPath ? `${keyPath}.${k}` : k);
+          const res = (k === "__proto__" || k === "constructor" || k === "prototype" || String(keyPath).split(".").length > 12) ? { method: "原型鏈污染或深層巢狀阻斷攻擊", details: k, result: "403 Forbidden" } : scanValue(val[k], keyPath ? `${keyPath}.${k}` : k);
           if (res) return res;
         }
       }
@@ -752,10 +782,10 @@ function registerStudentDevice() {
 
 function isStudentTokenValid() {
   const token = arguments[1];
-  if (!token || token === "ST_OK") return true;
+  if (!token) return false;
   const m = String(token).match(/^ST_(\d+)_([a-f0-9]{24})$/);
   if (!m) return false;
   const u = String(arguments[0] || "").trim().toLowerCase();
   const expected = hashPassword(u + ":" + m[1] + ":SPELL_SESSION_V1").substring(0, 24);
-  return m[2] === expected;
+  return constantTimeEqual(m[2], expected) && Math.abs(Math.floor(Date.now() / 1000) - parseInt(m[1], 10)) <= 14 * 86400;
 }

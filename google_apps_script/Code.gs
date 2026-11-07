@@ -310,7 +310,7 @@ function doPost(e) {
     if (action === "getRotationTaskSettings") {
       const auth = authenticateUser(ss, params.username, params.password);
       if (!auth.success || auth.role !== "teacher") return jsonResponse({status:"error", message:"僅教師可查閱題庫輪播設定"});
-      const tCls = (!auth.isAdmin && auth.className) ? auth.className : (params.targetClass || auth.className || "all");
+      const tCls = (params.targetClass && isTeacherAllowedForClass(auth, params.targetClass)) ? params.targetClass : (auth.isAdmin ? (params.targetClass || "all") : (auth.className || "all"));
       return jsonResponse(getRotationTaskSettings(ss, tCls));
     }
     if (action === "saveRotationTaskSettings") {
@@ -378,6 +378,7 @@ function doPost(e) {
     if (action === "teacherSaveDailyMinutes") {
       const auth = authenticateUser(ss, params.username, params.password);
       if (!auth.success || auth.role !== "teacher") return jsonResponse({ status: "error", message: "無教師權限" });
+      if (!isTeacherAllowedForStudent_(ss, auth, (params.settingData && params.settingData.targetUser) || "ALL")) return jsonResponse({ status: "error", message: "無權限設定全校或非任教班級學生時長" });
       const r1 = saveDailyMinutesSetting(ss, auth.realName || auth.username, params.settingData || {});
       invalidateDailyUsageRulesCache_();
       return jsonResponse(r1);
@@ -385,6 +386,7 @@ function doPost(e) {
     if (action === "teacherExtendUsage") {
       const auth = authenticateUser(ss, params.username, params.password);
       if (!auth.success || auth.role !== "teacher") return jsonResponse({ status: "error", message: "無教師權限" });
+      if (!isTeacherAllowedForStudent_(ss, auth, (params.extendData && params.extendData.targetUser) || "ALL")) return jsonResponse({ status: "error", message: "無權限延長全校或非任教班級學生時長" });
       const r2 = extendStudentUsageTime(ss, auth.realName || auth.username, params.extendData || {});
       invalidateDailyUsageRulesCache_();
       return jsonResponse(r2);
@@ -392,6 +394,7 @@ function doPost(e) {
     if (action === "teacherToggleDailyUnlock") {
       const auth = authenticateUser(ss, params.username, params.password);
       if (!auth.success || auth.role !== "teacher") return jsonResponse({ status: "error", message: "無教師權限" });
+      if (!isTeacherAllowedForStudent_(ss, auth, (params.unlockData && params.unlockData.targetUser) || "ALL")) return jsonResponse({ status: "error", message: "無權限解除全校或非任教班級學生時長" });
       const r3 = toggleStudentDailyUnlock(ss, auth.realName || auth.username, params.unlockData || {});
       invalidateDailyUsageRulesCache_();
       return jsonResponse(r3);
@@ -806,37 +809,39 @@ function getStudentMetaFromUserList_(ss, studentUser) {
 
     if (action === "saveGlobalTimeSetting") {
       const auth = authenticateUser(ss, params.username, params.password);
-      if (!auth.success || auth.role !== "teacher") return jsonResponse({ status: "error", message: "無教師權限" });
+      if (!auth.success || auth.role !== "teacher" || !auth.isAdmin) return jsonResponse({ status: "error", message: "僅管理員可修改全校預設作答時間" });
       return jsonResponse(saveGlobalTimeSetting(ss, auth.realName || auth.username, params.timeData || {}));
     }
 
     if (action === "saveStudentTimeSetting") {
       const auth = authenticateUser(ss, params.username, params.password);
       if (!auth.success || auth.role !== "teacher") return jsonResponse({ status: "error", message: "無教師權限" });
+      if (!isTeacherAllowedForStudent_(ss, auth, params.studentData && params.studentData.username)) return jsonResponse({ status: "error", message: "無權限修改非任教班級學生時間" });
       return jsonResponse(saveStudentTimeSetting(ss, auth.realName || auth.username, params.studentData || {}));
     }
 
     if (action === "deleteStudentTimeSetting") {
       const auth = authenticateUser(ss, params.username, params.password);
       if (!auth.success || auth.role !== "teacher") return jsonResponse({ status: "error", message: "無教師權限" });
+      if (!isTeacherAllowedForStudent_(ss, auth, params.targetUsername)) return jsonResponse({ status: "error", message: "無權限刪除非任教班級學生時間" });
       return jsonResponse(deleteStudentTimeSetting(ss, params.targetUsername));
     }
 
     if (action === "saveTimeRestriction") {
       const auth = authenticateUser(ss, params.username, params.password);
-      if (!auth.success || auth.role !== "teacher") return jsonResponse({ status: "error", message: "無教師權限" });
+      if (!auth.success || auth.role !== "teacher" || !auth.isAdmin) return jsonResponse({ status: "error", message: "僅管理員可設定全校特別日期解除限制" });
       return jsonResponse(saveTimeRestriction(ss, auth.realName || auth.username, params.ruleData || {}));
     }
 
     if (action === "deleteTimeRestriction") {
       const auth = authenticateUser(ss, params.username, params.password);
-      if (!auth.success || auth.role !== "teacher") return jsonResponse({ status: "error", message: "無教師權限" });
+      if (!auth.success || auth.role !== "teacher" || !auth.isAdmin) return jsonResponse({ status: "error", message: "僅管理員可刪除全校特別日期解除限制" });
       return jsonResponse(deleteTimeRestriction(ss, params.ruleData || {}));
     }
 
     if (action === "quickToggleTodayUnlock") {
       const auth = authenticateUser(ss, params.username, params.password);
-      if (!auth.success || auth.role !== "teacher") return jsonResponse({ status: "error", message: "無教師權限" });
+      if (!auth.success || auth.role !== "teacher" || !auth.isAdmin) return jsonResponse({ status: "error", message: "僅管理員可切換全校今日解除限制" });
       return jsonResponse(quickToggleTodayUnlock(ss, auth.realName || auth.username));
     }
 
@@ -844,7 +849,7 @@ function getStudentMetaFromUserList_(ss, studentUser) {
       let u = String(params.username || "").trim();
       if (params.targetUsername && String(params.targetUsername).trim() !== u) {
         const auth = authenticateUser(ss, params.username, params.password);
-        if (auth && auth.success && (auth.role === "teacher" || auth.role === "admin")) {
+        if (auth && auth.success && (auth.role === "teacher" || auth.role === "admin") && isTeacherAllowedForStudent_(ss, auth, params.targetUsername)) {
           u = String(params.targetUsername).trim();
         }
       }
@@ -858,6 +863,7 @@ function getStudentMetaFromUserList_(ss, studentUser) {
     if (action === "saveDailyMinutesSetting") {
       const auth = authenticateUser(ss, params.username, params.password);
       if (!auth.success || auth.role !== "teacher") return jsonResponse({ status: "error", message: "無教師權限" });
+      if (!isTeacherAllowedForStudent_(ss, auth, (params.settingData && params.settingData.targetUser) || "ALL")) return jsonResponse({ status: "error", message: "無權限設定全校或非任教班級學生時長" });
       const r1 = saveDailyMinutesSetting(ss, auth.realName || auth.username, params.settingData || {});
       invalidateDailyUsageRulesCache_();
       return jsonResponse(r1);
@@ -866,6 +872,7 @@ function getStudentMetaFromUserList_(ss, studentUser) {
     if (action === "extendStudentUsageTime") {
       const auth = authenticateUser(ss, params.username, params.password);
       if (!auth.success || auth.role !== "teacher") return jsonResponse({ status: "error", message: "無教師權限" });
+      if (!isTeacherAllowedForStudent_(ss, auth, (params.extendData && params.extendData.targetUser) || "ALL")) return jsonResponse({ status: "error", message: "無權限延長全校或非任教班級學生時長" });
       const r2 = extendStudentUsageTime(ss, auth.realName || auth.username, params.extendData || {});
       invalidateDailyUsageRulesCache_();
       return jsonResponse(r2);
@@ -874,6 +881,7 @@ function getStudentMetaFromUserList_(ss, studentUser) {
     if (action === "toggleStudentDailyUnlock") {
       const auth = authenticateUser(ss, params.username, params.password);
       if (!auth.success || auth.role !== "teacher") return jsonResponse({ status: "error", message: "無教師權限" });
+      if (!isTeacherAllowedForStudent_(ss, auth, (params.unlockData && params.unlockData.targetUser) || "ALL")) return jsonResponse({ status: "error", message: "無權限解除全校或非任教班級學生時長" });
       const r3 = toggleStudentDailyUnlock(ss, auth.realName || auth.username, params.unlockData || {});
       invalidateDailyUsageRulesCache_();
       return jsonResponse(r3);
@@ -882,10 +890,10 @@ function getStudentMetaFromUserList_(ss, studentUser) {
     // ── 8. 清理試算表無用分頁 ──
     if (action === "cleanupUnusedSheets") {
       const auth = authenticateUser(ss, params.username, params.password);
-      if (!auth.success || auth.role !== "teacher") {
-        return jsonResponse({status:"error", message:"僅教師或管理員可執行工作表清理"});
+      if (!auth.success || (auth.role !== "teacher" && auth.role !== "admin") || !auth.isAdmin) {
+        return jsonResponse({status:"error", message:"僅系統管理員可執行工作表清理"});
       }
-      return jsonResponse(cleanupUnusedSheets());
+      return jsonResponse(cleanupUnusedSheets({ username: params.username, password: params.password, _preAuthed: true }));
     }
 
     // ── 9. 全面升級試算表為單字數基準 (Vocab-Based Migration) ──
@@ -945,10 +953,13 @@ function jsonResponse(obj) {
 
 function cleanupUnusedSheets(creds) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  if (creds && typeof creds === "object" && (creds.username !== undefined || creds.password !== undefined)) {
+  if (!creds || typeof creds !== "object") {
+    return { status: "error", message: "未提供管理員驗證憑證" };
+  }
+  if (!creds._preAuthed) {
     const auth = authenticateUser(ss, creds.username, creds.password);
-    if (!auth.success || auth.role !== "teacher") {
-      return { status: "error", message: "僅教師或管理員可執行工作表清理" };
+    if (!auth.success || (auth.role !== "teacher" && auth.role !== "admin") || !auth.isAdmin) {
+      return { status: "error", message: "僅系統管理員可執行工作表清理" };
     }
   }
   const sheets = ss.getSheets();
