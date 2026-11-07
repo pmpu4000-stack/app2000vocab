@@ -3087,6 +3087,7 @@
       display: flex !important;
       align-items: center !important;
       justify-content: space-between !important;
+      flex-wrap: wrap !important;
       gap: 6px 10px !important;
       line-height: 1.5 !important;
     }
@@ -3236,15 +3237,19 @@
     @media (max-width: 640px) {
       .streakline {
         font-size: 11.5px !important;
-        gap: 4px !important;
+        gap: 6px 8px !important;
+        flex-wrap: wrap !important;
       }
       .streakline > span:first-child {
         font-size: 11px !important;
+        white-space: normal !important;
+        flex: 1 1 100% !important;
       }
       .heat-day-info {
         height: 25px !important;
         padding: 0 6px !important;
         font-size: 11px !important;
+        margin-left: 0 !important;
       }
       .date-nav-right {
         width: 100% !important;
@@ -3253,15 +3258,19 @@
     @media (max-width: 400px) {
       .streakline {
         font-size: 10.5px !important;
-        gap: 3px !important;
+        gap: 4px 6px !important;
+        flex-wrap: wrap !important;
       }
       .streakline > span:first-child {
         font-size: 10px !important;
+        white-space: normal !important;
+        flex: 1 1 100% !important;
       }
       .heat-day-info {
         height: 24px !important;
         padding: 0 5px !important;
         font-size: 10px !important;
+        margin-left: 0 !important;
       }
     }
 
