@@ -1918,7 +1918,7 @@ function buildFreeDetailsHtml(record, selectedDate, agent) {
       </div>
 
       <div class="task-score-grid">
-        <div class="task-score-subgrid" style="display:grid; grid-template-columns:repeat(2,1fr); gap:6px; width:100%; box-sizing:border-box; height:60px;">
+        <div class="task-score-subgrid" style="display:grid; grid-template-columns:repeat(2,1fr); gap:6px; width:100%; box-sizing:border-box; min-height:60px; height:auto;">
           <div class="task-score-item score-corr-item" style="display:flex; flex-direction:column; justify-content:center;">
             <div class="task-score-label" style="font-size:11px;">答對</div>
             <div class="task-score-val task-score-num-corr">${correctWords}</div>
@@ -2309,7 +2309,7 @@ function renderStudentDailyTaskAndFreeSections(resp) {
     const subhTitleEl = document.getElementById("st-task-subh-title");
     if (subhTitleEl) {
       const isBoss = (typeof getBiweeklyCycleInfo === "function" && getBiweeklyCycleInfo(targetDate).isBiweeklyBossWeek);
-      subhTitleEl.textContent = isWk ? `🎯 ${formatWeekendTaskDate(targetDate)} ${isBoss ? "雙週指定單字大消滅戰" : "週末待攻克測驗"}作答紀錄` : "📝 平日指定測驗作答紀錄";
+      subhTitleEl.textContent = isWk ? `🎯 週末待攻克測驗作答紀錄` : "📝 平日指定測驗作答紀錄";
     }
 
     // B. 匹配自由練習紀錄 (相容 padded, unpadded, slash 鍵名，並支援從 Sheet 專屬欄位讀取)

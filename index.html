@@ -2717,9 +2717,10 @@
             const _ov = document.getElementById('login-overlay'); if (_ov) { _ov.style.setProperty('display', 'none', 'important'); _ov.classList.add('hidden'); }
             document.body.classList.remove('is-logging-in');
 
-            // 👨‍🏫 關鍵守衛：教師與家長完全豁免載入學生測驗引擎 (app.js)，直接進入各自專屬管理/歷程介面
-            if (effectiveRole === "teacher" || effectiveRole === "admin" || effectiveRole === "parent") {
-              console.log("👨‍🏫 管理/教師/家長登入完成，直接啟用專屬介面，豁免學生測驗模組");
+            // 👨‍🏫 關鍵守衛：教師帳號完全豁免載入學生測驗引擎 (app.js)，直接進入教學管理中心
+            // （家長帳號須正常載入 app.js 以初始化並渲染五大歷程與學習足跡方塊）
+            if (effectiveRole === "teacher" || effectiveRole === "admin") {
+              console.log("👨‍🏫 管理/教師登入完成，直接啟用教師專屬介面，豁免學生測驗模組");
               return;
             }
 

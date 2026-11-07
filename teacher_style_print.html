@@ -450,7 +450,7 @@
     #st-task-record-details,
     #st-free-record-details {
       height: auto !important;
-      min-height: 290px !important;
+      min-height: auto !important;
       max-height: none !important;
       box-sizing: border-box !important;
       display: flex !important;
@@ -2584,7 +2584,7 @@
       margin-bottom: 8px !important;
       width: 100% !important;
       box-sizing: border-box !important;
-      min-height: 60px !important;
+      min-min-height: 60px !important; height: auto !important;
     }
     .task-score-subgrid {
       display: grid !important;
@@ -2592,7 +2592,7 @@
       gap: 6px !important;
       width: 100% !important;
       box-sizing: border-box !important;
-      height: 60px !important;
+      min-height: 60px !important; height: auto !important;
     }
     .task-score-subgrid-4 {
       display: grid !important;
@@ -2600,7 +2600,7 @@
       gap: 6px !important;
       width: 100% !important;
       box-sizing: border-box !important;
-      height: 60px !important;
+      min-height: 60px !important; height: auto !important;
     }
     .task-score-subgrid-2 {
       display: grid !important;
@@ -2608,7 +2608,7 @@
       gap: 6px !important;
       width: 100% !important;
       box-sizing: border-box !important;
-      height: 60px !important;
+      min-height: 60px !important; height: auto !important;
     }
     .score-corr-item .task-score-label, .score-corr-item .task-score-val,
     .score-ans-item .task-score-label, .score-ans-item .task-score-val,
@@ -2674,9 +2674,9 @@
       border: 1px solid var(--line) !important;
       border-radius: 10px !important;
       padding: 4px 6px !important;
-      height: 60px !important;
-      min-height: 60px !important;
-      max-height: 60px !important;
+      min-height: 60px !important; height: auto !important;
+      min-min-height: 60px !important; height: auto !important;
+      max-min-height: 60px !important; height: auto !important;
       display: flex !important;
       flex-direction: column !important;
       justify-content: center !important;
