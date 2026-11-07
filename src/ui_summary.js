@@ -3,6 +3,7 @@
 // =====================================================================
 import { setConquerWordsRef } from "./ui_conquer.js";
 import { sayWord } from "./audio.js";
+import { escapeHtml } from "./wordbank.js";
 import { normalizeDateStr, formatDateYMD, getWeekRangeDates, getBiweeklyCycleInfo, getCachedTaskHistory } from "./store.js";
 
 const $ = (s) => (typeof document !== "undefined" ? document.querySelector(s) : null);
@@ -1007,7 +1008,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     if (!cleanTaskName || cleanTaskName === "指定測驗" || cleanTaskName === "指定測驗作答紀錄") {
       formattedTaskName = "📝 平日指定測驗作答紀錄";
     } else {
-      formattedTaskName = `📝 ${cleanTaskName}`;
+      formattedTaskName = `📝 ${escapeHtml(cleanTaskName)}`;
     }
   }
 
@@ -1148,7 +1149,7 @@ function renderUntestedTaskCardHtml(info, d) {
     if (!cleanTaskName || cleanTaskName === "指定測驗" || cleanTaskName === "指定測驗作答紀錄") {
       formattedTaskName = "📝 平日指定測驗作答紀錄";
     } else {
-      formattedTaskName = `📝 ${cleanTaskName}`;
+      formattedTaskName = `📝 ${escapeHtml(cleanTaskName)}`;
     }
   }
 

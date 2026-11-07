@@ -46,12 +46,21 @@ const bumpVer = (fPath, regex) => {
   const next = raw.replace(regex, `$1?v=${nowTag}`);
   if (next !== raw) fs.writeFileSync(fPath, next, 'utf8');
 };
-bumpVer(path.join(root, 'index.html'), /(css\/styles\.css|sw\.js|src\/teacher_portal\.js|src\/time_limits\.js)\?v=[0-9A-Za-z_]+/g);
+bumpVer(path.join(root, 'index.html'), /(css\/styles\.css|sw\.js|src\/auth_sync\.js|src\/teacher_portal\.js|src\/time_limits\.js)\?v=[0-9A-Za-z_]+/g);
 
 const idx = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-fs.writeFileSync(path.join(root, 'google_apps_script', 'Index.html'), idx, 'utf8');
+let gasIdx = idx;
+const authSyncPath = path.join(root, 'src', 'auth_sync.js');
+if (fs.existsSync(authSyncPath)) {
+  const authSyncSrc = fs.readFileSync(authSyncPath, 'utf8');
+  gasIdx = idx.replace(
+    /<script type="module" src="src\/auth_sync\.js\?v=[0-9A-Za-z_]+"><\/script>/,
+    () => `<script type="module">\n${authSyncSrc}\n</script>`
+  );
+}
+fs.writeFileSync(path.join(root, 'google_apps_script', 'Index.html'), gasIdx, 'utf8');
 fs.writeFileSync(path.join(root, 'teacher_history.html'), idx, 'utf8');
-fs.writeFileSync(path.join(root, 'google_apps_script', 'teacher_history.html'), idx, 'utf8');
+fs.writeFileSync(path.join(root, 'google_apps_script', 'teacher_history.html'), gasIdx, 'utf8');
 
 const mirrorPairs = [
   ['google_apps_script/StylePrint.html', 'teacher_style_print.html'],

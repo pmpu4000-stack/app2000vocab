@@ -163,3 +163,18 @@ test("Google Apps Script (Code.gs & AuthService.js): cloud sync sanitization & a
   assert.ok(cleanedAgent.dailyPractice["2026-05-02"]);
   assert.equal(resRecords["task_words_2026-05-01"], undefined);
 });
+
+test("auth_sync.js & wordbank.js: SHA-256 zero-plaintext credential guard & XSS escapeHtml", async () => {
+  localStorage.setItem("current_pass", "plaintext_secret");
+  const { sha256HexClient, sanitizeCredentialStorage } = await import("../src/auth_sync.js");
+  sanitizeCredentialStorage();
+  assert.equal(localStorage.getItem("current_pass"), null);
+
+  const h1 = await sha256HexClient("123456");
+  assert.equal(h1.length, 64);
+  const h2 = await sha256HexClient(h1);
+  assert.equal(h2, h1);
+
+  const { escapeHtml } = await import("../src/wordbank.js");
+  assert.equal(escapeHtml('<script>alert("xss")</script>'), "&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;");
+});

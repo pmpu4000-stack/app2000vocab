@@ -3,6 +3,7 @@
 // =====================================================================
 import { sayWord, parseDialogue } from "./audio.js";
 import { levelColor, levelName } from "./levels.js";
+import { escapeHtml } from "./wordbank.js";
 import { getBiweeklyCycleInfo, getCachedTaskHistory, getConquerRollSettings, getRemedyLearnedSet } from "./store.js";
 
 const SVG_SPEAKER = '<svg class="icon-speaker" viewBox="0 0 24 24" width="17" height="17" fill="currentColor" style="vertical-align:middle;display:inline-block;"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>';
@@ -301,16 +302,16 @@ export function _renderConquerWordCard(wordStr, d) {
   const s = sentsList[defaultIdx];
   const isDlg = Boolean(parseDialogue(s.sent) || s.level === 'dialogue');
   const levelCls = s.level === 'simple' ? 'level-simple' : s.level === 'advanced' ? 'level-advanced' : isDlg ? 'level-dialogue' : 'level-normal';
-  const levelText = s.levelName || (isDlg ? '對話' : s.level === 'simple' ? '簡單' : s.level === 'advanced' ? '進階' : '普通');
+  const levelText = escapeHtml(s.levelName || (isDlg ? '對話' : s.level === 'simple' ? '簡單' : s.level === 'advanced' ? '進階' : '普通'));
   const safeSent = (s.sent || "").replace(/'/g, "\\'");
-  const highlightedSent = (s.sent || "").replace(regex, `<b class="conquer-sent-word task-title-free" style="font-weight:800;">$1</b>`);
+  const highlightedSent = escapeHtml(s.sent || "").replace(regex, `<b class="conquer-sent-word task-title-free" style="font-weight:800;">$1</b>`);
 
   const sentsHtml = `
     <div class="sent-row conquer-sent-variant" data-idx="${defaultIdx}" onclick="window.__saySentence('${safeSent}')" style="cursor:pointer; display:flex;">
       <button type="button" class="sent-speaker-btn ${levelCls}" onclick="event.stopPropagation(); window.__saySentence('${safeSent}')" aria-label="${levelText}例句朗讀" title="${levelText}例句朗讀">${SVG_SPEAKER}</button>
       <div class="sent-text-wrap">
         <div class="sent-en">${highlightedSent}</div>
-        ${s.sentZh ? `<div class="sent-zh">${s.sentZh}</div>` : ""}
+        ${s.sentZh ? `<div class="sent-zh">${escapeHtml(s.sentZh)}</div>` : ""}
       </div>
     </div>
   `;

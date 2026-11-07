@@ -816,7 +816,7 @@
       border-color: #818cf8 !important;
     }
   </style>
-  <link rel="stylesheet" href="css/styles.css?v=202611071744">
+  <link rel="stylesheet" href="css/styles.css?v=202611071753">
   <link rel="modulepreload" href="src/app.js">
   <link rel="modulepreload" href="src/wordbank.js">
   <link rel="modulepreload" href="src/store.js">
@@ -832,16 +832,16 @@
   <script>
     if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=202611071744').catch(() => {});
+        navigator.serviceWorker.register('./sw.js?v=202611071753').catch(() => {});
       });
     }
   </script>
-  <script src="src/time_limits.js?v=202611071744" defer></script>
+  <script src="src/time_limits.js?v=202611071753" defer></script>
 </head>
 <body class="is-logging-in">
 
   <!-- 登入驗證遮罩 -->
-  <div id="login-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:var(--paper, #F6F7FB); z-index:9999; display:flex; justify-content:center; align-items:center;">
+  <div id="login-overlay" role="dialog" aria-modal="true" aria-label="?????????" style="position:fixed; top:0; left:0; width:100%; height:100%; background:var(--paper, #F6F7FB); z-index:9999; display:flex; justify-content:center; align-items:center;">
     <div style="background:var(--card, #ffffff); padding:36px 32px; border-radius:24px; box-shadow:0 20px 45px -10px rgba(35,42,77,0.22); width:320px; text-align:center; border:1px solid var(--line, #E7E9F5); position:relative;">
       <!-- 登入視窗切換按鈕 -->
       <button type="button" id="btn-login-theme-toggle" title="切換深色/淺色模式"
@@ -862,7 +862,7 @@
           確認登入
         </button>
 
-        <div id="login-msg" class="login-status-banner">&nbsp;</div>
+        <div id="login-msg" class="login-status-banner" role="status" aria-live="polite">&nbsp;</div>
 
         <div class="login-study-note">
           <span class="note-icon">💡</span>
@@ -884,7 +884,7 @@
   </div>
 
   <!-- 非開放時段阻擋遮罩 -->
-  <div id="curfew-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(35,42,77,0.45); z-index:99999; backdrop-filter:blur(8px); justify-content:center; align-items:center; text-align:center; padding:20px; box-sizing:border-box;">
+  <div id="curfew-overlay" role="dialog" aria-modal="true" aria-label="??????" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(35,42,77,0.45); z-index:99999; backdrop-filter:blur(8px); justify-content:center; align-items:center; text-align:center; padding:20px; box-sizing:border-box;">
     <div style="background:#ffffff; border:1px solid #E7E9F5; border-radius:24px; padding:36px 28px; max-width:440px; width:100%; box-shadow:0 24px 50px -10px rgba(35,42,77,0.25);">
       <div style="font-size:48px; margin-bottom:12px;">🌙</div>
       <h2 style="color:#232A4D; margin:0 0 10px 0; font-size:22px; font-weight:800;">休息時間到囉！</h2>
@@ -1205,7 +1205,7 @@
         <div class="zh" id="zh"></div>
         <div class="sent" id="sent"></div>
         <div class="stage" id="stage"></div>
-        <div class="feedback" id="feedback"></div>
+        <div class="feedback" id="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
         <div class="actions">
           <button class="btn primary" id="checkBtn">檢查 Check</button>
         </div>
@@ -1405,7 +1405,71 @@
   </div>
 
   <script type="module">
-    // ⚠️ 請替換為你實際部署成功的 Apps Script Web App 網址
+// =====================================================================
+// auth_sync.js — 登入驗證、SHA-256 零明文憑證保護、雲端同步、排行榜與無障礙鍵盤導航模組
+// =====================================================================
+export async function sha256HexClient(plain) {
+  const s = String(plain || "").trim();
+  if (!s) return "";
+  if (/^[a-f0-9]{64}$/i.test(s)) return s.toLowerCase();
+  if (typeof crypto !== "undefined" && crypto.subtle && typeof TextEncoder !== "undefined") {
+    try {
+      const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
+      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+    } catch (_) {}
+  }
+  return s;
+}
+
+export function sanitizeCredentialStorage() {
+  try {
+    // 徹底清除 localStorage 殘留的明文密碼，僅保留當次 sessionStorage 憑證
+    if (typeof localStorage !== "undefined") {
+      localStorage.removeItem("current_pass");
+    }
+  } catch (_) {}
+}
+sanitizeCredentialStorage();
+
+if (typeof window !== "undefined" && typeof document !== "undefined") {
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      const tModal = document.getElementById("teacherTaskModal");
+      if (tModal && tModal.style.display === "flex" && typeof window.closeTeacherModal === "function") {
+        window.closeTeacherModal();
+        return;
+      }
+      const tmModal = document.getElementById("timeManagementModal");
+      if (tmModal && tmModal.style.display === "flex") {
+        tmModal.style.display = "none";
+        return;
+      }
+      const previewBox = document.getElementById("export-web-preview-container");
+      if (previewBox && previewBox.style.display === "block") {
+        previewBox.style.display = "none";
+      }
+    } else if (e.key === "Tab") {
+      const loginOverlay = document.getElementById("login-overlay");
+      if (loginOverlay && !loginOverlay.classList.contains("hidden") && loginOverlay.style.display !== "none" && document.body.classList.contains("is-logging-in")) {
+        const focusables = loginOverlay.querySelectorAll('input:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"])');
+        if (focusables.length > 0) {
+          const first = focusables[0];
+          const last = focusables[focusables.length - 1];
+          if (e.shiftKey && document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      }
+    }
+  });
+}
+
+if (typeof window !== "undefined" && typeof document !== "undefined") {
+// ⚠️ 請替換為你實際部署成功的 Apps Script Web App 網址
     const bootTime = Date.now();
     try { import(`./src/wordbank.js`).then(m => m.loadWordBank()).catch(() => {}); } catch(_) {}
 
@@ -2533,8 +2597,9 @@
             // 🚀 效能優化：教師登入成功後，於背景非同步預載單字庫，開啟出題彈窗時零延遲即時呈現
             try { loadPickerData(); } catch(_) {}
           }
-          sessionStorage.setItem("current_pass", pass);
-          localStorage.setItem("current_pass", pass);
+          const hashedPass = await sha256HexClient(pass);
+          sessionStorage.setItem("current_pass", hashedPass);
+          localStorage.removeItem("current_pass");
           if (result.sessionToken) {
             localStorage.setItem("session_token", result.sessionToken);
           }
@@ -2803,7 +2868,7 @@
       isUploading = true;
 
       const currentUser = localStorage.getItem("current_user");
-      let currentPass = sessionStorage.getItem("current_pass") || localStorage.getItem("current_pass") || "";
+      let currentPass = sessionStorage.getItem("current_pass") || "";
 
       if (!currentUser) {
         isUploading = false;
@@ -3220,7 +3285,9 @@
         window.addEventListener(evt, resetSchoolIdleTimer, { passive: true });
       });
     })();
-  </script>
+}
+
+</script>
 
   <!-- ══════════════════════════════════════════
   <!-- 📝 教師管理專區彈窗 DOM 已改為按身分動態掛載 (src/teacher_portal.js)，學生首屏完全免載 -->

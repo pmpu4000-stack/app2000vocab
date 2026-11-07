@@ -476,7 +476,7 @@
       (async () => {
         try {
           const u = localStorage.getItem("current_user");
-          const p = sessionStorage.getItem("current_pass") || localStorage.getItem("current_pass") || "";
+          const p = sessionStorage.getItem("current_pass") || "";
           const res = await fetch(scriptUrl, {
             method: "POST",
             headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -632,7 +632,7 @@
             return;
           }
           const currentUser = localStorage.getItem("current_user");
-          const currentPass = sessionStorage.getItem("current_pass") || localStorage.getItem("current_pass") || "";
+          const currentPass = sessionStorage.getItem("current_pass") || "";
           
           // 取得所有勾選的班級
           const checkedCbs = document.querySelectorAll(".t-class-box-check:checked, input[name='task_target_classes']:checked");
@@ -1050,7 +1050,7 @@
 
     async function loadTimeRestrictions() {
       const currentUser = localStorage.getItem("current_user");
-      const currentPass = sessionStorage.getItem("current_pass") || localStorage.getItem("current_pass") || "";
+      const currentPass = sessionStorage.getItem("current_pass") || "";
       const statusEl = document.getElementById("tm-today-status-badge");
       const dateListEl = document.getElementById("tm-rules-list");
       const studentListEl = document.getElementById("tm-student-rules-list");
@@ -1284,7 +1284,7 @@
           if (!confirm(`確定要移除學生【${u}】的專屬時間設定，恢復為全校預設時間嗎？`)) return;
 
           const currentUser = localStorage.getItem("current_user");
-          const currentPass = sessionStorage.getItem("current_pass") || localStorage.getItem("current_pass") || "";
+          const currentPass = sessionStorage.getItem("current_pass") || "";
           btn.textContent = "...";
           btn.disabled = true;
 
@@ -1370,7 +1370,7 @@
           if (!confirm(`確定要刪除【${n}】（${s} ~ ${e}）的解除限制設定嗎？`)) return;
 
           const currentUser = localStorage.getItem("current_user");
-          const currentPass = sessionStorage.getItem("current_pass") || localStorage.getItem("current_pass") || "";
+          const currentPass = sessionStorage.getItem("current_pass") || "";
           btn.textContent = "...";
           btn.disabled = true;
 
@@ -1489,7 +1489,7 @@
           }
 
           const currentUser = localStorage.getItem("current_user");
-          const currentPass = sessionStorage.getItem("current_pass") || localStorage.getItem("current_pass") || "";
+          const currentPass = sessionStorage.getItem("current_pass") || "";
           saveGlobalBtn.textContent = "儲存中...";
           saveGlobalBtn.disabled = true;
 
@@ -1544,7 +1544,7 @@
           const studentInfo = selOpt ? selOpt.textContent.replace(/★.*$/, "").trim() : username;
 
           const currentUser = localStorage.getItem("current_user");
-          const currentPass = sessionStorage.getItem("current_pass") || localStorage.getItem("current_pass") || "";
+          const currentPass = sessionStorage.getItem("current_pass") || "";
           saveStudentBtn.textContent = "儲存中...";
           saveStudentBtn.disabled = true;
 
@@ -1587,7 +1587,7 @@
       if (toggleBtn) {
         toggleBtn.onclick = async () => {
           const currentUser = localStorage.getItem("current_user");
-          const currentPass = sessionStorage.getItem("current_pass") || localStorage.getItem("current_pass") || "";
+          const currentPass = sessionStorage.getItem("current_pass") || "";
           toggleBtn.textContent = "處理中...";
           toggleBtn.disabled = true;
 
@@ -1640,7 +1640,7 @@
           }
 
           const currentUser = localStorage.getItem("current_user");
-          const currentPass = sessionStorage.getItem("current_pass") || localStorage.getItem("current_pass") || "";
+          const currentPass = sessionStorage.getItem("current_pass") || "";
           saveDateBtn.textContent = "儲存中...";
           saveDateBtn.disabled = true;
           if (msgEl) msgEl.textContent = "正在寫入試算表...";
@@ -1703,7 +1703,7 @@
           const selectEl = document.getElementById("tm-limit-default-minutes");
           const mins = parseInt(selectEl ? selectEl.value : 10, 10);
           const currentUser = localStorage.getItem("current_user");
-          const currentPass = sessionStorage.getItem("current_pass") || localStorage.getItem("current_pass") || "";
+          const currentPass = sessionStorage.getItem("current_pass") || "";
 
           saveLimitBtn.disabled = true;
           saveLimitBtn.textContent = "儲存中...";
@@ -1739,7 +1739,7 @@
       // 輔助函式：執行加時
       async function triggerExtendUsageTime(targetUser, studentInfo, addMins, btnEl) {
         const currentUser = localStorage.getItem("current_user");
-        const currentPass = sessionStorage.getItem("current_pass") || localStorage.getItem("current_pass") || "";
+        const currentPass = sessionStorage.getItem("current_pass") || "";
         const origText = btnEl ? btnEl.textContent : "";
         if (btnEl) {
           btnEl.disabled = true;
@@ -1780,7 +1780,7 @@
       // 輔助函式：切換解除限制
       async function triggerToggleUnlock(targetUser, studentInfo, unlock, btnEl) {
         const currentUser = localStorage.getItem("current_user");
-        const currentPass = sessionStorage.getItem("current_pass") || localStorage.getItem("current_pass") || "";
+        const currentPass = sessionStorage.getItem("current_pass") || "";
         const origText = btnEl ? btnEl.textContent : "";
         if (btnEl) {
           btnEl.disabled = true;
@@ -1899,7 +1899,7 @@
         if (allStudentsList && allStudentsList.length > 0) return allStudentsList;
         try {
           const u = localStorage.getItem("current_user");
-          const p = sessionStorage.getItem("current_pass") || localStorage.getItem("current_pass") || "";
+          const p = sessionStorage.getItem("current_pass") || "";
           const res = await fetch(scriptUrl, {
             method: "POST",
             headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -1980,7 +1980,7 @@
 
         try {
           const teacherUser = localStorage.getItem("current_user");
-          const teacherPass = sessionStorage.getItem("current_pass") || localStorage.getItem("current_pass") || "";
+          const teacherPass = sessionStorage.getItem("current_pass") || "";
           const res = await fetch(scriptUrl, {
             method: "POST",
             headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -2170,7 +2170,7 @@
 
         try {
           const u = localStorage.getItem("current_user");
-          const p = sessionStorage.getItem("current_pass") || localStorage.getItem("current_pass") || "";
+          const p = sessionStorage.getItem("current_pass") || "";
           const res = await fetch(scriptUrl, {
             method: "POST",
             headers: { "Content-Type": "text/plain;charset=utf-8" },

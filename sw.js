@@ -5,12 +5,14 @@
 // 3. 單字庫與音檔永久快取
 // =====================================================================
 
-const CACHE_NAME = 'spelling-app-shell-v19';
+const CACHE_NAME = 'spelling-app-shell-v20';
+const MAX_CACHE_ENTRIES = 120;
 const STATIC_ASSETS = [
   './',
   'index.html',
   'history.html',
   'css/styles.css',
+  'src/auth_sync.js',
   'src/time_limits.js',
   'src/app.js',
   'src/remedy_service.js',
@@ -29,6 +31,19 @@ const STATIC_ASSETS = [
   'src/confetti.js',
   'data/words2000.json'
 ];
+
+async function trimCache(cacheName, maxItems) {
+  try {
+    const cache = await caches.open(cacheName);
+    const keys = await cache.keys();
+    if (keys.length > maxItems) {
+      const excess = keys.length - maxItems;
+      for (let i = 0; i < excess; i++) {
+        await cache.delete(keys[i]);
+      }
+    }
+  } catch (_) {}
+}
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -49,7 +64,7 @@ self.addEventListener('activate', (event) => {
             return caches.delete(key);
           }
         })
-      );
+      ).then(() => trimCache('spelling-audio-cache-v1', 250));
     }).then(() => self.clients.claim())
   );
 });
@@ -69,9 +84,9 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 3. 本機靜態資源：HTML 與 JS/CSS 採 Network-First（確保版本更新立即生效），其餘採 Stale-While-Revalidate
+  // 3. 本機靜態資源：導航 HTML 採 Network-First，JS/CSS/圖示採 Stale-While-Revalidate 兼顧秒開與背景更新
   if (req.method === 'GET' && url.origin === location.origin) {
-    if (req.mode === 'navigate' || url.pathname.endsWith('.html') || url.pathname.endsWith('.js') || url.pathname.endsWith('.css')) {
+    if (req.mode === 'navigate' || url.pathname.endsWith('.html')) {
       event.respondWith(
         fetch(req, { cache: 'no-cache' }).then((networkResp) => {
           if (networkResp && networkResp.ok) {
@@ -88,7 +103,7 @@ self.addEventListener('fetch', (event) => {
         const cached = await cache.match(req);
         const fetchPromise = fetch(req).then((networkResp) => {
           if (networkResp && networkResp.ok) {
-            cache.put(req, networkResp.clone());
+            cache.put(req, networkResp.clone()).then(() => trimCache(CACHE_NAME, MAX_CACHE_ENTRIES));
           }
           return networkResp;
         }).catch(() => cached);

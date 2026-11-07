@@ -525,7 +525,7 @@ function authenticateUser(ss, inputUser, inputPass) {
   const lockChk = checkLoginAttempts(username);
   if (lockChk.locked) return { success:false, message:lockChk.message };
 
-  const hashedInput = hashPassword(password);
+  const hashedInput = isHashedPassword(password) ? password : hashPassword(password);
   const cache       = CacheService.getScriptCache();
   const cacheKey    = _authKey(username, hashedInput);
   try {
