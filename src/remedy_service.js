@@ -126,6 +126,7 @@ export function markWordLearnedInFreePractice(word) {
     if (!learnedList.includes(cleanWord)) {
       learnedList.push(cleanWord);
       localStorage.setItem("remedy_learned_words", JSON.stringify(learnedList));
+      if (typeof store.invalidateRemedyLearnedCache === "function") store.invalidateRemedyLearnedCache();
     }
 
     const rawVacation = localStorage.getItem("vacation_pending_mistakes");
@@ -218,6 +219,7 @@ export function unmarkWordLearnedInFreePractice(word) {
     if (Array.isArray(list) && list.includes(cleanWord)) {
       const updated = list.filter(w => w !== cleanWord);
       localStorage.setItem("remedy_learned_words", JSON.stringify(updated));
+      if (typeof store.invalidateRemedyLearnedCache === "function") store.invalidateRemedyLearnedCache();
     }
   } catch(_) {}
 }

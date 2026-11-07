@@ -849,10 +849,22 @@ export function getConquerRollSettings() {
   return { rollTaskMistakes: true, rollFreeMistakes: false };
 }
 
+let _remedyLearnedRawCache = null;
+let _remedyLearnedSetCache = null;
+let _remedyLearnedDpVersion = 0;
+
+export function invalidateRemedyLearnedCache() {
+  _remedyLearnedRawCache = null;
+  _remedyLearnedSetCache = null;
+}
+
 export function getRemedyLearnedSet() {
+  const raw = (typeof localStorage !== "undefined") ? localStorage.getItem("remedy_learned_words") : null;
+  if (_remedyLearnedSetCache && _remedyLearnedRawCache === raw) {
+    return _remedyLearnedSetCache;
+  }
   const set = new Set();
   try {
-    const raw = localStorage.getItem("remedy_learned_words");
     if (raw) {
       const list = JSON.parse(raw);
       if (Array.isArray(list)) {
@@ -877,6 +889,8 @@ export function getRemedyLearnedSet() {
       }
     }
   }
+  _remedyLearnedRawCache = raw;
+  _remedyLearnedSetCache = set;
   return set;
 }
 
