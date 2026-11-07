@@ -818,7 +818,7 @@
       border-color: #818cf8 !important;
     }
   </style>
-  <link rel="stylesheet" href="css/styles.css?v=202611071913">
+  <link rel="stylesheet" href="css/styles.css?v=202611071920">
   <link rel="modulepreload" href="src/app.js">
   <link rel="modulepreload" href="src/auth_sync.js">
   <link rel="modulepreload" href="src/wordbank.js">
@@ -836,11 +836,11 @@
   <script>
     if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=202611071913').catch(() => {});
+        navigator.serviceWorker.register('./sw.js?v=202611071920').catch(() => {});
       });
     }
   </script>
-  <script src="src/time_limits.js?v=202611071913" defer></script>
+  <script src="src/time_limits.js?v=202611071920" defer></script>
 </head>
 <body class="is-logging-in">
 
@@ -1475,7 +1475,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined") {
 if (typeof window !== "undefined" && typeof document !== "undefined") {
 // ⚠️ 請替換為你實際部署成功的 Apps Script Web App 網址
     const bootTime = Date.now();
-    try { import(`./src/wordbank.js`).then(m => m.loadWordBank()).catch(() => {}); } catch(_) {}
+    try { import(new URL("./wordbank.js", import.meta.url).href).then(m => m.loadWordBank()).catch(() => {}); } catch(_) {}
 
     const scriptUrl = "https://script.google.com/macros/s/AKfycbx1hyCNJxqFMoaJgIxfZqLYIYH00NegI1Yd8NJP6gRjqwOndWGkmr-H9tGvVwK_axM9/exec";
     window.__SCRIPT_URL = scriptUrl;

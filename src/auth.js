@@ -828,7 +828,7 @@
                 document.body.classList.add("daily-limit-reached");
               }
             }
-            await import(`./src/app.js`);
+            await import(new URL("./app.js", import.meta.url).href);
             const _ov = document.getElementById('login-overlay'); if (_ov) { _ov.style.setProperty('display', 'none', 'important'); _ov.classList.add('hidden'); }
             document.body.classList.remove('is-logging-in');
 

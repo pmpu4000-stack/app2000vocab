@@ -64,7 +64,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined") {
 if (typeof window !== "undefined" && typeof document !== "undefined") {
 // ⚠️ 請替換為你實際部署成功的 Apps Script Web App 網址
     const bootTime = Date.now();
-    try { import(`./src/wordbank.js`).then(m => m.loadWordBank()).catch(() => {}); } catch(_) {}
+    try { import(new URL("./wordbank.js", import.meta.url).href).then(m => m.loadWordBank()).catch(() => {}); } catch(_) {}
 
     const scriptUrl = "https://script.google.com/macros/s/AKfycbx1hyCNJxqFMoaJgIxfZqLYIYH00NegI1Yd8NJP6gRjqwOndWGkmr-H9tGvVwK_axM9/exec";
     window.__SCRIPT_URL = scriptUrl;
