@@ -9,11 +9,29 @@ console.log("== [1/4] Syncing TeacherJs.html from src/teacher_portal.js ==");
 const tpSrc = fs.readFileSync(path.join(root, 'src', 'teacher_portal.js'), 'utf8');
 fs.writeFileSync(path.join(root, 'google_apps_script', 'TeacherJs.html'), '<script>\n' + tpSrc + '\n</script>', 'utf8');
 
-console.log("== [2/4] Syncing index.html to GAS and mirrors ==");
+console.log("== [2/4] Syncing index.html to GAS, mirrors, and bumping SW cache ==");
 const idx = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 fs.writeFileSync(path.join(root, 'google_apps_script', 'Index.html'), idx, 'utf8');
 fs.writeFileSync(path.join(root, 'teacher_history.html'), idx, 'utf8');
 fs.writeFileSync(path.join(root, 'google_apps_script', 'teacher_history.html'), idx, 'utf8');
+
+const mirrorPairs = [
+  ['google_apps_script/StylePrint.html', 'teacher_style_print.html'],
+  ['google_apps_script/ExportExcelJs.html', 'teacher_export_excel.html'],
+  ['google_apps_script/ExportPdfJs.html', 'teacher_export_pdf.html']
+];
+for (const [srcRel, dstRel] of mirrorPairs) {
+  const srcPath = path.join(root, srcRel);
+  const dstPath = path.join(root, dstRel);
+  if (fs.existsSync(srcPath)) fs.copyFileSync(srcPath, dstPath);
+}
+
+const swPath = path.join(root, 'sw.js');
+if (fs.existsSync(swPath)) {
+  const swContent = fs.readFileSync(swPath, 'utf8');
+  const updatedSw = swContent.replace(/const CACHE_NAME = 'spelling-app-shell-v(\d+)';/, (_, v) => `const CACHE_NAME = 'spelling-app-shell-v${parseInt(v, 10) + 1}';`);
+  fs.writeFileSync(swPath, updatedSw, 'utf8');
+}
 
 console.log("== [3/4] Pushing to Google Apps Script (clasp) ==");
 try {

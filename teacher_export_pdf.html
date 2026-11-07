@@ -2516,6 +2516,9 @@ function _renderConquerWordCard(wordStr) {
     posList.push(p);
   }
 
+  const cleanPh = String(obj.ph || obj.ipa || "").replace(/^[\/\[\s]+|[\/\]\s]+$/g, "");
+  const phonHtml = cleanPh ? `<span class="phon">/${cleanPh}/</span>` : "";
+
   const wordDisplay = obj.display || obj.word || clean;
   const posHtml = posList.length > 0 ? `<span class="zh-pos">${posList.join(" · ")}</span>` : "";
   const defHtml = defText ? `<b class="zh-def">${defText}</b>` : "";
@@ -2577,6 +2580,7 @@ function _renderConquerWordCard(wordStr) {
         <button type="button" class="word-speech-btn" onclick="speakMasteredWord('${clean}')" aria-label="播放單字發音" title="播放單字發音">🔊</button>
         <div class="zh-text">
           <span class="conquer-card-word task-title-free">${wordDisplay}</span>
+          ${phonHtml}
           ${defHtml}
           ${posHtml}
         </div>
@@ -2587,8 +2591,7 @@ function _renderConquerWordCard(wordStr) {
     </div>
   `;
 }
-
-  window._teacherActiveConquerCycle = "current";
+window._renderConquerWordCard = _renderConquerWordCard;
   window.renderTeacherStudentConquerSection = function(cycleParam = window._teacherActiveConquerCycle || "current") {
     window._teacherActiveConquerCycle = cycleParam;
     const conquerDetailsContainer = document.getElementById("st-week-conquer-details");
@@ -2908,7 +2911,7 @@ function _renderConquerWordCard(wordStr) {
                 ${_renderConquerWordCard(activeWord)}
               </div>
               <div class="conquer-level-nav" style="display:flex; align-items:center; flex-wrap:wrap; gap:6px; margin-top:8px;">
-                <div class="conquer-chip-list" style="display:flex; flex-wrap:wrap; gap:5px; align-items:center;">
+                <div class="conquer-chip-list">
                   ${list.map(w => {
                     const isAct = (w === activeWord);
                     return `<button type="button" class="conquer-word-tab ${isAct ? 'is-active' : ''}" data-lv="${lv}" data-word="${w}" title="點擊檢視單字卡並朗讀發音">
