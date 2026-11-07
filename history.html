@@ -18820,22 +18820,37 @@ function initStudentWeakWordsCard() {
     const grid = document.getElementById("st-weak-words-grid");
 
     if (statText) {
-      if (words.length === 0) {
-        statText.innerHTML = `🎉 <strong>太棒了！</strong> 目前無任何雙週待攻克弱點單字。`;
-      } else {
-        statText.innerHTML = `👾 期末大挑戰單字表：共 <strong>${words.length}</strong> 字`;
-      }
+      statText.innerHTML = "👾 期末大挑戰單字表";
+    }
+
+    let activeWordWrap = document.getElementById("st-weak-words-active-card-wrap");
+    if (!activeWordWrap && grid && grid.parentNode) {
+      activeWordWrap = document.createElement("div");
+      activeWordWrap.id = "st-weak-words-active-card-wrap";
+      activeWordWrap.style.cssText = "margin-bottom:8px;";
+      grid.parentNode.insertBefore(activeWordWrap, grid);
     }
 
     if (!grid) return;
     if (words.length === 0) {
+      if (activeWordWrap) activeWordWrap.innerHTML = "";
       grid.innerHTML = `<div style="padding:16px 8px; text-align:center; color:var(--text-muted, #94A3B8); font-size:13px; width:100%;">✨ 雙週測驗全數答對，無期末大挑戰弱點單字！</div>`;
       return;
     }
 
+    if (!window._stFinalBossActiveWord || !words.includes(window._stFinalBossActiveWord)) {
+      window._stFinalBossActiveWord = words[0];
+    }
+    const curActive = window._stFinalBossActiveWord;
+
+    if (activeWordWrap && typeof _renderConquerWordCard === "function") {
+      activeWordWrap.innerHTML = _renderConquerWordCard(curActive);
+    }
+
     grid.innerHTML = words.map(w => {
+      const isAct = (w === curActive);
       const esc = w.replace(/"/g, "&quot;").replace(/'/g, "\\'");
-      return `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); if (typeof speakMasteredWord === 'function') speakMasteredWord('${esc}');" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`;
+      return `<span class="word-pill-tag wrong ${isAct ? 'is-active' : ''}" data-word="${w.replace(/"/g, "&quot;")}" onclick="event.stopPropagation(); window._stFinalBossActiveWord='${esc}'; const wrap=document.getElementById('st-weak-words-active-card-wrap'); if(wrap && typeof _renderConquerWordCard==='function') wrap.innerHTML=_renderConquerWordCard('${esc}'); document.querySelectorAll('#st-weak-words-grid .word-pill-tag').forEach(t=>t.classList.toggle('is-active', t.getAttribute('data-word')==='${esc}')); if (typeof speakMasteredWord === 'function') speakMasteredWord('${esc}');" style="cursor:pointer;" title="點擊切換單字卡與發音">${w}</span>`;
     }).join("");
   }
 

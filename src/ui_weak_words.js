@@ -107,57 +107,53 @@ export function initWeakWordsCard() {
     const grid = document.getElementById("weak-words-grid");
 
     if (statText) {
-      const scopeLabel = activeScope === "all" ? "全歷程封存" : "本學期";
-      if (words.length === 0) {
-        statText.innerHTML = "🎉 <strong>太棒了！</strong> [" + scopeLabel + "] 目前無任何雙週待攻克弱點單字。";
-      } else {
-        statText.innerHTML = "👾 期末大挑戰單字表 [" + scopeLabel + "]：共 <strong>" + words.length + "</strong> 字";
-      }
+      statText.innerHTML = "👾 期末大挑戰單字表";
     }
 
-    const tabsContainer = document.getElementById("weak-words-scope-tabs");
-    if (!tabsContainer) {
-      const toolbar = document.querySelector(".weak-words-toolbar");
-      if (toolbar) {
-        const tabWrapper = document.createElement("div");
-        tabWrapper.id = "weak-words-scope-tabs";
-        tabWrapper.className = "weak-range-tabs";
-        tabWrapper.style.cssText = "display:inline-flex; gap:4px; align-items:center;";
-        tabWrapper.innerHTML = "<button type=\"button\" class=\"tab-btn active\" data-scope=\"current\" style=\"padding:4px 10px; font-size:12px; cursor:pointer;\">本學期 (" + curWords.length + ")</button><button type=\"button\" class=\"tab-btn\" data-scope=\"all\" style=\"padding:4px 10px; font-size:12px; cursor:pointer;\">全歷程封存 (" + allWords.length + ")</button>";
-        toolbar.appendChild(tabWrapper);
-        tabWrapper.querySelectorAll(".tab-btn").forEach(btn => {
-          btn.onclick = (e) => {
-            e.stopPropagation();
-            activeScope = btn.getAttribute("data-scope") || "current";
-            renderWeakWordsUI();
-          };
-        });
-      }
-    } else {
-      tabsContainer.querySelectorAll(".tab-btn").forEach(btn => {
-        const sc = btn.getAttribute("data-scope");
-        btn.classList.toggle("active", sc === activeScope);
-        if (sc === "current") btn.textContent = "本學期 (" + curWords.length + ")";
-        else if (sc === "all") btn.textContent = "全歷程封存 (" + allWords.length + ")";
-      });
+    let activeWordWrap = document.getElementById("weak-words-active-card-wrap");
+    if (!activeWordWrap && grid && grid.parentNode) {
+      activeWordWrap = document.createElement("div");
+      activeWordWrap.id = "weak-words-active-card-wrap";
+      activeWordWrap.style.cssText = "margin-bottom:8px;";
+      grid.parentNode.insertBefore(activeWordWrap, grid);
     }
 
     if (!grid) return;
     if (words.length === 0) {
-      grid.innerHTML = "<div style=\"padding:16px 8px; text-align:center; color:var(--ink3, #94A3B8); font-size:13px; width:100%;\">✨ " + (activeScope === "all" ? "全歷程" : "本學期") + "測驗全數答對，無弱點單字！</div>";
+      if (activeWordWrap) activeWordWrap.innerHTML = "";
+      grid.innerHTML = "<div style=\"padding:16px 8px; text-align:center; color:var(--ink3, #94A3B8); font-size:13px; width:100%;\">✨ 雙週測驗全數答對，無期末大挑戰弱點單字！</div>";
       return;
     }
 
+    if (!window._finalBossActiveWord || !words.includes(window._finalBossActiveWord)) {
+      window._finalBossActiveWord = words[0];
+    }
+    const curActive = window._finalBossActiveWord;
+
+    if (activeWordWrap && typeof _renderConquerWordCard === "function") {
+      activeWordWrap.innerHTML = _renderConquerWordCard(curActive);
+    }
+
     grid.innerHTML = words.map(w => {
+      const isAct = (w === curActive);
       const esc = w.replace(/"/g, "&quot;");
-      return "<span class=\"word-pill-tag wrong\" data-word=\"" + esc + "\" style=\"cursor:pointer;\" title=\"點擊聆聽發音\">" + w + "</span>";
+      return "<span class=\"word-pill-tag wrong " + (isAct ? "is-active" : "") + "\" data-word=\"" + esc + "\" style=\"cursor:pointer;\" title=\"點擊切換單字卡與發音\">" + w + "</span>";
     }).join("");
 
     grid.querySelectorAll(".word-pill-tag").forEach(tag => {
       tag.onclick = (e) => {
         e.stopPropagation();
         const word = tag.getAttribute("data-word");
-        if (word && typeof sayWord === "function") sayWord(word);
+        if (word) {
+          window._finalBossActiveWord = word;
+          if (activeWordWrap && typeof _renderConquerWordCard === "function") {
+            activeWordWrap.innerHTML = _renderConquerWordCard(word);
+          }
+          grid.querySelectorAll(".word-pill-tag").forEach(t => {
+            t.classList.toggle("is-active", t.getAttribute("data-word") === word);
+          });
+          if (typeof sayWord === "function") sayWord(word);
+        }
       };
     });
   }
