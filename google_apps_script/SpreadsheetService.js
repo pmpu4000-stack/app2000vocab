@@ -500,7 +500,15 @@ function checkAndGetData(formData) {
       result.isAdmin = auth.isAdmin;
       result.teacherClass = auth.className;
       result.teacherClassList = auth.classList || [];
-      result.todayTaskMap = getTodayTaskMap(ss, todayStr);
+      const fullTodayMap = getTodayTaskMap(ss, todayStr);
+      if (auth && !auth.isAdmin && Array.isArray(result.students)) {
+        const allowedSet = new Set(result.students.map(u => String(u).toLowerCase()));
+        const filteredMap = {};
+        Object.keys(fullTodayMap).forEach(k => { if (allowedSet.has(k.toLowerCase())) filteredMap[k] = fullTodayMap[k]; });
+        result.todayTaskMap = filteredMap;
+      } else {
+        result.todayTaskMap = fullTodayMap;
+      }
       return result;
     }
 

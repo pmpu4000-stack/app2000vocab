@@ -601,7 +601,7 @@ function getTimeRestrictions(param1, optAuth) {
     auth = authenticateUser(ss, param1 && param1.username, param1 && param1.password);
     if (!auth.success || auth.role !== "teacher") return { status: "error", message: "無教師權限" };
   }
-  const cleanAuthClass = (auth && !auth.isAdmin && auth.className) ? String(auth.className).replace(/班$/, "").trim().toLowerCase() : "";
+  const cleanAuthClass = (auth && !auth.isAdmin) ? (Array.isArray(auth.classList) && auth.classList.length > 0 ? auth.classList.join(",") : String(auth.className || "").replace(/班$/, "").trim().toLowerCase()) : "";
   const sheet = ensureTimeSettingsSheet(ss);
   const statusInfo = checkTimeRestrictionAllowance(ss, "");
 
@@ -641,7 +641,7 @@ function getTimeRestrictions(param1, optAuth) {
             teacher: teacher
           };
         }
-      } else if (type === "個別學生" || (username && username.toLowerCase() !== "all" && sTime && eTime)) {
+      } else if ((type === "個別學生" || (username && username.toLowerCase() !== "all" && sTime && eTime)) && (!auth || auth.isAdmin || isTeacherAllowedForStudent_(ss, auth, username))) {
         studentRules.push({
           rowIdx: i + 1,
           username: username,
@@ -708,7 +708,7 @@ function getTimeRestrictions(param1, optAuth) {
  * 避免頻繁遍歷試算表，查詢時間從 3~5 秒驟降至 0.2 秒
  */
 function getFastStudentList(ss, auth) {
-  const cleanAuthClass = String(auth ? (auth.className || "") : "").trim().toLowerCase();
+  const cleanAuthClass = (auth && auth.isAdmin) ? "all" : (auth && Array.isArray(auth.classList) && auth.classList.length > 0 ? auth.classList.join(",") : String(auth ? (auth.className || "") : "").trim().toLowerCase());
   const cacheKey = "fast_stu_list_" + (cleanAuthClass || "all");
   const cache = CacheService.getScriptCache();
   try {

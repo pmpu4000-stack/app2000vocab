@@ -426,7 +426,8 @@
         headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({
           action: "getDailyUsageSettings",
-          username: currentUser
+          username: currentUser,
+          sessionToken: sessionStorage.getItem("session_token") || localStorage.getItem("session_token") || ""
         }),
         signal: controller.signal
       });

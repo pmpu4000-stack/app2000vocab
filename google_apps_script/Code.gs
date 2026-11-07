@@ -844,6 +844,16 @@ function getStudentMetaFromUserList_(ss, studentUser) {
         const auth = authenticateUser(ss, params.username, params.password);
         if (auth && auth.success && (auth.role === "teacher" || auth.role === "admin") && isTeacherAllowedForStudent_(ss, auth, params.targetUsername)) {
           u = String(params.targetUsername).trim();
+        } else {
+          return jsonResponse({ status: "error", message: "無權限查詢該學生使用時間" });
+        }
+      } else if (u && u.toLowerCase() !== "all") {
+        const hasValidToken = params.sessionToken && isStudentTokenValid(u, params.sessionToken);
+        if (!hasValidToken) {
+          const auth = authenticateUser(ss, u, params.password);
+          if (!auth || !auth.success) {
+            return jsonResponse({ status: "error", message: "登入憑證無效或已過期，請重新登入" });
+          }
         }
       }
       return jsonResponse({

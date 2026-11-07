@@ -1457,18 +1457,18 @@ export function initExportRecordsCard(getSummaryFn) {
     if (btnDlImage) btnDlImage.disabled = true;
     if (btnDlPdf) btnDlPdf.disabled = true;
     if (statusMsg) {
-      statusMsg.innerHTML = `⏳ 正在產生 <b>長圖格式 (PNG)</b> 作答歷程記錄檔案（${payload.scopeTitle}），請稍候...`;
+      statusMsg.innerHTML = `⏳ 正在產生 <b>長圖格式 (PNG)</b> 作答歷程記錄檔案（${escapeHtml(payload.scopeTitle)}），請稍候...`;
     }
 
     try {
       await _exportRecordToImage(payload);
       if (statusMsg) {
-        statusMsg.innerHTML = `✅ 已成功下載 <b>長圖格式 (PNG)</b> 作答歷程記錄（${payload.scopeTitle}）！`;
+        statusMsg.innerHTML = `✅ 已成功下載 <b>長圖格式 (PNG)</b> 作答歷程記錄（${escapeHtml(payload.scopeTitle)}）！`;
       }
     } catch (err) {
       console.error("Export error:", err);
       if (statusMsg) {
-        statusMsg.innerHTML = `⚠️ 匯出時發生錯誤：${err.message || "請稍後再試"}`;
+        statusMsg.innerHTML = `⚠️ 匯出時發生錯誤：${escapeHtml(err.message || "請稍後再試")}`;
       }
     } finally {
       if (btnDlImage) btnDlImage.disabled = false;
