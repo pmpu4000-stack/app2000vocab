@@ -47,6 +47,7 @@ const bumpVer = (fPath, regex) => {
   if (next !== raw) fs.writeFileSync(fPath, next, 'utf8');
 };
 bumpVer(path.join(root, 'index.html'), /(css\/styles\.css|sw\.js|src\/auth_sync\.js|src\/teacher_portal\.js|src\/time_limits\.js)\?v=[0-9A-Za-z_]+/g);
+bumpVer(path.join(root, 'history.html'), /(css\/styles\.css|sw\.js)\?v=[0-9A-Za-z_]+/g);
 
 const idx = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 let gasIdx = idx;

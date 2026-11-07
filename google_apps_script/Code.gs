@@ -397,19 +397,21 @@ function doPost(e) {
       return jsonResponse(r3);
     }
 
-    try {
-      const devS = ss.getSheetByName("裝置登入歷程");
-      if (devS) ss.deleteSheet(devS);
-    } catch(_) {}
-
-    
 function getStudentMetaFromUserList_(ss, studentUser) {
   try {
-    const s = ss.getSheetByName("使用者清單");
-    if (!s || s.getLastRow() < 2) return null;
-    const data = s.getRange(2, 1, s.getLastRow() - 1, 5).getValues();
+    let data = null;
+    try {
+      const hit = CacheService.getScriptCache().get("ALL_USERS_ROSTER_V1");
+      if (hit) data = JSON.parse(hit);
+    } catch(_) {}
+    if (!data) {
+      const s = ss.getSheetByName("使用者清單");
+      if (!s || s.getLastRow() < 2) return null;
+      data = s.getDataRange().getValues();
+      try { CacheService.getScriptCache().put("ALL_USERS_ROSTER_V1", JSON.stringify(data), 600); } catch(_) {}
+    }
     const cleanU = String(studentUser || "").trim().toLowerCase();
-    for (let i = 0; i < data.length; i++) {
+    for (let i = 1; i < data.length; i++) {
       if (String(data[i][0] || "").trim().toLowerCase() === cleanU) {
         return {
           className: String(data[i][3] || "").trim(),
@@ -456,14 +458,24 @@ function getStudentMetaFromUserList_(ss, studentUser) {
           }
           if (auth.isAdmin && (teacherClasses.length === 0 || teacherClasses.includes("all"))) {
             try {
-              const userSheet = ss.getSheetByName("使用者清單");
-              if (userSheet && userSheet.getLastRow() >= 2) {
-                const uData = userSheet.getRange(2, 4, userSheet.getLastRow() - 1, 1).getValues();
+              let uData = null;
+              try {
+                const hit = CacheService.getScriptCache().get("ALL_USERS_ROSTER_V1");
+                if (hit) uData = JSON.parse(hit);
+              } catch(_) {}
+              if (!uData) {
+                const userSheet = ss.getSheetByName("使用者清單");
+                if (userSheet && userSheet.getLastRow() >= 2) {
+                  uData = userSheet.getDataRange().getValues();
+                  try { CacheService.getScriptCache().put("ALL_USERS_ROSTER_V1", JSON.stringify(uData), 600); } catch(_) {}
+                }
+              }
+              if (uData && uData.length >= 2) {
                 const cSet = new Set();
-                uData.forEach(r => {
-                  const c = String(r[0] || "").replace(/班$/, "").trim();
+                for (let i = 1; i < uData.length; i++) {
+                  const c = String(uData[i][3] || "").replace(/班$/, "").trim();
                   if (c && c.toLowerCase() !== "all" && c.toLowerCase() !== "系統管理員" && c.toLowerCase() !== "d") cSet.add(c);
-                });
+                }
                 teacherClasses = Array.from(cSet).sort();
               }
             } catch(_) {}

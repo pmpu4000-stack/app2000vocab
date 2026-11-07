@@ -126,28 +126,29 @@ export function initWeakWordsCard() {
       activeWordWrap.innerHTML = _renderConquerWordCard(curActive);
     }
 
+    const escHtml = (str) => String(str ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
     grid.innerHTML = words.map(w => {
       const isAct = (w === curActive);
-      const esc = w.replace(/"/g, "&quot;");
-      return "<span class=\"word-pill-tag wrong " + (isAct ? "is-active" : "") + "\" data-word=\"" + esc + "\" style=\"cursor:pointer;\" title=\"點擊切換單字卡與發音\">" + w + "</span>";
+      const esc = escHtml(w);
+      return "<span class=\"word-pill-tag wrong " + (isAct ? "is-active" : "") + "\" data-word=\"" + esc + "\" style=\"cursor:pointer;\" title=\"點擊切換單字卡與發音\">" + esc + "</span>";
     }).join("");
 
-    grid.querySelectorAll(".word-pill-tag").forEach(tag => {
-      tag.onclick = (e) => {
-        e.stopPropagation();
-        const word = tag.getAttribute("data-word");
-        if (word) {
-          window._finalBossActiveWord = word;
-          if (activeWordWrap && typeof _renderConquerWordCard === "function") {
-            activeWordWrap.innerHTML = _renderConquerWordCard(word);
-          }
-          grid.querySelectorAll(".word-pill-tag").forEach(t => {
-            t.classList.toggle("is-active", t.getAttribute("data-word") === word);
-          });
-          if (typeof sayWord === "function") sayWord(word);
+    grid.onclick = (e) => {
+      const tag = e.target && e.target.closest ? e.target.closest(".word-pill-tag") : null;
+      if (!tag) return;
+      e.stopPropagation();
+      const word = tag.getAttribute("data-word");
+      if (word) {
+        window._finalBossActiveWord = word;
+        if (activeWordWrap && typeof _renderConquerWordCard === "function") {
+          activeWordWrap.innerHTML = _renderConquerWordCard(word);
         }
-      };
-    });
+        grid.querySelectorAll(".word-pill-tag").forEach(t => {
+          t.classList.toggle("is-active", t.getAttribute("data-word") === word);
+        });
+        if (typeof sayWord === "function") sayWord(word);
+      }
+    };
   }
   toggleBtn.onclick = () => {
     const isCollapsed = sec.classList.contains("is-collapsed");

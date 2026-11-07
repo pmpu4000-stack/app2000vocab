@@ -5,12 +5,11 @@
 // 3. 單字庫與音檔永久快取
 // =====================================================================
 
-const CACHE_NAME = 'spelling-app-shell-v22';
+const CACHE_NAME = 'spelling-app-shell-v23';
 const MAX_CACHE_ENTRIES = 120;
 const STATIC_ASSETS = [
   './',
   'index.html',
-  'history.html',
   'css/styles.css',
   'src/auth_sync.js',
   'src/time_limits.js',
@@ -19,7 +18,6 @@ const STATIC_ASSETS = [
   'src/ui.js',
   'src/ui_summary.js',
   'src/ui_conquer.js',
-  'src/ui_export.js',
   'src/ui_weak_words.js',
   'src/store.js',
   'src/audio.js',
@@ -28,7 +26,6 @@ const STATIC_ASSETS = [
   'src/data.js',
   'src/diagnostics.js',
   'src/srs.js',
-  'src/confetti.js',
   'data/words2000.json'
 ];
 
@@ -75,7 +72,9 @@ self.addEventListener('fetch', (event) => {
 
   // 1. Google Apps Script 或外部 API：Network-First，絕不快取過期狀態
   if (url.origin.includes('script.google.com') || url.origin.includes('script.googleusercontent.com')) {
-    event.respondWith(fetch(req).catch(() => caches.match(req)));
+    if (req.method === 'GET') {
+      event.respondWith(fetch(req).catch(() => caches.match(req)));
+    }
     return;
   }
 
