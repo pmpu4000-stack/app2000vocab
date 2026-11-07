@@ -335,6 +335,7 @@ function decompressData(stored) {
   if (!s) return "";
   if (!s.startsWith("GZ:")) return s;
   try {
+    if (s.length > 350000) return "";
     const bytes = Utilities.base64Decode(s.substring(3));
     return Utilities.ungzip(Utilities.newBlob(bytes, "application/x-gzip", "d.gz"))
       .getDataAsString("UTF-8");

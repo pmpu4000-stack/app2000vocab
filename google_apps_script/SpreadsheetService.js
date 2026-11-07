@@ -446,7 +446,7 @@ function checkAndGetData(formData) {
     const todayStr = Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy-MM-dd");
 
     if (auth.role === "parent") {
-      const targetStudent = String(formData.targetStudent || auth.studentBinding || "").trim();
+      const targetStudent = String(auth.studentBinding || "").trim();
       if (!targetStudent) {
         return { status: "error", message: "此家長帳號尚未綁定學生學號，請洽任課老師。" };
       }
@@ -1300,7 +1300,7 @@ function getStudentPasswords(creds) {
       const r=String(data[i][2]||"student").trim().toLowerCase();
       const c=getStudentClass(u,data[i][3]), n=String(data[i][4]||"").trim();
       if (!u||r==="teacher") continue;
-      if (!auth.isAdmin&&c!==auth.className) continue;
+      if (!auth.isAdmin && !isTeacherAllowedForClass(auth, c)) continue;
       if (p && !isHashedPassword(p)) {
         sheet.getRange(i+1, 2).setValue(hashPassword(p));
         try { CacheService.getScriptCache().remove("ALL_USERS_ROSTER_V1"); } catch(_) {}
@@ -1338,7 +1338,7 @@ function changeStudentPassword(creds) {
       const tRole  = String(data[i][2]||"student").trim().toLowerCase();
       const tClass = getStudentClass(target, data[i][3]);
       if (tRole==="teacher") return {status:"error",message:"無法修改教師帳號密碼"};
-      if (!auth.isAdmin&&tClass!==auth.className) return {status:"error",message:"無權限修改其他班級的學生密碼"};
+      if (!auth.isAdmin && !isTeacherAllowedForClass(auth, tClass)) return {status:"error",message:"無權限修改其他班級的學生密碼"};
       const oldPass = String(data[i][1]||"").trim();
       const oldHash = isHashedPassword(oldPass) ? oldPass : hashPassword(oldPass);
       sheet.getRange(i+1,2).setValue(hashPassword(newPass));
@@ -1462,7 +1462,7 @@ function getStudentGoals(creds) {
     if (auth.role === "teacher" && creds.targetStudent && !auth.isAdmin) {
       const classOverview = getClassOverviewRaw(ss);
       const studentMeta = classOverview.find(s => s.username.toLowerCase() === target.toLowerCase());
-      if (studentMeta && studentMeta.className !== auth.className) {
+      if (studentMeta && !isTeacherAllowedForClass(auth, studentMeta.className)) {
         return {status:"error", message:"無權限存取其他班級的學生目標"};
       }
     }
@@ -1484,7 +1484,7 @@ function saveStudentGoals(creds, goals) {
     if (auth.role === "teacher" && creds.targetStudent && !auth.isAdmin) {
       const classOverview = getClassOverviewRaw(ss);
       const studentMeta = classOverview.find(s => s.username.toLowerCase() === target.toLowerCase());
-      if (studentMeta && studentMeta.className !== auth.className) {
+      if (studentMeta && !isTeacherAllowedForClass(auth, studentMeta.className)) {
         return {status:"error", message:"無權限修改其他班級的學生目標"};
       }
     }
@@ -2261,15 +2261,16 @@ function backupSpreadsheetToDrive() {
   files.sort((a,b)=>b.t-a.t);
   files.slice(SYS.MAX_BACKUP_FILES).forEach(x=>x.f.setTrashed(true));
   try {
+    const escH = s => String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
     SpreadsheetApp.getUi().showModalDialog(
       HtmlService.createHtmlOutput(`
         <div style="font-family:Arial,sans-serif;padding:14px;line-height:1.7">
           <h3 style="color:#15803d;margin-top:0">🎉 備份成功！</h3>
-          <p><b>檔案：</b>${name}</p>
+          <p><b>檔案：</b>${escH(name)}</p>
           <p><b>時間：</b>${Utilities.formatDate(now,"Asia/Taipei","yyyy-MM-dd HH:mm:ss")}</p>
           <div style="margin-top:14px;display:flex;gap:10px">
-            <a href="${bFile.getUrl()}" target="_blank" style="background:#2563eb;color:white;padding:8px 16px;border-radius:6px;text-decoration:none;font-weight:bold">📄 開啟備份</a>
-            <a href="${folder.getUrl()}" target="_blank" style="background:#475569;color:white;padding:8px 16px;border-radius:6px;text-decoration:none;font-weight:bold">📁 備份資料夾</a>
+            <a href="${escH(bFile.getUrl())}" target="_blank" style="background:#2563eb;color:white;padding:8px 16px;border-radius:6px;text-decoration:none;font-weight:bold">📄 開啟備份</a>
+            <a href="${escH(folder.getUrl())}" target="_blank" style="background:#475569;color:white;padding:8px 16px;border-radius:6px;text-decoration:none;font-weight:bold">📁 備份資料夾</a>
           </div>
         </div>`).setWidth(440).setHeight(200),"💾 備份完成");
   } catch(_) { Logger.log("[排程備份成功] "+name); }
@@ -2370,15 +2371,16 @@ function exportFullSystemJsonArchive() {
 
 function openBackupFolderUi() {
   const folder=_getBackupFolder();
+  const escH = s => String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   SpreadsheetApp.getUi().showModalDialog(
     HtmlService.createHtmlOutput(`
       <div style="font-family:Arial,sans-serif;padding:20px;text-align:center">
         <h3>📁 雲端硬碟備份庫</h3>
-        <a href="${folder.getUrl()}" target="_blank"
+        <a href="${escH(folder.getUrl())}" target="_blank"
            style="background:#2563eb;color:white;padding:10px 24px;border-radius:8px;text-decoration:none;font-size:15px;font-weight:bold">
           🚀 開啟備份資料夾
         </a>
-        <p style="font-size:12px;color:#94a3b8;margin-top:16px">${folder.getName()}</p>
+        <p style="font-size:12px;color:#94a3b8;margin-top:16px">${escH(folder.getName())}</p>
       </div>`).setWidth(360).setHeight(160),"📂 雲端備份庫");
 }
 

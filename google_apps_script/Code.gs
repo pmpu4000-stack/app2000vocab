@@ -723,6 +723,12 @@ function getStudentMetaFromUserList_(ss, studentUser) {
     if (action === "saveRecord") {
       const auth = authenticateUser(ss, params.username, params.password);
       if (!auth.success) return jsonResponse({status:"error", message:auth.message});
+      if (auth.role === "parent") {
+        return jsonResponse({status:"error", message:"家長檢視模式不允許覆寫學生學習紀錄"});
+      }
+      if (auth.role === "student" && params.sessionToken && !isStudentTokenValid(auth.username, params.sessionToken)) {
+        return jsonResponse({status:"error", message:"登入憑證無效或遭竄改，請重新登入"});
+      }
       
       // 學生在非開放時間禁止同步紀錄
       if (auth.role === "student") {
@@ -762,6 +768,9 @@ function getStudentMetaFromUserList_(ss, studentUser) {
       const auth = authenticateUser(ss, params.username, params.password);
       if (!auth.success || (auth.role !== "teacher" && auth.role !== "admin")) {
         return jsonResponse({ status: "error", message: "無教師權限" });
+      }
+      if (!auth.isAdmin && (!params.targetClass || params.targetClass === "all" || !isTeacherAllowedForClass(auth, params.targetClass))) {
+        params.targetClass = (auth.classList && auth.classList.length > 0) ? auth.classList[0] : auth.className;
       }
       return jsonResponse(getDateRangePerformanceAnalytics(ss, params));
     }
@@ -882,7 +891,7 @@ function getStudentMetaFromUserList_(ss, studentUser) {
     // ── 9. 全面升級試算表為單字數基準 (Vocab-Based Migration) ──
     if (action === "migrateToVocabBased") {
       const auth = authenticateUser(ss, params.username, params.password);
-      const isAuthorized = (auth && auth.success && auth.role === "teacher") || (params.migrateKey === "migrate_vocab_2026_ok");
+      const isAuthorized = (auth && auth.success && (auth.role === "teacher" || auth.role === "admin"));
       if (!isAuthorized) {
         return jsonResponse({status:"error", message:"僅教師或管理員可執行單字庫基準遷移"});
       }
