@@ -431,11 +431,7 @@ function isRealDailyWordsMap(wordsObj) {
 export function historyData(n = 28, preloadedTaskHistory = null) {
   let taskHistory = preloadedTaskHistory;
   if (!Array.isArray(taskHistory)) {
-    taskHistory = [];
-    try {
-      const raw = localStorage.getItem("student_task_history");
-      if (raw) taskHistory = JSON.parse(raw) || [];
-    } catch(_) {}
+    taskHistory = _getCachedTaskHistory();
   }
 
   // Pre-index taskHistory by normalized date -> O(1) lookup instead of linear .find()
@@ -794,9 +790,22 @@ export function getPracticeDates() {
   return Array.from(set);
 }
 
+let _taskHistoryCacheRaw = null;
+let _taskHistoryCacheArr = [];
+let _dailyPracticeSanitized = false;
+function _getCachedTaskHistory() {
+  try {
+    const raw = localStorage.getItem("student_task_history");
+    if (!raw) return [];
+    if (raw === _taskHistoryCacheRaw) return _taskHistoryCacheArr;
+    _taskHistoryCacheRaw = raw;
+    _taskHistoryCacheArr = JSON.parse(raw) || [];
+    return _taskHistoryCacheArr;
+  } catch(_) { return []; }
+}
+
 // Everything the summary panel needs, as plain data (Single-pass over 2,055 words).
 export function summary(words) {
-  const s = stats(words);
   const mastered = [];
   const fixed = [];
   const allPracticedWords = [];
@@ -969,92 +978,104 @@ export function summary(words) {
   // 2. 自動清理舊版誤由指定測驗或累積單字回填產生的幽靈 dailyPractice / history 紀錄（絕不跨日偽造單字）
   if (!DB.dailyPractice) DB.dailyPractice = {};
   if (!DB.history) DB.history = {};
-  let changed = false;
+  const taskHistory = _getCachedTaskHistory();
 
-  let taskHistory = [];
-  try {
-    const raw = localStorage.getItem("student_task_history");
-    if (raw) taskHistory = JSON.parse(raw) || [];
-  } catch(_) {}
+  if (!_dailyPracticeSanitized) {
+    _dailyPracticeSanitized = true;
+    let changed = false;
 
-  const thMap = new Map();
-  if (Array.isArray(taskHistory)) {
-    for (let i = 0; i < taskHistory.length; i++) {
-      const item = taskHistory[i];
-      if (item && item.date) {
-        const nd = normalizeDateStr(item.date);
-        if (nd && !thMap.has(nd)) thMap.set(nd, item);
+    const thMap = new Map();
+    if (Array.isArray(taskHistory)) {
+      for (let i = 0; i < taskHistory.length; i++) {
+        const item = taskHistory[i];
+        if (item && item.date) {
+          const nd = normalizeDateStr(item.date);
+          if (nd && !thMap.has(nd)) thMap.set(nd, item);
+        }
       }
     }
-  }
 
-  for (const dpKey of Object.keys(DB.dailyPractice)) {
-    const dp = DB.dailyPractice[dpKey];
-    const normDp = normalizeDateStr(dpKey);
-    if (!dp) {
-      delete DB.dailyPractice[dpKey];
-      changed = true;
-      continue;
-    }
-    const hasWords = dp.words && typeof dp.words === "object" && Object.keys(dp.words).length > 0;
-    const isFabricatedWords = hasWords && !isRealDailyWordsMap(dp.words);
-    if (isFabricatedWords) {
-      const thRow = thMap.get(normDp) || null;
-      const isSelfRow = thRow && thRow.taskName === "自主練習";
-      const thFreeAtt = thRow ? (parseInt(thRow.freeTested !== undefined ? thRow.freeTested : (isSelfRow ? thRow.attempts : 0)) || 0) : 0;
-      if (thFreeAtt > 0) {
-        dp.attempts = thFreeAtt;
-        dp.correct = parseInt(thRow.freeCorrect !== undefined ? thRow.freeCorrect : (isSelfRow ? thRow.correct : 0)) || 0;
-        dp.wrong = Math.max(0, dp.attempts - dp.correct);
-        dp.words = {};
-      } else {
+    for (const dpKey of Object.keys(DB.dailyPractice)) {
+      const dp = DB.dailyPractice[dpKey];
+      const normDp = normalizeDateStr(dpKey);
+      if (!dp) {
         delete DB.dailyPractice[dpKey];
-        if (DB.history[normDp] || DB.history[dpKey]) {
-          delete DB.history[normDp];
-          delete DB.history[dpKey];
-        }
+        changed = true;
+        continue;
       }
-      changed = true;
-    } else if (!hasWords && (!dp.attempts || dp.attempts <= 0)) {
-      delete DB.dailyPractice[dpKey];
-      changed = true;
-    }
-  }
-
-  if (thMap.size > 0) {
-    for (const hKey of Object.keys(DB.history)) {
-      const normH = normalizeDateStr(hKey);
-      const dp = DB.dailyPractice[normH] || DB.dailyPractice[hKey];
-      const hasRealDp = dp && isRealDailyWordsMap(dp.words);
-      if (hasRealDp) continue;
-      const thRow = thMap.get(normH);
-      if (thRow) {
-        const isSelfRow = (thRow.taskName === "自主練習");
-        const thFreeAtt = parseInt(thRow.freeTested !== undefined ? thRow.freeTested : (isSelfRow ? thRow.attempts : 0)) || 0;
-        if (thFreeAtt === 0) {
-          delete DB.history[hKey];
-          if (DB.dailyPractice[normH] || DB.dailyPractice[hKey]) {
-            delete DB.dailyPractice[normH];
-            delete DB.dailyPractice[hKey];
+      const hasWords = dp.words && typeof dp.words === "object" && Object.keys(dp.words).length > 0;
+      const isFabricatedWords = hasWords && !isRealDailyWordsMap(dp.words);
+      if (isFabricatedWords) {
+        const thRow = thMap.get(normDp) || null;
+        const isSelfRow = thRow && thRow.taskName === "自主練習";
+        const thFreeAtt = thRow ? (parseInt(thRow.freeTested !== undefined ? thRow.freeTested : (isSelfRow ? thRow.attempts : 0)) || 0) : 0;
+        if (thFreeAtt > 0) {
+          dp.attempts = thFreeAtt;
+          dp.correct = parseInt(thRow.freeCorrect !== undefined ? thRow.freeCorrect : (isSelfRow ? thRow.correct : 0)) || 0;
+          dp.wrong = Math.max(0, dp.attempts - dp.correct);
+          dp.words = {};
+        } else {
+          delete DB.dailyPractice[dpKey];
+          if (DB.history[normDp] || DB.history[dpKey]) {
+            delete DB.history[normDp];
+            delete DB.history[dpKey];
           }
-          changed = true;
+        }
+        changed = true;
+      } else if (!hasWords && (!dp.attempts || dp.attempts <= 0)) {
+        delete DB.dailyPractice[dpKey];
+        changed = true;
+      }
+    }
+
+    if (thMap.size > 0) {
+      for (const hKey of Object.keys(DB.history)) {
+        const normH = normalizeDateStr(hKey);
+        const dp = DB.dailyPractice[normH] || DB.dailyPractice[hKey];
+        const hasRealDp = dp && isRealDailyWordsMap(dp.words);
+        if (hasRealDp) continue;
+        const thRow = thMap.get(normH);
+        if (thRow) {
+          const isSelfRow = (thRow.taskName === "自主練習");
+          const thFreeAtt = parseInt(thRow.freeTested !== undefined ? thRow.freeTested : (isSelfRow ? thRow.attempts : 0)) || 0;
+          if (thFreeAtt === 0) {
+            delete DB.history[hKey];
+            if (DB.dailyPractice[normH] || DB.dailyPractice[hKey]) {
+              delete DB.dailyPractice[normH];
+              delete DB.dailyPractice[hKey];
+            }
+            changed = true;
+          }
         }
       }
     }
+
+    if (changed) save();
   }
 
-  if (changed) save();
+  const totalLearn = lvAcc[1].learn + lvAcc[2].learn + lvAcc[3].learn + lvAcc[4].learn + lvAcc[5].learn;
+  const totalPrac  = lvAcc[1].prac  + lvAcc[2].prac  + lvAcc[3].prac  + lvAcc[4].prac  + lvAcc[5].prac;
+  const totalMast  = lvAcc[1].mast  + lvAcc[2].mast  + lvAcc[3].mast  + lvAcc[4].mast  + lvAcc[5].mast;
+  const distinctCorrect = totalLearn + totalPrac + totalMast;
+  const statKeysCount = DB && DB.stat ? Object.keys(DB.stat).length : 0;
+  const boxKeysCount  = DB && DB.box  ? Object.keys(DB.box).length  : 0;
+  const testedVocab = Math.max(distinctCorrect, totTestedWords, statKeysCount, boxKeysCount);
+  const passRate = testedVocab > 0 ? Math.round((distinctCorrect / testedVocab) * 100) : 0;
+  const totalWordsCount = (words && words.length) || 2055;
 
   return {
-    ...s,
-    learn: s.learn,
-    prac: s.prac,
-    mast: s.mast,
-    points: s.points,
-    streak: s.streak,
-    currentLevel: s.currentLevel,
-    passRate: s.passRate, distinctCorrect: s.distinctCorrect,
-    attempts: s.attempts, correct: s.correct, total: s.total,
+    learn: totalLearn,
+    prac: totalPrac,
+    mast: totalMast,
+    points: DB.points || 0,
+    streak: DB.streak || 0,
+    currentLevel: (DB.level && DB.level.current) || 1,
+    passRate,
+    distinctCorrect,
+    testedVocab,
+    attempts: testedVocab,
+    correct: distinctCorrect,
+    total: totalWordsCount,
     mastered, fixed, levels, catCounts, history: historyData(28, taskHistory),
     modeStats,
     dailyPractice: DB.dailyPractice || {},

@@ -40,21 +40,23 @@ export function nextWord(words, level, currentId) {
   if (!len) return null;
   if (len === 1) return pool[0];
 
+  const weights = new Float64Array(len);
   let totalWeight = 0;
   for (let i = 0; i < len; i++) {
     const w = pool[i];
     if (currentId && w.id === currentId) continue;
-    totalWeight += calculateSrsWeight(w.id);
+    const wt = calculateSrsWeight(w.id);
+    weights[i] = wt;
+    totalWeight += wt;
   }
   if (totalWeight <= 0) return pool[0];
 
   let r = Math.random() * totalWeight;
   for (let i = 0; i < len; i++) {
-    const w = pool[i];
-    if (currentId && w.id === currentId) continue;
-    const wt = calculateSrsWeight(w.id);
+    const wt = weights[i];
+    if (wt <= 0) continue;
     r -= wt;
-    if (r <= 0) return w;
+    if (r <= 0) return pool[i];
   }
   return pool[0];
 }

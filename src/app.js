@@ -476,12 +476,12 @@ function getMonToFriUnfinishedWords() {
 const getMonToFriMistakes = getMonToFriUnfinishedWords;
 
 
-function checkAutoPromote() {
+function checkAutoPromote(sum) {
   const prog = store.progress();
   const cur = prog.current;
   if (cur >= 5) return false;
-  const ws = wordsAt(cur);
-  const mast = ws.filter((w) => store.box(w.id) >= 3).length;
+  const lvStat = sum && sum.levels && sum.levels[cur];
+  const mast = lvStat ? lvStat.mast : wordsAt(cur).filter((w) => store.box(w.id) >= 3).length;
   const target = (AUTO_PROMOTE_THRESHOLDS && AUTO_PROMOTE_THRESHOLDS[cur]) || 200;
   if (mast >= target && prog.unlocked <= cur) {
     const next = store.promote();
@@ -494,13 +494,14 @@ function checkAutoPromote() {
   return false;
 }
 
-function levelInfo() {
+function levelInfo(sum) {
   const prog = store.progress();
   return LEVELS.map((L) => {
-    const ws = wordsAt(L.n);
-    const mast = ws.filter((w) => store.box(w.id) >= 3).length;
+    const lvStat = sum && sum.levels && sum.levels[L.n];
+    const total = lvStat ? lvStat.total : wordsAt(L.n).length;
+    const mast = lvStat ? lvStat.mast : wordsAt(L.n).filter((w) => store.box(w.id) >= 3).length;
     const st = L.n > prog.unlocked ? "locked" : L.n === prog.current ? "current" : "open";
-    return { n: L.n, name: L.name, color: L.color, state: st, pct: ws.length ? Math.round((mast / ws.length) * 100) : 0 };
+    return { n: L.n, name: L.name, color: L.color, state: st, pct: total ? Math.round((mast / total) * 100) : 0 };
   });
 }
 
@@ -533,25 +534,27 @@ function refreshChrome() {
     sessionTitle = `今日指定測驗 <span>【${taskState.task.taskName}】目標 ${taskGoal} 字</span>`;
   }
 
+  const sum = store.summary(WORDS);
   ui.renderSession(sessionS, sessionGoal, onSessionStart, onSessionEnd, sessionTitle);
-  ui.renderProgress(store.summary(WORDS));
-  checkAutoPromote();
-  ui.renderLevelBar(levelInfo(), pickLevel);
+  ui.renderProgress(sum);
+  checkAutoPromote(sum);
+  ui.renderLevelBar(levelInfo(sum), pickLevel);
   const cur = store.progress().current;
-  const ws = wordsAt(cur);
-  const mast = ws.filter((w) => store.box(w.id) >= 3).length;
+  const lvStat = sum && sum.levels && sum.levels[cur];
+  const wsLen = lvStat ? lvStat.total : wordsAt(cur).length;
+  const mast = lvStat ? lvStat.mast : wordsAt(cur).filter((w) => store.box(w.id) >= 3).length;
   const target = (AUTO_PROMOTE_THRESHOLDS && AUTO_PROMOTE_THRESHOLDS[cur]) || 200;
   const ready = cur < 5 && mast >= target;
   let hint;
   if (cur >= 5) hint = "🎉 太強了！您已在最高精熟等級 Level 5！";
   else if (ready) hint = `🎉 已達標（${mast}/${target} 字）！已解鎖下一關。`;
   else hint = `只要再精通 ${Math.max(0, target - mast)} 字（目前 ${mast}/${target} 字），即可自動升級至下一關！`;
-  ui.renderBanner(cur, { attempts: ws.length, rate: target > 0 ? (mast / target) : 1, mast, target }, ready, hint, startChallenge);
+  ui.renderBanner(cur, { attempts: wsLen, rate: target > 0 ? (mast / target) : 1, mast, target }, ready, hint, startChallenge);
   if (typeof ui.initExportRecordsCard === "function") {
     ui.initExportRecordsCard(() => store.summary(WORDS));
   }
   const isLocked = (typeof window !== "undefined") && (window.__dailyUsageTimeIsUp || (window.dailyUsageState && window.dailyUsageState.isLockedDown) || document.body.classList.contains("daily-limit-reached"));
-  if (!isLocked && !ui.summaryHidden()) ui.renderSummary(store.summary(WORDS));
+  if (!isLocked && !ui.summaryHidden()) ui.renderSummary(sum);
 
   // ⚠️ 今日指定測驗進行中、待開始或尚未結束：強制隱藏模式列、關卡列與等級挑戰橫幅
   if (taskState.active || taskState.pending || isDesignatedTaskPendingToday()) {
