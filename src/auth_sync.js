@@ -1364,7 +1364,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined") {
               return;
             }
 
-            await import(`./src/app.js`);
+            await import(new URL("./app.js", import.meta.url).href);
 
             applyRoleBasedView(effectiveRole, result);
 

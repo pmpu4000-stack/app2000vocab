@@ -53,7 +53,8 @@ const idx = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 let gasIdx = idx;
 const authSyncPath = path.join(root, 'src', 'auth_sync.js');
 if (fs.existsSync(authSyncPath)) {
-  const authSyncSrc = fs.readFileSync(authSyncPath, 'utf8');
+  const authSyncSrc = fs.readFileSync(authSyncPath, 'utf8')
+    .replace('new URL("./app.js", import.meta.url).href', '"./src/app.js"');
   gasIdx = idx.replace(
     /<script type="module" src="src\/auth_sync\.js\?v=[0-9A-Za-z_]+"><\/script>/,
     () => `<script type="module">\n${authSyncSrc}\n</script>`
