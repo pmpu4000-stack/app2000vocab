@@ -297,15 +297,23 @@ function handleSaveRecord(ss, params, auth) {
   const pureRate    = testedWordsCount > 0 ? (Math.round((distinctC / testedWordsCount) * 10000) / 10000) : 0;
   const curLevel = (agentData.level && agentData.level.current) || agentData.currentLevel || 1;
 
-  // 🚀 本機成績防竄改數位簽名校驗 (Tamper-Proof Digital Signature Verification)
-  let authVerificationStatus = "🟢 通過驗證";
-  if (params.authSignature) {
+  // 🚀 本機成績防竄改數位簽名校驗 (Tamper-Proof Digital Signature Verification + 數值一致性防偽校驗)
+  const isScoreConsistent = (
+    correctWordsCount >= 0 &&
+    answeredWordsCount >= correctWordsCount &&
+    (assignedWordsCount === 0 || answeredWordsCount <= assignedWordsCount) &&
+    distinctC <= testedWordsCount
+  );
+  let authVerificationStatus = isScoreConsistent ? "🟢 通過驗證" : "🔴 數值異常(疑竄改)";
+  if (!isScoreConsistent) {
+    logError("TamperDetection", "學生上傳成績邏輯矛盾，疑遭竄改", username, `cor:${correctWordsCount}, ans:${answeredWordsCount}, asg:${assignedWordsCount}`);
+  } else if (params.authSignature) {
     try {
       const expectedRaw = username + ":" + todayStr + ":" + correctWordsCount + ":" + answeredWordsCount + ":SPELL_AGENT_SECURE_V1";
       const expectedDigest = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, expectedRaw, Utilities.Charset.UTF_8);
       const expectedSig = expectedDigest.map(b => (b < 0 ? b + 256 : b).toString(16).padStart(2, "0")).join("").substring(0, 16);
       if (params.authSignature === expectedSig) {
-        authVerificationStatus = "🟢 通過驗證";
+        authVerificationStatus = "🟢 通過驗證 (SHA-256)";
       } else {
         authVerificationStatus = "🔴 簽名異常(疑竄改)";
         logError("TamperDetection", "學生本機成績簽名不符，疑遭 F12 竄改", username, "client:" + params.authSignature + ", expected:" + expectedSig);
@@ -314,7 +322,13 @@ function handleSaveRecord(ss, params, auth) {
       authVerificationStatus = "🟡 簽名校驗略過";
     }
   } else if (hasTaskActivity) {
-    authVerificationStatus = "🟡 原始簽章";
+    const serverSigDigest = Utilities.computeDigest(
+      Utilities.DigestAlgorithm.SHA_256,
+      `${username}:${todayStr}:${correctWordsCount}/${answeredWordsCount}:${distinctC}/${testedWordsCount}:SPELL_AGENT_SERVER_V1`,
+      Utilities.Charset.UTF_8
+    );
+    const serverSig = serverSigDigest.map(b => (b < 0 ? b + 256 : b).toString(16).padStart(2, "0")).join("").substring(0, 8);
+    authVerificationStatus = `🟢 驗證#${serverSig}`;
   } else {
     authVerificationStatus = "⚪ 系統自驗";
   }

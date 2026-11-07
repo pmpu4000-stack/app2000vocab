@@ -61,7 +61,11 @@ const AUDIO_CACHE_NAME = "spelling-audio-cache-v1";
 const audioBlobMap = new Map();
 const MAX_BLOB_CACHE_SIZE = 150;
 function setAudioBlobUrl(url, objUrl) {
-  if (audioBlobMap.size >= MAX_BLOB_CACHE_SIZE && !audioBlobMap.has(url)) {
+  if (audioBlobMap.has(url)) {
+    const prev = audioBlobMap.get(url);
+    if (prev && prev !== objUrl) { try { URL.revokeObjectURL(prev); } catch (_) {} }
+    audioBlobMap.delete(url);
+  } else if (audioBlobMap.size >= MAX_BLOB_CACHE_SIZE) {
     const oldestKey = audioBlobMap.keys().next().value;
     const oldObjUrl = audioBlobMap.get(oldestKey);
     if (oldObjUrl) { try { URL.revokeObjectURL(oldObjUrl); } catch (_) {} }
@@ -114,7 +118,12 @@ export async function prefetchAudio(words) {
 }
 
 async function getCachedAudioSrc(url) {
-  if (audioBlobMap.has(url)) return audioBlobMap.get(url);
+  if (audioBlobMap.has(url)) {
+    const hit = audioBlobMap.get(url);
+    audioBlobMap.delete(url);
+    audioBlobMap.set(url, hit);
+    return hit;
+  }
   if (typeof window !== "undefined" && "caches" in window) {
     try {
       const cache = await caches.open(AUDIO_CACHE_NAME);

@@ -292,6 +292,18 @@ export function save(immediate = false) {
 if (typeof window !== "undefined") {
   window.addEventListener("beforeunload", flushSave);
   window.addEventListener("pagehide", flushSave);
+  window.addEventListener("storage", (e) => {
+    if (!e || !e.key) {
+      DB = load();
+      _taskHistoryCacheRaw = null;
+      return;
+    }
+    if (e.key === LS_KEY) {
+      DB = load();
+    } else if (e.key === "student_task_history") {
+      _taskHistoryCacheRaw = null;
+    }
+  });
 }
 
 export function box(id) { return DB.box[id] || 0; }

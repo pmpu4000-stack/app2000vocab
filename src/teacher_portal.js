@@ -14,6 +14,72 @@
   'use strict';
 
   const scriptUrl = window.__SCRIPT_URL || "https://script.google.com/macros/s/AKfycbx1hyCNJxqFMoaJgIxfZqLYIYH00NegI1Yd8NJP6gRjqwOndWGkmr-H9tGvVwK_axM9/exec";
+  const OFFLINE_SYNC_QUEUE_KEY = "gas_offline_sync_queue_v1";
+
+  async function fetchGasWithRetry(payload, options = {}) {
+    const maxRetries = options.retries ?? 2;
+    const timeoutMs = options.timeoutMs ?? 12000;
+    const enqueueOnFail = options.enqueueOnFail ?? false;
+    let lastErr = null;
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      const ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
+      const timer = ctrl ? setTimeout(() => ctrl.abort(), timeoutMs) : null;
+      try {
+        const res = await fetch(scriptUrl, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: typeof payload === "string" ? payload : JSON.stringify(payload),
+          signal: ctrl ? ctrl.signal : undefined
+        });
+        if (timer) clearTimeout(timer);
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return await res.json();
+      } catch (err) {
+        if (timer) clearTimeout(timer);
+        lastErr = err;
+        if (attempt < maxRetries) {
+          await new Promise(r => setTimeout(r, 800 * Math.pow(2, attempt)));
+        }
+      }
+    }
+    if (enqueueOnFail) {
+      try {
+        const raw = localStorage.getItem(OFFLINE_SYNC_QUEUE_KEY);
+        const q = raw ? JSON.parse(raw) : [];
+        q.push({ ts: Date.now(), payload });
+        if (q.length > 20) q.splice(0, q.length - 20);
+        localStorage.setItem(OFFLINE_SYNC_QUEUE_KEY, JSON.stringify(q));
+      } catch (_) {}
+    }
+    throw lastErr || new Error("Network failure");
+  }
+  window.fetchGasWithRetry = fetchGasWithRetry;
+
+  async function flushOfflineSyncQueue() {
+    try {
+      const raw = localStorage.getItem(OFFLINE_SYNC_QUEUE_KEY);
+      if (!raw) return;
+      const q = JSON.parse(raw);
+      if (!Array.isArray(q) || q.length === 0) return;
+      const remaining = [];
+      for (let i = 0; i < q.length; i++) {
+        try {
+          await fetchGasWithRetry(q[i].payload, { retries: 1, timeoutMs: 10000, enqueueOnFail: false });
+        } catch (_) {
+          remaining.push(q[i]);
+        }
+      }
+      if (remaining.length > 0) {
+        localStorage.setItem(OFFLINE_SYNC_QUEUE_KEY, JSON.stringify(remaining));
+      } else {
+        localStorage.removeItem(OFFLINE_SYNC_QUEUE_KEY);
+      }
+    } catch (_) {}
+  }
+  if (typeof window !== "undefined") {
+    window.addEventListener("online", flushOfflineSyncQueue);
+    setTimeout(flushOfflineSyncQueue, 3500);
+  }
   const formatDateDash = (dt = new Date()) => {
     if (typeof window.formatDateDash === 'function') return window.formatDateDash(dt);
     return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
@@ -140,7 +206,7 @@
         const w = item.w;
         const isChecked = pickerSelectedWords.has(w.toLowerCase());
         return `
-          <label class="picker-word-item ${isChecked ? 'is-checked' : ''}" style="display:flex; align-items:center; gap:8px; padding:6px 10px; border-radius:8px; border:1.5px solid var(--border, #333D5C); min-width:0; background:var(--card, #1C2234); cursor:pointer; font-size:13.5px; user-select:none; transition:all 0.15s; box-sizing:border-box;">
+          <label class="picker-word-item ${isChecked ? 'is-checked' : ''}" style="display:flex; align-items:center; gap:8px; padding:6px 10px; border-radius:8px; border:1.5px solid var(--border, #333D5C); min-width:0; content-visibility:auto; contain-intrinsic-size:auto 36px; background:var(--card, #1C2234); cursor:pointer; font-size:13.5px; user-select:none; transition:all 0.15s; box-sizing:border-box;">
             <input type="checkbox" value="${w.toLowerCase()}" ${isChecked ? 'checked' : ''} onchange="togglePickerWord('${w.toLowerCase()}')" style="accent-color:#6366f1; width:16px; height:16px; cursor:pointer; flex-shrink:0;">
             <span style="font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${w}</span>
           </label>
@@ -636,21 +702,15 @@
                   };
                 })()
               };
-              let res = await fetch(scriptUrl, {
-                method: "POST",
-                headers: { "Content-Type": "text/plain;charset=utf-8" },
-                body: JSON.stringify(payload)
-              }).then(r => r.json()).catch(err => ({ status: "error", message: err.message }));
+              let res = await fetchGasWithRetry(payload, { retries: 2, timeoutMs: 12000, enqueueOnFail: true })
+                .catch(err => ({ status: "error", message: err.message }));
 
               // 若因後端舊版本授權班級判定未包含子班級，自動以名下登記班級代號（如 701702）智慧重試
               if ((!res || res.status !== "success") && myClass && myClass !== cls) {
                 payload.taskData.className = myClass;
                 payload.taskData.targetClass = myClass;
-                const retryRes = await fetch(scriptUrl, {
-                  method: "POST",
-                  headers: { "Content-Type": "text/plain;charset=utf-8" },
-                  body: JSON.stringify(payload)
-                }).then(r => r.json()).catch(() => null);
+                const retryRes = await fetchGasWithRetry(payload, { retries: 1, timeoutMs: 10000 })
+                  .catch(() => null);
                 if (retryRes && retryRes.status === "success") {
                   res = retryRes;
                 }

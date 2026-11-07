@@ -207,14 +207,29 @@ function ensureStudentSheetColumns(sheet) {
     sheet.hideColumns(2);
 
     // 3. 管理者高對比、護眼分組色塊美化（對齊遊戲介面各區塊）
-    sheet.getRange("A1").setBackground("#f1f5f9").setFontColor("#334155").setFontWeight("bold"); // 紀錄時間
-    sheet.getRange("B1").setBackground("#e2e8f0").setFontColor("#64748b").setFontWeight("normal"); // 完整JSON
-    sheet.getRange("C1:F1").setBackground("#dbeafe").setFontColor("#1e40af").setFontWeight("bold"); // 遊戲狀態 (等級、分數、連勝、最佳連勝)
-    sheet.getRange("G1:L1").setBackground("#dcfce7").setFontColor("#065f46").setFontWeight("bold"); // 整體進度 (學習中、練習中、精通、共答對、受測、掌握率)
-    sheet.getRange("M1:Q1").setBackground("#f3e8ff").setFontColor("#6b21a8").setFontWeight("bold"); // 關卡進度 (LEVEL 1~5)
-    sheet.getRange("R1:U1").setBackground("#ccfbf1").setFontColor("#0f766e").setFontWeight("bold"); // 四大練習模式
-    sheet.getRange("V1:AC1").setBackground("#e0e7ff").setFontColor("#3730a3").setFontWeight("bold"); // 指定測驗專屬區塊 (靛青色，含施測/作答/答對)
-    sheet.getRange("AD1:AG1").setBackground("#fef3c7").setFontColor("#92400e").setFontWeight("bold"); // 自由練習專屬區塊 (琥珀黃色)
+    const hdrBgs = [[
+      "#f1f5f9", "#e2e8f0",
+      "#dbeafe", "#dbeafe", "#dbeafe", "#dbeafe",
+      "#dcfce7", "#dcfce7", "#dcfce7", "#dcfce7", "#dcfce7", "#dcfce7",
+      "#f3e8ff", "#f3e8ff", "#f3e8ff", "#f3e8ff", "#f3e8ff",
+      "#ccfbf1", "#ccfbf1", "#ccfbf1", "#ccfbf1",
+      "#e0e7ff", "#e0e7ff", "#e0e7ff", "#e0e7ff", "#e0e7ff", "#e0e7ff", "#e0e7ff", "#e0e7ff",
+      "#fef3c7", "#fef3c7", "#fef3c7", "#fef3c7",
+      "#e0f2fe"
+    ]];
+    const hdrColors = [[
+      "#334155", "#64748b",
+      "#1e40af", "#1e40af", "#1e40af", "#1e40af",
+      "#065f46", "#065f46", "#065f46", "#065f46", "#065f46", "#065f46",
+      "#6b21a8", "#6b21a8", "#6b21a8", "#6b21a8", "#6b21a8",
+      "#0f766e", "#0f766e", "#0f766e", "#0f766e",
+      "#3730a3", "#3730a3", "#3730a3", "#3730a3", "#3730a3", "#3730a3", "#3730a3", "#3730a3",
+      "#92400e", "#92400e", "#92400e", "#92400e",
+      "#0369a1"
+    ]];
+    const hdrWeights = [new Array(34).fill("bold")];
+    hdrWeights[0][1] = "normal";
+    sheet.getRange(1, 1, 1, 34).setBackgrounds(hdrBgs).setFontColors(hdrColors).setFontWeights(hdrWeights);
 
     sheet.getRange("1:1").setWrap(true).setHorizontalAlignment("center").setVerticalAlignment("middle");
 

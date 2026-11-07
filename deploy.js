@@ -19,6 +19,16 @@ const tpCompact = tpSrc
   .trim();
 fs.writeFileSync(path.join(root, 'google_apps_script', 'TeacherJs.html'), '<script>\n' + tpCompact + '\n</script>', 'utf8');
 
+// Auto-sync WORD_LEVELS from src/levels.js (Single Source of Truth) into google_apps_script/Code.gs
+const levelsSrc = fs.readFileSync(path.join(root, 'src', 'levels.js'), 'utf8');
+const wlMatch = levelsSrc.match(/export\s+const\s+WORD_LEVELS\s*=\s*"([1-5]+)"/);
+const codeGsPath = path.join(root, 'google_apps_script', 'Code.gs');
+if (wlMatch && fs.existsSync(codeGsPath)) {
+  const codeGsRaw = fs.readFileSync(codeGsPath, 'utf8');
+  const codeGsNext = codeGsRaw.replace(/const\s+WORD_LEVELS\s*=\s*"[1-5]+"/, `const WORD_LEVELS = "${wlMatch[1]}"`);
+  if (codeGsNext !== codeGsRaw) fs.writeFileSync(codeGsPath, codeGsNext, 'utf8');
+}
+
 const cssPath = path.join(root, 'css', 'styles.css');
 if (fs.existsSync(cssPath)) {
   const rawCss = fs.readFileSync(cssPath, 'utf8');

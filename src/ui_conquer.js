@@ -316,7 +316,7 @@ export function _renderConquerWordCard(wordStr, d) {
   `;
 
   return `
-    <div class="conquer-word-card" style="width:100%; box-sizing:border-box; background:var(--card, #fff); border:1.5px solid var(--line, #e2e8f0); border-radius:12px; padding:10px 12px; margin-bottom:6px; box-shadow:0 1px 4px rgba(0,0,0,0.03);">
+    <div class="conquer-word-card" style="width:100%; box-sizing:border-box; content-visibility:auto; contain-intrinsic-size:auto 92px; background:var(--card, #fff); border:1.5px solid var(--line, #e2e8f0); border-radius:12px; padding:10px 12px; margin-bottom:6px; box-shadow:0 1px 4px rgba(0,0,0,0.03);">
       <div class="zh-row" style="margin-bottom:6px;">
         <button type="button" class="word-speech-btn" onclick="window.__sayWord('${clean}')" aria-label="播放單字發音" title="播放單字發音">${SVG_SPEAKER}</button>
         <div class="zh-text" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">

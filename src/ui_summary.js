@@ -1,7 +1,6 @@
 // =====================================================================
 // ui_summary.js — 學習紀錄、雙熱力圖、時間軸與每日任務/自由練習明細模組
 // =====================================================================
-import { initExportRecordsCard } from "./ui_export.js";
 import { setConquerWordsRef } from "./ui_conquer.js";
 import { sayWord } from "./audio.js";
 import { normalizeDateStr, formatDateYMD, getWeekRangeDates, getBiweeklyCycleInfo, getCachedTaskHistory } from "./store.js";
@@ -2481,7 +2480,9 @@ export function renderSummary(d) {
 
   const sumCloseEl = document.getElementById("sumClose");
   if (sumCloseEl) sumCloseEl.onclick = () => { toggleSummary(d); };
-  initExportRecordsCard(() => d);
+  import("./ui_export.js").then(m => {
+    if (m && typeof m.initExportRecordsCard === "function") m.initExportRecordsCard(() => d);
+  }).catch(() => {});
 }
 export function toggleSummary(data) {
   const sumBtn = document.getElementById("sumBtn");

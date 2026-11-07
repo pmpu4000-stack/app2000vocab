@@ -129,10 +129,10 @@ let _wordBankPromise = null;
 export function loadWordBank() {
   if (!_wordBankPromise) {
     _wordBankPromise = (async () => {
-      const [bank, meanings] = await Promise.all([
-        fetchWithCache("data/words2000.json"),
-        fetchWithCache("data/meanings.json", true)
-      ]);
+      const bank = await fetchWithCache("data/words2000.json");
+      let meanings = {};
+      const meaningsPromise = fetchWithCache("data/meanings.json", true).catch(() => ({}));
+      meanings = await Promise.race([meaningsPromise, new Promise(r => setTimeout(() => r(null), 50))]) || {};
 
       const byLevel = { 1: [], 2: [], 3: [], 4: [], 5: [] };
       const byWord = new Map();
@@ -167,6 +167,23 @@ export function loadWordBank() {
       words._byLevel = byLevel;
       words._byWord = byWord;
       words._byId = byId;
+      if (!Object.keys(meanings).length) {
+        meaningsPromise.then((mObj) => {
+          if (!mObj || typeof mObj !== "object") return;
+          for (let i = 0; i < words.length; i++) {
+            const obj = words[i];
+            const m = mObj[obj.display] || mObj[obj.word];
+            if (!m) continue;
+            const feat = FEATURED.get(obj.word);
+            if (m.zh) obj.zh = m.zh;
+            if (!feat && m.sent) obj.sent = m.sent;
+            if (!feat && m.sentZh) obj.sentZh = m.sentZh;
+            if (!feat && m.sentSrc) obj.sentSrc = m.sentSrc;
+            if (Array.isArray(m.sents) && m.sents.length > 0) obj.sents = m.sents;
+            if (!IPA_OVERRIDE[obj.word] && m.ph) obj.ph = m.ph;
+          }
+        });
+      }
       return words;
     })();
   }

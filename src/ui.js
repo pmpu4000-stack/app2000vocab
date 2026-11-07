@@ -1,4 +1,7 @@
-import { initExportRecordsCard } from "./ui_export.js";
+export async function initExportRecordsCard(getter) {
+  const m = await import("./ui_export.js");
+  if (m && typeof m.initExportRecordsCard === "function") return m.initExportRecordsCard(getter);
+}
 import { initWeakWordsCard, analyzeErrorTag } from "./ui_weak_words.js";
 import {
   setConquerWordsRef,
