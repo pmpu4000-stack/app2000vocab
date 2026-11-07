@@ -69,7 +69,7 @@ function getActiveTaskForClass(ss, studentClass, username) {
     if (!enabled || !taskName || !rawWords) continue;
 
     // 若任務有設定指定日期，且日期不是今天，則今天不開放此任務
-    if (taskDate && taskDate !== todayStrDash) continue;
+    if (taskDate !== todayStrDash) continue;
 
     const isClassMatch = (taskClass === cleanClass || taskClass === "all" || taskClass === "全校");
     if (!isClassMatch) continue;
@@ -308,7 +308,7 @@ function getWeekendRemediationTask(ss, cleanClass, username, completedTasksToday
     if (!enabled || !tName || !rawWords) continue;
 
     // 檢查是否在當前雙週或單週週期範圍內
-    const isTaskInCycle = tDate ? (tDate >= scanStartStr && tDate <= scanEndStr) : true;
+    const isTaskInCycle = tDate ? (tDate >= scanStartStr && tDate <= scanEndStr) : false;
     if (!isTaskInCycle) continue;
 
     const isClassMatch = (tClass === cleanClass || tClass === "all" || tClass === "全校");
