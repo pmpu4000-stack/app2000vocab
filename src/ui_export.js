@@ -5,6 +5,7 @@ import { escapeHtml } from "./wordbank.js";
 import { normalizeDateStr, formatDateYMD } from "./store.js";
 import { levelColor, levelName } from "./levels.js";
 import { diagnoseWordMistake } from "./diagnostics.js";
+import { getBiweeklyFailedFinalBossWords } from "./ui_weak_words.js";
 import {
   resolveWordStr,
   isValidEnglishWordStr,
@@ -195,14 +196,30 @@ function _buildExportPayload(d, mode, startDate, endDate) {
   let periodTaskAssignedTotal = 0;
   let periodTaskCorrectTotal = 0;
 
+  const taskByDateMap = new Map();
+  for (let i = 0; i < historyList.length; i++) {
+    const item = historyList[i];
+    if (item && item.date && (!item.taskName || item.taskName !== "自主練習")) {
+      const nd = normalizeDateStr(item.date);
+      if (nd && !taskByDateMap.has(nd)) taskByDateMap.set(nd, item);
+    }
+  }
+  const backupTaskByDateMap = new Map();
+  if (Array.isArray(window.cachedBackupTaskHistory)) {
+    for (let i = 0; i < window.cachedBackupTaskHistory.length; i++) {
+      const h = window.cachedBackupTaskHistory[i];
+      if (h && h.date && h.taskName && h.taskName !== "自主練習" && !String(h.taskName).includes("未指派")) {
+        const nd = normalizeDateStr(String(h.date).trim().split(" ")[0].replace(/\//g, "-"));
+        if (nd && !backupTaskByDateMap.has(nd)) backupTaskByDateMap.set(nd, h);
+      }
+    }
+  }
+
   const dailyRecords = targetDates.map(dt => {
-    let tRec = historyList.find(item => normalizeDateStr(item.date) === dt && (!item.taskName || item.taskName !== "自主練習")) || null;
+    let tRec = taskByDateMap.get(dt) || null;
     let isUntestedAssigned = false;
-    if (!tRec && Array.isArray(window.cachedBackupTaskHistory)) {
-      const bTask = window.cachedBackupTaskHistory.find(h => {
-        const hDate = String(h.date || "").trim().split(" ")[0].replace(/\//g, "-");
-        return normalizeDateStr(hDate) === dt && h.taskName && h.taskName !== "自主練習" && !String(h.taskName).includes("未指派");
-      });
+    if (!tRec) {
+      const bTask = backupTaskByDateMap.get(dt);
       if (bTask) {
         isUntestedAssigned = true;
         const bWords = Array.isArray(bTask.words) ? bTask.words : [];
@@ -512,6 +529,10 @@ export function _ensureScriptLoaded(globalVar, primaryUrl, fallbackUrl) {
 function getWordZh(word) {
   if (!word) return "";
   const wLower = String(word).trim().toLowerCase();
+  if (typeof window !== "undefined" && window.__WORDS && window.__WORDS._byWord) {
+    const wObj = window.__WORDS._byWord.get(wLower);
+    if (wObj && wObj.zh) return wObj.zh;
+  }
   if (!window._wordBankZhMap && Array.isArray(window.WORD_BANK_2000)) {
     window._wordBankZhMap = new Map();
     for (let i = 0; i < window.WORD_BANK_2000.length; i++) {

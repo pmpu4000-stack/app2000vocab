@@ -255,7 +255,8 @@ export function renderRound(word, mode, { onAnswer, onCheck }) {
           }
         }
       } else {
-        const maskedSent = s.sent.replace(new RegExp("\\b" + word.word + "\\b", "i"), '<u class="sent-blank"></u>');
+        const safeWord = word.word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const maskedSent = s.sent.replace(new RegExp("\\b" + safeWord + "\\b", "i"), '<u class="sent-blank"></u>');
         enHtml = maskedSent;
         zhHtml = s.sentZh || '';
       }
@@ -3225,12 +3226,6 @@ export function summaryHidden() { return el.summary.hidden; }
 export function renderSummary(d) {
   if (d && d.words) _lastSummaryWords = d.words;
   clearResolveWordsCache();
-  const lvRows = d.levels
-    .map((L) => {
-      const totCorr = (L.learn || 0) + (L.prac || 0) + (L.mast || 0);
-      return `<tr><td class="st-level-name"><span style="color:${levelColor(L.level)}">●</span> Level ${L.level}「${levelName(L.level)}」</td><td class="st-level-stats"><div class="level-stats-grid"><span class="st-item st-learn"><span class="st-lbl">學習中</span><b class="tnum st-num st-num-learn">${L.learn || 0}</b>字</span><span class="st-sep">/</span><span class="st-item st-prac"><span class="st-lbl">練習中</span><b class="tnum st-num st-num-prac">${L.prac || 0}</b>字</span><span class="st-sep">/</span><span class="st-item st-mast"><span class="st-lbl">精通</span><b class="tnum st-num st-num-mast">${L.mast}</b>字</span><span class="st-sep">/</span><span class="st-item st-total"><span class="st-lbl">共答對</span><b class="tnum st-num st-num-total">${totCorr}</b>字</span></div></td></tr>`;
-    })
-    .join("");
 
   const historyList = getCombinedTaskHistory();
   const dailyPracticeMap = d.dailyPractice || {};
@@ -3534,13 +3529,6 @@ export function renderSummary(d) {
     userTagArea.innerHTML = "";
   }
 
-  const pendingConquerWords = getWeekPendingConquerWords();
-  const conquerCount = pendingConquerWords.length;
-  const initialConquerHtml = buildWeekPendingConquerHtml(pendingConquerWords, d);
-
-  if (d.levels) renderProgressLevelsTable(d.levels);
-  if (d.modeStats) renderProgressModeStats(d.modeStats);
-
     el.summary.innerHTML = `
     <div class="date-navigator-card">
       <!-- 左欄：快速跳轉（歷程紀錄選單） -->
@@ -3683,33 +3671,36 @@ export function renderSummary(d) {
   if (taskHeatDayInfoEl && taskHeatDays.length > 0) {
     updateTaskHeatDayBadge(pinnedTaskIdx);
     if (taskHeatGridEl) {
-      taskHeatGridEl.querySelectorAll(".hc").forEach((cell) => {
+      const triggerTaskCell = (cell) => {
+        if (!cell) return;
         const idx = parseInt(cell.getAttribute("data-idx"), 10);
-        cell.addEventListener("mouseenter", () => {
-          if (!isNaN(idx)) {
-            // 僅預覽該日資料，絕不覆寫選定的 pinnedTaskIdx
-            updateTaskHeatDayBadge(idx);
+        if (!isNaN(idx)) {
+          pinnedTaskIdx = idx;
+          updateTaskHeatDayBadge(idx);
+          if (taskHeatDays[idx] && taskHeatDays[idx].key) {
+            switchRecordDate(taskHeatDays[idx].key);
           }
-        });
-        const triggerTaskClick = () => {
-          if (!isNaN(idx)) {
-            pinnedTaskIdx = idx;
-            updateTaskHeatDayBadge(idx);
-            if (taskHeatDays[idx] && taskHeatDays[idx].key) {
-              switchRecordDate(taskHeatDays[idx].key);
-            }
-          }
-        };
-        cell.addEventListener("click", triggerTaskClick);
-        cell.addEventListener("keydown", (e) => {
-          if (e.key === "Enter" || e.key === " ") {
+        }
+      };
+      taskHeatGridEl.addEventListener("mouseover", (e) => {
+        const cell = e.target && e.target.closest ? e.target.closest(".hc") : null;
+        if (!cell) return;
+        const idx = parseInt(cell.getAttribute("data-idx"), 10);
+        if (!isNaN(idx)) updateTaskHeatDayBadge(idx);
+      });
+      taskHeatGridEl.addEventListener("click", (e) => {
+        triggerTaskCell(e.target && e.target.closest ? e.target.closest(".hc") : null);
+      });
+      taskHeatGridEl.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          const cell = e.target && e.target.closest ? e.target.closest(".hc") : null;
+          if (cell) {
             e.preventDefault();
-            triggerTaskClick();
+            triggerTaskCell(cell);
           }
-        });
+        }
       });
       taskHeatGridEl.addEventListener("mouseleave", () => {
-        // 滑鼠離開時，穩定還原回當前選定的日期
         updateTaskHeatDayBadgeByDate(currentSelectedDate);
       });
     }
@@ -3772,33 +3763,36 @@ export function renderSummary(d) {
     updateHeatDayBadge(pinnedIdx);
 
     if (heatGridEl) {
-      heatGridEl.querySelectorAll(".hc").forEach((cell) => {
+      const triggerFreeCell = (cell) => {
+        if (!cell) return;
         const idx = parseInt(cell.getAttribute("data-idx"), 10);
-        cell.addEventListener("mouseenter", () => {
-          if (!isNaN(idx)) {
-            // 僅預覽該日資料，絕不覆寫選定的 pinnedIdx
-            updateHeatDayBadge(idx);
+        if (!isNaN(idx)) {
+          pinnedIdx = idx;
+          updateHeatDayBadge(idx);
+          if (heatDays[idx] && heatDays[idx].key) {
+            switchRecordDate(heatDays[idx].key);
           }
-        });
-        const triggerFreeClick = () => {
-          if (!isNaN(idx)) {
-            pinnedIdx = idx;
-            updateHeatDayBadge(idx);
-            if (heatDays[idx] && heatDays[idx].key) {
-              switchRecordDate(heatDays[idx].key);
-            }
-          }
-        };
-        cell.addEventListener("click", triggerFreeClick);
-        cell.addEventListener("keydown", (e) => {
-          if (e.key === "Enter" || e.key === " ") {
+        }
+      };
+      heatGridEl.addEventListener("mouseover", (e) => {
+        const cell = e.target && e.target.closest ? e.target.closest(".hc") : null;
+        if (!cell) return;
+        const idx = parseInt(cell.getAttribute("data-idx"), 10);
+        if (!isNaN(idx)) updateHeatDayBadge(idx);
+      });
+      heatGridEl.addEventListener("click", (e) => {
+        triggerFreeCell(e.target && e.target.closest ? e.target.closest(".hc") : null);
+      });
+      heatGridEl.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          const cell = e.target && e.target.closest ? e.target.closest(".hc") : null;
+          if (cell) {
             e.preventDefault();
-            triggerFreeClick();
+            triggerFreeCell(cell);
           }
-        });
+        }
       });
       heatGridEl.addEventListener("mouseleave", () => {
-        // 滑鼠離開時，穩定還原回當前選定的日期
         updateHeatDayBadgeByDate(currentSelectedDate);
       });
     }
@@ -3904,40 +3898,6 @@ export function renderSummary(d) {
   const quickSelect = $("#record-quick-dates");
   if (quickSelect) {
     quickSelect.onchange = (e) => switchRecordDate(e.target.value);
-  }
-
-  // 綁定待攻克單字週期切換按鈕事件
-  const btnConquerCur = $("#btn-conquer-cycle-current");
-  const btnConquerPrev = $("#btn-conquer-cycle-prev");
-  const btnConquerNext = $("#btn-conquer-cycle-next");
-  const getSummaryActiveW = () => {
-    const cycleInfo = getBiweeklyCycleInfo();
-    const curSemWeek = cycleInfo.semesterWeek || 1;
-    if (typeof _activeConquerCycle === "string" && _activeConquerCycle.startsWith("week_")) {
-      return parseInt(_activeConquerCycle.replace("week_", ""), 10) || curSemWeek;
-    }
-    return curSemWeek;
-  };
-  if (btnConquerPrev) {
-    btnConquerPrev.onclick = (e) => {
-      e.stopPropagation();
-      const targetW = Math.max(1, getSummaryActiveW() - 1);
-      updateWeekConquerSection("week_" + targetW);
-    };
-  }
-  if (btnConquerCur) {
-    btnConquerCur.onclick = (e) => {
-      e.stopPropagation();
-      const cycleInfo = getBiweeklyCycleInfo();
-      updateWeekConquerSection("week_" + (cycleInfo.semesterWeek || 1));
-    };
-  }
-  if (btnConquerNext) {
-    btnConquerNext.onclick = (e) => {
-      e.stopPropagation();
-      const targetW = Math.min(20, getSummaryActiveW() + 1);
-      updateWeekConquerSection("week_" + targetW);
-    };
   }
 
   const sumCloseEl = document.getElementById("sumClose");

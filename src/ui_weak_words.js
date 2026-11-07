@@ -3,10 +3,86 @@
 // =====================================================================
 import { sayWord } from "./audio.js";
 import { _renderConquerWordCard } from "./ui.js";
-import { getCachedTaskHistory } from "./store.js";
+import { getCachedTaskHistory, getConquerRollSettings } from "./store.js";
 
 export function analyzeErrorTag() {
   return { tag: "弱點單字", cls: "tag-spelling", icon: "⚠️" };
+}
+
+function getEffectiveSemesterStart() {
+  try {
+    const cfg = getConquerRollSettings();
+    if (cfg && cfg.semesterStartDate) {
+      const s = String(cfg.semesterStartDate).trim().split(/[T\s]/)[0].replace(/\//g, "-");
+      if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+    }
+  } catch (_) {}
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = now.getMonth() + 1;
+  const defStart = (m >= 2 && m <= 7) ? new Date(y, 1, 15) : (m < 2 ? new Date(y - 1, 7, 30) : new Date(y, 7, 30));
+  const pad = (n) => String(n).padStart(2, "0");
+  return defStart.getFullYear() + "-" + pad(defStart.getMonth() + 1) + "-" + pad(defStart.getDate());
+}
+
+export function getBiweeklyFailedFinalBossWords(scope = "current") {
+  const historyList = getCachedTaskHistory();
+
+  const failedMap = new Map();
+  const masteredMap = new Map();
+  const semStart = getEffectiveSemesterStart();
+
+  historyList.forEach(item => {
+    if (!item) return;
+    const tName = String(item.taskName || "").trim();
+    const dStr = String(item.date || "").trim().split(/[T\s]/)[0].replace(/\//g, "-");
+    if (scope === "current" && semStart && dStr && dStr < semStart) return;
+
+    let isBiweeklyTask = tName.includes("雙週") || tName.includes("消滅") || tName.includes("待攻克") || tName.includes("週末");
+    if (!isBiweeklyTask && dStr) {
+      const d = new Date(dStr + "T12:00:00");
+      if (!isNaN(d.getTime()) && (d.getDay() === 0 || d.getDay() === 6)) {
+        isBiweeklyTask = true;
+      }
+    }
+    if (!isBiweeklyTask) return;
+
+    const correctSet = new Set();
+    if (Array.isArray(item.correctWords)) {
+      item.correctWords.forEach(w => {
+        const cw = String(w).replace(/\(.*?\)/g, "").trim().toLowerCase();
+        if (cw) {
+          correctSet.add(cw);
+          masteredMap.set(cw, dStr);
+        }
+      });
+    }
+
+    const recordFailed = (w) => {
+      const cw = String(w).replace(/\(.*?\)/g, "").trim().toLowerCase();
+      if (cw && !correctSet.has(cw)) {
+        failedMap.set(cw, dStr);
+      }
+    };
+
+    if (Array.isArray(item.wrongWords)) {
+      item.wrongWords.forEach(recordFailed);
+    }
+    if (Array.isArray(item.words)) {
+      item.words.forEach(recordFailed);
+    }
+  });
+
+  const finalWords = [];
+  failedMap.forEach((fDate, w) => {
+    const mDate = masteredMap.get(w);
+    if (!mDate || mDate < fDate) {
+      finalWords.push(w);
+    }
+  });
+
+  finalWords.sort((a, b) => a.localeCompare(b));
+  return finalWords;
 }
 
 export function initWeakWordsCard() {
@@ -15,86 +91,7 @@ export function initWeakWordsCard() {
   const toggleBtn = document.getElementById("btn-toggle-weak-words-card");
   if (!sec || !toggleBtn) return;
 
-  function getEffectiveSemesterStart() {
-    try {
-      const raw = localStorage.getItem("conquer_roll_settings");
-      if (raw) {
-        const cfg = JSON.parse(raw);
-        if (cfg.semesterStartDate) {
-          const s = String(cfg.semesterStartDate).trim().split(/[T\s]/)[0].replace(/\//g, "-");
-          if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-        }
-      }
-    } catch (_) {}
-    const now = new Date();
-    const y = now.getFullYear();
-    const m = now.getMonth() + 1;
-    const defStart = (m >= 2 && m <= 7) ? new Date(y, 1, 15) : (m < 2 ? new Date(y - 1, 7, 30) : new Date(y, 7, 30));
-    const pad = (n) => String(n).padStart(2, "0");
-    return defStart.getFullYear() + "-" + pad(defStart.getMonth() + 1) + "-" + pad(defStart.getDate());
-  }
-
   let activeScope = "current"; // "current" (本學期) | "all" (全歷程封存)
-
-  function getBiweeklyFailedFinalBossWords(scope = activeScope) {
-    const historyList = getCachedTaskHistory();
-
-    const failedMap = new Map();
-    const masteredMap = new Map();
-    const semStart = getEffectiveSemesterStart();
-
-    historyList.forEach(item => {
-      if (!item) return;
-      const tName = String(item.taskName || "").trim();
-      const dStr = String(item.date || "").trim().split(/[T\s]/)[0].replace(/\//g, "-");
-      if (scope === "current" && semStart && dStr && dStr < semStart) return;
-      
-      let isBiweeklyTask = tName.includes("雙週") || tName.includes("消滅") || tName.includes("待攻克") || tName.includes("週末");
-      if (!isBiweeklyTask && dStr) {
-        const d = new Date(dStr + "T12:00:00");
-        if (!isNaN(d.getTime()) && (d.getDay() === 0 || d.getDay() === 6)) {
-          isBiweeklyTask = true;
-        }
-      }
-      if (!isBiweeklyTask) return;
-
-      const correctSet = new Set();
-      if (Array.isArray(item.correctWords)) {
-        item.correctWords.forEach(w => {
-          const cw = String(w).replace(/\(.*?\)/g, "").trim().toLowerCase();
-          if (cw) {
-            correctSet.add(cw);
-            masteredMap.set(cw, dStr);
-          }
-        });
-      }
-
-      const recordFailed = (w) => {
-        const cw = String(w).replace(/\(.*?\)/g, "").trim().toLowerCase();
-        if (cw && !correctSet.has(cw)) {
-          failedMap.set(cw, dStr);
-        }
-      };
-
-      if (Array.isArray(item.wrongWords)) {
-        item.wrongWords.forEach(recordFailed);
-      }
-      if (Array.isArray(item.words)) {
-        item.words.forEach(recordFailed);
-      }
-    });
-
-    const finalWords = [];
-    failedMap.forEach((fDate, w) => {
-      const mDate = masteredMap.get(w);
-      if (!mDate || mDate < fDate) {
-        finalWords.push(w);
-      }
-    });
-
-    finalWords.sort((a, b) => a.localeCompare(b));
-    return finalWords;
-  }
 
   function renderWeakWordsUI() {
     const words = getBiweeklyFailedFinalBossWords(activeScope);
