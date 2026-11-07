@@ -2209,6 +2209,7 @@ export function renderSummary(d) {
     }
   }
 
+  let curActiveTaskCell = null;
   const renderTaskHeatBadgeContent = (dateKey, att, rate, activeCellIdx) => {
     if (!taskHeatDayInfoEl) return;
     const stat = getTaskDayStat(dateKey);
@@ -2222,9 +2223,14 @@ export function renderSummary(d) {
       taskHeatDayInfoEl.innerHTML = `<b>${shortDate}</b> ｜ <b>${stat.statusLabel}</b>`;
     }
     if (taskHeatGridEl) {
-      taskHeatGridEl.querySelectorAll(".hc").forEach((cell, cIdx) => {
-        cell.classList.toggle("hc-active", cIdx === activeCellIdx);
-      });
+      if (curActiveTaskCell) curActiveTaskCell.classList.remove("hc-active");
+      const target = taskHeatGridEl.querySelector(`.hc[data-idx="${activeCellIdx}"]`);
+      if (target) {
+        target.classList.add("hc-active");
+        curActiveTaskCell = target;
+      } else {
+        curActiveTaskCell = null;
+      }
     }
   };
 
@@ -2297,6 +2303,7 @@ export function renderSummary(d) {
     }
   }
 
+  let curActiveFreeCell = null;
   const renderHeatBadgeContent = (dateKey, att, rate, activeCellIdx) => {
     if (!heatDayInfoEl) return;
     const shortDate = String(dateKey).replace(/^\d{4}-/, '');
@@ -2309,9 +2316,14 @@ export function renderSummary(d) {
       heatDayInfoEl.innerHTML = `<b>${shortDate}</b> ｜ 正確率 <b>${rate}%</b>`;
     }
     if (heatGridEl) {
-      heatGridEl.querySelectorAll(".hc").forEach((cell, cIdx) => {
-        cell.classList.toggle("hc-active", cIdx === activeCellIdx);
-      });
+      if (curActiveFreeCell) curActiveFreeCell.classList.remove("hc-active");
+      const target = heatGridEl.querySelector(`.hc[data-idx="${activeCellIdx}"]`);
+      if (target) {
+        target.classList.add("hc-active");
+        curActiveFreeCell = target;
+      } else {
+        curActiveFreeCell = null;
+      }
     }
   };
 
