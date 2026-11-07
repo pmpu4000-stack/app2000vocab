@@ -5,14 +5,12 @@
 // 3. 單字庫與音檔永久快取
 // =====================================================================
 
-const CACHE_NAME = 'spelling-app-shell-v11';
+const CACHE_NAME = 'spelling-app-shell-v12';
 const STATIC_ASSETS = [
   './',
   'index.html',
   'history.html',
   'css/styles.css',
-  'src/sync.js',
-  'src/auth.js',
   'src/time_limits.js',
   'src/app.js',
   'src/ui.js',
@@ -26,10 +24,7 @@ const STATIC_ASSETS = [
   'src/diagnostics.js',
   'src/srs.js',
   'src/confetti.js',
-  'src/anticheat.js',
-  'data/words2000.json',
-  'data/wordbank2000.json',
-  'https://cdn.jsdelivr.net/npm/chart.js'
+  'data/words2000.json'
 ];
 
 self.addEventListener('install', (event) => {

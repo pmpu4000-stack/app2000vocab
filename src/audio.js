@@ -12,6 +12,7 @@ async function autoPruneAudioCache() {
       console.log("🧹 正在執行每兩週音檔快取自動清理...");
       await caches.delete(AUDIO_CACHE_NAME);
       if (typeof audioBlobMap !== "undefined" && audioBlobMap.clear) {
+        audioBlobMap.forEach((blobUrl) => { try { URL.revokeObjectURL(blobUrl); } catch (_) {} });
         audioBlobMap.clear();
       }
       localStorage.setItem(AUDIO_CLEANUP_KEY, String(now));
@@ -58,6 +59,16 @@ function getAudioCompressor() {
 
 const AUDIO_CACHE_NAME = "spelling-audio-cache-v1";
 const audioBlobMap = new Map();
+const MAX_BLOB_CACHE_SIZE = 150;
+function setAudioBlobUrl(url, objUrl) {
+  if (audioBlobMap.size >= MAX_BLOB_CACHE_SIZE && !audioBlobMap.has(url)) {
+    const oldestKey = audioBlobMap.keys().next().value;
+    const oldObjUrl = audioBlobMap.get(oldestKey);
+    if (oldObjUrl) { try { URL.revokeObjectURL(oldObjUrl); } catch (_) {} }
+    audioBlobMap.delete(oldestKey);
+  }
+  audioBlobMap.set(url, objUrl);
+}
 
 /**
  * 🚀 原生 CacheStorage 音檔預載與永久快取層：
@@ -84,11 +95,11 @@ export async function prefetchAudio(words) {
             if (resp && resp.ok) {
               await cache.put(url, resp.clone());
               const blob = await resp.blob();
-              audioBlobMap.set(url, URL.createObjectURL(blob));
+              setAudioBlobUrl(url, URL.createObjectURL(blob));
             }
           } else {
             const blob = await match.blob();
-            audioBlobMap.set(url, URL.createObjectURL(blob));
+            setAudioBlobUrl(url, URL.createObjectURL(blob));
           }
         } catch (_) {}
       }
@@ -117,7 +128,7 @@ async function getCachedAudioSrc(url) {
       if (resp && resp.ok) {
         const blob = await resp.blob();
         const objUrl = URL.createObjectURL(blob);
-        audioBlobMap.set(url, objUrl);
+        setAudioBlobUrl(url, objUrl);
         return objUrl;
       }
     } catch (_) {}

@@ -41,6 +41,14 @@
      *    切頁或直接關閉時，瀏覽器底層確保資料送達，學生無須在頁面乾等。
      */
     async function uploadLocalStorageData(isSilent = false, immediate = false) {
+      if (isSilent && !immediate) {
+        if (uploadDebounceTimer) clearTimeout(uploadDebounceTimer);
+        uploadDebounceTimer = setTimeout(() => {
+          uploadDebounceTimer = null;
+          uploadLocalStorageData(true, true);
+        }, 2500);
+        return;
+      }
       if (uploadDebounceTimer) {
         clearTimeout(uploadDebounceTimer);
         uploadDebounceTimer = null;

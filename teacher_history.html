@@ -816,9 +816,7 @@
       border-color: #818cf8 !important;
     }
   </style>
-  <link rel="stylesheet" href="css/styles.css?v=202611071648">
-  <link rel="preload" href="data/words2000.json" as="fetch" crossorigin>
-  <link rel="preload" href="data/meanings.json" as="fetch" crossorigin>
+  <link rel="stylesheet" href="css/styles.css?v=202611071654">
   <link rel="modulepreload" href="src/app.js">
   <link rel="modulepreload" href="src/wordbank.js">
   <link rel="modulepreload" href="src/store.js">
@@ -834,11 +832,11 @@
   <script>
     if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=202611071648').catch(() => {});
+        navigator.serviceWorker.register('./sw.js?v=202611071654').catch(() => {});
       });
     }
   </script>
-  <script src="src/time_limits.js?v=202611071648" defer></script>
+  <script src="src/time_limits.js?v=202611071654" defer></script>
 </head>
 <body class="is-logging-in">
 
@@ -2784,6 +2782,14 @@
      *    切頁或直接關閉時，瀏覽器底層確保資料送達，學生無須在頁面乾等。
      */
     async function uploadLocalStorageData(isSilent = false, immediate = false) {
+      if (isSilent && !immediate) {
+        if (uploadDebounceTimer) clearTimeout(uploadDebounceTimer);
+        uploadDebounceTimer = setTimeout(() => {
+          uploadDebounceTimer = null;
+          uploadLocalStorageData(true, true);
+        }, 2500);
+        return;
+      }
       if (uploadDebounceTimer) {
         clearTimeout(uploadDebounceTimer);
         uploadDebounceTimer = null;
@@ -3117,13 +3123,17 @@
       if (!s) {
         s = document.createElement("script");
         s.id = "teacher-portal-script";
-        s.src = "src/teacher_portal.js?v=202611071648";
+        s.src = "src/teacher_portal.js?v=202611071654";
         s.onload = () => {
           window.__teacherPortalLoaded = true;
           if (typeof ensureTeacherModalsMounted === "function") ensureTeacherModalsMounted();
           if (typeof initPickerEvents === "function") initPickerEvents();
           if (typeof initTimeManagementEvents === "function") initTimeManagementEvents();
           if (typeof initTeacherInlineWorkspace === "function") initTeacherInlineWorkspace();
+          if (callback) callback();
+        };
+        s.onerror = () => {
+          if (s && s.parentNode) s.parentNode.removeChild(s);
           if (callback) callback();
         };
         document.head.appendChild(s);
@@ -3187,10 +3197,14 @@
         }
       });
 
-      // 2. 學校電腦 15 分鐘無操作自動清除憑證並登出
+      // 2. 學校電腦 15 分鐘無操作自動清除憑證並登出（加入 3 秒節流避免 mousemove 高頻觸發 clearTimeout）
       let schoolIdleTimer = null;
+      let lastIdleResetAt = 0;
       const SCHOOL_IDLE_TIMEOUT_MS = 15 * 60 * 1000;
       function resetSchoolIdleTimer() {
+        const now = Date.now();
+        if (now - lastIdleResetAt < 3000) return;
+        lastIdleResetAt = now;
         if (schoolIdleTimer) clearTimeout(schoolIdleTimer);
         const isCurrentlyLoggedIn = !document.body.classList.contains("is-logging-in");
         if (isCurrentlyLoggedIn) {

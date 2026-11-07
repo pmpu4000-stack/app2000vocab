@@ -394,7 +394,8 @@
     let interval;
     if (dailyUsageState.unlocked) interval = 10 * 60 * 1000;
     else if (dailyUsageState.isLockedDown) interval = 60 * 1000;
-    else interval = 45 * 1000;
+    else if (!force) return; // 尚有剩餘時間且未鎖定時完全不輪詢伺服器，僅靠前端高精度倒數，徹底避免 GAS 配額消耗
+    else interval = 60 * 1000;
     if (!force && Date.now() - lastDailyPollAt < interval) return;
     if (force && Date.now() - lastDailyPollAt < 20 * 1000) return;
     lastDailyPollAt = Date.now();
