@@ -1331,9 +1331,15 @@ function changeStudentPassword(creds) {
       const tClass = getStudentClass(target, data[i][3]);
       if (tRole==="teacher") return {status:"error",message:"無法修改教師帳號密碼"};
       if (!auth.isAdmin&&tClass!==auth.className) return {status:"error",message:"無權限修改其他班級的學生密碼"};
+      const oldPass = String(data[i][1]||"").trim();
+      const oldHash = isHashedPassword(oldPass) ? oldPass : hashPassword(oldPass);
       sheet.getRange(i+1,2).setValue(hashPassword(newPass));
       clearLoginFailures(target);
-      try { CacheService.getScriptCache().remove("ALL_USERS_ROSTER_V1"); } catch(_) {}
+      try {
+        const cache = CacheService.getScriptCache();
+        cache.remove("ALL_USERS_ROSTER_V1");
+        cache.remove(_authKey(target, oldHash));
+      } catch(_) {}
       return {status:"success",message:`✅ ${target} 的密碼已成功更新並加密儲存`};
     }
     return {status:"error",message:"找不到該學生帳號"};
@@ -1360,9 +1366,15 @@ function changeOwnPassword(creds) {
     const data  = sheet.getDataRange().getValues();
     for (let i=1;i<data.length;i++) {
       if (String(data[i][0]||"").trim()!==auth.username) continue;
+      const oldPass = String(data[i][1]||"").trim();
+      const oldHash = isHashedPassword(oldPass) ? oldPass : hashPassword(oldPass);
       sheet.getRange(i+1,2).setValue(hashPassword(newP));
       clearLoginFailures(auth.username);
-      try { CacheService.getScriptCache().remove("ALL_USERS_ROSTER_V1"); } catch(_) {}
+      try {
+        const cache = CacheService.getScriptCache();
+        cache.remove("ALL_USERS_ROSTER_V1");
+        cache.remove(_authKey(auth.username, oldHash));
+      } catch(_) {}
       return {status:"success",message:"✅ 密碼已成功更新！下次登入請使用新密碼。"};
     }
     return {status:"error",message:"找不到帳號資料"};
@@ -1403,8 +1415,19 @@ function clearErrorLogs(creds) {
 
 function reportClientError(rep) {
   try {
-    logError("前端:"+String(rep.source||"UI"),String(rep.message||"未知前端錯誤"),
-      String(rep.username||"訪客"),String(rep.stack||rep.details||""));
+    if (!rep || typeof rep !== "object") return {status:"error"};
+    const u = String(rep.username || "訪客").trim().slice(0, 40);
+    const cache = CacheService.getScriptCache();
+    const rlKey = "err_rl_" + u;
+    const cnt = parseInt(cache.get(rlKey) || "0", 10);
+    if (cnt >= 5) return {status:"throttled"};
+    cache.put(rlKey, String(cnt + 1), 60);
+    logError(
+      "前端:" + String(rep.source || "UI").slice(0, 40),
+      String(rep.message || "未知前端錯誤").slice(0, 200),
+      u,
+      String(rep.stack || rep.details || "").slice(0, 500)
+    );
     return {status:"success"};
   } catch(_) { return {status:"error"}; }
 }

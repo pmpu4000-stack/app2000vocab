@@ -478,7 +478,7 @@ function inspectRequestForAttacks(ss, params, e) {
       }
 
       // B. 跨站腳本攻擊 (XSS)
-      if (/<script|javascript:|vbscript:|onerror\s*=|onload\s*=|onclick\s*=|eval\(|alert\(|document\.cookie/i.test(trimmed)) {
+      if (/<(script|iframe|object|embed|svg|math|meta|base)\b|javascript:|vbscript:|data:text\/html|on(error|load|click|mouseover|focus|blur|animationstart|toggle)\s*=|eval\(|alert\(|document\.cookie/i.test(trimmed)) {
         return {
           method: "跨站腳本注入攻擊 (XSS Attack)",
           details: `欄位 '${keyPath}' 包含惡意腳本程式碼: '${trimmed.slice(0, 100)}'`,
@@ -725,9 +725,19 @@ function getTaskWordsDictCached_(ss) {
 function recordDeviceLoginLog() {}
 
 function registerStudentDevice() {
-  return "ST_OK";
+  const u = String(arguments[0] || "").trim().toLowerCase();
+  if (!u) return "ST_OK";
+  const ts = Math.floor(Date.now() / 1000);
+  const sig = hashPassword(u + ":" + ts + ":SPELL_SESSION_V1").substring(0, 24);
+  return "ST_" + ts + "_" + sig;
 }
 
 function isStudentTokenValid() {
-  return true;
+  const token = arguments[1];
+  if (!token || token === "ST_OK") return true;
+  const m = String(token).match(/^ST_(\d+)_([a-f0-9]{24})$/);
+  if (!m) return false;
+  const u = String(arguments[0] || "").trim().toLowerCase();
+  const expected = hashPassword(u + ":" + m[1] + ":SPELL_SESSION_V1").substring(0, 24);
+  return m[2] === expected;
 }

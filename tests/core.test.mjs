@@ -128,11 +128,18 @@ test("Google Apps Script (Code.gs & AuthService.js): cloud sync sanitization & a
   const codeGs = fs.readFileSync("google_apps_script/Code.gs", "utf8");
   const authGs = fs.readFileSync("google_apps_script/AuthService.js", "utf8");
   vm.runInContext(codeGs.slice(0, codeGs.indexOf("function doPost")), sandbox);
-  vm.runInContext(authGs.slice(0, authGs.indexOf("function ensureStudentSheetColumns")), sandbox);
+  vm.runInContext(authGs, sandbox);
 
   const hashed = sandbox.hashPassword("123456");
   assert.equal(sandbox.isHashedPassword(hashed), true);
   assert.equal(sandbox.formatStandardDateYMD("2026/5/8"), "2026-05-08");
+
+  const tok = sandbox.registerStudentDevice("90101");
+  assert.ok(tok.startsWith("ST_"));
+  assert.equal(sandbox.isStudentTokenValid("90101", tok), true);
+  assert.equal(sandbox.isStudentTokenValid("90102", tok), false);
+  const wafHit = sandbox.inspectRequestForAttacks({}, { note: "<svg onload=alert(1)>" }, {});
+  assert.ok(wafHit && wafHit.method.includes("XSS"));
 
   const summary = vm.runInContext(
     "calculateSummaryFromAgentData({ stat: { w0: { a: 3, c: 3 }, w1: { a: 2, c: 1 } }, box: { w0: 3, w1: 1 } }, null)",

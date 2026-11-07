@@ -690,7 +690,7 @@ function getStudentMetaFromUserList_(ss, studentUser) {
         }
       } catch(_) {}
 
-      const sessionToken = "ST_OK";
+      const sessionToken = registerStudentDevice(studentUser);
 
       return jsonResponse({
         status: "success",
@@ -823,7 +823,13 @@ function getStudentMetaFromUserList_(ss, studentUser) {
     }
 
     if (action === "getDailyUsageSettings") {
-      const u = String(params.targetUsername || params.username || "").trim();
+      let u = String(params.username || "").trim();
+      if (params.targetUsername && String(params.targetUsername).trim() !== u) {
+        const auth = authenticateUser(ss, params.username, params.password);
+        if (auth && auth.success && (auth.role === "teacher" || auth.role === "admin")) {
+          u = String(params.targetUsername).trim();
+        }
+      }
       return jsonResponse({
         status: "success",
         dailyUsage: getDailyUsageSettings(ss, u, false),
