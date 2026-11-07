@@ -22,7 +22,11 @@ async function autoPruneAudioCache() {
 }
 
 if (typeof window !== "undefined") {
-  setTimeout(autoPruneAudioCache, 2500);
+  if ("requestIdleCallback" in window) {
+    requestIdleCallback(() => autoPruneAudioCache(), { timeout: 5000 });
+  } else {
+    setTimeout(autoPruneAudioCache, 2500);
+  }
 }
 
 

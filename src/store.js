@@ -152,6 +152,19 @@ function dayAgo(offset) {
   return { key: `${y}-${m}-${day}`, dnum: d.getDate() };
 }
 
+function countKeys(obj) {
+  if (!obj) return 0;
+  let count = 0;
+  for (const _ in obj) count++;
+  return count;
+}
+
+function hasAnyKey(obj) {
+  if (!obj || typeof obj !== "object") return false;
+  for (const _ in obj) return true;
+  return false;
+}
+
 // box (Leitner): 0 new · 1 learning · 2 practicing · 3 mastered
 // stat[id]: { a: attempts, c: corrects, ew: everWrong }
 // lstat[level]: { a, c } — per-level attempts/corrects (drives the 80% gate)
@@ -198,7 +211,7 @@ function load() {
       if (!item) return false;
       if (typeof item.a === "number" && item.a > 0) return true;
       if (typeof item.attempts === "number" && item.attempts > 0) return true;
-      if (item.words && typeof item.words === "object" && Object.keys(item.words).length > 0) return true;
+      if (hasAnyKey(item.words)) return true;
       return false;
     };
     const histKeysWithAtt = Object.keys(merged.history).filter(hk => hasValidActivity(merged.history[hk])).map(normalizeDateStr);
@@ -426,7 +439,7 @@ export function sessionEnd() {
   const s = DB.session;
   const summary = {
     answered: s.answered, correct: s.correct, incorrect: s.incorrect,
-    distinct: Object.keys(s.ids).length, mastered: s.mastered,
+    distinct: countKeys(s.ids), mastered: s.mastered,
     rate: s.answered ? Math.round((s.correct / s.answered) * 100) : 0,
   };
   DB.session.active = false;
@@ -511,7 +524,7 @@ export function historyData(n = 28, preloadedTaskHistory = null) {
             a = Math.max(a, dpAtt);
             c = Math.max(c, dpCor);
           }
-        } else if ((!dp.words || Object.keys(dp.words).length === 0) && dp.attempts > 0 && (!thRow || thFreeAtt > 0)) {
+        } else if (!hasAnyKey(dp.words) && dp.attempts > 0 && (!thRow || thFreeAtt > 0)) {
           a = Math.max(a, dp.attempts || 0);
           c = Math.max(c, dp.correct || 0);
         }
@@ -524,7 +537,7 @@ export function historyData(n = 28, preloadedTaskHistory = null) {
       const h = DB.history[norm] || DB.history[unpad] || DB.history[slash] || DB.history[dateStr];
       if (h) {
         const dpForCheck = DB.dailyPractice && (DB.dailyPractice[norm] || DB.dailyPractice[unpad] || DB.dailyPractice[slash] || DB.dailyPractice[dateStr]);
-        const isFabricatedOnly = dpForCheck && dpForCheck.words && Object.keys(dpForCheck.words).length > 0 && !isRealDailyWordsMap(dpForCheck.words);
+        const isFabricatedOnly = dpForCheck && hasAnyKey(dpForCheck.words) && !isRealDailyWordsMap(dpForCheck.words);
         if (!isFabricatedOnly) {
           const hAtt = (h.a !== undefined) ? h.a : (h.attempts !== undefined ? h.attempts : 0);
           const hCor = (h.c !== undefined) ? h.c : (h.correct !== undefined ? h.correct : 0);
@@ -632,7 +645,7 @@ export function sessionState() {
   const s = DB.session;
   return {
     active: s.active, answered: s.answered, correct: s.correct, incorrect: s.incorrect,
-    distinct: Object.keys(s.ids).length,
+    distinct: countKeys(s.ids),
     rate: s.answered ? Math.round((s.correct / s.answered) * 100) : 0,
   };
 }
@@ -755,13 +768,13 @@ export function getDailyPractice(dateStr) {
   const unpadded = unpadDateStr(dateStr);
   const slashed = norm.replace(/-/g, "/");
   let dp = (DB.dailyPractice && (DB.dailyPractice[norm] || DB.dailyPractice[unpadded] || DB.dailyPractice[slashed] || DB.dailyPractice[dateStr])) || null;
-  if (dp && dp.words && Object.keys(dp.words).length > 0 && !isRealDailyWordsMap(dp.words)) {
+  if (dp && hasAnyKey(dp.words) && !isRealDailyWordsMap(dp.words)) {
     dp = null;
   }
-  if (!dp || (!dp.attempts && (!dp.words || Object.keys(dp.words).length === 0))) {
+  if (!dp || (!dp.attempts && !hasAnyKey(dp.words))) {
     const h = (DB.history && (DB.history[norm] || DB.history[unpadded] || DB.history[slashed] || DB.history[dateStr])) || null;
     if (h) {
-      const hAtt = (h.a !== undefined) ? h.a : (h.attempts !== undefined ? h.attempts : (h.words ? Object.keys(h.words).length : 0));
+      const hAtt = (h.a !== undefined) ? h.a : (h.attempts !== undefined ? h.attempts : (h.words ? countKeys(h.words) : 0));
       const hCor = (h.c !== undefined) ? h.c : (h.correct !== undefined ? h.correct : 0);
       if (hAtt > 0) {
         dp = {
@@ -799,7 +812,7 @@ export function getPracticeDates() {
     for (const k in DB.dailyPractice) {
       const dp = DB.dailyPractice[k];
       if (!k || !dp) continue;
-      const hasWords = dp.words && Object.keys(dp.words).length > 0;
+      const hasWords = hasAnyKey(dp.words);
       if (hasWords && !isRealDailyWordsMap(dp.words)) continue;
       if ((dp.attempts > 0) || hasWords) set.add(normalizeDateStr(k));
     }
@@ -807,7 +820,7 @@ export function getPracticeDates() {
   if (DB.history) {
     for (const k in DB.history) {
       const h = DB.history[k];
-      if (k && h && ((h.a > 0) || (h.attempts > 0) || (h.words && Object.keys(h.words).length > 0))) set.add(normalizeDateStr(k));
+      if (k && h && ((h.a > 0) || (h.attempts > 0) || hasAnyKey(h.words))) set.add(normalizeDateStr(k));
     }
   }
   return Array.from(set);
@@ -1066,7 +1079,7 @@ export function summary(words) {
         changed = true;
         continue;
       }
-      const hasWords = dp.words && typeof dp.words === "object" && Object.keys(dp.words).length > 0;
+      const hasWords = hasAnyKey(dp.words);
       const isFabricatedWords = hasWords && !isRealDailyWordsMap(dp.words);
       if (isFabricatedWords) {
         const thRow = thMap.get(normDp) || null;
@@ -1120,8 +1133,8 @@ export function summary(words) {
   const totalPrac  = lvAcc[1].prac  + lvAcc[2].prac  + lvAcc[3].prac  + lvAcc[4].prac  + lvAcc[5].prac;
   const totalMast  = lvAcc[1].mast  + lvAcc[2].mast  + lvAcc[3].mast  + lvAcc[4].mast  + lvAcc[5].mast;
   const distinctCorrect = totalLearn + totalPrac + totalMast;
-  const statKeysCount = DB && DB.stat ? Object.keys(DB.stat).length : 0;
-  const boxKeysCount  = DB && DB.box  ? Object.keys(DB.box).length  : 0;
+  const statKeysCount = countKeys(DB && DB.stat);
+  const boxKeysCount  = countKeys(DB && DB.box);
   const testedVocab = Math.max(distinctCorrect, totTestedWords, statKeysCount, boxKeysCount);
   const passRate = testedVocab > 0 ? Math.round((distinctCorrect / testedVocab) * 100) : 0;
   const totalWordsCount = (words && words.length) || 2055;
@@ -1232,8 +1245,8 @@ export function getPrecomputedSummary(words) {
   for (let lv = 1; lv <= 5; lv++) {
     levels[lv] = `${levelCorr[lv]}/${levelTested[lv]}`;
   }
-  const statKeysCount = DB && DB.stat ? Object.keys(DB.stat).length : 0;
-  const boxKeysCount  = DB && DB.box  ? Object.keys(DB.box).length  : 0;
+  const statKeysCount = countKeys(DB && DB.stat);
+  const boxKeysCount  = countKeys(DB && DB.box);
   const testedVocab = Math.max(distinctCorrect, totTestedWords, statKeysCount, boxKeysCount);
   const passRate = testedVocab > 0 ? Math.round((distinctCorrect / testedVocab) * 100) : 0;
 
