@@ -1199,7 +1199,7 @@ function _getStudentData(ss, username) {
   return { status: "success", username: cleanU, headers, data: rawData, wordList, agentData, dailyTaskHistory: (typeof dHist !== "undefined" ? dHist : []), taskWordsMap: getTaskWordsDictCached_(ss) };
 }
 
-function _getLeaderboard(ss, targetUsername, mode, isTeacher) {
+function _getLeaderboard(ss, targetUsername, mode, isTeacher, optAuth) {
   const target    = String(targetUsername||"").trim().toLowerCase();
   const classData = getClassOverviewRaw(ss);
   const myMeta    = classData.find(s=>s.username.toLowerCase()===target);
@@ -1223,8 +1223,9 @@ function _getLeaderboard(ss, targetUsername, mode, isTeacher) {
   const list = pool.map(s => {
     const isMe = s.username.toLowerCase()===target;
     const att  = toN(s.attempts), cor = toN(s.correct);
-    const maskedU = (isMe || isTeacher) ? s.username : maskUser(s.username);
-    const displayRealName = (isMe || isTeacher) ? s.realName : maskName(s.username, s.realName);
+    const canUnmask = isMe || (isTeacher && (!optAuth || optAuth.isAdmin || isTeacherAllowedForClass(optAuth, s.className)));
+    const maskedU = canUnmask ? s.username : maskUser(s.username);
+    const displayRealName = canUnmask ? s.realName : maskName(s.username, s.realName);
     return {
       username: maskedU,
       maskedName: maskName(s.username, s.realName),
@@ -1275,7 +1276,7 @@ function getStudentLeaderboard(creds) {
     if (creds.forceRefresh) clearOverviewCache();
     const isTeacher = auth.role === "teacher";
     const target = (isTeacher && creds.targetStudent) ? String(creds.targetStudent).trim() : auth.username;
-    return {status:"success", leaderboard:_getLeaderboard(ss, target, creds.mode||"class", isTeacher)};
+    return {status:"success", leaderboard:_getLeaderboard(ss, target, creds.mode||"class", isTeacher, auth)};
   } catch(e) {
     logError("getStudentLeaderboard",e,creds?creds.username:"","");
     return {status:"error",message:e.toString()};
@@ -1396,7 +1397,7 @@ function getErrorLogs(creds) {
   try {
     const ss   = SpreadsheetApp.getActiveSpreadsheet();
     const auth = authenticateUser(ss, creds.username, creds.password);
-    if (!auth.success||auth.role!=="teacher") return {status:"error",message:"無權限"};
+    if (!auth.success||auth.role!=="teacher"||!auth.isAdmin) return {status:"error",message:"僅系統管理員可查閱或清空錯誤日誌"};
     const s = ss.getSheetByName("錯誤日誌");
     if (!s||s.getLastRow()<2) return {status:"success",logs:[],total:0};
     const total = s.getLastRow()-1;
@@ -1414,7 +1415,7 @@ function clearErrorLogs(creds) {
   try {
     const ss   = SpreadsheetApp.getActiveSpreadsheet();
     const auth = authenticateUser(ss, creds.username, creds.password);
-    if (!auth.success||auth.role!=="teacher") return {status:"error",message:"無權限"};
+    if (!auth.success||auth.role!=="teacher"||!auth.isAdmin) return {status:"error",message:"僅系統管理員可查閱或清空錯誤日誌"};
     const s = ss.getSheetByName("錯誤日誌");
     if (s&&s.getLastRow()>=2) s.deleteRows(2,s.getLastRow()-1);
     return {status:"success",message:"錯誤日誌已清空"};
@@ -2676,7 +2677,7 @@ function showActiveCellWordListDialog() {
           <span class="count-badge">共 ${words.length} 字</span>
         </div>
         <div class="word-container">
-          ${words.map(w => `<span class="word-chip">${w}</span>`).join('')}
+          ${words.map(w => `<span class="word-chip">${String(w).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]))}</span>`).join('')}
         </div>
         <button class="btn-close" onclick="google.script.host.close()">關閉視窗</button>
       </body>

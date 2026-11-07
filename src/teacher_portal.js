@@ -46,7 +46,9 @@
       try {
         const raw = localStorage.getItem(OFFLINE_SYNC_QUEUE_KEY);
         const q = raw ? JSON.parse(raw) : [];
-        q.push({ ts: Date.now(), payload });
+        const safePayload = (payload && typeof payload === "object") ? Object.assign({}, payload) : payload;
+        if (safePayload && typeof safePayload === "object") delete safePayload.password;
+        q.push({ ts: Date.now(), payload: safePayload });
         if (q.length > 20) q.splice(0, q.length - 20);
         localStorage.setItem(OFFLINE_SYNC_QUEUE_KEY, JSON.stringify(q));
       } catch (_) {}
@@ -62,9 +64,12 @@
       const q = JSON.parse(raw);
       if (!Array.isArray(q) || q.length === 0) return;
       const remaining = [];
+      const curPass = sessionStorage.getItem("current_pass") || "";
+      if (!curPass) return;
       for (let i = 0; i < q.length; i++) {
         try {
-          await fetchGasWithRetry(q[i].payload, { retries: 1, timeoutMs: 10000, enqueueOnFail: false });
+          const itemPayload = (q[i].payload && typeof q[i].payload === "object") ? Object.assign({}, q[i].payload, { password: q[i].payload.password || curPass }) : q[i].payload;
+          await fetchGasWithRetry(itemPayload, { retries: 1, timeoutMs: 10000, enqueueOnFail: false });
         } catch (_) {
           remaining.push(q[i]);
         }

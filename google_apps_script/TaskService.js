@@ -373,8 +373,8 @@ function getTeacherTask(credentials, targetClass, targetDate) {
     const cleanTarget  = effectiveClass.replace(/班$/, "").trim().toLowerCase();
 
     // 非管理員教師嚴格限制只能查看自身班級任務
-    if (!auth.isAdmin && cleanAuth && cleanAuth !== "all" && cleanTarget !== cleanAuth) {
-      effectiveClass = auth.className;
+    if (!auth.isAdmin && !isTeacherAllowedForClass(auth, effectiveClass)) {
+      effectiveClass = (auth.classList && auth.classList.length > 0) ? auth.classList[0] : (auth.className || "");
     }
 
     const cleanClass = effectiveClass.replace(/班$/, "").trim().toLowerCase();
@@ -446,7 +446,7 @@ function saveTeacherTask(credentials, taskData) {
       cleanAuth === cleanTarget ||
       (auth.username && String(auth.username).toLowerCase().includes(cleanTarget));
 
-    if (!isClassAllowed) {
+    if (!isTeacherAllowedForClass(auth, targetClass)) {
       return { status: "error", message: "權限不足：非管理員教師僅限為自身任教班級出題（目標：" + targetClass + "，您任教：" + (teacherClasses.join("、") || cleanAuth) + "）" };
     }
 

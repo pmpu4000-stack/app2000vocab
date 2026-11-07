@@ -336,7 +336,7 @@ function doPost(e) {
 
     if (action === "adminFixIncompleteRecords" || action === "fixIncompleteTaskRecords") {
       const auth = authenticateUser(ss, params.username, params.password);
-      if (!auth.success || auth.role !== "teacher") return jsonResponse({status:"error", message:"僅教師或管理員可執行校正"});
+      if (!auth.success || auth.role !== "teacher" || !auth.isAdmin) return jsonResponse({status:"error", message:"僅系統管理員可執行全校紀錄校正"});
       return jsonResponse(fixIncompleteTaskRecords(ss, params));
     }
     if (action === "checkAndGetData") {
@@ -726,10 +726,10 @@ function getStudentMetaFromUserList_(ss, studentUser) {
     if (action === "saveRecord") {
       const auth = authenticateUser(ss, params.username, params.password);
       if (!auth.success) return jsonResponse({status:"error", message:auth.message});
-      if (auth.role === "parent") {
-        return jsonResponse({status:"error", message:"家長檢視模式不允許覆寫學生學習紀錄"});
+      if (auth.role !== "student") {
+        return jsonResponse({status:"error", message:"非學生本人模式不允許覆寫學生學習紀錄"});
       }
-      if (auth.role === "student" && params.sessionToken && !isStudentTokenValid(auth.username, params.sessionToken)) {
+      if (!params.sessionToken || !isStudentTokenValid(auth.username, params.sessionToken)) {
         return jsonResponse({status:"error", message:"登入憑證無效或遭竄改，請重新登入"});
       }
       
@@ -768,14 +768,7 @@ function getStudentMetaFromUserList_(ss, studentUser) {
 
     // ── 6. 讀取指定日期區間所有學生答題狀況比較表 ──
     if (action === "getDateRangePerformanceAnalytics") {
-      const auth = authenticateUser(ss, params.username, params.password);
-      if (!auth.success || (auth.role !== "teacher" && auth.role !== "admin")) {
-        return jsonResponse({ status: "error", message: "無教師權限" });
-      }
-      if (!auth.isAdmin && (!params.targetClass || params.targetClass === "all" || !isTeacherAllowedForClass(auth, params.targetClass))) {
-        params.targetClass = (auth.classList && auth.classList.length > 0) ? auth.classList[0] : auth.className;
-      }
-      return jsonResponse(getDateRangePerformanceAnalytics(ss, params));
+      return jsonResponse(getDateRangePerformanceAnalytics(params));
     }
 
     // ── 7. 學生使用時間管理 API ──
@@ -899,9 +892,8 @@ function getStudentMetaFromUserList_(ss, studentUser) {
     // ── 9. 全面升級試算表為單字數基準 (Vocab-Based Migration) ──
     if (action === "migrateToVocabBased") {
       const auth = authenticateUser(ss, params.username, params.password);
-      const isAuthorized = (auth && auth.success && (auth.role === "teacher" || auth.role === "admin"));
-      if (!isAuthorized) {
-        return jsonResponse({status:"error", message:"僅教師或管理員可執行單字庫基準遷移"});
+      if (!auth || !auth.success || (auth.role !== "teacher" && auth.role !== "admin") || !auth.isAdmin) {
+        return jsonResponse({status:"error", message:"僅系統管理員可執行單字庫基準遷移"});
       }
       return jsonResponse(migrateAllSheetsToVocabBased());
     }
@@ -909,14 +901,14 @@ function getStudentMetaFromUserList_(ss, studentUser) {
     // ── 10. 智慧同步全班歷史指定測驗紀錄至各日期列 ──
     if (action === "syncAllTaskRecords") {
       const auth = authenticateUser(ss, params.username, params.password);
-      if (!auth.success || auth.role !== "teacher") return jsonResponse({ status: "error", message: "僅限教師或管理員操作" });
+      if (!auth.success || auth.role !== "teacher" || !auth.isAdmin) return jsonResponse({ status: "error", message: "僅限系統管理員操作" });
       return jsonResponse(syncAllTaskRecords(ss));
     }
 
     // ── 11. 個資法與資料隱私合規性自動檢驗 ──
     if (action === "auditComplianceCheck") {
       const auth = authenticateUser(ss, params.username, params.password);
-      if (!auth.success || auth.role !== "teacher") return jsonResponse({ status: "error", message: "僅限教師或管理員查詢" });
+      if (!auth.success || auth.role !== "teacher" || !auth.isAdmin) return jsonResponse({ status: "error", message: "僅限系統管理員查詢" });
       return jsonResponse(auditComplianceData(ss));
     }
 
@@ -1268,7 +1260,7 @@ function syncAllTaskRecords(ss) {
 /**
  * 讀取指定日期區間全班學生作答狀況與數據分析
  */
-function getDateRangePerformanceAnalytics(ss, params) {
+function getDateRangePerformanceAnalyticsLegacy_(ss, params) {
   try {
     const sDate = String(params.startDate || "").trim();
     const eDate = String(params.endDate || "").trim();
