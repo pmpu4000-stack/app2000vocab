@@ -2549,7 +2549,7 @@
       flex: 0 0 auto !important;
     }
     .task-card-title {
-      font-size: 12px !important;
+      font-size: 13.5px !important;
       font-weight: 750 !important;
       color: var(--ink) !important;
       letter-spacing: 0.2px !important;
@@ -2623,6 +2623,11 @@
       .task-score-grid {
         grid-template-columns: 1fr !important;
         gap: 8px !important;
+      }
+      .task-empty-notice-box {
+        height: 322px !important;
+        min-height: 322px !important;
+        max-height: 322px !important;
       }
       .task-score-subgrid-4 {
         gap: 6px !important;
@@ -2740,9 +2745,9 @@
     }
     @media (max-width: 640px) {
       .word-split-grid {
-        grid-template-columns: 1fr !important;
-        gap: 8px !important;
-        margin-top: 10px !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 6px !important;
+        margin-top: 0 !important;
       }
       .word-split-box {
         height: auto !important;
@@ -2773,6 +2778,7 @@
       grid-template-columns: 1fr 1fr !important;
       gap: 8px !important;
       margin-top: 0 !important;
+      margin-bottom: 0 !important;
       box-sizing: border-box !important;
     }
     .word-split-box {
@@ -2868,19 +2874,19 @@
       box-sizing: border-box !important;
     }
     .task-empty-notice-box {
-      flex: 1 1 auto !important;
-      height: 100% !important;
-      min-height: 0 !important;
-      max-height: 100% !important;
+      flex: 0 0 auto !important;
+      height: 254px !important;
+      min-height: 254px !important;
+      max-height: 254px !important;
       display: flex !important;
       flex-direction: column !important;
       align-items: center !important;
-      justify-content: flex-start !important;
+      justify-content: center !important;
       background: #F8FAFC !important;
       border: 1.5px dashed #CBD5E1 !important;
       border-radius: 12px !important;
       margin: 0 !important;
-      padding: 82px 14px 16px !important;
+      padding: 16px 14px !important;
       text-align: center !important;
       box-sizing: border-box !important;
     }
@@ -3087,6 +3093,7 @@
       display: flex !important;
       align-items: center !important;
       justify-content: space-between !important;
+      flex-wrap: wrap !important;
       gap: 6px 10px !important;
       line-height: 1.5 !important;
     }
@@ -3236,15 +3243,19 @@
     @media (max-width: 640px) {
       .streakline {
         font-size: 11.5px !important;
-        gap: 4px !important;
+        gap: 6px 8px !important;
+        flex-wrap: wrap !important;
       }
       .streakline > span:first-child {
         font-size: 11px !important;
+        white-space: normal !important;
+        flex: 1 1 100% !important;
       }
       .heat-day-info {
         height: 25px !important;
         padding: 0 6px !important;
         font-size: 11px !important;
+        margin-left: 0 !important;
       }
       .date-nav-right {
         width: 100% !important;
@@ -3253,15 +3264,19 @@
     @media (max-width: 400px) {
       .streakline {
         font-size: 10.5px !important;
-        gap: 3px !important;
+        gap: 4px 6px !important;
+        flex-wrap: wrap !important;
       }
       .streakline > span:first-child {
         font-size: 10px !important;
+        white-space: normal !important;
+        flex: 1 1 100% !important;
       }
       .heat-day-info {
         height: 24px !important;
         padding: 0 5px !important;
         font-size: 10px !important;
+        margin-left: 0 !important;
       }
     }
 
