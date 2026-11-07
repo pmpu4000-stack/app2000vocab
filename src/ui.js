@@ -1,4 +1,4 @@
-import { initExportRecordsCard } from "./ui_export.js?v=202611071644";
+import { initExportRecordsCard } from "./ui_export.js";
 import { initWeakWordsCard, analyzeErrorTag } from "./ui_weak_words.js";
 
 const SVG_SPEAKER = '<svg class="icon-speaker" viewBox="0 0 24 24" width="17" height="17" fill="currentColor" style="vertical-align:middle;display:inline-block;"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>';
@@ -6,11 +6,11 @@ const SVG_SPEAKER = '<svg class="icon-speaker" viewBox="0 0 24 24" width="17" he
 // ui.js — the view. All DOM rendering lives here. It renders from plain
 // data and reports intent through callbacks; it never touches the store.
 // =====================================================================
-import { CATS } from "./data.js?v=20261013_1225";
-import { say, sayWord, spellOut, playContestSentence, stopAudio, parseDialogue } from "./audio.js?v=20261106_1835";
-import { LEVELS, levelColor, levelName, misspellings, shuffle } from "./levels.js?v=20261013_1225";
+import { CATS } from "./data.js";
+import { say, sayWord, spellOut, playContestSentence, stopAudio, parseDialogue } from "./audio.js";
+import { LEVELS, levelColor, levelName, misspellings, shuffle } from "./levels.js";
 import { diagnoseWordMistake } from "./diagnostics.js";
-import { box, normalizeDateStr, formatDateYMD, getWeekRangeDates, getBiweeklyCycleInfo } from "./store.js?v=202611071644";
+import { box, normalizeDateStr, formatDateYMD, getWeekRangeDates, getBiweeklyCycleInfo } from "./store.js";
 
 if (typeof window !== "undefined") {
   window.__say = say;

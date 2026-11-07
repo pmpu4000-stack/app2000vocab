@@ -1,7 +1,7 @@
 // =====================================================================
 // ui_weak_words.js — 雙週未答對滾入期末測驗單字表
 // =====================================================================
-import { sayWord } from "./audio.js?v=20261106_1835";
+import { sayWord } from "./audio.js";
 import { _renderConquerWordCard } from "./ui.js";
 
 export function analyzeErrorTag() {

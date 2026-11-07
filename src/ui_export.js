@@ -1,9 +1,9 @@
 // =====================================================================
 // ui_export.js — 底部作答歷程紀錄匯出下載模組 (Excel / PDF / A4 報表)
 // =====================================================================
-import { escapeHtml } from "./wordbank.js?v=20261025_1618";
-import { normalizeDateStr, formatDateYMD } from "./store.js?v=20261025_1618";
-import { levelColor, levelName } from "./levels.js?v=20261013_1225";
+import { escapeHtml } from "./wordbank.js";
+import { normalizeDateStr, formatDateYMD } from "./store.js";
+import { levelColor, levelName } from "./levels.js";
 import { diagnoseWordMistake } from "./diagnostics.js";
 import {
   resolveWordStr,

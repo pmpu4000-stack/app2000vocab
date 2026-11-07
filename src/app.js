@@ -36,18 +36,18 @@ if (typeof document !== "undefined") {
 // drives level-based practice, gates progression behind challenges,
 // and manages teacher-assigned tasks & weekend mistake remediation.
 // =====================================================================
-import { loadWordBank, wordsAtLevel } from "./wordbank.js?v=20261025_1618";
-import * as store from "./store.js?v=202611071644";
-import { normalizeDateStr } from "./store.js?v=202611071644";
-import { nextWord } from "./srs.js?v=20261019_v228";
-import * as ui from "./ui.js?v=202611071644";
-import { stopAudio, prefetchAudio } from "./audio.js?v=20261106_1835";
-import { burst } from "./confetti.js?v=20261019_v228";
+import { loadWordBank, wordsAtLevel } from "./wordbank.js";
+import * as store from "./store.js";
+import { normalizeDateStr } from "./store.js";
+import { nextWord } from "./srs.js";
+import * as ui from "./ui.js";
+import { stopAudio, prefetchAudio } from "./audio.js";
+import { burst } from "./confetti.js";
 import {
   LEVELS, levelColor, levelName, sample,
   PASS_RATE, GATE_MIN_ATTEMPTS, CHALLENGE_LEN, PLACEMENT_PER_LEVEL, DAILY_GOAL,
   AUTO_PROMOTE_THRESHOLDS,
-} from "./levels.js?v=20261019_v228";
+} from "./levels.js";
 
 let WORDS = [];
 const state = { mode: "listen", word: null, answered: false, round: null, activeRepairRequired: false };

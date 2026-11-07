@@ -828,8 +828,7 @@
                 document.body.classList.add("daily-limit-reached");
               }
             }
-            const cacheBuster = Date.now();
-            await import(`./src/app.js?v=${cacheBuster}`);
+            await import(`./src/app.js`);
             const _ov = document.getElementById('login-overlay'); if (_ov) { _ov.style.setProperty('display', 'none', 'important'); _ov.classList.add('hidden'); }
             document.body.classList.remove('is-logging-in');
 

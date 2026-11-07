@@ -9,7 +9,7 @@ console.log("== [1/4] Syncing TeacherJs.html from src/teacher_portal.js ==");
 const tpSrc = fs.readFileSync(path.join(root, 'src', 'teacher_portal.js'), 'utf8');
 fs.writeFileSync(path.join(root, 'google_apps_script', 'TeacherJs.html'), '<script>\n' + tpSrc + '\n</script>', 'utf8');
 
-console.log("== [2/4] Syncing index.html to GAS, mirrors, and bumping SW/ES module cache ==");
+console.log("== [2/4] Syncing index.html to GAS, mirrors, and bumping SW/CSS cache ==");
 const nowTag = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 12);
 const bumpVer = (fPath, regex) => {
   if (!fs.existsSync(fPath)) return;
@@ -17,9 +17,7 @@ const bumpVer = (fPath, regex) => {
   const next = raw.replace(regex, `$1?v=${nowTag}`);
   if (next !== raw) fs.writeFileSync(fPath, next, 'utf8');
 };
-bumpVer(path.join(root, 'index.html'), /(css\/styles\.css|src\/app\.js|sw\.js|src\/teacher_portal\.js)\?v=[0-9A-Za-z_]+/g);
-bumpVer(path.join(root, 'src', 'app.js'), /(\.\/ui\.js|\.\/store\.js)\?v=[0-9A-Za-z_]+/g);
-bumpVer(path.join(root, 'src', 'ui.js'), /(\.\/ui_export\.js|\.\/store\.js)\?v=[0-9A-Za-z_]+/g);
+bumpVer(path.join(root, 'index.html'), /(css\/styles\.css|sw\.js|src\/teacher_portal\.js|src\/time_limits\.js)\?v=[0-9A-Za-z_]+/g);
 
 const idx = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 fs.writeFileSync(path.join(root, 'google_apps_script', 'Index.html'), idx, 'utf8');
