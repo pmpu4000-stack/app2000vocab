@@ -4031,3 +4031,168 @@ body.low-power-mode .btn {
   content-visibility: auto;
   contain-intrinsic-size: 0 42px;
 }
+
+/* =====================================================================
+   📱 Responsive Web Design (RWD) 全面自適應強化 (流體視埠、安全區域、容器查詢與多斷點適配)
+   ===================================================================== */
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding-top: max(10px, env(safe-area-inset-top));
+  padding-right: max(12px, env(safe-area-inset-right));
+  padding-bottom: max(28px, env(safe-area-inset-bottom));
+  padding-left: max(12px, env(safe-area-inset-left));
+}
+
+.app, #card, #teacher-portal-card, #parent-portal-screen {
+  container-type: inline-size;
+}
+
+img, svg, video, canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+/* 1. 平板與中小型視窗 (≤ 768px)：教師與家長工作區表單、篩選器與雙欄版面流體化 */
+@media (max-width: 768px) {
+  #teacher-portal-card {
+    padding: 16px 12px !important;
+    border-radius: 18px !important;
+  }
+  #parent-portal-screen {
+    padding: 16px 10px 44px !important;
+  }
+  #parent-portal-screen header {
+    flex-direction: column;
+    align-items: flex-start !important;
+  }
+  #parent-portal-screen header > div:last-child {
+    width: 100%;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+  }
+  #parent-portal-screen header > div:last-child button {
+    justify-content: center;
+  }
+  #pp-history-filter {
+    width: 100% !important;
+  }
+  .opts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* 2. 手機直向視窗 (≤ 520px)：單字分欄卡片、教師查詢列、拼字輸入框與字塊自適應 */
+@media (max-width: 520px) {
+  .title h1 {
+    font-size: clamp(17px, 4.8vw, 20px);
+  }
+  .title h1 span {
+    display: none;
+  }
+  .spellbox {
+    font-size: clamp(20px, 6.2vw, 26px);
+    letter-spacing: clamp(3px, 1.4vw, 7px);
+    padding: 8px 8px;
+  }
+  .tile {
+    width: clamp(34px, 9.2vw, 42px);
+    height: clamp(42px, 11vw, 48px);
+    font-size: clamp(18px, 5vw, 22px);
+  }
+  .tile.blank input {
+    font-size: clamp(18px, 5vw, 22px);
+  }
+  .summary-embedded .word-split-grid,
+  .daily-footprint-block .word-split-grid,
+  #export-web-preview-body .word-split-grid,
+  #task-record-details .word-split-grid,
+  #free-record-details .word-split-grid,
+  .task-single-record-block .word-split-grid {
+    grid-template-columns: 1fr !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+  }
+  .summary-embedded .word-split-box,
+  .daily-footprint-block .word-split-box,
+  #export-web-preview-body .word-split-box,
+  #task-record-details .word-split-box,
+  #free-record-details .word-split-box,
+  .task-single-record-block .word-split-box {
+    height: 135px !important;
+    min-height: 135px !important;
+    max-height: 135px !important;
+  }
+  #tp-panel-student > div:nth-child(2),
+  #tp-panel-class > div:nth-child(2) {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  #tp-panel-student select,
+  #tp-panel-student button,
+  #tp-panel-class select,
+  #tp-panel-class button {
+    width: 100% !important;
+    justify-content: center;
+  }
+  .export-mode-tabs,
+  .export-date-row-grid {
+    grid-template-columns: 1fr !important;
+  }
+  #teacherTaskModal > div,
+  #timeManagementModal > div {
+    width: 96vw !important;
+    max-height: 90dvh !important;
+    padding: 16px 12px !important;
+    border-radius: 16px !important;
+  }
+}
+
+/* 3. 大螢幕與桌機寬螢幕 (≥ 1200px)：擴展教師與家長儀表板最佳閱讀寬度 */
+@media (min-width: 1200px) {
+  html.role-teacher .app {
+    max-width: min(94vw, 1080px);
+  }
+  #parent-portal-screen {
+    max-width: 1080px !important;
+  }
+}
+
+/* 4. 觸控裝置無懸停保護 (Touch Device Hover Reset)：防止手機點擊後殘留 hover 浮起狀態 */
+@media (hover: none) and (pointer: coarse) {
+  .mode:hover,
+  .chip:hover,
+  .opt:hover,
+  .stat.font-size-btn:hover,
+  .mode-stat-card:hover,
+  .hc:hover {
+    transform: none !important;
+  }
+  input, select, textarea {
+    font-size: max(16px, 1em);
+  }
+}
+
+/* 5. 手機橫向矮螢幕 (Landscape Short Viewport) 緊湊模式 */
+@media (max-height: 500px) and (orientation: landscape) {
+  body {
+    padding-top: 6px;
+    padding-bottom: 12px;
+  }
+  .card {
+    min-height: 200px;
+    padding: 8px 12px;
+  }
+  #login-overlay > div,
+  #curfew-overlay > div {
+    max-height: 92dvh;
+    overflow-y: auto;
+    padding: 16px 20px !important;
+  }
+}
