@@ -4896,6 +4896,15 @@ body.css-fullscreen-active {
       flex-wrap: nowrap !important;
       align-items: flex-start !important;
       align-content: flex-start !important;
+      font-size: 11px !important;
+      line-height: 1.5 !important;
+    }
+    .word-split-box.advice-box .word-split-content b {
+      font-size: 11.5px !important;
+    }
+    .word-split-box.advice-box .word-split-content .card-icon-slot {
+      font-size: 12px !important;
+      width: 16px !important;
     }
     .word-split-title.untested-title {
       color: #475569 !important;
@@ -19892,16 +19901,16 @@ function renderSingleTaskCardHtml(record, selectedDate, agent, index = 0, totalC
     const statusDetail = hasLoggedInOrFree ? "該生當日有登入自由練習，但尚未完成本次指定測驗。請提醒學生點擊「每日指定測驗」進行補測。" : "該生當日無登入紀錄，尚未進行本次指定測驗。可提醒學生前往測驗專區進行補考挑戰！";
 
     correctContentHtml = `
-      <div style="display:flex; flex-direction:column; justify-content:flex-start; align-items:flex-start; gap:8px; padding:6px 0; font-size:12.5px; line-height:1.55; width:100%;">
+      <div style="display:flex; flex-direction:column; justify-content:flex-start; align-items:flex-start; gap:6px; padding:4px 0; font-size:11px; line-height:1.5; width:100%;">
         <div style="display:flex; align-items:flex-start; gap:6px; width:100%;">
-          <span class="card-icon-slot" style="flex-shrink:0; width:18px; text-align:center; line-height:1.55; font-size:13.5px;">${statusIcon}</span>
-          <div style="flex:1; min-width:0; line-height:1.55; text-align:left;">
+          <span class="card-icon-slot" style="flex-shrink:0; width:16px; text-align:center; line-height:1.5; font-size:12px;">${statusIcon}</span>
+          <div style="flex:1; min-width:0; line-height:1.5; text-align:left;">
             <b>${statusTitle}</b>。${statusDetail}
           </div>
         </div>
-        <div style="display:flex; align-items:flex-start; gap:6px; width:100%; font-size:11.8px; color:var(--ink3);">
-          <span class="card-icon-slot" style="flex-shrink:0; width:18px; text-align:center; line-height:1.55; font-size:13.5px;">📌</span>
-          <div style="flex:1; min-width:0; line-height:1.55; text-align:left;">
+        <div style="display:flex; align-items:flex-start; gap:6px; width:100%; font-size:10.5px; color:var(--ink3);">
+          <span class="card-icon-slot" style="flex-shrink:0; width:16px; text-align:center; line-height:1.5; font-size:12px;">📌</span>
+          <div style="flex:1; min-width:0; line-height:1.5; text-align:left;">
             提示：完成補測後，系統將自動採計成績並更新學習歷程。
           </div>
         </div>
@@ -20283,16 +20292,16 @@ function renderUntestedTaskCardHtml(info, agent) {
           <div class="word-split-title wrong-title advice-title">
             <span class="card-icon-slot">💡</span><span>補考與學習提醒</span>
           </div>
-          <div class="word-split-content" style="display:flex; flex-direction:column; justify-content:flex-start; align-items:flex-start; gap:8px; padding:6px 0; font-size:12.5px; line-height:1.55; width:100%;">
+          <div class="word-split-content" style="display:flex; flex-direction:column; justify-content:flex-start; align-items:flex-start; gap:6px; padding:4px 0; font-size:11px; line-height:1.5; width:100%;">
             <div style="display:flex; align-items:flex-start; gap:6px; width:100%;">
-              <span class="card-icon-slot" style="flex-shrink:0; width:18px; text-align:center; line-height:1.55; font-size:13.5px;">${statusIcon}</span>
-              <div style="flex:1; min-width:0; line-height:1.55; text-align:left;">
+              <span class="card-icon-slot" style="flex-shrink:0; width:16px; text-align:center; line-height:1.5; font-size:12px;">${statusIcon}</span>
+              <div style="flex:1; min-width:0; line-height:1.5; text-align:left;">
                 <b>${statusTitle}</b>。${statusDetail}
               </div>
             </div>
-            <div style="display:flex; align-items:flex-start; gap:6px; width:100%; font-size:11.8px; color:var(--ink3);">
-              <span class="card-icon-slot" style="flex-shrink:0; width:18px; text-align:center; line-height:1.55; font-size:13.5px;">📌</span>
-              <div style="flex:1; min-width:0; line-height:1.55; text-align:left;">
+            <div style="display:flex; align-items:flex-start; gap:6px; width:100%; font-size:10.5px; color:var(--ink3);">
+              <span class="card-icon-slot" style="flex-shrink:0; width:16px; text-align:center; line-height:1.5; font-size:12px;">📌</span>
+              <div style="flex:1; min-width:0; line-height:1.5; text-align:left;">
                 提示：完成補測後，系統將自動採計成績並更新學習歷程。
               </div>
             </div>

@@ -1577,16 +1577,16 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     const statusDetail = hasLoggedInOrFree ? "當日有登入進行自由練習，但未完成本次指定測驗。" : "當日無登入紀錄，未進行本次指定測驗。";
 
     correctContentHtml = `
-      <div style="display:flex; flex-direction:column; justify-content:flex-start; align-items:flex-start; gap:8px; padding:6px 0; font-size:12.5px; line-height:1.55; width:100%;">
+      <div style="display:flex; flex-direction:column; justify-content:flex-start; align-items:flex-start; gap:6px; padding:4px 0; font-size:11px; line-height:1.5; width:100%;">
         <div style="display:flex; align-items:flex-start; gap:6px; width:100%;">
-          <span class="card-icon-slot" style="flex-shrink:0; width:18px; text-align:center; line-height:1.55; font-size:13.5px;">${statusIcon}</span>
-          <div style="flex:1; min-width:0; line-height:1.55; text-align:left;">
+          <span class="card-icon-slot" style="flex-shrink:0; width:16px; text-align:center; line-height:1.5; font-size:12px;">${statusIcon}</span>
+          <div style="flex:1; min-width:0; line-height:1.5; text-align:left;">
             <b>${statusTitle}</b>。${statusDetail}
           </div>
         </div>
-        <div style="display:flex; align-items:flex-start; gap:6px; width:100%; font-size:11.8px; color:var(--ink3);">
-          <span class="card-icon-slot" style="flex-shrink:0; width:18px; text-align:center; line-height:1.55; font-size:13.5px;">📌</span>
-          <div style="flex:1; min-width:0; line-height:1.55; text-align:left;">
+        <div style="display:flex; align-items:flex-start; gap:6px; width:100%; font-size:10.5px; color:var(--ink3);">
+          <span class="card-icon-slot" style="flex-shrink:0; width:16px; text-align:center; line-height:1.5; font-size:12px;">📌</span>
+          <div style="flex:1; min-width:0; line-height:1.5; text-align:left;">
             提醒：未測驗之指定單字將自動排入週末補強測驗。
           </div>
         </div>
@@ -1955,16 +1955,16 @@ function renderUntestedTaskCardHtml(info, d) {
           <div class="word-split-title wrong-title advice-title">
             <span class="card-icon-slot">💡</span><span>學習提醒</span>
           </div>
-          <div class="word-split-content" style="display:flex; flex-direction:column; justify-content:flex-start; align-items:flex-start; gap:8px; padding:6px 0; font-size:12.5px; line-height:1.55; width:100%;">
+          <div class="word-split-content" style="display:flex; flex-direction:column; justify-content:flex-start; align-items:flex-start; gap:6px; padding:4px 0; font-size:11px; line-height:1.5; width:100%;">
             <div style="display:flex; align-items:flex-start; gap:6px; width:100%;">
-              <span class="card-icon-slot" style="flex-shrink:0; width:18px; text-align:center; line-height:1.55; font-size:13.5px;">${statusIcon}</span>
-              <div style="flex:1; min-width:0; line-height:1.55; text-align:left;">
+              <span class="card-icon-slot" style="flex-shrink:0; width:16px; text-align:center; line-height:1.5; font-size:12px;">${statusIcon}</span>
+              <div style="flex:1; min-width:0; line-height:1.5; text-align:left;">
                 <b>${statusTitle}</b>。${statusDetail}
               </div>
             </div>
-            <div style="display:flex; align-items:flex-start; gap:6px; width:100%; font-size:11.8px; color:var(--ink3);">
-              <span class="card-icon-slot" style="flex-shrink:0; width:18px; text-align:center; line-height:1.55; font-size:13.5px;">📌</span>
-              <div style="flex:1; min-width:0; line-height:1.55; text-align:left;">
+            <div style="display:flex; align-items:flex-start; gap:6px; width:100%; font-size:10.5px; color:var(--ink3);">
+              <span class="card-icon-slot" style="flex-shrink:0; width:16px; text-align:center; line-height:1.5; font-size:12px;">📌</span>
+              <div style="flex:1; min-width:0; line-height:1.5; text-align:left;">
                 提醒：未測驗之指定單字將自動排入週末補強測驗。
               </div>
             </div>
