@@ -2841,6 +2841,9 @@ function _renderConquerWordCard(wordStr, d) {
     posList.push(p);
   }
 
+  const cleanPh = String(obj.ph || obj.ipa || "").replace(/^[\/\[\s]+|[\/\]\s]+$/g, "");
+  const phonHtml = cleanPh ? `<span class="phon">/${cleanPh}/</span>` : "";
+
   const wordDisplay = obj.display || obj.word || clean;
   const posHtml = posList.length > 0 ? `<span class="zh-pos">${posList.join(" · ")}</span>` : "";
   const defHtml = defText ? `<b class="zh-def">${defText}</b>` : "";
@@ -2907,6 +2910,7 @@ function _renderConquerWordCard(wordStr, d) {
         <button type="button" class="word-speech-btn" onclick="window.__sayWord('${clean}')" aria-label="播放單字發音" title="播放單字發音">${SVG_SPEAKER}</button>
         <div class="zh-text" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
           <span class="conquer-card-word task-title-free">${wordDisplay}</span>
+          ${phonHtml}
           ${defHtml}
           ${posHtml}
         </div>
@@ -2917,6 +2921,9 @@ function _renderConquerWordCard(wordStr, d) {
     </div>
   `;
 }
+
+export { _renderConquerWordCard };
+if (typeof window !== "undefined") window._renderConquerWordCard = _renderConquerWordCard;
 
 export function buildWeekPendingConquerHtml(words, d = null, cycleParam = _activeConquerCycle) {
   const pendingWords = Array.isArray(words) ? words : getWeekPendingConquerWords(cycleParam);
