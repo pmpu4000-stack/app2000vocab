@@ -414,7 +414,7 @@
           const res = await fetch(scriptUrl, {
             method: "POST",
             headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify({ action: "getTimeRestrictions", username: u, password: p })
+            body: JSON.stringify({ action: "getStudentList", username: u, password: p })
           });
           const d = await res.json();
           if (d.status === "success" && Array.isArray(d.studentList) && d.studentList.length > 0) {
@@ -1843,7 +1843,7 @@
           const res = await fetch(scriptUrl, {
             method: "POST",
             headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify({ action: "getTimeRestrictions", username: u, password: p })
+            body: JSON.stringify({ action: "getStudentList", username: u, password: p })
           });
           const d = await res.json();
           if (d.status === "success" && Array.isArray(d.studentList) && d.studentList.length > 0) {

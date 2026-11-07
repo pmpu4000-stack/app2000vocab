@@ -730,7 +730,7 @@ function getFastStudentList(ss, auth) {
   });
 
   try {
-    const userSheet = ss.getSheetByName("使用者清單") || ss.getSheetByName("學生帳號");
+    const userSheet = ss.getSheetByName("使用者清單") || ss.getSheetByName("學生帳密") || ss.getSheetByName("學生帳號");
     if (userSheet && userSheet.getLastRow() >= 2) {
       const uData = userSheet.getDataRange().getValues();
       for (let i = 1; i < uData.length; i++) {
@@ -739,7 +739,7 @@ function getFastStudentList(ss, auth) {
         const c = String(uData[i][3] || "").replace(/班$/, "").trim();
         const name = String(uData[i][4] || "").trim();
         const seat = uData[i][5] !== undefined ? String(uData[i][5]).trim() : "";
-        if (u && role === "student") {
+        if (u && (role === "student" || role === "學生" || (!role && /^\d+$/.test(u)))) {
           if (!cleanAuthClass || cleanAuthClass === "all" || cleanAuthClass === "系統管理員" || authClassSet.has(c.toLowerCase())) {
             studentList.push({ username: u, className: c, realName: name || u, seat: seat });
           }
