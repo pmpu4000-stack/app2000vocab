@@ -2778,9 +2778,9 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 
 .task-empty-notice-box {
   flex: 0 0 auto !important;
-  height: 276px !important;
-  min-height: 276px !important;
-  max-height: 276px !important;
+  height: 246px !important;
+  min-height: 246px !important;
+  max-height: 246px !important;
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
@@ -2860,9 +2860,9 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
     padding-top: 8px !important;
   }
   .task-empty-notice-box {
-    height: 344px !important;
-    min-height: 344px !important;
-    max-height: 344px !important;
+    height: 314px !important;
+    min-height: 314px !important;
+    max-height: 314px !important;
   }
 }
 
