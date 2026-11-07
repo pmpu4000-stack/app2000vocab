@@ -29,7 +29,7 @@ function getDailyTaskAnalytics(formData) {
     const allStudents = [];
     const allClassesSet = new Set();
     if (userSheet && userSheet.getLastRow() >= 2) {
-      const uData = userSheet.getDataRange().getValues();
+      const uData = (function() { try { const h = CacheService.getScriptCache().get("ALL_USERS_ROSTER_V1"); if (h) return JSON.parse(h); } catch(_) {} const v = userSheet.getDataRange().getValues(); try { CacheService.getScriptCache().put("ALL_USERS_ROSTER_V1", JSON.stringify(v), 600); } catch(_) {} return v; })();
       for (let i = 1; i < uData.length; i++) {
         const u = String(uData[i][0] || "").trim();
         const role = String(uData[i][2] || "student").trim().toLowerCase();
@@ -323,7 +323,7 @@ function getDateRangePerformanceAnalytics(formData) {
     const allStudents = [];
     const allClassesSet = new Set();
     if (userSheet && userSheet.getLastRow() >= 2) {
-      const uData = userSheet.getDataRange().getValues();
+      const uData = (function() { try { const h = CacheService.getScriptCache().get("ALL_USERS_ROSTER_V1"); if (h) return JSON.parse(h); } catch(_) {} const v = userSheet.getDataRange().getValues(); try { CacheService.getScriptCache().put("ALL_USERS_ROSTER_V1", JSON.stringify(v), 600); } catch(_) {} return v; })();
       for (let i = 1; i < uData.length; i++) {
         const u = String(uData[i][0] || "").trim();
         const role = String(uData[i][2] || "student").trim().toLowerCase();
@@ -894,7 +894,7 @@ function getCycleRecordsAnalytics(param1, param2, param3) {
     const userSheet = ss.getSheetByName("使用者清單");
     const allStudents = [];
     if (userSheet && userSheet.getLastRow() >= 2) {
-      const uData = userSheet.getDataRange().getValues();
+      const uData = (function() { try { const h = CacheService.getScriptCache().get("ALL_USERS_ROSTER_V1"); if (h) return JSON.parse(h); } catch(_) {} const v = userSheet.getDataRange().getValues(); try { CacheService.getScriptCache().put("ALL_USERS_ROSTER_V1", JSON.stringify(v), 600); } catch(_) {} return v; })();
       for (let i = 1; i < uData.length; i++) {
         const u = String(uData[i][0] || "").trim();
         const role = String(uData[i][2] || "student").trim().toLowerCase();
@@ -997,7 +997,7 @@ function getStudentDurationAnalytics(param1, param2, param3) {
     const userSheet = ss.getSheetByName("使用者清單");
     const allStudents = [];
     if (userSheet && userSheet.getLastRow() >= 2) {
-      const uData = userSheet.getDataRange().getValues();
+      const uData = (function() { try { const h = CacheService.getScriptCache().get("ALL_USERS_ROSTER_V1"); if (h) return JSON.parse(h); } catch(_) {} const v = userSheet.getDataRange().getValues(); try { CacheService.getScriptCache().put("ALL_USERS_ROSTER_V1", JSON.stringify(v), 600); } catch(_) {} return v; })();
       for (let i = 1; i < uData.length; i++) {
         const u = String(uData[i][0] || "").trim();
         const role = String(uData[i][2] || "student").trim().toLowerCase();
