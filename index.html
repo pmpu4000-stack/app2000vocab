@@ -819,7 +819,7 @@
   <link rel="stylesheet" href="css/styles.css?v=20261107_1718">
   <link rel="preload" href="data/words2000.json" as="fetch" crossorigin>
   <link rel="preload" href="data/meanings.json" as="fetch" crossorigin>
-  <link rel="modulepreload" href="src/app.js">
+  <link rel="modulepreload" href="src/app.js?v=20261107_1730">
   <link rel="modulepreload" href="src/wordbank.js">
   <link rel="modulepreload" href="src/store.js">
   <link rel="modulepreload" href="src/ui.js">
@@ -2317,7 +2317,7 @@
   function autoAvoidKeyboard(el) {
     if (!el) return;
     setTimeout(() => {
-      const parentCard = el.closest('#login-overlay, .quiz-screen, .card') || el;
+      const parentCard = el.closest('#login-overlay, .quiz-screen') || el;
       if (parentCard && typeof parentCard.scrollIntoView === 'function') {
         parentCard.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
       } else {
@@ -2707,12 +2707,7 @@
             }
 
             const cacheBuster = Date.now();
-            await import(`./src/app.js?v=${cacheBuster}`);
-
-            applyRoleBasedView(effectiveRole, result);
-
-            // ★ 學生完整載入進度、單字庫與畫面後，才正式啟動每日練習倒數計時（家長與教師豁免）
-            if (result.role !== "teacher" && !result.isAdmin && result.role !== "parent") {
+            await import(`./src/app.js?v=20261107_1730"teacher" && !result.isAdmin && result.role !== "parent") {
               if (typeof checkCurfewStatus === "function") checkCurfewStatus();
               if (typeof initDailyUsageTimer === "function") initDailyUsageTimer(result.dailyUsage);
             }

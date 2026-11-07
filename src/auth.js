@@ -52,7 +52,7 @@
   function autoAvoidKeyboard(el) {
     if (!el) return;
     setTimeout(() => {
-      const parentCard = el.closest('#login-overlay, .quiz-screen, .card') || el;
+      const parentCard = el.closest('#login-overlay, .quiz-screen') || el;
       if (parentCard && typeof parentCard.scrollIntoView === 'function') {
         parentCard.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
       } else {

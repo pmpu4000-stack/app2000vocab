@@ -573,14 +573,6 @@ function refreshChrome() {
     if (bannerEl) bannerEl.style.display = "none";
   }
 
-  // 作答開始或題目切換時，讓題卡上緣距離螢幕邊界與左右兩邊距離螢幕邊界相等
-  const cardEl = document.getElementById("card");
-  if (cardEl) {
-    const rect = cardEl.getBoundingClientRect();
-    const sideMargin = Math.max(0, rect.left);
-    const targetY = window.pageYOffset + rect.top - sideMargin;
-    window.scrollTo({ top: Math.max(0, targetY), behavior: "smooth" });
-  }
 }
 
 function renderCurrent() {
@@ -623,7 +615,9 @@ function renderCurrent() {
     const rect = cardEl.getBoundingClientRect();
     const sideMargin = Math.max(0, rect.left);
     const targetY = window.pageYOffset + rect.top - sideMargin;
-    window.scrollTo({ top: Math.max(0, targetY), behavior: "smooth" });
+    if (Math.abs(rect.top - sideMargin) > 2) {
+      window.scrollTo({ top: Math.max(0, targetY), behavior: "auto" });
+    }
   }
 }
 
