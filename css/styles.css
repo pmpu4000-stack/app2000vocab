@@ -2676,7 +2676,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 #task-record-details,
 #free-record-details {
   height: auto !important;
-  min-height: 290px !important;
+  min-height: auto !important;
   max-height: none !important;
   box-sizing: border-box !important;
   display: flex !important;
@@ -2831,9 +2831,9 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 @media (max-width: 640px) {
   #task-record-details,
   #free-record-details {
-    height: 290px !important;
-    min-height: 290px !important;
-    max-height: 290px !important;
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
   }
   .word-split-grid,
   .word-split-grid.grid-2 {
