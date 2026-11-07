@@ -80,3 +80,86 @@ test("remedy_service.js: weekday unfinished mistakes & free practice learned rem
   const mistakes2 = remedy.getMonToFriUnfinishedWords();
   assert.ok(!mistakes2.includes("apple"));
 });
+
+test("ui_summary.js & diagnostics.js: history resolution & error taxonomy", async () => {
+  const { diagnoseWordMistake } = await import("../src/diagnostics.js");
+  assert.equal(diagnoseWordMistake("address", "adress").code, "double_consonant");
+  assert.equal(diagnoseWordMistake("knife", "nife").code, "silent_letter");
+  assert.equal(diagnoseWordMistake("station", "stasion").code, "suffix_confusion");
+
+  const uiSummary = await import("../src/ui_summary.js");
+  assert.equal(uiSummary.formatRatePercentage(null, "4/5"), "80%");
+  assert.equal(uiSummary.isValidEnglishWordStr("apple"), true);
+  assert.equal(uiSummary.isValidEnglishWordStr("w12"), false);
+});
+
+test("Google Apps Script (Code.gs & AuthService.js): cloud sync sanitization & auth hash", async () => {
+  const fs = await import("node:fs");
+  const vm = await import("node:vm");
+  const crypto = await import("node:crypto");
+
+  const cacheStore = new Map();
+  const sandbox = {
+    console,
+    Date, Math, JSON, Object, Array, Set, Map, String, Number, Boolean, RegExp, parseInt, parseFloat, isNaN,
+    Utilities: {
+      DigestAlgorithm: { SHA_256: "sha256" },
+      Charset: { UTF_8: "utf8" },
+      computeDigest: (_alg, str) => Array.from(crypto.createHash("sha256").update(str, "utf8").digest()),
+      formatDate: (d, _tz, fmt) => {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+        if (fmt === "yyyy-MM-dd") return `${y}-${m}-${day}`;
+        return `${y}-${m}-${day} 08:00:00`;
+      }
+    },
+    CacheService: {
+      getScriptCache: () => ({
+        get: (k) => cacheStore.get(k) || null,
+        put: (k, v) => cacheStore.set(k, String(v)),
+        remove: (k) => cacheStore.delete(k)
+      })
+    },
+    logError: () => {}
+  };
+
+  vm.createContext(sandbox);
+  const codeGs = fs.readFileSync("google_apps_script/Code.gs", "utf8");
+  const authGs = fs.readFileSync("google_apps_script/AuthService.js", "utf8");
+  vm.runInContext(codeGs.slice(0, codeGs.indexOf("function doPost")), sandbox);
+  vm.runInContext(authGs.slice(0, authGs.indexOf("function ensureStudentSheetColumns")), sandbox);
+
+  const hashed = sandbox.hashPassword("123456");
+  assert.equal(sandbox.isHashedPassword(hashed), true);
+  assert.equal(sandbox.formatStandardDateYMD("2026/5/8"), "2026-05-08");
+
+  const summary = vm.runInContext(
+    "calculateSummaryFromAgentData({ stat: { w0: { a: 3, c: 3 }, w1: { a: 2, c: 1 } }, box: { w0: 3, w1: 1 } }, null)",
+    sandbox
+  );
+  assert.equal(summary.mastered, 1);
+  assert.equal(summary.learning, 1);
+  assert.equal(summary.testedVocab, 2);
+  assert.equal(summary.distinctCorrect, 2);
+  assert.equal(summary.passRate, "100%");
+
+  const cleanedAgentStr = vm.runInContext(`
+    const dirtyRecords = {
+      "spellAgent.v2": JSON.stringify({
+        dailyPractice: {
+          "2026-05-01": { words: { apple: { word: "apple" } } },
+          "2026-05-02": { words: { book: { word: "book", a: 1, lastResult: "correct" } } }
+        }
+      }),
+      "task_words_2026-05-01": JSON.stringify(new Array(40).fill("apple"))
+    };
+    sanitizeStudentRecordsObj_(dirtyRecords, [{ date: "2026-05-02", taskName: "平日測驗", freeTested: 1 }]);
+    JSON.stringify(dirtyRecords);
+  `, sandbox);
+  const resRecords = JSON.parse(cleanedAgentStr);
+  const cleanedAgent = JSON.parse(resRecords["spellAgent.v2"]);
+  assert.equal(cleanedAgent.dailyPractice["2026-05-01"], undefined);
+  assert.ok(cleanedAgent.dailyPractice["2026-05-02"]);
+  assert.equal(resRecords["task_words_2026-05-01"], undefined);
+});

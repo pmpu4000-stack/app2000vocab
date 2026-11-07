@@ -14,9 +14,10 @@ export function diagnoseWordMistake(word, guess = "") {
   const g = String(guess || "").trim().toLowerCase();
 
   // 1. 雙子音遺漏 (Double Consonant Miss, e.g. address, dinner, letter, rabbit)
-  const doubleConsonantRegex = /([bcdfghjklmnpqrstvwxyz])\1/i;
-  if (doubleConsonantRegex.test(w)) {
-    if (g && !doubleConsonantRegex.test(g)) {
+  const doubleConsonantRegex = /([bcdfghjklmnpqrstvwxyz])\1/gi;
+  const wDoubles = w.match(doubleConsonantRegex);
+  if (wDoubles) {
+    if (g && wDoubles.some(dbl => !g.includes(dbl))) {
       return { tag: "雙子音遺漏", code: "double_consonant", desc: "遺漏雙子音 (如 dd/tt/ss/ll/pp/mm/nn)", color: "#EF4444", bg: "#FEE2E2" };
     }
     if (!g) {

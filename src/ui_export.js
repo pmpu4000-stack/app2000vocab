@@ -11,10 +11,12 @@ import {
   isValidEnglishWordStr,
   getCombinedTaskHistory,
   resolveTaskWords,
-  resolveDailyPracticeRecord,
+  resolveDailyPracticeRecord
+} from "./ui_summary.js";
+import {
   getWeekPendingConquerWords,
   _resolveConquerWordLevel
-} from "./ui.js";
+} from "./ui_conquer.js";
 
 // =====================================================================
 // 📥 底部使用紀錄匯出下載模組 (支援指定日期或指定範圍，PDF / Excel 雙格式輸出)

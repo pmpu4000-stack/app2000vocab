@@ -11,9 +11,22 @@ const commitMsg = process.argv[2] || "deploy: auto update";
 console.log("== [0/4] Running automated unit tests ==");
 execSync('node --test tests/core.test.mjs', { cwd: root, stdio: 'inherit' });
 
-console.log("== [1/4] Syncing TeacherJs.html from src/teacher_portal.js ==");
+console.log("== [1/4] Syncing TeacherJs.html from src/teacher_portal.js & compacting CSS ==");
 const tpSrc = fs.readFileSync(path.join(root, 'src', 'teacher_portal.js'), 'utf8');
-fs.writeFileSync(path.join(root, 'google_apps_script', 'TeacherJs.html'), '<script>\n' + tpSrc + '\n</script>', 'utf8');
+const tpCompact = tpSrc
+  .replace(/^[ \t]*\/\/.*$/gm, '')
+  .replace(/\n{3,}/g, '\n\n')
+  .trim();
+fs.writeFileSync(path.join(root, 'google_apps_script', 'TeacherJs.html'), '<script>\n' + tpCompact + '\n</script>', 'utf8');
+
+const cssPath = path.join(root, 'css', 'styles.css');
+if (fs.existsSync(cssPath)) {
+  const rawCss = fs.readFileSync(cssPath, 'utf8');
+  const cleanCss = rawCss
+    .replace(/[ \t]+$/gm, '')
+    .replace(/\n{3,}/g, '\n\n');
+  if (cleanCss !== rawCss) fs.writeFileSync(cssPath, cleanCss, 'utf8');
+}
 
 console.log("== [2/4] Syncing index.html to GAS, mirrors, and bumping SW/CSS cache ==");
 const nowTag = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 12);

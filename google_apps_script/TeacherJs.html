@@ -20,9 +20,6 @@
     return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
   };
 
-    // ════════════════════════════════════════════════════════════════════
-    // 老師線上挑選單字出題 Modal 核心邏輯
-    // ════════════════════════════════════════════════════════════════════
     let pickerWords = [];
     let pickerMeanings = {};
     let pickerSelectedWords = new Set();
@@ -85,7 +82,6 @@
         return;
       }
 
-      // 當前等級庫
       const pool = pickerWords.filter(item => {
         const lv = String(item.lv);
         return (pickerLevel === "all" || lv === String(pickerLevel));
@@ -95,10 +91,10 @@
       let displayWords = [];
 
       if (!q) {
-        // 未搜尋時：直接取 20 個單字
+
         displayWords = pool.slice(0, 20);
       } else {
-        // 搜尋單字或中文：英文優先依開頭字母 (startsWith) 依序顯示，中文支援包含比對
+
         const isAscii = /^[a-z0-9]/i.test(q);
         let matches = [];
         if (isAscii) {
@@ -208,12 +204,12 @@
         str.split(/[,，、\s/]+/).forEach(token => {
           let t = token.replace(/班$/, "").trim();
           if (!t || invalid.has(t.toLowerCase())) return;
-          // 若為 6 碼以上（如 701703 六碼數字），拆成 3 碼一組
+
           if (/^\d{6,}$/.test(t) && t.length % 3 === 0) {
             const chunks = t.match(/\d{3}/g);
             if (chunks) chunks.forEach(c => result.add(c));
           } else if (/^s?\d{5}$/i.test(t)) {
-            // 若為學生學號（如 s70101 或 70101），擷取前三碼班級
+
             const num = t.replace(/^s/i, "");
             result.add(num.slice(0, 3));
           } else {
@@ -225,7 +221,7 @@
     }
 
     function renderTargetStudentCheckboxes() {
-      // 相容性保留，實際已由 populateTeacherClassOptions 內各班卡片獨立渲染
+
       populateTeacherClassOptions();
     }
 
@@ -398,7 +394,7 @@
         dateInp.value = todayDash;
       }
       
-      // 先以快取立即渲染方塊
+
       if (!allStudentsList || allStudentsList.length === 0) {
         try {
           const cached = localStorage.getItem("all_students_cache");
@@ -407,7 +403,7 @@
       }
       populateTeacherClassOptions();
       
-      // 背景非同步載入最新學生名單並自動重繪學生清單
+
       (async () => {
         try {
           const u = localStorage.getItem("current_user");
@@ -426,7 +422,7 @@
         } catch(_) {}
       })();
       
-      // 任務名稱預設為 mm-dd指定單字測驗
+
       const nameInp = document.getElementById("t-modal-name");
       if (nameInp) {
         const dVal = (dateInp && dateInp.value) ? dateInp.value : todayDash;
@@ -453,7 +449,6 @@
       const closeBtn = document.getElementById("btnCloseTeacherModal");
       if (closeBtn) closeBtn.onclick = window.closeTeacherModal;
 
-      // 日期變更時自動同步任務名稱為 mm-dd指定單字測驗
       const dateInp = document.getElementById("t-modal-date");
       if (dateInp) {
         dateInp.onchange = () => {
@@ -468,7 +463,6 @@
         nameInp.value = getDefaultTaskName(dateInp && dateInp.value ? dateInp.value : formatDateDash());
       }
 
-      // 班級下拉選單切換
       const classSel = document.getElementById("t-modal-class-select");
       const customInp = document.getElementById("t-modal-class-custom");
       if (classSel && customInp) {
@@ -482,7 +476,6 @@
         };
       }
 
-      // 篩選標籤
       document.querySelectorAll(".btn-picker-chip").forEach(btn => {
         btn.onclick = () => {
           document.querySelectorAll(".btn-picker-chip").forEach(b => {
@@ -500,7 +493,6 @@
         };
       });
 
-      // 搜尋 (100ms 防抖，大幅減輕逐字重繪消耗)
       const searchInp = document.getElementById("t-modal-search");
       if (searchInp) {
         let _srchTimer = null;
@@ -513,7 +505,6 @@
         };
       }
 
-      // 隨機抽取 10 字
       const r10Btn = document.getElementById("t-btn-random10");
       if (r10Btn) {
         r10Btn.onclick = () => {
@@ -525,7 +516,6 @@
         };
       }
 
-      // 隨機抽取 20 字
       const r20Btn = document.getElementById("t-btn-random20");
       if (r20Btn) {
         r20Btn.onclick = () => {
@@ -537,7 +527,6 @@
         };
       }
 
-      // 全選本組
       const selAllBtn = document.getElementById("t-btn-selectall");
       if (selAllBtn) {
         selAllBtn.onclick = () => {
@@ -548,7 +537,6 @@
         };
       }
 
-      // 清空
       const clearBtn = document.getElementById("t-btn-clear");
       if (clearBtn) {
         clearBtn.onclick = () => {
@@ -558,7 +546,6 @@
         };
       }
 
-      // 發布至試算表
       const pubBtn = document.getElementById("t-btn-publish");
       if (pubBtn) {
         pubBtn.onclick = async () => {
@@ -569,7 +556,7 @@
           const currentUser = localStorage.getItem("current_user");
           const currentPass = sessionStorage.getItem("current_pass") || localStorage.getItem("current_pass") || "";
           
-          // 取得所有勾選的班級
+
           const checkedCbs = document.querySelectorAll(".t-class-box-check:checked, input[name='task_target_classes']:checked");
           const seen = new Set();
           let targetClasses = [];
@@ -581,7 +568,7 @@
             }
           });
           if (targetClasses.length === 0) {
-            // fallback 若存在傳統 select
+
             const selClass = document.getElementById("t-modal-class-select");
             if (selClass && selClass.value) targetClasses = [selClass.value];
           }
@@ -643,7 +630,6 @@
                 body: JSON.stringify(payload)
               }).then(r => r.json()).catch(err => ({ status: "error", message: err.message }));
 
-              // 若因後端舊版本授權班級判定未包含子班級，自動以名下登記班級代號（如 701702）智慧重試
               if ((!res || res.status !== "success") && myClass && myClass !== cls) {
                 payload.taskData.className = myClass;
                 payload.taskData.targetClass = myClass;
@@ -682,7 +668,6 @@
         };
       }
 
-      // 立即以此單字開始測驗 (預覽)
       const previewRunBtn = document.getElementById("t-btn-preview-run");
       if (previewRunBtn) {
         previewRunBtn.onclick = () => {
@@ -957,7 +942,6 @@
       }
     }
 
-
     window.openTimeModal = function() {
       const modal = document.getElementById("timeManagementModal");
       if (!modal) return;
@@ -1019,7 +1003,6 @@
           timeDateRules = data.dateRules || [];
           allStudentsList = data.studentList || [];
 
-          // 1. 全域預設時間帶入（預設為上次修改之設定）
           const gStartInp = document.getElementById("tm-global-start");
           const gEndInp = document.getElementById("tm-global-end");
           const gUpdateEl = document.getElementById("tm-global-last-updated");
@@ -1030,7 +1013,6 @@
             gUpdateEl.textContent = upd;
           }
 
-          // 1.5 每日時長上限設定帶入
           if (data.dailyUsage) {
             const defM = data.dailyUsage.defaultMinutes || 10;
             const defSel = document.getElementById("tm-limit-default-minutes");
@@ -1039,13 +1021,10 @@
             if (curDisplay) curDisplay.textContent = `目前全校預設：${defM} 分鐘`;
           }
 
-          // 2. 學生名冊選單帶入
           populateStudentSelectOptions();
 
-          // 3. 渲染個別學生清單
           renderStudentRulesList();
 
-          // 4. 今日特別狀態與快捷切換按鈕
           if (statusEl) {
             if (currentTimeStatus.isOverridden) {
               const oName = currentTimeStatus.activeDateOverride ? currentTimeStatus.activeDateOverride.name : "特別開放";
@@ -1067,7 +1046,6 @@
             }
           }
 
-          // 5. 渲染特別日期清單
           renderDateRulesList();
         }
       } catch(err) {
@@ -1357,7 +1335,6 @@
       const refreshBtn = document.getElementById("tm-btn-refresh");
       if (refreshBtn) refreshBtn.onclick = loadTimeRestrictions;
 
-      // 分頁切換
       const tabBtns = [
         { btn: "tm-tab-btn-limit", panel: "tm-tab-panel-limit" },
         { btn: "tm-tab-btn-global", panel: "tm-tab-panel-global" },
@@ -1387,13 +1364,11 @@
         }
       });
 
-      // 班級篩選切換
       const classFilter = document.getElementById("tm-student-class-filter");
       if (classFilter) {
         classFilter.onchange = filterStudentDropdown;
       }
 
-      // 選擇學生時，若已有個別時間，自動填入輸入框；若無，帶入全校預設時間
       const studentSelect = document.getElementById("tm-student-select");
       if (studentSelect) {
         studentSelect.onchange = () => {
@@ -1416,7 +1391,6 @@
         };
       }
 
-      // 儲存全校預設作答時間
       const saveGlobalBtn = document.getElementById("tm-btn-save-global");
       if (saveGlobalBtn) {
         saveGlobalBtn.onclick = async () => {
@@ -1462,7 +1436,6 @@
         };
       }
 
-      // 儲存個別學生專屬時間
       const saveStudentBtn = document.getElementById("tm-btn-save-student");
       if (saveStudentBtn) {
         saveStudentBtn.onclick = async () => {
@@ -1523,7 +1496,6 @@
         };
       }
 
-      // 一鍵解除/恢復今日限制
       const toggleBtn = document.getElementById("tm-btn-quick-toggle");
       if (toggleBtn) {
         toggleBtn.onclick = async () => {
@@ -1558,7 +1530,6 @@
         };
       }
 
-      // 新增特別日期全天開放設定
       const saveDateBtn = document.getElementById("tm-btn-save-override");
       if (saveDateBtn) {
         saveDateBtn.onclick = async () => {
@@ -1624,9 +1595,6 @@
         };
       }
 
-      // ══════════════════════════════════════════
-      // 分頁 4：每日使用時長與延長限制事件綁定
-      // ══════════════════════════════════════════
       const limitClassFilter = document.getElementById("tm-limit-class-filter");
       if (limitClassFilter) {
         limitClassFilter.onchange = filterStudentDropdown;
@@ -1637,7 +1605,6 @@
         limitStudentSelect.onchange = updateLimitStudentStatusCard;
       }
 
-      // 儲存全校預設時長
       const saveLimitBtn = document.getElementById("tm-btn-save-limit-minutes");
       if (saveLimitBtn) {
         saveLimitBtn.onclick = async () => {
@@ -1677,7 +1644,6 @@
         };
       }
 
-      // 輔助函式：執行加時
       async function triggerExtendUsageTime(targetUser, studentInfo, addMins, btnEl) {
         const currentUser = localStorage.getItem("current_user");
         const currentPass = sessionStorage.getItem("current_pass") || localStorage.getItem("current_pass") || "";
@@ -1718,7 +1684,6 @@
         }
       }
 
-      // 輔助函式：切換解除限制
       async function triggerToggleUnlock(targetUser, studentInfo, unlock, btnEl) {
         const currentUser = localStorage.getItem("current_user");
         const currentPass = sessionStorage.getItem("current_pass") || localStorage.getItem("current_pass") || "";
@@ -1871,7 +1836,7 @@
         });
       }
       
-      // 若後端尚未回傳學生清單，優先採用登入時存入的權威班級清單
+
       if (cSet.size === 0) {
         try {
           const teacherClasses = JSON.parse(localStorage.getItem("teacher_class_list") || "[]");
@@ -1892,8 +1857,6 @@
       }
       classSel.innerHTML = '<option value="">-- 請選擇班級 --</option>' + 
         sortedClasses.map(c => `<option value="${c}">${c} 班</option>`).join("");
-
-
 
       classSel.onchange = () => {
         const selC = classSel.value;
@@ -1956,7 +1919,6 @@
               statusEl.innerHTML = `<span style="color:#16a34a; font-weight:700;">✅ 已成功載入【${stuLabel}】完整學習成果，下方整體進度已即時呈現！</span>`;
             }
 
-            // 同步記憶體 store 與進度渲染
             if (window.__store && typeof window.__store.reload === "function") {
               try { window.__store.reload(); } catch(_) {}
             }
@@ -1967,7 +1929,6 @@
               try { window.updateProgressDOMFromLocalStorage(); } catch(_) {}
             }
 
-            // 自動展開整體進度卡片並清楚標記受測學生姓名
             const bodyProg = document.getElementById("progress-collapsible-body");
             const btnProg = document.getElementById("btn-toggle-progress-card");
             const secProg = document.getElementById("progress-card");
@@ -2017,7 +1978,6 @@
         }
       });
 
-      // 點擊四大功能方塊時，導航方塊上緣平滑捲動至距螢幕邊界 8px
       const cardEl = document.getElementById("teacher-portal-card") || document.querySelector(".tp-nav-grid");
       if (cardEl) {
         const rect = cardEl.getBoundingClientRect();
@@ -2025,7 +1985,6 @@
         window.scrollTo({ top: Math.max(0, targetY), behavior: "smooth" });
       }
 
-      // 只有在個人歷程 (student) 且已調閱學生時，才顯示下方的五大歷程方塊，其餘分頁 (task, time, class) 一律嚴格隱藏
       const progSections = document.querySelectorAll("section.progress");
       if (tabName === "student" && document.body.classList.contains("has-inspected")) {
         document.body.classList.add("show-student-records");
@@ -2088,7 +2047,6 @@
         setCrDateShortcut(7);
       }
 
-      // 載入班級清單
       if (allStudentsList && allStudentsList.length > 0) {
         const cSet = new Set();
         allStudentsList.forEach(s => {
@@ -2171,7 +2129,7 @@
     }
 
     function initTeacherInlineWorkspace() {
-      // 將 teacherTaskModal 和 timeManagementModal 動態移入主工作區 panel，原位顯示
+
       const pTask = document.getElementById("tp-panel-task");
       const mTask = document.getElementById("teacherTaskModal");
       if (pTask && mTask && mTask.parentElement !== pTask) {
@@ -2189,10 +2147,6 @@
       switchTeacherTab("task");
     }
 
-
-  // ════════════════════════════════════════════════════════════════════
-  // 導出全域函式供 HTML 行內事件與其他模組調用
-  // ════════════════════════════════════════════════════════════════════
   window.loadPickerData = loadPickerData;
   window.renderPickerGrid = renderPickerGrid;
   window.updatePickerPreview = updatePickerPreview;
@@ -2214,7 +2168,6 @@
   window.initClassRangeAnalytics = initClassRangeAnalytics;
   window.initTeacherInlineWorkspace = initTeacherInlineWorkspace;
 
-  // 教師登入狀態自動啟動
   
   const TEACHER_MODALS_HTML = `  <div id="teacherTaskModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
     <div style="background:#ffffff; border-radius:16px; padding:22px 24px; max-width:680px; width:94%; box-shadow:0 25px 60px rgba(0,0,0,0.5); max-height:92vh; overflow-y:auto; border:1.5px solid #D2D6E8; color:#232A4D; font-family:system-ui, sans-serif;">

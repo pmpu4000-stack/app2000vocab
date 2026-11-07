@@ -816,7 +816,7 @@
       border-color: #818cf8 !important;
     }
   </style>
-  <link rel="stylesheet" href="css/styles.css?v=202611071727">
+  <link rel="stylesheet" href="css/styles.css?v=202611071736">
   <link rel="modulepreload" href="src/app.js">
   <link rel="modulepreload" href="src/wordbank.js">
   <link rel="modulepreload" href="src/store.js">
@@ -832,11 +832,11 @@
   <script>
     if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=202611071727').catch(() => {});
+        navigator.serviceWorker.register('./sw.js?v=202611071736').catch(() => {});
       });
     }
   </script>
-  <script src="src/time_limits.js?v=202611071727" defer></script>
+  <script src="src/time_limits.js?v=202611071736" defer></script>
 </head>
 <body class="is-logging-in">
 
@@ -3123,7 +3123,7 @@
       if (!s) {
         s = document.createElement("script");
         s.id = "teacher-portal-script";
-        s.src = "src/teacher_portal.js?v=202611071727";
+        s.src = "src/teacher_portal.js?v=202611071736";
         s.onload = () => {
           window.__teacherPortalLoaded = true;
           if (typeof ensureTeacherModalsMounted === "function") ensureTeacherModalsMounted();

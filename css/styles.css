@@ -14,7 +14,6 @@
   transform: scale(1.22);
 }
 
-
 /* 🚀 GPU 硬體加速與複合層優化 (Hardware Accelerated 60FPS) */
 .card, .practice-card, .quiz-screen, .app, #modes, .summary-panel, #levelbar, .tile {
   transform: translateZ(0);
@@ -22,7 +21,6 @@
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
-
 
     /* 防止展開時右側出現滑條導致畫面往左閃動 (No scrollbar jump / Zero Layout Shift) */
     html {
@@ -930,8 +928,6 @@ body.daily-limit-reached #btn-upload {
   color: var(--coral) !important;
 }
 
-
-
 /* ============================================================
    Dark Mode Theme Support (暗黑模式支援)
    ============================================================ */
@@ -1228,7 +1224,6 @@ body.is-logging-in {
   -webkit-text-fill-color: #F0F3FA !important;
   caret-color: #F0F3FA !important;
 }
-
 
 #login-overlay {
   position: fixed;
@@ -1601,7 +1596,6 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   color: #F0F3FA !important;
 }
 
-  
 .curfew-note-box,
 .login-study-note,
 .login-upload-note {
@@ -1688,7 +1682,6 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   border-color: #2D354E !important;
   color: #E2E8F0 !important;
 }
-
 
 /* 熱力圖方格：淺色清爽灰白底、深色深藍灰底 */
 .hc{background:#F1F5F9;border:1px solid #E2E8F0}
@@ -2185,7 +2178,6 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   }
 }
 
-
 .stat-sep {
   color: var(--ink3, #94A3B8) !important;
   font-weight: 600;
@@ -2244,7 +2236,6 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 [data-theme="dark"] .date-quick-label {
   color: #A5B0CF !important;
 }
-
 
 /* 重組模式磁磚互動按鈕樣式 */
 .tile.scramble-btn {
@@ -3000,9 +2991,6 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   line-height: 1.45;
 }
 
-
-
-
 /* =====================================================================
    Educational Psychology Enhancements: Active Repair & Streak Freeze
    ===================================================================== */
@@ -3046,7 +3034,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   border: 1.5px solid var(--line, #e2e8f0);
   border-radius: 10px;
   font-size: 16px;
-  
+
   font-weight: 700;
   color: var(--ink, #0f172a);
   background: var(--bg, #f8fafc);
@@ -3918,7 +3906,6 @@ body.css-fullscreen-active {
   padding: 12px !important;
 }
 
-
     /* === 確保歷程檔案與學習足跡單字清單永不被截斷 === */
     .summary-embedded .task-history-card,
     .daily-footprint-block .task-history-card,
@@ -4009,7 +3996,6 @@ body.css-fullscreen-active {
       overflow-y: auto !important;
       overscroll-behavior: contain !important;
     }
-
 
 /* 🚀 低階手機與節能自適應降級模式 (Adaptive Low-Power Mode) */
 @media (prefers-reduced-motion: reduce) {
