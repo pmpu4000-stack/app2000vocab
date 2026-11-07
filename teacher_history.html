@@ -2140,12 +2140,7 @@
       const logoutBtn = document.getElementById("pp-btn-logout");
       if (logoutBtn) {
         logoutBtn.onclick = () => {
-          sessionStorage.clear();
-          localStorage.removeItem("current_user");
-          localStorage.removeItem("user_role");
-          localStorage.removeItem("current_pass");
-          localStorage.removeItem("teacher_class_list");
-          localStorage.removeItem("teacher_my_class");
+          purgeAllStudentSessionAndLocalData();
           if (portal) portal.style.display = "none";
           if (appEl) appEl.style.display = "";
           if (ov) {
@@ -2167,7 +2162,7 @@
       }
     }
 
-        function purgeAllStudentSessionAndLocalData() {
+    function purgeAllStudentSessionAndLocalData() {
       try {
         const preserveKeys = new Set(["theme", "fontSize", "preferred_voice", "audio_speed"]);
         const keysToRemove = [];
@@ -2181,8 +2176,14 @@
         sessionStorage.clear();
         window.__CURRENT_USER = "";
         window.__CACHED_SUMMARY = null;
+        window.__gameModuleLoaded = false;
+        window.__PARENT_USER = "";
+        window.__PARENT_STUDENT = "";
+        window.__dailyUsageTimeIsUp = false;
+        window.__bootedLocked = false;
       } catch(_) {}
     }
+    window.purgeAllStudentSessionAndLocalData = purgeAllStudentSessionAndLocalData;
 
     // 點擊「登入帳號」欄位彈出帳號資訊與切換視窗
     window.openAccountModal = function() {
@@ -2707,7 +2708,12 @@
             }
 
             const cacheBuster = Date.now();
-            await import(`./src/app.js?v=20261107_1730"teacher" && !result.isAdmin && result.role !== "parent") {
+            await import(`./src/app.js?v=${cacheBuster}`);
+
+            applyRoleBasedView(effectiveRole, result);
+
+            // ★ 學生完整載入進度、單字庫與畫面後，才正式啟動每日練習倒數計時（家長與教師豁免）
+            if (result.role !== "teacher" && !result.isAdmin && result.role !== "parent") {
               if (typeof checkCurfewStatus === "function") checkCurfewStatus();
               if (typeof initDailyUsageTimer === "function") initDailyUsageTimer(result.dailyUsage);
             }

@@ -2,6 +2,29 @@
 // auth.js — 拼字小特工 登入驗證、身分檢查、角色動態視圖與會話管理模組
 // =====================================================================
 (function(window, document) {
+  function purgeAllStudentSessionAndLocalData() {
+    try {
+      const preserveKeys = new Set(["theme", "fontSize", "preferred_voice", "audio_speed"]);
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && !preserveKeys.has(k)) {
+          keysToRemove.push(k);
+        }
+      }
+      keysToRemove.forEach(k => localStorage.removeItem(k));
+      sessionStorage.clear();
+      window.__CURRENT_USER = "";
+      window.__CACHED_SUMMARY = null;
+      window.__gameModuleLoaded = false;
+      window.__PARENT_USER = "";
+      window.__PARENT_STUDENT = "";
+      window.__dailyUsageTimeIsUp = false;
+      window.__bootedLocked = false;
+    } catch(_) {}
+  }
+  window.purgeAllStudentSessionAndLocalData = purgeAllStudentSessionAndLocalData;
+
   const getScriptUrl = () => window.scriptUrl || "https://script.google.com/macros/s/AKfycbx1hyCNJxqFMoaJgIxfZqLYIYH00NegI1Yd8NJP6gRjqwOndWGkmr-H9tGvVwK_axM9/exec";
   const formatDateDash = (dt = new Date()) => (window.formatDateDash ? window.formatDateDash(dt) : `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`);
   const formatDateSlash = (dt = new Date()) => (window.formatDateSlash ? window.formatDateSlash(dt) : formatDateDash(dt).replace(/-/g, "/"));
@@ -577,12 +600,7 @@
       const logoutBtn = document.getElementById("pp-btn-logout");
       if (logoutBtn) {
         logoutBtn.onclick = () => {
-          sessionStorage.clear();
-          localStorage.removeItem("current_user");
-          localStorage.removeItem("user_role");
-          localStorage.removeItem("current_pass");
-          localStorage.removeItem("teacher_class_list");
-          localStorage.removeItem("teacher_my_class");
+          purgeAllStudentSessionAndLocalData();
           if (portal) portal.style.display = "none";
           if (appEl) appEl.style.display = "";
           if (ov) {
