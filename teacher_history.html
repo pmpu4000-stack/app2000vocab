@@ -819,6 +819,18 @@
   <link rel="stylesheet" href="css/styles.css?v=20261101_2140">
   <link rel="preload" href="data/words2000.json" as="fetch" crossorigin>
   <link rel="preload" href="data/meanings.json" as="fetch" crossorigin>
+  <link rel="modulepreload" href="src/app.js">
+  <link rel="modulepreload" href="src/wordbank.js">
+  <link rel="modulepreload" href="src/store.js">
+  <link rel="modulepreload" href="src/ui.js">
+  <link rel="modulepreload" href="src/audio.js">
+  <link rel="modulepreload" href="src/levels.js">
+  <link rel="modulepreload" href="src/srs.js">
+  <link rel="modulepreload" href="src/data.js">
+  <link rel="modulepreload" href="src/confetti.js">
+  <link rel="modulepreload" href="src/diagnostics.js">
+  <link rel="modulepreload" href="src/ui_export.js">
+  <link rel="modulepreload" href="src/ui_weak_words.js">
   <script>
     if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
       window.addEventListener('load', () => {
@@ -2713,7 +2725,6 @@
             }
 
             const cacheBuster = Date.now();
-            await new Promise(r => setTimeout(r, 150));
             await import(`./src/app.js?v=${cacheBuster}`);
 
             applyRoleBasedView(effectiveRole, result);
