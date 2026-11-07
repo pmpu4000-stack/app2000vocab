@@ -13,22 +13,20 @@ import { wordsAtLevel } from "./wordbank.js";
 const LEITNER_INTERVAL_DAYS = { 0: 0, 1: 1, 2: 3, 3: 7 };
 const BASE_WEIGHT = { 0: 6, 1: 12, 2: 5, 3: 1 };
 
-export function calculateSrsWeight(wordId) {
+export function calculateSrsWeight(wordId, nowMs = Date.now()) {
   const b = box(wordId);
   let wt = BASE_WEIGHT[b] ?? 3;
-  const isWrong = everWrong(wordId);
+  const rev = typeof getWordReviewState === 'function' ? getWordReviewState(wordId) : null;
+  const isWrong = rev ? rev.everWrong : everWrong(wordId);
   if (isWrong) wt += 8;
 
   // 結合時間差計算間隔衰退權重
-  if (typeof getWordReviewState === 'function') {
-    const rev = getWordReviewState(wordId);
-    if (rev && rev.lastTested) {
-      const daysSince = (Date.now() - rev.lastTested) / (24 * 60 * 60 * 1000);
-      const idealInterval = LEITNER_INTERVAL_DAYS[b] ?? 1;
-      if (daysSince >= idealInterval) {
-        // 逾期未複習，記憶曲線處於易忘危險期，依逾期天數額外加權
-        wt += Math.min(15, Math.floor(daysSince - idealInterval + 1) * 3);
-      }
+  if (rev && rev.lastTested) {
+    const daysSince = (nowMs - rev.lastTested) / 86400000;
+    const idealInterval = LEITNER_INTERVAL_DAYS[b] ?? 1;
+    if (daysSince >= idealInterval) {
+      // 逾期未複習，記憶曲線處於易忘危險期，依逾期天數額外加權
+      wt += Math.min(15, Math.floor(daysSince - idealInterval + 1) * 3);
     }
   }
   return wt;
@@ -41,11 +39,12 @@ export function nextWord(words, level, currentId) {
   if (len === 1) return pool[0];
 
   const weights = new Float64Array(len);
+  const nowMs = Date.now();
   let totalWeight = 0;
   for (let i = 0; i < len; i++) {
     const w = pool[i];
     if (currentId && w.id === currentId) continue;
-    const wt = calculateSrsWeight(w.id);
+    const wt = calculateSrsWeight(w.id, nowMs);
     weights[i] = wt;
     totalWeight += wt;
   }

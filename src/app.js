@@ -436,21 +436,18 @@ function getMonToFriUnfinishedWords() {
   try {
     const rollCfg = getConquerRollSettings();
     if (rollCfg && rollCfg.rollFreeMistakes) {
-      const rawData = localStorage.getItem("spellAgent.v2") || localStorage.getItem("app2000vocab_data");
-      if (rawData) {
-        const dbObj = JSON.parse(rawData);
-        if (dbObj && dbObj.dailyPractice) {
-          for (const dateKey in dbObj.dailyPractice) {
-            const normD = String(dateKey).trim().split(" ")[0].replace(/\//g, "-");
-            if (normD >= mondayStr && normD <= fridayStr) {
-              const dp = dbObj.dailyPractice[dateKey];
-              if (dp && dp.words) {
-                for (const wKey in dp.words) {
-                  const info = dp.words[wKey];
-                  if (info && (info.wrong > 0 || info.lastResult === "wrong" || info.hadCorrectThenWrong)) {
-                    const cw = String(wKey).trim().toLowerCase();
-                    if (cw) unfinishedWords.add(cw);
-                  }
+      const dpMap = (typeof store.getDailyPracticeMap === "function") ? store.getDailyPracticeMap() : null;
+      if (dpMap) {
+        for (const dateKey in dpMap) {
+          const normD = String(dateKey).trim().split(" ")[0].replace(/\//g, "-");
+          if (normD >= mondayStr && normD <= fridayStr) {
+            const dp = dpMap[dateKey];
+            if (dp && dp.words) {
+              for (const wKey in dp.words) {
+                const info = dp.words[wKey];
+                if (info && (info.wrong > 0 || info.lastResult === "wrong" || info.hadCorrectThenWrong)) {
+                  const cw = String(wKey).trim().toLowerCase();
+                  if (cw) unfinishedWords.add(cw);
                 }
               }
             }

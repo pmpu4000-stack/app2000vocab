@@ -288,14 +288,16 @@ if (typeof window !== "undefined") {
 export function box(id) { return DB.box[id] || 0; }
 export function everWrong(id) { return !!(DB.stat[id] && DB.stat[id].ew); }
 export function correctCount(id) { return DB.stat[id] ? DB.stat[id].c : 0; }
+export function getDailyPracticeMap() { return (DB && DB.dailyPractice) ? DB.dailyPractice : {}; }
 export function getWordReviewState(id) {
   if (!DB || !DB.stat || !DB.stat[id]) return null;
+  const st = DB.stat[id];
   return {
     box: DB.box ? (DB.box[id] || 0) : 0,
-    attempts: DB.stat[id].a || 0,
-    correct: DB.stat[id].c || 0,
-    everWrong: !!DB.stat[id].ew,
-    lastTested: DB.stat[id].lastTested || null
+    attempts: st.a || 0,
+    correct: st.c || 0,
+    everWrong: !!st.ew,
+    lastTested: st.lastTested || null
   };
 }
 

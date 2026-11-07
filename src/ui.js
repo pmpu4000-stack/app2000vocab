@@ -800,7 +800,18 @@ export function resolveWordStr(raw, d) {
   return s;
 }
 
+let _combinedTaskHistoryCache = null;
+let _combinedTaskHistorySig = "";
+
 export function getCombinedTaskHistory() {
+  const sig = (localStorage.getItem("student_task_history") || "") + "|" +
+              (localStorage.getItem("today_task_summary") || "") + "|" +
+              (localStorage.getItem("today_task_in_progress") || "") + "|" +
+              (sessionStorage.getItem("assigned_task") || localStorage.getItem("assigned_task_active") || "") + "|" +
+              localStorage.length;
+  if (_combinedTaskHistoryCache && _combinedTaskHistorySig === sig) {
+    return _combinedTaskHistoryCache;
+  }
   const list = [];
   try {
     const raw = localStorage.getItem("student_task_history");
@@ -1128,6 +1139,8 @@ export function getCombinedTaskHistory() {
     } catch(_) {}
   });
 
+  _combinedTaskHistorySig = sig;
+  _combinedTaskHistoryCache = list;
   return list;
 }
 
@@ -1169,6 +1182,8 @@ export function clearResolveWordsCache() {
   _resolveWordsCache.clear();
   _dailyPracticeCache.clear();
   _rawStudentTaskHistCache = null;
+  _combinedTaskHistoryCache = null;
+  _combinedTaskHistorySig = "";
 }
 
 function isWeekend(dateStr) {

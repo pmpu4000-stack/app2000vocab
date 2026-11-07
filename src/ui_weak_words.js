@@ -101,9 +101,7 @@ export function initWeakWordsCard() {
   }
 
   function renderWeakWordsUI() {
-    const curWords = getBiweeklyFailedFinalBossWords("current");
-    const allWords = getBiweeklyFailedFinalBossWords("all");
-    const words = activeScope === "all" ? allWords : curWords;
+    const words = getBiweeklyFailedFinalBossWords(activeScope);
     const statText = document.getElementById("weak-words-stat-text");
     const grid = document.getElementById("weak-words-grid");
 
