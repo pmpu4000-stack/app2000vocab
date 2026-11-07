@@ -136,6 +136,7 @@ ECDICT is MIT-licensed (Copyright © 2025 Linwei); third-party corpora licenses 
   misspelled and now corrected.
 
 ## Companion docs
+- [專案維護與交接完全指南](docs/MAINTENANCE.md) — 5 分鐘快速上手：架構地圖、開發測試與一鍵自動化部署指南。
 - [拼字訓練計畫](docs/拼字訓練計畫.md) — the teaching plan: the 6 trap categories, the Top-100 word list, the study method (Look–Say–Cover–Write–Check), a weekly schedule, and coaching tips.
 - [國中2000單字](docs/國中2000單字.md) — the full verified 2000-word source list.
 - [修改與上傳指南](docs/README_修改與上傳指南.md) — step-by-step developer and deployment handbook.
