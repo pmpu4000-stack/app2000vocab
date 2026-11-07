@@ -3686,7 +3686,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 #weak-words-grid,
 #st-weak-words-grid {
   display: grid !important;
-  grid-template-columns: repeat(4, 1fr) !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
   gap: 8px !important;
   max-height: 180px !important;
   overflow-y: auto !important;
@@ -3696,24 +3696,25 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   scrollbar-width: thin !important;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 520px) {
   .weak-words-grid,
   #weak-words-grid,
   #st-weak-words-grid {
-    grid-template-columns: repeat(3, 1fr) !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
   }
 }
 
-@media (max-width: 420px) {
+@media (max-width: 360px) {
   .weak-words-grid,
   #weak-words-grid,
   #st-weak-words-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 }
 
 .weak-words-grid .word-pill-tag,
-#weak-words-grid .word-pill-tag {
+#weak-words-grid .word-pill-tag,
+#st-weak-words-grid .word-pill-tag {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -3723,6 +3724,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   box-sizing: border-box !important;
   padding: 6px 4px !important;
   font-size: 13px !important;
+  min-width: 0 !important;
 }
 .weak-card-item {
   background: var(--card, #FFFFFF) !important;
