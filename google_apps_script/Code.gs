@@ -760,6 +760,14 @@ function getStudentMetaFromUserList_(ss, studentUser) {
       return jsonResponse(saveConquerRollSettings(ss, params));
     }
 
+    if (action === "getStudentList") {
+      const auth = authenticateUser(ss, params.username, params.password);
+      if (!auth.success || (auth.role !== "teacher" && auth.role !== "admin")) {
+        return jsonResponse({ status: "error", message: "無教師權限" });
+      }
+      return jsonResponse(getFastStudentList(ss, auth));
+    }
+
     if (action === "getTimeRestrictions") {
       const auth = authenticateUser(ss, params.username, params.password);
       if (!auth.success || auth.role !== "teacher") return jsonResponse({ status: "error", message: "無教師權限" });

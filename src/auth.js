@@ -811,7 +811,6 @@
               }
             }
             const cacheBuster = Date.now();
-            await new Promise(r => setTimeout(r, 450));
             await import(`./src/app.js?v=${cacheBuster}`);
             const _ov = document.getElementById('login-overlay'); if (_ov) { _ov.style.setProperty('display', 'none', 'important'); _ov.classList.add('hidden'); }
             document.body.classList.remove('is-logging-in');
