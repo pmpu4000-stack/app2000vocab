@@ -7,32 +7,49 @@ import { getWordLevel } from "./levels.js";
 
 const LS_KEY = "spellAgent.v2"; // bumped: added level progression
 
-// Standard calendar date "YYYY-MM-DD"
+// Standard calendar date "YYYY-MM-DD" with fast path & micro-cache
+const _normDateCache = new Map();
 export function normalizeDateStr(ds) {
   if (!ds) return "";
+  if (typeof ds === "string" && ds.length === 10 && ds.charCodeAt(4) === 45 && ds.charCodeAt(7) === 45) {
+    return ds;
+  }
+  const hit = _normDateCache.get(ds);
+  if (hit !== undefined) return hit;
+
   const clean = String(ds).trim().split(/[T\s]/)[0];
   const parts = clean.replace(/\//g, "-").split("-");
+  let res = clean;
   if (parts.length === 3) {
     const y = parts[0];
     const m = parts[1].padStart(2, "0");
     const d = parts[2].padStart(2, "0");
-    return `${y}-${m}-${d}`;
+    res = `${y}-${m}-${d}`;
   }
-  return clean;
+  if (_normDateCache.size > 500) _normDateCache.clear();
+  _normDateCache.set(ds, res);
+  return res;
 }
 
 // Calendar date without leading zeros "YYYY-M-D"
+const _unpadDateCache = new Map();
 export function unpadDateStr(ds) {
   if (!ds) return "";
+  const hit = _unpadDateCache.get(ds);
+  if (hit !== undefined) return hit;
+
   const clean = String(ds).trim().split(/[T\s]/)[0];
   const parts = clean.replace(/\//g, "-").split("-");
+  let res = clean;
   if (parts.length === 3) {
     const y = parts[0];
     const m = String(parseInt(parts[1], 10));
     const d = String(parseInt(parts[2], 10));
-    return `${y}-${m}-${d}`;
+    res = `${y}-${m}-${d}`;
   }
-  return clean;
+  if (_unpadDateCache.size > 500) _unpadDateCache.clear();
+  _unpadDateCache.set(ds, res);
+  return res;
 }
 
 // Format Date to "YYYY-MM-DD"
