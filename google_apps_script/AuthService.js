@@ -535,7 +535,7 @@ function authenticateUser(ss, inputUser, inputPass) {
 
   const sheet = ss.getSheetByName("使用者清單") || ss.getSheetByName("學生帳密");
   if (!sheet) {
-    if (username === "admin" && password === "admin123") {
+    if (username === "admin" && (password === "admin123" || hashedInput === hashPassword("admin123"))) {
       const r = {success:true,username:"admin",role:"teacher",className:"all",realName:"系統管理員",isAdmin:true};
       try { cache.put(cacheKey, JSON.stringify(r), SYS.CACHE_AUTH_TTL); } catch(_) {}
       return r;
@@ -571,7 +571,8 @@ function authenticateUser(ss, inputUser, inputPass) {
     if (role === "teacher" || role === "admin") foundAnyTeacher = true;
 
     if (rowUser === username) {
-      const match = rowPass === hashedInput || (!isHashedPassword(rowPass) && rowPass === password);
+      const rowHashed = isHashedPassword(rowPass) ? rowPass : hashPassword(rowPass);
+      const match = rowHashed === hashedInput || (!isHashedPassword(rowPass) && rowPass === password);
       if (!match) { recordLoginFailure(username); return {success:false, message:"帳號或密碼錯誤"}; }
 
       // 自動無感升級明文密碼為 SHA-256 雜湊
@@ -617,7 +618,7 @@ function authenticateUser(ss, inputUser, inputPass) {
   }
 
   // 僅當使用者清單內完全沒有任何一筆教師帳號時，才允許初始 admin 救援登入
-  if (!foundAnyTeacher && username === "admin" && password === "admin123") {
+  if (!foundAnyTeacher && username === "admin" && (password === "admin123" || hashedInput === hashPassword("admin123"))) {
     const r = {success:true,username:"admin",role:"teacher",className:"all",realName:"系統管理員",isAdmin:true};
     clearLoginFailures("admin");
     try { cache.put(cacheKey, JSON.stringify(r), SYS.CACHE_AUTH_TTL); } catch(_) {}

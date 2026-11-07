@@ -56,8 +56,11 @@
     }
   }
 
-  // 每 30 秒即時輪詢檢查一次時間，若時間超過即刻溫和鎖定並存檔
-  setInterval(checkCurfewStatus, 30000);
+  // 每 30 秒即時輪詢檢查一次時間（背景分頁自動略過以省電），若時間超過即刻溫和鎖定並存檔
+  setInterval(() => {
+    if (typeof document !== "undefined" && document.hidden) return;
+    checkCurfewStatus();
+  }, 30000);
 
   // ══════════════════════════════════════════
   // 每日使用時間上限（預設 10 分鐘）與保護機制
@@ -416,14 +419,18 @@
     if (!currentUser) return;
 
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 12000);
       const res = await fetch(getScriptUrl(), {
         method: "POST",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({
           action: "getDailyUsageSettings",
           username: currentUser
-        })
+        }),
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
       const d = await res.json();
       if (d.status === "success" && d.dailyUsage) {
         dailyUsageState.limitMinutes = Number(d.dailyUsage.limitMinutes) || dailyUsageState.limitMinutes;

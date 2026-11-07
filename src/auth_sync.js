@@ -1022,6 +1022,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined") {
       try {
         let response = null;
         let lastError = null;
+        const loginPassPayload = await sha256HexClient(pass);
 
         // 健全重試機制：處理 GAS 冷啟動或暫時性網路抖動 (最多嘗試 3 次)
         for (let attempt = 1; attempt <= 3; attempt++) {
@@ -1031,7 +1032,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined") {
             response = await fetch(scriptUrl, {
               method: "POST",
               headers: { "Content-Type": "text/plain;charset=utf-8" },
-              body: JSON.stringify({ action: "login", username: user, password: pass }),
+              body: JSON.stringify({ action: "login", username: user, password: loginPassPayload }),
               signal: controller.signal
             });
             clearTimeout(timeoutId);
@@ -1639,7 +1640,22 @@ if (typeof window !== "undefined" && typeof document !== "undefined") {
           fetchOpts.keepalive = true;
         }
 
-        let response = await fetch(scriptUrl, fetchOpts);
+        let response = null;
+        let lastUploadErr = null;
+        for (let attempt = 1; attempt <= 2; attempt++) {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 18000);
+          try {
+            response = await fetch(scriptUrl, { ...fetchOpts, signal: controller.signal });
+            clearTimeout(timeoutId);
+            if (response && response.ok) break;
+          } catch (uErr) {
+            clearTimeout(timeoutId);
+            lastUploadErr = uErr;
+            if (attempt < 2) await new Promise(r => setTimeout(r, 900));
+          }
+        }
+        if (!response) throw (lastUploadErr || new Error("上傳連線逾時"));
         let result = await response.json();
         
         if (result.status === "success") {

@@ -816,27 +816,29 @@
       border-color: #818cf8 !important;
     }
   </style>
-  <link rel="stylesheet" href="css/styles.css?v=202611071753">
+  <link rel="stylesheet" href="css/styles.css?v=202611071815">
   <link rel="modulepreload" href="src/app.js">
+  <link rel="modulepreload" href="src/auth_sync.js">
   <link rel="modulepreload" href="src/wordbank.js">
   <link rel="modulepreload" href="src/store.js">
   <link rel="modulepreload" href="src/ui.js">
+  <link rel="modulepreload" href="src/ui_summary.js">
+  <link rel="modulepreload" href="src/ui_conquer.js">
+  <link rel="modulepreload" href="src/remedy_service.js">
   <link rel="modulepreload" href="src/audio.js">
   <link rel="modulepreload" href="src/levels.js">
   <link rel="modulepreload" href="src/srs.js">
   <link rel="modulepreload" href="src/data.js">
-  <link rel="modulepreload" href="src/confetti.js">
   <link rel="modulepreload" href="src/diagnostics.js">
-  <link rel="modulepreload" href="src/ui_export.js">
   <link rel="modulepreload" href="src/ui_weak_words.js">
   <script>
     if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=202611071753').catch(() => {});
+        navigator.serviceWorker.register('./sw.js?v=202611071815').catch(() => {});
       });
     }
   </script>
-  <script src="src/time_limits.js?v=202611071753" defer></script>
+  <script src="src/time_limits.js?v=202611071815" defer></script>
 </head>
 <body class="is-logging-in">
 
@@ -1404,7 +1406,7 @@
     </div>
   </div>
 
-  <script type="module" src="src/auth_sync.js?v=202611071753"></script>
+  <script type="module" src="src/auth_sync.js?v=202611071815"></script>
 
   <!-- ══════════════════════════════════════════
   <!-- 📝 教師管理專區彈窗 DOM 已改為按身分動態掛載 (src/teacher_portal.js)，學生首屏完全免載 -->
