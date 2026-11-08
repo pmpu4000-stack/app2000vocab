@@ -2082,7 +2082,7 @@ export function renderSummary(d) {
     const freeTestedWords = recFree ? (recFree.attempts || 0) : 0;
     const freeCorrWords = recFree ? (recFree.correct || 0) : 0;
 
-    let taskText = "";
+    let taskText = "指派: 無指派";
     if (stat && stat.statusType !== "unassigned") {
       if (stat.statusType === "untested") {
         taskText = "指派: 未受測";
@@ -2124,10 +2124,10 @@ export function renderSummary(d) {
     const freeTestedWords = recFree ? (recFree.attempts || 0) : 0;
     const freeCorrWords = recFree ? (recFree.correct || 0) : 0;
 
-    let taskBadge = `<span class="cdo-badge cdo-empty">指派: —</span>`;
+    let taskBadge = `<span class="cdo-badge cdo-empty">指派: 無指派</span>`;
     if (stat && stat.statusType !== "unassigned") {
       if (stat.statusType === "untested") {
-        taskBadge = `<span class="cdo-badge cdo-task" style="opacity:0.8;">指派: 未受測</span>`;
+        taskBadge = `<span class="cdo-badge cdo-task-untested">指派: 未受測</span>`;
       } else {
         const tTotal = stat.wordsCount || stat.a;
         if (tTotal > 0) {
@@ -2163,10 +2163,10 @@ export function renderSummary(d) {
     const freeTestedWords = recFree ? (recFree.attempts || 0) : 0;
     const freeCorrWords = recFree ? (recFree.correct || 0) : 0;
 
-    let taskBadge = `<span class="cdo-badge cdo-empty">指派: —</span>`;
+    let taskBadge = `<span class="cdo-badge cdo-empty">指派: 無指派</span>`;
     if (stat && stat.statusType !== "unassigned") {
       if (stat.statusType === "untested") {
-        taskBadge = `<span class="cdo-badge cdo-task" style="opacity:0.8;">指派: 未受測</span>`;
+        taskBadge = `<span class="cdo-badge cdo-task-untested">指派: 未受測</span>`;
       } else {
         const tTotal = stat.wordsCount || stat.a;
         if (tTotal > 0) {

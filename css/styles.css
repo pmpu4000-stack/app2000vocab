@@ -764,8 +764,9 @@ body.daily-limit-reached #btn-upload {
 .cdo-date{font-family:ui-monospace,monospace;font-weight:700;color:var(--ink)}
 .cdo-badge{display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cdo-task{background:#EEF2FF;color:#4338CA;border:1px solid #C7D2FE}
+.cdo-task-untested{background:#FEF3C7;color:#B45309;border:1px solid #FCD34D}
 .cdo-free{background:#ECFDF5;color:#047857;border:1px solid #A7F3D0}
-.cdo-empty{background:transparent;color:var(--ink3);border:1px dashed #E2E8F0;font-weight:500}
+.cdo-empty{background:transparent;color:var(--ink3);border:1px dashed #CBD5E1;font-weight:500}
 .cdo-none{color:var(--ink3);font-size:11px;grid-column:span 2}
 [data-theme="dark"] .custom-date-trigger{background:#181C2A !important;border-color:#2D354E !important;color:#F0F3FA !important}
 [data-theme="dark"] .custom-date-menu{background:#181C2A !important;border-color:#2D354E !important;box-shadow:0 8px 24px rgba(0,0,0,.6) !important}
@@ -773,6 +774,7 @@ body.daily-limit-reached #btn-upload {
 [data-theme="dark"] .custom-date-option.is-selected{background:#2E2652 !important;color:#A78BFA !important}
 [data-theme="dark"] .cdo-date{color:#F0F3FA !important}
 [data-theme="dark"] .cdo-task{background:#1E2238;color:#A5B4FC;border-color:#3730A3}
+[data-theme="dark"] .cdo-task-untested{background:#2A2318;color:#FCD34D;border-color:#B45309}
 [data-theme="dark"] .cdo-free{background:#132924;color:#6EE7B7;border-color:#065F46}
 [data-theme="dark"] .cdo-empty{border-color:#374151;color:#6B7280}
 .date-nav-stepper-wrap{display:flex;align-items:center;gap:6px;width:100%}
