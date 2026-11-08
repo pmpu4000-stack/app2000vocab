@@ -738,7 +738,13 @@ export function renderProgressLevelsTable(levels) {
   tbody.innerHTML = levels
     .map((L) => {
       const totCorr = (L.learn || 0) + (L.prac || 0) + (L.mast || 0);
-      return `<tr><td class="st-level-name"><span style="color:${levelColor(L.level)}">●</span> Level ${L.level}「${levelName(L.level)}」</td><td class="st-level-stats"><div class="level-stats-grid"><span class="st-item st-learn"><span class="st-lbl">學習中</span><b class="tnum st-num st-num-learn">${L.learn || 0}</b>字</span><span class="st-sep">/</span><span class="st-item st-prac"><span class="st-lbl">練習中</span><b class="tnum st-num st-num-prac">${L.prac || 0}</b>字</span><span class="st-sep">/</span><span class="st-item st-mast"><span class="st-lbl">精通</span><b class="tnum st-num st-num-mast">${L.mast}</b>字</span><span class="st-sep">/</span><span class="st-item st-total"><span class="st-lbl">共答對</span><b class="tnum st-num st-num-total">${totCorr}</b>字</span></div></td></tr>`;
+      return `<tr>
+        <td class="st-level-name"><span class="lvl-dot" style="background:${levelColor(L.level)}"></span>Level ${L.level}「${levelName(L.level)}」</td>
+        <td class="tnum st-num st-num-learn">${L.learn || 0}</td>
+        <td class="tnum st-num st-num-prac">${L.prac || 0}</td>
+        <td class="tnum st-num st-num-mast">${L.mast || 0}</td>
+        <td class="tnum st-num st-num-total">${totCorr}</td>
+      </tr>`;
     })
     .join("");
 }
