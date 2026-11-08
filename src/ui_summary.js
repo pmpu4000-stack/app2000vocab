@@ -1909,18 +1909,37 @@ export function renderSummary(d) {
 
   const buildOptionLabel = (dateStr) => {
     const isToday = (dateStr === todayDash);
-    const tArr = taskByDateMap.get(dateStr);
-    const matchedTask = tArr ? tArr.find(item => !item.taskName || !String(item.taskName).includes("未指派")) : null;
+    const stat = getTaskDayStat ? getTaskDayStat(dateStr) : null;
     const recFree = resolveDailyPracticeRecord(dateStr, d, historyList);
     
     const freeTestedWords = recFree ? (recFree.attempts || 0) : 0;
     const freeCorrWords = recFree ? (recFree.correct || 0) : 0;
 
+    const parts = [];
+    if (stat && stat.statusType !== "unassigned") {
+      if (stat.statusType === "untested") {
+        parts.push("指派: 未受測");
+      } else {
+        const tTotal = stat.wordsCount || stat.a;
+        if (tTotal > 0) {
+          parts.push(`指派: ${stat.c}/${tTotal} (${stat.rate}%)`);
+        } else if (stat.a > 0) {
+          parts.push(`指派: ${stat.c}/${stat.a} (${stat.rate}%)`);
+        }
+      }
+    }
+
+    if (freeTestedWords > 0) {
+      const freeRate = Math.round((freeCorrWords / freeTestedWords) * 100);
+      parts.push(`自由: ${freeCorrWords}/${freeTestedWords} (${freeRate}%)`);
+    }
+
     let desc = "";
-    if (matchedTask && freeTestedWords > 0) desc = ` [指派: ${matchedTask.taskName}] [自由: ${freeCorrWords}/${freeTestedWords}字]`;
-    else if (matchedTask) desc = ` [指派: ${matchedTask.taskName}]`;
-    else if (freeTestedWords > 0) desc = ` [自由練習: ${freeCorrWords}/${freeTestedWords}字]`;
-    else desc = " (尚無紀錄)";
+    if (parts.length > 0) {
+      desc = ` [${parts.join(" · ")}]`;
+    } else {
+      desc = " (尚無紀錄)";
+    }
 
     return `${dateStr}${isToday ? " (今日)" : ""}${desc}`;
   };
