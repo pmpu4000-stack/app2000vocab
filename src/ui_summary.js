@@ -1034,32 +1034,26 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
   let scoreGridHtml = "";
   if (isUnassigned) {
     scoreGridHtml = `
-      <div class="task-score-grid">
-        <div class="task-score-item">
-          <div class="task-score-label">指派情形</div>
-          <div class="task-score-val" style="color:var(--ink2); font-size:15px; font-weight:700;">當日無指派</div>
-        </div>
-        <div class="task-score-item">
-          <div class="task-score-label">作答狀態</div>
-          <div class="task-score-val" style="color:${statusColor}; font-size:15px; font-weight:800;">${displayStatusStr}</div>
+      <div style="margin-bottom:8px; width:100%;">
+        <div class="task-status-banner">
+          <div class="tsb-info">
+            <span class="tsb-icon">☕</span>
+            <span>當日老師未指派測驗任務</span>
+          </div>
+          <span class="tsb-badge neutral">當日無指派</span>
         </div>
       </div>
     `;
   } else if (isUntested) {
     const untestedWordCount = taskTotWords > 0 ? taskTotWords : (rawWords.length || 0);
     scoreGridHtml = `
-      <div class="task-score-grid">
-        <div class="task-score-item">
-          <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap;">
-            <span>📋 應測單字數</span>
+      <div style="margin-bottom:8px; width:100%;">
+        <div class="task-status-banner">
+          <div class="tsb-info">
+            <span class="tsb-icon">📋</span>
+            <span>指定範圍共 <b class="tsb-count">${untestedWordCount}</b> 字</span>
           </div>
-          <div class="task-score-val" style="color:#0284c7; display:flex; align-items:center; justify-content:center;">
-            <span>${untestedWordCount} 字</span>
-          </div>
-        </div>
-        <div class="task-score-item">
-          <div class="task-score-label">測驗狀態</div>
-          <div class="task-score-val" style="color:${statusColor}; font-size:15.5px; font-weight:800;">${displayStatusStr}</div>
+          <span class="tsb-badge warning">${displayStatusStr}</span>
         </div>
       </div>
     `;

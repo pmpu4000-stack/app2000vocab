@@ -718,7 +718,18 @@ body.daily-limit-reached #btn-upload {
 .task-score-label{font-size:clamp(10px, 1.8vw, 12px);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%}
 .task-score-val{font-size:clamp(15px, 3.2vw, 20px);font-weight:900;line-height:1.2;font-variant-numeric:tabular-nums;white-space:nowrap}
 
-/* 一體化滿版作答進度卡 (Clean Single Progress Banner) */
+/* 未受測與未指派狀態橫幅 (Status Notice Banner) */
+.task-status-banner{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 14px;background:#FFFFFF;border:1px solid var(--line);border-radius:10px;min-height:48px;box-sizing:border-box;width:100%}
+.tsb-info{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;color:var(--ink2)}
+.tsb-icon{font-size:16px}
+.tsb-count{color:#0284C7;font-weight:800}
+.tsb-badge{display:inline-flex;align-items:center;padding:4px 10px;border-radius:6px;font-size:12px;font-weight:800;letter-spacing:.3px}
+.tsb-badge.warning{background:#FEF3C7;color:#B45309;border:1px solid #FCD34D}
+.tsb-badge.neutral{background:#F1F5F9;color:#475569;border:1px solid #CBD5E1}
+[data-theme="dark"] .task-status-banner{background:#181C2A !important;border-color:#2D354E !important}
+[data-theme="dark"] .tsb-info{color:#94A3B8 !important}
+[data-theme="dark"] .tsb-badge.warning{background:#2A2318;color:#FCD34D;border-color:#B45309}
+[data-theme="dark"] .tsb-badge.neutral{background:#1E2238;color:#94A3B8;border-color:#334155}
 .task-progress-card{display:flex;flex-direction:column;justify-content:center;gap:6px;padding:8px 14px;background:#FFFFFF;border:1px solid var(--line);border-radius:10px;min-height:58px;box-sizing:border-box;width:100%}
 .tpc-row-top{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;font-weight:800;color:var(--ink)}
 .tpc-row-top .tpc-title{display:inline-flex;align-items:center;gap:5px;color:var(--ink)}
