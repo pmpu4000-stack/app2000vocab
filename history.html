@@ -4875,18 +4875,18 @@ body.css-fullscreen-active {
 
     .word-split-content,
     .word-split-box > div:not(.word-split-title) {
-      display: flex !important;
-      flex-wrap: wrap !important;
-      align-items: flex-start !important;
-      align-content: flex-start !important;
-      gap: 4px !important;
+      display: grid !important;
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      align-items: start !important;
+      align-content: start !important;
+      gap: 8px !important;
       flex: 1 1 auto !important;
       height: 0 !important;
       min-height: 0 !important;
       max-height: 100% !important;
       overflow-y: auto !important;
       overscroll-behavior: contain !important;
-      padding-right: 4px !important;
+      padding: 2px 4px 2px 0 !important;
       scrollbar-gutter: stable !important;
       scrollbar-width: thin !important;
       scrollbar-color: rgba(100, 116, 139, 0.45) transparent !important;
@@ -6241,12 +6241,12 @@ table{page-break-inside:auto!important;break-inside:auto!important;}tr{page-brea
       overflow-y: auto !important;
       overscroll-behavior: contain !important;
       scrollbar-width: thin !important;
-      display: flex !important;
-      flex-wrap: wrap !important;
-      align-items: flex-start !important;
-      align-content: flex-start !important;
-      gap: 5px !important;
-      padding: 2px 2px 2px 0 !important;
+      display: grid !important;
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      align-items: start !important;
+      align-content: start !important;
+      gap: 8px !important;
+      padding: 2px 4px 2px 0 !important;
       box-sizing: border-box !important;
     }
 
