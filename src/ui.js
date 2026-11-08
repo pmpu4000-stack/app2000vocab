@@ -39,7 +39,7 @@ import { box, normalizeDateStr, formatDateYMD, getWeekRangeDates, getBiweeklyCyc
 if (typeof window !== "undefined") {
   window.__say = say;
   window.__sayWord = (w) => sayWord(w);
-  window.__saySentence = (s) => say(s);
+  window.__saySentence = (s) => say(s, 0.85, null, true);
   window.__switchConquerSent = (btn, idx) => {
     const card = btn.closest(".conquer-word-card");
     if (!card) return;

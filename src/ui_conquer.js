@@ -1,10 +1,18 @@
 // =====================================================================
 // ui_conquer.js — 待攻克單字 (Conquer) 與單字卡渲染獨立模組
 // =====================================================================
-import { sayWord, parseDialogue } from "./audio.js";
+import { say, sayWord, parseDialogue } from "./audio.js";
 import { levelColor, levelName } from "./levels.js";
 import { escapeHtml } from "./wordbank.js";
 import { getBiweeklyCycleInfo, getCachedTaskHistory, getConquerRollSettings, getRemedyLearnedSet } from "./store.js";
+
+if (typeof window !== "undefined") {
+  window.__saySentence = (s) => {
+    if (!s) return;
+    say(s, 0.85, null, true);
+  };
+  window.__sayWord = (w) => sayWord(w);
+}
 
 const SVG_SPEAKER = '<svg class="icon-speaker" viewBox="0 0 24 24" width="17" height="17" fill="currentColor" style="vertical-align:middle;display:inline-block;"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>';
 
@@ -303,13 +311,13 @@ export function _renderConquerWordCard(wordStr, d) {
   const isDlg = Boolean(parseDialogue(s.sent) || s.level === 'dialogue');
   const levelCls = s.level === 'simple' ? 'level-simple' : s.level === 'advanced' ? 'level-advanced' : isDlg ? 'level-dialogue' : 'level-normal';
   const levelText = escapeHtml(s.levelName || (isDlg ? '對話' : s.level === 'simple' ? '簡單' : s.level === 'advanced' ? '進階' : '普通'));
-  const safeSent = (s.sent || "").replace(/'/g, "\\'");
+  const safeSentAttr = escapeHtml(s.sent || "");
   const highlightedSent = escapeHtml(s.sent || "").replace(regex, `<b class="conquer-sent-word task-title-free" style="font-weight:800;">$1</b>`);
 
   const sentsHtml = `
-    <div class="sent-row conquer-sent-variant" data-idx="${defaultIdx}" onclick="window.__saySentence('${safeSent}')" style="cursor:pointer; display:flex;">
-      <button type="button" class="sent-speaker-btn ${levelCls}" onclick="event.stopPropagation(); window.__saySentence('${safeSent}')" aria-label="${levelText}例句朗讀" title="${levelText}例句朗讀">${SVG_SPEAKER}</button>
-      <div class="sent-text-wrap">
+    <div class="sent-row conquer-sent-variant" data-idx="${defaultIdx}" data-sent="${safeSentAttr}" onclick="event.stopPropagation(); if (typeof window.__saySentence === 'function') window.__saySentence(this.getAttribute('data-sent'));" style="cursor:pointer; display:flex;">
+      <button type="button" class="sent-speaker-btn ${levelCls}" data-sent="${safeSentAttr}" onclick="event.stopPropagation(); if (typeof window.__saySentence === 'function') window.__saySentence(this.getAttribute('data-sent'));" aria-label="${levelText}例句朗讀" title="${levelText}例句朗讀">${SVG_SPEAKER}</button>
+      <div class="sent-text-wrap" data-sent="${safeSentAttr}">
         <div class="sent-en">${highlightedSent}</div>
         ${s.sentZh ? `<div class="sent-zh">${escapeHtml(s.sentZh)}</div>` : ""}
       </div>
@@ -319,7 +327,7 @@ export function _renderConquerWordCard(wordStr, d) {
   return `
     <div class="conquer-word-card" style="width:100%; box-sizing:border-box; content-visibility:auto; contain-intrinsic-size:auto 92px; background:var(--card, #fff); border:1.5px solid var(--line, #e2e8f0); border-radius:12px; padding:10px 12px; margin-bottom:6px; box-shadow:0 1px 4px rgba(0,0,0,0.03);">
       <div class="zh-row" style="margin-bottom:6px;">
-        <button type="button" class="word-speech-btn" onclick="window.__sayWord('${clean}')" aria-label="播放單字發音" title="播放單字發音">${SVG_SPEAKER}</button>
+        <button type="button" class="word-speech-btn" data-word="${escapeHtml(clean)}" onclick="event.stopPropagation(); if (typeof window.__sayWord === 'function') window.__sayWord(this.getAttribute('data-word'));" aria-label="播放單字發音" title="播放單字發音">${SVG_SPEAKER}</button>
         <div class="zh-text" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
           <span class="conquer-card-word task-title-free">${wordDisplay}</span>
           ${phonHtml}
@@ -594,6 +602,22 @@ export function updateWeekConquerSection(cycleParam = _activeConquerCycle) {
       if (lv) {
         _conquerViewModeByLevel[lv] = (_conquerViewModeByLevel[lv] === "all" ? "single" : "all");
         updateWeekConquerSection(_activeConquerCycle);
+      }
+    };
+  });
+
+  detailsEl.querySelectorAll(".sent-row, .sent-speaker-btn, .word-speech-btn").forEach(elem => {
+    elem.onclick = (e) => {
+      e.stopPropagation();
+      const sent = elem.getAttribute("data-sent");
+      if (sent) {
+        say(sent, 0.85, null, true);
+        return;
+      }
+      const w = elem.getAttribute("data-word");
+      if (w) {
+        sayWord(w);
+        return;
       }
     };
   });
