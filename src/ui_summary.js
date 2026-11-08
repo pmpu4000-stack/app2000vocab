@@ -1139,8 +1139,8 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
 
       ${scoreGridHtml}
 
-      <div class="word-split-grid ${hasWrongOrUnans ? 'grid-2' : ''}" style="${hasWrongOrUnans ? '' : 'grid-template-columns:1fr;'}">
-        <div class="word-split-box ${leftBoxClass}" style="${hasWrongOrUnans ? '' : 'grid-column:1/-1; width:100%;'}">
+      <div class="word-split-grid grid-2">
+        <div class="word-split-box ${leftBoxClass}">
           <div class="word-split-title ${leftTitleClass}">
             ${leftTitleText}
           </div>
@@ -1148,7 +1148,6 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
             ${correctContentHtml}
           </div>
         </div>
-        ${hasWrongOrUnans ? `
         <div class="word-split-box ${rightBoxClass}">
           <div class="word-split-title ${rightTitleClass}">
             ${rightTitleText}
@@ -1156,7 +1155,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
           <div class="word-split-content">
             ${wrongContentHtml}
           </div>
-        </div>` : ''}
+        </div>
       </div>
     </div>
   `;
@@ -1677,9 +1676,9 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
       </div>
 
       <!-- 將答對的字與答錯的字分成兩個區域（純顯示當日練習狀況，非累積狀況） -->
-      <div class="word-split-grid ${displayWrongBoxCount > 0 ? 'grid-2' : ''}" style="${displayWrongBoxCount > 0 ? '' : 'grid-template-columns:1fr;'}">
+      <div class="word-split-grid grid-2">
         <!-- 答對的單字區 -->
-        <div class="word-split-box correct-box" style="${displayWrongBoxCount > 0 ? '' : 'grid-column:1/-1; width:100%;'}">
+        <div class="word-split-box correct-box">
           <div class="word-split-title correct-title">
             <span><span style="color:#10B981; font-weight:900; margin-right:4px;">✔</span>答對的單字 (${displayCorrectBoxCount} 字)</span>
           </div>
@@ -1688,7 +1687,6 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
           </div>
         </div>
 
-        ${displayWrongBoxCount > 0 ? `
         <!-- 答錯的單字區 -->
         <div class="word-split-box wrong-box">
           <div class="word-split-title wrong-title">
@@ -1697,7 +1695,7 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
           <div class="word-split-content">
             ${wrongContentHtml}
           </div>
-        </div>` : ''}
+        </div>
       </div>
     </div>
   `;
