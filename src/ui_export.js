@@ -1022,23 +1022,17 @@ function _buildReportHtml(payload) {
               <span class="task-card-title task-title-assigned">${esc(formattedTaskName)}</span>
             </div>
           </div>
-          <div class="task-score-grid">
+          <div style="margin-bottom:8px; width:100%;">
             <div class="task-progress-card">
               <div class="tpc-row-top">
-                <span class="tpc-title">📝 作答表現</span>
-                <span class="tpc-count">答對 <b>${r.taskCorrWords || 0}</b> / ${totalWords} 字</span>
+                <span class="tpc-title">📝 答對 <b>${r.taskCorrWords || 0}</b> / ${totalWords} 字</span>
+                <span class="tpc-count"><span class="tpc-rate-badge">${ovrRate}%</span></span>
               </div>
               <div class="tpc-bar-track">
                 <div class="tpc-bar-fill" style="width:${ovrRate}%;"></div>
               </div>
               <div class="tpc-row-bottom">
                 ${bottomTagsHtml}
-              </div>
-            </div>
-            <div class="task-score-item rate-tier-item ${getTier(ovrRate)}" style="display:flex; flex-direction:column; justify-content:center;">
-              <div class="task-score-label" style="font-size:11px;" title="以全卷應測總單字數為分母計算之正確率">全卷正確率</div>
-              <div class="task-score-val heat-rate-val ${getTier(ovrRate)}" style="font-size:22px; font-weight:800; line-height:1.2;">
-                ${ovrRate}%
               </div>
             </div>
           </div>

@@ -1079,7 +1079,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     const unansCount = hasUnanswered ? actualUnanswered : 0;
     const ovrRate = hasUnanswered ? overallScoreRate : taskRate;
 
-    // 做法 B：進度條複合卡（左：活潑進度條，右：大正確率與得分摘要）
+    // 一體化滿版作答進度卡（百分比直接融入頂部，拿掉右方重複方塊）
     const totalWords = taskTotWords > 0 ? taskTotWords : (ansCount + unansCount);
     let bottomTagsHtml = "";
     if (wrgCount === 0 && unansCount === 0) {
@@ -1092,23 +1092,17 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     }
 
     scoreGridHtml = `
-      <div class="task-score-grid">
+      <div style="margin-bottom:8px; width:100%;">
         <div class="task-progress-card">
           <div class="tpc-row-top">
-            <span class="tpc-title">📝 作答表現</span>
-            <span class="tpc-count">答對 <b>${taskCorrWords}</b> / ${totalWords} 字</span>
+            <span class="tpc-title">📝 答對 <b>${taskCorrWords}</b> / ${totalWords} 字</span>
+            <span class="tpc-count"><span class="tpc-rate-badge">${ovrRate}%</span></span>
           </div>
           <div class="tpc-bar-track">
             <div class="tpc-bar-fill" style="width:${ovrRate}%;"></div>
           </div>
           <div class="tpc-row-bottom">
             ${bottomTagsHtml}
-          </div>
-        </div>
-        <div class="task-score-item rate-tier-item ${getHeatmapRateClass(ovrRate)}">
-          <div class="task-score-label" title="以全卷應測總單字數為分母計算之正確率">全卷正確率</div>
-          <div class="task-score-val heat-rate-val ${getHeatmapRateClass(ovrRate)}">
-            ${ovrRate}%
           </div>
         </div>
       </div>
