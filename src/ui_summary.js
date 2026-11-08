@@ -2123,7 +2123,7 @@ export function renderSummary(d) {
       taskBadge = `<span class="cdo-badge cdo-task-perfect" title="平日指定測驗全對免測">🏆 平日全對免測</span>`;
     }
 
-    let freeBadge = `<span class="cdo-badge cdo-empty">自由: —</span>`;
+    let freeBadge = `<span class="cdo-badge cdo-empty">自由: 無練習</span>`;
     if (freeTestedWords > 0) {
       const freeRate = Math.round((freeCorrWords / freeTestedWords) * 100);
       freeBadge = `<span class="cdo-badge cdo-free">自由: ${freeCorrWords}/${freeTestedWords} <small>(${freeRate}%)</small></span>`;
@@ -2134,7 +2134,7 @@ export function renderSummary(d) {
 
     return `
       <div class="custom-date-option ${isSelected ? "is-selected" : ""}" data-val="${dateStr}" role="option" aria-selected="${isSelected}">
-        <span class="cdo-date">${isToday ? '<span class="cdo-today-dot" title="今日"></span>' : ''}${dateStr}</span>
+        <span class="cdo-date ${isToday ? "is-today-text" : ""}">${dateStr}</span>
         ${hasAny ? `${taskBadge}${freeBadge}` : `<span class="cdo-none">(尚無作答紀錄)</span>`}
       </div>
     `;
@@ -2164,7 +2164,7 @@ export function renderSummary(d) {
       taskBadge = `<span class="cdo-badge cdo-task-perfect" title="平日指定測驗全對免測">🏆 平日全對免測</span>`;
     }
 
-    let freeBadge = `<span class="cdo-badge cdo-empty">自由: —</span>`;
+    let freeBadge = `<span class="cdo-badge cdo-empty">自由: 無練習</span>`;
     if (freeTestedWords > 0) {
       const freeRate = Math.round((freeCorrWords / freeTestedWords) * 100);
       freeBadge = `<span class="cdo-badge cdo-free">自由: ${freeCorrWords}/${freeTestedWords} <small>(${freeRate}%)</small></span>`;
@@ -2174,7 +2174,7 @@ export function renderSummary(d) {
 
     return `
       <div class="custom-date-trigger-content">
-        <span class="cdo-date">${isToday ? '<span class="cdo-today-dot" title="今日"></span>' : ''}${dateStr}</span>
+        <span class="cdo-date ${isToday ? "is-today-text" : ""}">${dateStr}</span>
         ${hasAny ? `${taskBadge}${freeBadge}` : `<span class="cdo-none">(尚無作答紀錄)</span>`}
       </div>
     `;

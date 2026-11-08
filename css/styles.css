@@ -768,8 +768,8 @@ body.daily-limit-reached #btn-upload {
 .custom-date-week-divider{display:flex;align-items:center;justify-content:center;gap:8px;padding:8px 12px 4px;font-size:11px;font-weight:800;color:#94A3B8;letter-spacing:.5px;user-select:none}
 .custom-date-week-divider::before,
 .custom-date-week-divider::after{content:"";flex:1;height:1px;background:#E2E8F0}
-.cdo-today-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#0284C7;margin-right:5px;vertical-align:middle;box-shadow:0 0 0 2px rgba(2,132,199,0.25)}
 .cdo-date{font-family:ui-monospace,monospace;font-weight:700;color:var(--ink);display:inline-flex;align-items:center}
+.cdo-date.is-today-text{color:#0284C7 !important;font-weight:900 !important}
 .cdo-badge{display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cdo-badge small{font-size:9.5px;font-weight:600;opacity:.88;margin-left:2px}
 .cdo-task{background:#EEF2FF;color:#4338CA;border:1px solid #C7D2FE}
@@ -781,7 +781,7 @@ body.daily-limit-reached #btn-upload {
 [data-theme="dark"] .custom-date-week-divider{color:#64748B}
 [data-theme="dark"] .custom-date-week-divider::before,
 [data-theme="dark"] .custom-date-week-divider::after{background:#2D354E}
-[data-theme="dark"] .cdo-today-dot{background:#38BDF8;box-shadow:0 0 0 2px rgba(56,189,248,0.25)}
+[data-theme="dark"] .cdo-date.is-today-text{color:#38BDF8 !important}
 [data-theme="dark"] .custom-date-trigger{background:#181C2A !important;border-color:#2D354E !important;color:#F0F3FA !important}
 [data-theme="dark"] .custom-date-menu{background:#181C2A !important;border-color:#2D354E !important;box-shadow:0 8px 24px rgba(0,0,0,.6) !important}
 [data-theme="dark"] .custom-date-option:hover{background:#252B42 !important}
