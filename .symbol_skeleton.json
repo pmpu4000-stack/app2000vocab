@@ -688,17 +688,17 @@
     {
       "name": "analyzeErrorTag",
       "type": "function",
-      "line": 8
+      "line": 9
     },
     {
       "name": "getBiweeklyFailedFinalBossWords",
       "type": "function",
-      "line": 28
+      "line": 29
     },
     {
       "name": "initWeakWordsCard",
       "type": "function",
-      "line": 88
+      "line": 89
     }
   ],
   "wordbank.js": [

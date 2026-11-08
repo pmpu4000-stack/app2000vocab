@@ -4,6 +4,7 @@
 import { sayWord } from "./audio.js";
 import { _renderConquerWordCard } from "./ui_conquer.js";
 import { getCachedTaskHistory, getConquerRollSettings } from "./store.js";
+import { getVacationInfo } from "./remedy_service.js";
 
 export function analyzeErrorTag() {
   return { tag: "弱點單字", cls: "tag-spelling", icon: "⚠️" };
@@ -90,6 +91,16 @@ export function initWeakWordsCard() {
   const container = document.getElementById("weak-words-container");
   const toggleBtn = document.getElementById("btn-toggle-weak-words-card");
   if (!sec || !toggleBtn) return;
+
+  // ?? ?????????????????????????????/????????
+  const vacInfo = (typeof getVacationInfo === "function") ? getVacationInfo() : { isVacation: false };
+  const isTeacherOrParent = document.body.classList.contains("role-teacher") || document.body.classList.contains("role-parent");
+  if (!vacInfo.isVacation && !isTeacherOrParent) {
+    sec.style.setProperty("display", "none", "important");
+    return;
+  } else {
+    sec.style.removeProperty("display");
+  }
 
   let activeScope = "current"; // "current" (本學期) | "all" (全歷程封存)
 
