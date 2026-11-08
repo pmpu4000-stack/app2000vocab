@@ -4306,8 +4306,9 @@ img, svg, video, canvas {
 }
 
 /* 每日練習時間截止水平清爽 Banner (Industry Standard) */
+#daily-limit-reached-card.daily-limit-banner,
 .daily-limit-banner {
-  display: flex;
+  display: flex !important;
   align-items: center;
   gap: 14px;
   padding: 14px 18px;
@@ -4316,6 +4317,13 @@ img, svg, video, canvas {
   border: 1px solid rgba(226,232,240,0.9);
   box-shadow: 0 4px 18px rgba(0,0,0,0.04);
   margin: 0 0 10px;
+  box-sizing: border-box;
+}
+#daily-limit-reached-card.daily-limit-banner[style*="display: none"],
+#daily-limit-reached-card.daily-limit-banner[style*="display:none"],
+.daily-limit-banner[style*="display: none"],
+.daily-limit-banner[style*="display:none"] {
+  display: none !important;
 }
 .dlb-icon-wrap {
   width: 42px;

@@ -911,6 +911,7 @@
       scrollbar-width: thin !important;
     }
     /* 每日練習時間截止水平清爽 Banner */
+    #daily-limit-reached-card.daily-limit-banner,
     .daily-limit-banner {
       display: flex !important;
       align-items: center !important;
@@ -922,6 +923,12 @@
       box-shadow: 0 4px 18px rgba(0,0,0,0.04) !important;
       margin: 0 0 10px !important;
       box-sizing: border-box !important;
+    }
+    #daily-limit-reached-card.daily-limit-banner[style*="display: none"],
+    #daily-limit-reached-card.daily-limit-banner[style*="display:none"],
+    .daily-limit-banner[style*="display: none"],
+    .daily-limit-banner[style*="display:none"] {
+      display: none !important;
     }
     .dlb-icon-wrap {
       width: 42px !important;
