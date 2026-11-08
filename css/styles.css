@@ -288,9 +288,9 @@ header{display:flex; align-items:center; justify-content:space-between; flex-wra
   transform: translateY(-2px) scale(1.03) !important;
 }
 
-/* tiles */
-.tiles{display:flex;flex-wrap:wrap;gap:7px;justify-content:center}
-.tile{width:44px;height:52px;border-radius:11px;display:grid;place-items:center;font-size:25px;font-weight:800;
+/* tiles: 單字字母方塊自適應緊湊佈局 (4~9字母主流極致利用空間，13~15長單字不溢位) */
+.tiles{display:flex;flex-wrap:wrap;gap:clamp(4px, 1.2vw, 7px);justify-content:center;max-width:100%;box-sizing:border-box}
+.tile{flex:0 0 auto;width:clamp(32px, 8.5vw, 44px);height:clamp(40px, 10.5vw, 52px);border-radius:10px;display:grid;place-items:center;font-size:clamp(18px, 5vw, 25px);font-weight:800;
   text-transform:lowercase;background:#F3F1FB;border:2px solid #E4DFFa;color:var(--ink)}
 .tile.blank{background:#FFFCF0;border:2.5px dashed #EEC53C}
 .tile.blank input{width:100%;height:100%;border:none;background:none;text-align:center;font:inherit;font-size:25px;
