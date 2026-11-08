@@ -765,14 +765,23 @@ body.daily-limit-reached #btn-upload {
 .custom-date-option{display:grid;grid-template-columns:110px 1fr 1fr;align-items:center;gap:6px;padding:6px 10px;font-size:12px;cursor:pointer;transition:background .12s;white-space:nowrap}
 .custom-date-option:hover{background:#F3F0FF}
 .custom-date-option.is-selected{background:#EDE9FE;font-weight:800;color:var(--violet)}
-.cdo-date{font-family:ui-monospace,monospace;font-weight:700;color:var(--ink)}
+.custom-date-week-divider{display:flex;align-items:center;justify-content:center;gap:8px;padding:8px 12px 4px;font-size:11px;font-weight:800;color:#94A3B8;letter-spacing:.5px;user-select:none}
+.custom-date-week-divider::before,
+.custom-date-week-divider::after{content:"";flex:1;height:1px;background:#E2E8F0}
+.cdo-today-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#0284C7;margin-right:5px;vertical-align:middle;box-shadow:0 0 0 2px rgba(2,132,199,0.25)}
+.cdo-date{font-family:ui-monospace,monospace;font-weight:700;color:var(--ink);display:inline-flex;align-items:center}
 .cdo-badge{display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cdo-badge small{font-size:9.5px;font-weight:600;opacity:.88;margin-left:2px}
 .cdo-task{background:#EEF2FF;color:#4338CA;border:1px solid #C7D2FE}
 .cdo-task-untested{background:#FEF3C7;color:#B45309;border:1px solid #FCD34D}
+.cdo-task-perfect{background:#FEF9C3;color:#854D0E;border:1px solid #FDE047}
 .cdo-free{background:#ECFDF5;color:#047857;border:1px solid #A7F3D0}
 .cdo-empty{background:transparent;color:var(--ink3);border:1px dashed #CBD5E1;font-weight:500}
 .cdo-none{color:var(--ink3);font-size:11px;grid-column:span 2}
+[data-theme="dark"] .custom-date-week-divider{color:#64748B}
+[data-theme="dark"] .custom-date-week-divider::before,
+[data-theme="dark"] .custom-date-week-divider::after{background:#2D354E}
+[data-theme="dark"] .cdo-today-dot{background:#38BDF8;box-shadow:0 0 0 2px rgba(56,189,248,0.25)}
 [data-theme="dark"] .custom-date-trigger{background:#181C2A !important;border-color:#2D354E !important;color:#F0F3FA !important}
 [data-theme="dark"] .custom-date-menu{background:#181C2A !important;border-color:#2D354E !important;box-shadow:0 8px 24px rgba(0,0,0,.6) !important}
 [data-theme="dark"] .custom-date-option:hover{background:#252B42 !important}
@@ -780,6 +789,7 @@ body.daily-limit-reached #btn-upload {
 [data-theme="dark"] .cdo-date{color:#F0F3FA !important}
 [data-theme="dark"] .cdo-task{background:#1E2238;color:#A5B4FC;border-color:#3730A3}
 [data-theme="dark"] .cdo-task-untested{background:#2A2318;color:#FCD34D;border-color:#B45309}
+[data-theme="dark"] .cdo-task-perfect{background:#2A2514;color:#FDE047;border-color:#A16207}
 [data-theme="dark"] .cdo-free{background:#132924;color:#6EE7B7;border-color:#065F46}
 [data-theme="dark"] .cdo-empty{border-color:#374151;color:#6B7280}
 .date-nav-stepper-wrap{display:flex;align-items:center;gap:6px;width:100%}

@@ -2118,6 +2118,9 @@ export function renderSummary(d) {
           taskBadge = `<span class="cdo-badge cdo-task">指派: ${stat.c}/${stat.a} <small>(${stat.rate}%)</small></span>`;
         }
       }
+    } else if (isWeekend(dateStr)) {
+      // 週末且未指派任務：檢查該週平日是否皆無待攻克（平日全數答對免測）
+      taskBadge = `<span class="cdo-badge cdo-task-perfect" title="平日指定測驗全對免測">🏆 平日全對免測</span>`;
     }
 
     let freeBadge = `<span class="cdo-badge cdo-empty">自由: —</span>`;
@@ -2127,11 +2130,11 @@ export function renderSummary(d) {
     }
 
     const isSelected = (dateStr === defaultSelectedDate);
-    const hasAny = (stat && stat.statusType !== "unassigned") || (freeTestedWords > 0);
+    const hasAny = (stat && stat.statusType !== "unassigned") || (freeTestedWords > 0) || isWeekend(dateStr);
 
     return `
       <div class="custom-date-option ${isSelected ? "is-selected" : ""}" data-val="${dateStr}" role="option" aria-selected="${isSelected}">
-        <span class="cdo-date">${dateStr}${isToday ? " (今日)" : ""}</span>
+        <span class="cdo-date">${isToday ? '<span class="cdo-today-dot" title="今日"></span>' : ''}${dateStr}</span>
         ${hasAny ? `${taskBadge}${freeBadge}` : `<span class="cdo-none">(尚無作答紀錄)</span>`}
       </div>
     `;
@@ -2157,6 +2160,8 @@ export function renderSummary(d) {
           taskBadge = `<span class="cdo-badge cdo-task">指派: ${stat.c}/${stat.a} <small>(${stat.rate}%)</small></span>`;
         }
       }
+    } else if (isWeekend(dateStr)) {
+      taskBadge = `<span class="cdo-badge cdo-task-perfect" title="平日指定測驗全對免測">🏆 平日全對免測</span>`;
     }
 
     let freeBadge = `<span class="cdo-badge cdo-empty">自由: —</span>`;
@@ -2165,18 +2170,30 @@ export function renderSummary(d) {
       freeBadge = `<span class="cdo-badge cdo-free">自由: ${freeCorrWords}/${freeTestedWords} <small>(${freeRate}%)</small></span>`;
     }
 
-    const hasAny = (stat && stat.statusType !== "unassigned") || (freeTestedWords > 0);
+    const hasAny = (stat && stat.statusType !== "unassigned") || (freeTestedWords > 0) || isWeekend(dateStr);
 
     return `
       <div class="custom-date-trigger-content">
-        <span class="cdo-date">${dateStr}${isToday ? " (今日)" : ""}</span>
+        <span class="cdo-date">${isToday ? '<span class="cdo-today-dot" title="今日"></span>' : ''}${dateStr}</span>
         ${hasAny ? `${taskBadge}${freeBadge}` : `<span class="cdo-none">(尚無作答紀錄)</span>`}
       </div>
     `;
   };
 
-  // 建立「🎯 快速跳至有紀錄日期」自訂多欄對齊下拉面板 HTML
-  const customOptionsListHtml = sortedDates.map(dateStr => buildCustomOptionItem(dateStr)).join("");
+  // 建立「🎯 快速跳至有紀錄日期」自訂多欄對齊下拉面板 HTML（夾週次分隔線）
+  let lastRenderedWeekNum = null;
+  const customOptionsListHtml = sortedDates.map(dateStr => {
+    let dividerHtml = "";
+    try {
+      const cycle = getBiweeklyCycleInfo(new Date(dateStr.replace(/-/g, "/")));
+      const wNum = cycle ? cycle.semesterWeek : null;
+      if (wNum !== null && wNum !== lastRenderedWeekNum) {
+        lastRenderedWeekNum = wNum;
+        dividerHtml = `<div class="custom-date-week-divider">第 ${wNum} 週</div>`;
+      }
+    } catch (_) {}
+    return `${dividerHtml}${buildCustomOptionItem(dateStr)}`;
+  }).join("");
 
   // 建立相容原生 select options (備用與無障礙同步)
   const quickDateOptionsHtml = sortedDates.map(dateStr => {
