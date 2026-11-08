@@ -7,32 +7,5 @@
 # ─────────────────────────────────────────────────────
 
 param([string]$msg = "deploy: update")
-
 $root = $PSScriptRoot
-
-node -e "
-const fs = require('fs');
-const root = '$($root -replace '\\\\','\\\\\\\\')';
-
-// 1. 重建 TeacherJs.html（src/teacher_portal.js → GAS 內嵌格式，UTF-8）
-const tpSrc = fs.readFileSync(root + '/src/teacher_portal.js', 'utf8');
-fs.writeFileSync(root + '/google_apps_script/TeacherJs.html', '<script>\n' + tpSrc + '\n</script>', 'utf8');
-
-// 2. 以 UTF-8 同步鏡像（index.html → GAS/Index.html → 所有鏡像）
-const idx = fs.readFileSync(root + '/index.html', 'utf8');
-fs.writeFileSync(root + '/google_apps_script/Index.html', idx, 'utf8');
-fs.writeFileSync(root + '/teacher_history.html', idx, 'utf8');
-fs.writeFileSync(root + '/google_apps_script/teacher_history.html', idx, 'utf8');
-
-console.log('Files synced (UTF-8).');
-"
-
-# 3. GAS 推送
-Push-Location "$root\google_apps_script"
-cmd /c "clasp push -f" | Out-Null
-Pop-Location
-
-# 4. Git
-git -C $root add -A
-git -C $root commit -q -m $msg
-git -C $root push -q
+node "$root\deploy.js" "$msg"
