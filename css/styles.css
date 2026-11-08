@@ -4316,7 +4316,7 @@ img, svg, video, canvas {
   background: linear-gradient(135deg, rgba(255,255,255,0.92), rgba(248,250,252,0.95)) !important;
   border: 1px solid rgba(226,232,240,0.9) !important;
   box-shadow: 0 4px 18px rgba(0,0,0,0.04) !important;
-  margin: 0 0 10px;
+  margin: 0 0 8px !important;
   box-sizing: border-box;
 }
 #daily-limit-reached-card.daily-limit-banner[style*="display: none"],
