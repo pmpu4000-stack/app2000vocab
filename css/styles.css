@@ -2741,6 +2741,12 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   overflow: hidden !important;
 }
 
+/* 學習足跡卡片內層標題隱藏（統一由外層紫色標題唯一呈現，消除雙重標頭） */
+#task-record-details .task-history-header,
+#free-record-details .task-history-header {
+  display: none !important;
+}
+
 .word-split-title {
   flex: 0 0 auto !important;
   margin-bottom: 5px !important;
@@ -2875,7 +2881,13 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   .word-split-box {
     padding: 6px 8px !important;
   }
-  .word-split-title {
+  /* 學習足跡卡片內層標題隱藏（統一由外層紫色標題唯一呈現，消除雙重標頭） */
+#task-record-details .task-history-header,
+#free-record-details .task-history-header {
+  display: none !important;
+}
+
+.word-split-title {
     font-size: 11px !important;
     margin-bottom: 4px !important;
   }

@@ -1066,43 +1066,68 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     const attRate = hasUnanswered ? attemptedRate : taskRate;
     const ovrRate = hasUnanswered ? overallScoreRate : taskRate;
 
-    scoreGridHtml = `
-      <div class="task-score-grid">
-        <div class="task-score-subgrid-4">
-          <div class="task-score-item score-corr-item">
-            <div class="task-score-label">答對</div>
-            <div class="task-score-val task-score-num-corr">${taskCorrWords}</div>
-          </div>
-          <div class="task-score-item score-wrong-item">
-            <div class="task-score-label">答錯</div>
-            <div class="task-score-val task-score-num-wrong">${wrgCount}</div>
-          </div>
-          <div class="task-score-item score-ans-item">
-            <div class="task-score-label">已作答</div>
-            <div class="task-score-val task-score-num-ans">${ansCount}</div>
-          </div>
-          <div class="task-score-item score-unans-item">
-            <div class="task-score-label">未作答</div>
-            <div class="task-score-val task-score-num-unans">${unansCount}</div>
-          </div>
-        </div>
-        <div class="task-score-subgrid-2">
-          <div class="task-score-item rate-tier-item ${getHeatmapRateClass(attRate)}">
-            <div class="task-score-label" title="實際有作答題目的答對率">作答正確率</div>
-            <div class="task-score-val heat-rate-val ${getHeatmapRateClass(attRate)}">
-              ${ansCount > 0 ? attRate + '%' : '—'}
+    if (unansCount === 0) {
+      scoreGridHtml = `
+        <div class="task-score-grid">
+          <div class="task-score-subgrid" style="display:grid; grid-template-columns:repeat(2, 1fr); gap:6px; width:100%; box-sizing:border-box;">
+            <div class="task-score-item score-corr-item">
+              <div class="task-score-label">答對</div>
+              <div class="task-score-val task-score-num-corr">${taskCorrWords}</div>
+            </div>
+            <div class="task-score-item score-wrong-item">
+              <div class="task-score-label">答錯</div>
+              <div class="task-score-val task-score-num-wrong">${wrgCount}</div>
             </div>
           </div>
           <div class="task-score-item rate-tier-item ${getHeatmapRateClass(ovrRate)}">
-            <div class="task-score-label" title="以全卷應測總單字數為分母計算之正確率">全卷正確率</div>
+            <div class="task-score-label">全卷正確率</div>
             <div class="task-score-val heat-rate-val ${getHeatmapRateClass(ovrRate)}">
               ${ovrRate}%
             </div>
           </div>
         </div>
-      </div>
-    `;
+      `;
+    } else {
+      scoreGridHtml = `
+        <div class="task-score-grid">
+          <div class="task-score-subgrid-4">
+            <div class="task-score-item score-corr-item">
+              <div class="task-score-label">答對</div>
+              <div class="task-score-val task-score-num-corr">${taskCorrWords}</div>
+            </div>
+            <div class="task-score-item score-wrong-item">
+              <div class="task-score-label">答錯</div>
+              <div class="task-score-val task-score-num-wrong">${wrgCount}</div>
+            </div>
+            <div class="task-score-item score-ans-item">
+              <div class="task-score-label">已作答</div>
+              <div class="task-score-val task-score-num-ans">${ansCount}</div>
+            </div>
+            <div class="task-score-item score-unans-item">
+              <div class="task-score-label">未作答</div>
+              <div class="task-score-val task-score-num-unans">${unansCount}</div>
+            </div>
+          </div>
+          <div class="task-score-subgrid-2">
+            <div class="task-score-item rate-tier-item ${getHeatmapRateClass(attRate)}">
+              <div class="task-score-label" title="實際有作答題目的答對率">作答正確率</div>
+              <div class="task-score-val heat-rate-val ${getHeatmapRateClass(attRate)}">
+                ${ansCount > 0 ? attRate + '%' : '—'}
+              </div>
+            </div>
+            <div class="task-score-item rate-tier-item ${getHeatmapRateClass(ovrRate)}">
+              <div class="task-score-label" title="以全卷應測總單字數為分母計算之正確率">全卷正確率</div>
+              <div class="task-score-val heat-rate-val ${getHeatmapRateClass(ovrRate)}">
+                ${ovrRate}%
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
   }
+
+  const hasWrongOrUnans = (wrongList.length > 0 || actualUnanswered > 0);
 
   return `
     <div class="task-single-record-block" style="${blockStyle}">
@@ -1114,8 +1139,8 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
 
       ${scoreGridHtml}
 
-      <div class="word-split-grid grid-2">
-        <div class="word-split-box ${leftBoxClass}">
+      <div class="word-split-grid ${hasWrongOrUnans ? 'grid-2' : ''}" style="${hasWrongOrUnans ? '' : 'grid-template-columns:1fr;'}">
+        <div class="word-split-box ${leftBoxClass}" style="${hasWrongOrUnans ? '' : 'grid-column:1/-1; width:100%;'}">
           <div class="word-split-title ${leftTitleClass}">
             ${leftTitleText}
           </div>
@@ -1123,6 +1148,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
             ${correctContentHtml}
           </div>
         </div>
+        ${hasWrongOrUnans ? `
         <div class="word-split-box ${rightBoxClass}">
           <div class="word-split-title ${rightTitleClass}">
             ${rightTitleText}
@@ -1130,7 +1156,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
           <div class="word-split-content">
             ${wrongContentHtml}
           </div>
-        </div>
+        </div>` : ''}
       </div>
     </div>
   `;
@@ -1651,9 +1677,9 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
       </div>
 
       <!-- 將答對的字與答錯的字分成兩個區域（純顯示當日練習狀況，非累積狀況） -->
-      <div class="word-split-grid grid-2">
+      <div class="word-split-grid ${displayWrongBoxCount > 0 ? 'grid-2' : ''}" style="${displayWrongBoxCount > 0 ? '' : 'grid-template-columns:1fr;'}">
         <!-- 答對的單字區 -->
-        <div class="word-split-box correct-box">
+        <div class="word-split-box correct-box" style="${displayWrongBoxCount > 0 ? '' : 'grid-column:1/-1; width:100%;'}">
           <div class="word-split-title correct-title">
             <span><span style="color:#10B981; font-weight:900; margin-right:4px;">✔</span>答對的單字 (${displayCorrectBoxCount} 字)</span>
           </div>
@@ -1662,6 +1688,7 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
           </div>
         </div>
 
+        ${displayWrongBoxCount > 0 ? `
         <!-- 答錯的單字區 -->
         <div class="word-split-box wrong-box">
           <div class="word-split-title wrong-title">
@@ -1670,7 +1697,7 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
           <div class="word-split-content">
             ${wrongContentHtml}
           </div>
-        </div>
+        </div>` : ''}
       </div>
     </div>
   `;
