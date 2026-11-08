@@ -1961,8 +1961,8 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   box-shadow: 0 2px 6px rgba(35,42,77,0.03);
 }
 .mode-stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(35,42,77,0.08);
+  transform: none;
+  box-shadow: 0 2px 6px rgba(35,42,77,0.03);
 }
 
 /* 4 種模式專屬色彩層次（清爽豐富） */
