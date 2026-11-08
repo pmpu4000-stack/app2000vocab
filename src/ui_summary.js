@@ -1907,49 +1907,6 @@ export function renderSummary(d) {
     }
   }
 
-  const buildOptionLabel = (dateStr) => {
-    const isToday = (dateStr === todayDash);
-    const stat = getTaskDayStat ? getTaskDayStat(dateStr) : null;
-    const recFree = resolveDailyPracticeRecord(dateStr, d, historyList);
-    
-    const freeTestedWords = recFree ? (recFree.attempts || 0) : 0;
-    const freeCorrWords = recFree ? (recFree.correct || 0) : 0;
-
-    const parts = [];
-    if (stat && stat.statusType !== "unassigned") {
-      if (stat.statusType === "untested") {
-        parts.push("指派: 未受測");
-      } else {
-        const tTotal = stat.wordsCount || stat.a;
-        if (tTotal > 0) {
-          parts.push(`指派: ${stat.c}/${tTotal} (${stat.rate}%)`);
-        } else if (stat.a > 0) {
-          parts.push(`指派: ${stat.c}/${stat.a} (${stat.rate}%)`);
-        }
-      }
-    }
-
-    if (freeTestedWords > 0) {
-      const freeRate = Math.round((freeCorrWords / freeTestedWords) * 100);
-      parts.push(`自由: ${freeCorrWords}/${freeTestedWords} (${freeRate}%)`);
-    }
-
-    let desc = "";
-    if (parts.length > 0) {
-      desc = ` [${parts.join(" · ")}]`;
-    } else {
-      desc = " (尚無紀錄)";
-    }
-
-    return `${dateStr}${isToday ? " (今日)" : ""}${desc}`;
-  };
-
-  // 建立「🎯 快速跳至有紀錄日期」下拉選單
-  const quickDateOptionsHtml = sortedDates.map(dateStr => {
-    const label = buildOptionLabel(dateStr);
-    return `<option value="${dateStr}" ${dateStr === defaultSelectedDate ? "selected" : ""}>${label}</option>`;
-  }).join("");
-
   const taskDayStatCache = new Map();
 
   // 計算「指定測驗作答紀錄」最近 4 週 (28 天) 熱力圖資料與連續/最佳/累計天數 (Memoized O(1))
@@ -2100,6 +2057,49 @@ export function renderSummary(d) {
     taskDayStatCache.set(norm, res);
     return res;
   };
+
+  const buildOptionLabel = (dateStr) => {
+    const isToday = (dateStr === todayDash);
+    const stat = getTaskDayStat(dateStr);
+    const recFree = resolveDailyPracticeRecord(dateStr, d, historyList);
+    
+    const freeTestedWords = recFree ? (recFree.attempts || 0) : 0;
+    const freeCorrWords = recFree ? (recFree.correct || 0) : 0;
+
+    const parts = [];
+    if (stat && stat.statusType !== "unassigned") {
+      if (stat.statusType === "untested") {
+        parts.push("指派: 未受測");
+      } else {
+        const tTotal = stat.wordsCount || stat.a;
+        if (tTotal > 0) {
+          parts.push(`指派: ${stat.c}/${tTotal} (${stat.rate}%)`);
+        } else if (stat.a > 0) {
+          parts.push(`指派: ${stat.c}/${stat.a} (${stat.rate}%)`);
+        }
+      }
+    }
+
+    if (freeTestedWords > 0) {
+      const freeRate = Math.round((freeCorrWords / freeTestedWords) * 100);
+      parts.push(`自由: ${freeCorrWords}/${freeTestedWords} (${freeRate}%)`);
+    }
+
+    let desc = "";
+    if (parts.length > 0) {
+      desc = ` [${parts.join(" · ")}]`;
+    } else {
+      desc = " (尚無紀錄)";
+    }
+
+    return `${dateStr}${isToday ? " (今日)" : ""}${desc}`;
+  };
+
+  // 建立「🎯 快速跳至有紀錄日期」下拉選單
+  const quickDateOptionsHtml = sortedDates.map(dateStr => {
+    const label = buildOptionLabel(dateStr);
+    return `<option value="${dateStr}" ${dateStr === defaultSelectedDate ? "selected" : ""}>${label}</option>`;
+  }).join("");
 
   const initialTaskRecords = taskByDateMap.get(defaultSelectedDate) || [];
   const initialTaskDetailsHtml = buildTaskDetailsHtml(initialTaskRecords, defaultSelectedDate, d, getTaskDayStat(defaultSelectedDate));
