@@ -2131,9 +2131,9 @@ export function renderSummary(d) {
       } else {
         const tTotal = stat.wordsCount || stat.a;
         if (tTotal > 0) {
-          taskBadge = `<span class="cdo-badge cdo-task">指派: ${stat.c}/${tTotal} (${stat.rate}%)</span>`;
+          taskBadge = `<span class="cdo-badge cdo-task">指派: ${stat.c}/${tTotal} <small>(${stat.rate}%)</small></span>`;
         } else if (stat.a > 0) {
-          taskBadge = `<span class="cdo-badge cdo-task">指派: ${stat.c}/${stat.a} (${stat.rate}%)</span>`;
+          taskBadge = `<span class="cdo-badge cdo-task">指派: ${stat.c}/${stat.a} <small>(${stat.rate}%)</small></span>`;
         }
       }
     }
@@ -2141,7 +2141,7 @@ export function renderSummary(d) {
     let freeBadge = `<span class="cdo-badge cdo-empty">自由: —</span>`;
     if (freeTestedWords > 0) {
       const freeRate = Math.round((freeCorrWords / freeTestedWords) * 100);
-      freeBadge = `<span class="cdo-badge cdo-free">自由: ${freeCorrWords}/${freeTestedWords} (${freeRate}%)</span>`;
+      freeBadge = `<span class="cdo-badge cdo-free">自由: ${freeCorrWords}/${freeTestedWords} <small>(${freeRate}%)</small></span>`;
     }
 
     const isSelected = (dateStr === defaultSelectedDate);
@@ -2170,9 +2170,9 @@ export function renderSummary(d) {
       } else {
         const tTotal = stat.wordsCount || stat.a;
         if (tTotal > 0) {
-          taskBadge = `<span class="cdo-badge cdo-task">指派: ${stat.c}/${tTotal} (${stat.rate}%)</span>`;
+          taskBadge = `<span class="cdo-badge cdo-task">指派: ${stat.c}/${tTotal} <small>(${stat.rate}%)</small></span>`;
         } else if (stat.a > 0) {
-          taskBadge = `<span class="cdo-badge cdo-task">指派: ${stat.c}/${stat.a} (${stat.rate}%)</span>`;
+          taskBadge = `<span class="cdo-badge cdo-task">指派: ${stat.c}/${stat.a} <small>(${stat.rate}%)</small></span>`;
         }
       }
     }
@@ -2180,7 +2180,7 @@ export function renderSummary(d) {
     let freeBadge = `<span class="cdo-badge cdo-empty">自由: —</span>`;
     if (freeTestedWords > 0) {
       const freeRate = Math.round((freeCorrWords / freeTestedWords) * 100);
-      freeBadge = `<span class="cdo-badge cdo-free">自由: ${freeCorrWords}/${freeTestedWords} (${freeRate}%)</span>`;
+      freeBadge = `<span class="cdo-badge cdo-free">自由: ${freeCorrWords}/${freeTestedWords} <small>(${freeRate}%)</small></span>`;
     }
 
     const hasAny = (stat && stat.statusType !== "unassigned") || (freeTestedWords > 0);
