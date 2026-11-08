@@ -418,6 +418,7 @@ function handleSaveRecord(ss, params, auth) {
     const cache = CacheService.getScriptCache();
     cache.remove("stu_data_" + username.toLowerCase());
     cache.remove("stu_hist_" + username.toLowerCase());
+    cache.remove("dth_" + username.toLowerCase());
     cache.remove("CACHE_STUDENT_PORTFOLIO_" + username + "_class");
     cache.remove("CACHE_STUDENT_PORTFOLIO_" + username + "_all");
     cache.remove("STUDENT_DAILY_RESULT_" + username);
@@ -669,6 +670,14 @@ function getStudentTodayTaskResult(ss, username, todayStr) {
 function getStudentDailyTaskHistory(ss, username) {
   if (!username) return [];
 
+  const cleanUser = String(username).trim().toLowerCase();
+  const histCacheKey = "dth_" + cleanUser;
+  const scriptCache = CacheService.getScriptCache();
+  try {
+    const hit = scriptCache.get(histCacheKey);
+    if (hit) return JSON.parse(hit);
+  } catch(_) {}
+
   const taskWordsDict = getTaskWordsDictCached_(ss);
   let headers = [], vals = [];
   const cpRes = getStudentRowsFromCentralPortfolio(ss, username, 60);
@@ -783,6 +792,12 @@ function getStudentDailyTaskHistory(ss, username) {
     }
   }
   list.sort((a, b) => (b.updatedAt || "").localeCompare(a.updatedAt || "") || b.date.localeCompare(a.date));
+  try {
+    const jsonStr = JSON.stringify(list);
+    if (jsonStr.length < 95000) {
+      scriptCache.put(histCacheKey, jsonStr, 300);
+    }
+  } catch(_) {}
   return list;
 }
 

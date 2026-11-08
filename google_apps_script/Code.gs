@@ -525,16 +525,24 @@ function getStudentMetaFromUserList_(ss, studentUser) {
       let records = {};
       let raw = "";
 
-      // 🚀 優先從【學生歷程總庫】秒速提取最新進度備份 (零分頁尋找延遲)
+      // 🚀 0. 記憶體極速命中：若先前已有存檔快取直接取用
       try {
-        const cpRes = getStudentRowsFromCentralPortfolio(ss, studentUser, 1);
-        if (cpRes && cpRes.rawData && cpRes.rawData.length > 0) {
-          const cellVal = String(cpRes.rawData[0][1] || "").trim();
-          if (cellVal && (cellVal.startsWith("GZ:") || cellVal.startsWith("{"))) {
-            raw = cellVal;
-          }
-        }
+        const memHit = CacheService.getScriptCache().get("stu_rec_" + studentUser.toLowerCase());
+        if (memHit) raw = memHit;
       } catch(_) {}
+
+      // 🚀 1. 優先從【學生歷程總庫】秒速提取最新進度備份 (零分頁尋找延遲)
+      if (!raw) {
+        try {
+          const cpRes = getStudentRowsFromCentralPortfolio(ss, studentUser, 1);
+          if (cpRes && cpRes.rawData && cpRes.rawData.length > 0) {
+            const cellVal = String(cpRes.rawData[0][1] || "").trim();
+            if (cellVal && (cellVal.startsWith("GZ:") || cellVal.startsWith("{"))) {
+              raw = cellVal;
+            }
+          }
+        } catch(_) {}
+      }
 
       if (!raw) {
         const uSheet = getStudentSheet(ss, studentUser);
