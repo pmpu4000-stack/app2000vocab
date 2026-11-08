@@ -828,23 +828,28 @@
     .word-split-content,
     .word-split-box > div:not(.word-split-title) {
       display: grid !important;
-      grid-template-columns: repeat(auto-fill, 85px) !important;
-      justify-content: space-between !important;
-      gap: 6px 0 !important;
+      grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+      gap: 8px !important;
       align-items: start !important;
       align-content: start !important;
       box-sizing: border-box !important;
     }
+    @media (max-width: 480px) {
+      .word-split-content,
+      .word-split-box > div:not(.word-split-title) {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      }
+    }
     .word-split-content > span.word-pill-tag {
-      width: 85px !important;
-      min-width: 85px !important;
-      max-width: 85px !important;
+      width: 100% !important;
+      min-width: 0 !important;
+      max-width: 100% !important;
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;
       text-align: center !important;
       margin: 0 !important;
-      padding: 5px 2px !important;
+      padding: 6px 4px !important;
       font-size: 12.5px !important;
       font-weight: 700 !important;
       border-radius: 6px !important;
@@ -863,7 +868,7 @@
   </style>
   <link rel="preconnect" href="https://script.google.com" crossorigin>
   <link rel="dns-prefetch" href="https://script.google.com">
-  <link rel="stylesheet" href="css/styles.css?v=202611080941">
+  <link rel="stylesheet" href="css/styles.css?v=202611080945">
   <link rel="modulepreload" href="src/app.js">
   <link rel="modulepreload" href="src/auth_sync.js">
   <link rel="modulepreload" href="src/wordbank.js">
@@ -881,11 +886,11 @@
   <script>
     if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=202611080941').catch(() => {});
+        navigator.serviceWorker.register('./sw.js?v=202611080945').catch(() => {});
       });
     }
   </script>
-  <script src="src/time_limits.js?v=202611080941" defer></script>
+  <script src="src/time_limits.js?v=202611080945" defer></script>
 </head>
 <body class="is-logging-in">
 
