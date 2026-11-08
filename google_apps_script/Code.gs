@@ -287,10 +287,8 @@ function doPost(e) {
       return jsonResponse({ status: "success", pong: true, time: Date.now() });
     }
 
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
-
-    // ── 0. 應用程式防火牆 (WAF) 深度封包安全檢測 ──
-    const attackDetected = inspectRequestForAttacks(ss, params, e);
+    // ── 0. 應用程式防火牆 (WAF) 深度封包安全檢測（純記憶體字串比對，零 SpreadsheetApp 延遲） ──
+    const attackDetected = inspectRequestForAttacks(null, params, e);
     if (attackDetected) {
       return jsonResponse({
         status: "error",
@@ -298,6 +296,8 @@ function doPost(e) {
         message: "【資安防禦警示】系統偵測到未授權之異常攻擊載荷，連線已即時中斷並依法保全紀錄存查。"
       });
     }
+
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
 
     // ── 1. 學生 / 教師登入 ──
     // ── 0.5 歷程查詢與各項 Web API 橋接 ──

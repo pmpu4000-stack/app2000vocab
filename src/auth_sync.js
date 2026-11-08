@@ -822,11 +822,14 @@ if (typeof window !== "undefined" && typeof document !== "undefined") {
 
     function purgeAllStudentSessionAndLocalData() {
       try {
-        const preserveKeys = new Set(["theme", "fontSize", "preferred_voice", "audio_speed"]);
+        const preserveKeys = new Set([
+          "theme", "fontSize", "preferred_voice", "audio_speed",
+          "swr_offline_user_cache"
+        ]);
         const keysToRemove = [];
         for (let i = 0; i < localStorage.length; i++) {
           const k = localStorage.key(i);
-          if (k && !preserveKeys.has(k)) {
+          if (k && !preserveKeys.has(k) && !k.startsWith("swr_user_snapshot_")) {
             keysToRemove.push(k);
           }
         }
@@ -1001,6 +1004,303 @@ if (typeof window !== "undefined" && typeof document !== "undefined") {
   }
 })();
 
+
+    // 🚀 業界最高標準 SWR (Stale-While-Revalidate)：登入快照套用與背景差量同步模組
+    async function applyLoginPayload(user, pass, hashedPass, result, isOptimistic) {
+      if (!result || result.status !== "success") return false;
+
+      // ── 帳號資料完全隔離與安全零污染保證 ──
+      const lastUser = (localStorage.getItem("current_user") || "").trim();
+      const isDifferentUser = !lastUser || lastUser.toLowerCase() !== user.toLowerCase();
+
+      const hasCloudRecords = result.records && 
+                              typeof result.records === "object" && 
+                              !Array.isArray(result.records) && 
+                              Object.keys(result.records).length > 0 &&
+                              !!result.records["spellAgent.v2"];
+
+      let localAgentData = null;
+      try {
+        const rawLocal = localStorage.getItem("spellAgent.v2");
+        if (rawLocal) {
+          const parsed = JSON.parse(rawLocal);
+          if (parsed && (parsed.attempts > 0 || parsed.points > 0 || (parsed.stat && Object.keys(parsed.stat).length > 0))) {
+            localAgentData = parsed;
+          }
+        }
+      } catch(_) {}
+
+      if (!isOptimistic) {
+        purgeAllStudentSessionAndLocalData();
+      }
+
+      localStorage.setItem("current_user", user);
+      let determinedRole = result.role;
+      if (!determinedRole || determinedRole === "student") {
+        const uLow = user.toLowerCase();
+        if (uLow.startsWith("teacher") || uLow.startsWith("admin")) {
+          determinedRole = "teacher";
+        }
+      }
+      result.role = determinedRole || "student";
+      localStorage.setItem("user_role", result.role);
+
+      if (result.role === "parent") {
+        const childAcc = result.studentUser || (user.toLowerCase().startsWith('p') ? user.slice(1) : user);
+        if (!isOptimistic) setLoginStatus(`家長身分驗證成功，正在載入子女（${childAcc}）學習成果...`, "loading-game");
+        document.body.classList.add("role-parent");
+        document.documentElement.classList.add("role-parent");
+        localStorage.setItem("current_user", user);
+        localStorage.setItem("user_role", "parent");
+        sessionStorage.setItem("current_user", user);
+        sessionStorage.setItem("user_role", "parent");
+        window.__PARENT_USER = user;
+        window.__PARENT_STUDENT = result.realName || result.username || "";
+        applyRoleBasedView("parent", result);
+      } else {
+        document.body.classList.remove("role-parent");
+        document.documentElement.classList.remove("role-parent");
+        sessionStorage.removeItem("role_parent_target");
+      }
+
+      if (result.isAdmin) {
+        localStorage.setItem("user_is_admin", "true");
+        const adminNotice = document.getElementById("admin-mode-badge");
+        if (adminNotice) adminNotice.style.display = "inline-flex";
+      }
+      if (result.realName) localStorage.setItem("user_real_name", result.realName);
+      if (result.className) localStorage.setItem("user_class_name", result.className);
+      if (result.cachedSummary) {
+        try {
+          localStorage.setItem("cached_summary", JSON.stringify(result.cachedSummary));
+          window.__CACHED_SUMMARY = result.cachedSummary;
+        } catch(_) {}
+      }
+
+      window.__CURRENT_USER = user;
+      window.__USER_ROLE = result.role || "student";
+      applyRoleBasedView(result.role, result);
+      updateAccountDisplay(user, result.role || "student");
+      const teacherBtn = document.getElementById("btn-teacher-picker");
+      if (teacherBtn) {
+        teacherBtn.style.display = (result.role === "teacher" || result.isAdmin) ? "flex" : "none";
+      }
+      const timeBtn = document.getElementById("btn-time-management");
+      if (timeBtn) {
+        timeBtn.style.display = (result.role === "teacher" || result.isAdmin) ? "flex" : "none";
+      }
+      if (result.timeRestriction) {
+        sessionStorage.setItem("user_start_time", result.timeRestriction.startTime || "07:30");
+        sessionStorage.setItem("user_end_time", result.timeRestriction.endTime || "22:00");
+        sessionStorage.setItem("time_restriction_unlocked", (result.timeRestriction.isOverridden === true) ? "true" : "false");
+      }
+      if (result.role === "teacher" || result.isAdmin) {
+        const timerBadge = document.getElementById("stat-daily-timer");
+        if (timerBadge) timerBadge.style.display = "none";
+      }
+
+      if (result.role === "teacher") {
+        let classArr = [];
+        const invalidClasses = new Set(["all", "全校", "系統管理員", "管理員", "admin", "d", "test"]);
+        const rawItems = (Array.isArray(result.classList) && result.classList.length > 0) ? result.classList : [result.className];
+        rawItems.forEach(item => {
+          if (!item) return;
+          String(item).split(/[,，、\s/]+/).forEach(token => {
+            let t = token.replace(/班$/, "").trim();
+            if (!t || invalidClasses.has(t.toLowerCase())) return;
+            if (/^\d{6}$/.test(t)) {
+              classArr.push(t.slice(0, 3), t.slice(3, 6));
+            } else {
+              classArr.push(t);
+            }
+          });
+        });
+        classArr = [...new Set(classArr)].sort();
+        localStorage.setItem("teacher_class_list", JSON.stringify(classArr));
+        if (result.className) {
+          localStorage.setItem("teacher_my_class", result.className);
+        }
+        try { loadPickerData(); } catch(_) {}
+      }
+      sessionStorage.setItem("current_pass", hashedPass);
+      localStorage.removeItem("current_pass");
+      if (result.sessionToken) {
+        localStorage.setItem("session_token", result.sessionToken);
+      }
+
+      if (hasCloudRecords) {
+        for (let key in result.records) {
+          if (key.startsWith("task_words_")) continue;
+          if (key === "current_user" || key === "user_role" || key === "current_pass") continue;
+          const val = result.records[key];
+          const valToStore = (typeof val === "object" && val !== null) ? JSON.stringify(val) : String(val);
+          localStorage.setItem(key, valToStore);
+        }
+        if (result.role === "parent") {
+          localStorage.setItem("current_user", user);
+          localStorage.setItem("user_role", "parent");
+          localStorage.setItem("parent_user", user);
+          if (result.studentUser) localStorage.setItem("bound_student", result.studentUser);
+        }
+      } else if (!isDifferentUser && localAgentData) {
+      } else if (result.isNewStudent === true) {
+        const freshStore = {
+          box: {}, stat: {}, lstat: {},
+          mstat: { listen: { a: 0, c: 0 }, pick: { a: 0, c: 0 }, scramble: { a: 0, c: 0 }, trap: { a: 0, c: 0 } },
+          level: { current: 1, unlocked: 1, placed: true },
+          session: { active: false, date: null, answered: 0, correct: 0, incorrect: 0, ids: {}, mastered: 0 },
+          history: {},
+          dailyPractice: {},
+          points: 0, streak: 0, best: 0, attempts: 0, correct: 0
+        };
+        localStorage.setItem("spellAgent.v2", JSON.stringify(freshStore));
+      }
+
+      if (result.taskWordsMap && typeof result.taskWordsMap === "object") {
+        for (const tk in result.taskWordsMap) {
+          const twVal = result.taskWordsMap[tk];
+          if (Array.isArray(twVal) && twVal.length > 0) {
+            localStorage.setItem("task_words_" + tk, JSON.stringify(twVal));
+          }
+        }
+      }
+
+      if (Array.isArray(result.dailyTaskHistory)) {
+        let mergedHist = result.dailyTaskHistory.map(cloudItem => {
+          const cloudWords = (Array.isArray(cloudItem.words) && cloudItem.words.length > 0) ? cloudItem.words : [];
+          if (cloudWords.length === 0 && cloudItem.taskName && cloudItem.taskName !== "自主練習" && !String(cloudItem.taskName).includes("未指派")) {
+            const cDate = String(cloudItem.date || "").trim().split(/[T\s]/)[0].replace(/\//g, "-");
+            const cachedW = localStorage.getItem("task_words_" + cDate) || localStorage.getItem("task_words_" + cDate.replace(/-/g, "/"));
+            if (cachedW) {
+              try {
+                const parsedW = JSON.parse(cachedW);
+                if (Array.isArray(parsedW) && parsedW.length > 0) cloudItem.words = parsedW;
+              } catch(_) {}
+            }
+          }
+          return cloudItem;
+        });
+        localStorage.setItem("daily_task_history", JSON.stringify(mergedHist));
+      }
+
+      if (result.assignedTask && result.assignedTask.words) {
+        localStorage.setItem("assigned_task", JSON.stringify(result.assignedTask));
+      } else {
+        localStorage.removeItem("assigned_task");
+      }
+
+      if (result.assignedTask) {
+        localStorage.setItem("task_already_completed", result.assignedTask.alreadyCompleted ? "true" : "false");
+      }
+
+      const currentTodayDash = formatDateDash();
+      let bestProg = null;
+      try {
+        const rawLocal = localStorage.getItem("today_task_in_progress_" + user.toLowerCase()) || localStorage.getItem("today_task_in_progress");
+        if (rawLocal) {
+          const p = JSON.parse(rawLocal);
+          const pDate = p ? String(p.date || "").replace(/\//g, "-") : "";
+          const pUser = p ? String(p.username || "").toLowerCase() : "";
+          if (pDate === currentTodayDash && (!pUser || pUser === user.toLowerCase()) && p.pool && p.pool.length > 0 && p.index < p.pool.length) {
+            bestProg = p;
+          }
+        }
+      } catch(_) {}
+
+      try {
+        if (result.records) {
+          const rawCloud = result.records["today_task_in_progress_" + user.toLowerCase()] || result.records.today_task_in_progress;
+          if (rawCloud) {
+            const p = typeof rawCloud === "string" ? JSON.parse(rawCloud) : rawCloud;
+            const pDate = p ? String(p.date || "").replace(/\//g, "-") : "";
+            if (p && pDate === currentTodayDash && p.pool && p.pool.length > 0 && p.index < p.pool.length) {
+              if (!bestProg || (Number(p.index) > Number(bestProg.index))) {
+                bestProg = p;
+              }
+            }
+          }
+        }
+      } catch(_) {}
+
+      if (bestProg && (!result.assignedTask || !result.assignedTask.alreadyCompleted)) {
+        localStorage.setItem("today_task_in_progress", JSON.stringify(bestProg));
+        localStorage.setItem("today_task_in_progress_" + user.toLowerCase(), JSON.stringify(bestProg));
+      }
+
+      // 儲存 SWR 本機快照（供下次 0 毫秒秒開）
+      try {
+        const snapshot = {
+          passHash: hashedPass,
+          result: result,
+          savedAt: Date.now()
+        };
+        localStorage.setItem("swr_user_snapshot_" + user.toLowerCase(), JSON.stringify(snapshot));
+      } catch(_) {}
+
+      if (window.__gameModuleLoaded) {
+        try {
+          if (typeof window.__refreshLearningState === "function") window.__refreshLearningState();
+          if (typeof window.__updateTaskDisplay === "function") window.__updateTaskDisplay();
+        } catch(_) {}
+        return true;
+      }
+      window.__gameModuleLoaded = true;
+
+      let loadPrompt = isOptimistic ? "正在載入遊戲..." : "登入成功，正在載入遊戲...";
+      if (result.role === "parent") loadPrompt = "登入成功，正在載入子女學習進度...";
+      else if (result.role === "teacher" || result.role === "admin") loadPrompt = "載入完成";
+      setLoginStatus(loadPrompt, "loading-game");
+
+      try {
+        if (result.role !== "teacher" && !result.isAdmin && result.dailyUsage) {
+          const du = result.dailyUsage;
+          const uName = localStorage.getItem("current_user");
+          const lim = Number(du.limitMinutes) || 10;
+          const ext = Number(du.extendedMinutes) || 0;
+          const fl = Number(du.firstLoginTime) || 0;
+          const unl = du.unlocked === true;
+          localStorage.setItem(`daily_usage_${uName}_unlocked`, unl ? "true" : "false");
+          localStorage.setItem(`daily_usage_${uName}_limit_minutes`, String(lim));
+          localStorage.setItem(`daily_usage_${uName}_extended_minutes`, String(ext));
+          if (fl) localStorage.setItem(`daily_usage_${uName}_first_login_time`, String(fl));
+          window.__dailyUsageTimeIsUp = (!unl && fl > 0 && ((lim + ext) * 60000 - (Date.now() - fl)) <= 0);
+          window.__bootedLocked = window.__dailyUsageTimeIsUp;
+          if (window.__dailyUsageTimeIsUp) {
+            document.body.classList.add("daily-limit-reached");
+          }
+        }
+        const effectiveRole = result.role || localStorage.getItem("user_role") || "student";
+        applyRoleBasedView(effectiveRole, result);
+        const _ov = document.getElementById('login-overlay'); if (_ov) { _ov.style.setProperty('display', 'none', 'important'); _ov.classList.add('hidden'); }
+        document.body.classList.remove('is-logging-in');
+
+        if (effectiveRole === "teacher" || effectiveRole === "admin") {
+          console.log("👨‍🏫 管理/教師登入完成，直接啟用教師專屬介面，豁免學生測驗模組");
+          return true;
+        }
+
+        await import(new URL("./app.js", import.meta.url).href);
+        applyRoleBasedView(effectiveRole, result);
+
+        if (result.role !== "teacher" && !result.isAdmin && result.role !== "parent") {
+          if (typeof checkCurfewStatus === "function") checkCurfewStatus();
+          if (typeof initDailyUsageTimer === "function") initDailyUsageTimer(result.dailyUsage);
+        }
+      } catch(importErr) {
+        console.error("載入遊戲失敗：", importErr);
+        alert("載入遊戲模組失敗：" + importErr.message + "\n已為您重置快取，請按確定重新整理！");
+        location.reload(true);
+        return false;
+      }
+
+      const uploadBtn = document.getElementById("btn-upload") || document.querySelector(".stat.upload");
+      if (uploadBtn) {
+        uploadBtn.style.cursor = "pointer";
+        uploadBtn.onclick = () => uploadLocalStorageData(false);
+      }
+      return true;
+    }
+
     loginBtn.addEventListener('click', async () => {
       if (isLoggingIn) return;
       console.log("[Login] 按下確認登入按鈕");
@@ -1026,6 +1326,22 @@ if (typeof window !== "undefined" && typeof document !== "undefined") {
         let response = null;
         let lastError = null;
         const loginPassPayload = await sha256HexClient(pass);
+
+        // 🚀 業界最高標準 SWR (Stale-While-Revalidate)：本機秒開快照
+        let optimisticLoaded = false;
+        try {
+          const cachedSnapRaw = localStorage.getItem("swr_user_snapshot_" + user.toLowerCase());
+          if (cachedSnapRaw) {
+            const cachedSnap = JSON.parse(cachedSnapRaw);
+            if (cachedSnap && cachedSnap.passHash === loginPassPayload && cachedSnap.result) {
+              console.log("⚡ [SWR] 命中離線快照，0 毫秒極速樂觀載入進入系統！");
+              applyLoginPayload(user, pass, loginPassPayload, cachedSnap.result, true);
+              optimisticLoaded = true;
+            }
+          }
+        } catch(swrErr) {
+          console.warn("[SWR] 快照解析略過:", swrErr);
+        }
 
         // 健全重試機制：處理 GAS 冷啟動或暫時性網路抖動 (最多嘗試 3 次)
         for (let attempt = 1; attempt <= 3; attempt++) {
@@ -1066,6 +1382,22 @@ if (typeof window !== "undefined" && typeof document !== "undefined") {
         }
 
         if (result.status === "success") {
+          await applyLoginPayload(user, pass, loginPassPayload, result, false);
+        } else {
+          if (optimisticLoaded) {
+            // 若曾樂觀開屏但後端回報密碼錯誤或停權，強制踢出登入
+            purgeAllStudentSessionAndLocalData();
+            const _ov = document.getElementById('login-overlay');
+            if (_ov) { _ov.style.display = 'flex'; _ov.classList.remove('hidden'); }
+          }
+          if (result.curfew) {
+            setLoginStatus("目前非您的開放作答時間，如有需求請洽任課老師調整設定。", "warning");
+          } else {
+            setLoginStatus(result.message || "帳號或密碼錯誤", "error");
+          }
+          return;
+        }
+        if (false) { // 舊程式區塊封存
           // ── 帳號資料完全隔離與安全零污染保證 ──
           const lastUser = (localStorage.getItem("current_user") || "").trim();
           const isDifferentUser = !lastUser || lastUser.toLowerCase() !== user.toLowerCase();
