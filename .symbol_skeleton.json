@@ -666,22 +666,22 @@
     {
       "name": "resolveDailyPracticeRecord",
       "type": "function",
-      "line": 1682
+      "line": 1683
     },
     {
       "name": "summaryHidden",
       "type": "function",
-      "line": 1804
+      "line": 1805
     },
     {
       "name": "renderSummary",
       "type": "function",
-      "line": 1805
+      "line": 1806
     },
     {
       "name": "toggleSummary",
       "type": "function",
-      "line": 2500
+      "line": 2501
     }
   ],
   "ui_weak_words.js": [

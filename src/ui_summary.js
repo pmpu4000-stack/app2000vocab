@@ -891,7 +891,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     leftTitleClass = "correct-title";
     leftTitleText = `<span class="card-icon-slot" style="color:#10B981; font-weight:900;">✔</span><span>答對的單字 (${correctList.length} 字)</span>`;
     if (correctList.length > 0) {
-      correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
+      correctContentHtml = `<div class="word-split-tags-grid" style="display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:8px; width:100%;">${correctList.map(w => `<span class="word-pill-tag correct" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("")}</div>`;
     } else {
       correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（中途作答中斷，尚未答對單字）</span>`;
     }
@@ -943,7 +943,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
       leftTitleClass = "correct-title";
       leftTitleText = `<span class="card-icon-slot" style="color:#10B981; font-weight:900;">✔</span><span>答對的單字 (${correctList.length} 字)</span>`;
       if (correctList.length > 0) {
-        correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
+        correctContentHtml = `<div class="word-split-tags-grid" style="display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:8px; width:100%;">${correctList.map(w => `<span class="word-pill-tag correct" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("")}</div>`;
       } else if (taskCorrWords > 0) {
         correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（本次測驗答對 ${taskCorrWords} 字）</span>`;
       } else {
@@ -1587,7 +1587,7 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
 
   let correctContentHtml = "";
   if (correctList.length > 0) {
-    correctContentHtml = correctList.map(w => `<span class="word-pill-tag correct" data-word="${w.word.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w.word}</span>`).join("");
+    correctContentHtml = `<div class="word-split-tags-grid" style="display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:8px; width:100%;">${correctList.map(w => `<span class="word-pill-tag correct" data-word="${w.word.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w.word}</span>`).join("")}</div>`;
   } else if (correctWords > 0) {
     correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（當日答對 ${correctWords} 字，早期紀錄僅存統計字數、未記錄個別單字明細）</span>`;
   } else {
@@ -1596,7 +1596,7 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
 
   let wrongContentHtml = "";
   if (wrongList.length > 0) {
-    wrongContentHtml = wrongList.map(w => {
+    const wrongItemsHtml = wrongList.map(w => {
       if (w.hadCorrectThenWrong || (w.lastResult === "wrong" && w.correct > 0)) {
         return `<span class="word-pill-tag warning" data-word="${w.word.replace(/"/g, "&quot;")}" style="border:1.5px dashed #f59e0b; background:rgba(245,158,11,0.1); color:#b45309; cursor:pointer;" title="當日曾答對，但後續作答時答錯 (點擊聆聽發音)">${w.word} <small style="font-size:10px; font-weight:700;">(曾對後錯⚠️)</small></span>`;
       } else if (w.correct > 0) {
@@ -1605,6 +1605,7 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
         return `<span class="word-pill-tag wrong" data-word="${w.word.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w.word}</span>`;
       }
     }).join("");
+    wrongContentHtml = `<div class="word-split-tags-grid" style="display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:8px; width:100%;">${wrongItemsHtml}</div>`;
   } else if (displayWrongBoxCount > 0) {
     wrongContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（當日答錯 ${displayWrongBoxCount} 字，早期紀錄僅存統計字數、未記錄個別單字明細）</span>`;
   } else {
