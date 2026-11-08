@@ -2755,31 +2755,49 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   height: 0 !important;
   min-height: 0 !important;
   max-height: 100% !important;
-  display: flex !important;
-  flex-wrap: wrap !important;
-  align-items: flex-start !important;
-  align-content: flex-start !important;
-  gap: 4px !important;
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)) !important;
+  gap: 6px !important;
+  align-items: start !important;
+  align-content: start !important;
   overflow-y: auto !important;
   overscroll-behavior: contain !important;
-  padding-right: 4px !important;
+  padding: 2px 4px 2px 0 !important;
   scrollbar-gutter: stable !important;
   scrollbar-width: thin !important;
   scrollbar-color: rgba(100,116,139,0.45) transparent !important;
   box-sizing: border-box !important;
 }
 
+@media (max-width: 520px) {
+  .word-split-content,
+  .word-split-box > div:not(.word-split-title) {
+    grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)) !important;
+    gap: 4px !important;
+  }
+}
+
 /* 完美答對或單行無單字提示置中呈現，避免產生下方空蕩死白感 */
 .word-split-content > .perfect-score-msg,
 .word-split-content > span:only-child:not(.word-pill-tag) {
+  grid-column: 1 / -1 !important;
   margin: auto auto !important;
   text-align: center !important;
   font-size: 12px !important;
 }
 .word-split-content > span.word-pill-tag {
-  margin: 1.5px 2px !important;
-  text-align: left !important;
-  align-self: flex-start !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 5px 4px !important;
+  font-size: 12.5px !important;
+  font-weight: 700 !important;
+  border-radius: 6px !important;
+  box-sizing: border-box !important;
+  min-width: 0 !important;
 }
 
 .task-empty-notice-box {
