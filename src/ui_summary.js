@@ -1077,26 +1077,21 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     const totalWords = taskTotWords > 0 ? taskTotWords : (ansCount + unansCount);
     let bottomTagsHtml = "";
     if (wrgCount === 0 && unansCount === 0) {
-      bottomTagsHtml = `<span class="tpc-tag-perfect">🌟 全數答對無失分</span>`;
+      bottomTagsHtml = `<span class="tpc-tag-perfect">全數答對無失分</span>`;
     } else {
       const tagParts = [];
-      if (wrgCount > 0) tagParts.push(`<span class="tpc-tag-wrong">✕ ${wrgCount} 題答錯</span>`);
-      if (unansCount > 0) tagParts.push(`<span class="tpc-tag-unans">⏳ ${unansCount} 題未作答</span>`);
+      if (wrgCount > 0) tagParts.push(`<span class="tpc-tag-wrong">${wrgCount} 題答錯</span>`);
+      if (unansCount > 0) tagParts.push(`<span class="tpc-tag-unans">${unansCount} 題未作答</span>`);
       bottomTagsHtml = tagParts.join(" · ");
     }
 
     scoreGridHtml = `
       <div style="margin-bottom:8px; width:100%;">
         <div class="task-progress-card">
-          <div class="tpc-row-top">
-            <span class="tpc-title">📝 答對 <b>${taskCorrWords}</b> / ${totalWords} 字</span>
-            <span class="tpc-count"><span class="tpc-rate-badge">${ovrRate}%</span></span>
-          </div>
-          <div class="tpc-bar-track">
-            <div class="tpc-bar-fill" style="width:${ovrRate}%;"></div>
-          </div>
-          <div class="tpc-row-bottom">
-            ${bottomTagsHtml}
+          <div class="tpc-title">📝 答對 <b>${taskCorrWords}</b> / ${totalWords} 字</div>
+          <div class="tpc-right">
+            ${bottomTagsHtml ? `<span class="tpc-stats">${bottomTagsHtml}</span>` : ""}
+            <span class="tpc-rate-badge">${ovrRate}% 答對率</span>
           </div>
         </div>
       </div>
