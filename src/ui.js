@@ -750,7 +750,7 @@ export function renderProgressModeStats(ms) {
     const numEl = document.getElementById(`p-mode-${m}-num`);
     const subEl = document.getElementById(`p-mode-${m}-sub`);
     const data = ms[m] || { a: 0, c: 0 };
-    if (numEl) numEl.textContent = `${data.c || 0} 字`;
+    if (numEl) numEl.innerHTML = `${data.c || 0} <small>字</small>`;
     if (subEl) {
       const a = data.a || 0;
       const c = data.c || 0;

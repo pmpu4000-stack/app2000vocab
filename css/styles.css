@@ -1931,7 +1931,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
-  margin: 10px 0 16px;
+  margin: 10px 0 8px;
 }
 @media (max-width: 580px) {
   .mode-stat-grid {
@@ -2043,13 +2043,19 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   white-space: nowrap;
 }
 .mode-stat-num {
-  font-size: 17px;
-  font-weight: 900;
+  font-size: 16px;
+  font-weight: 800;
   color: var(--ink);
-  margin: 2px 0 1px;
+  margin: 1px 0;
   font-variant-numeric: tabular-nums;
   line-height: 1.2;
   white-space: nowrap;
+}
+.mode-stat-num small {
+  font-size: 11px;
+  font-weight: 600;
+  margin-left: 2px;
+  opacity: 0.85;
 }
 .mode-stat-sub {
   font-size: 10.5px;
@@ -2066,7 +2072,10 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
     font-size: 11px;
   }
   .mode-stat-num {
-    font-size: 15px;
+    font-size: 14.5px;
+  }
+  .mode-stat-num small {
+    font-size: 10px;
   }
   .mode-stat-sub {
     font-size: 9.5px;
@@ -2075,12 +2084,12 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 
 /* 4. 描述說明文字 (Explanations & Helper Descriptions) */
 .formula-note-box {
-  font-size: 12.5px;
+  font-size: 12px;
   color: var(--ink2);
-  margin: 6px 0 16px;
+  margin: 8px 0 16px;
   line-height: 1.55;
   background: rgba(108, 76, 224, 0.05);
-  padding: 10px 14px;
+  padding: 8px 12px;
   border-radius: 10px;
   border: 1px solid rgba(108, 76, 224, 0.15); display: flex; align-items: center; gap: 8px;
 }
