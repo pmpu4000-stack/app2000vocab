@@ -2155,6 +2155,44 @@ export function renderSummary(d) {
     `;
   };
 
+  const buildTriggerHtml = (dateStr) => {
+    const isToday = (dateStr === todayDash);
+    const stat = getTaskDayStat(dateStr);
+    const recFree = resolveDailyPracticeRecord(dateStr, d, historyList);
+    
+    const freeTestedWords = recFree ? (recFree.attempts || 0) : 0;
+    const freeCorrWords = recFree ? (recFree.correct || 0) : 0;
+
+    let taskBadge = `<span class="cdo-badge cdo-empty">指派: —</span>`;
+    if (stat && stat.statusType !== "unassigned") {
+      if (stat.statusType === "untested") {
+        taskBadge = `<span class="cdo-badge cdo-task" style="opacity:0.8;">指派: 未受測</span>`;
+      } else {
+        const tTotal = stat.wordsCount || stat.a;
+        if (tTotal > 0) {
+          taskBadge = `<span class="cdo-badge cdo-task">指派: ${stat.c}/${tTotal} (${stat.rate}%)</span>`;
+        } else if (stat.a > 0) {
+          taskBadge = `<span class="cdo-badge cdo-task">指派: ${stat.c}/${stat.a} (${stat.rate}%)</span>`;
+        }
+      }
+    }
+
+    let freeBadge = `<span class="cdo-badge cdo-empty">自由: —</span>`;
+    if (freeTestedWords > 0) {
+      const freeRate = Math.round((freeCorrWords / freeTestedWords) * 100);
+      freeBadge = `<span class="cdo-badge cdo-free">自由: ${freeCorrWords}/${freeTestedWords} (${freeRate}%)</span>`;
+    }
+
+    const hasAny = (stat && stat.statusType !== "unassigned") || (freeTestedWords > 0);
+
+    return `
+      <div class="custom-date-trigger-content">
+        <span class="cdo-date">${dateStr}${isToday ? " (今日)" : ""}</span>
+        ${hasAny ? `${taskBadge}${freeBadge}` : `<span class="cdo-none">(尚無作答紀錄)</span>`}
+      </div>
+    `;
+  };
+
   // 建立「🎯 快速跳至有紀錄日期」自訂多欄對齊下拉面板 HTML
   const customOptionsListHtml = sortedDates.map(dateStr => buildCustomOptionItem(dateStr)).join("");
 
@@ -2227,7 +2265,7 @@ export function renderSummary(d) {
         <div class="date-nav-control-wrap">
           <div class="custom-date-select-wrap" id="custom-date-select-wrap">
             <button type="button" class="custom-date-trigger" id="custom-date-trigger" aria-haspopup="listbox" aria-expanded="false">
-              <span id="custom-date-trigger-label">${buildOptionLabel(defaultSelectedDate)}</span>
+              <span id="custom-date-trigger-label" style="display:flex; width:100%; min-width:0;">${buildTriggerHtml(defaultSelectedDate)}</span>
               <span class="custom-date-arrow">▼</span>
             </button>
             <div class="custom-date-menu" id="custom-date-menu" role="listbox">
@@ -2550,7 +2588,7 @@ export function renderSummary(d) {
 
     const customTriggerLabel = $("#custom-date-trigger-label");
     if (customTriggerLabel) {
-      customTriggerLabel.textContent = buildOptionLabel(targetDate);
+      customTriggerLabel.innerHTML = buildTriggerHtml(targetDate);
     }
     const customMenu = $("#custom-date-menu");
     if (customMenu) {
