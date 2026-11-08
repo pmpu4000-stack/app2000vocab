@@ -531,12 +531,12 @@ export function buildWeekPendingConquerHtml(words, d = null, cycleParam = _activ
   return `
     <div class="week-conquer-wrap" style="display:flex; flex-direction:column; gap:8px;">
       ${cycleSelectBarHtml}
-      <div class="week-conquer-tip" style="display:flex; align-items:flex-start; gap:8px; padding:4px 2px 4px; font-size:12.5px; line-height:1.55; color:var(--ink2);">
-        <span style="font-size:15px; flex-shrink:0; line-height:1.3;">💡</span>
-        <div style="flex:1; line-height:1.55;">${tipText}</div>
-      </div>
       <div class="conquer-level-groups">${levelSectionsHtml}</div>
       ${levelStandardDetailsHtml}
+      <div class="week-conquer-tip" style="display:flex; align-items:flex-start; gap:8px; padding:6px 4px 2px; font-size:12px; line-height:1.55; color:var(--ink3, #64748B); border-top:1px dashed var(--line, rgba(148,163,184,0.25)); margin-top:2px;">
+        <span style="font-size:14px; flex-shrink:0; line-height:1.3;">💡</span>
+        <div style="flex:1; line-height:1.55;">${tipText}</div>
+      </div>
     </div>
   `;
 }
