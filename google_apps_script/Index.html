@@ -910,6 +910,58 @@
       scrollbar-gutter: stable !important;
       scrollbar-width: thin !important;
     }
+    /* 每日練習時間截止水平清爽 Banner */
+    .daily-limit-banner {
+      display: flex !important;
+      align-items: center !important;
+      gap: 14px !important;
+      padding: 14px 18px !important;
+      border-radius: 16px !important;
+      background: linear-gradient(135deg, rgba(255,255,255,0.92), rgba(248,250,252,0.95)) !important;
+      border: 1px solid rgba(226,232,240,0.9) !important;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.04) !important;
+      margin: 0 0 10px !important;
+      box-sizing: border-box !important;
+    }
+    .dlb-icon-wrap {
+      width: 42px !important;
+      height: 42px !important;
+      border-radius: 12px !important;
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.15), rgba(99, 102, 241, 0.2)) !important;
+      border: 1px solid rgba(99, 102, 241, 0.25) !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      font-size: 22px !important;
+      flex-shrink: 0 !important;
+    }
+    .dlb-content {
+      text-align: left !important;
+    }
+    .dlb-title {
+      font-size: 15.5px !important;
+      font-weight: 800 !important;
+      color: var(--ink) !important;
+      margin: 0 0 2px !important;
+      letter-spacing: 0.2px !important;
+    }
+    .dlb-desc {
+      font-size: 13px !important;
+      color: var(--ink2) !important;
+      margin: 0 !important;
+      line-height: 1.4 !important;
+    }
+    [data-theme="dark"] .daily-limit-banner {
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.75), rgba(15, 23, 42, 0.85)) !important;
+      border-color: rgba(51, 65, 85, 0.8) !important;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3) !important;
+    }
+    [data-theme="dark"] .dlb-title {
+      color: #f8fafc !important;
+    }
+    [data-theme="dark"] .dlb-desc {
+      color: #94a3b8 !important;
+    }
   </style>
   <link rel="preconnect" href="https://script.google.com" crossorigin>
   <link rel="dns-prefetch" href="https://script.google.com">
@@ -1156,19 +1208,12 @@
 
       <nav class="levelbar" id="levelbar" aria-label="選擇關卡"></nav>
 
-      <!-- 每日練習時間截止提示卡片 (時間到僅顯示 Progress 方塊) -->
-      <div id="daily-limit-reached-card" style="display:none; text-align:center; padding:30px 24px 26px; border-radius:20px; background:var(--card); border:1.5px solid var(--line); box-shadow:0 8px 30px rgba(0,0,0,0.06); margin:0 0 8px;">
-        <div style="width:52px; height:52px; border-radius:50%; background:rgba(99,102,241,0.12); display:inline-flex; align-items:center; justify-content:center; margin:0 auto 12px; font-size:26px;">⏰</div>
-        <h2 style="font-size:20px; font-weight:800; color:var(--ink); margin:0 0 8px; letter-spacing:0.3px;">今日練習時間已結束</h2>
-        <p style="font-size:14px; color:var(--ink2); line-height:1.6; max-width:440px; margin:0 auto 14px;">
-          今天已完成 <span id="limit-minutes-display-text" style="color:var(--sky); font-weight:800;">10</span> 分鐘的練習，表現很棒！<br>
-          適度讓眼睛休息，明天再繼續挑戰！
-        </p>
-        <div style="display:inline-flex; align-items:center; gap:6px; padding:6px 14px; background:rgba(56,189,248,0.08); border:1px solid rgba(56,189,248,0.25); border-radius:999px; font-size:12.5px; font-weight:700; color:var(--sky); margin:0 auto 12px;">
-          <span>📋 完整作答紀錄與進度已保留於下方</span>
-        </div>
-        <div style="font-size:12px; color:var(--ink3); opacity:0.85;">
-          💡 若有補測或特別練習需求，請向任課老師申請延長時間或解除限制。
+      <!-- 每日練習時間截止提示卡片 (水平微型光澤 Banner) -->
+      <div id="daily-limit-reached-card" class="daily-limit-banner" style="display:none;">
+        <div class="dlb-icon-wrap">⏰</div>
+        <div class="dlb-content">
+          <h2 class="dlb-title">今日練習時間已結束</h2>
+          <p class="dlb-desc">適度讓眼睛休息，明天再繼續挑戰！</p>
         </div>
       </div>
 
