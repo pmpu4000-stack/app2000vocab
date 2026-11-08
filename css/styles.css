@@ -748,6 +748,32 @@ body.daily-limit-reached #btn-upload {
 .date-nav-col-header .date-nav-label{font-size:12px;font-weight:800;color:#B45309;letter-spacing:.2px}
 .date-nav-control-wrap{display:flex;align-items:center;gap:6px;width:100%}
 .date-nav-control-wrap select.task-date-selector{width:100%;height:30px;line-height:normal;background:#FFFFFF;border:1.5px solid #D6D0F5;border-radius:8px;padding:0 8px;font-size:12px;font-weight:700;color:var(--ink);outline:none;cursor:pointer;box-sizing:border-box}
+
+/* 自訂歷程跳轉下拉元件 (三欄等寬對齊) */
+.custom-date-select-wrap{position:relative;width:100%}
+.custom-date-trigger{display:flex;align-items:center;justify-content:space-between;width:100%;height:30px;background:#FFFFFF;border:1.5px solid #D6D0F5;border-radius:8px;padding:0 8px 0 10px;font-size:12px;font-weight:700;color:var(--ink);cursor:pointer;box-sizing:border-box;user-select:none;transition:border-color .15s}
+.custom-date-trigger:hover,.custom-date-trigger:focus{border-color:var(--violet)}
+.custom-date-arrow{font-size:10px;color:var(--ink3);transition:transform .2s;margin-left:4px;flex-shrink:0}
+.custom-date-select-wrap.is-open .custom-date-arrow{transform:rotate(180deg)}
+.custom-date-menu{position:absolute;top:calc(100% + 4px);left:0;right:0;max-height:260px;overflow-y:auto;background:#FFFFFF;border:1.5px solid #D6D0F5;border-radius:10px;box-shadow:0 8px 24px rgba(35,42,77,.18);z-index:9999;padding:4px 0;display:none}
+.custom-date-select-wrap.is-open .custom-date-menu{display:block}
+.custom-date-option{display:grid;grid-template-columns:110px 1fr 1fr;align-items:center;gap:6px;padding:6px 10px;font-size:12px;cursor:pointer;transition:background .12s;white-space:nowrap}
+.custom-date-option:hover{background:#F3F0FF}
+.custom-date-option.is-selected{background:#EDE9FE;font-weight:800;color:var(--violet)}
+.cdo-date{font-family:ui-monospace,monospace;font-weight:700;color:var(--ink)}
+.cdo-badge{display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cdo-task{background:#EEF2FF;color:#4338CA;border:1px solid #C7D2FE}
+.cdo-free{background:#ECFDF5;color:#047857;border:1px solid #A7F3D0}
+.cdo-empty{background:transparent;color:var(--ink3);border:1px dashed #E2E8F0;font-weight:500}
+.cdo-none{color:var(--ink3);font-size:11px;grid-column:span 2}
+[data-theme="dark"] .custom-date-trigger{background:#181C2A !important;border-color:#2D354E !important;color:#F0F3FA !important}
+[data-theme="dark"] .custom-date-menu{background:#181C2A !important;border-color:#2D354E !important;box-shadow:0 8px 24px rgba(0,0,0,.6) !important}
+[data-theme="dark"] .custom-date-option:hover{background:#252B42 !important}
+[data-theme="dark"] .custom-date-option.is-selected{background:#2E2652 !important;color:#A78BFA !important}
+[data-theme="dark"] .cdo-date{color:#F0F3FA !important}
+[data-theme="dark"] .cdo-task{background:#1E2238;color:#A5B4FC;border-color:#3730A3}
+[data-theme="dark"] .cdo-free{background:#132924;color:#6EE7B7;border-color:#065F46}
+[data-theme="dark"] .cdo-empty{border-color:#374151;color:#6B7280}
 .date-nav-stepper-wrap{display:flex;align-items:center;gap:6px;width:100%}
 .date-nav-stepper-wrap .date-picker-input{flex:0 0 130px;width:130px;min-width:105px;max-width:140px;height:30px;min-height:30px;max-height:30px;background:#FFFFFF;border:1.5px solid var(--sky);color:var(--ink);padding:0 8px;border-radius:8px;font-size:12px;font-weight:700;outline:none;cursor:pointer;box-sizing:border-box}
 .date-nav-btn-group{display:inline-flex;align-items:center;gap:4px;flex:1 1 auto}

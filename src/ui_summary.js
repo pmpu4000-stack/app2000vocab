@@ -2066,24 +2066,29 @@ export function renderSummary(d) {
     const freeTestedWords = recFree ? (recFree.attempts || 0) : 0;
     const freeCorrWords = recFree ? (recFree.correct || 0) : 0;
 
-    const parts = [];
+    let taskText = "";
     if (stat && stat.statusType !== "unassigned") {
       if (stat.statusType === "untested") {
-        parts.push("指派: 未受測");
+        taskText = "指派: 未受測";
       } else {
         const tTotal = stat.wordsCount || stat.a;
         if (tTotal > 0) {
-          parts.push(`指派: ${stat.c}/${tTotal} (${stat.rate}%)`);
+          taskText = `指派: ${stat.c}/${tTotal} (${stat.rate}%)`;
         } else if (stat.a > 0) {
-          parts.push(`指派: ${stat.c}/${stat.a} (${stat.rate}%)`);
+          taskText = `指派: ${stat.c}/${stat.a} (${stat.rate}%)`;
         }
       }
     }
 
+    let freeText = "";
     if (freeTestedWords > 0) {
       const freeRate = Math.round((freeCorrWords / freeTestedWords) * 100);
-      parts.push(`自由: ${freeCorrWords}/${freeTestedWords} (${freeRate}%)`);
+      freeText = `自由: ${freeCorrWords}/${freeTestedWords} (${freeRate}%)`;
     }
+
+    const parts = [];
+    if (taskText) parts.push(taskText);
+    if (freeText) parts.push(freeText);
 
     let desc = "";
     if (parts.length > 0) {
@@ -2095,7 +2100,49 @@ export function renderSummary(d) {
     return `${dateStr}${isToday ? " (今日)" : ""}${desc}`;
   };
 
-  // 建立「🎯 快速跳至有紀錄日期」下拉選單
+  const buildCustomOptionItem = (dateStr) => {
+    const isToday = (dateStr === todayDash);
+    const stat = getTaskDayStat(dateStr);
+    const recFree = resolveDailyPracticeRecord(dateStr, d, historyList);
+    
+    const freeTestedWords = recFree ? (recFree.attempts || 0) : 0;
+    const freeCorrWords = recFree ? (recFree.correct || 0) : 0;
+
+    let taskBadge = `<span class="cdo-badge cdo-empty">指派: —</span>`;
+    if (stat && stat.statusType !== "unassigned") {
+      if (stat.statusType === "untested") {
+        taskBadge = `<span class="cdo-badge cdo-task" style="opacity:0.8;">指派: 未受測</span>`;
+      } else {
+        const tTotal = stat.wordsCount || stat.a;
+        if (tTotal > 0) {
+          taskBadge = `<span class="cdo-badge cdo-task">指派: ${stat.c}/${tTotal} (${stat.rate}%)</span>`;
+        } else if (stat.a > 0) {
+          taskBadge = `<span class="cdo-badge cdo-task">指派: ${stat.c}/${stat.a} (${stat.rate}%)</span>`;
+        }
+      }
+    }
+
+    let freeBadge = `<span class="cdo-badge cdo-empty">自由: —</span>`;
+    if (freeTestedWords > 0) {
+      const freeRate = Math.round((freeCorrWords / freeTestedWords) * 100);
+      freeBadge = `<span class="cdo-badge cdo-free">自由: ${freeCorrWords}/${freeTestedWords} (${freeRate}%)</span>`;
+    }
+
+    const isSelected = (dateStr === defaultSelectedDate);
+    const hasAny = (stat && stat.statusType !== "unassigned") || (freeTestedWords > 0);
+
+    return `
+      <div class="custom-date-option ${isSelected ? "is-selected" : ""}" data-val="${dateStr}" role="option" aria-selected="${isSelected}">
+        <span class="cdo-date">${dateStr}${isToday ? " (今日)" : ""}</span>
+        ${hasAny ? `${taskBadge}${freeBadge}` : `<span class="cdo-none">(尚無作答紀錄)</span>`}
+      </div>
+    `;
+  };
+
+  // 建立「🎯 快速跳至有紀錄日期」自訂多欄對齊下拉面板 HTML
+  const customOptionsListHtml = sortedDates.map(dateStr => buildCustomOptionItem(dateStr)).join("");
+
+  // 建立相容原生 select options (備用與無障礙同步)
   const quickDateOptionsHtml = sortedDates.map(dateStr => {
     const label = buildOptionLabel(dateStr);
     return `<option value="${dateStr}" ${dateStr === defaultSelectedDate ? "selected" : ""}>${label}</option>`;
@@ -2162,7 +2209,17 @@ export function renderSummary(d) {
           <span class="date-nav-label">快速跳至有紀錄日期</span>
         </div>
         <div class="date-nav-control-wrap">
-          <select id="record-quick-dates" class="task-date-selector" title="選擇有作答紀錄的日期">
+          <div class="custom-date-select-wrap" id="custom-date-select-wrap">
+            <button type="button" class="custom-date-trigger" id="custom-date-trigger" aria-haspopup="listbox" aria-expanded="false">
+              <span id="custom-date-trigger-label">${buildOptionLabel(defaultSelectedDate)}</span>
+              <span class="custom-date-arrow">▼</span>
+            </button>
+            <div class="custom-date-menu" id="custom-date-menu" role="listbox">
+              ${customOptionsListHtml}
+            </div>
+          </div>
+          <!-- 隱藏原生 select 保留表單與無障礙同步相容 -->
+          <select id="record-quick-dates" class="task-date-selector" title="選擇有作答紀錄的日期" style="display:none;">
             ${quickDateOptionsHtml}
           </select>
         </div>
@@ -2454,7 +2511,7 @@ export function renderSummary(d) {
       datePicker.value = targetDate;
     }
 
-    // 更新快速跳轉選單（若切換至未在清單內的日期，動態顯示當前日期但切換後自動移除臨時無紀錄項）
+    // 更新快速跳轉選單（原生與自訂元件雙向同步）
     const quickSelect = $("#record-quick-dates");
     if (quickSelect) {
       Array.from(quickSelect.options).forEach(opt => {
@@ -2472,6 +2529,26 @@ export function renderSummary(d) {
       }
       if (quickSelect.value !== targetDate) {
         quickSelect.value = targetDate;
+      }
+    }
+
+    const customTriggerLabel = $("#custom-date-trigger-label");
+    if (customTriggerLabel) {
+      customTriggerLabel.textContent = buildOptionLabel(targetDate);
+    }
+    const customMenu = $("#custom-date-menu");
+    if (customMenu) {
+      const allOpts = customMenu.querySelectorAll(".custom-date-option");
+      let matchedCustom = false;
+      allOpts.forEach(opt => {
+        const isMatched = (opt.getAttribute("data-val") === targetDate);
+        opt.classList.toggle("is-selected", isMatched);
+        opt.setAttribute("aria-selected", isMatched);
+        if (isMatched) matchedCustom = true;
+      });
+      if (!matchedCustom) {
+        const tempOptHtml = buildCustomOptionItem(targetDate);
+        customMenu.insertAdjacentHTML("afterbegin", tempOptHtml);
       }
     }
 
@@ -2534,6 +2611,40 @@ export function renderSummary(d) {
   const quickSelect = $("#record-quick-dates");
   if (quickSelect) {
     quickSelect.onchange = (e) => switchRecordDate(e.target.value);
+  }
+
+  // 綁定自訂多欄對齊下拉選單行為
+  const customWrap = $("#custom-date-select-wrap");
+  const customTrigger = $("#custom-date-trigger");
+  const customMenu = $("#custom-date-menu");
+
+  if (customWrap && customTrigger && customMenu) {
+    customTrigger.onclick = (e) => {
+      e.stopPropagation();
+      const isOpen = customWrap.classList.contains("is-open");
+      customWrap.classList.toggle("is-open", !isOpen);
+      customTrigger.setAttribute("aria-expanded", !isOpen);
+    };
+
+    customMenu.onclick = (e) => {
+      const opt = e.target.closest(".custom-date-option");
+      if (opt) {
+        const val = opt.getAttribute("data-val");
+        if (val) {
+          switchRecordDate(val);
+          customWrap.classList.remove("is-open");
+          customTrigger.setAttribute("aria-expanded", "false");
+        }
+      }
+    };
+
+    // 點擊面板外部自動關閉
+    document.addEventListener("click", (e) => {
+      if (!customWrap.contains(e.target)) {
+        customWrap.classList.remove("is-open");
+        customTrigger.setAttribute("aria-expanded", "false");
+      }
+    });
   }
 
   const sumCloseEl = document.getElementById("sumClose");
