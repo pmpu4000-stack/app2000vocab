@@ -2755,11 +2755,12 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   height: 0 !important;
   min-height: 0 !important;
   max-height: 100% !important;
-  display: flex !important;
-  flex-wrap: wrap !important;
-  align-items: flex-start !important;
-  align-content: flex-start !important;
-  gap: 6px !important;
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, 85px) !important;
+  justify-content: space-between !important;
+  gap: 6px 0 !important;
+  align-items: start !important;
+  align-content: start !important;
   overflow-y: auto !important;
   overscroll-behavior: contain !important;
   padding: 2px 4px 2px 0 !important;
@@ -2772,27 +2773,29 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 /* 完美答對或單行無單字提示置中呈現，避免產生下方空蕩死白感 */
 .word-split-content > .perfect-score-msg,
 .word-split-content > span:only-child:not(.word-pill-tag) {
-  flex: 1 1 100% !important;
+  grid-column: 1 / -1 !important;
   width: 100% !important;
   margin: auto auto !important;
   text-align: center !important;
   font-size: 12px !important;
 }
 .word-split-content > span.word-pill-tag {
-  flex: 1 0 auto !important;
+  width: 85px !important;
   min-width: 85px !important;
-  max-width: 100% !important;
-  display: inline-flex !important;
+  max-width: 85px !important;
+  display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   text-align: center !important;
   margin: 0 !important;
-  padding: 5px 8px !important;
+  padding: 5px 2px !important;
   font-size: 12.5px !important;
   font-weight: 700 !important;
   border-radius: 6px !important;
   box-sizing: border-box !important;
   white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
 }
 
 .task-empty-notice-box {
