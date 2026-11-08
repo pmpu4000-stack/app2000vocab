@@ -826,7 +826,8 @@
 
     /* 學習足跡單字表格網格強制覆蓋（徹底解決 SW 快取與樣式覆蓋） */
     .word-split-content,
-    .word-split-box > div:not(.word-split-title) {
+    .word-split-box > div:not(.word-split-title),
+    .word-split-tags-grid {
       display: grid !important;
       grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
       gap: 8px !important;
@@ -834,7 +835,9 @@
       align-content: start !important;
       box-sizing: border-box !important;
     }
-    .word-split-content > span.word-pill-tag {
+    .word-split-content > span.word-pill-tag,
+    .word-split-box .word-pill-tag,
+    .word-split-tags-grid > span.word-pill-tag {
       width: 100% !important;
       min-width: 0 !important;
       max-width: 100% !important;
@@ -862,7 +865,7 @@
   </style>
   <link rel="preconnect" href="https://script.google.com" crossorigin>
   <link rel="dns-prefetch" href="https://script.google.com">
-  <link rel="stylesheet" href="css/styles.css?v=202611081010">
+  <link rel="stylesheet" href="css/styles.css?v=202611081019">
   <link rel="modulepreload" href="src/app.js">
   <link rel="modulepreload" href="src/auth_sync.js">
   <link rel="modulepreload" href="src/wordbank.js">
@@ -880,11 +883,11 @@
   <script>
     if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=202611081010').catch(() => {});
+        navigator.serviceWorker.register('./sw.js?v=202611081019').catch(() => {});
       });
     }
   </script>
-  <script src="src/time_limits.js?v=202611081010" defer></script>
+  <script src="src/time_limits.js?v=202611081019" defer></script>
 </head>
 <body class="is-logging-in">
 
@@ -1452,7 +1455,7 @@
     </div>
   </div>
 
-  <script type="module" src="src/auth_sync.js?v=202611081010"></script>
+  <script type="module" src="src/auth_sync.js?v=202611081019"></script>
 
   <!-- ══════════════════════════════════════════
   <!-- 📝 教師管理專區彈窗 DOM 已改為按身分動態掛載 (src/teacher_portal.js)，學生首屏完全免載 -->

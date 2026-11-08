@@ -928,13 +928,13 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
               <span class="card-icon-slot">⏳</span>
               <span style="flex:1;">未作答的單字 (${untestedWords.length > 0 ? untestedWords.length : actualUnanswered} 字)</span>
             </div>
-            <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; padding:8px; background:rgba(2,132,199,0.06); border-radius:8px; border:1px solid rgba(2,132,199,0.18);">
-              ${unansPills || '<span style="font-size:11.5px; color:var(--ink3);">（包含抽題未作答之題目）</span>'}
+            <div class="word-split-tags-grid" style="display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:8px; margin-top:6px; padding:8px; background:rgba(2,132,199,0.06); border-radius:8px; border:1px solid rgba(2,132,199,0.18);">
+              ${unansPills || '<span style="grid-column:1/-1; font-size:11.5px; color:var(--ink3);">（包含抽題未作答之題目）</span>'}
             </div>
           </div>
         `;
       }
-      wrongContentHtml = `<div style="display:flex; flex-direction:column; width:100%;"><div style="display:flex; flex-wrap:wrap; gap:6px;">${wrongPills || '<span style="font-size:12px; color:var(--ink3); font-style:italic;">（受測題目無答錯）</span>'}</div>${unansAccordionHtml}</div>`;
+      wrongContentHtml = `<div style="display:flex; flex-direction:column; width:100%;"><div class="word-split-tags-grid" style="display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:8px;">${wrongPills || '<span style="grid-column:1/-1; font-size:12px; color:var(--ink3); font-style:italic;">（受測題目無答錯）</span>'}</div>${unansAccordionHtml}</div>`;
     } else {
       wrongContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（目前無答錯單字）</span>`;
     }
