@@ -877,7 +877,6 @@ export function initProgressCard() {
 
 // 模組再匯出 (確保外部相容性零破壞)
 export {
-  initExportRecordsCard,
   initWeakWordsCard,
   analyzeErrorTag,
   getWeekPendingConquerWords,
