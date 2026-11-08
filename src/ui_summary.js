@@ -1609,7 +1609,7 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
   } else if (displayWrongBoxCount > 0) {
     wrongContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（當日答錯 ${displayWrongBoxCount} 字，早期紀錄僅存統計字數、未記錄個別單字明細）</span>`;
   } else {
-    wrongContentHtml = `<span class="perfect-score-msg">🎉 太棒了！當日自由練習全數答對，無任何答錯單字！</span>`;
+    wrongContentHtml = "";
   }
 
   const getHeatmapRateClass = (r) => {

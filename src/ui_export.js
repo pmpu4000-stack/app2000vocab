@@ -1086,7 +1086,7 @@ function _buildReportHtml(payload) {
             }
             return `<span class="word-pill-tag wrong" onclick="event.stopPropagation(); if (typeof speakMasteredWord === 'function') speakMasteredWord('${esc(cleanWord).replace(/'/g, "\\\'")}');" style="cursor:pointer;" title="點擊聆聽發音">${esc(cleanWord)}</span>`;
           }).join("")
-        : `<span class="perfect-score-msg">🌟 太棒了！當日自由練習全數答對，無任何答錯單字！</span>`;
+        : "";
 
       const fRate = parseInt(r.freeRate, 10) || 0;
       freeCardHtml = `
