@@ -809,6 +809,14 @@ body.daily-limit-reached #btn-upload {
 [data-theme="dark"] .word-split-box.unanswered-box{background:rgba(148,163,184,.08)!important;border-color:#334155!important}
 .word-split-title{font-size:12px;font-weight:800;margin-bottom:6px;display:flex;align-items:center;gap:5px}
 .word-split-title > span{display:inline-flex;align-items:center;gap:5px}
+
+/* Sticky Header 吸頂設計（答錯與未作答標題滑動時自動吸頂） */
+.word-split-box.has-sticky-sections{padding:0 !important;overflow:hidden !important}
+.word-split-box.has-sticky-sections > .word-split-content{padding:0 !important;overflow:hidden !important}
+.word-split-scroll-body{flex:1 1 auto;height:100% !important;width:100%;min-height:0;overflow-y:auto !important;overflow-x:hidden !important;overscroll-behavior:contain;padding:8px 10px;scrollbar-gutter:stable;scrollbar-width:thin;box-sizing:border-box}
+.sticky-word-section-header{position:sticky;top:-8px;z-index:3;display:flex;align-items:center;gap:5px;font-size:12px;font-weight:800;padding:6px 8px;margin:-8px -10px 6px -10px;background:rgba(248,250,252,0.92);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border-bottom:1px solid rgba(203,213,225,0.6);box-sizing:border-box}
+.sticky-word-section-header.unans-sticky-header{top:-8px;margin-top:10px;margin-bottom:6px}
+[data-theme="dark"] .sticky-word-section-header{background:rgba(24,28,42,0.92) !important;border-bottom-color:rgba(51,65,85,0.8) !important;color:#F0F3FA !important}
 .card-icon-slot{width:18px !important;min-width:18px !important;max-width:18px !important;display:inline-flex !important;align-items:center !important;justify-content:center !important;flex-shrink:0 !important;text-align:center !important;line-height:1 !important}
 .word-split-title.correct-title{color:#0284C7}
 .word-split-title.wrong-title{color:#475569}

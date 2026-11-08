@@ -920,21 +920,38 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
         : (unansweredList.length > 0 ? unansweredList : []);
 
       let unansAccordionHtml = "";
+      let hasBothSections = false;
       if (untestedWords.length > 0 || actualUnanswered > 0) {
+        hasBothSections = true;
         const unansPills = untestedWords.map(w => `<span class="word-pill-tag neutral" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="未作答單字 (點擊聆聽發音)">${w}</span>`).join("");
         unansAccordionHtml = `
-          <div style="${wrongList.length > 0 ? 'margin-top:10px; padding-top:8px; border-top:1px dashed var(--line, rgba(148,163,184,0.25));' : ''} width:100%;">
-            <div style="display:flex; align-items:center; font-size:12px; font-weight:700; color:var(--ink2); padding:4px 0; gap:6px; width:100%; white-space:nowrap;">
+          <div style="${wrongList.length > 0 ? 'margin-top:10px;' : ''} width:100%;">
+            <div class="sticky-word-section-header unans-sticky-header">
               <span class="card-icon-slot">⏳</span>
               <span style="flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">未作答的單字 (${untestedWords.length > 0 ? untestedWords.length : actualUnanswered} 字)</span>
             </div>
-            <div class="word-split-tags-grid" style="margin-top:4px; box-sizing:border-box;">
+            <div class="word-split-tags-grid" style="box-sizing:border-box;">
               ${unansPills || '<span style="width:100%; font-size:11.5px; color:var(--ink3);">（包含抽題未作答之題目）</span>'}
             </div>
           </div>
         `;
       }
-      wrongContentHtml = `<div style="display:flex; flex-direction:column; width:100%;"><div class="word-split-tags-grid">${wrongPills || '<span style="width:100%; font-size:12px; color:var(--ink3); font-style:italic;">（受測題目無答錯）</span>'}</div>${unansAccordionHtml}</div>`;
+      if (hasBothSections) {
+        rightBoxClass += " has-sticky-sections";
+        rightTitleText = ""; // 移至內部由 sticky-word-section-header 顯示
+        wrongContentHtml = `
+          <div class="word-split-scroll-body">
+            <div class="sticky-word-section-header" style="color:#ef4444;">
+              <span class="card-icon-slot">❌</span>
+              <span>答錯的單字 (${wrongList.length} 字)</span>
+            </div>
+            <div class="word-split-tags-grid">${wrongPills || '<span style="width:100%; font-size:12px; color:var(--ink3); font-style:italic;">（受測題目無答錯）</span>'}</div>
+            ${unansAccordionHtml}
+          </div>
+        `;
+      } else {
+        wrongContentHtml = `<div style="display:flex; flex-direction:column; width:100%;"><div class="word-split-tags-grid">${wrongPills || '<span style="width:100%; font-size:12px; color:var(--ink3); font-style:italic;">（受測題目無答錯）</span>'}</div></div>`;
+      }
     } else {
       wrongContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（目前無答錯單字）</span>`;
     }
@@ -1149,9 +1166,11 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
           </div>
         </div>
         <div class="word-split-box ${rightBoxClass}">
+          ${rightTitleText ? `
           <div class="word-split-title ${rightTitleClass}">
             ${rightTitleText}
           </div>
+          ` : ""}
           <div class="word-split-content">
             ${wrongContentHtml}
           </div>
