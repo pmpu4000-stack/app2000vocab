@@ -992,7 +992,7 @@ function _buildReportHtml(payload) {
               <span class="card-icon-slot">⏳</span>
               <span style="flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">未作答的單字 (${unansList.length} 字)</span>
             </div>
-            <div class="word-split-tags-grid" style="margin-top:4px; padding:6px 8px; background:rgba(2,132,199,0.06); border-radius:8px; border:1px solid rgba(2,132,199,0.18); box-sizing:border-box;">
+            <div class="word-split-tags-grid" style="margin-top:4px; box-sizing:border-box;">
               ${unansPills}
             </div>
           </div>

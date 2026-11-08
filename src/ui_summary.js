@@ -928,7 +928,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
               <span class="card-icon-slot">⏳</span>
               <span style="flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">未作答的單字 (${untestedWords.length > 0 ? untestedWords.length : actualUnanswered} 字)</span>
             </div>
-            <div class="word-split-tags-grid" style="margin-top:6px; padding:8px; background:rgba(2,132,199,0.06); border-radius:8px; border:1px solid rgba(2,132,199,0.18); box-sizing:border-box;">
+            <div class="word-split-tags-grid" style="margin-top:4px; box-sizing:border-box;">
               ${unansPills || '<span style="width:100%; font-size:11.5px; color:var(--ink3);">（包含抽題未作答之題目）</span>'}
             </div>
           </div>
