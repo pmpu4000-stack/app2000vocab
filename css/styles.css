@@ -2176,10 +2176,10 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 }
 .level-table thead tr {
   display: table-row !important;
-  border-bottom: 1.5px solid var(--line, #e2e8f0);
+  border-bottom: none !important;
 }
 .level-table th {
-  padding: 6px 4px 8px;
+  padding: 4px 4px 6px;
   font-size: 11px;
   font-weight: 700;
   color: var(--ink3, #64748b);
@@ -2195,14 +2195,14 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 }
 .level-table tbody tr {
   display: table-row !important;
-  border-bottom: 1px solid var(--line, #f1f5f9);
+  border-bottom: none !important;
 }
 .level-table tbody tr:last-child {
-  border-bottom: none;
+  border-bottom: none !important;
 }
 .level-table td {
   display: table-cell !important;
-  padding: 8px 4px;
+  padding: 4.5px 4px;
   vertical-align: middle;
 }
 .level-table td.st-level-name {
@@ -2230,10 +2230,10 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 .level-table .st-num-total { color: #D97706; }
 
 [data-theme="dark"] .level-table thead tr {
-  border-bottom-color: #334155;
+  border-bottom: none !important;
 }
 [data-theme="dark"] .level-table tbody tr {
-  border-bottom-color: #1e293b;
+  border-bottom: none !important;
 }
 [data-theme="dark"] .level-table th {
   color: #94a3b8;
