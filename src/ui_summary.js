@@ -919,38 +919,35 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
         ? rawWords.filter(w => !correctList.includes(String(w).toLowerCase()) && !wrongList.includes(String(w).toLowerCase()))
         : (unansweredList.length > 0 ? unansweredList : []);
 
-      let unansAccordionHtml = "";
-      let hasBothSections = false;
-      if (untestedWords.length > 0 || actualUnanswered > 0) {
-        hasBothSections = true;
+      const unansCount = untestedWords.length > 0 ? untestedWords.length : actualUnanswered;
+
+      if (unansCount > 0) {
         const unansPills = untestedWords.map(w => `<span class="word-pill-tag neutral" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="未作答單字 (點擊聆聽發音)">${w}</span>`).join("");
-        unansAccordionHtml = `
-          <div style="${wrongList.length > 0 ? 'margin-top:10px;' : ''} width:100%;">
-            <div class="sticky-word-section-header unans-sticky-header">
-              <span class="card-icon-slot">⏳</span>
-              <span style="flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">未作答的單字 (${untestedWords.length > 0 ? untestedWords.length : actualUnanswered} 字)</span>
-            </div>
-            <div class="word-split-tags-grid" style="box-sizing:border-box;">
-              ${unansPills || '<span style="width:100%; font-size:11.5px; color:var(--ink3);">（包含抽題未作答之題目）</span>'}
-            </div>
+        
+        // 預設選取分頁：若有答錯停在「答錯」，若答錯 0 則貼心自動切至「未作答」
+        const defaultWrongActive = (wrongList.length > 0);
+        
+        rightTitleText = `
+          <div class="word-box-tabs">
+            <button type="button" class="word-box-tab-btn tab-wrong ${defaultWrongActive ? 'is-active' : ''}" onclick="event.stopPropagation(); const p=this.closest('.word-split-box'); p.querySelectorAll('.word-box-tab-btn').forEach(b=>b.classList.remove('is-active')); this.classList.add('is-active'); p.querySelector('.pane-wrong').classList.add('is-active'); p.querySelector('.pane-unans').classList.remove('is-active');">
+              <span class="card-icon-slot" style="font-size:11px;">❌</span> 答錯 (${wrongList.length})
+            </button>
+            <button type="button" class="word-box-tab-btn tab-unans ${!defaultWrongActive ? 'is-active' : ''}" onclick="event.stopPropagation(); const p=this.closest('.word-split-box'); p.querySelectorAll('.word-box-tab-btn').forEach(b=>b.classList.remove('is-active')); this.classList.add('is-active'); p.querySelector('.pane-unans').classList.add('is-active'); p.querySelector('.pane-wrong').classList.remove('is-active');">
+              <span class="card-icon-slot" style="font-size:11px;">⏳</span> 未作答 (${unansCount})
+            </button>
           </div>
         `;
-      }
-      if (hasBothSections) {
-        rightBoxClass += " has-sticky-sections";
-        rightTitleText = ""; // 移至內部由 sticky-word-section-header 顯示
+
         wrongContentHtml = `
-          <div class="word-split-scroll-body">
-            <div class="sticky-word-section-header" style="color:#ef4444;">
-              <span class="card-icon-slot">❌</span>
-              <span>答錯的單字 (${wrongList.length} 字)</span>
-            </div>
+          <div class="word-box-tab-pane pane-wrong ${defaultWrongActive ? 'is-active' : ''}">
             <div class="word-split-tags-grid">${wrongPills || '<span style="width:100%; font-size:12px; color:var(--ink3); font-style:italic;">（受測題目無答錯）</span>'}</div>
-            ${unansAccordionHtml}
+          </div>
+          <div class="word-box-tab-pane pane-unans ${!defaultWrongActive ? 'is-active' : ''}">
+            <div class="word-split-tags-grid">${unansPills || '<span style="width:100%; font-size:11.5px; color:var(--ink3);">（包含抽題未作答之題目）</span>'}</div>
           </div>
         `;
       } else {
-        wrongContentHtml = `<div style="display:flex; flex-direction:column; width:100%;"><div class="word-split-tags-grid">${wrongPills || '<span style="width:100%; font-size:12px; color:var(--ink3); font-style:italic;">（受測題目無答錯）</span>'}</div></div>`;
+        wrongContentHtml = `<div class="word-split-tags-grid">${wrongPills || '<span style="width:100%; font-size:12px; color:var(--ink3); font-style:italic;">（受測題目無答錯）</span>'}</div>`;
       }
     } else {
       wrongContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（目前無答錯單字）</span>`;
