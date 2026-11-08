@@ -1077,68 +1077,42 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     const ansCount = hasUnanswered ? actualAnswered : taskTotWords;
     const wrgCount = hasUnanswered ? actualWrong : Math.max(0, taskTotWords - taskCorrWords);
     const unansCount = hasUnanswered ? actualUnanswered : 0;
-    const attRate = hasUnanswered ? attemptedRate : taskRate;
     const ovrRate = hasUnanswered ? overallScoreRate : taskRate;
 
-    if (unansCount === 0) {
-      scoreGridHtml = `
-        <div class="task-score-grid">
-          <div class="task-score-subgrid" style="display:grid; grid-template-columns:repeat(2, 1fr); gap:6px; width:100%; box-sizing:border-box;">
-            <div class="task-score-item score-corr-item">
-              <div class="task-score-label">答對</div>
-              <div class="task-score-val task-score-num-corr">${taskCorrWords}</div>
-            </div>
-            <div class="task-score-item score-wrong-item">
-              <div class="task-score-label">答錯</div>
-              <div class="task-score-val task-score-num-wrong">${wrgCount}</div>
-            </div>
-          </div>
-          <div class="task-score-item rate-tier-item ${getHeatmapRateClass(ovrRate)}">
-            <div class="task-score-label">全卷正確率</div>
-            <div class="task-score-val heat-rate-val ${getHeatmapRateClass(ovrRate)}">
-              ${ovrRate}%
-            </div>
-          </div>
-        </div>
-      `;
+    // 做法 B：進度條複合卡（左：活潑進度條，右：大正確率與得分摘要）
+    const totalWords = taskTotWords > 0 ? taskTotWords : (ansCount + unansCount);
+    let bottomTagsHtml = "";
+    if (wrgCount === 0 && unansCount === 0) {
+      bottomTagsHtml = `<span class="tpc-tag-perfect">🌟 全數答對無失分</span>`;
     } else {
-      scoreGridHtml = `
-        <div class="task-score-grid">
-          <div class="task-score-subgrid-4">
-            <div class="task-score-item score-corr-item">
-              <div class="task-score-label">答對</div>
-              <div class="task-score-val task-score-num-corr">${taskCorrWords}</div>
-            </div>
-            <div class="task-score-item score-wrong-item">
-              <div class="task-score-label">答錯</div>
-              <div class="task-score-val task-score-num-wrong">${wrgCount}</div>
-            </div>
-            <div class="task-score-item score-ans-item">
-              <div class="task-score-label">已作答</div>
-              <div class="task-score-val task-score-num-ans">${ansCount}</div>
-            </div>
-            <div class="task-score-item score-unans-item">
-              <div class="task-score-label">未作答</div>
-              <div class="task-score-val task-score-num-unans">${unansCount}</div>
-            </div>
+      const tagParts = [];
+      if (wrgCount > 0) tagParts.push(`<span class="tpc-tag-wrong">✕ ${wrgCount} 題答錯</span>`);
+      if (unansCount > 0) tagParts.push(`<span class="tpc-tag-unans">⏳ ${unansCount} 題未作答</span>`);
+      bottomTagsHtml = tagParts.join(" · ");
+    }
+
+    scoreGridHtml = `
+      <div class="task-score-grid">
+        <div class="task-progress-card">
+          <div class="tpc-row-top">
+            <span class="tpc-title">📝 作答表現</span>
+            <span class="tpc-count">答對 <b>${taskCorrWords}</b> / ${totalWords} 字</span>
           </div>
-          <div class="task-score-subgrid-2">
-            <div class="task-score-item rate-tier-item ${getHeatmapRateClass(attRate)}">
-              <div class="task-score-label" title="實際有作答題目的答對率">作答正確率</div>
-              <div class="task-score-val heat-rate-val ${getHeatmapRateClass(attRate)}">
-                ${ansCount > 0 ? attRate + '%' : '—'}
-              </div>
-            </div>
-            <div class="task-score-item rate-tier-item ${getHeatmapRateClass(ovrRate)}">
-              <div class="task-score-label" title="以全卷應測總單字數為分母計算之正確率">全卷正確率</div>
-              <div class="task-score-val heat-rate-val ${getHeatmapRateClass(ovrRate)}">
-                ${ovrRate}%
-              </div>
-            </div>
+          <div class="tpc-bar-track">
+            <div class="tpc-bar-fill" style="width:${ovrRate}%;"></div>
+          </div>
+          <div class="tpc-row-bottom">
+            ${bottomTagsHtml}
           </div>
         </div>
-      `;
-    }
+        <div class="task-score-item rate-tier-item ${getHeatmapRateClass(ovrRate)}">
+          <div class="task-score-label" title="以全卷應測總單字數為分母計算之正確率">全卷正確率</div>
+          <div class="task-score-val heat-rate-val ${getHeatmapRateClass(ovrRate)}">
+            ${ovrRate}%
+          </div>
+        </div>
+      </div>
+    `;
   }
 
   const hasWrongOrUnans = (wrongList.length > 0 || actualUnanswered > 0);

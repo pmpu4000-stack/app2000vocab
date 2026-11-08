@@ -1000,9 +1000,20 @@ function _buildReportHtml(payload) {
       }
 
       const ovrRate = parseInt(r.overallScoreRate !== undefined ? r.overallScoreRate : r.taskRate, 10) || 0;
-      const attRate = parseInt(r.attemptedRate !== undefined ? r.attemptedRate : ovrRate, 10) || ovrRate;
       const ansCount = (r.taskCorrWords || 0) + (r.actualWrong || 0);
       const unansCount = r.actualUnanswered !== undefined ? r.actualUnanswered : Math.max(0, (r.assignedTotWords || 5) - ansCount);
+      const wrgCount = r.actualWrong || 0;
+      const totalWords = (r.assignedTotWords || (ansCount + unansCount));
+
+      let bottomTagsHtml = "";
+      if (wrgCount === 0 && unansCount === 0) {
+        bottomTagsHtml = `<span class="tpc-tag-perfect">🌟 全數答對無失分</span>`;
+      } else {
+        const tagParts = [];
+        if (wrgCount > 0) tagParts.push(`<span class="tpc-tag-wrong">✕ ${wrgCount} 題答錯</span>`);
+        if (unansCount > 0) tagParts.push(`<span class="tpc-tag-unans">⏳ ${unansCount} 題未作答</span>`);
+        bottomTagsHtml = tagParts.join(" · ");
+      }
 
       taskCardHtml = `
         <div class="task-history-card" style="height:auto !important; overflow:visible !important; margin-bottom:8px;">
@@ -1012,36 +1023,22 @@ function _buildReportHtml(payload) {
             </div>
           </div>
           <div class="task-score-grid">
-            <div class="task-score-subgrid-4">
-              <div class="task-score-item score-corr-item" style="display:flex; flex-direction:column; justify-content:center;">
-                <div class="task-score-label" style="font-size:11px;">答對</div>
-                <div class="task-score-val task-score-num-corr">${r.taskCorrWords || 0}</div>
+            <div class="task-progress-card">
+              <div class="tpc-row-top">
+                <span class="tpc-title">📝 作答表現</span>
+                <span class="tpc-count">答對 <b>${r.taskCorrWords || 0}</b> / ${totalWords} 字</span>
               </div>
-              <div class="task-score-item score-wrong-item" style="display:flex; flex-direction:column; justify-content:center;">
-                <div class="task-score-label" style="font-size:11px;">答錯</div>
-                <div class="task-score-val task-score-num-wrong">${r.actualWrong || 0}</div>
+              <div class="tpc-bar-track">
+                <div class="tpc-bar-fill" style="width:${ovrRate}%;"></div>
               </div>
-              <div class="task-score-item score-ans-item" style="display:flex; flex-direction:column; justify-content:center;">
-                <div class="task-score-label" style="font-size:11px;">已作答</div>
-                <div class="task-score-val task-score-num-ans">${ansCount}</div>
-              </div>
-              <div class="task-score-item score-unans-item" style="display:flex; flex-direction:column; justify-content:center;">
-                <div class="task-score-label" style="font-size:11px;">未作答</div>
-                <div class="task-score-val task-score-num-unans">${unansCount}</div>
+              <div class="tpc-row-bottom">
+                ${bottomTagsHtml}
               </div>
             </div>
-            <div class="task-score-subgrid-2">
-              <div class="task-score-item rate-tier-item ${getTier(attRate)}" style="display:flex; flex-direction:column; justify-content:center;">
-                <div class="task-score-label" style="font-size:11px;" title="實際有作答題目的答對率">作答正確率</div>
-                <div class="task-score-val heat-rate-val ${getTier(attRate)}" style="font-size:22px; font-weight:800; line-height:1.2;">
-                  ${ansCount > 0 ? attRate + '%' : '—'}
-                </div>
-              </div>
-              <div class="task-score-item rate-tier-item ${getTier(ovrRate)}" style="display:flex; flex-direction:column; justify-content:center;">
-                <div class="task-score-label" style="font-size:11px;" title="以全卷應測總單字數為分母計算之正確率">全卷正確率</div>
-                <div class="task-score-val heat-rate-val ${getTier(ovrRate)}" style="font-size:22px; font-weight:800; line-height:1.2;">
-                  ${ovrRate}%
-                </div>
+            <div class="task-score-item rate-tier-item ${getTier(ovrRate)}" style="display:flex; flex-direction:column; justify-content:center;">
+              <div class="task-score-label" style="font-size:11px;" title="以全卷應測總單字數為分母計算之正確率">全卷正確率</div>
+              <div class="task-score-val heat-rate-val ${getTier(ovrRate)}" style="font-size:22px; font-weight:800; line-height:1.2;">
+                ${ovrRate}%
               </div>
             </div>
           </div>
