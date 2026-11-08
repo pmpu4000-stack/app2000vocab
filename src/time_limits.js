@@ -297,6 +297,14 @@
     }
 
     document.querySelectorAll("section.progress").forEach((sec) => {
+      if (sec.id === "weak-words-section") {
+        const isVac = document.body.classList.contains("is-vacation") || document.documentElement.classList.contains("is-vacation");
+        const isPrivileged = document.body.classList.contains("role-teacher") || document.body.classList.contains("role-parent");
+        if (!isVac && !isPrivileged) {
+          sec.style.setProperty("display", "none", "important");
+          return;
+        }
+      }
       if (sec && sec.style.display !== "block") sec.style.display = "block";
     });
   }

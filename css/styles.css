@@ -623,6 +623,12 @@ body.in-task-mode #export-records-section {
   display: none !important;
 }
 
+/* 期末大挑戰單字表：學期中對學生隱藏，僅在寒暑假或教師/家長身分下顯示 */
+body:not(.is-vacation):not(.role-teacher):not(.role-parent) #weak-words-section,
+html:not(.is-vacation):not(.role-teacher):not(.role-parent) body #weak-words-section {
+  display: none !important;
+}
+
 /* 今日練習時間已結束：一併隱藏 Level 1~5 關卡小方塊、模式、卡片等，留下乾淨清爽畫面 */
 body.daily-limit-reached #levelbar,
 body.daily-limit-reached #modes,

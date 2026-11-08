@@ -1470,6 +1470,7 @@ ui.onCheckClick(check);
 ui.onSummary(() => ui.toggleSummary(store.summary(WORDS)));
 ui.initProgressCard();
 ui.initConquerCard();
+  try { const vac = getVacationInfo(); if (vac && vac.isVacation) { document.documentElement.classList.add("is-vacation"); document.body.classList.add("is-vacation"); } else { document.documentElement.classList.remove("is-vacation"); document.body.classList.remove("is-vacation"); } } catch (e) {}
   if (typeof ui.initWeakWordsCard === "function") ui.initWeakWordsCard();
 
 

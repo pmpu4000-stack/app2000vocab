@@ -180,6 +180,12 @@
       display: none !important;
     }
 
+    /* 期末大挑戰單字表：學期中對學生隱藏，僅在寒暑假或教師/家長身分下顯示 */
+    body:not(.is-vacation):not(.role-teacher):not(.role-parent) #weak-words-section,
+    html:not(.is-vacation):not(.role-teacher):not(.role-parent) body #weak-words-section {
+      display: none !important;
+    }
+
     body.role-teacher.has-inspected.show-student-records #progress-card,
     body.role-teacher.has-inspected.show-student-records #learning-record-section,
     body.role-teacher.has-inspected.show-student-records #week-conquer-section,
@@ -820,7 +826,7 @@
   </style>
   <link rel="preconnect" href="https://script.google.com" crossorigin>
   <link rel="dns-prefetch" href="https://script.google.com">
-  <link rel="stylesheet" href="css/styles.css?v=202611080408">
+  <link rel="stylesheet" href="css/styles.css?v=202611080415">
   <link rel="modulepreload" href="src/app.js">
   <link rel="modulepreload" href="src/auth_sync.js">
   <link rel="modulepreload" href="src/wordbank.js">
@@ -838,11 +844,11 @@
   <script>
     if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=202611080408').catch(() => {});
+        navigator.serviceWorker.register('./sw.js?v=202611080415').catch(() => {});
       });
     }
   </script>
-  <script src="src/time_limits.js?v=202611080408" defer></script>
+  <script src="src/time_limits.js?v=202611080415" defer></script>
 </head>
 <body class="is-logging-in">
 
@@ -1309,7 +1315,7 @@
       </section>
 
       <!-- 🎯 個人常錯單字複習小卡方塊 (支援時間範圍切換、單字發音、PDF/Excel 一鍵下載) -->
-      <section class="progress weak-words-card is-collapsed" id="weak-words-section">
+      <section class="progress weak-words-card is-collapsed" id="weak-words-section" style="display:none;">
         <h3>
           <span>
             <span>期末大挑戰 Final</span>
@@ -1410,7 +1416,7 @@
     </div>
   </div>
 
-  <script type="module" src="src/auth_sync.js?v=202611080408"></script>
+  <script type="module" src="src/auth_sync.js?v=202611080415"></script>
 
   <!-- ══════════════════════════════════════════
   <!-- 📝 教師管理專區彈窗 DOM 已改為按身分動態掛載 (src/teacher_portal.js)，學生首屏完全免載 -->
