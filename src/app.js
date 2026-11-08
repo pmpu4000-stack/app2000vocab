@@ -1102,7 +1102,8 @@ function startTaskExecution() {
   store.sessionStart();
   taskState.pending = false;
   taskState.active  = true;
-  state.mode        = "listen"; // 強制純聽音拼字
+  state.mode        = "listen";
+  try { document.body.classList.add("in-task-mode"); } catch(_) {} // 強制純聽音拼字
 
   // 還原檢查按鈕
   const checkBtn = document.getElementById("checkBtn");
@@ -1125,6 +1126,7 @@ function startTaskExecution() {
 }
 
 function finishTaskMode() {
+  try { document.body.classList.remove("in-task-mode"); } catch(_) {}
   releaseScreenWakeLock();
   taskState.active = false;
   taskState.pending = false;

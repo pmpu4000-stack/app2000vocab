@@ -614,6 +614,15 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 .lvchip[data-state="locked"]{opacity:.5;cursor:not-allowed;background:#F4F4F8}
 .lvchip[data-state="locked"] .lvname{color:var(--ink3)}
 
+/* 今日指定單字測驗進行中：隱藏下方五大歷程與紀錄方塊（避免偷看題目與分散注意力） */
+body.in-task-mode #progress-card,
+body.in-task-mode #learning-record-section,
+body.in-task-mode #week-conquer-section,
+body.in-task-mode #weak-words-section,
+body.in-task-mode #export-records-section {
+  display: none !important;
+}
+
 /* 今日練習時間已結束：一併隱藏 Level 1~5 關卡小方塊、模式、卡片等，留下乾淨清爽畫面 */
 body.daily-limit-reached #levelbar,
 body.daily-limit-reached #modes,
