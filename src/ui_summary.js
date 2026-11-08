@@ -852,7 +852,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     rightTitleClass = "untested-title";
     rightTitleText = `<span class="card-icon-slot">📋</span><span>本次應測單字範圍 ${taskTotWords > 0 ? `(${taskTotWords} 字)` : (rawWords.length > 0 ? `(${rawWords.length} 字)` : "")}</span>`;
     if (rawWords.length > 0) {
-      wrongContentHtml = rawWords.map(w => `<span class="word-pill-tag neutral" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("");
+      wrongContentHtml = `<div class="word-split-tags-grid">${rawWords.map(w => `<span class="word-pill-tag neutral" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("")}</div>`;
     } else {
       wrongContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（指派單字載入中或未指定具體單字清單）</span>`;
     }
@@ -882,7 +882,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     const unansWords = (unansweredList && unansweredList.length > 0) ? unansweredList : rawWords;
     rightTitleText = `<span class="card-icon-slot">🔘</span><span>尚未作答的單字 (${unansWords.length} 字)</span>`;
     if (unansWords.length > 0) {
-      wrongContentHtml = unansWords.map(w => `<span class="word-pill-tag neutral" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="未作答單字 (點擊聆聽發音)">${w}</span>`).join("");
+      wrongContentHtml = `<div class="word-split-tags-grid">${unansWords.map(w => `<span class="word-pill-tag neutral" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="未作答單字 (點擊聆聽發音)">${w}</span>`).join("")}</div>`;
     } else {
       wrongContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（待測單字載入中）</span>`;
     }
@@ -891,7 +891,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     leftTitleClass = "correct-title";
     leftTitleText = `<span class="card-icon-slot" style="color:#10B981; font-weight:900;">✔</span><span>答對的單字 (${correctList.length} 字)</span>`;
     if (correctList.length > 0) {
-      correctContentHtml = `<div class="word-split-tags-grid" style="display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:8px; width:100%;">${correctList.map(w => `<span class="word-pill-tag correct" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("")}</div>`;
+      correctContentHtml = `<div class="word-split-tags-grid">${correctList.map(w => `<span class="word-pill-tag correct" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("")}</div>`;
     } else {
       correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（中途作答中斷，尚未答對單字）</span>`;
     }
@@ -924,17 +924,17 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
         const unansPills = untestedWords.map(w => `<span class="word-pill-tag neutral" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="未作答單字 (點擊聆聽發音)">${w}</span>`).join("");
         unansAccordionHtml = `
           <div style="${wrongList.length > 0 ? 'margin-top:10px; padding-top:8px; border-top:1px dashed var(--line, rgba(148,163,184,0.25));' : ''} width:100%;">
-            <div style="display:flex; align-items:center; font-size:12px; font-weight:700; color:var(--ink2); padding:4px 0; gap:6px; width:100%;">
+            <div style="display:flex; align-items:center; font-size:12px; font-weight:700; color:var(--ink2); padding:4px 0; gap:6px; width:100%; white-space:nowrap;">
               <span class="card-icon-slot">⏳</span>
-              <span style="flex:1;">未作答的單字 (${untestedWords.length > 0 ? untestedWords.length : actualUnanswered} 字)</span>
+              <span style="flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">未作答的單字 (${untestedWords.length > 0 ? untestedWords.length : actualUnanswered} 字)</span>
             </div>
-            <div class="word-split-tags-grid" style="display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:8px; margin-top:6px; padding:8px; background:rgba(2,132,199,0.06); border-radius:8px; border:1px solid rgba(2,132,199,0.18);">
-              ${unansPills || '<span style="grid-column:1/-1; font-size:11.5px; color:var(--ink3);">（包含抽題未作答之題目）</span>'}
+            <div class="word-split-tags-grid" style="margin-top:6px; padding:8px; background:rgba(2,132,199,0.06); border-radius:8px; border:1px solid rgba(2,132,199,0.18); box-sizing:border-box;">
+              ${unansPills || '<span style="width:100%; font-size:11.5px; color:var(--ink3);">（包含抽題未作答之題目）</span>'}
             </div>
           </div>
         `;
       }
-      wrongContentHtml = `<div style="display:flex; flex-direction:column; width:100%;"><div class="word-split-tags-grid" style="display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:8px;">${wrongPills || '<span style="grid-column:1/-1; font-size:12px; color:var(--ink3); font-style:italic;">（受測題目無答錯）</span>'}</div>${unansAccordionHtml}</div>`;
+      wrongContentHtml = `<div style="display:flex; flex-direction:column; width:100%;"><div class="word-split-tags-grid">${wrongPills || '<span style="width:100%; font-size:12px; color:var(--ink3); font-style:italic;">（受測題目無答錯）</span>'}</div>${unansAccordionHtml}</div>`;
     } else {
       wrongContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（目前無答錯單字）</span>`;
     }
@@ -943,7 +943,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
       leftTitleClass = "correct-title";
       leftTitleText = `<span class="card-icon-slot" style="color:#10B981; font-weight:900;">✔</span><span>答對的單字 (${correctList.length} 字)</span>`;
       if (correctList.length > 0) {
-        correctContentHtml = `<div class="word-split-tags-grid" style="display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:8px; width:100%;">${correctList.map(w => `<span class="word-pill-tag correct" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("")}</div>`;
+        correctContentHtml = `<div class="word-split-tags-grid">${correctList.map(w => `<span class="word-pill-tag correct" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("")}</div>`;
       } else if (taskCorrWords > 0) {
         correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（本次測驗答對 ${taskCorrWords} 字）</span>`;
       } else {
@@ -954,7 +954,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
         const normDate = normalizeDateStr(selectedDate);
         const slashDate = normDate.replace(/-/g, "/");
         const dpDay = d && d.dailyPractice && (d.dailyPractice[normDate] || d.dailyPractice[slashDate] || d.dailyPractice[selectedDate]);
-        wrongContentHtml = wrongList.map(w => {
+        wrongContentHtml = `<div class="word-split-tags-grid">${wrongList.map(w => {
           const isHadCW = (hadCorrectThenWrongList && hadCorrectThenWrongList.includes(w)) ||
                           (record.hadCorrectThenWrong && record.hadCorrectThenWrong.includes(w)) ||
                           (dpDay && dpDay.words && dpDay.words[w] && (dpDay.words[w].hadCorrectThenWrong || (dpDay.words[w].lastResult === "wrong" && dpDay.words[w].correct > 0)));
@@ -962,7 +962,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
             return `<span class="word-pill-tag warning" data-word="${w.replace(/"/g, "&quot;")}" style="border:1.5px dashed #f59e0b; background:rgba(245,158,11,0.1); color:#b45309; cursor:pointer;" title="當日曾答對，但後續作答時答錯 (點擊聆聽發音)">${w} <small style="font-size:10px; font-weight:700;">(曾對後錯⚠️)</small></span>`;
           }
           return `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`;
-        }).join("");
+        }).join("")}</div>`;
       } else if (isTrulyPerfect) {
         wrongContentHtml = "";
       } else if (missedCount > 0) {
@@ -972,9 +972,9 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
 
         if (unmastered.length > 0) {
           rightTitleText = `<span class="card-icon-slot">🔘</span><span>未作答的單字 (${unmastered.length} 字)</span>`;
-          wrongContentHtml = unmastered.map(w => {
+          wrongContentHtml = `<div class="word-split-tags-grid">${unmastered.map(w => {
             return `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="未作答單字 (點擊聆聽發音)">${w} <span class="diag-bubble-tag" title="未作答">未作答</span></span>`;
-          }).join("");
+          }).join("")}</div>`;
         } else {
           rightTitleText = `<span class="card-icon-slot">🔘</span><span>未作答的單字 (${missedCount} 字)</span>`;
           wrongContentHtml = `
