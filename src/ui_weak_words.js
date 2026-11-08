@@ -92,15 +92,21 @@ export function initWeakWordsCard() {
   const toggleBtn = document.getElementById("btn-toggle-weak-words-card");
   if (!sec || !toggleBtn) return;
 
-  // ?? ?????????????????????????????/????????
-  const vacInfo = (typeof getVacationInfo === "function") ? getVacationInfo() : { isVacation: false };
-  const isTeacherOrParent = document.body.classList.contains("role-teacher") || document.body.classList.contains("role-parent");
-  if (!vacInfo.isVacation && !isTeacherOrParent) {
-    sec.style.setProperty("display", "none", "important");
-    return;
-  } else {
-    sec.style.removeProperty("display");
+  // 期末大挑戰單字表：學期中對學生隱藏，寒暑假或教師/家長身分正常顯示
+  function syncWeakWordsVisibility() {
+    const vacInfo = (typeof getVacationInfo === "function") ? getVacationInfo() : { isVacation: false };
+    const isPrivileged = document.body.classList.contains("role-teacher") ||
+      document.body.classList.contains("role-parent") ||
+      document.documentElement.classList.contains("role-teacher") ||
+      document.documentElement.classList.contains("role-parent");
+    if (!vacInfo.isVacation && !isPrivileged) {
+      sec.style.setProperty("display", "none", "important");
+    } else {
+      sec.style.removeProperty("display");
+    }
   }
+  syncWeakWordsVisibility();
+  window.syncWeakWordsVisibility = syncWeakWordsVisibility;
 
   let activeScope = "current"; // "current" (本學期) | "all" (全歷程封存)
 
