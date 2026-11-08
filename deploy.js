@@ -12,6 +12,21 @@ const commitMsg = process.argv[2] || "deploy: auto update";
 console.log("== [0/4] Running automated unit tests ==");
 execSync('node --test tests/core.test.mjs', { cwd: root, stdio: 'inherit' });
 
+// Auto-generate AST symbol skeleton for token optimization
+try {
+  const sDir = path.join(root, 'src');
+  const sFiles = fs.readdirSync(sDir).filter(f => f.endsWith('.js'));
+  const skel = {};
+  for (const f of sFiles) {
+    skel[f] = [];
+    fs.readFileSync(path.join(sDir, f), 'utf8').split('\n').forEach((l, i) => {
+      const m = l.match(/^\s*export\s+(async\s+)?(function|class|const|let|var)\s+([a-zA-Z0-9_$]+)/);
+      if (m) skel[f].push({ name: m[3], type: m[2], line: i + 1 });
+    });
+  }
+  fs.writeFileSync(path.join(root, '.symbol_skeleton.json'), JSON.stringify(skel, null, 2), 'utf8');
+} catch (e) {}
+
 console.log("== [1/4] Syncing TeacherJs.html from src/teacher_portal.js & compacting CSS ==");
 const tpSrc = fs.readFileSync(path.join(root, 'src', 'teacher_portal.js'), 'utf8');
 const tpCompact = tpSrc

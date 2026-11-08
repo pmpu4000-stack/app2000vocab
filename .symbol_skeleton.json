@@ -1,0 +1,721 @@
+{
+  "anticheat.js": [
+    {
+      "name": "showAntiCheatToast",
+      "type": "function",
+      "line": 2
+    },
+    {
+      "name": "reportCheatAudit",
+      "type": "function",
+      "line": 3
+    },
+    {
+      "name": "startQuestionAudit",
+      "type": "function",
+      "line": 4
+    },
+    {
+      "name": "auditAnswerSpeed",
+      "type": "function",
+      "line": 5
+    },
+    {
+      "name": "initAntiCheat",
+      "type": "function",
+      "line": 6
+    }
+  ],
+  "app.js": [],
+  "audio.js": [
+    {
+      "name": "prefetchAudio",
+      "type": "function",
+      "line": 85
+    },
+    {
+      "name": "getAvailableUSVoices",
+      "type": "function",
+      "line": 168
+    },
+    {
+      "name": "getRandomUSVoice",
+      "type": "function",
+      "line": 198
+    },
+    {
+      "name": "getUSFemaleVoice",
+      "type": "function",
+      "line": 207
+    },
+    {
+      "name": "getUSMaleVoice",
+      "type": "function",
+      "line": 217
+    },
+    {
+      "name": "parseDialogue",
+      "type": "function",
+      "line": 231
+    },
+    {
+      "name": "getBestEnglishVoice",
+      "type": "function",
+      "line": 245
+    },
+    {
+      "name": "stopAudio",
+      "type": "function",
+      "line": 261
+    },
+    {
+      "name": "say",
+      "type": "function",
+      "line": 455
+    },
+    {
+      "name": "sayWord",
+      "type": "function",
+      "line": 473
+    },
+    {
+      "name": "spellOut",
+      "type": "function",
+      "line": 486
+    },
+    {
+      "name": "playContestSentence",
+      "type": "function",
+      "line": 498
+    }
+  ],
+  "auth.js": [],
+  "auth_sync.js": [
+    {
+      "name": "sha256HexClient",
+      "type": "function",
+      "line": 4
+    },
+    {
+      "name": "sanitizeCredentialStorage",
+      "type": "function",
+      "line": 17
+    }
+  ],
+  "confetti.js": [
+    {
+      "name": "burst",
+      "type": "function",
+      "line": 5
+    }
+  ],
+  "config.js": [
+    {
+      "name": "GAS_DEPLOYMENT_ID",
+      "type": "const",
+      "line": 7
+    },
+    {
+      "name": "DEFAULT_SCRIPT_URL",
+      "type": "const",
+      "line": 8
+    },
+    {
+      "name": "getScriptUrl",
+      "type": "function",
+      "line": 10
+    }
+  ],
+  "data.js": [
+    {
+      "name": "CATS",
+      "type": "const",
+      "line": 11
+    },
+    {
+      "name": "FEATURED",
+      "type": "const",
+      "line": 72
+    }
+  ],
+  "diagnostics.js": [
+    {
+      "name": "diagnoseWordMistake",
+      "type": "function",
+      "line": 12
+    }
+  ],
+  "levels.js": [
+    {
+      "name": "LEVELS",
+      "type": "const",
+      "line": 6
+    },
+    {
+      "name": "levelColor",
+      "type": "const",
+      "line": 13
+    },
+    {
+      "name": "levelName",
+      "type": "const",
+      "line": 14
+    },
+    {
+      "name": "WORD_LEVELS",
+      "type": "const",
+      "line": 17
+    },
+    {
+      "name": "getWordLevel",
+      "type": "function",
+      "line": 19
+    },
+    {
+      "name": "AUTO_PROMOTE_THRESHOLDS",
+      "type": "const",
+      "line": 32
+    },
+    {
+      "name": "DAILY_GOAL",
+      "type": "const",
+      "line": 39
+    },
+    {
+      "name": "PASS_RATE",
+      "type": "const",
+      "line": 40
+    },
+    {
+      "name": "GATE_MIN_ATTEMPTS",
+      "type": "const",
+      "line": 41
+    },
+    {
+      "name": "CHALLENGE_LEN",
+      "type": "const",
+      "line": 42
+    },
+    {
+      "name": "PLACEMENT_PER_LEVEL",
+      "type": "const",
+      "line": 43
+    },
+    {
+      "name": "parseCased",
+      "type": "function",
+      "line": 46
+    },
+    {
+      "name": "shuffle",
+      "type": "function",
+      "line": 58
+    },
+    {
+      "name": "sample",
+      "type": "function",
+      "line": 68
+    },
+    {
+      "name": "misspellings",
+      "type": "function",
+      "line": 75
+    }
+  ],
+  "remedy_service.js": [
+    {
+      "name": "getSaturdayRemedyRecord",
+      "type": "function",
+      "line": 13
+    },
+    {
+      "name": "getVacationInfo",
+      "type": "function",
+      "line": 79
+    },
+    {
+      "name": "recordSundayRemainingMistakes",
+      "type": "function",
+      "line": 98
+    },
+    {
+      "name": "markWordLearnedInFreePractice",
+      "type": "function",
+      "line": 119
+    },
+    {
+      "name": "getVacationDayAssignedWords",
+      "type": "function",
+      "line": 174
+    },
+    {
+      "name": "getConquerRollSettings",
+      "type": "function",
+      "line": 195
+    },
+    {
+      "name": "recordTaskMistake",
+      "type": "function",
+      "line": 199
+    },
+    {
+      "name": "unmarkWordLearnedInFreePractice",
+      "type": "function",
+      "line": 213
+    },
+    {
+      "name": "getMonToFriUnfinishedWords",
+      "type": "function",
+      "line": 227
+    },
+    {
+      "name": "getMonToFriMistakes",
+      "type": "const",
+      "line": 318
+    }
+  ],
+  "srs.js": [
+    {
+      "name": "calculateSrsWeight",
+      "type": "function",
+      "line": 16
+    },
+    {
+      "name": "nextWord",
+      "type": "function",
+      "line": 35
+    }
+  ],
+  "store.js": [
+    {
+      "name": "normalizeDateStr",
+      "type": "function",
+      "line": 12
+    },
+    {
+      "name": "unpadDateStr",
+      "type": "function",
+      "line": 36
+    },
+    {
+      "name": "formatDateYMD",
+      "type": "function",
+      "line": 56
+    },
+    {
+      "name": "getWeekRangeDates",
+      "type": "function",
+      "line": 64
+    },
+    {
+      "name": "getBiweeklyCycleInfo",
+      "type": "function",
+      "line": 81
+    },
+    {
+      "name": "todayStr",
+      "type": "function",
+      "line": 159
+    },
+    {
+      "name": "reload",
+      "type": "function",
+      "line": 286
+    },
+    {
+      "name": "flushSave",
+      "type": "function",
+      "line": 288
+    },
+    {
+      "name": "save",
+      "type": "function",
+      "line": 307
+    },
+    {
+      "name": "box",
+      "type": "function",
+      "line": 339
+    },
+    {
+      "name": "everWrong",
+      "type": "function",
+      "line": 340
+    },
+    {
+      "name": "correctCount",
+      "type": "function",
+      "line": 341
+    },
+    {
+      "name": "getDailyPracticeMap",
+      "type": "function",
+      "line": 342
+    },
+    {
+      "name": "getWordReviewState",
+      "type": "function",
+      "line": 343
+    },
+    {
+      "name": "grade",
+      "type": "function",
+      "line": 357
+    },
+    {
+      "name": "reset",
+      "type": "function",
+      "line": 448
+    },
+    {
+      "name": "sessionStart",
+      "type": "function",
+      "line": 451
+    },
+    {
+      "name": "sessionEnd",
+      "type": "function",
+      "line": 455
+    },
+    {
+      "name": "historyData",
+      "type": "function",
+      "line": 484
+    },
+    {
+      "name": "getStreakFreezes",
+      "type": "function",
+      "line": 644
+    },
+    {
+      "name": "clearStreakFreezeNotice",
+      "type": "function",
+      "line": 655
+    },
+    {
+      "name": "sessionState",
+      "type": "function",
+      "line": 661
+    },
+    {
+      "name": "progress",
+      "type": "function",
+      "line": 671
+    },
+    {
+      "name": "levelStats",
+      "type": "function",
+      "line": 673
+    },
+    {
+      "name": "setCurrentLevel",
+      "type": "function",
+      "line": 703
+    },
+    {
+      "name": "completePlacement",
+      "type": "function",
+      "line": 709
+    },
+    {
+      "name": "promote",
+      "type": "function",
+      "line": 717
+    },
+    {
+      "name": "stats",
+      "type": "function",
+      "line": 726
+    },
+    {
+      "name": "getDailyPractice",
+      "type": "function",
+      "line": 783
+    },
+    {
+      "name": "getPracticeDates",
+      "type": "function",
+      "line": 826
+    },
+    {
+      "name": "getCachedTaskHistory",
+      "type": "function",
+      "line": 849
+    },
+    {
+      "name": "getConquerRollSettings",
+      "type": "function",
+      "line": 861
+    },
+    {
+      "name": "invalidateRemedyLearnedCache",
+      "type": "function",
+      "line": 873
+    },
+    {
+      "name": "getRemedyLearnedSet",
+      "type": "function",
+      "line": 878
+    },
+    {
+      "name": "summary",
+      "type": "function",
+      "line": 915
+    },
+    {
+      "name": "getPrecomputedSummary",
+      "type": "function",
+      "line": 1201
+    }
+  ],
+  "sync.js": [],
+  "teacher_portal.js": [],
+  "time_limits.js": [],
+  "ui.js": [
+    {
+      "name": "initExportRecordsCard",
+      "type": "function",
+      "line": 1
+    },
+    {
+      "name": "setScreen",
+      "type": "function",
+      "line": 114
+    },
+    {
+      "name": "renderLevelBar",
+      "type": "function",
+      "line": 120
+    },
+    {
+      "name": "initModes",
+      "type": "function",
+      "line": 137
+    },
+    {
+      "name": "renderRound",
+      "type": "function",
+      "line": 149
+    },
+    {
+      "name": "note",
+      "type": "function",
+      "line": 555
+    },
+    {
+      "name": "showResult",
+      "type": "function",
+      "line": 557
+    },
+    {
+      "name": "focusActiveRepair",
+      "type": "function",
+      "line": 634
+    },
+    {
+      "name": "setActionNext",
+      "type": "function",
+      "line": 640
+    },
+    {
+      "name": "setNextBtnCountdown",
+      "type": "function",
+      "line": 645
+    },
+    {
+      "name": "renderProgress",
+      "type": "function",
+      "line": 653
+    },
+    {
+      "name": "renderProgressLevelsTable",
+      "type": "function",
+      "line": 735
+    },
+    {
+      "name": "renderProgressModeStats",
+      "type": "function",
+      "line": 746
+    },
+    {
+      "name": "renderSession",
+      "type": "function",
+      "line": 763
+    },
+    {
+      "name": "renderBanner",
+      "type": "function",
+      "line": 772
+    },
+    {
+      "name": "askPick",
+      "type": "function",
+      "line": 804
+    },
+    {
+      "name": "quizResult",
+      "type": "function",
+      "line": 835
+    },
+    {
+      "name": "onCheckClick",
+      "type": "function",
+      "line": 850
+    },
+    {
+      "name": "onReset",
+      "type": "function",
+      "line": 851
+    },
+    {
+      "name": "onSummary",
+      "type": "function",
+      "line": 852
+    },
+    {
+      "name": "onPlace",
+      "type": "function",
+      "line": 853
+    },
+    {
+      "name": "initProgressCard",
+      "type": "function",
+      "line": 855
+    }
+  ],
+  "ui_conquer.js": [
+    {
+      "name": "setConquerWordsRef",
+      "type": "function",
+      "line": 12
+    },
+    {
+      "name": "getWeekPendingConquerWords",
+      "type": "function",
+      "line": 16
+    },
+    {
+      "name": "_resolveConquerWordLevel",
+      "type": "function",
+      "line": 161
+    },
+    {
+      "name": "_renderConquerWordCard",
+      "type": "function",
+      "line": 199
+    },
+    {
+      "name": "buildWeekPendingConquerHtml",
+      "type": "function",
+      "line": 339
+    },
+    {
+      "name": "updateWeekConquerSection",
+      "type": "function",
+      "line": 536
+    },
+    {
+      "name": "initConquerCard",
+      "type": "function",
+      "line": 602
+    }
+  ],
+  "ui_export.js": [
+    {
+      "name": "_ensureScriptLoaded",
+      "type": "function",
+      "line": 510
+    },
+    {
+      "name": "initExportRecordsCard",
+      "type": "function",
+      "line": 1292
+    }
+  ],
+  "ui_summary.js": [
+    {
+      "name": "resolveWordStr",
+      "type": "function",
+      "line": 26
+    },
+    {
+      "name": "getCombinedTaskHistory",
+      "type": "function",
+      "line": 46
+    },
+    {
+      "name": "formatRatePercentage",
+      "type": "function",
+      "line": 387
+    },
+    {
+      "name": "isValidEnglishWordStr",
+      "type": "function",
+      "line": 410
+    },
+    {
+      "name": "clearResolveWordsCache",
+      "type": "function",
+      "line": 421
+    },
+    {
+      "name": "resolveTaskWords",
+      "type": "function",
+      "line": 437
+    },
+    {
+      "name": "resolveDailyPracticeRecord",
+      "type": "function",
+      "line": 1682
+    },
+    {
+      "name": "summaryHidden",
+      "type": "function",
+      "line": 1804
+    },
+    {
+      "name": "renderSummary",
+      "type": "function",
+      "line": 1805
+    },
+    {
+      "name": "toggleSummary",
+      "type": "function",
+      "line": 2500
+    }
+  ],
+  "ui_weak_words.js": [
+    {
+      "name": "analyzeErrorTag",
+      "type": "function",
+      "line": 8
+    },
+    {
+      "name": "getBiweeklyFailedFinalBossWords",
+      "type": "function",
+      "line": 28
+    },
+    {
+      "name": "initWeakWordsCard",
+      "type": "function",
+      "line": 88
+    }
+  ],
+  "wordbank.js": [
+    {
+      "name": "loadWordBank",
+      "type": "function",
+      "line": 129
+    },
+    {
+      "name": "wordsAtLevel",
+      "type": "const",
+      "line": 193
+    },
+    {
+      "name": "escapeHtml",
+      "type": "function",
+      "line": 196
+    }
+  ]
+}
