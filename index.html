@@ -910,6 +910,80 @@
       scrollbar-gutter: stable !important;
       scrollbar-width: thin !important;
     }
+    /* 每日練習時間截止水平清爽 Banner */
+    #daily-limit-reached-card.daily-limit-banner,
+    .daily-limit-banner {
+      display: flex !important;
+      align-items: center !important;
+      gap: 14px !important;
+      padding: 14px 18px !important;
+      border-radius: 16px !important;
+      background: linear-gradient(135deg, rgba(255,255,255,0.92), rgba(248,250,252,0.95)) !important;
+      border: 1px solid rgba(226,232,240,0.9) !important;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.04) !important;
+      margin: 0 0 10px !important;
+      box-sizing: border-box !important;
+    }
+    #daily-limit-reached-card.daily-limit-banner[style*="display: none"],
+    #daily-limit-reached-card.daily-limit-banner[style*="display:none"],
+    .daily-limit-banner[style*="display: none"],
+    .daily-limit-banner[style*="display:none"] {
+      display: none !important;
+    }
+    .dlb-icon-wrap {
+      width: 42px !important;
+      height: 42px !important;
+      border-radius: 12px !important;
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.15), rgba(99, 102, 241, 0.2)) !important;
+      border: 1px solid rgba(99, 102, 241, 0.25) !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      font-size: 22px !important;
+      flex-shrink: 0 !important;
+    }
+    .dlb-content {
+      text-align: left !important;
+    }
+    .dlb-title {
+      font-size: 15.5px !important;
+      font-weight: 800 !important;
+      color: var(--ink) !important;
+      margin: 0 0 2px !important;
+      letter-spacing: 0.2px !important;
+    }
+    .dlb-desc {
+      font-size: 13px !important;
+      color: var(--ink2) !important;
+      margin: 0 !important;
+      line-height: 1.4 !important;
+    }
+    html[data-theme="dark"] #daily-limit-reached-card.daily-limit-banner,
+    html[data-theme="dark"] .daily-limit-banner,
+    body[data-theme="dark"] #daily-limit-reached-card.daily-limit-banner,
+    body[data-theme="dark"] .daily-limit-banner,
+    [data-theme="dark"] #daily-limit-reached-card.daily-limit-banner,
+    [data-theme="dark"] .daily-limit-banner {
+      background: linear-gradient(135deg, #1e293b, #0f172a) !important;
+      border: 1px solid #334155 !important;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4) !important;
+    }
+    html[data-theme="dark"] .dlb-icon-wrap,
+    body[data-theme="dark"] .dlb-icon-wrap,
+    [data-theme="dark"] .dlb-icon-wrap {
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(99, 102, 241, 0.3)) !important;
+      border: 1px solid rgba(56, 189, 248, 0.4) !important;
+    }
+    html[data-theme="dark"] .dlb-title,
+    body[data-theme="dark"] .dlb-title,
+    [data-theme="dark"] .dlb-title {
+      color: #f8fafc !important;
+    }
+    html[data-theme="dark"] .dlb-desc,
+    body[data-theme="dark"] .dlb-desc,
+    [data-theme="dark"] .dlb-desc {
+      color: #94a3b8 !important;
+    }
   </style>
   <link rel="preconnect" href="https://script.google.com" crossorigin>
   <link rel="dns-prefetch" href="https://script.google.com">

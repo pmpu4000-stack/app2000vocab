@@ -4313,9 +4313,9 @@ img, svg, video, canvas {
   gap: 14px;
   padding: 14px 18px;
   border-radius: 16px;
-  background: linear-gradient(135deg, rgba(255,255,255,0.92), rgba(248,250,252,0.95));
-  border: 1px solid rgba(226,232,240,0.9);
-  box-shadow: 0 4px 18px rgba(0,0,0,0.04);
+  background: linear-gradient(135deg, rgba(255,255,255,0.92), rgba(248,250,252,0.95)) !important;
+  border: 1px solid rgba(226,232,240,0.9) !important;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.04) !important;
   margin: 0 0 10px;
   box-sizing: border-box;
 }
@@ -4329,8 +4329,8 @@ img, svg, video, canvas {
   width: 42px;
   height: 42px;
   border-radius: 12px;
-  background: linear-gradient(135deg, rgba(56, 189, 248, 0.15), rgba(99, 102, 241, 0.2));
-  border: 1px solid rgba(99, 102, 241, 0.25);
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.15), rgba(99, 102, 241, 0.2)) !important;
+  border: 1px solid rgba(99, 102, 241, 0.25) !important;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -4343,24 +4343,39 @@ img, svg, video, canvas {
 .dlb-title {
   font-size: 15.5px;
   font-weight: 800;
-  color: var(--ink);
+  color: var(--ink) !important;
   margin: 0 0 2px;
   letter-spacing: 0.2px;
 }
 .dlb-desc {
   font-size: 13px;
-  color: var(--ink2);
+  color: var(--ink2) !important;
   margin: 0;
   line-height: 1.4;
 }
+html[data-theme="dark"] #daily-limit-reached-card.daily-limit-banner,
+html[data-theme="dark"] .daily-limit-banner,
+body[data-theme="dark"] #daily-limit-reached-card.daily-limit-banner,
+body[data-theme="dark"] .daily-limit-banner,
+[data-theme="dark"] #daily-limit-reached-card.daily-limit-banner,
 [data-theme="dark"] .daily-limit-banner {
-  background: linear-gradient(135deg, rgba(30, 41, 59, 0.75), rgba(15, 23, 42, 0.85));
-  border-color: rgba(51, 65, 85, 0.8);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  background: linear-gradient(135deg, #1e293b, #0f172a) !important;
+  border: 1px solid #334155 !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4) !important;
 }
+html[data-theme="dark"] .dlb-icon-wrap,
+body[data-theme="dark"] .dlb-icon-wrap,
+[data-theme="dark"] .dlb-icon-wrap {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(99, 102, 241, 0.3)) !important;
+  border: 1px solid rgba(56, 189, 248, 0.4) !important;
+}
+html[data-theme="dark"] .dlb-title,
+body[data-theme="dark"] .dlb-title,
 [data-theme="dark"] .dlb-title {
-  color: #f8fafc;
+  color: #f8fafc !important;
 }
+html[data-theme="dark"] .dlb-desc,
+body[data-theme="dark"] .dlb-desc,
 [data-theme="dark"] .dlb-desc {
-  color: #94a3b8;
+  color: #94a3b8 !important;
 }
