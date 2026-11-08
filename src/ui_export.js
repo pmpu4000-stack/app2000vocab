@@ -956,14 +956,16 @@ function _buildReportHtml(payload) {
               <div class="task-score-val" style="color:#059669; font-size:14.5px; font-weight:800;">📴 當日無登入受測紀錄</div>
             </div>
           </div>
-          <div class="word-split-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px; height:140px !important; min-height:140px !important; max-height:140px !important; overflow:hidden !important; box-sizing:border-box !important;">
-            <div class="word-split-box untested-box" style="height:140px !important; min-height:140px !important; max-height:140px !important; display:flex; flex-direction:column; overflow:hidden !important; box-sizing:border-box !important;">
+          <div class="word-split-grid grid-2">
+            <div class="word-split-box untested-box">
               <div class="word-split-title untested-title"><span class="card-icon-slot">📋</span><span>本次應測單字範圍 (${unansWords.length} 字)</span></div>
-              <div class="word-split-tags" style="flex:1 1 auto !important; height:0 !important; min-height:0 !important; max-height:100% !important; overflow-y:auto !important; overscroll-behavior:contain !important; scrollbar-width:thin !important; display:flex; flex-wrap:wrap; gap:5px; padding:2px 2px 2px 0; box-sizing:border-box;">${unansTags}</div>
+              <div class="word-split-content">
+                <div class="word-split-tags-grid">${unansTags}</div>
+              </div>
             </div>
-            <div class="word-split-box advice-box" style="height:140px !important; min-height:140px !important; max-height:140px !important; display:flex; flex-direction:column; overflow:hidden !important; box-sizing:border-box !important;">
+            <div class="word-split-box advice-box">
               <div class="word-split-title advice-title"><span class="card-icon-slot">💡</span><span>測驗狀態說明</span></div>
-              <div class="word-split-tags" style="flex:1 1 auto !important; height:0 !important; min-height:0 !important; max-height:100% !important; overflow-y:auto !important; overscroll-behavior:contain !important; scrollbar-width:thin !important; font-size:12.5px; line-height:1.55; color:var(--ink2, #475569); padding:4px 0;">
+              <div class="word-split-content" style="font-size:12.5px; line-height:1.55; color:var(--ink2, #475569); padding:4px 0;">
                 <b>${esc(r.taskStatus || "缺席未受測")}</b>。該生當日尚未進行本次指定測驗，未測驗單字將自動排入週末弱點補強測驗。
               </div>
             </div>
@@ -977,19 +979,20 @@ function _buildReportHtml(payload) {
       const corrTags = corrList.length > 0
         ? corrList.map(w => `<span class="word-pill-tag correct" onclick="event.stopPropagation(); if (typeof speakMasteredWord === 'function') speakMasteredWord('${esc(w).replace(/'/g, "\\\'")}');" style="cursor:pointer;" title="點擊聆聽發音">${esc(w)}</span>`).join("")
         : `<span style="font-size:12px; color:var(--ink3, #94A3B8); font-style:italic;">（本次測驗無答對單字）</span>`;
-      let wrgTags = wrgList.length > 0
+      let wrgPillsHtml = wrgList.length > 0
         ? wrgList.map(w => `<span class="word-pill-tag wrong" onclick="event.stopPropagation(); if (typeof speakMasteredWord === 'function') speakMasteredWord('${esc(w).replace(/'/g, "\\\'")}');" style="cursor:pointer;" title="點擊聆聽發音">${esc(w)}</span>`).join("")
         : `<span style="font-size:12px; color:var(--ink3, #94A3B8); font-style:italic;">（受測題目無答錯）</span>`;
 
+      let unansAccordionHtml = "";
       if (unansList.length > 0) {
         const unansPills = unansList.map(w => `<span class="word-pill-tag neutral" onclick="event.stopPropagation(); if (typeof speakMasteredWord === 'function') speakMasteredWord('${esc(w).replace(/'/g, "\\\'")}');" style="cursor:pointer;" title="未作答單字">${esc(w)}</span>`).join("");
-        wrgTags += `
+        unansAccordionHtml = `
           <div style="${wrgList.length > 0 ? 'margin-top:10px; padding-top:8px; border-top:1px dashed var(--line, rgba(148,163,184,0.25));' : 'margin-top:6px;'} width:100%;">
-            <div style="display:flex; align-items:center; font-size:12px; font-weight:700; color:var(--ink2, #475569); padding:4px 0; gap:6px; width:100%;">
+            <div style="display:flex; align-items:center; font-size:12px; font-weight:700; color:var(--ink2, #475569); padding:4px 0; gap:6px; width:100%; white-space:nowrap;">
               <span class="card-icon-slot">⏳</span>
-              <span style="flex:1;">未作答的單字 (${unansList.length} 字)</span>
+              <span style="flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">未作答的單字 (${unansList.length} 字)</span>
             </div>
-            <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:4px; padding:6px 8px; background:rgba(2,132,199,0.06); border-radius:8px; border:1px solid rgba(2,132,199,0.18);">
+            <div class="word-split-tags-grid" style="margin-top:4px; padding:6px 8px; background:rgba(2,132,199,0.06); border-radius:8px; border:1px solid rgba(2,132,199,0.18); box-sizing:border-box;">
               ${unansPills}
             </div>
           </div>
@@ -1042,14 +1045,21 @@ function _buildReportHtml(payload) {
               </div>
             </div>
           </div>
-          <div class="word-split-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px; height:140px !important; min-height:140px !important; max-height:140px !important; overflow:hidden !important; box-sizing:border-box !important;">
-            <div class="word-split-box correct-box" style="height:140px !important; min-height:140px !important; max-height:140px !important; display:flex; flex-direction:column; overflow:hidden !important; box-sizing:border-box !important;">
+          <div class="word-split-grid grid-2">
+            <div class="word-split-box correct-box">
               <div class="word-split-title correct-title"><span class="card-icon-slot">✔</span><span>答對的單字 (${corrList.length} 字)</span></div>
-              <div class="word-split-tags" style="flex:1 1 auto !important; height:0 !important; min-height:0 !important; max-height:100% !important; overflow-y:auto !important; overscroll-behavior:contain !important; scrollbar-width:thin !important; display:flex; flex-wrap:wrap; gap:5px; padding:2px 2px 2px 0; box-sizing:border-box;">${corrTags}</div>
+              <div class="word-split-content">
+                <div class="word-split-tags-grid">${corrTags}</div>
+              </div>
             </div>
-            <div class="word-split-box wrong-box" style="height:140px !important; min-height:140px !important; max-height:140px !important; display:flex; flex-direction:column; overflow:hidden !important; box-sizing:border-box !important;">
+            <div class="word-split-box wrong-box">
               <div class="word-split-title wrong-title"><span class="card-icon-slot">✖</span><span>答錯的單字 (${wrgList.length} 字)</span></div>
-              <div class="word-split-tags" style="flex:1 1 auto !important; height:0 !important; min-height:0 !important; max-height:100% !important; overflow-y:auto !important; overscroll-behavior:contain !important; scrollbar-width:thin !important; display:flex; flex-wrap:wrap; gap:5px; padding:2px 2px 2px 0; box-sizing:border-box;">${wrgTags}</div>
+              <div class="word-split-content">
+                <div style="display:flex; flex-direction:column; width:100%;">
+                  <div class="word-split-tags-grid">${wrgPillsHtml}</div>
+                  ${unansAccordionHtml}
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1104,14 +1114,18 @@ function _buildReportHtml(payload) {
               </div>
             </div>
           </div>
-          <div class="word-split-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px; height:140px !important; min-height:140px !important; max-height:140px !important; overflow:hidden !important; box-sizing:border-box !important;">
-            <div class="word-split-box correct-box" style="height:140px !important; min-height:140px !important; max-height:140px !important; display:flex; flex-direction:column; overflow:hidden !important; box-sizing:border-box !important;">
+          <div class="word-split-grid grid-2">
+            <div class="word-split-box correct-box">
               <div class="word-split-title correct-title"><span class="card-icon-slot">✔</span><span>答對的單字 (${fCorrList.length} 字)</span></div>
-              <div class="word-split-tags" style="flex:1 1 auto !important; height:0 !important; min-height:0 !important; max-height:100% !important; overflow-y:auto !important; overscroll-behavior:contain !important; scrollbar-width:thin !important; display:flex; flex-wrap:wrap; gap:5px; padding:2px 2px 2px 0; box-sizing:border-box;">${fCorrTags}</div>
+              <div class="word-split-content">
+                <div class="word-split-tags-grid">${fCorrTags}</div>
+              </div>
             </div>
-            <div class="word-split-box wrong-box" style="height:140px !important; min-height:140px !important; max-height:140px !important; display:flex; flex-direction:column; overflow:hidden !important; box-sizing:border-box !important;">
+            <div class="word-split-box wrong-box">
               <div class="word-split-title wrong-title"><span class="card-icon-slot">✖</span><span>答錯的單字 (${fWrgList.length} 字)</span></div>
-              <div class="word-split-tags" style="flex:1 1 auto !important; height:0 !important; min-height:0 !important; max-height:100% !important; overflow-y:auto !important; overscroll-behavior:contain !important; scrollbar-width:thin !important; display:flex; flex-wrap:wrap; gap:5px; padding:2px 2px 2px 0; box-sizing:border-box;">${fWrgTags}</div>
+              <div class="word-split-content">
+                <div class="word-split-tags-grid">${fWrgTags}</div>
+              </div>
             </div>
           </div>
         </div>

@@ -825,6 +825,25 @@
     }
 
     /* 學習足跡單字表格網格強制覆蓋（徹底解決 SW 快取與樣式覆蓋） */
+    .word-split-grid,
+    .word-split-grid.grid-2 {
+      display: grid !important;
+      grid-template-columns: 1fr 1fr !important;
+      gap: 8px !important;
+      height: 180px !important;
+      min-height: 180px !important;
+      max-height: 180px !important;
+      box-sizing: border-box !important;
+    }
+    .word-split-box {
+      height: 180px !important;
+      min-height: 180px !important;
+      max-height: 180px !important;
+      overflow: hidden !important;
+      display: flex !important;
+      flex-direction: column !important;
+      box-sizing: border-box !important;
+    }
     .word-split-content,
     .word-split-box > div:not(.word-split-title) {
       display: flex !important;
@@ -835,6 +854,7 @@
       min-height: 0 !important;
       max-height: 100% !important;
       overflow-y: auto !important;
+      overflow-x: hidden !important;
       overscroll-behavior: contain !important;
       padding: 2px 4px 2px 0 !important;
       box-sizing: border-box !important;

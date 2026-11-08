@@ -3954,13 +3954,16 @@ body.css-fullscreen-active {
       max-height: none !important;
       overflow: visible !important;
     }
-    /* 歷程檔案（一頁檢視 / 匯出預覽）：指定測驗與自由練習單字區固定高度 140px，自適應上下滾動滑桿保持方塊整齊 */
+    /* 歷程檔案（一頁檢視 / 匯出預覽）：完全比照學習足跡，單字區固定高度 180px，自適應上下滾動滑桿保持方塊整齊 */
     .summary-embedded .word-split-grid,
     .daily-footprint-block .word-split-grid,
-    #export-web-preview-body .word-split-grid {
-      height: 140px !important;
-      min-height: 140px !important;
-      max-height: 140px !important;
+    #export-web-preview-body .word-split-grid,
+    #task-record-details .word-split-grid,
+    #free-record-details .word-split-grid,
+    .task-single-record-block .word-split-grid {
+      height: 180px !important;
+      min-height: 180px !important;
+      max-height: 180px !important;
       overflow: hidden !important;
       display: grid !important;
       grid-template-columns: 1fr 1fr !important;
@@ -3969,10 +3972,13 @@ body.css-fullscreen-active {
     }
     .summary-embedded .word-split-box,
     .daily-footprint-block .word-split-box,
-    #export-web-preview-body .word-split-box {
-      height: 140px !important;
-      min-height: 140px !important;
-      max-height: 140px !important;
+    #export-web-preview-body .word-split-box,
+    #task-record-details .word-split-box,
+    #free-record-details .word-split-box,
+    .task-single-record-block .word-split-box {
+      height: 180px !important;
+      min-height: 180px !important;
+      max-height: 180px !important;
       overflow: hidden !important;
       display: flex !important;
       flex-direction: column !important;
@@ -3988,40 +3994,7 @@ body.css-fullscreen-active {
     #export-web-preview-body .word-split-content,
     .summary-embedded .word-split-box > div:not(.word-split-title),
     .daily-footprint-block .word-split-box > div:not(.word-split-title),
-    #export-web-preview-body .word-split-box > div:not(.word-split-title) {
-      flex: 1 1 auto !important;
-      height: 0 !important;
-      min-height: 0 !important;
-      max-height: 100% !important;
-      overflow-y: auto !important;
-      overscroll-behavior: contain !important;
-      scrollbar-width: thin !important;
-      display: flex !important;
-      flex-direction: column !important;
-      width: 100% !important;
-      padding: 2px 4px 2px 0 !important;
-      box-sizing: border-box !important;
-    }
-
-    /* 學習足跡（作答紀錄與自由練習成果）：維持固定 180px 高度對齊，單字多時內部上下滾動不受影響 */
-    #task-record-details .word-split-grid,
-    #free-record-details .word-split-grid,
-    .task-single-record-block .word-split-grid {
-      height: 180px !important;
-      min-height: 180px !important;
-      max-height: 180px !important;
-      box-sizing: border-box !important;
-    }
-    #task-record-details .word-split-box,
-    #free-record-details .word-split-box,
-    .task-single-record-block .word-split-box {
-      height: 180px !important;
-      min-height: 180px !important;
-      max-height: 180px !important;
-      overflow: hidden !important;
-      display: flex !important;
-      flex-direction: column !important;
-    }
+    #export-web-preview-body .word-split-box > div:not(.word-split-title),
     #task-record-details .word-split-content,
     #free-record-details .word-split-content,
     .task-single-record-block .word-split-content {
@@ -4030,7 +4003,15 @@ body.css-fullscreen-active {
       min-height: 0 !important;
       max-height: 100% !important;
       overflow-y: auto !important;
+      overflow-x: hidden !important;
       overscroll-behavior: contain !important;
+      scrollbar-gutter: stable !important;
+      scrollbar-width: thin !important;
+      display: flex !important;
+      flex-direction: column !important;
+      width: 100% !important;
+      padding: 2px 4px 2px 0 !important;
+      box-sizing: border-box !important;
     }
 
 /* 🚀 低階手機與節能自適應降級模式 (Adaptive Low-Power Mode) */
