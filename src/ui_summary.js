@@ -1878,7 +1878,15 @@ export function renderSummary(d) {
     }
   });
 
-  const sortedDates = Array.from(dateSet).filter(Boolean).sort((a, b) => b.localeCompare(a));
+  // 計算最近 28 天（4 週）之起始日期界線，選單嚴格與熱力圖 4 週跨度對齊
+  const limit28Dt = new Date(todayNow);
+  limit28Dt.setDate(limit28Dt.getDate() - 27);
+  const min28Dash = limit28Dt.getFullYear() + "-" + String(limit28Dt.getMonth() + 1).padStart(2, "0") + "-" + String(limit28Dt.getDate()).padStart(2, "0");
+
+  const sortedDates = Array.from(dateSet)
+    .filter(Boolean)
+    .filter(dt => dt >= min28Dash || dt === todayDash)
+    .sort((a, b) => b.localeCompare(a));
 
   // 若使用者先前已選定特定日期，且面板重新渲染，優先保留使用者的選定日期不跳走
   let defaultSelectedDate = (_activeRecordSelectedDate && normalizeDateStr(_activeRecordSelectedDate)) || "";
