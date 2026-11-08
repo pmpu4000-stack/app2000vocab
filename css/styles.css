@@ -3353,18 +3353,34 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   color: var(--ink) !important;
 }
 
-/* 待攻克單字方塊網格與排版（比照期末大挑戰設計：4欄響應式、高度限制可滾動） */
+/* 待攻克單字方塊網格與排版：最多三行（120px），超過設置垂直滾動滑桿上下查看 */
 .conquer-chip-list {
   display: grid !important;
   grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
   gap: 8px !important;
   width: 100% !important;
-  max-height: 180px !important;
+  max-height: 120px !important;
   overflow-y: auto !important;
+  overflow-x: hidden !important;
   overscroll-behavior: contain !important;
   padding: 4px 4px 4px 0 !important;
   box-sizing: border-box !important;
+  scrollbar-gutter: stable !important;
   scrollbar-width: thin !important;
+}
+.conquer-chip-list::-webkit-scrollbar {
+  width: 6px !important;
+}
+.conquer-chip-list::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.04) !important;
+  border-radius: 999px !important;
+}
+.conquer-chip-list::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.45) !important;
+  border-radius: 999px !important;
+}
+.conquer-chip-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.75) !important;
 }
 
 @media (max-width: 520px) {
