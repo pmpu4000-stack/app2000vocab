@@ -827,44 +827,40 @@
     /* 學習足跡單字表格網格強制覆蓋（徹底解決 SW 快取與樣式覆蓋） */
     .word-split-content,
     .word-split-box > div:not(.word-split-title) {
-      display: grid !important;
-      grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+      display: flex !important;
+      flex-wrap: wrap !important;
+      align-items: flex-start !important;
+      align-content: flex-start !important;
       gap: 6px !important;
-      align-items: start !important;
-      align-content: start !important;
       box-sizing: border-box !important;
     }
-    @media (max-width: 480px) {
-      .word-split-content,
-      .word-split-box > div:not(.word-split-title) {
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-        gap: 4px !important;
-      }
-    }
     .word-split-content > span.word-pill-tag {
-      display: flex !important;
+      flex: 1 0 auto !important;
+      min-width: 85px !important;
+      max-width: 100% !important;
+      display: inline-flex !important;
       align-items: center !important;
       justify-content: center !important;
       text-align: center !important;
-      width: 100% !important;
       margin: 0 !important;
-      padding: 5px 4px !important;
+      padding: 5px 8px !important;
       font-size: 12.5px !important;
       font-weight: 700 !important;
       border-radius: 6px !important;
       box-sizing: border-box !important;
-      min-width: 0 !important;
+      white-space: nowrap !important;
     }
     .word-split-content > .perfect-score-msg,
     .word-split-content > span:only-child:not(.word-pill-tag) {
-      grid-column: 1 / -1 !important;
+      flex: 1 1 100% !important;
+      width: 100% !important;
       margin: auto auto !important;
       text-align: center !important;
     }
   </style>
   <link rel="preconnect" href="https://script.google.com" crossorigin>
   <link rel="dns-prefetch" href="https://script.google.com">
-  <link rel="stylesheet" href="css/styles.css?v=202611080931">
+  <link rel="stylesheet" href="css/styles.css?v=202611080937">
   <link rel="modulepreload" href="src/app.js">
   <link rel="modulepreload" href="src/auth_sync.js">
   <link rel="modulepreload" href="src/wordbank.js">
@@ -882,11 +878,11 @@
   <script>
     if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=202611080931').catch(() => {});
+        navigator.serviceWorker.register('./sw.js?v=202611080937').catch(() => {});
       });
     }
   </script>
-  <script src="src/time_limits.js?v=202611080931" defer></script>
+  <script src="src/time_limits.js?v=202611080937" defer></script>
 </head>
 <body class="is-logging-in">
 
