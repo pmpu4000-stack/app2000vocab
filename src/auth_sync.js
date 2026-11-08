@@ -66,7 +66,10 @@ if (typeof window !== "undefined" && typeof document !== "undefined") {
     const bootTime = Date.now();
     try { import(new URL("./wordbank.js", import.meta.url).href).then(m => m.loadWordBank()).catch(() => {}); } catch(_) {}
 
-    const scriptUrl = "https://script.google.com/macros/s/AKfycbx1hyCNJxqFMoaJgIxfZqLYIYH00NegI1Yd8NJP6gRjqwOndWGkmr-H9tGvVwK_axM9/exec";
+    import(new URL("./config.js", import.meta.url).href).then(cfg => {
+      if (cfg && cfg.DEFAULT_SCRIPT_URL) window.__SCRIPT_URL = cfg.DEFAULT_SCRIPT_URL;
+    }).catch(() => {});
+    const scriptUrl = window.__SCRIPT_URL || "https://script.google.com/macros/s/AKfycbx1hyCNJxqFMoaJgIxfZqLYIYH00NegI1Yd8NJP6gRjqwOndWGkmr-H9tGvVwK_axM9/exec";
     window.__SCRIPT_URL = scriptUrl;
     // 🚀 預先喚醒 GAS 容器：學生進入登入畫面時立即預熱，消滅冷啟動延遲
     try { fetch(scriptUrl, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "ping" }) }).catch(() => {}); } catch(_) {}

@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
 import { fileURLToPath } from 'url';
+import { GAS_DEPLOYMENT_ID } from './src/config.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -86,7 +87,7 @@ console.log("== [3/4] Pushing to Google Apps Script (clasp) ==");
 try {
   execSync('cmd /c "clasp push -f"', { cwd: path.join(root, 'google_apps_script'), stdio: 'inherit' });
   // push 只更新 HEAD；必須 deploy -i 才會讓正式 Web App URL 生效
-  execSync('cmd /c "clasp deploy -i AKfycbx1hyCNJxqFMoaJgIxfZqLYIYH00NegI1Yd8NJP6gRjqwOndWGkmr-H9tGvVwK_axM9 -d auto"', { cwd: path.join(root, 'google_apps_script'), stdio: 'inherit' });
+  execSync(`cmd /c "clasp deploy -i ${GAS_DEPLOYMENT_ID} -d auto"`, { cwd: path.join(root, 'google_apps_script'), stdio: 'inherit' });
 } catch (e) {
   console.error("Clasp push error:", e.message);
 }
