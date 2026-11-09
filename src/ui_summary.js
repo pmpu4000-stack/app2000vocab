@@ -2270,11 +2270,10 @@ export function renderSummary(d) {
 
     getSummaryEl().innerHTML = `
     <div class="date-navigator-card">
-      <!-- 左欄：快速跳轉（歷程紀錄選單） -->
+      <!-- 快速紀錄選單區 -->
       <div class="date-nav-col date-nav-col-quick">
         <div class="date-nav-col-header">
-          <span class="date-nav-icon">📅</span>
-          <span class="date-nav-label">快速跳至有紀錄日期</span>
+          <span class="date-nav-label">有紀錄日期</span>
         </div>
         <div class="date-nav-control-wrap">
           <div class="custom-date-select-wrap" id="custom-date-select-wrap">
@@ -2293,20 +2292,16 @@ export function renderSummary(d) {
         </div>
       </div>
 
-      <!-- 中間垂直分隔線 -->
-      <div class="date-nav-divider"></div>
-
-      <!-- 右欄：日曆選擇與前後切換 -->
+      <!-- 指定日期與前後切換區 -->
       <div class="date-nav-col date-nav-col-picker">
         <div class="date-nav-col-header">
-          <span class="date-nav-icon">📅</span>
-          <span class="date-nav-label">指定日期與步進切換</span>
+          <span class="date-nav-label">指定日期</span>
         </div>
         <div class="date-nav-control-wrap date-nav-stepper-wrap">
           <input type="date" id="record-date-picker" class="date-picker-input" value="${defaultSelectedDate}" max="${todayDash}">
           <div class="date-nav-btn-group">
             <button type="button" id="btn-date-prev" class="date-nav-btn" title="查看前一天">◀ 前一天</button>
-            <button type="button" id="btn-date-today" class="date-nav-btn today-btn" title="切換回今日">📍 今日</button>
+            <button type="button" id="btn-date-today" class="date-nav-btn today-btn" title="切換回今日">今日</button>
             <button type="button" id="btn-date-next" class="date-nav-btn" title="查看後一天">後一天 ▶</button>
           </div>
         </div>
