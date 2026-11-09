@@ -651,14 +651,77 @@ body.daily-limit-reached #btn-upload {
   display: none !important;
 }
 
+body.daily-limit-reached header {
+  align-items: center !important;
+}
+body.daily-limit-reached .stats {
+  width: auto !important;
+  margin: 0 0 0 auto !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+body.daily-limit-reached .stats-group {
+  width: auto !important;
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+body.daily-limit-reached .stats-status-group {
+  grid-auto-flow: unset !important;
+  grid-auto-columns: unset !important;
+}
+body.daily-limit-reached .stats-action-group {
+  grid-auto-flow: unset !important;
+  grid-auto-columns: unset !important;
+}
+body.daily-limit-reached .stat {
+  width: auto !important;
+  min-width: 48px !important;
+  flex: 0 0 auto !important;
+  height: 42px !important;
+  min-height: 42px !important;
+  max-height: 42px !important;
+  padding: 2px 8px !important;
+}
+body.daily-limit-reached .stat.user {
+  min-width: 68px !important;
+  background: rgba(14, 165, 233, 0.08) !important;
+  border-color: rgba(14, 165, 233, 0.3) !important;
+}
+body.daily-limit-reached .stat.user b {
+  color: #0284C7 !important;
+}
+[data-theme="dark"] body.daily-limit-reached .stat.user {
+  background: rgba(56, 189, 248, 0.12) !important;
+  border-color: rgba(56, 189, 248, 0.35) !important;
+}
+[data-theme="dark"] body.daily-limit-reached .stat.user b {
+  color: #38BDF8 !important;
+}
+
+/* 折疊面板標題美化：英文次標題 (Subtitle) 縮小優雅排版 */
+.progress h3 span .en-sub,
+.progress h3 span small {
+  font-size: 11.5px !important;
+  font-weight: 600 !important;
+  color: var(--ink3) !important;
+  margin-left: 6px !important;
+  letter-spacing: 0.3px !important;
+}
+
 @media (max-width: 580px) {
   body.daily-limit-reached .stats {
+    width: 100% !important;
     justify-content: flex-end !important;
+    margin-top: 6px !important;
   }
   body.daily-limit-reached .stat.user,
   body.daily-limit-reached .stat.theme {
     flex: 0 1 auto !important;
-    min-width: 72px !important;
+    min-width: 58px !important;
   }
 }
 

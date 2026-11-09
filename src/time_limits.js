@@ -342,6 +342,15 @@
       window.refreshChrome();
     }
 
+    // ★ 業界標準體驗：時間截止時，自動預設展開「學習足跡 Records」以利成果回顧
+    try {
+      const summaryEl = document.getElementById("summary");
+      const sumBtn = document.getElementById("sumBtn");
+      if (summaryEl && summaryEl.hasAttribute("hidden") && sumBtn) {
+        sumBtn.click();
+      }
+    } catch (_) {}
+
     if (typeof window.uploadLocalStorageData === "function") {
       window.uploadLocalStorageData(true);
     }
