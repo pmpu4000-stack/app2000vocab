@@ -2875,10 +2875,13 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   }
 }
 .export-dl-btn.preview-btn {
-  background: linear-gradient(135deg, #0284C7, #38BDF8) !important;
+  background: linear-gradient(135deg, #1E3A8A, #2563EB) !important;
   color: #FFFFFF !important;
-  border: 1px solid #0369A1 !important;
-  box-shadow: 0 3px 8px rgba(2, 132, 199, 0.25) !important;
+  border: 1px solid #3B82F6 !important;
+  border-radius: 10px !important;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.5px !important;
 }
 .export-dl-btn {
   display: inline-flex !important;

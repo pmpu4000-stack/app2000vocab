@@ -1344,9 +1344,9 @@ export function initExportRecordsCard(getSummaryFn) {
     };
   }
 
-  let currentMode = "single";
+  let currentMode = "range";
   const setExportMode = (m) => {
-    currentMode = (m === "range") ? "range" : "single";
+    currentMode = (m === "single") ? "single" : "range";
     if (btnModeSingle) btnModeSingle.classList.toggle("active", currentMode === "single");
     if (btnModeRange) btnModeRange.classList.toggle("active", currentMode === "range");
     if (leftSingleInput) leftSingleInput.style.display = (currentMode === "single") ? "block" : "none";
@@ -1356,9 +1356,9 @@ export function initExportRecordsCard(getSummaryFn) {
       rightCell.style.pointerEvents = (currentMode === "range") ? "auto" : "none";
     }
     if (presetsRow) {
-      presetsRow.style.visibility = (currentMode === "range") ? "visible" : "hidden";
-      presetsRow.style.opacity = (currentMode === "range") ? "1" : "0";
-      presetsRow.style.pointerEvents = (currentMode === "range") ? "auto" : "none";
+      presetsRow.style.visibility = "visible";
+      presetsRow.style.opacity = "1";
+      presetsRow.style.pointerEvents = "auto";
     }
     if (currentMode === "single" && leftSingleInput && leftStartInput && !leftSingleInput.value) {
       leftSingleInput.value = leftStartInput.value || todayDash;
@@ -1367,7 +1367,7 @@ export function initExportRecordsCard(getSummaryFn) {
     }
   };
 
-  setExportMode("single");
+  setExportMode("range");
 
   if (btnModeSingle) btnModeSingle.onclick = () => setExportMode("single");
   if (btnModeRange) btnModeRange.onclick = () => setExportMode("range");
