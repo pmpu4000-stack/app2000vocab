@@ -852,12 +852,12 @@ body.daily-limit-reached .stat.user b {
 .custom-date-select-wrap{position:relative;width:100%}
 .custom-date-trigger{display:flex;align-items:center;justify-content:space-between;width:100%;height:30px;background:#FFFFFF;border:1.5px solid #D6D0F5;border-radius:8px;padding:0 8px 0 10px;font-size:12px;font-weight:700;color:var(--ink);cursor:pointer;box-sizing:border-box;user-select:none;transition:border-color .15s}
 .custom-date-trigger:hover,.custom-date-trigger:focus{border-color:var(--violet)}
-.custom-date-trigger-content{display:grid;grid-template-columns:82px 115px 115px;align-items:center;gap:6px;width:100%;text-align:left;overflow:hidden}
+.custom-date-trigger-content{display:grid;grid-template-columns:82px minmax(126px,1fr) minmax(126px,1fr);align-items:center;gap:6px;width:100%;text-align:left;overflow:hidden}
 .custom-date-arrow{font-size:10px;color:var(--ink3);transition:transform .2s;margin-left:4px;flex-shrink:0}
 .custom-date-select-wrap.is-open .custom-date-arrow{transform:rotate(180deg)}
 .custom-date-menu{position:absolute;top:calc(100% + 4px);left:0;right:0;max-height:260px;overflow-y:auto;background:#FFFFFF;border:1.5px solid #D6D0F5;border-radius:10px;box-shadow:0 8px 24px rgba(35,42,77,.18);z-index:9999;padding:4px 0;display:none}
 .custom-date-select-wrap.is-open .custom-date-menu{display:block}
-.custom-date-option{display:grid;grid-template-columns:82px 115px 115px;align-items:center;gap:6px;padding:6px 10px;font-size:12px;cursor:pointer;transition:background .12s;white-space:nowrap}
+.custom-date-option{display:grid;grid-template-columns:82px minmax(126px,1fr) minmax(126px,1fr);align-items:center;gap:6px;padding:6px 10px;font-size:12px;cursor:pointer;transition:background .12s;white-space:nowrap}
 .custom-date-option:hover{background:#F3F0FF}
 .custom-date-option.is-selected{background:#EDE9FE;font-weight:800;color:var(--violet)}
 .custom-date-week-divider{display:flex;align-items:center;justify-content:center;gap:8px;padding:8px 12px 4px;font-size:11px;font-weight:800;color:#94A3B8;letter-spacing:.5px;user-select:none}
