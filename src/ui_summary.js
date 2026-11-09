@@ -1089,9 +1089,8 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     scoreGridHtml = `
       <div style="margin-bottom:8px; width:100%;">
         <div class="task-progress-card">
-          <div class="tpc-title">📝 答對 <b>${taskCorrWords}</b> / ${totalWords} 字</div>
+          <div class="tpc-title"><span class="tsb-icon">📝</span> 答對 <b>${taskCorrWords}</b> / ${totalWords} 字</div>
           <div class="tpc-right">
-            ${bottomTagsHtml ? `<span class="tpc-stats">${bottomTagsHtml}</span>` : ""}
             <span class="tpc-rate-badge ${getHeatmapRateClass(ovrRate)}">${ovrRate}% 答對率</span>
           </div>
         </div>
