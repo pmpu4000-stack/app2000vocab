@@ -2040,6 +2040,31 @@ export function renderSummary(d) {
     return res;
   };
 
+  const checkWeekHasCompletedTasksAndAllPerfect = (weekendStr) => {
+    try {
+      const dt = new Date(weekendStr.replace(/-/g, "/"));
+      const day = dt.getDay();
+      if (day !== 0 && day !== 6) return false;
+      const diffToMon = dt.getDate() - (day === 0 ? 6 : (day - 1));
+      let completedCount = 0;
+      for (let i = 0; i < 5; i++) {
+        const weekdayObj = new Date(dt.getFullYear(), dt.getMonth(), diffToMon + i);
+        const wKey = weekdayObj.getFullYear() + "-" + String(weekdayObj.getMonth() + 1).padStart(2, "0") + "-" + String(weekdayObj.getDate()).padStart(2, "0");
+        const wStat = getTaskDayStat(wKey);
+        if (wStat && wStat.statusType !== "unassigned") {
+          if (wStat.statusType === "completed" && wStat.rate === 100) {
+            completedCount++;
+          } else {
+            return false;
+          }
+        }
+      }
+      return completedCount > 0;
+    } catch (_) {
+      return false;
+    }
+  };
+
   const buildOptionLabel = (dateStr) => {
     const isToday = (dateStr === todayDash);
     const stat = getTaskDayStat(dateStr);
@@ -2104,8 +2129,9 @@ export function renderSummary(d) {
         }
       }
     } else if (isWeekend(dateStr)) {
-      // 週末且未指派任務：檢查該週平日是否皆無待攻克（平日全數答對免測）
-      taskBadge = `<span class="cdo-badge cdo-task-perfect" title="平日指定測驗全對免測">🏆 平日全對免測</span>`;
+      if (checkWeekHasCompletedTasksAndAllPerfect(dateStr)) {
+        taskBadge = `<span class="cdo-badge cdo-task-perfect" title="平日指定測驗全對免測">🏆 平日全對免測</span>`;
+      }
     }
 
     let freeBadge = `<span class="cdo-badge cdo-empty">自由: 無練習</span>`;
@@ -2147,7 +2173,9 @@ export function renderSummary(d) {
         }
       }
     } else if (isWeekend(dateStr)) {
-      taskBadge = `<span class="cdo-badge cdo-task-perfect" title="平日指定測驗全對免測">🏆 平日全對免測</span>`;
+      if (checkWeekHasCompletedTasksAndAllPerfect(dateStr)) {
+        taskBadge = `<span class="cdo-badge cdo-task-perfect" title="平日指定測驗全對免測">🏆 平日全對免測</span>`;
+      }
     }
 
     let freeBadge = `<span class="cdo-badge cdo-empty">自由: 無練習</span>`;
