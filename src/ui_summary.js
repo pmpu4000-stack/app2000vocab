@@ -2353,9 +2353,6 @@ export function renderSummary(d) {
     <div class="date-navigator-card">
       <!-- 快速紀錄選單區 -->
       <div class="date-nav-col date-nav-col-quick">
-        <div class="date-nav-col-header">
-          <span class="date-nav-label">有紀錄日期</span>
-        </div>
         <div class="date-nav-control-wrap">
           <div class="custom-date-select-wrap" id="custom-date-select-wrap">
             <button type="button" class="custom-date-trigger" id="custom-date-trigger" aria-haspopup="listbox" aria-expanded="false">
@@ -2373,17 +2370,14 @@ export function renderSummary(d) {
         </div>
       </div>
 
-      <!-- 指定日期與前後切換區 -->
+      <!-- 指定日期與連體分段控制群 -->
       <div class="date-nav-col date-nav-col-picker">
-        <div class="date-nav-col-header">
-          <span class="date-nav-label">指定日期</span>
-        </div>
-        <div class="date-nav-control-wrap date-nav-stepper-wrap">
-          <input type="date" id="record-date-picker" class="date-picker-input" value="${defaultSelectedDate}" max="${todayDash}">
-          <div class="date-nav-btn-group">
-            <button type="button" id="btn-date-prev" class="date-nav-btn" title="查看前一天">◀ 前一天</button>
-            <button type="button" id="btn-date-today" class="date-nav-btn today-btn" title="切換回今日">今日</button>
-            <button type="button" id="btn-date-next" class="date-nav-btn" title="查看後一天">後一天 ▶</button>
+        <div class="date-nav-control-wrap date-nav-stepper-wrap s3-segmented-toolbar">
+          <input type="date" id="record-date-picker" class="date-picker-input s3-date-input" value="${defaultSelectedDate}" max="${todayDash}" title="點擊選擇指定日期">
+          <div class="date-nav-btn-group s3-btn-group">
+            <button type="button" id="btn-date-prev" class="date-nav-btn s3-nav-btn" title="查看前一天">◀ 前一天</button>
+            <button type="button" id="btn-date-today" class="date-nav-btn today-btn s3-nav-btn" title="切換回今日">今日</button>
+            <button type="button" id="btn-date-next" class="date-nav-btn s3-nav-btn" title="查看後一天">後一天 ▶</button>
           </div>
         </div>
       </div>

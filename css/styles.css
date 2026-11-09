@@ -1005,23 +1005,33 @@ body.daily-limit-reached .stat.user b {
 [data-theme="dark"] .cdo-free{background:#132924;color:#6EE7B7;border-color:#065F46}
 [data-theme="dark"] .cdo-empty{border-color:#374151;color:#6B7280}
 .date-nav-stepper-wrap{display:flex;align-items:center;gap:6px;width:100%}
+.date-nav-stepper-wrap.s3-segmented-toolbar{display:flex;align-items:center;border:1.5px solid #D6D0F5;border-radius:8px;background:#FFFFFF;overflow:hidden;gap:0;height:30px;box-sizing:border-box}
 .date-nav-stepper-wrap .date-picker-input{flex:0 0 135px;width:135px;min-width:130px;max-width:145px;height:30px;min-height:30px;max-height:30px;background:#FFFFFF;border:1.5px solid var(--sky);color:var(--ink);padding:0 8px;border-radius:8px;font-size:12px;font-weight:700;outline:none;cursor:pointer;box-sizing:border-box}
+.date-nav-stepper-wrap .s3-date-input{flex:1 1 auto;width:auto;min-width:110px;max-width:none;border:none !important;border-right:1px solid #E2E8F0 !important;border-radius:0 !important;height:100% !important;min-height:100% !important;max-height:100% !important;padding:0 6px !important}
 .date-nav-btn-group{display:inline-flex;align-items:center;gap:4px;flex:1 1 auto}
+.date-nav-btn-group.s3-btn-group{display:flex;flex:1.5 1 auto;gap:0;height:100%}
 .date-nav-divider{width:1px;height:36px;background:rgba(108,76,224,.2)}
 .date-nav-btn{display:inline-flex;align-items:center;justify-content:center;gap:2px;background:#FFFFFF;border:1px solid var(--line);color:var(--ink);padding:0 5px;height:30px;min-height:30px;max-height:30px;line-height:1;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;box-sizing:border-box;white-space:nowrap;flex:1 1 auto;letter-spacing:0.1px}
+.date-nav-btn.s3-nav-btn{border:none !important;border-right:1px solid #E2E8F0 !important;border-radius:0 !important;height:100% !important;min-height:100% !important;max-height:100% !important;flex:1;background:transparent}
+.date-nav-btn.s3-nav-btn:last-child{border-right:none !important}
 .date-nav-btn:hover{background:#F1F8FC;border-color:var(--sky);color:var(--sky)}
 .date-nav-btn.today-btn{background:#EDF8FD;border-color:rgba(45,156,219,.4);color:var(--sky);font-weight:700}
 .date-nav-btn.today-btn:hover{background:var(--sky);color:#FFFFFF}
+[data-theme="dark"] .date-nav-stepper-wrap.s3-segmented-toolbar{background:#181C2A !important;border-color:#2D354E !important}
+[data-theme="dark"] .date-nav-stepper-wrap .s3-date-input{background:#181C2A !important;border-color:#2D354E !important;color:#F0F3FA !important}
+[data-theme="dark"] .date-nav-btn.s3-nav-btn{border-color:#2D354E !important;color:#94A3B8 !important}
+[data-theme="dark"] .date-nav-btn.s3-nav-btn:hover{background:#252B42 !important;color:#F0F3FA !important}
+[data-theme="dark"] .date-nav-btn.s3-nav-btn.today-btn{background:rgba(14,165,233,0.15) !important;color:#38BDF8 !important}
 @media (max-width:820px){
-  .date-navigator-card:not(.export-navigator-card){grid-template-columns:1fr;gap:12px;padding:12px 14px}
+  .date-navigator-card:not(.export-navigator-card){grid-template-columns:1fr;gap:8px;padding:8px 10px}
   .date-nav-divider{display:none}
 }
 @media (max-width:480px){
-  .date-navigator-card:not(.export-navigator-card){padding:10px 12px;gap:10px}
-  .date-nav-stepper-wrap{flex-direction:column;gap:8px;width:100%}
-  .date-nav-stepper-wrap .date-picker-input{flex:none !important;width:100% !important;max-width:100% !important;box-sizing:border-box !important}
-  .date-nav-btn-group{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;width:100%}
-  .date-nav-stepper-wrap .date-nav-btn{width:100%;padding:0 4px}
+  .date-navigator-card:not(.export-navigator-card){padding:8px 10px;gap:8px}
+  .date-nav-stepper-wrap:not(.s3-segmented-toolbar){flex-direction:column;gap:8px;width:100%}
+  .date-nav-stepper-wrap:not(.s3-segmented-toolbar) .date-picker-input{flex:none !important;width:100% !important;max-width:100% !important;box-sizing:border-box !important}
+  .date-nav-btn-group:not(.s3-btn-group){display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;width:100%}
+  .date-nav-stepper-wrap:not(.s3-segmented-toolbar) .date-nav-btn{width:100%;padding:0 4px}
 }
 .word-split-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
 @media (max-width:640px){
