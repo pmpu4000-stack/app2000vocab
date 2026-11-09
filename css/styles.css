@@ -2788,21 +2788,45 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   color: #FFFFFF !important;
 }
 .export-date-row-grid {
-  display: grid !important;
-  grid-template-columns: 1fr 1fr !important;
+  display: flex !important;
+  align-items: center !important;
   gap: 8px !important;
   width: 100% !important;
   box-sizing: border-box !important;
 }
 .export-date-cell {
-  width: 100% !important;
+  flex: 1 !important;
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
   box-sizing: border-box !important;
 }
-.export-date-cell-left {
-  grid-column: 1 !important;
+.export-date-cell-left::before {
+  content: "起：";
+  position: absolute;
+  left: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #38bdf8;
+  pointer-events: none;
+  z-index: 2;
 }
-.export-date-cell-right {
-  grid-column: 2 !important;
+.export-date-cell-right::before {
+  content: "迄：";
+  position: absolute;
+  left: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #38bdf8;
+  pointer-events: none;
+  z-index: 2;
+}
+.export-date-sep {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+  line-height: 1;
 }
 .export-date-cell input[type="date"] {
   width: 100% !important;
@@ -2811,7 +2835,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   height: 32px !important;
   min-height: 32px !important;
   max-height: 32px !important;
-  padding: 3px 8px !important;
+  padding: 3px 8px 3px 32px !important;
   border-radius: 9px !important;
   font-size: 12.5px !important;
   font-weight: 700 !important;
@@ -4447,8 +4471,7 @@ img, svg, video, canvas {
     width: 100% !important;
     justify-content: center;
   }
-  .export-mode-tabs,
-  .export-date-row-grid {
+  .export-mode-tabs {
     grid-template-columns: 1fr !important;
   }
   #teacherTaskModal > div,
