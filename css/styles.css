@@ -2625,11 +2625,11 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   border: 1.5px solid #E4DFFa !important;
   border-radius: 14px !important;
   margin: 6px 0 0 0 !important;
-  padding: 12px 14px !important;
+  padding: 10px 12px !important;
   display: flex !important;
   flex-direction: column !important;
   align-items: stretch !important;
-  gap: 10px !important;
+  gap: 8px !important;
   box-shadow: none !important;
 }
 [data-theme="dark"] .export-navigator-card {
@@ -2720,7 +2720,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 .export-controls-wrap {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   width: 100%;
 }
 .export-row {
@@ -2876,7 +2876,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   box-sizing: border-box !important;
 }
 .export-action-row {
-  margin-top: 8px !important;
+  margin: 0 !important;
   border-top: none !important;
   padding-top: 0 !important;
   width: 100% !important;
