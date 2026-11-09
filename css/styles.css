@@ -739,6 +739,13 @@ body.daily-limit-reached #btn-upload {
 .tpc-tag-unans{color:#B45309;font-weight:600}
 .tpc-tag-perfect{color:#059669;font-weight:800}
 .task-progress-card .tpc-rate-badge{font-size:11.5px;font-weight:800;color:var(--ink);background:rgba(0,0,0,0.06);border:1px solid rgba(0,0,0,0.1);padding:2px 8px;border-radius:999px;letter-spacing:0.2px}
+.task-progress-card .tpc-rate-badge.tier-0{background:#F1F5F9;color:#64748B;border:1px solid #CBD5E1}
+.task-progress-card .tpc-rate-badge.tier-1{background:#F0F9FF;color:#0284C7;border:1px solid #BAE6FD}
+.task-progress-card .tpc-rate-badge.tier-2{background:#E0F2FE;color:#0369A1;border:1px solid #7DD3FC}
+.task-progress-card .tpc-rate-badge.tier-3{background:#BAE6FD;color:#0369A1;border:1px solid #38BDF8}
+.task-progress-card .tpc-rate-badge.tier-4{background:#7DD3FC;color:#0C4A6E;border:1px solid #0284C7}
+.task-progress-card .tpc-rate-badge.tier-5{background:#38BDF8;color:#FFFFFF;border:1px solid #0284C7}
+.task-progress-card .tpc-rate-badge.tier-6{background:#0066FF;color:#FFFFFF;border:1px solid #0052CC;box-shadow:0 0 10px rgba(0,102,255,0.4)}
 [data-theme="dark"] .task-progress-card{background:rgba(255,255,255,0.035) !important;border-color:rgba(255,255,255,0.08) !important}
 [data-theme="dark"] .task-progress-card .tpc-title{color:#E2E8F0 !important}
 [data-theme="dark"] .task-progress-card .tpc-title b{color:#FFFFFF !important}
@@ -746,6 +753,13 @@ body.daily-limit-reached #btn-upload {
 [data-theme="dark"] .tpc-tag-unans{color:#CBD5E1 !important}
 [data-theme="dark"] .tpc-tag-perfect{color:#34D399 !important}
 [data-theme="dark"] .task-progress-card .tpc-rate-badge{color:#F8FAFC !important;background:rgba(255,255,255,0.08) !important;border-color:rgba(255,255,255,0.16) !important}
+[data-theme="dark"] .task-progress-card .tpc-rate-badge.tier-0{background:rgba(148,163,184,0.15) !important;color:#94A3B8 !important;border-color:#475569 !important}
+[data-theme="dark"] .task-progress-card .tpc-rate-badge.tier-1{background:rgba(12,42,74,0.6) !important;color:#7DD3FC !important;border-color:#0284C7 !important}
+[data-theme="dark"] .task-progress-card .tpc-rate-badge.tier-2{background:rgba(3,105,161,0.5) !important;color:#BAE6FD !important;border-color:#38BDF8 !important}
+[data-theme="dark"] .task-progress-card .tpc-rate-badge.tier-3{background:rgba(2,132,199,0.55) !important;color:#E0F2FE !important;border-color:#7DD3FC !important}
+[data-theme="dark"] .task-progress-card .tpc-rate-badge.tier-4{background:rgba(0,132,255,0.5) !important;color:#FFFFFF !important;border-color:#BAE6FD !important}
+[data-theme="dark"] .task-progress-card .tpc-rate-badge.tier-5{background:rgba(0,180,216,0.6) !important;color:#FFFFFF !important;border-color:#E0F2FE !important}
+[data-theme="dark"] .task-progress-card .tpc-rate-badge.tier-6{background:rgba(0,210,255,0.7) !important;color:#0B132B !important;border-color:#90E0EF !important;box-shadow:0 0 12px rgba(0,210,255,0.7) !important;font-weight:900}
 .task-words-container{margin-top:8px}
 .word-pill-tag{display:inline-flex;align-items:center;gap:4px;padding:3.5px 8.5px;border-radius:6px;font-size:12.5px;font-weight:700;margin:1.5px 2px;line-height:1.25;cursor:pointer;transition:transform .12s,box-shadow .12s;user-select:none;width:fit-content;max-width:100%;box-sizing:border-box;white-space:nowrap;word-break:keep-all}
 .word-pill-tag:hover{transform:translateY(-1px);box-shadow:0 3px 8px rgba(0,0,0,0.08)}

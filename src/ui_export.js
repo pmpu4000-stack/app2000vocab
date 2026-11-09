@@ -1027,7 +1027,7 @@ function _buildReportHtml(payload) {
               <div class="tpc-title">📝 答對 <b>${r.taskCorrWords || 0}</b> / ${totalWords} 字</div>
               <div class="tpc-right">
                 ${bottomTagsHtml ? `<span class="tpc-stats">${bottomTagsHtml}</span>` : ""}
-                <span class="tpc-rate-badge">${ovrRate}% 答對率</span>
+                <span class="tpc-rate-badge ${getHeatmapRateClass(ovrRate)}">${ovrRate}% 答對率</span>
               </div>
             </div>
           </div>
