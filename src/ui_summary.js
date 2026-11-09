@@ -1101,6 +1101,131 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
 
   const hasWrongOrUnans = (wrongList.length > 0 || actualUnanswered > 0);
 
+  // 方案 B：分頁整合單卡架構 (Universal Tabbed Card)
+  let tabCardHtml = "";
+
+  if (isUnassigned) {
+    tabCardHtml = `
+      <div class="task-tab-card">
+        <div class="task-tab-nav">
+          <button type="button" class="task-tab-btn is-active tab-info">
+            <span class="card-icon-slot">☕</span> 本日狀態說明
+          </button>
+        </div>
+        <div class="task-tab-pane is-active">
+          <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; height:100%; padding:20px; font-size:13px; line-height:1.6; color:var(--ink2);">
+            <div>${hasLoggedInOrFree ? "當日老師未指派測驗任務，學生已主動完成自由自主練習。" : "當日老師未指派測驗任務，亦無測驗。"}</div>
+          </div>
+        </div>
+      </div>
+    `;
+  } else if (isUntested) {
+    tabCardHtml = `
+      <div class="task-tab-card">
+        <div class="task-tab-nav">
+          <button type="button" class="task-tab-btn is-active tab-unans" onclick="event.stopPropagation(); const p=this.closest('.task-tab-card'); p.querySelectorAll('.task-tab-btn').forEach(b=>b.classList.remove('is-active')); this.classList.add('is-active'); p.querySelectorAll('.task-tab-pane').forEach(el=>el.classList.remove('is-active')); p.querySelector('.pane-untested-words').classList.add('is-active');">
+            <span class="card-icon-slot">📋</span> 應測單字 (${rawWords.length || 0})
+          </button>
+          <button type="button" class="task-tab-btn tab-info" onclick="event.stopPropagation(); const p=this.closest('.task-tab-card'); p.querySelectorAll('.task-tab-btn').forEach(b=>b.classList.remove('is-active')); this.classList.add('is-active'); p.querySelectorAll('.task-tab-pane').forEach(el=>el.classList.remove('is-active')); p.querySelector('.pane-untested-info').classList.add('is-active');">
+            <span class="card-icon-slot">📌</span> 狀態說明
+          </button>
+        </div>
+        <div class="task-tab-pane pane-untested-words is-active">
+          <div class="word-split-tags-grid">
+            ${rawWords.length > 0 ? rawWords.map(w => `<span class="word-pill-tag neutral" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("") : '<span style="font-size:12px; color:var(--ink3); font-style:italic;">（指派單字載入中或未指定具體單字清單）</span>'}
+          </div>
+        </div>
+        <div class="task-tab-pane pane-untested-info">
+          <div style="display:flex; flex-direction:column; gap:8px; padding:12px; font-size:12px; line-height:1.6; color:var(--ink2);">
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span class="card-icon-slot">${hasLoggedInOrFree ? "⚠️" : "📴"}</span>
+              <b>${hasLoggedInOrFree ? "有登入但未測驗" : "當日無登入紀錄 (缺考)"}</b>。${hasLoggedInOrFree ? "當日有登入進行自由練習，但未完成本次指定測驗。" : "當日無登入紀錄，未進行本次指定測驗。"}
+            </div>
+            <div style="display:flex; align-items:center; gap:6px; color:#D97706; font-size:11.5px;">
+              <span class="card-icon-slot">📌</span>
+              <span>提醒：未測驗之指定單字將自動排入週末補強測驗。</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  } else {
+    // 測驗有結果（全對、有錯、未完）
+    const ansCount = hasUnanswered ? actualAnswered : taskTotWords;
+    const wrgCount = hasUnanswered ? actualWrong : Math.max(0, taskTotWords - taskCorrWords);
+    const unmasteredWords = (rawWords.length > 0)
+      ? rawWords.filter(w => !correctList.includes(String(w).toLowerCase()) && !wrongList.includes(String(w).toLowerCase()))
+      : (unansweredList.length > 0 ? unansweredList : []);
+    const unansCount = unmasteredWords.length > 0 ? unmasteredWords.length : actualUnanswered;
+
+    const normDate = normalizeDateStr(selectedDate);
+    const slashDate = normDate.replace(/-/g, "/");
+    const dpDay = d && d.dailyPractice && (d.dailyPractice[normDate] || d.dailyPractice[slashDate] || d.dailyPractice[selectedDate]);
+
+    const wrongPills = wrongList.map(w => {
+      const isHadCW = (hadCorrectThenWrongList && hadCorrectThenWrongList.includes(w)) ||
+                      (record.hadCorrectThenWrong && record.hadCorrectThenWrong.includes(w)) ||
+                      (dpDay && dpDay.words && dpDay.words[w] && (dpDay.words[w].hadCorrectThenWrong || (dpDay.words[w].lastResult === "wrong" && dpDay.words[w].correct > 0)));
+      if (isHadCW) {
+        return `<span class="word-pill-tag warning" data-word="${w.replace(/"/g, "&quot;")}" style="border:1.5px dashed #f59e0b; background:rgba(245,158,11,0.1); color:#b45309; cursor:pointer;" title="當日曾答對，但後續作答時答錯 (點擊聆聽發音)">${w} <small style="font-size:10px; font-weight:700;">(曾對後錯⚠️)</small></span>`;
+      }
+      return `<span class="word-pill-tag wrong" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`;
+    }).join("");
+
+    const unansPills = unmasteredWords.map(w =>
+      `<span class="word-pill-tag neutral" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="未作答單字 (點擊聆聽發音)">${w}</span>`
+    ).join("");
+
+    const correctPills = correctList.map(w =>
+      `<span class="word-pill-tag correct" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`
+    ).join("");
+
+    const isAllCorrect = (wrongList.length === 0 && unansCount === 0);
+
+    tabCardHtml = `
+      <div class="task-tab-card">
+        <div class="task-tab-nav">
+          <button type="button" class="task-tab-btn is-active tab-correct" onclick="event.stopPropagation(); const p=this.closest('.task-tab-card'); p.querySelectorAll('.task-tab-btn').forEach(b=>b.classList.remove('is-active')); this.classList.add('is-active'); p.querySelectorAll('.task-tab-pane').forEach(el=>el.classList.remove('is-active')); p.querySelector('.pane-tab-correct').classList.add('is-active');">
+            <span class="card-icon-slot">✅</span> 答對 (${correctList.length})
+          </button>
+          ${!isAllCorrect ? `
+          <button type="button" class="task-tab-btn tab-wrong" onclick="event.stopPropagation(); const p=this.closest('.task-tab-card'); p.querySelectorAll('.task-tab-btn').forEach(b=>b.classList.remove('is-active')); this.classList.add('is-active'); p.querySelectorAll('.task-tab-pane').forEach(el=>el.classList.remove('is-active')); p.querySelector('.pane-tab-wrong').classList.add('is-active');">
+            <span class="card-icon-slot">❌</span> 答錯 (${wrongList.length})
+          </button>
+          ${unansCount > 0 ? `
+          <button type="button" class="task-tab-btn tab-unans" onclick="event.stopPropagation(); const p=this.closest('.task-tab-card'); p.querySelectorAll('.task-tab-btn').forEach(b=>b.classList.remove('is-active')); this.classList.add('is-active'); p.querySelectorAll('.task-tab-pane').forEach(el=>el.classList.remove('is-active')); p.querySelector('.pane-tab-unans').classList.add('is-active');">
+            <span class="card-icon-slot">⏳</span> 未作答 (${unansCount})
+          </button>
+          ` : ""}
+          ` : `
+          <button type="button" class="task-tab-btn tab-info" style="pointer-events:none; opacity:0.85;">
+            <span class="card-icon-slot">🎉</span> 全數答對無失分
+          </button>
+          `}
+        </div>
+        <div class="task-tab-pane pane-tab-correct is-active">
+          <div class="word-split-tags-grid">
+            ${correctPills || '<span style="width:100%; font-size:12px; color:var(--ink3); font-style:italic; padding:8px;">（本次測驗尚無答對單字）</span>'}
+          </div>
+        </div>
+        ${!isAllCorrect ? `
+        <div class="task-tab-pane pane-tab-wrong">
+          <div class="word-split-tags-grid">
+            ${wrongPills || '<span style="width:100%; font-size:12px; color:var(--ink3); font-style:italic; padding:8px;">（本次測驗無答錯單字）</span>'}
+          </div>
+        </div>
+        ${unansCount > 0 ? `
+        <div class="task-tab-pane pane-tab-unans">
+          <div class="word-split-tags-grid">
+            ${unansPills || '<span style="width:100%; font-size:12px; color:var(--ink3); font-style:italic; padding:8px;">（無未作答單字）</span>'}
+          </div>
+        </div>
+        ` : ""}
+        ` : ""}
+      </div>
+    `;
+  }
+
   return `
     <div class="task-single-record-block" style="${blockStyle}">
       <div class="task-history-header">
@@ -1111,26 +1236,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
 
       ${scoreGridHtml}
 
-      <div class="word-split-grid grid-2">
-        <div class="word-split-box ${leftBoxClass}">
-          <div class="word-split-title ${leftTitleClass}">
-            ${leftTitleText}
-          </div>
-          <div class="word-split-content">
-            ${correctContentHtml}
-          </div>
-        </div>
-        <div class="word-split-box ${rightBoxClass}">
-          ${rightTitleText ? `
-          <div class="word-split-title ${rightTitleClass}">
-            ${rightTitleText}
-          </div>
-          ` : ""}
-          <div class="word-split-content">
-            ${wrongContentHtml}
-          </div>
-        </div>
-      </div>
+      ${tabCardHtml}
     </div>
   `;
 }
@@ -1160,23 +1266,8 @@ function renderUntestedTaskCardHtml(info, d) {
 
   const wordCount = cleanWords.length || 0;
 
-  let wordsHtml = "";
-  if (cleanWords.length > 0) {
-    wordsHtml = cleanWords.map(w =>
-      `<span class="word-pill-tag neutral" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`
-    ).join("");
-  } else {
-    wordsHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（指派單字載入中或未指定具體單字清單）</span>`;
-  }
-
-  const statusColor = hasLoggedInOrFree ? "#16a34a" : "#059669";
   const displayStatusStr = hasLoggedInOrFree ? "登入未受測" : "缺席未受測";
-
-  const statusIcon = hasLoggedInOrFree ? "⚠️" : "📴";
-  const statusTitle = hasLoggedInOrFree ? "有登入但未測驗" : "當日無登入紀錄 (缺考)";
-  const statusDetail = hasLoggedInOrFree
-    ? "當日有登入進行自由練習，但未完成本次指定測驗。"
-    : "當日無登入紀錄，未進行本次指定測驗。";
+  const untestedBadgeClass = hasLoggedInOrFree ? "status-login-untested" : "status-absent-untested";
 
   return `
     <div class="task-single-record-block">
@@ -1184,52 +1275,42 @@ function renderUntestedTaskCardHtml(info, d) {
         <div>
           <span class="task-card-title task-title-assigned">${formattedTaskName}</span>
         </div>
-        <div style="display:flex; align-items:center; gap:6px;">
-          <span class="status-badge-pill ${hasLoggedInOrFree ? 'status-login-untested' : 'status-absent-untested'}">${displayStatusStr}</span>
+      </div>
+
+      <div style="margin-bottom:8px; width:100%;">
+        <div class="task-status-banner">
+          <div class="tsb-info">
+            <span class="tsb-icon">📋</span>
+            <span>指定範圍共 <b class="tsb-count">${wordCount}</b> 字</span>
+          </div>
+          <span class="tsb-badge ${untestedBadgeClass}">${displayStatusStr}</span>
         </div>
       </div>
 
-      <div class="task-score-grid">
-        <div class="task-score-item">
-          <div class="task-score-label" style="display:flex; align-items:center; justify-content:center; white-space:nowrap;">
-            <span>📋 應測單字數</span>
-          </div>
-          <div class="task-score-val" style="color:#0284c7; display:flex; align-items:center; justify-content:center;">
-            <span>${wordCount} 字</span>
+      <div class="task-tab-card">
+        <div class="task-tab-nav">
+          <button type="button" class="task-tab-btn is-active tab-unans" onclick="event.stopPropagation(); const p=this.closest('.task-tab-card'); p.querySelectorAll('.task-tab-btn').forEach(b=>b.classList.remove('is-active')); this.classList.add('is-active'); p.querySelectorAll('.task-tab-pane').forEach(el=>el.classList.remove('is-active')); p.querySelector('.pane-untested-words').classList.add('is-active');">
+            <span class="card-icon-slot">📋</span> 應測單字 (${wordCount})
+          </button>
+          <button type="button" class="task-tab-btn tab-info" onclick="event.stopPropagation(); const p=this.closest('.task-tab-card'); p.querySelectorAll('.task-tab-btn').forEach(b=>b.classList.remove('is-active')); this.classList.add('is-active'); p.querySelectorAll('.task-tab-pane').forEach(el=>el.classList.remove('is-active')); p.querySelector('.pane-untested-info').classList.add('is-active');">
+            <span class="card-icon-slot">📌</span> 狀態說明
+          </button>
+        </div>
+        <div class="task-tab-pane pane-untested-words is-active">
+          <div class="word-split-tags-grid">
+            ${cleanWords.length > 0 ? cleanWords.map(w => `<span class="word-pill-tag neutral" data-word="${w.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w}</span>`).join("") : '<span style="font-size:12px; color:var(--ink3); font-style:italic;">（指派單字載入中或未指定具體單字清單）</span>'}
           </div>
         </div>
-        <div class="task-score-item">
-          <div class="task-score-label">測驗狀態</div>
-          <div class="task-score-val" style="color:${statusColor}; font-size:17px; font-weight:800;">${displayStatusStr}</div>
-        </div>
-      </div>
-
-      <div class="word-split-grid grid-2">
-        <div class="word-split-box wrong-box advice-box">
-          <div class="word-split-title wrong-title advice-title">
-            <span class="card-icon-slot">💡</span><span>學習提醒</span>
-          </div>
-          <div class="word-split-content" style="display:flex; flex-direction:column; justify-content:flex-start; align-items:flex-start; gap:6px; padding:4px 0; font-size:11px; line-height:1.5; width:100%;">
-            <div style="display:flex; align-items:flex-start; gap:6px; width:100%;">
-              <span class="card-icon-slot" style="flex-shrink:0; width:16px; text-align:center; line-height:1.5; font-size:12px;">${statusIcon}</span>
-              <div style="flex:1; min-width:0; line-height:1.5; text-align:left;">
-                <b>${statusTitle}</b>。${statusDetail}
-              </div>
+        <div class="task-tab-pane pane-untested-info">
+          <div style="display:flex; flex-direction:column; gap:8px; padding:12px; font-size:12px; line-height:1.6; color:var(--ink2);">
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span class="card-icon-slot">${hasLoggedInOrFree ? "⚠️" : "📴"}</span>
+              <b>${hasLoggedInOrFree ? "有登入但未測驗" : "當日無登入紀錄 (缺考)"}</b>。${hasLoggedInOrFree ? "當日有登入進行自由練習，但未完成本次指定測驗。" : "當日無登入紀錄，未進行本次指定測驗。"}
             </div>
-            <div style="display:flex; align-items:flex-start; gap:6px; width:100%; font-size:10.5px; color:var(--ink3);">
-              <span class="card-icon-slot" style="flex-shrink:0; width:16px; text-align:center; line-height:1.5; font-size:12px;">📌</span>
-              <div style="flex:1; min-width:0; line-height:1.5; text-align:left;">
-                提醒：未測驗之指定單字將自動排入週末補強測驗。
-              </div>
+            <div style="display:flex; align-items:center; gap:6px; color:#D97706; font-size:11.5px;">
+              <span class="card-icon-slot">📌</span>
+              <span>提醒：未測驗之指定單字將自動排入週末補強測驗。</span>
             </div>
-          </div>
-        </div>
-        <div class="word-split-box untested-box">
-          <div class="word-split-title untested-title">
-            <span class="card-icon-slot">📋</span><span>本次應測單字範圍 ${cleanWords.length > 0 ? `(${cleanWords.length} 字)` : ""}</span>
-          </div>
-          <div class="word-split-content">
-            ${wordsHtml}
           </div>
         </div>
       </div>
