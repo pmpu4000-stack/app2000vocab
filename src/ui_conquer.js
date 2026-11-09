@@ -549,7 +549,7 @@ export function updateWeekConquerSection(cycleParam = _activeConquerCycle) {
   const words = getWeekPendingConquerWords(_activeConquerCycle);
 
   if (titleEl) {
-    titleEl.textContent = "待攻克單字 Conquer";
+    titleEl.innerHTML = `待攻克單字<small class="en-sub">Conquer</small>`;
   }
 
   detailsEl.innerHTML = buildWeekPendingConquerHtml(words, null, _activeConquerCycle);
