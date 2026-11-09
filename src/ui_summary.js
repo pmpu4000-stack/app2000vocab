@@ -2078,7 +2078,8 @@ export function renderSummary(d) {
       desc = " (尚無紀錄)";
     }
 
-    return `${dateStr}${isToday ? " (今日)" : ""}${desc}`;
+    const displayDate = dateStr.replace(/-/g, "/");
+    return `${displayDate}${isToday ? " (今日)" : ""}${desc}`;
   };
 
   const buildCustomOptionItem = (dateStr) => {
