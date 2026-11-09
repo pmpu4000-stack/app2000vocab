@@ -1046,6 +1046,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     `;
   } else if (isUntested) {
     const untestedWordCount = taskTotWords > 0 ? taskTotWords : (rawWords.length || 0);
+    const untestedBadgeClass = (hasLoggedInOrFree || statusStr.includes("登入未受測") || statusStr.includes("登入未作答")) ? "status-login-untested" : "status-absent-untested";
     scoreGridHtml = `
       <div style="margin-bottom:8px; width:100%;">
         <div class="task-status-banner">
@@ -1053,7 +1054,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
             <span class="tsb-icon">📋</span>
             <span>指定範圍共 <b class="tsb-count">${untestedWordCount}</b> 字</span>
           </div>
-          <span class="tsb-badge warning">${displayStatusStr}</span>
+          <span class="tsb-badge ${untestedBadgeClass}">${displayStatusStr}</span>
         </div>
       </div>
     `;
@@ -1184,7 +1185,7 @@ function renderUntestedTaskCardHtml(info, d) {
           <span class="task-card-title task-title-assigned">${formattedTaskName}</span>
         </div>
         <div style="display:flex; align-items:center; gap:6px;">
-          <span class="status-badge-pill ${hasLoggedInOrFree ? 'warning' : 'warning-rich'}">${displayStatusStr}</span>
+          <span class="status-badge-pill ${hasLoggedInOrFree ? 'status-login-untested' : 'status-absent-untested'}">${displayStatusStr}</span>
         </div>
       </div>
 
