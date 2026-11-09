@@ -1405,9 +1405,9 @@
               <span title="目前獲得累積總分">獲得 <b id="n-score" class="tnum">0</b> 分</span>
             </div>
           </div>
-          <div class="formula-note-box" style="margin-top:6px; margin-bottom:8px; font-size:12px; display:flex; align-items:center; gap:8px; padding:8px 12px;">
-            <span style="font-size:14px; flex-shrink:0; line-height:1;">💡</span>
-            <div style="flex:1; line-height:1.55;"><b>熟練度定義</b>：<b>學習中</b>＝答對 1 次 · <b>練習中</b>＝連續答對 2 次 · <b>精通</b>＝連續答對 3 次（答錯會退回「學習中」）</div>
+          <div class="formula-note-box" style="margin-top:6px; margin-bottom:8px; font-size:11px; display:flex; align-items:center; gap:8px; padding:6px 10px;">
+            <span style="font-size:13px; flex-shrink:0; line-height:1;">💡</span>
+            <div style="flex:1; line-height:1.5; font-size:11px; opacity:0.9;"><b>熟練度定義</b>：<b>學習中</b>＝答對 1 次 · <b>練習中</b>＝連續答對 2 次 · <b>精通</b>＝連續答對 3 次（答錯會退回「學習中」）</div>
           </div>
 
           <div class="subh" style="margin-top:8px;">各關卡進度</div>
@@ -1447,9 +1447,9 @@
               <div class="mode-stat-sub" id="p-mode-trap-sub">受測 0 字 (0%)</div>
             </div>
           </div>
-          <div class="formula-note-box" style="margin-top:0; margin-bottom:8px; font-size:12px; display:flex; align-items:center; gap:8px; padding:8px 12px;">
-            <span style="font-size:15px; flex-shrink:0; line-height:1;">💡</span>
-            <div style="flex:1; line-height:1.55;"><b>小提示</b>：同一個單字若在不同練習模式答對會各自累計，因此四項加總會大於上方的「共答對單字數」。</div>
+          <div class="formula-note-box" style="margin-top:0; margin-bottom:8px; font-size:11px; display:flex; align-items:center; gap:8px; padding:6px 10px;">
+            <span style="font-size:13px; flex-shrink:0; line-height:1;">💡</span>
+            <div style="flex:1; line-height:1.5; font-size:11px; opacity:0.9;"><b>小提示</b>：同一個單字若在不同練習模式答對會各自累計，因此四項加總會大於上方的「共答對單字數」。</div>
           </div>
         </div>
       </section>
@@ -1498,55 +1498,41 @@
         </div>
       </section>
 
-      <!-- 📥 底部作答歷程紀錄匯出下載方塊 (支援指定日期或指定範圍，PDF / Excel 雙格式輸出) -->
+      <!-- 📥 歷程記錄匯出與檢視方塊 -->
       <section class="progress export-records-card is-collapsed" id="export-records-section">
         <h3>
-          <span>歷程檔案<small class="en-sub">History</small></span>
+          <span>歷程記錄<small class="en-sub">History</small></span>
           <span style="display:flex;gap:14px">
-            <a id="btn-toggle-export-card" class="sum-toggle-btn" title="展開或收合歷程檔案下載">展開</a>
+            <a id="btn-toggle-export-card" class="sum-toggle-btn" title="展開或收合歷程記錄下載">展開</a>
           </span>
         </h3>
         <div class="export-navigator-card" id="export-navigator-card" style="display:none;">
           <div class="export-controls-wrap">
-            <!-- 1. 範圍標籤 -->
-            <div class="export-row export-label-row">
-              <span class="date-nav-title"><span>📅</span> 匯出範圍：</span>
-            </div>
-
-            <!-- 2. 模式選擇 (單一指定日期 / 自訂範圍區間，左右各 50%，對齊下方下載按鈕) -->
-            <div class="export-mode-tabs" role="group" aria-label="選擇匯出日期模式">
-              <button type="button" id="btn-export-mode-single" class="date-nav-btn export-mode-btn active" data-mode="single">單一指定日期</button>
-              <button type="button" id="btn-export-mode-range" class="date-nav-btn export-mode-btn" data-mode="range">自訂範圍區間</button>
-            </div>
-
-            <!-- 3. 日期欄位 (左欄：單一日期/起始日期，右欄：自訂結束日期) -->
-            <div class="export-date-row-grid" id="export-date-row-grid">
-              <div class="export-date-cell export-date-cell-left" id="export-left-date-cell">
-                <input type="date" id="export-single-date" class="date-picker-input">
-                <input type="date" id="export-start-date" class="date-picker-input" style="display:none;">
-              </div>
-              <div class="export-date-cell export-date-cell-right" id="export-right-date-cell" style="visibility:hidden; pointer-events:none;">
-                <input type="date" id="export-end-date" class="date-picker-input">
-              </div>
-            </div>
-
-            <!-- 4. 快捷範圍區間 (佔位保留，自訂範圍區間時顯示，單一模式時保留空間防跳動) -->
-            <div class="export-row export-presets-row" id="export-presets-row" style="visibility:hidden; opacity:0; pointer-events:none;">
+            <!-- 快捷範圍區間 (純區間直選模式) -->
+            <div class="export-row export-presets-row" id="export-presets-row" style="margin-bottom:8px;">
               <div class="export-quick-btns">
                 <button type="button" class="date-nav-btn" id="btn-export-preset-today" title="設定為今日">📍 今日</button>
-                <button type="button" id="btn-export-preset-7d" class="date-nav-btn" title="最近 7 天">近 7 天</button>
+                <button type="button" id="btn-export-preset-7d" class="date-nav-btn active" title="最近 7 天">近 7 天</button>
                 <button type="button" id="btn-export-preset-30d" class="date-nav-btn" title="最近 28 天">近 28 天</button>
                 <button type="button" id="btn-export-preset-all" class="date-nav-btn" title="全部有紀錄日期">全部紀錄</button>
               </div>
             </div>
 
-            <!-- 5. 輸出格式標題與下載按鈕 (左右各 50%，與第 2 行模式按鈕長寬高相對位置完全一致) -->
-            <div class="export-row export-action-row">
-              <div class="export-label-row" style="width:100%;margin-bottom:2px;">
-                <span class="date-nav-title"><span>📄</span> 輸出格式：</span>
+            <!-- 日期區間欄位 (起訖兩端) -->
+            <div class="export-date-row-grid" id="export-date-row-grid" style="margin-bottom:10px;">
+              <div class="export-date-cell export-date-cell-left" id="export-left-date-cell">
+                <input type="date" id="export-single-date" class="date-picker-input" style="display:none;">
+                <input type="date" id="export-start-date" class="date-picker-input">
               </div>
-              <div class="export-btn-group">
-                <button type="button" id="btn-export-preview-web" class="export-dl-btn preview-btn" title="長幅網頁版型即時預覽檢視">
+              <div class="export-date-cell export-date-cell-right" id="export-right-date-cell">
+                <input type="date" id="export-end-date" class="date-picker-input">
+              </div>
+            </div>
+
+            <!-- 一頁檢視按鈕 (已拿掉輸出格式標題，全寬呈現) -->
+            <div class="export-row export-action-row" style="margin-top:2px;">
+              <div class="export-btn-group" style="width:100%;">
+                <button type="button" id="btn-export-preview-web" class="export-dl-btn preview-btn" style="width:100%;" title="長幅網頁版型即時預覽檢視">
                   📜 一頁檢視
                 </button>
               </div>

@@ -2276,14 +2276,15 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 
 /* 4. 描述說明文字 (Explanations & Helper Descriptions) */
 .formula-note-box {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--ink2);
-  margin: 8px 0 16px;
-  line-height: 1.55;
+  margin: 6px 0 12px;
+  line-height: 1.5;
   background: rgba(108, 76, 224, 0.05);
-  padding: 8px 12px;
+  padding: 6px 10px;
   border-radius: 10px;
   border: 1px solid rgba(108, 76, 224, 0.15); display: flex; align-items: center; gap: 8px;
+  opacity: 0.9;
 }
 .formula-note-box b {
   color: var(--ink);
