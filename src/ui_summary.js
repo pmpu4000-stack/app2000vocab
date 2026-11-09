@@ -2115,9 +2115,10 @@ export function renderSummary(d) {
     const isSelected = (dateStr === defaultSelectedDate);
     const hasAny = (stat && stat.statusType !== "unassigned") || (freeTestedWords > 0) || isWeekend(dateStr);
 
+    const displayDate = dateStr.replace(/-/g, "/");
     return `
       <div class="custom-date-option ${isSelected ? "is-selected" : ""}" data-val="${dateStr}" role="option" aria-selected="${isSelected}">
-        <span class="cdo-date ${isToday ? "is-today-text" : ""}">${dateStr}</span>
+        <span class="cdo-date ${isToday ? "is-today-text" : ""}">${displayDate}</span>
         ${hasAny ? `${taskBadge}${freeBadge}` : `<span class="cdo-none">(尚無作答紀錄)</span>`}
       </div>
     `;
@@ -2155,9 +2156,10 @@ export function renderSummary(d) {
 
     const hasAny = (stat && stat.statusType !== "unassigned") || (freeTestedWords > 0) || isWeekend(dateStr);
 
+    const displayDate = dateStr.replace(/-/g, "/");
     return `
       <div class="custom-date-trigger-content">
-        <span class="cdo-date ${isToday ? "is-today-text" : ""}">${dateStr}</span>
+        <span class="cdo-date ${isToday ? "is-today-text" : ""}">${displayDate}</span>
         ${hasAny ? `${taskBadge}${freeBadge}` : `<span class="cdo-none">(尚無作答紀錄)</span>`}
       </div>
     `;
