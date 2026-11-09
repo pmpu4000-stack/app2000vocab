@@ -810,7 +810,7 @@ body.daily-limit-reached .stat.user b {
 .tpc-tag-wrong{color:#DC2626;font-weight:600}
 .tpc-tag-unans{color:#B45309;font-weight:600}
 .tpc-tag-perfect{color:#059669;font-weight:800}
-.task-progress-card .tpc-rate-badge{font-size:11.5px;font-weight:800;color:var(--ink);background:rgba(0,0,0,0.06);border:1px solid rgba(0,0,0,0.1);padding:2px 8px;border-radius:999px;letter-spacing:0.2px}
+.task-progress-card .tpc-rate-badge{font-size:12px;font-weight:800;color:var(--ink);background:rgba(0,0,0,0.06);border:1px solid rgba(0,0,0,0.1);padding:2px 8px;border-radius:6px;letter-spacing:0.3px;line-height:1.4;display:inline-flex;align-items:center}
 .task-progress-card .tpc-rate-badge.tier-0{background:#F1F5F9;color:#64748B;border:1px solid #CBD5E1}
 .task-progress-card .tpc-rate-badge.tier-1{background:#F0F9FF;color:#0284C7;border:1px solid #BAE6FD}
 .task-progress-card .tpc-rate-badge.tier-2{background:#E0F2FE;color:#0369A1;border:1px solid #7DD3FC}
