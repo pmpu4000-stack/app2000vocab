@@ -1601,93 +1601,79 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
 
   const wordRate = totalWords > 0 ? Math.round((correctWords / totalWords) * 100) : 0;
 
-  let correctContentHtml = "";
+  // 依指定測驗極簡標準（方案 B：分頁整合單卡架構），自由練習亦統一切換為三等分標籤頁
+  const isAllCorrect = (displayWrongBoxCount === 0);
+
+  // 答對單字標籤清單
+  let correctPillsHtml = "";
   if (correctList.length > 0) {
-    correctContentHtml = `<div class="word-split-tags-grid" style="display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:8px; width:100%;">${correctList.map(w => `<span class="word-pill-tag correct" data-word="${w.word.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w.word}</span>`).join("")}</div>`;
+    correctPillsHtml = correctList.map(w =>
+      `<span class="word-pill-tag correct" data-word="${escapeHtml(w.word)}" style="cursor:pointer;" title="點擊聆聽發音">${escapeHtml(w.word)}</span>`
+    ).join("");
   } else if (correctWords > 0) {
-    correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（當日答對 ${correctWords} 字，早期紀錄僅存統計字數、未記錄個別單字明細）</span>`;
+    correctPillsHtml = `<span style="width:100%; font-size:12px; color:var(--ink3); font-style:italic; padding:8px; text-align:center;">（當日答對 ${correctWords} 字，早期紀錄僅存統計字數）</span>`;
   } else {
-    correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（當日尚無全對單字）</span>`;
+    correctPillsHtml = `<span style="width:100%; font-size:12px; color:var(--ink3); font-style:italic; padding:8px; text-align:center;">（當日尚無全對單字）</span>`;
   }
 
-  let wrongContentHtml = "";
+  // 答錯單字標籤清單
+  let wrongPillsHtml = "";
   if (wrongList.length > 0) {
-    const wrongItemsHtml = wrongList.map(w => {
+    wrongPillsHtml = wrongList.map(w => {
       if (w.hadCorrectThenWrong || (w.lastResult === "wrong" && w.correct > 0)) {
-        return `<span class="word-pill-tag warning" data-word="${w.word.replace(/"/g, "&quot;")}" style="border:1.5px dashed #f59e0b; background:rgba(245,158,11,0.1); color:#b45309; cursor:pointer;" title="當日曾答對，但後續作答時答錯 (點擊聆聽發音)">${w.word} <small style="font-size:10px; font-weight:700;">(曾對後錯⚠️)</small></span>`;
+        return `<span class="word-pill-tag warning" data-word="${escapeHtml(w.word)}" style="border:1.5px dashed #f59e0b; background:rgba(245,158,11,0.1); color:#b45309; cursor:pointer;" title="當日曾答對，但後續作答時答錯 (點擊聆聽發音)">${escapeHtml(w.word)} <small style="font-size:10px; font-weight:700;">(曾對後錯⚠️)</small></span>`;
       } else if (w.correct > 0) {
-        return `<span class="word-pill-tag correct" data-word="${w.word.replace(/"/g, "&quot;")}" style="border:1.5px dashed var(--green, #10B981); cursor:pointer;" title="當日曾答錯，已訂正答對 (點擊聆聽發音)">${w.word} <small style="font-size:10px; opacity:0.85;">(已訂正)</small></span>`;
+        return `<span class="word-pill-tag correct" data-word="${escapeHtml(w.word)}" style="border:1.5px dashed var(--green, #10B981); cursor:pointer;" title="當日曾答錯，已訂正答對 (點擊聆聽發音)">${escapeHtml(w.word)} <small style="font-size:10px; opacity:0.85;">(已訂正)</small></span>`;
       } else {
-        return `<span class="word-pill-tag wrong" data-word="${w.word.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w.word}</span>`;
+        return `<span class="word-pill-tag wrong" data-word="${escapeHtml(w.word)}" style="cursor:pointer;" title="點擊聆聽發音">${escapeHtml(w.word)}</span>`;
       }
     }).join("");
-    wrongContentHtml = `<div class="word-split-tags-grid" style="display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:8px; width:100%;">${wrongItemsHtml}</div>`;
   } else if (displayWrongBoxCount > 0) {
-    wrongContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（當日答錯 ${displayWrongBoxCount} 字，早期紀錄僅存統計字數、未記錄個別單字明細）</span>`;
+    wrongPillsHtml = `<span style="width:100%; font-size:12px; color:var(--ink3); font-style:italic; padding:8px; text-align:center;">（當日答錯 ${displayWrongBoxCount} 字，早期紀錄僅存統計字數）</span>`;
   } else {
-    wrongContentHtml = "";
+    wrongPillsHtml = `<span style="width:100%; font-size:12px; color:var(--ink3); font-style:italic; padding:8px; text-align:center;">（無答錯單字）</span>`;
   }
 
-  const getHeatmapRateClass = (r) => {
-    const n = (typeof r === 'number') ? r : (parseInt(r, 10) || 0);
-    if (n >= 100) return 'tier-6';
-    if (n >= 90) return 'tier-5';
-    if (n >= 80) return 'tier-4';
-    if (n >= 70) return 'tier-3';
-    if (n >= 60) return 'tier-2';
-    if (n > 0) return 'tier-1';
-    return 'tier-0';
-  };
+  const tabCardHtml = `
+    <div class="task-tab-card">
+      <div class="task-tab-nav">
+        <button type="button" class="task-tab-btn is-active tab-correct" onclick="event.stopPropagation(); const p=this.closest('.task-tab-card'); p.querySelectorAll('.task-tab-btn').forEach(b=>b.classList.remove('is-active')); this.classList.add('is-active'); p.querySelectorAll('.task-tab-pane').forEach(el=>el.classList.remove('is-active')); p.querySelector('.pane-free-correct').classList.add('is-active');">
+          <span class="card-icon-slot">✅</span> 答對 (${displayCorrectBoxCount})
+        </button>
+        ${!isAllCorrect ? `
+        <button type="button" class="task-tab-btn tab-wrong" onclick="event.stopPropagation(); const p=this.closest('.task-tab-card'); p.querySelectorAll('.task-tab-btn').forEach(b=>b.classList.remove('is-active')); this.classList.add('is-active'); p.querySelectorAll('.task-tab-pane').forEach(el=>el.classList.remove('is-active')); p.querySelector('.pane-free-wrong').classList.add('is-active');">
+          <span class="card-icon-slot">❌</span> 答錯 (${displayWrongBoxCount})
+        </button>
+        ` : `
+        <button type="button" class="task-tab-btn tab-info" style="pointer-events:none; opacity:0.85;">
+          <span class="card-icon-slot">🎉</span> 全數答對無失分
+        </button>
+        `}
+      </div>
+      <div class="task-tab-pane pane-free-correct is-active">
+        <div class="word-split-tags-grid">
+          ${correctPillsHtml}
+        </div>
+      </div>
+      ${!isAllCorrect ? `
+      <div class="task-tab-pane pane-free-wrong">
+        <div class="word-split-tags-grid">
+          ${wrongPillsHtml}
+        </div>
+      </div>
+      ` : ""}
+    </div>
+  `;
 
   return `
-    <div>
+    <div class="task-single-record-block">
       <div class="task-history-header">
         <div>
           <span class="task-card-title task-title-free">${freeTitleText}</span>
         </div>
       </div>
 
-      <div class="task-score-grid">
-        <div class="task-score-subgrid">
-          <div class="task-score-item score-corr-item">
-            <div class="task-score-label">答對</div>
-            <div class="task-score-val task-score-num-corr">${correctWords}</div>
-          </div>
-          <div class="task-score-item score-wrong-item">
-            <div class="task-score-label">答錯</div>
-            <div class="task-score-val task-score-num-wrong">${displayWrongBoxCount}</div>
-          </div>
-        </div>
-        <div class="task-score-item rate-tier-item ${getHeatmapRateClass(wordRate)}">
-          <div class="task-score-label">全卷正確率</div>
-          <div class="task-score-val heat-rate-val ${getHeatmapRateClass(wordRate)}">
-            ${totalWords > 0 ? wordRate + '%' : '—'}
-          </div>
-        </div>
-      </div>
-
-      <!-- 將答對的字與答錯的字分成兩個區域（純顯示當日練習狀況，非累積狀況） -->
-      <div class="word-split-grid grid-2">
-        <!-- 答對的單字區 -->
-        <div class="word-split-box correct-box">
-          <div class="word-split-title correct-title">
-            <span><span style="color:#10B981; font-weight:900; margin-right:4px;">✔</span>答對的單字 (${displayCorrectBoxCount} 字)</span>
-          </div>
-          <div class="word-split-content">
-            ${correctContentHtml}
-          </div>
-        </div>
-
-        <!-- 答錯的單字區 -->
-        <div class="word-split-box wrong-box">
-          <div class="word-split-title wrong-title">
-            <span>❌ 答錯的單字 (${displayWrongBoxCount} 字)</span>
-          </div>
-          <div class="word-split-content">
-            ${wrongContentHtml}
-          </div>
-        </div>
-      </div>
+      ${tabCardHtml}
     </div>
   `;
 }
