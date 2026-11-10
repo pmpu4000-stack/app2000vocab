@@ -425,111 +425,119 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 .hc.hc-active{outline:2.5px solid #059669;outline-offset:1px;transform:scale(1.08);z-index:2}
 [data-theme="dark"] .hc{background:#1E293B;border-color:#334155}
 [data-theme="dark"] .hc.hc-active{outline:2.5px solid #34D399;outline-offset:1px}
-/* 熱力圖專屬：⚡【電光寶石蔚藍】階層（依正確率由淡至極鮮豔：<60% / 60-69% / 70-79% / 80-89% / 90-99% / 100%） */
-.hc.h0, .heatmap .hc.h0, #task-heatmap-grid .hc.h0, #heatmap-grid .hc.h0, #stTaskHeatmapGrid .hc.h0, #stHeatmapGrid .hc.h0 { background: #ebedf0 !important; border-color: #e2e8f0 !important; }
-.hc.h1, .heatmap .hc.h1, #task-heatmap-grid .hc.h1, #heatmap-grid .hc.h1, #stTaskHeatmapGrid .hc.h1, #stHeatmapGrid .hc.h1 { background: #E0F2FE !important; border-color: #BAE6FD !important; }
-.hc.h2, .heatmap .hc.h2, #task-heatmap-grid .hc.h2, #heatmap-grid .hc.h2, #stTaskHeatmapGrid .hc.h2, #stHeatmapGrid .hc.h2 { background: #BAE6FD !important; border-color: #7DD3FC !important; }
-.hc.h3, .heatmap .hc.h3, #task-heatmap-grid .hc.h3, #heatmap-grid .hc.h3, #stTaskHeatmapGrid .hc.h3, #stHeatmapGrid .hc.h3 { background: #7DD3FC !important; border-color: #38BDF8 !important; }
-.hc.h4, .heatmap .hc.h4, #task-heatmap-grid .hc.h4, #heatmap-grid .hc.h4, #stTaskHeatmapGrid .hc.h4, #stHeatmapGrid .hc.h4 { background: #38BDF8 !important; border-color: #0284C7 !important; }
-.hc.h5, .heatmap .hc.h5, #task-heatmap-grid .hc.h5, #heatmap-grid .hc.h5, #stTaskHeatmapGrid .hc.h5, #stHeatmapGrid .hc.h5 { background: #0284C7 !important; border-color: #0369A1 !important; }
+/* 熱力圖專屬：GitHub Primer 經典冬日深邃海藍階層（比照 GitHub 貢獻圖標準配色，雅緻不刺眼） */
+.hc.h0, .heatmap .hc.h0, #task-heatmap-grid .hc.h0, #heatmap-grid .hc.h0, #stTaskHeatmapGrid .hc.h0, #stHeatmapGrid .hc.h0 { background: #ebedf0 !important; border-color: rgba(27,31,35,0.06) !important; }
+.hc.h1, .heatmap .hc.h1, #task-heatmap-grid .hc.h1, #heatmap-grid .hc.h1, #stTaskHeatmapGrid .hc.h1, #stHeatmapGrid .hc.h1 { background: #b6e3ff !important; border-color: rgba(9,105,218,0.15) !important; }
+.hc.h2, .heatmap .hc.h2, #task-heatmap-grid .hc.h2, #heatmap-grid .hc.h2, #stTaskHeatmapGrid .hc.h2, #stHeatmapGrid .hc.h2 { background: #80ccff !important; border-color: rgba(9,105,218,0.25) !important; }
+.hc.h3, .heatmap .hc.h3, #task-heatmap-grid .hc.h3, #heatmap-grid .hc.h3, #stTaskHeatmapGrid .hc.h3, #stHeatmapGrid .hc.h3 { background: #54aeff !important; border-color: rgba(9,105,218,0.35) !important; }
+.hc.h4, .heatmap .hc.h4, #task-heatmap-grid .hc.h4, #heatmap-grid .hc.h4, #stTaskHeatmapGrid .hc.h4, #stHeatmapGrid .hc.h4 { background: #218bff !important; border-color: rgba(9,105,218,0.45) !important; }
+.hc.h5, .heatmap .hc.h5, #task-heatmap-grid .hc.h5, #heatmap-grid .hc.h5, #stTaskHeatmapGrid .hc.h5, #stHeatmapGrid .hc.h5 { background: #0969da !important; border-color: rgba(5,80,174,0.6) !important; }
 .hc.h6, .heatmap .hc.h6, #task-heatmap-grid .hc.h6, #heatmap-grid .hc.h6, #stTaskHeatmapGrid .hc.h6, #stHeatmapGrid .hc.h6 {
-  background: #0066FF !important;
-  border: 1.5px solid #0052CC !important;
-  box-shadow: 0 0 10px rgba(0,102,255,.6), 0 2px 6px rgba(0,82,204,.45) !important;
+  background: #0550ae !important;
+  border: 1px solid #0a3069 !important;
+  box-shadow: none !important;
   position: relative;
   z-index: 1;
 }
-.hc.hc-active, .heatmap .hc.hc-active, #task-heatmap-grid .hc.hc-active, #heatmap-grid .hc.hc-active, #stTaskHeatmapGrid .hc.hc-active, #stHeatmapGrid .hc.hc-active { outline: 2.5px solid #0066FF !important; outline-offset: 1px; }
+.hc.hc-active, .heatmap .hc.hc-active, #task-heatmap-grid .hc.hc-active, #heatmap-grid .hc.hc-active, #stTaskHeatmapGrid .hc.hc-active, #stHeatmapGrid .hc.hc-active { outline: 2px solid #0969da !important; outline-offset: 1px; }
 
-[data-theme="dark"] .hc.h0, [data-theme="dark"] .heatmap .hc.h0, [data-theme="dark"] #task-heatmap-grid .hc.h0, [data-theme="dark"] #heatmap-grid .hc.h0, [data-theme="dark"] #stTaskHeatmapGrid .hc.h0, [data-theme="dark"] #stHeatmapGrid .hc.h0 { background: #161b22 !important; border-color: #30363d !important; }
-[data-theme="dark"] .hc.h1, [data-theme="dark"] .heatmap .hc.h1, [data-theme="dark"] #task-heatmap-grid .hc.h1, [data-theme="dark"] #heatmap-grid .hc.h1, [data-theme="dark"] #stTaskHeatmapGrid .hc.h1, [data-theme="dark"] #stHeatmapGrid .hc.h1 { background: #0C2A4A !important; border-color: #0284C7 !important; }
-[data-theme="dark"] .hc.h2, [data-theme="dark"] .heatmap .hc.h2, [data-theme="dark"] #task-heatmap-grid .hc.h2, [data-theme="dark"] #heatmap-grid .hc.h2, [data-theme="dark"] #stTaskHeatmapGrid .hc.h2, [data-theme="dark"] #stHeatmapGrid .hc.h2 { background: #0369A1 !important; border-color: #38BDF8 !important; }
-[data-theme="dark"] .hc.h3, [data-theme="dark"] .heatmap .hc.h3, [data-theme="dark"] #task-heatmap-grid .hc.h3, [data-theme="dark"] #heatmap-grid .hc.h3, [data-theme="dark"] #stTaskHeatmapGrid .hc.h3, [data-theme="dark"] #stHeatmapGrid .hc.h3 { background: #0284C7 !important; border-color: #7DD3FC !important; }
-[data-theme="dark"] .hc.h4, [data-theme="dark"] .heatmap .hc.h4, [data-theme="dark"] #task-heatmap-grid .hc.h4, [data-theme="dark"] #heatmap-grid .hc.h4, [data-theme="dark"] #stTaskHeatmapGrid .hc.h4, [data-theme="dark"] #stHeatmapGrid .hc.h4 { background: #0084FF !important; border-color: #BAE6FD !important; }
-[data-theme="dark"] .hc.h5, [data-theme="dark"] .heatmap .hc.h5, [data-theme="dark"] #task-heatmap-grid .hc.h5, [data-theme="dark"] #heatmap-grid .hc.h5, [data-theme="dark"] #stTaskHeatmapGrid .hc.h5, [data-theme="dark"] #stHeatmapGrid .hc.h5 { background: #00B4D8 !important; border-color: #E0F2FE !important; }
+[data-theme="dark"] .hc.h0, [data-theme="dark"] .heatmap .hc.h0, [data-theme="dark"] #task-heatmap-grid .hc.h0, [data-theme="dark"] #heatmap-grid .hc.h0, [data-theme="dark"] #stTaskHeatmapGrid .hc.h0, [data-theme="dark"] #stHeatmapGrid .hc.h0 { background: #161b22 !important; border-color: rgba(255,255,255,0.06) !important; }
+[data-theme="dark"] .hc.h1, [data-theme="dark"] .heatmap .hc.h1, [data-theme="dark"] #task-heatmap-grid .hc.h1, [data-theme="dark"] #heatmap-grid .hc.h1, [data-theme="dark"] #stTaskHeatmapGrid .hc.h1, [data-theme="dark"] #stHeatmapGrid .hc.h1 { background: #0a3069 !important; border-color: rgba(56,139,253,0.15) !important; }
+[data-theme="dark"] .hc.h2, [data-theme="dark"] .heatmap .hc.h2, [data-theme="dark"] #task-heatmap-grid .hc.h2, [data-theme="dark"] #heatmap-grid .hc.h2, [data-theme="dark"] #stTaskHeatmapGrid .hc.h2, [data-theme="dark"] #stHeatmapGrid .hc.h2 { background: #0969da !important; border-color: rgba(56,139,253,0.25) !important; }
+[data-theme="dark"] .hc.h3, [data-theme="dark"] .heatmap .hc.h3, [data-theme="dark"] #task-heatmap-grid .hc.h3, [data-theme="dark"] #heatmap-grid .hc.h3, [data-theme="dark"] #stTaskHeatmapGrid .hc.h3, [data-theme="dark"] #stHeatmapGrid .hc.h3 { background: #1f6feb !important; border-color: rgba(56,139,253,0.35) !important; }
+[data-theme="dark"] .hc.h4, [data-theme="dark"] .heatmap .hc.h4, [data-theme="dark"] #task-heatmap-grid .hc.h4, [data-theme="dark"] #heatmap-grid .hc.h4, [data-theme="dark"] #stTaskHeatmapGrid .hc.h4, [data-theme="dark"] #stHeatmapGrid .hc.h4 { background: #388bfd !important; border-color: rgba(121,192,255,0.45) !important; }
+[data-theme="dark"] .hc.h5, [data-theme="dark"] .heatmap .hc.h5, [data-theme="dark"] #task-heatmap-grid .hc.h5, [data-theme="dark"] #heatmap-grid .hc.h5, [data-theme="dark"] #stTaskHeatmapGrid .hc.h5, [data-theme="dark"] #stHeatmapGrid .hc.h5 { background: #54aeff !important; border-color: rgba(121,192,255,0.6) !important; }
 [data-theme="dark"] .hc.h6, [data-theme="dark"] .heatmap .hc.h6, [data-theme="dark"] #task-heatmap-grid .hc.h6, [data-theme="dark"] #heatmap-grid .hc.h6, [data-theme="dark"] #stTaskHeatmapGrid .hc.h6, [data-theme="dark"] #stHeatmapGrid .hc.h6 {
-  background: #00D2FF !important;
-  border: 1.5px solid #90E0EF !important;
-  box-shadow: 0 0 14px rgba(0,210,255,.8), 0 0 6px rgba(144,224,239,.95) !important;
+  background: #80ccff !important;
+  border: 1px solid #b6e3ff !important;
+  box-shadow: none !important;
   position: relative;
   z-index: 1;
 }
 [data-theme="dark"] .hc.h6:hover, [data-theme="dark"] .heatmap .hc.h6:hover {
-  transform: scale(1.18);
-  box-shadow: 0 0 20px rgba(0,210,255,1), 0 0 8px #90e0ef !important;
+  transform: scale(1.12);
+  box-shadow: 0 0 8px rgba(128,204,255,0.6) !important;
   z-index: 3;
 }
-[data-theme="dark"] .hc.hc-active, [data-theme="dark"] .heatmap .hc.hc-active, [data-theme="dark"] #task-heatmap-grid .hc.hc-active, [data-theme="dark"] #heatmap-grid .hc.hc-active, [data-theme="dark"] #stTaskHeatmapGrid .hc.hc-active, [data-theme="dark"] #stHeatmapGrid .hc.hc-active { outline: 2.5px solid #00D2FF !important; outline-offset: 1px; }
+[data-theme="dark"] .hc.hc-active, [data-theme="dark"] .heatmap .hc.hc-active, [data-theme="dark"] #task-heatmap-grid .hc.hc-active, [data-theme="dark"] #heatmap-grid .hc.hc-active, [data-theme="dark"] #stTaskHeatmapGrid .hc.hc-active, [data-theme="dark"] #stHeatmapGrid .hc.hc-active { outline: 2px solid #54aeff !important; outline-offset: 1px; }
 
-/* 指定測驗已完成右側⚡【電光寶石蔚藍】框框 (依正確率：少/中/大) */
+/* 指定測驗已完成右側 GitHub 風格高質感框框 (依正確率：少/中/大) */
 .heat-day-info.tier-green-low,
-.heat-day-info.tier-blue-low { background: #F0F9FF !important; color: #0284C7 !important; border: 2px solid #BAE6FD !important; box-shadow: 0 2px 6px rgba(2,132,199,.15) !important; }
+.heat-day-info.tier-blue-low { background: #ddf4ff !important; color: #0969da !important; border: 1.5px solid #54aeff !important; box-shadow: 0 1px 3px rgba(9,105,218,.12) !important; }
 .heat-day-info.tier-green-low b,
-.heat-day-info.tier-blue-low b { color: #0369A1 !important; }
+.heat-day-info.tier-blue-low b { color: #0550ae !important; }
 [data-theme="dark"] .heat-day-info.tier-green-low,
-[data-theme="dark"] .heat-day-info.tier-blue-low { background: rgba(12,42,74,.5) !important; color: #7DD3FC !important; border: 2px solid #0284C7 !important; }
+[data-theme="dark"] .heat-day-info.tier-blue-low { background: rgba(10,48,105,.55) !important; color: #79c0ff !important; border: 1.5px solid #1f6feb !important; }
 [data-theme="dark"] .heat-day-info.tier-green-low b,
-[data-theme="dark"] .heat-day-info.tier-blue-low b { color: #BAE6FD !important; }
+[data-theme="dark"] .heat-day-info.tier-blue-low b { color: #b6e3ff !important; }
 
 .heat-day-info.tier-green-mid,
-.heat-day-info.tier-blue-mid { background: #E0F2FE !important; color: #0369A1 !important; border: 2px solid #38BDF8 !important; box-shadow: 0 2px 6px rgba(2,132,199,.20) !important; }
+.heat-day-info.tier-blue-mid { background: #b6e3ff !important; color: #0550ae !important; border: 1.5px solid #218bff !important; box-shadow: 0 1px 4px rgba(9,105,218,.16) !important; }
 .heat-day-info.tier-green-mid b,
-.heat-day-info.tier-blue-mid b { color: #0C4A6E !important; }
+.heat-day-info.tier-blue-mid b { color: #0a3069 !important; }
 [data-theme="dark"] .heat-day-info.tier-green-mid,
-[data-theme="dark"] .heat-day-info.tier-blue-mid { background: rgba(3,105,161,.5) !important; color: #BAE6FD !important; border: 2px solid #38BDF8 !important; }
+[data-theme="dark"] .heat-day-info.tier-blue-mid { background: rgba(31,111,235,.4) !important; color: #a5d6ff !important; border: 1.5px solid #388bfd !important; }
 [data-theme="dark"] .heat-day-info.tier-green-mid b,
-[data-theme="dark"] .heat-day-info.tier-blue-mid b { color: #E0F2FE !important; }
+[data-theme="dark"] .heat-day-info.tier-blue-mid b { color: #d2k4ff !important; }
 
 .heat-day-info.tier-green-high,
-.heat-day-info.tier-blue-high { background: #0284C7 !important; color: #FFFFFF !important; border: 2px solid #0369A1 !important; box-shadow: 0 2px 8px rgba(2,132,199,.28) !important; }
+.heat-day-info.tier-blue-high { background: #218bff !important; color: #FFFFFF !important; border: 1.5px solid #0969da !important; box-shadow: 0 2px 6px rgba(9,105,218,.25) !important; }
 .heat-day-info.tier-green-high b,
-.heat-day-info.tier-blue-high b { color: #BAE6FD !important; }
+.heat-day-info.tier-blue-high b { color: #ddf4ff !important; }
 [data-theme="dark"] .heat-day-info.tier-green-high,
-[data-theme="dark"] .heat-day-info.tier-blue-high { background: rgba(0,132,255,.45) !important; color: #FFFFFF !important; border: 2px solid #38BDF8 !important; box-shadow: 0 0 10px rgba(0,132,255,.35) !important; }
+[data-theme="dark"] .heat-day-info.tier-blue-high { background: rgba(56,139,253,.45) !important; color: #FFFFFF !important; border: 1.5px solid #54aeff !important; box-shadow: 0 0 8px rgba(56,139,253,.25) !important; }
 [data-theme="dark"] .heat-day-info.tier-green-high b,
-[data-theme="dark"] .heat-day-info.tier-blue-high b { color: #BAE6FD !important; }
+[data-theme="dark"] .heat-day-info.tier-blue-high b { color: #b6e3ff !important; }
 
-/* 滿分 100% ⚡ 極致電光蔚藍強烈發光框框 */
+/* 滿分 100% 經典 GitHub 冬日深藍標章 */
 .heat-day-info.tier-green-perfect,
 .heat-day-info.tier-blue-perfect {
-  background: #0066FF !important;
+  background: #0969da !important;
   color: #FFFFFF !important;
-  border: 2.5px solid #0052CC !important;
-  box-shadow: 0 4px 16px rgba(0,102,255,.5), 0 0 10px rgba(0,102,255,.35) !important;
+  border: 1.5px solid #0550ae !important;
+  box-shadow: 0 2px 8px rgba(9,105,218,.35) !important;
 }
 .heat-day-info.tier-green-perfect b,
-.heat-day-info.tier-blue-perfect b { color: #BAE6FD !important; }
+.heat-day-info.tier-blue-perfect b { color: #b6e3ff !important; }
 [data-theme="dark"] .heat-day-info.tier-green-perfect,
 [data-theme="dark"] .heat-day-info.tier-blue-perfect {
-  background: rgba(0,210,255,.45) !important;
+  background: rgba(84,174,255,.35) !important;
   color: #FFFFFF !important;
-  border: 2px solid #90E0EF !important;
-  box-shadow: 0 0 20px rgba(0,210,255,.85), 0 0 8px rgba(144,224,239,.9) !important;
+  border: 1.5px solid #80ccff !important;
+  box-shadow: 0 2px 8px rgba(84,174,255,.3) !important;
 }
 [data-theme="dark"] .heat-day-info.tier-green-perfect b,
-[data-theme="dark"] .heat-day-info.tier-blue-perfect b { color: #E0F2FE !important; }
+[data-theme="dark"] .heat-day-info.tier-blue-perfect b { color: #f0f6fc !important; }
 
-/* 比照熱力圖邏輯：數值純藍階層 (低溫灰藍 -> 頂溫電光蔚藍) */
-.rate-tier-item.tier-6 .task-score-label, .rate-tier-item.tier-6 .task-score-val, .heat-rate-val.tier-6 { color: #0066FF !important; }
-.rate-tier-item.tier-5 .task-score-label, .rate-tier-item.tier-5 .task-score-val, .heat-rate-val.tier-5 { color: #0077EE !important; }
-.rate-tier-item.tier-4 .task-score-label, .rate-tier-item.tier-4 .task-score-val, .heat-rate-val.tier-4 { color: #0284C7 !important; }
-.rate-tier-item.tier-3 .task-score-label, .rate-tier-item.tier-3 .task-score-val, .heat-rate-val.tier-3 { color: #0EA5E9 !important; }
-.rate-tier-item.tier-2 .task-score-label, .rate-tier-item.tier-2 .task-score-val, .heat-rate-val.tier-2 { color: #38BDF8 !important; }
+/* 比照熱力圖邏輯：數值純藍階層 (GitHub Primer Blue 階調) */
+.rate-tier-item.tier-6 .task-score-label, .rate-tier-item.tier-6 .task-score-val, .heat-rate-val.tier-6 { color: #0550ae !important; }
+.rate-tier-item.tier-5 .task-score-label, .rate-tier-item.tier-5 .task-score-val, .heat-rate-val.tier-5 { color: #0969da !important; }
+.rate-tier-item.tier-4 .task-score-label, .rate-tier-item.tier-4 .task-score-val, .heat-rate-val.tier-4 { color: #218bff !important; }
+.rate-tier-item.tier-3 .task-score-label, .rate-tier-item.tier-3 .task-score-val, .heat-rate-val.tier-3 { color: #54aeff !important; }
+.rate-tier-item.tier-2 .task-score-label, .rate-tier-item.tier-2 .task-score-val, .heat-rate-val.tier-2 { color: #80ccff !important; }
 .rate-tier-item.tier-1 .task-score-label, .rate-tier-item.tier-1 .task-score-val, .heat-rate-val.tier-1 { color: #64748B !important; }
 .rate-tier-item.tier-0 .task-score-label, .rate-tier-item.tier-0 .task-score-val, .heat-rate-val.tier-0 { color: #94A3B8 !important; }
 
-.rate-tier-item.tier-6 { border-color: rgba(0, 102, 255, 0.45) !important; }
-.rate-tier-item.tier-5 { border-color: rgba(0, 119, 238, 0.38) !important; }
-.rate-tier-item.tier-4 { border-color: rgba(2, 132, 199, 0.32) !important; }
-.rate-tier-item.tier-3 { border-color: rgba(14, 165, 233, 0.28) !important; }
-.rate-tier-item.tier-2 { border-color: rgba(56, 189, 248, 0.24) !important; }
+.rate-tier-item.tier-6 { border-color: rgba(5, 80, 174, 0.4) !important; }
+.rate-tier-item.tier-5 { border-color: rgba(9, 105, 218, 0.35) !important; }
+.rate-tier-item.tier-4 { border-color: rgba(33, 139, 255, 0.3) !important; }
+.rate-tier-item.tier-3 { border-color: rgba(84, 174, 255, 0.28) !important; }
+.rate-tier-item.tier-2 { border-color: rgba(128, 204, 255, 0.24) !important; }
 .rate-tier-item.tier-1 { border-color: rgba(100, 116, 139, 0.24) !important; }
 .rate-tier-item.tier-0 { border-color: rgba(148, 163, 184, 0.2) !important; }
 
-[data-theme="dark"] .rate-tier-item.tier-6 .task-score-label, [data-theme="dark"] .rate-tier-item.tier-6 .task-score-val, [data-theme="dark"] .heat-rate-val.tier-6 { color: #00D2FF !important; text-shadow: 0 0 10px rgba(0,210,255,0.45); }
-[data-theme="dark"] .rate-tier-item.tier-5 .task-score-label, [data-theme="dark"] .rate-tier-item.tier-5 .task-score-val, [data-theme="dark"] .heat-rate-val.tier-5 { color: #00B4D8 !important; }
-[data-theme="dark"] .rate-tier-item.tier-4 .task-score-label, [data-theme="dark"] .rate-tier-item.tier-4 .task-score-val, [data-theme="dark"] .heat-rate-val.tier-4 { color: #0084FF !important; }
-[data-theme="dark"] .rate-tier-item.tier-3 .task-score-label, [data-theme="dark"] .rate-tier-item.tier-3 .task-score-val, [data-theme="dark"] .heat-rate-val.tier-3 { color: #38BDF8 !important; }
+[data-theme="dark"] .rate-tier-item.tier-6 .task-score-label, [data-theme="dark"] .rate-tier-item.tier-6 .task-score-val, [data-theme="dark"] .heat-rate-val.tier-6 { color: #80ccff !important; text-shadow: none !important; }
+[data-theme="dark"] .rate-tier-item.tier-5 .task-score-label, [data-theme="dark"] .rate-tier-item.tier-5 .task-score-val, [data-theme="dark"] .heat-rate-val.tier-5 { color: #54aeff !important; }
+[data-theme="dark"] .rate-tier-item.tier-4 .task-score-label, [data-theme="dark"] .rate-tier-item.tier-4 .task-score-val, [data-theme="dark"] .heat-rate-val.tier-4 { color: #388bfd !important; }
+[data-theme="dark"] .rate-tier-item.tier-3 .task-score-label, [data-theme="dark"] .rate-tier-item.tier-3 .task-score-val, [data-theme="dark"] .heat-rate-val.tier-3 { color: #1f6feb !important; }
+[data-theme="dark"] .rate-tier-item.tier-2 .task-score-label, [data-theme="dark"] .rate-tier-item.tier-2 .task-score-val, [data-theme="dark"] .heat-rate-val.tier-2 { color: #0969da !important; }
+[data-theme="dark"] .rate-tier-item.tier-1 .task-score-label, [data-theme="dark"] .rate-tier-item.tier-1 .task-score-val, [data-theme="dark"] .heat-rate-val.tier-1 { color: #0a3069 !important; }
+[data-theme="dark"] .rate-tier-item.tier-0 .task-score-label, [data-theme="dark"] .rate-tier-item.tier-0 .task-score-val, [data-theme="dark"] .heat-rate-val.tier-0 { color: #64748B !important; }
+
+[data-theme="dark"] .rate-tier-item.tier-6 { border-color: rgba(128, 204, 255, 0.45) !important; box-shadow: none !important; }
+[data-theme="dark"] .rate-tier-item.tier-5 { border-color: rgba(84, 174, 255, 0.4) !important; }
+[data-theme="dark"] .rate-tier-item.tier-4 { border-color: rgba(56, 139, 253, 0.35) !important; }
+[data-theme="dark"] .rate-tier-item.tier-3 { border-color: rgba(31, 111, 235, 0.3) !important; }
 [data-theme="dark"] .rate-tier-item.tier-2 .task-score-label, [data-theme="dark"] .rate-tier-item.tier-2 .task-score-val, [data-theme="dark"] .heat-rate-val.tier-2 { color: #7DD3FC !important; }
 [data-theme="dark"] .rate-tier-item.tier-1 .task-score-label, [data-theme="dark"] .rate-tier-item.tier-1 .task-score-val, [data-theme="dark"] .heat-rate-val.tier-1 { color: #0284C7 !important; }
 [data-theme="dark"] .rate-tier-item.tier-0 .task-score-label, [data-theme="dark"] .rate-tier-item.tier-0 .task-score-val, [data-theme="dark"] .heat-rate-val.tier-0 { color: #64748B !important; }
@@ -927,10 +935,17 @@ body.daily-limit-reached .stat.user b {
 .task-tab-pane .word-split-tags-grid {
   flex: 1 1 auto;
   overflow-y: auto !important;
-  max-height: 130px;
+  max-height: 122px !important;
   align-content: flex-start;
   align-items: flex-start;
   padding: 2px 0;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+.task-tab-pane .word-split-tags-grid::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 [data-theme="dark"] .task-tab-card {
   background: transparent !important;
@@ -1057,7 +1072,7 @@ body.daily-limit-reached .stat.user b {
 .word-split-title.unanswered-title{color:#475569}
 [data-theme="dark"] .word-split-title.unanswered-title{color:#94A3B8!important}
 .word-split-content,
-.word-split-box > div:not(.word-split-title){display:flex;flex-wrap:wrap;align-items:flex-start;align-content:flex-start;gap:4px;flex:1 1 auto;height:0;min-height:0;overflow-y:auto !important;overscroll-behavior:contain;padding-right:4px;scrollbar-gutter:stable;scrollbar-width:thin;scrollbar-color:rgba(100,116,139,0.45) transparent;box-sizing:border-box}
+.word-split-box > div:not(.word-split-title){display:flex;flex-wrap:wrap;align-items:flex-start;align-content:flex-start;gap:4px;flex:1 1 auto;height:0;min-height:0;overflow-y:auto !important;overscroll-behavior:contain;padding-right:0;scrollbar-width:none !important;-ms-overflow-style:none !important;box-sizing:border-box}
 #task-record-details, #free-record-details{box-sizing:border-box}
 .task-empty-notice-box{display:flex;flex-direction:column;align-items:center;justify-content:flex-start !important;flex:1 1 auto;height:100% !important;min-height:0 !important;max-height:100% !important;background:#F8FAFC;border:1.5px dashed #CBD5E1;border-radius:12px;margin:0 !important;padding:28px 14px 16px !important;text-align:center;box-sizing:border-box;transition:background .2s,border-color .2s}
 .task-empty-notice-icon{font-size:38px;line-height:1;margin-bottom:12px;opacity:.95;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.06))}
@@ -1078,7 +1093,7 @@ body.daily-limit-reached .stat.user b {
 .status-badge-pill.purple,
 .status-badge-pill.incomplete{color:#0369A1 !important;background:#E0F2FE !important;border:1px solid #7DD3FC !important}
 .word-split-content::-webkit-scrollbar,
-.word-split-box > div:not(.word-split-title)::-webkit-scrollbar{width:6px}
+.word-split-box > div:not(.word-split-title)::-webkit-scrollbar{display:none !important;width:0 !important;height:0 !important}
 .word-split-content::-webkit-scrollbar-track,
 .word-split-box > div:not(.word-split-title)::-webkit-scrollbar-track{background:rgba(0,0,0,0.04);border-radius:999px}
 .word-split-content::-webkit-scrollbar-thumb,
@@ -4349,15 +4364,15 @@ body.css-fullscreen-active {
       overflow-y: auto !important;
       overflow-x: hidden !important;
       overscroll-behavior: contain !important;
-      scrollbar-gutter: stable !important;
-      scrollbar-width: thin !important;
+      scrollbar-width: none !important;
+      -ms-overflow-style: none !important;
       display: grid !important;
       grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)) !important;
       gap: 8px !important;
       align-content: start !important;
       align-items: start !important;
       width: 100% !important;
-      padding: 2px 4px 2px 0 !important;
+      padding: 2px 0 !important;
       box-sizing: border-box !important;
     }
 

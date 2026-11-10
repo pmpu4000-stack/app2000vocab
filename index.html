@@ -859,14 +859,27 @@
       flex: 1 1 auto !important;
       height: 0 !important;
       min-height: 0 !important;
-      max-height: 100% !important;
+      max-height: 122px !important;
       overflow-y: auto !important;
       overflow-x: hidden !important;
       overscroll-behavior: contain !important;
-      padding: 2px 4px 2px 0 !important;
-      scrollbar-gutter: stable !important;
-      scrollbar-width: thin !important;
+      padding: 2px 0 !important;
+      scrollbar-width: none !important;
+      -ms-overflow-style: none !important;
       box-sizing: border-box !important;
+    }
+    .word-split-content::-webkit-scrollbar,
+    .word-split-box > div:not(.word-split-title):::-webkit-scrollbar,
+    .task-tab-pane .word-split-tags-grid::-webkit-scrollbar {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+    }
+    .task-tab-pane .word-split-tags-grid {
+      max-height: 122px !important;
+      overflow-y: auto !important;
+      scrollbar-width: none !important;
+      -ms-overflow-style: none !important;
     }
     .word-split-box.advice-box .word-split-content {
       display: flex !important;
@@ -1008,7 +1021,7 @@
   </style>
   <link rel="preconnect" href="https://script.google.com" crossorigin>
   <link rel="dns-prefetch" href="https://script.google.com">
-  <link rel="stylesheet" href="css/styles.css?v=202611101135">
+  <link rel="stylesheet" href="css/styles.css?v=202611101210">
   <link rel="modulepreload" href="src/app.js">
   <link rel="modulepreload" href="src/auth_sync.js">
   <link rel="modulepreload" href="src/wordbank.js">
