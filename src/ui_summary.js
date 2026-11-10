@@ -1032,72 +1032,8 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     ? "margin-top: 18px; padding-top: 16px; border-top: 1.5px dashed var(--line, #E7E9F5);"
     : "";
 
+  // 業界主流極簡標準：移除多餘的頂部進度條/狀態條，資訊統一由分頁標籤（答對/答錯/未作答/應測單字）及熱力圖唯一呈現
   let scoreGridHtml = "";
-  if (isUnassigned) {
-    scoreGridHtml = `
-      <div style="margin-bottom:8px; width:100%;">
-        <div class="task-status-banner">
-          <div class="tsb-info">
-            <span class="tsb-icon">☕</span>
-            <span>當日老師未指派測驗任務</span>
-          </div>
-          <span class="tsb-badge neutral">當日無指派</span>
-        </div>
-      </div>
-    `;
-  } else if (isUntested) {
-    const untestedWordCount = taskTotWords > 0 ? taskTotWords : (rawWords.length || 0);
-    const untestedBadgeClass = (hasLoggedInOrFree || statusStr.includes("登入未受測") || statusStr.includes("登入未作答")) ? "status-login-untested" : "status-absent-untested";
-    scoreGridHtml = `
-      <div style="margin-bottom:8px; width:100%;">
-        <div class="task-status-banner">
-          <div class="tsb-info">
-            <span class="tsb-icon">📋</span>
-            <span>指定範圍共 <b class="tsb-count">${untestedWordCount}</b> 字</span>
-          </div>
-          <span class="tsb-badge ${untestedBadgeClass}">${displayStatusStr}</span>
-        </div>
-      </div>
-    `;
-  } else {
-    const getHeatmapRateClass = (r) => {
-      const n = (typeof r === 'number') ? r : (parseInt(r, 10) || 0);
-      if (n >= 100) return 'tier-6';
-      if (n >= 90) return 'tier-5';
-      if (n >= 80) return 'tier-4';
-      if (n >= 70) return 'tier-3';
-      if (n >= 60) return 'tier-2';
-      if (n > 0) return 'tier-1';
-      return 'tier-0';
-    };
-    const ansCount = hasUnanswered ? actualAnswered : taskTotWords;
-    const wrgCount = hasUnanswered ? actualWrong : Math.max(0, taskTotWords - taskCorrWords);
-    const unansCount = hasUnanswered ? actualUnanswered : 0;
-    const ovrRate = hasUnanswered ? overallScoreRate : taskRate;
-
-    // 一體化滿版作答進度卡（百分比直接融入頂部，拿掉右方重複方塊）
-    const totalWords = taskTotWords > 0 ? taskTotWords : (ansCount + unansCount);
-    let bottomTagsHtml = "";
-    if (wrgCount === 0 && unansCount === 0) {
-      bottomTagsHtml = `<span class="tpc-tag-perfect">全數答對無失分</span>`;
-    } else {
-      const tagParts = [];
-      if (wrgCount > 0) tagParts.push(`<span class="tpc-tag-wrong">${wrgCount} 題答錯</span>`);
-      if (unansCount > 0) tagParts.push(`<span class="tpc-tag-unans">${unansCount} 題未作答</span>`);
-      bottomTagsHtml = tagParts.join(" · ");
-    }
-
-    scoreGridHtml = `
-      <div style="margin-bottom:8px; width:100%;">
-        <div class="task-progress-card">
-          <div class="tpc-title"><span class="tsb-icon">📝</span> 答對 <b>${taskCorrWords}</b> / ${totalWords} 字</div>
-          <div class="tpc-right">
-            <span class="tpc-rate-badge ${getHeatmapRateClass(ovrRate)}">${ovrRate}% 答對率</span>
-          </div>
-        </div>
-      </div>
-    `;
-  }
 
   const hasWrongOrUnans = (wrongList.length > 0 || actualUnanswered > 0);
 
