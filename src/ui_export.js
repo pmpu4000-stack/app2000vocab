@@ -1300,13 +1300,9 @@ export function initExportRecordsCard(getSummaryFn) {
   const d30 = new Date(); d30.setDate(d30.getDate() - 27);
   const thirtyDaysAgo = _formatYMDLocal(d30);
 
-  const btnModeSingle = document.getElementById("btn-export-mode-single");
-  const btnModeRange = document.getElementById("btn-export-mode-range");
-  const leftSingleInput = document.getElementById("export-single-date");
   const leftStartInput = document.getElementById("export-start-date");
   const rightCell = document.getElementById("export-right-date-cell");
   const presetsRow = document.getElementById("export-presets-row");
-  const inputSingle = leftSingleInput;
   const inputStart = leftStartInput;
   const inputEnd = document.getElementById("export-end-date");
   const formatSelect = document.getElementById("export-format-select");
@@ -1314,11 +1310,6 @@ export function initExportRecordsCard(getSummaryFn) {
   const btnDlPdf = document.getElementById("btn-export-download-pdf");
   const statusMsg = document.getElementById("export-status-msg");
 
-  if (inputSingle && !inputSingle.value) {
-    const recPicker = document.getElementById("record-date-picker");
-    inputSingle.value = (recPicker && recPicker.value) ? recPicker.value : todayDash;
-    inputSingle.max = todayDash;
-  }
   if (inputStart && !inputStart.value) { inputStart.value = sevenDaysAgo; inputStart.max = todayDash; }
   if (inputEnd && !inputEnd.value) { inputEnd.value = todayDash; inputEnd.max = todayDash; }
 
@@ -1344,33 +1335,7 @@ export function initExportRecordsCard(getSummaryFn) {
     };
   }
 
-  let currentMode = "range";
-  const setExportMode = (m) => {
-    currentMode = (m === "single") ? "single" : "range";
-    if (btnModeSingle) btnModeSingle.classList.toggle("active", currentMode === "single");
-    if (btnModeRange) btnModeRange.classList.toggle("active", currentMode === "range");
-    if (leftSingleInput) leftSingleInput.style.display = (currentMode === "single") ? "block" : "none";
-    if (leftStartInput) leftStartInput.style.display = (currentMode === "range") ? "block" : "none";
-    if (rightCell) {
-      rightCell.style.visibility = (currentMode === "range") ? "visible" : "hidden";
-      rightCell.style.pointerEvents = (currentMode === "range") ? "auto" : "none";
-    }
-    if (presetsRow) {
-      presetsRow.style.visibility = "visible";
-      presetsRow.style.opacity = "1";
-      presetsRow.style.pointerEvents = "auto";
-    }
-    if (currentMode === "single" && leftSingleInput && leftStartInput && !leftSingleInput.value) {
-      leftSingleInput.value = leftStartInput.value || todayDash;
-    } else if (currentMode === "range" && leftStartInput && leftSingleInput && !leftStartInput.value) {
-      leftStartInput.value = leftSingleInput.value || sevenDaysAgo;
-    }
-  };
-
-  setExportMode("range");
-
-  if (btnModeSingle) btnModeSingle.onclick = () => setExportMode("single");
-  if (btnModeRange) btnModeRange.onclick = () => setExportMode("range");
+  const currentMode = "range";
 
   const presetBtns = [
     document.getElementById("btn-export-preset-today"),

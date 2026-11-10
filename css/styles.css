@@ -159,7 +159,7 @@ header{display:flex; align-items:center; justify-content:space-between; flex-wra
   padding:8px 14px;font-size:13px;font-weight:700;color:var(--ink2);cursor:pointer;white-space:nowrap;
   display:flex;align-items:center;gap:7px;transition:transform .12s, box-shadow .12s, border-color .12s}
 .chip .dot{width:9px;height:9px;border-radius:50%}
-.chip:hover{transform:translateY(-1px)}
+.chip:hover{transform:none}
 .chip[aria-pressed="true"]{color:#fff;border-color:transparent;box-shadow:var(--shadow)}
 .chip[data-c="all"][aria-pressed="true"]{background:var(--ink)}
 .chip[data-c="A"][aria-pressed="true"]{background:var(--catA)} .chip[data-c="B"][aria-pressed="true"]{background:var(--catB)}
@@ -172,7 +172,7 @@ header{display:flex; align-items:center; justify-content:space-between; flex-wra
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   text-align:center;font-weight:800;color:var(--ink2);font-size:11.5px;white-space:nowrap;transition:transform .12s,border-color .12s,background .12s;box-sizing:border-box}
 .mode .ic{font-size:15px;display:block;line-height:1.15;margin-bottom:1px}
-.mode:hover{transform:translateY(-1px)}
+.mode:hover{transform:none}
 .mode[aria-pressed="true"]{border-color:var(--violet);background:#F1EDFF;color:var(--violet-d)}
 .mode[data-m="listen"][aria-pressed="true"]{border-color:#6C4CE0;background:linear-gradient(145deg,#F5F3FF,#FAF9FF);color:#4C1D95;box-shadow:0 2px 8px rgba(108,76,224,.15)}
 .mode[data-m="pick"][aria-pressed="true"]{border-color:#0284C7;background:linear-gradient(145deg,#F0F9FF,#F8FAFC);color:#0369A1;box-shadow:0 2px 8px rgba(2,132,199,.15)}
@@ -608,7 +608,7 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 .lvchip{flex:1 1 calc(20% - 5px);min-width:60px;height:46px;border:1.5px solid var(--line);background:var(--card);border-radius:8px;
   padding:4px 6px;cursor:pointer;text-align:left;transition:transform .12s,box-shadow .12s;position:relative;box-shadow:0 1.5px 0 var(--line);box-sizing:border-box;
   display:flex;flex-direction:column;justify-content:center}
-.lvchip:hover{transform:translateY(-1px)}
+.lvchip:hover{transform:none}
 .lvchip .lvn{font-size:8.5px;font-weight:800;letter-spacing:.2px;color:var(--ink3);line-height:1.1;margin-bottom:1px}
 .lvchip .lvname{font-size:11.5px;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:3px;white-space:nowrap;line-height:1.2}
 .lvchip .lvbar{height:3px;border-radius:2px;background:#EEEFF7;margin-top:3px;overflow:hidden}
@@ -1079,8 +1079,8 @@ body.daily-limit-reached .stat.user b {
 .task-empty-notice-title{font-size:15px;font-weight:800;color:var(--ink,#1E293B);margin-bottom:6px}
 .task-empty-notice-desc{font-size:13px;color:var(--ink2,#64748B);line-height:1.6;max-width:380px;margin-bottom:0}
 .task-empty-notice-btn{border:none;color:#FFFFFF !important;padding:8px 18px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:transform .15s ease,box-shadow .15s ease,filter .15s ease}
-.task-empty-notice-btn:hover{transform:translateY(-1.5px);filter:brightness(1.08)}
-.task-empty-notice-btn:active{transform:translateY(0)}
+.task-empty-notice-btn:hover{transform:none;filter:brightness(1.08)}
+.task-empty-notice-btn:active{transform:none}
 .task-empty-notice-btn.task-btn{background:linear-gradient(135deg,#4f46e5 0%,#3b82f6 100%);box-shadow:0 3px 10px rgba(79,70,229,.25)}
 .task-empty-notice-btn.free-btn{background:linear-gradient(135deg,#10b981 0%,#059669 100%);box-shadow:0 3px 10px rgba(16,185,129,.25)}
 
@@ -2753,60 +2753,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 .export-label-row {
   margin-bottom: -2px;
 }
-.export-mode-tabs {
-  display: grid !important;
-  grid-template-columns: 1fr 1fr !important;
-  gap: 8px !important;
-  width: 100% !important;
-  box-sizing: border-box !important;
-}
-.export-mode-tabs .export-mode-btn {
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 5px !important;
-  height: 32px !important;
-  min-height: 32px !important;
-  max-height: 32px !important;
-  padding: 0 12px !important;
-  border-radius: 9px !important;
-  font-size: 12.5px !important;
-  font-weight: 800 !important;
-  cursor: pointer !important;
-  transition: all .15s ease !important;
-  white-space: nowrap !important;
-  box-sizing: border-box !important;
-  width: 100% !important;
-  background: #FFFFFF !important;
-  border: 1.5px solid var(--line, #E7E9F5) !important;
-  color: var(--ink, #232A4D) !important;
-}
-.export-mode-tabs .export-mode-btn:hover {
-  background: #F1F8FC !important;
-  border-color: var(--sky) !important;
-  color: var(--sky) !important;
-}
-.export-mode-tabs .export-mode-btn.active {
-  background: var(--violet, #6C4CE0) !important;
-  border-color: var(--violet, #6C4CE0) !important;
-  color: #FFFFFF !important;
-  box-shadow: 0 2px 6px rgba(108, 76, 224, 0.25) !important;
-}
-[data-theme="dark"] .export-mode-tabs .export-mode-btn {
-  background: #20263A !important;
-  border-color: #2D354E !important;
-  color: #E2E8F0 !important;
-}
-[data-theme="dark"] .export-mode-tabs .export-mode-btn:hover {
-  background: #2B334D !important;
-  border-color: var(--sky) !important;
-  color: #38BDF8 !important;
-}
-[data-theme="dark"] .export-mode-tabs .export-mode-btn.active {
-  background: var(--violet, #6C4CE0) !important;
-  border-color: var(--violet, #6C4CE0) !important;
-  color: #FFFFFF !important;
-}
+
 .export-date-row-grid {
   display: flex !important;
   align-items: center !important;
@@ -3676,7 +3623,6 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 /* 待攻克單字卡各關卡內就地切換互動樣式 */
 .conquer-word-tab:hover {
   filter: brightness(0.96);
-  transform: translateY(-1px);
 }
 .conquer-word-tab.is-active {
   box-shadow: 0 0 0 1px #E8892B;
@@ -4531,9 +4477,6 @@ img, svg, video, canvas {
   #tp-panel-class button {
     width: 100% !important;
     justify-content: center;
-  }
-  .export-mode-tabs {
-    grid-template-columns: 1fr !important;
   }
   #teacherTaskModal > div,
   #timeManagementModal > div {
