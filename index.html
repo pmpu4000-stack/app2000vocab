@@ -850,28 +850,60 @@
     }
     .word-split-content,
     .word-split-box > div:not(.word-split-title) {
-      display: flex !important;
-      flex-direction: column !important;
+      display: grid !important;
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)) !important;
+      gap: 8px !important;
+      align-content: start !important;
+      align-items: start !important;
       width: 100% !important;
       flex: 1 1 auto !important;
       height: 0 !important;
       min-height: 0 !important;
-      max-height: 100% !important;
+      max-height: 122px !important;
       overflow-y: auto !important;
       overflow-x: hidden !important;
       overscroll-behavior: contain !important;
-      padding: 2px 4px 2px 0 !important;
+      padding: 2px 0 !important;
+      scrollbar-width: none !important;
+      -ms-overflow-style: none !important;
       box-sizing: border-box !important;
+    }
+    .word-split-content::-webkit-scrollbar,
+    .word-split-box > div:not(.word-split-title):::-webkit-scrollbar,
+    .task-tab-pane .word-split-tags-grid::-webkit-scrollbar {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+    }
+    .task-tab-pane .word-split-tags-grid {
+      max-height: 122px !important;
+      overflow-y: auto !important;
+      scrollbar-width: none !important;
+      -ms-overflow-style: none !important;
+    }
+    .word-split-box.advice-box .word-split-content {
+      display: flex !important;
+      flex-direction: column !important;
+      flex-wrap: nowrap !important;
+      align-items: flex-start !important;
+      align-content: flex-start !important;
     }
     .word-split-tags,
     .word-split-tags-grid {
       display: grid !important;
-      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-      gap: 6px !important;
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)) !important;
+      gap: 8px !important;
       width: 100% !important;
       align-items: start !important;
       align-content: start !important;
       box-sizing: border-box !important;
+    }
+    @media (max-width: 480px) {
+      .word-split-tags,
+      .word-split-tags-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 6px !important;
+      }
     }
     .word-split-content > span.word-pill-tag,
     .word-split-box .word-pill-tag,
@@ -885,21 +917,28 @@
       justify-content: center !important;
       text-align: center !important;
       margin: 0 !important;
-      padding: 6px 4px !important;
-      font-size: 12.5px !important;
+      padding: 6px 8px !important;
+      min-height: 34px !important;
+      font-size: 13px !important;
       font-weight: 700 !important;
-      border-radius: 6px !important;
+      border-radius: 8px !important;
       box-sizing: border-box !important;
       white-space: nowrap !important;
       overflow: hidden !important;
       text-overflow: ellipsis !important;
+      transition: all .15s ease !important;
     }
     .word-split-content > .perfect-score-msg,
     .word-split-content > span:only-child:not(.word-pill-tag) {
       grid-column: 1 / -1 !important;
       width: 100% !important;
-      margin: auto auto !important;
       text-align: center !important;
+    }
+    /* 無指定單字測驗空狀態高度：鎖定 180px 與有作答紀錄方塊（分頁卡 180px）等高，切換日期完全不跳動 */
+    .task-empty-notice-box {
+      height: 180px !important;
+      min-height: 180px !important;
+      max-height: 180px !important;
     }
     /* 待攻克單字方塊網格：限制最多三行（120px），多於三行時提供上下捲動滑桿 */
     .conquer-chip-list {
@@ -987,7 +1026,7 @@
   </style>
   <link rel="preconnect" href="https://script.google.com" crossorigin>
   <link rel="dns-prefetch" href="https://script.google.com">
-  <link rel="stylesheet" href="css/styles.css?v=202611081031">
+  <link rel="stylesheet" href="css/styles.css?v=202611101245">
   <link rel="modulepreload" href="src/app.js">
   <link rel="modulepreload" href="src/auth_sync.js">
   <link rel="modulepreload" href="src/wordbank.js">
@@ -1005,7 +1044,7 @@
   <script>
     if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=202611081031').catch(() => {});
+        navigator.serviceWorker.register('./sw.js?v=202611101135').catch(() => {});
       });
     }
   </script>

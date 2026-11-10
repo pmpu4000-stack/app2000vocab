@@ -4312,6 +4312,20 @@ table{page-break-inside:auto!important;break-inside:auto!important;}tr{page-brea
       max-height: 100% !important;
       overflow-y: auto !important;
       overscroll-behavior: contain !important;
+      display: grid !important;
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)) !important;
+      gap: 8px !important;
+      align-content: start !important;
+      align-items: start !important;
+    }
+    #task-record-details .word-split-box.advice-box .word-split-content,
+    #free-record-details .word-split-box.advice-box .word-split-content,
+    .task-single-record-block .word-split-box.advice-box .word-split-content {
+      display: flex !important;
+      flex-direction: column !important;
+      flex-wrap: nowrap !important;
+      align-items: flex-start !important;
+      align-content: flex-start !important;
     }
 
 </style>

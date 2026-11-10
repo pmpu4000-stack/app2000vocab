@@ -232,9 +232,10 @@ export function getCombinedTaskHistory() {
                 const satCorr = (Array.isArray(rem.satCorrectWords) ? rem.satCorrectWords : []).map(w => String(w).trim().toLowerCase()).filter(w => /^[a-zA-Z]+(?:[-'][a-zA-Z]+)*$/.test(w));
                 const satWrong = (Array.isArray(rem.satWrongWords) ? rem.satWrongWords : []).map(w => String(w).trim().toLowerCase()).filter(w => /^[a-zA-Z]+(?:[-'][a-zA-Z]+)*$/.test(w));
                 const satWords = Array.from(new Set([...satCorr, ...satWrong]));
+                const isBossWeek = getBiweeklyCycleInfo(satKey).isBiweeklyBossWeek;
                 const satItem = {
                   date: satKey,
-                  taskName: `🎯 ${formatWeekendTaskDate(satKey)} 週末待攻克測驗作答紀錄`,
+                  taskName: isBossWeek ? "🎯 雙週指定單字大消滅戰作答紀錄" : "🎯 週末待攻克測驗作答紀錄",
                   score: rem.satScore || (satWords.length ? `${satCorr.length}/${satWords.length}` : "已完成"),
                   rate: rem.satRate || (satWords.length ? `${Math.round((satCorr.length / satWords.length) * 100)}%` : "100%"),
                   status: "🟢 已完成",
@@ -278,9 +279,10 @@ export function getCombinedTaskHistory() {
                 const sunCorr = (Array.isArray(rem.sunCorrectWords) ? rem.sunCorrectWords : []).map(w => String(w).trim().toLowerCase()).filter(w => /^[a-zA-Z]+(?:[-'][a-zA-Z]+)*$/.test(w));
                 const sunWrong = (Array.isArray(rem.sunWrongWords) ? rem.sunWrongWords : []).map(w => String(w).trim().toLowerCase()).filter(w => /^[a-zA-Z]+(?:[-'][a-zA-Z]+)*$/.test(w));
                 const sunWords = Array.from(new Set([...sunCorr, ...sunWrong]));
+                const isSunBoss = getBiweeklyCycleInfo(sunKey).isBiweeklyBossWeek;
                 const sunItem = {
                   date: sunKey,
-                  taskName: `🎯 ${formatWeekendTaskDate(sunKey)} 週末待攻克測驗作答紀錄`,
+                  taskName: isSunBoss ? "🎯 雙週指定單字大消滅戰作答紀錄" : "🎯 週末待攻克測驗作答紀錄",
                   score: rem.sunScore || (sunWords.length ? `${sunCorr.length}/${sunWords.length}` : "已完成"),
                   rate: rem.sunRate || (sunWords.length ? `${Math.round((sunCorr.length / sunWords.length) * 100)}%` : "100%"),
                   status: "🟢 已完成",
@@ -1013,9 +1015,8 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
   const isWeekendTask = isWeekend(dateStr) || isWeekend(selectedDate) || String(record.taskName || "").includes("週末") || String(record.taskName || "").includes("消滅戰") || String(record.taskName || "").includes("待攻克") || String(record.taskName || "").includes("雙週");
   let formattedTaskName = "";
   if (isWeekendTask) {
-    const cleanDate = formatWeekendTaskDate(dateStr || selectedDate, record.taskName);
     const isBoss = String(record.taskName || "").includes("雙週") || (getBiweeklyCycleInfo(dateStr || selectedDate).isBiweeklyBossWeek);
-    formattedTaskName = cleanDate ? `🎯 ${cleanDate} ${isBoss ? "雙週指定單字大消滅戰" : "週末待攻克測驗"}作答紀錄` : (isBoss ? "🎯 雙週指定單字大消滅戰作答紀錄" : "🎯 週末待攻克測驗作答紀錄");
+    formattedTaskName = isBoss ? "🎯 雙週指定單字大消滅戰作答紀錄" : "🎯 週末待攻克測驗作答紀錄";
   } else {
     let cleanTaskName = String(record.taskName || "平日指定測驗").trim().replace(/^[📝📑\s]+/, "");
     cleanTaskName = cleanTaskName.replace(/指定單字隨堂測驗/g, "平日指定測驗作答紀錄").replace(/隨堂測驗/g, "測驗結果");
@@ -1031,72 +1032,8 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     ? "margin-top: 18px; padding-top: 16px; border-top: 1.5px dashed var(--line, #E7E9F5);"
     : "";
 
+  // 業界主流極簡標準：移除多餘的頂部進度條/狀態條，資訊統一由分頁標籤（答對/答錯/未作答/應測單字）及熱力圖唯一呈現
   let scoreGridHtml = "";
-  if (isUnassigned) {
-    scoreGridHtml = `
-      <div style="margin-bottom:8px; width:100%;">
-        <div class="task-status-banner">
-          <div class="tsb-info">
-            <span class="tsb-icon">☕</span>
-            <span>當日老師未指派測驗任務</span>
-          </div>
-          <span class="tsb-badge neutral">當日無指派</span>
-        </div>
-      </div>
-    `;
-  } else if (isUntested) {
-    const untestedWordCount = taskTotWords > 0 ? taskTotWords : (rawWords.length || 0);
-    const untestedBadgeClass = (hasLoggedInOrFree || statusStr.includes("登入未受測") || statusStr.includes("登入未作答")) ? "status-login-untested" : "status-absent-untested";
-    scoreGridHtml = `
-      <div style="margin-bottom:8px; width:100%;">
-        <div class="task-status-banner">
-          <div class="tsb-info">
-            <span class="tsb-icon">📋</span>
-            <span>指定範圍共 <b class="tsb-count">${untestedWordCount}</b> 字</span>
-          </div>
-          <span class="tsb-badge ${untestedBadgeClass}">${displayStatusStr}</span>
-        </div>
-      </div>
-    `;
-  } else {
-    const getHeatmapRateClass = (r) => {
-      const n = (typeof r === 'number') ? r : (parseInt(r, 10) || 0);
-      if (n >= 100) return 'tier-6';
-      if (n >= 90) return 'tier-5';
-      if (n >= 80) return 'tier-4';
-      if (n >= 70) return 'tier-3';
-      if (n >= 60) return 'tier-2';
-      if (n > 0) return 'tier-1';
-      return 'tier-0';
-    };
-    const ansCount = hasUnanswered ? actualAnswered : taskTotWords;
-    const wrgCount = hasUnanswered ? actualWrong : Math.max(0, taskTotWords - taskCorrWords);
-    const unansCount = hasUnanswered ? actualUnanswered : 0;
-    const ovrRate = hasUnanswered ? overallScoreRate : taskRate;
-
-    // 一體化滿版作答進度卡（百分比直接融入頂部，拿掉右方重複方塊）
-    const totalWords = taskTotWords > 0 ? taskTotWords : (ansCount + unansCount);
-    let bottomTagsHtml = "";
-    if (wrgCount === 0 && unansCount === 0) {
-      bottomTagsHtml = `<span class="tpc-tag-perfect">全數答對無失分</span>`;
-    } else {
-      const tagParts = [];
-      if (wrgCount > 0) tagParts.push(`<span class="tpc-tag-wrong">${wrgCount} 題答錯</span>`);
-      if (unansCount > 0) tagParts.push(`<span class="tpc-tag-unans">${unansCount} 題未作答</span>`);
-      bottomTagsHtml = tagParts.join(" · ");
-    }
-
-    scoreGridHtml = `
-      <div style="margin-bottom:8px; width:100%;">
-        <div class="task-progress-card">
-          <div class="tpc-title"><span class="tsb-icon">📝</span> 答對 <b>${taskCorrWords}</b> / ${totalWords} 字</div>
-          <div class="tpc-right">
-            <span class="tpc-rate-badge ${getHeatmapRateClass(ovrRate)}">${ovrRate}% 答對率</span>
-          </div>
-        </div>
-      </div>
-    `;
-  }
 
   const hasWrongOrUnans = (wrongList.length > 0 || actualUnanswered > 0);
 
@@ -1242,11 +1179,11 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
 
 function renderUntestedTaskCardHtml(info, d) {
   const { taskName = "", assignedWords = [], hasLoggedInOrFree = false, selectedDate = "" } = info || {};
-  const isWeekendTask = isWeekend(selectedDate) || String(taskName || "").includes("週末") || String(taskName || "").includes("消滅戰") || String(taskName || "").includes("待攻克");
+  const isWeekendTask = isWeekend(selectedDate) || String(taskName || "").includes("週末") || String(taskName || "").includes("消滅戰") || String(taskName || "").includes("待攻克") || String(taskName || "").includes("雙週");
   let formattedTaskName = "";
   if (isWeekendTask) {
-    const cleanDate = formatWeekendTaskDate(selectedDate, taskName);
-    formattedTaskName = cleanDate ? `🎯 ${cleanDate} 週末待攻克測驗作答紀錄` : "🎯 週末待攻克測驗作答紀錄";
+    const isBoss = String(taskName || "").includes("雙週") || (getBiweeklyCycleInfo(selectedDate).isBiweeklyBossWeek);
+    formattedTaskName = isBoss ? "🎯 雙週指定單字大消滅戰作答紀錄" : "🎯 週末待攻克測驗作答紀錄";
   } else {
     let cleanTaskName = String(taskName || "平日指定測驗作答紀錄").trim().replace(/^[📝📑\s]+/, "");
     cleanTaskName = cleanTaskName.replace(/指定單字隨堂測驗/g, "平日指定測驗作答紀錄").replace(/隨堂測驗/g, "測驗結果");
@@ -1416,10 +1353,10 @@ function buildTaskDetailsHtml(records, selectedDate, d, dayStat = null) {
               const wrg = day === 6 ? (rem.satWrongWords || []) : (rem.sunWrongWords || []);
               const sc = day === 6 ? rem.satScore : rem.sunScore;
               const rt = day === 6 ? rem.satRate : rem.sunRate;
-              const wList = Array.from(new Set([...corr, ...wrg]));
+              const isBossWeek = getBiweeklyCycleInfo(normDate).isBiweeklyBossWeek;
               list.push({
                 date: normDate,
-                taskName: `🎯 ${formatWeekendTaskDate(normDate)} 週末待攻克測驗作答紀錄`,
+                taskName: isBossWeek ? "🎯 雙週指定單字大消滅戰作答紀錄" : "🎯 週末待攻克測驗作答紀錄",
                 score: sc || (wList.length ? `${corr.length}/${wList.length}` : "已完成"),
                 rate: rt || "100%",
                 status: "🟢 已完成",
@@ -1664,93 +1601,79 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
 
   const wordRate = totalWords > 0 ? Math.round((correctWords / totalWords) * 100) : 0;
 
-  let correctContentHtml = "";
+  // 依指定測驗極簡標準（方案 B：分頁整合單卡架構），自由練習亦統一切換為三等分標籤頁
+  const isAllCorrect = (displayWrongBoxCount === 0);
+
+  // 答對單字標籤清單
+  let correctPillsHtml = "";
   if (correctList.length > 0) {
-    correctContentHtml = `<div class="word-split-tags-grid" style="display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:8px; width:100%;">${correctList.map(w => `<span class="word-pill-tag correct" data-word="${w.word.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w.word}</span>`).join("")}</div>`;
+    correctPillsHtml = correctList.map(w =>
+      `<span class="word-pill-tag correct" data-word="${escapeHtml(w.word)}" style="cursor:pointer;" title="點擊聆聽發音">${escapeHtml(w.word)}</span>`
+    ).join("");
   } else if (correctWords > 0) {
-    correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（當日答對 ${correctWords} 字，早期紀錄僅存統計字數、未記錄個別單字明細）</span>`;
+    correctPillsHtml = `<span style="width:100%; font-size:12px; color:var(--ink3); font-style:italic; padding:8px; text-align:center;">（當日答對 ${correctWords} 字，早期紀錄僅存統計字數）</span>`;
   } else {
-    correctContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（當日尚無全對單字）</span>`;
+    correctPillsHtml = `<span style="width:100%; font-size:12px; color:var(--ink3); font-style:italic; padding:8px; text-align:center;">（當日尚無全對單字）</span>`;
   }
 
-  let wrongContentHtml = "";
+  // 答錯單字標籤清單
+  let wrongPillsHtml = "";
   if (wrongList.length > 0) {
-    const wrongItemsHtml = wrongList.map(w => {
+    wrongPillsHtml = wrongList.map(w => {
       if (w.hadCorrectThenWrong || (w.lastResult === "wrong" && w.correct > 0)) {
-        return `<span class="word-pill-tag warning" data-word="${w.word.replace(/"/g, "&quot;")}" style="border:1.5px dashed #f59e0b; background:rgba(245,158,11,0.1); color:#b45309; cursor:pointer;" title="當日曾答對，但後續作答時答錯 (點擊聆聽發音)">${w.word} <small style="font-size:10px; font-weight:700;">(曾對後錯⚠️)</small></span>`;
+        return `<span class="word-pill-tag warning" data-word="${escapeHtml(w.word)}" style="border:1.5px dashed #f59e0b; background:rgba(245,158,11,0.1); color:#b45309; cursor:pointer;" title="當日曾答對，但後續作答時答錯 (點擊聆聽發音)">${escapeHtml(w.word)} <small style="font-size:10px; font-weight:700;">(曾對後錯⚠️)</small></span>`;
       } else if (w.correct > 0) {
-        return `<span class="word-pill-tag correct" data-word="${w.word.replace(/"/g, "&quot;")}" style="border:1.5px dashed var(--green, #10B981); cursor:pointer;" title="當日曾答錯，已訂正答對 (點擊聆聽發音)">${w.word} <small style="font-size:10px; opacity:0.85;">(已訂正)</small></span>`;
+        return `<span class="word-pill-tag correct" data-word="${escapeHtml(w.word)}" style="border:1.5px dashed var(--green, #10B981); cursor:pointer;" title="當日曾答錯，已訂正答對 (點擊聆聽發音)">${escapeHtml(w.word)} <small style="font-size:10px; opacity:0.85;">(已訂正)</small></span>`;
       } else {
-        return `<span class="word-pill-tag wrong" data-word="${w.word.replace(/"/g, "&quot;")}" style="cursor:pointer;" title="點擊聆聽發音">${w.word}</span>`;
+        return `<span class="word-pill-tag wrong" data-word="${escapeHtml(w.word)}" style="cursor:pointer;" title="點擊聆聽發音">${escapeHtml(w.word)}</span>`;
       }
     }).join("");
-    wrongContentHtml = `<div class="word-split-tags-grid" style="display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:8px; width:100%;">${wrongItemsHtml}</div>`;
   } else if (displayWrongBoxCount > 0) {
-    wrongContentHtml = `<span style="font-size:12px; color:var(--ink3); font-style:italic;">（當日答錯 ${displayWrongBoxCount} 字，早期紀錄僅存統計字數、未記錄個別單字明細）</span>`;
+    wrongPillsHtml = `<span style="width:100%; font-size:12px; color:var(--ink3); font-style:italic; padding:8px; text-align:center;">（當日答錯 ${displayWrongBoxCount} 字，早期紀錄僅存統計字數）</span>`;
   } else {
-    wrongContentHtml = "";
+    wrongPillsHtml = `<span style="width:100%; font-size:12px; color:var(--ink3); font-style:italic; padding:8px; text-align:center;">（無答錯單字）</span>`;
   }
 
-  const getHeatmapRateClass = (r) => {
-    const n = (typeof r === 'number') ? r : (parseInt(r, 10) || 0);
-    if (n >= 100) return 'tier-6';
-    if (n >= 90) return 'tier-5';
-    if (n >= 80) return 'tier-4';
-    if (n >= 70) return 'tier-3';
-    if (n >= 60) return 'tier-2';
-    if (n > 0) return 'tier-1';
-    return 'tier-0';
-  };
+  const tabCardHtml = `
+    <div class="task-tab-card">
+      <div class="task-tab-nav">
+        <button type="button" class="task-tab-btn is-active tab-correct" onclick="event.stopPropagation(); const p=this.closest('.task-tab-card'); p.querySelectorAll('.task-tab-btn').forEach(b=>b.classList.remove('is-active')); this.classList.add('is-active'); p.querySelectorAll('.task-tab-pane').forEach(el=>el.classList.remove('is-active')); p.querySelector('.pane-free-correct').classList.add('is-active');">
+          <span class="card-icon-slot">✅</span> 答對 (${displayCorrectBoxCount})
+        </button>
+        ${!isAllCorrect ? `
+        <button type="button" class="task-tab-btn tab-wrong" onclick="event.stopPropagation(); const p=this.closest('.task-tab-card'); p.querySelectorAll('.task-tab-btn').forEach(b=>b.classList.remove('is-active')); this.classList.add('is-active'); p.querySelectorAll('.task-tab-pane').forEach(el=>el.classList.remove('is-active')); p.querySelector('.pane-free-wrong').classList.add('is-active');">
+          <span class="card-icon-slot">❌</span> 答錯 (${displayWrongBoxCount})
+        </button>
+        ` : `
+        <button type="button" class="task-tab-btn tab-info" style="pointer-events:none; opacity:0.85;">
+          <span class="card-icon-slot">🎉</span> 全數答對無失分
+        </button>
+        `}
+      </div>
+      <div class="task-tab-pane pane-free-correct is-active">
+        <div class="word-split-tags-grid">
+          ${correctPillsHtml}
+        </div>
+      </div>
+      ${!isAllCorrect ? `
+      <div class="task-tab-pane pane-free-wrong">
+        <div class="word-split-tags-grid">
+          ${wrongPillsHtml}
+        </div>
+      </div>
+      ` : ""}
+    </div>
+  `;
 
   return `
-    <div>
+    <div class="task-single-record-block">
       <div class="task-history-header">
         <div>
           <span class="task-card-title task-title-free">${freeTitleText}</span>
         </div>
       </div>
 
-      <div class="task-score-grid">
-        <div class="task-score-subgrid">
-          <div class="task-score-item score-corr-item">
-            <div class="task-score-label">答對</div>
-            <div class="task-score-val task-score-num-corr">${correctWords}</div>
-          </div>
-          <div class="task-score-item score-wrong-item">
-            <div class="task-score-label">答錯</div>
-            <div class="task-score-val task-score-num-wrong">${displayWrongBoxCount}</div>
-          </div>
-        </div>
-        <div class="task-score-item rate-tier-item ${getHeatmapRateClass(wordRate)}">
-          <div class="task-score-label">全卷正確率</div>
-          <div class="task-score-val heat-rate-val ${getHeatmapRateClass(wordRate)}">
-            ${totalWords > 0 ? wordRate + '%' : '—'}
-          </div>
-        </div>
-      </div>
-
-      <!-- 將答對的字與答錯的字分成兩個區域（純顯示當日練習狀況，非累積狀況） -->
-      <div class="word-split-grid grid-2">
-        <!-- 答對的單字區 -->
-        <div class="word-split-box correct-box">
-          <div class="word-split-title correct-title">
-            <span><span style="color:#10B981; font-weight:900; margin-right:4px;">✔</span>答對的單字 (${displayCorrectBoxCount} 字)</span>
-          </div>
-          <div class="word-split-content">
-            ${correctContentHtml}
-          </div>
-        </div>
-
-        <!-- 答錯的單字區 -->
-        <div class="word-split-box wrong-box">
-          <div class="word-split-title wrong-title">
-            <span>❌ 答錯的單字 (${displayWrongBoxCount} 字)</span>
-          </div>
-          <div class="word-split-content">
-            ${wrongContentHtml}
-          </div>
-        </div>
-      </div>
+      ${tabCardHtml}
     </div>
   `;
 }
@@ -2381,7 +2304,7 @@ export function renderSummary(d) {
 
     <!-- 子標題 1：平日指定測驗 / 週末待攻克測驗作答紀錄 -->
     <div class="subh" style="margin-top:10px;">
-      <span id="task-subh-title">${isWeekend(defaultSelectedDate) ? (getBiweeklyCycleInfo(defaultSelectedDate).isBiweeklyBossWeek ? `🎯 ${formatWeekendTaskDate(defaultSelectedDate)} 雙週指定單字大消滅戰作答紀錄` : `🎯 ${formatWeekendTaskDate(defaultSelectedDate)} 週末待攻克測驗作答紀錄`) : "📝 平日指定測驗作答紀錄"}</span>
+      <span id="task-subh-title">${isWeekend(defaultSelectedDate) ? (getBiweeklyCycleInfo(defaultSelectedDate).isBiweeklyBossWeek ? "🎯 雙週指定單字大消滅戰作答紀錄" : "🎯 週末待攻克測驗作答紀錄") : "📝 平日指定測驗作答紀錄"}</span>
     </div>
     <div class="task-history-card">
       <div id="task-record-details">
@@ -2690,7 +2613,7 @@ export function renderSummary(d) {
     const taskSubhTitle = $("#task-subh-title");
     if (taskSubhTitle) {
       taskSubhTitle.textContent = isWeekend(targetDate)
-        ? (getBiweeklyCycleInfo(targetDate).isBiweeklyBossWeek ? `🎯 ${formatWeekendTaskDate(targetDate)} 雙週指定單字大消滅戰作答紀錄` : `🎯 ${formatWeekendTaskDate(targetDate)} 週末待攻克測驗作答紀錄`)
+        ? (getBiweeklyCycleInfo(targetDate).isBiweeklyBossWeek ? "🎯 雙週指定單字大消滅戰作答紀錄" : "🎯 週末待攻克測驗作答紀錄")
         : "📝 平日指定測驗作答紀錄";
     }
     const targetTaskRecords = taskByDateMap.get(targetDate) || [];

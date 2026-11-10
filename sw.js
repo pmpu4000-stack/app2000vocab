@@ -5,7 +5,7 @@
 // 3. 單字庫與音檔永久快取
 // =====================================================================
 
-const CACHE_NAME = 'spelling-app-shell-v128';
+const CACHE_NAME = 'spelling-app-shell-v134';
 const MAX_CACHE_ENTRIES = 120;
 const STATIC_ASSETS = [
   './',
@@ -30,25 +30,16 @@ const STATIC_ASSETS = [
   'data/words2000.json'
 ];
 
-async function trimCache(cacheName, maxItems) {
-  try {
-    const cache = await caches.open(cacheName);
-    const keys = await cache.keys();
-    if (keys.length > maxItems) {
-      const excess = keys.length - maxItems;
-      for (let i = 0; i < excess; i++) {
-        await cache.delete(keys[i]);
-      }
-    }
-  } catch (_) {}
-}
-
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS).catch((err) => {
-        console.warn('SW pre-cache error:', err);
-      });
+    caches.open(CACHE_NAME).then(async (cache) => {
+      for (const asset of STATIC_ASSETS) {
+        try {
+          await cache.add(asset);
+        } catch (err) {
+          console.warn(`[SW] Pre-caching failed for: ${asset}`, err);
+        }
+      }
     }).then(() => self.skipWaiting())
   );
 });
@@ -58,11 +49,11 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((keys) => {
       return Promise.all(
         keys.map((key) => {
-          if (key !== CACHE_NAME && !key.startsWith('spelling-audio-cache') && !key.startsWith('spelling-vocab-cache')) {
+          if (key !== CACHE_NAME && key.startsWith('spelling-app-shell-')) {
             return caches.delete(key);
           }
         })
-      ).then(() => trimCache('spelling-audio-cache-v1', 250));
+      );
     }).then(() => self.clients.claim())
   );
 });
@@ -71,44 +62,45 @@ self.addEventListener('fetch', (event) => {
   const req = event.request;
   const url = new URL(req.url);
 
-  // 1. Google Apps Script 或外部 API：Network-First，絕不快取過期狀態
-  if (url.origin.includes('script.google.com') || url.origin.includes('script.googleusercontent.com')) {
-    if (req.method === 'GET') {
-      event.respondWith(fetch(req).catch(() => caches.match(req)));
-    }
+  if (req.method !== 'GET') return;
+
+  if (url.hostname.includes('script.google.com') || url.hostname.includes('script.googleusercontent.com')) {
+    event.respondWith(
+      fetch(req).catch(() => caches.match(req))
+    );
     return;
   }
 
-  // 2. 音檔與單字庫由專屬快取層處理
-  if (url.pathname.includes('/sounds/') || url.pathname.includes('meanings.json')) {
-    return;
-  }
-
-  // 3. 本機靜態資源：導航 HTML 採 Network-First，JS/CSS/圖示採 Stale-While-Revalidate 兼顧秒開與背景更新
-  if (req.method === 'GET' && url.origin === location.origin) {
-    if (req.mode === 'navigate' || url.pathname.endsWith('.html')) {
-      event.respondWith(
-        fetch(req, { cache: 'no-cache' }).then((networkResp) => {
-          if (networkResp && networkResp.ok) {
-            const clone = networkResp.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(req, clone));
-          }
-          return networkResp;
-        }).catch(() => caches.match(req))
-      );
-      return;
-    }
+  if (url.pathname.endsWith('.mp3') || url.pathname.includes('/data/words2000.json')) {
     event.respondWith(
       caches.open(CACHE_NAME).then(async (cache) => {
         const cached = await cache.match(req);
-        const fetchPromise = fetch(req).then((networkResp) => {
-          if (networkResp && networkResp.ok) {
-            cache.put(req, networkResp.clone()).then(() => trimCache(CACHE_NAME, MAX_CACHE_ENTRIES));
+        if (cached) return cached;
+        try {
+          const res = await fetch(req);
+          if (res && res.status === 200) {
+            cache.put(req, res.clone());
           }
-          return networkResp;
-        }).catch(() => cached);
-        return cached || fetchPromise;
+          return res;
+        } catch (e) {
+          return cached;
+        }
       })
     );
+    return;
   }
+
+  event.respondWith(
+    caches.match(req).then((cached) => {
+      const fetchPromise = fetch(req).then((res) => {
+        if (res && res.status === 200 && res.type === 'basic') {
+          const resClone = res.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(req, resClone));
+        }
+        return res;
+      }).catch(() => cached);
+
+      return cached || fetchPromise;
+    })
+  );
 });
