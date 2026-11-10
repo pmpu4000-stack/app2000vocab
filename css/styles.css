@@ -841,9 +841,9 @@ body.daily-limit-reached .stat.user b {
 [data-theme="dark"] .task-progress-card .tpc-rate-badge.tier-5{background:rgba(0,180,216,0.6) !important;color:#FFFFFF !important;border-color:#E0F2FE !important}
 [data-theme="dark"] .task-progress-card .tpc-rate-badge.tier-6{background:rgba(0,210,255,0.7) !important;color:#0B132B !important;border-color:#90E0EF !important;box-shadow:0 0 12px rgba(0,210,255,0.7) !important;font-weight:900}
 .task-words-container{margin-top:8px}
-.word-pill-tag{display:inline-flex;align-items:center;gap:4px;padding:3.5px 8.5px;border-radius:6px;font-size:12.5px;font-weight:700;margin:1.5px 2px;line-height:1.25;cursor:pointer;transition:transform .12s,box-shadow .12s;user-select:none;width:fit-content;max-width:100%;box-sizing:border-box;white-space:nowrap;word-break:keep-all}
-.word-pill-tag:hover{transform:translateY(-1px);box-shadow:0 3px 8px rgba(0,0,0,0.08)}
-.word-pill-tag:active{transform:scale(0.96)}
+.word-pill-tag{display:inline-flex;align-items:center;gap:4px;padding:3.5px 8.5px;border-radius:6px;font-size:12.5px;font-weight:700;margin:1.5px 2px;line-height:1.25;cursor:pointer;transition:background .12s,border-color .12s;user-select:none;width:fit-content;max-width:100%;box-sizing:border-box;white-space:nowrap;word-break:keep-all}
+.word-pill-tag:hover{transform:none !important;box-shadow:none !important;filter:brightness(1.06)}
+.word-pill-tag:active{transform:none !important}
 .word-pill-tag.correct{background:#EFF6FF;color:#1D4ED8;border:1.5px solid #38BDF8;font-weight:800}
 .word-pill-tag.warning{background:#FFFBEB;color:#B45309;border:1.5px dashed #F59E0B;font-weight:800}
 .word-pill-tag.wrong{background:#F1F5F9;color:#334155;border:1.5px solid #CBD5E1;font-weight:700}
@@ -2949,10 +2949,10 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   width: 100% !important;
 }
 .export-dl-btn:hover {
-  transform: translateY(-1px) !important;
+  transform: none !important;
 }
 .export-dl-btn:active {
-  transform: translateY(0) !important;
+  transform: none !important;
 }
 .export-dl-btn:disabled {
   opacity: 0.55 !important;
@@ -3254,16 +3254,17 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   color: #334155 !important;
   cursor: pointer !important;
   user-select: none !important;
-  transition: transform .12s, box-shadow .12s !important;
+  transition: background .12s, border-color .12s !important;
 }
 .word-pill-tag.conquer-pill:hover {
-  transform: translateY(-1px) !important;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08) !important;
+  transform: none !important;
+  box-shadow: none !important;
   border-color: #94A3B8 !important;
   color: #0F172A !important;
+  filter: brightness(1.06) !important;
 }
 .word-pill-tag.conquer-pill:active {
-  transform: scale(0.96) !important;
+  transform: none !important;
 }
 [data-theme="dark"] .word-pill-tag.conquer-pill {
   background: rgba(148, 163, 184, 0.16) !important;
@@ -3762,13 +3763,14 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   font-family: inherit !important;
 }
 .conquer-word-tab:hover {
-  transform: translateY(-1px) !important;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08) !important;
+  transform: none !important;
+  box-shadow: none !important;
   border-color: #94A3B8 !important;
   color: #0F172A !important;
+  filter: brightness(1.06) !important;
 }
 .conquer-word-tab:active {
-  transform: scale(0.96) !important;
+  transform: none !important;
 }
 .conquer-word-tab.is-active {
   border: 1.5px solid #E8892B !important;
@@ -3988,7 +3990,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 #btn-copy-weak-words:hover,
 #btn-st-copy-weak-words:hover {
   background: rgba(37, 99, 235, 0.16) !important;
-  transform: translateY(-1px) !important;
+  transform: none !important;
 }
 [data-theme="dark"] .weak-btn-copy,
 [data-theme="dark"] #btn-copy-weak-words,
@@ -4014,7 +4016,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 .weak-btn-pdf:hover,
 #btn-export-weak-pdf:hover,
 #btn-st-export-weak-pdf:hover {
-  transform: translateY(-1px) !important;
+  transform: none !important;
   box-shadow: 0 4px 12px rgba(108, 76, 224, 0.35) !important;
 }
 [data-theme="dark"] .weak-btn-pdf,
@@ -4035,7 +4037,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 .weak-btn-preview:hover,
 #btn-weak-preview-web:hover,
 #btn-st-weak-preview-web:hover {
-  transform: translateY(-1px) !important;
+  transform: none !important;
   box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35) !important;
 }
 [data-theme="dark"] .weak-btn-preview,
