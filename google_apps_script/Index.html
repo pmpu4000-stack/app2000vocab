@@ -932,8 +932,13 @@
     .word-split-content > span:only-child:not(.word-pill-tag) {
       grid-column: 1 / -1 !important;
       width: 100% !important;
-      margin: auto auto !important;
       text-align: center !important;
+    }
+    /* 無指定單字測驗空狀態高度：鎖定 230px 與有作答紀錄方塊（進度卡 42px + 邊距 8px + 分頁卡 180px）等高，切換日期完全不跳動 */
+    .task-empty-notice-box {
+      height: 230px !important;
+      min-height: 230px !important;
+      max-height: 230px !important;
     }
     /* 待攻克單字方塊網格：限制最多三行（120px），多於三行時提供上下捲動滑桿 */
     .conquer-chip-list {
@@ -1021,7 +1026,7 @@
   </style>
   <link rel="preconnect" href="https://script.google.com" crossorigin>
   <link rel="dns-prefetch" href="https://script.google.com">
-  <link rel="stylesheet" href="css/styles.css?v=202611101210">
+  <link rel="stylesheet" href="css/styles.css?v=202611101220">
   <link rel="modulepreload" href="src/app.js">
   <link rel="modulepreload" href="src/auth_sync.js">
   <link rel="modulepreload" href="src/wordbank.js">
