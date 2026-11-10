@@ -932,7 +932,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
         rightTitleText = `
           <div class="word-box-tabs">
             <button type="button" class="word-box-tab-btn tab-wrong ${defaultWrongActive ? 'is-active' : ''}" onclick="event.stopPropagation(); const p=this.closest('.word-split-box'); p.querySelectorAll('.word-box-tab-btn').forEach(b=>b.classList.remove('is-active')); this.classList.add('is-active'); p.querySelector('.pane-wrong').classList.add('is-active'); p.querySelector('.pane-unans').classList.remove('is-active');">
-              <span class="card-icon-slot" style="font-size:11px;">❌</span> 答錯 (${wrongList.length})
+              <span class="card-icon-slot" style="font-size:11px;">💪</span> 待加強 (${wrongList.length})
             </button>
             <button type="button" class="word-box-tab-btn tab-unans ${!defaultWrongActive ? 'is-active' : ''}" onclick="event.stopPropagation(); const p=this.closest('.word-split-box'); p.querySelectorAll('.word-box-tab-btn').forEach(b=>b.classList.remove('is-active')); this.classList.add('is-active'); p.querySelector('.pane-unans').classList.add('is-active'); p.querySelector('.pane-wrong').classList.remove('is-active');">
               <span class="card-icon-slot" style="font-size:11px;">⏳</span> 未作答 (${unansCount})
@@ -942,7 +942,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
 
         wrongContentHtml = `
           <div class="word-box-tab-pane pane-wrong ${defaultWrongActive ? 'is-active' : ''}">
-            <div class="word-split-tags-grid">${wrongPills || '<span style="width:100%; font-size:12px; color:var(--ink3); font-style:italic;">（受測題目無答錯）</span>'}</div>
+            <div class="word-split-tags-grid">${wrongPills || '<span style="width:100%; font-size:12px; color:var(--ink3); font-style:italic;">（受測題目無待加強）</span>'}</div>
           </div>
           <div class="word-box-tab-pane pane-unans ${!defaultWrongActive ? 'is-active' : ''}">
             <div class="word-split-tags-grid">${unansPills || '<span style="width:100%; font-size:11.5px; color:var(--ink3);">（包含抽題未作答之題目）</span>'}</div>
@@ -1126,7 +1126,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
           </button>
           ${!isAllCorrect ? `
           <button type="button" class="task-tab-btn tab-wrong" onclick="event.stopPropagation(); const p=this.closest('.task-tab-card'); p.querySelectorAll('.task-tab-btn').forEach(b=>b.classList.remove('is-active')); this.classList.add('is-active'); p.querySelectorAll('.task-tab-pane').forEach(el=>el.classList.remove('is-active')); p.querySelector('.pane-tab-wrong').classList.add('is-active');">
-            <span class="card-icon-slot">❌</span> 答錯 (${wrongList.length})
+            <span class="card-icon-slot">💪</span> 待加強 (${wrongList.length})
           </button>
           ${unansCount > 0 ? `
           <button type="button" class="task-tab-btn tab-unans" onclick="event.stopPropagation(); const p=this.closest('.task-tab-card'); p.querySelectorAll('.task-tab-btn').forEach(b=>b.classList.remove('is-active')); this.classList.add('is-active'); p.querySelectorAll('.task-tab-pane').forEach(el=>el.classList.remove('is-active')); p.querySelector('.pane-tab-unans').classList.add('is-active');">
@@ -1147,7 +1147,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
         ${!isAllCorrect ? `
         <div class="task-tab-pane pane-tab-wrong">
           <div class="word-split-tags-grid">
-            ${wrongPills || '<span style="width:100%; font-size:12px; color:var(--ink3); font-style:italic; padding:8px;">（本次測驗無答錯單字）</span>'}
+            ${wrongPills || '<span style="width:100%; font-size:12px; color:var(--ink3); font-style:italic; padding:8px;">（本次測驗無待加強單字）</span>'}
           </div>
         </div>
         ${unansCount > 0 ? `
@@ -1642,7 +1642,7 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
         </button>
         ${!isAllCorrect ? `
         <button type="button" class="task-tab-btn tab-wrong" onclick="event.stopPropagation(); const p=this.closest('.task-tab-card'); p.querySelectorAll('.task-tab-btn').forEach(b=>b.classList.remove('is-active')); this.classList.add('is-active'); p.querySelectorAll('.task-tab-pane').forEach(el=>el.classList.remove('is-active')); p.querySelector('.pane-free-wrong').classList.add('is-active');">
-          <span class="card-icon-slot">❌</span> 答錯 (${displayWrongBoxCount})
+          <span class="card-icon-slot">💪</span> 待加強 (${displayWrongBoxCount})
         </button>
         ` : `
         <button type="button" class="task-tab-btn tab-info" style="pointer-events:none; opacity:0.85;">
