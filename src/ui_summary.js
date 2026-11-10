@@ -232,9 +232,10 @@ export function getCombinedTaskHistory() {
                 const satCorr = (Array.isArray(rem.satCorrectWords) ? rem.satCorrectWords : []).map(w => String(w).trim().toLowerCase()).filter(w => /^[a-zA-Z]+(?:[-'][a-zA-Z]+)*$/.test(w));
                 const satWrong = (Array.isArray(rem.satWrongWords) ? rem.satWrongWords : []).map(w => String(w).trim().toLowerCase()).filter(w => /^[a-zA-Z]+(?:[-'][a-zA-Z]+)*$/.test(w));
                 const satWords = Array.from(new Set([...satCorr, ...satWrong]));
+                const isBossWeek = getBiweeklyCycleInfo(satKey).isBiweeklyBossWeek;
                 const satItem = {
                   date: satKey,
-                  taskName: `🎯 ${formatWeekendTaskDate(satKey)} 週末待攻克測驗作答紀錄`,
+                  taskName: isBossWeek ? "🎯 雙週指定單字大消滅戰作答紀錄" : "🎯 週末待攻克測驗作答紀錄",
                   score: rem.satScore || (satWords.length ? `${satCorr.length}/${satWords.length}` : "已完成"),
                   rate: rem.satRate || (satWords.length ? `${Math.round((satCorr.length / satWords.length) * 100)}%` : "100%"),
                   status: "🟢 已完成",
@@ -278,9 +279,10 @@ export function getCombinedTaskHistory() {
                 const sunCorr = (Array.isArray(rem.sunCorrectWords) ? rem.sunCorrectWords : []).map(w => String(w).trim().toLowerCase()).filter(w => /^[a-zA-Z]+(?:[-'][a-zA-Z]+)*$/.test(w));
                 const sunWrong = (Array.isArray(rem.sunWrongWords) ? rem.sunWrongWords : []).map(w => String(w).trim().toLowerCase()).filter(w => /^[a-zA-Z]+(?:[-'][a-zA-Z]+)*$/.test(w));
                 const sunWords = Array.from(new Set([...sunCorr, ...sunWrong]));
+                const isSunBoss = getBiweeklyCycleInfo(sunKey).isBiweeklyBossWeek;
                 const sunItem = {
                   date: sunKey,
-                  taskName: `🎯 ${formatWeekendTaskDate(sunKey)} 週末待攻克測驗作答紀錄`,
+                  taskName: isSunBoss ? "🎯 雙週指定單字大消滅戰作答紀錄" : "🎯 週末待攻克測驗作答紀錄",
                   score: rem.sunScore || (sunWords.length ? `${sunCorr.length}/${sunWords.length}` : "已完成"),
                   rate: rem.sunRate || (sunWords.length ? `${Math.round((sunCorr.length / sunWords.length) * 100)}%` : "100%"),
                   status: "🟢 已完成",
@@ -1013,9 +1015,8 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
   const isWeekendTask = isWeekend(dateStr) || isWeekend(selectedDate) || String(record.taskName || "").includes("週末") || String(record.taskName || "").includes("消滅戰") || String(record.taskName || "").includes("待攻克") || String(record.taskName || "").includes("雙週");
   let formattedTaskName = "";
   if (isWeekendTask) {
-    const cleanDate = formatWeekendTaskDate(dateStr || selectedDate, record.taskName);
     const isBoss = String(record.taskName || "").includes("雙週") || (getBiweeklyCycleInfo(dateStr || selectedDate).isBiweeklyBossWeek);
-    formattedTaskName = cleanDate ? `🎯 ${cleanDate} ${isBoss ? "雙週指定單字大消滅戰" : "週末待攻克測驗"}作答紀錄` : (isBoss ? "🎯 雙週指定單字大消滅戰作答紀錄" : "🎯 週末待攻克測驗作答紀錄");
+    formattedTaskName = isBoss ? "🎯 雙週指定單字大消滅戰作答紀錄" : "🎯 週末待攻克測驗作答紀錄";
   } else {
     let cleanTaskName = String(record.taskName || "平日指定測驗").trim().replace(/^[📝📑\s]+/, "");
     cleanTaskName = cleanTaskName.replace(/指定單字隨堂測驗/g, "平日指定測驗作答紀錄").replace(/隨堂測驗/g, "測驗結果");
@@ -1242,11 +1243,11 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
 
 function renderUntestedTaskCardHtml(info, d) {
   const { taskName = "", assignedWords = [], hasLoggedInOrFree = false, selectedDate = "" } = info || {};
-  const isWeekendTask = isWeekend(selectedDate) || String(taskName || "").includes("週末") || String(taskName || "").includes("消滅戰") || String(taskName || "").includes("待攻克");
+  const isWeekendTask = isWeekend(selectedDate) || String(taskName || "").includes("週末") || String(taskName || "").includes("消滅戰") || String(taskName || "").includes("待攻克") || String(taskName || "").includes("雙週");
   let formattedTaskName = "";
   if (isWeekendTask) {
-    const cleanDate = formatWeekendTaskDate(selectedDate, taskName);
-    formattedTaskName = cleanDate ? `🎯 ${cleanDate} 週末待攻克測驗作答紀錄` : "🎯 週末待攻克測驗作答紀錄";
+    const isBoss = String(taskName || "").includes("雙週") || (getBiweeklyCycleInfo(selectedDate).isBiweeklyBossWeek);
+    formattedTaskName = isBoss ? "🎯 雙週指定單字大消滅戰作答紀錄" : "🎯 週末待攻克測驗作答紀錄";
   } else {
     let cleanTaskName = String(taskName || "平日指定測驗作答紀錄").trim().replace(/^[📝📑\s]+/, "");
     cleanTaskName = cleanTaskName.replace(/指定單字隨堂測驗/g, "平日指定測驗作答紀錄").replace(/隨堂測驗/g, "測驗結果");
@@ -1416,10 +1417,10 @@ function buildTaskDetailsHtml(records, selectedDate, d, dayStat = null) {
               const wrg = day === 6 ? (rem.satWrongWords || []) : (rem.sunWrongWords || []);
               const sc = day === 6 ? rem.satScore : rem.sunScore;
               const rt = day === 6 ? rem.satRate : rem.sunRate;
-              const wList = Array.from(new Set([...corr, ...wrg]));
+              const isBossWeek = getBiweeklyCycleInfo(normDate).isBiweeklyBossWeek;
               list.push({
                 date: normDate,
-                taskName: `🎯 ${formatWeekendTaskDate(normDate)} 週末待攻克測驗作答紀錄`,
+                taskName: isBossWeek ? "🎯 雙週指定單字大消滅戰作答紀錄" : "🎯 週末待攻克測驗作答紀錄",
                 score: sc || (wList.length ? `${corr.length}/${wList.length}` : "已完成"),
                 rate: rt || "100%",
                 status: "🟢 已完成",
@@ -2381,7 +2382,7 @@ export function renderSummary(d) {
 
     <!-- 子標題 1：平日指定測驗 / 週末待攻克測驗作答紀錄 -->
     <div class="subh" style="margin-top:10px;">
-      <span id="task-subh-title">${isWeekend(defaultSelectedDate) ? (getBiweeklyCycleInfo(defaultSelectedDate).isBiweeklyBossWeek ? `🎯 ${formatWeekendTaskDate(defaultSelectedDate)} 雙週指定單字大消滅戰作答紀錄` : `🎯 ${formatWeekendTaskDate(defaultSelectedDate)} 週末待攻克測驗作答紀錄`) : "📝 平日指定測驗作答紀錄"}</span>
+      <span id="task-subh-title">${isWeekend(defaultSelectedDate) ? (getBiweeklyCycleInfo(defaultSelectedDate).isBiweeklyBossWeek ? "🎯 雙週指定單字大消滅戰作答紀錄" : "🎯 週末待攻克測驗作答紀錄") : "📝 平日指定測驗作答紀錄"}</span>
     </div>
     <div class="task-history-card">
       <div id="task-record-details">
@@ -2690,7 +2691,7 @@ export function renderSummary(d) {
     const taskSubhTitle = $("#task-subh-title");
     if (taskSubhTitle) {
       taskSubhTitle.textContent = isWeekend(targetDate)
-        ? (getBiweeklyCycleInfo(targetDate).isBiweeklyBossWeek ? `🎯 ${formatWeekendTaskDate(targetDate)} 雙週指定單字大消滅戰作答紀錄` : `🎯 ${formatWeekendTaskDate(targetDate)} 週末待攻克測驗作答紀錄`)
+        ? (getBiweeklyCycleInfo(targetDate).isBiweeklyBossWeek ? "🎯 雙週指定單字大消滅戰作答紀錄" : "🎯 週末待攻克測驗作答紀錄")
         : "📝 平日指定測驗作答紀錄";
     }
     const targetTaskRecords = taskByDateMap.get(targetDate) || [];
