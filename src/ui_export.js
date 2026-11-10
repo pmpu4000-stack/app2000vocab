@@ -1335,7 +1335,7 @@ export function initExportRecordsCard(getSummaryFn) {
         navCard.style.display = "flex";
         sec.classList.remove("is-collapsed");
         toggleBtn.innerHTML = "收合";
-        navCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        sec.scrollIntoView({ behavior: "smooth", block: "start" });
       } else {
         navCard.style.display = "none";
         sec.classList.add("is-collapsed");

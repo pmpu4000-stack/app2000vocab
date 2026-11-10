@@ -418,6 +418,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined") {
           if (bodyProg) bodyProg.style.display = "block";
           secProg.classList.remove("is-collapsed");
           btnProg.innerHTML = "收合";
+          secProg.scrollIntoView({ behavior: "smooth", block: "start" });
         } else {
           if (bodyProg) bodyProg.style.display = "none";
           secProg.classList.add("is-collapsed");

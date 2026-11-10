@@ -642,7 +642,7 @@ export function initConquerCard() {
       sec.classList.remove("is-collapsed");
       toggleBtn.innerHTML = "收合";
       updateWeekConquerSection();
-      sec.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      sec.scrollIntoView({ behavior: "smooth", block: "start" });
     } else {
       if (container) container.style.display = "none";
       sec.classList.add("is-collapsed");

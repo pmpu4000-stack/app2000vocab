@@ -873,6 +873,7 @@ export function initProgressCard() {
       if (body) body.style.display = "block";
       sec.classList.remove("is-collapsed");
       toggleBtn.innerHTML = "收合";
+      sec.scrollIntoView({ behavior: "smooth", block: "start" });
     } else {
       if (body) body.style.display = "none";
       sec.classList.add("is-collapsed");

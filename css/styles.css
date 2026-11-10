@@ -334,7 +334,7 @@ header{display:flex; align-items:center; justify-content:space-between; flex-wra
 .btn:disabled{opacity:.4;cursor:default}
 
 /* progress footer */
-.progress{margin:0 0 8px;background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:12px 14px;box-shadow:var(--shadow)}
+.progress{margin:0 0 8px;background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:12px 14px;box-shadow:var(--shadow);scroll-margin-top:8px}
 .progress h3{font-size:14px;font-weight:800;letter-spacing:.3px;color:var(--ink);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
 .progress h3 a:not(.sum-toggle-btn){color:var(--sky,#2D9CDB);font-size:12px;cursor:pointer;text-decoration:underline;font-weight:700;display:inline-flex;align-items:center;gap:4px}
 [data-theme="dark"] .progress h3 a:not(.sum-toggle-btn){color:var(--sky,#38bdf8)}
