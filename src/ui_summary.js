@@ -1059,7 +1059,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
     tabCardHtml = `
       <div class="task-tab-card">
         <div class="task-tab-nav">
-          <button type="button" class="task-tab-btn is-active tab-unans" onclick="event.stopPropagation(); const p=this.closest('.task-tab-card'); p.querySelectorAll('.task-tab-btn').forEach(b=>b.classList.remove('is-active')); this.classList.add('is-active'); p.querySelectorAll('.task-tab-pane').forEach(el=>el.classList.remove('is-active')); p.querySelector('.pane-untested-words').classList.add('is-active');">
+          <button type="button" class="task-tab-btn is-active tab-untested" onclick="event.stopPropagation(); const p=this.closest('.task-tab-card'); p.querySelectorAll('.task-tab-btn').forEach(b=>b.classList.remove('is-active')); this.classList.add('is-active'); p.querySelectorAll('.task-tab-pane').forEach(el=>el.classList.remove('is-active')); p.querySelector('.pane-untested-words').classList.add('is-active');">
             <span class="card-icon-slot">📋</span> 應測單字 (${rawWords.length || 0})
           </button>
           <button type="button" class="task-tab-btn tab-info" onclick="event.stopPropagation(); const p=this.closest('.task-tab-card'); p.querySelectorAll('.task-tab-btn').forEach(b=>b.classList.remove('is-active')); this.classList.add('is-active'); p.querySelectorAll('.task-tab-pane').forEach(el=>el.classList.remove('is-active')); p.querySelector('.pane-untested-info').classList.add('is-active');">
@@ -1225,7 +1225,7 @@ function renderUntestedTaskCardHtml(info, d) {
 
       <div class="task-tab-card">
         <div class="task-tab-nav">
-          <button type="button" class="task-tab-btn is-active tab-unans" onclick="event.stopPropagation(); const p=this.closest('.task-tab-card'); p.querySelectorAll('.task-tab-btn').forEach(b=>b.classList.remove('is-active')); this.classList.add('is-active'); p.querySelectorAll('.task-tab-pane').forEach(el=>el.classList.remove('is-active')); p.querySelector('.pane-untested-words').classList.add('is-active');">
+          <button type="button" class="task-tab-btn is-active tab-untested" onclick="event.stopPropagation(); const p=this.closest('.task-tab-card'); p.querySelectorAll('.task-tab-btn').forEach(b=>b.classList.remove('is-active')); this.classList.add('is-active'); p.querySelectorAll('.task-tab-pane').forEach(el=>el.classList.remove('is-active')); p.querySelector('.pane-untested-words').classList.add('is-active');">
             <span class="card-icon-slot">📋</span> 應測單字 (${wordCount})
           </button>
           <button type="button" class="task-tab-btn tab-info" onclick="event.stopPropagation(); const p=this.closest('.task-tab-card'); p.querySelectorAll('.task-tab-btn').forEach(b=>b.classList.remove('is-active')); this.classList.add('is-active'); p.querySelectorAll('.task-tab-pane').forEach(el=>el.classList.remove('is-active')); p.querySelector('.pane-untested-info').classList.add('is-active');">

@@ -902,7 +902,8 @@ body.daily-limit-reached .stat.user b {
   font-weight: 800;
   box-shadow: none !important;
 }
-.task-tab-btn.is-active.tab-correct {
+.task-tab-btn.is-active.tab-correct,
+.task-tab-btn.is-active.tab-untested {
   color: #047857;
 }
 .task-tab-btn.is-active.tab-wrong {
@@ -968,7 +969,8 @@ body.daily-limit-reached .stat.user b {
   color: #F0F3FA;
   box-shadow: none !important;
 }
-[data-theme="dark"] .task-tab-btn.is-active.tab-correct {
+[data-theme="dark"] .task-tab-btn.is-active.tab-correct,
+[data-theme="dark"] .task-tab-btn.is-active.tab-untested {
   color: #34D399;
 }
 [data-theme="dark"] .task-tab-btn.is-active.tab-wrong {
