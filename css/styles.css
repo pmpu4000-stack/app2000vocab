@@ -855,30 +855,32 @@ body.daily-limit-reached .stat.user b {
   display: flex;
   align-items: center;
   background: rgba(148, 163, 184, 0.15);
-  padding: 3px;
-  border-radius: 8px;
-  gap: 3px;
+  padding: 3.5px;
+  border-radius: 9px;
+  gap: 4px;
   margin-bottom: 8px;
   width: 100%;
   box-sizing: border-box;
 }
 .task-tab-btn {
-  flex: 1;
+  flex: 1 1 0%;
+  min-width: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  padding: 5px 8px;
+  gap: 5px;
+  padding: 6px 8px;
   border: none;
-  border-radius: 6px;
+  border-radius: 7px;
   background: transparent;
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--ink2);
   cursor: pointer;
   transition: all .15s ease;
   white-space: nowrap;
   user-select: none;
+  box-sizing: border-box;
 }
 .task-tab-btn:hover {
   background: rgba(255, 255, 255, 0.6);
@@ -3049,8 +3051,11 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   height: 0 !important;
   min-height: 0 !important;
   max-height: 100% !important;
-  display: flex !important;
-  flex-direction: column !important;
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)) !important;
+  gap: 8px !important;
+  align-content: start !important;
+  align-items: start !important;
   width: 100% !important;
   overflow-y: auto !important;
   overscroll-behavior: contain !important;
@@ -3061,41 +3066,65 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   box-sizing: border-box !important;
 }
 
-.word-split-tags,
-.word-split-tags-grid {
+.word-split-box.advice-box .word-split-content {
   display: flex !important;
-  flex-wrap: wrap !important;
-  gap: 8px !important;
-  width: 100% !important;
+  flex-direction: column !important;
+  flex-wrap: nowrap !important;
   align-items: flex-start !important;
   align-content: flex-start !important;
+  font-size: 11px !important;
+  line-height: 1.5 !important;
+}
+
+.word-split-tags,
+.word-split-tags-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)) !important;
+  gap: 8px !important;
+  width: 100% !important;
+  align-items: start !important;
+  align-content: start !important;
   box-sizing: border-box !important;
+}
+
+@media (max-width: 480px) {
+  .word-split-tags,
+  .word-split-tags-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+  }
 }
 
 /* 完美答對或單行無單字提示置中呈現，避免產生下方空蕩死白感 */
 .word-split-content > .perfect-score-msg,
 .word-split-content > span:only-child:not(.word-pill-tag) {
+  grid-column: 1 / -1 !important;
   width: 100% !important;
   margin: auto auto !important;
   text-align: center !important;
   font-size: 12px !important;
 }
-.word-split-content > span.word-pill-tag {
-  width: auto !important;
-  min-width: 88px !important;
-  display: inline-flex !important;
+.word-split-content > span.word-pill-tag,
+.task-tab-pane .word-split-tags-grid > span.word-pill-tag,
+.word-split-tags-grid > span.word-pill-tag {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   text-align: center !important;
   margin: 0 !important;
-  padding: 5px 12px !important;
+  padding: 6px 8px !important;
+  min-height: 34px !important;
   font-size: 13px !important;
   font-weight: 700 !important;
   border-radius: 8px !important;
   box-sizing: border-box !important;
   white-space: nowrap !important;
-  overflow: visible !important;
-  text-overflow: clip !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  transition: all .15s ease !important;
 }
 
 .task-empty-notice-box {
@@ -4322,11 +4351,24 @@ body.css-fullscreen-active {
       overscroll-behavior: contain !important;
       scrollbar-gutter: stable !important;
       scrollbar-width: thin !important;
-      display: flex !important;
-      flex-direction: column !important;
+      display: grid !important;
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)) !important;
+      gap: 8px !important;
+      align-content: start !important;
+      align-items: start !important;
       width: 100% !important;
       padding: 2px 4px 2px 0 !important;
       box-sizing: border-box !important;
+    }
+
+    #task-record-details .word-split-box.advice-box .word-split-content,
+    #free-record-details .word-split-box.advice-box .word-split-content,
+    .task-single-record-block .word-split-box.advice-box .word-split-content {
+      display: flex !important;
+      flex-direction: column !important;
+      flex-wrap: nowrap !important;
+      align-items: flex-start !important;
+      align-content: flex-start !important;
     }
 
 /* 🚀 低階手機與節能自適應降級模式 (Adaptive Low-Power Mode) */
