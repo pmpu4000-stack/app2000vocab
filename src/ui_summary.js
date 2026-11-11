@@ -2347,14 +2347,6 @@ export function renderSummary(d) {
       <div id="task-record-details">
         ${initialTaskDetailsHtml}
       </div>
-      <div class="embedded-heatmap-sec">
-        <div class="streakline">
-          <span>連續 <b>${taskStreak}</b> 天 · 最佳 <b>${taskBest}</b> 天 · 累計練習 <b>${taskTotal}</b> 天</span>
-          <span id="task-heat-day-info" class="heat-day-info"></span>
-        </div>
-        <div class="heatmap heatmap-task" id="task-heatmap-grid">${taskHeatDays.map((x, idx) =>
-          `<i class="hc ${x.levelClass}" role="button" tabindex="0" aria-label="${x.key}，${x.statusLabel || ''}" data-idx="${idx}" data-key="${x.key}" data-a="${x.a || 0}" data-rate="${x.rate || 0}"></i>`).join("")}</div>
-      </div>
     </div>
 
     <!-- 子標題 2：自由練習作答紀錄 -->
@@ -2364,25 +2356,6 @@ export function renderSummary(d) {
     <div class="task-history-card">
       <div id="free-record-details">
         ${initialFreeDetailsHtml}
-      </div>
-      <div class="embedded-heatmap-sec">
-        <div class="streakline">
-          <span>連續 <b>${d.history.streak}</b> 天 · 最佳 <b>${d.history.best}</b> 天 · 累計練習 <b>${d.history.total}</b> 天</span>
-          <span id="heat-day-info" class="heat-day-info"></span>
-        </div>
-        <div class="heatmap" id="heatmap-grid">${d.history.days.map((x, idx) =>
-          `<i class="hc h${x.level}" role="button" tabindex="0" aria-label="${x.key}，正確率 ${x.rate || 0}%" data-idx="${idx}" data-key="${x.key}" data-a="${x.a || 0}" data-rate="${x.rate || 0}"></i>`).join("")}</div>
-        <div class="heat-legend-bar" style="margin-top:8px; display:flex; align-items:center; justify-content:flex-end; gap:6px; font-size:11px; color:var(--ink3); font-weight:700;">
-          <span>未練習</span>
-          <span style="display:inline-flex; align-items:center; gap:2.5px;">
-            <i class="hc" style="width:11px; height:11px; display:inline-block; border-radius:2px; vertical-align:middle; cursor:default;"></i>
-            <i class="hc" style="width:11px; height:11px; display:inline-block; border-radius:2px; background:#ddf4ff; border-color:#54aeff; vertical-align:middle; cursor:default;"></i>
-            <i class="hc" style="width:11px; height:11px; display:inline-block; border-radius:2px; background:#b6e3ff; border-color:#218bff; vertical-align:middle; cursor:default;"></i>
-            <i class="hc" style="width:11px; height:11px; display:inline-block; border-radius:2px; background:#218bff; border-color:#0969da; vertical-align:middle; cursor:default;"></i>
-            <i class="hc" style="width:11px; height:11px; display:inline-block; border-radius:2px; background:#0969da; border-color:#0550ae; vertical-align:middle; cursor:default;"></i>
-          </span>
-          <span>100% 正確率</span>
-        </div>
       </div>
     </div>`;
 
