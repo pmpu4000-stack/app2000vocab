@@ -1596,7 +1596,11 @@
 
       <p class="foot">
         🔊 需要開啟聲音才能聽發音。進度儲存要按上傳紀錄。<br>
-        <span style="font-size:11px; opacity:0.75; display:inline-block; margin-top:4px;">部分語料與例句授權自 <a href="https://tatoeba.org" target="_blank" rel="noopener noreferrer" style="color:inherit; text-decoration:underline;">Tatoeba Project</a> (CC-BY 2.0 FR) 與 WordNet</span>
+        <span style="font-size:11px; opacity:0.75; display:inline-block; margin-top:4px;">
+          部分語料與例句授權自 <a href="https://tatoeba.org" target="_blank" rel="noopener noreferrer" style="color:inherit; text-decoration:underline;">Tatoeba Project</a> (CC-BY 2.0 FR) 與 WordNet
+          · <a href="javascript:void(0)" onclick="if(window.confirm('確定清除快取並強制重新載入最新版本？')){localStorage.clear();sessionStorage.clear();caches.keys().then(keys=>Promise.all(keys.map(k=>caches.delete(k)))).then(()=>{location.reload(true);});}" style="color:inherit; text-decoration:underline;" title="遇到問題可點此重置快取">🔄 清除快取重整</a>
+          · <a href="javascript:void(0)" onclick="alert('💡 語音提示：\n\n1. iOS / Mac / Windows 預設使用系統高品質自然語音。\n2. Android 手機若聲音偏機械音，可至手機「設定 ➔ 系統 ➔ 語言 ➔ 文字轉語音 (TTS)」選擇「Google 語音服務」即可取得自然真人發音。');" style="color:inherit; text-decoration:underline;">🎙️ 語音優化指引</a>
+        </span>
       </p>
     </div>
 

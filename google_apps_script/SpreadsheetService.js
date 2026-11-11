@@ -2,12 +2,22 @@
 // ════════════════════════════════════════════════════════════════════
 
 function handleSaveRecord(ss, params, auth) {
-  // 極致高併發鎖定優化：排隊安全寫入防鎖表
+  // 極致高併發鎖定優化：平滑重試排隊安全寫入防鎖表
   const lock = LockService.getScriptLock();
-  try {
-    lock.waitLock(10000);
-  } catch(e) {
-    return jsonResponse({status:"error", message:"伺服器繁忙排隊中，請稍候重試"});
+  let acquired = false;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      if (lock.tryLock(10000)) {
+        acquired = true;
+        break;
+      }
+      Utilities.sleep(200 * (attempt + 1));
+    } catch (_) {}
+  }
+  if (!acquired) {
+    try { lock.waitLock(5000); } catch(e) {
+      return jsonResponse({status:"error", message:"伺服器繁忙排隊中，請稍候重試"});
+    }
   }
 
   try {
