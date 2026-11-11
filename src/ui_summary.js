@@ -1452,11 +1452,6 @@ function buildTaskDetailsHtml(records, selectedDate, d, dayStat = null) {
         <div class="task-empty-notice-box">
           <div class="task-empty-notice-icon">${unassignedIcon}</div>
           <div class="task-empty-notice-title">${unassignedNoticeTitle}</div>
-          <div class="task-empty-notice-desc">
-            ${isSatClearedOnSunday 
-              ? "本週待攻克單字已於週六全數消滅，今日無須再測驗！已全面開放自由闖關升級。" 
-              : (isWeekendDay ? "本週末無待攻克單字測驗，平日測驗皆已順利過關！" : "老師當天未安排全班指定隨堂測驗。")}
-          </div>
         </div>
       </div>
     `;
@@ -1479,9 +1474,6 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
         <div class="task-empty-notice-box">
           <div class="task-empty-notice-icon">🧭</div>
           <div class="task-empty-notice-title">當日尚無自由練習紀錄</div>
-          <div class="task-empty-notice-desc">
-            每天動動手指挑戰 10~20 個單字，保持語感與連勝紀錄！
-          </div>
         </div>
       </div>
     `;
