@@ -366,6 +366,18 @@
     document.body.classList.remove("daily-limit-reached");
     console.log("🔓 每日練習限制已解除或延長，恢復作答卡片");
 
+    // 當處於可練習時間內，將學習足跡收合以聚焦於題目框
+    try {
+      const summaryEl = document.getElementById("summary");
+      const sumBtn = document.getElementById("sumBtn");
+      const sec = document.getElementById("learning-record-section") || document.getElementById("studentLearningRecordCard");
+      if (summaryEl && !summaryEl.hasAttribute("hidden") && sumBtn) {
+        summaryEl.hidden = true;
+        if (sec) sec.classList.add("is-collapsed");
+        sumBtn.innerHTML = "展開";
+      }
+    } catch (_) {}
+
     const limitCard = document.getElementById("daily-limit-reached-card");
     if (limitCard) limitCard.style.display = "none";
 
