@@ -3349,35 +3349,18 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   flex-direction: column !important;
   align-items: center !important;
   justify-content: center !important;
-  background: transparent !important;
+  background: #F8FAFC !important;
   border: none !important;
   border-radius: 12px !important;
   margin: 0 !important;
   padding: 16px 14px !important;
   text-align: center !important;
   box-sizing: border-box !important;
-  box-shadow: none !important;
 }
 
 [data-theme="dark"] .task-empty-notice-box {
   background: transparent !important;
   border: none !important;
-  box-shadow: none !important;
-}
-
-/* 空狀態去盒化：當無受測紀錄時，移除外層卡片邊框與底色，維持純扁平通透 */
-.task-history-card:has(.task-empty-notice-box),
-.task-history-card.is-empty {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  padding: 4px 0 !important;
-}
-[data-theme="dark"] .task-history-card:has(.task-empty-notice-box),
-[data-theme="dark"] .task-history-card.is-empty {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
 }
 
 .task-empty-notice-icon {
