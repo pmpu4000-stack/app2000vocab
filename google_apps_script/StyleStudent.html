@@ -1400,4 +1400,29 @@
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
     }
 
+    /* 空狀態去盒化：當無受測紀錄時，移除外層卡片邊框與底色，維持純扁平通透 */
+    .task-empty-notice-box {
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+    }
+    [data-theme="dark"] .task-empty-notice-box {
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+    }
+    .task-history-card:has(.task-empty-notice-box),
+    .task-history-card.is-empty {
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      padding: 4px 0 !important;
+    }
+    [data-theme="dark"] .task-history-card:has(.task-empty-notice-box),
+    [data-theme="dark"] .task-history-card.is-empty {
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+    }
+
 </style>
