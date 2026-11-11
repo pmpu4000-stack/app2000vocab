@@ -773,7 +773,7 @@ body.daily-limit-reached .stat.user b {
 .result .sub{font-size:15px;color:var(--ink2);font-weight:700}
 .result .lvpill{font-size:20px;font-weight:800;color:#fff;padding:8px 20px;border-radius:999px}
 
-.task-history-card{background:#F8F9FD;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:0 0 8px;overflow:hidden;box-sizing:border-box;}
+.task-history-card{background:#F8F9FD;border:1px solid var(--line);border-radius:12px;padding:8px 10px;margin:0 0 8px;overflow:hidden;box-sizing:border-box;}
 .task-history-card:last-child{margin-bottom:0 !important}
 .task-history-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:8px;min-height:24px}
 .task-date-selector{background:#FFFFFF;border:1.5px solid var(--line);color:var(--ink);padding:3px 8px;height:30px;min-height:30px;line-height:1.2;border-radius:8px;font-size:12px;font-weight:700;outline:none;cursor:pointer;box-sizing:border-box}
@@ -864,11 +864,12 @@ body.daily-limit-reached .stat.user b {
 /* 方案 B：統一分頁式主卡 (Universal Tabbed Single Card) */
 .task-tab-card {
   border-radius: 12px;
-  padding: 8px 10px;
+  padding: 0;
   background: transparent;
   border: none;
   display: flex;
   flex-direction: column;
+  gap: 7px;
   box-sizing: border-box;
 }
 .task-tab-nav {
@@ -953,7 +954,7 @@ body.daily-limit-reached .stat.user b {
 .task-tab-pane .word-split-tags-grid {
   flex: 1 1 auto;
   overflow-y: auto !important;
-  max-height: 122px !important;
+  max-height: 138px !important;
   align-content: flex-start;
   align-items: flex-start;
   padding: 2px 0;
