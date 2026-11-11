@@ -1013,11 +1013,9 @@ body.daily-limit-reached .stat.user b {
 }
 .date-navigator-card{background:linear-gradient(135deg,#F1EDFF,#F8F9FD);border:1.5px solid #E4DFFa;border-radius:12px;padding:8px 10px;margin:0 0 8px;display:flex;flex-direction:column;gap:7px;box-shadow:0 2px 8px rgba(108,76,224,.05)}
 
-/* 業界主流一體化單排日期導航工具列 */
-.date-nav-toolbar-single{display:flex;align-items:center;gap:6px;width:100%;box-sizing:border-box}
-.date-nav-toolbar-single .custom-date-select-wrap{flex:1 1 auto;min-width:0}
+/* 提案 C：上排四等分柔和科技按鈕群 */
 .date-nav-toolbar-c{display:grid;grid-template-columns:1.1fr 1fr 1fr 1fr;gap:6px;width:100%;box-sizing:border-box}
-.date-nav-c-btn{display:inline-flex;align-items:center;justify-content:center;gap:3px;background:#FFFFFF;border:1px solid #D6D0F5;color:var(--ink);padding:6px 10px;height:32px;min-height:32px;max-height:32px;border-radius:8px;font-size:11.5px;font-weight:700;cursor:pointer;transition:all .15s ease;box-shadow:0 1px 3px rgba(0,0,0,0.04);white-space:nowrap;user-select:none;box-sizing:border-box;flex-shrink:0}
+.date-nav-c-btn{display:inline-flex;align-items:center;justify-content:center;gap:3px;background:#FFFFFF;border:1px solid #D6D0F5;color:var(--ink);padding:6px 4px;height:32px;min-height:32px;max-height:32px;border-radius:8px;font-size:11.5px;font-weight:700;cursor:pointer;transition:all .15s ease;box-shadow:0 1px 3px rgba(0,0,0,0.04);white-space:nowrap;user-select:none;box-sizing:border-box}
 .date-nav-c-btn:hover{background:#F3F0FF;border-color:var(--violet);color:var(--violet)}
 .date-nav-c-btn.cal-btn{background:#FEF9C3;border-color:#FDE047;color:#854D0E;position:relative;overflow:hidden;cursor:pointer}
 .date-nav-c-btn.cal-btn:hover{background:#FEF08A;border-color:#EAB308}
