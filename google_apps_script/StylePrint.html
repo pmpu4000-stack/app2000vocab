@@ -2016,6 +2016,114 @@
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
     }
 
+    /* 待攻克單字：去盒化與無邊框 Segmented Control 單字切換 */
+    .conquer-level-row {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 6px !important;
+      padding: 4px 0 0 !important;
+      border-radius: 0 !important;
+      background: transparent !important;
+      border: none !important;
+    }
+    [data-theme="dark"] .conquer-level-row {
+      background: transparent !important;
+      border-color: transparent !important;
+    }
+    .conquer-word-card {
+      width: 100% !important;
+      box-sizing: border-box !important;
+      background: var(--card, #fff) !important;
+      border: 1px solid var(--line, rgba(148, 163, 184, 0.18)) !important;
+      border-radius: 12px !important;
+      padding: 10px 12px !important;
+      margin-bottom: 6px !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+    }
+    .conquer-word-card .sent-row {
+      display: flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+      padding: 8px 10px !important;
+      border-radius: 8px !important;
+      background: rgba(148, 163, 184, 0.08) !important;
+      border: none !important;
+      min-height: 44px !important;
+    }
+    [data-theme="dark"] .conquer-word-card .sent-row {
+      background: rgba(255, 255, 255, 0.04) !important;
+    }
+    .conquer-chip-list {
+      display: flex !important;
+      align-items: center !important;
+      gap: 3px !important;
+      background: rgba(148, 163, 184, 0.12) !important;
+      border: 1px solid var(--line, rgba(148, 163, 184, 0.2)) !important;
+      border-radius: 8px !important;
+      padding: 2px !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+      margin-top: 4px !important;
+      overflow-x: auto !important;
+      scrollbar-width: none !important;
+    }
+    .conquer-chip-list::-webkit-scrollbar {
+      display: none !important;
+    }
+    .conquer-word-tab {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      text-align: center !important;
+      flex: 1 1 0% !important;
+      min-width: 0 !important;
+      gap: 4px !important;
+      height: 28px !important;
+      padding: 0 8px !important;
+      border-radius: 6px !important;
+      font-size: 13px !important;
+      font-weight: 700 !important;
+      margin: 0 !important;
+      box-sizing: border-box !important;
+      line-height: 1 !important;
+      cursor: pointer !important;
+      transition: all .15s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      user-select: none !important;
+      background: transparent !important;
+      border: none !important;
+      color: var(--ink2, #475569) !important;
+      font-family: inherit !important;
+      box-shadow: none !important;
+      white-space: nowrap !important;
+    }
+    .conquer-word-tab:hover {
+      background: rgba(255, 255, 255, 0.85) !important;
+      color: var(--ink, #0F172A) !important;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+    }
+    .conquer-word-tab.is-active {
+      background: var(--card, #FFFFFF) !important;
+      color: var(--sky, #0284C7) !important;
+      font-weight: 850 !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+    }
+    [data-theme="dark"] .conquer-chip-list {
+      background: rgba(255, 255, 255, 0.06) !important;
+      border-color: rgba(255, 255, 255, 0.12) !important;
+    }
+    [data-theme="dark"] .conquer-word-tab {
+      color: var(--ink2, #94A3B8) !important;
+    }
+    [data-theme="dark"] .conquer-word-tab:hover {
+      background: rgba(255, 255, 255, 0.1) !important;
+      color: #F8FAFC !important;
+    }
+    [data-theme="dark"] .conquer-word-tab.is-active {
+      background: #1E293B !important;
+      color: #38BDF8 !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+    }
+
     /* 歷程檔案匯出卡片：完全保留上一版精緻、緊湊、對齊的原始設計 */
     .export-navigator-card {
       background: linear-gradient(135deg, #F1EDFF, #F8F9FD) !important;
