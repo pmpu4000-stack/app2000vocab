@@ -5746,22 +5746,10 @@ function speakMasteredWord(text) {
     }
   } catch (_) {}
 
-  // 優先使用設備本地 Web Speech TTS 發音，免下載 MP3 音檔（省流量、零延遲）
+  // 優先使用設備本地 Web Speech TTS 發音，免下載 MP3 音檔（100% 免費合法商用、零版權風險、零延遲）
   if (typeof window !== "undefined" && "speechSynthesis" in window) {
     _speakHistoryViaTTS(cleanText, token);
     return;
-  }
-
-  const singleWordMatch = cleanText.match(/^[A-Za-z]{2,25}$/);
-  if (singleWordMatch && typeof Audio !== "undefined") {
-    const wordLower = singleWordMatch[0].toLowerCase();
-    const dictUrl = `https://ssl.gstatic.com/dictionary/static/sounds/20200429/${wordLower}--_us_1.mp3`;
-    try {
-      const audio = new Audio(dictUrl);
-      audio.playbackRate = 0.92;
-      _activeHistoryAudio = audio;
-      audio.play().catch(() => {});
-    } catch (_) {}
   }
 }
 

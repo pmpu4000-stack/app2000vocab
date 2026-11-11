@@ -83,42 +83,8 @@ function setAudioBlobUrl(url, objUrl) {
  * 題目一出現即非同步背景預載單字真人發音，二次播放 0 延遲且完全免聯網
  */
 export async function prefetchAudio(words) {
-  if (typeof window === "undefined" || !("caches" in window) || !Array.isArray(words)) return;
-  try {
-    const cache = await caches.open(AUDIO_CACHE_NAME);
-    const queue = [...words];
-    const MAX_CONCURRENT = 3;
-
-    const worker = async () => {
-      while (queue.length > 0) {
-        const w = queue.shift();
-        const cleanW = String(w || "").trim().toLowerCase();
-        if (!/^[a-z]+$/.test(cleanW)) continue;
-        const url = `https://ssl.gstatic.com/dictionary/static/sounds/20200429/${cleanW}--_us_1.mp3`;
-        if (audioBlobMap.has(url)) continue;
-        try {
-          const match = await cache.match(url);
-          if (!match) {
-            const resp = await fetch(url, { mode: "cors" });
-            if (resp && resp.ok) {
-              await cache.put(url, resp.clone());
-              const blob = await resp.blob();
-              setAudioBlobUrl(url, URL.createObjectURL(blob));
-            }
-          } else {
-            const blob = await match.blob();
-            setAudioBlobUrl(url, URL.createObjectURL(blob));
-          }
-        } catch (_) {}
-      }
-    };
-
-    const pool = [];
-    for (let i = 0; i < Math.min(MAX_CONCURRENT, queue.length); i++) {
-      pool.push(worker());
-    }
-    await Promise.all(pool);
-  } catch (_) {}
+  // 全面採用裝置本機標準 Web Speech TTS 合法商用發音，無須預載第三方版權 MP3 音檔
+  return;
 }
 
 async function getCachedAudioSrc(url) {
@@ -384,69 +350,7 @@ function playSingleWordOrTTS(rawText, rate = 0.8, onEnd = null, token = currentS
     return;
   }
 
-  // 若為單一英文單字，隨機使用免費可商用、純正美語腔之語音包 (約 50% 使用 Google US 真人發音音檔，50% 隨機使用系統優質美語 TTS 語音包)
-  if (/^[a-zA-Z]+$/.test(clean) && typeof Audio !== "undefined") {
-    const wordLower = clean.toLowerCase();
-    const audioUrl = `https://ssl.gstatic.com/dictionary/static/sounds/20200429/${wordLower}--_us_1.mp3`;
-
-    const useAudioMp3 = Math.random() < 0.5;
-
-    if (useAudioMp3) {
-      let fallbackTriggered = false;
-      const triggerFallback = (err) => {
-        if (fallbackTriggered || token !== currentSeqToken) return;
-        if (err && err.name === "AbortError") return;
-        fallbackTriggered = true;
-        currentAudio = null;
-        speakWithTTS(clean, rate, onEnd, token, targetVoice);
-      };
-
-      try {
-        getCachedAudioSrc(audioUrl).then(srcUrl => {
-          if (token !== currentSeqToken) return;
-          try {
-            const audio = new Audio(srcUrl);
-            audio.playbackRate = 0.92;
-            audio.volume = 0.88; // 智慧音量平衡防爆音
-            currentAudio = audio;
-            try {
-              if (srcUrl.startsWith("blob:")) {
-                const comp = getAudioCompressor();
-                if (comp && audioCtx) {
-                  const source = audioCtx.createMediaElementSource(audio);
-                  source.connect(comp);
-                }
-              }
-            } catch (_) {}
-            audio.onended = () => {
-              if (currentAudio === audio) currentAudio = null;
-              if (!fallbackTriggered && token === currentSeqToken && onEnd) onEnd();
-            };
-            audio.onerror = () => {
-              triggerFallback();
-            };
-            const playPromise = audio.play();
-            if (playPromise && typeof playPromise.catch === "function") {
-              playPromise.catch((err) => {
-                triggerFallback(err);
-              });
-            }
-          } catch (_) {
-            triggerFallback();
-          }
-        }).catch(triggerFallback);
-        return;
-      } catch (_) {
-        triggerFallback();
-        return;
-      }
-    } else {
-      // 隨機使用本機優質美語 TTS 語音包發音
-      speakWithTTS(clean, rate, onEnd, token, targetVoice);
-      return;
-    }
-  }
-
+  // 單字發音：全面採用裝置本機標準 Web Speech TTS 自然美式英語發音（100% 免費、零版權風險、無第三方相依）
   speakWithTTS(clean, rate, onEnd, token, targetVoice);
 }
 
