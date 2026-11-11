@@ -845,7 +845,7 @@ body.daily-limit-reached .stat.user b {
 .word-pill-tag:active{transform:none !important}
 .word-pill-tag.correct{background:#EFF6FF;color:#1D4ED8;border:1.5px solid #38BDF8;font-weight:800}
 .word-pill-tag.warning{background:#FFFBEB;color:#B45309;border:1.5px dashed #F59E0B;font-weight:800}
-.word-pill-tag.wrong{background:#F1F5F9;color:#334155;border:1.5px solid #CBD5E1;font-weight:700}
+.word-pill-tag.wrong{background:#FFFBEB;color:#B45309;border:1.5px solid #FCD34D;font-weight:700}
 .word-pill-tag.neutral{background:#F8FAFC;color:#475569;border:1px solid #CBD5E1}
 
 /* 方案 B：統一分頁式主卡 (Universal Tabbed Single Card) */
@@ -1746,9 +1746,9 @@ body.is-logging-in {
   border-color: rgba(56, 189, 248, 0.45) !important;
 }
 [data-theme="dark"] .word-pill-tag.wrong {
-  background: rgba(148, 163, 184, 0.16) !important;
-  color: #E2E8F0 !important;
-  border-color: rgba(148, 163, 184, 0.38) !important;
+  background: rgba(245, 158, 11, 0.15) !important;
+  color: #FDE68A !important;
+  border-color: rgba(245, 158, 11, 0.4) !important;
 }
 [data-theme="dark"] .word-split-box .t-empty-hint {
   color: #94A3B8 !important;
