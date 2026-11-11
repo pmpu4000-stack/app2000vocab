@@ -2273,19 +2273,11 @@ export function renderSummary(d) {
 
     getSummaryEl().innerHTML = `
     <div class="date-navigator-card">
-      <!-- 上排：四等分科技卡片風工具列 (指定日置左，前後天及今日) -->
-      <div class="date-nav-toolbar-c">
-        <label class="date-nav-c-btn cal-btn" for="record-date-picker" title="點擊選擇指定日期">
-          <span>📅 指定日</span>
-          <input type="date" id="record-date-picker" class="hidden-date-picker-input" value="${defaultSelectedDate}" max="${todayDash}">
-        </label>
-        <button type="button" id="btn-date-prev" class="date-nav-c-btn" title="查看前一天">◀ 前一天</button>
-        <button type="button" id="btn-date-today" class="date-nav-c-btn today-btn" title="切換回今日">今日</button>
-        <button type="button" id="btn-date-next" class="date-nav-c-btn" title="查看後一天">後一天 ▶</button>
-      </div>
-
-      <!-- 下排：全寬歷程紀錄摘要與下拉選單 -->
-      <div class="date-nav-summary-row">
+      <!-- 業界主流一體化單排日期導航列 -->
+      <div class="date-nav-toolbar-single">
+        <button type="button" id="btn-date-prev" class="date-nav-c-btn btn-prev" title="查看前一天">◀ 前一天</button>
+        
+        <!-- 中央日期主體與自訂下拉選單整合 -->
         <div class="custom-date-select-wrap" id="custom-date-select-wrap">
           <button type="button" class="custom-date-trigger" id="custom-date-trigger" aria-haspopup="listbox" aria-expanded="false">
             <span id="custom-date-trigger-label" style="display:flex; width:100%; min-width:0;">${buildTriggerHtml(defaultSelectedDate)}</span>
@@ -2295,6 +2287,13 @@ export function renderSummary(d) {
             ${customOptionsListHtml}
           </div>
         </div>
+
+        <label class="date-nav-c-btn cal-btn" for="record-date-picker" title="點擊選擇指定日期">
+          <span>📅 日曆</span>
+          <input type="date" id="record-date-picker" class="hidden-date-picker-input" value="${defaultSelectedDate}" max="${todayDash}">
+        </label>
+        <button type="button" id="btn-date-next" class="date-nav-c-btn btn-next" title="查看後一天">後一天 ▶</button>
+        <button type="button" id="btn-date-today" class="date-nav-c-btn today-btn" title="切換回今日">今日</button>
         <!-- 隱藏原生 select 保留表單與無障礙同步相容 -->
         <select id="record-quick-dates" class="task-date-selector" title="選擇有作答紀錄的日期" style="display:none;">
           ${quickDateOptionsHtml}
@@ -2335,7 +2334,17 @@ export function renderSummary(d) {
         </div>
         <div class="heatmap" id="heatmap-grid">${d.history.days.map((x, idx) =>
           `<i class="hc h${x.level}" role="button" tabindex="0" aria-label="${x.key}，正確率 ${x.rate || 0}%" data-idx="${idx}" data-key="${x.key}" data-a="${x.a || 0}" data-rate="${x.rate || 0}"></i>`).join("")}</div>
-        <p class="defs heat-legend" style="margin-top:8px;">熱力圖說明：<b>連續</b>＝目前不中斷練習天數 · <b>最佳</b>＝最長連續天天練習紀錄 · <b>累計</b>＝有練習的總天數 · <b>方格顏色</b>＝愈鮮豔當日正確率愈高（灰色代表未練習）</p>
+        <div class="heat-legend-bar" style="margin-top:8px; display:flex; align-items:center; justify-content:flex-end; gap:6px; font-size:11px; color:var(--ink3); font-weight:700;">
+          <span>未練習</span>
+          <span style="display:inline-flex; align-items:center; gap:2.5px;">
+            <i class="hc" style="width:11px; height:11px; display:inline-block; border-radius:2px; vertical-align:middle; cursor:default;"></i>
+            <i class="hc" style="width:11px; height:11px; display:inline-block; border-radius:2px; background:#ddf4ff; border-color:#54aeff; vertical-align:middle; cursor:default;"></i>
+            <i class="hc" style="width:11px; height:11px; display:inline-block; border-radius:2px; background:#b6e3ff; border-color:#218bff; vertical-align:middle; cursor:default;"></i>
+            <i class="hc" style="width:11px; height:11px; display:inline-block; border-radius:2px; background:#218bff; border-color:#0969da; vertical-align:middle; cursor:default;"></i>
+            <i class="hc" style="width:11px; height:11px; display:inline-block; border-radius:2px; background:#0969da; border-color:#0550ae; vertical-align:middle; cursor:default;"></i>
+          </span>
+          <span>100% 正確率</span>
+        </div>
       </div>
     </div>`;
 
