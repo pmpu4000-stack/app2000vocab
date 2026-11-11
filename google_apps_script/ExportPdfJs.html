@@ -2625,16 +2625,15 @@ window._renderConquerWordCard = _renderConquerWordCard;
     const isCurrentActive = (activeW === curSemWeek);
     const cycleSelectBarHtml = `
       <div class="conquer-cycle-nav-bar">
-        <div class="conquer-cycle-selector-wrap">
-          <span>📅 第</span>
+        <label class="conquer-cycle-selector-wrap" for="st-conquer-cycle-select" title="點擊選擇學期週次">
+          <span>📅 第 ${activeW} 週</span>
           <select id="st-conquer-cycle-select" class="task-date-selector" title="選擇查看學期週次">
             ${weekOptionsHtml}
           </select>
-          <span>週</span>
-        </div>
+        </label>
         <div class="conquer-cycle-toggle-group">
           <button type="button" id="btn-st-conquer-cycle-prev" class="conquer-nav-btn date-nav-btn" ${activeW <= 1 ? 'disabled' : ''} title="查看上一週（第 ${Math.max(1, activeW - 1)} 週）待攻克單字">◀ 上一週</button>
-          <button type="button" id="btn-st-conquer-cycle-current" class="conquer-nav-btn date-nav-btn today-btn ${isCurrentActive ? 'active' : ''}" title="切換回本週（第 ${curSemWeek} 週）">📍 本週</button>
+          <button type="button" id="btn-st-conquer-cycle-current" class="conquer-nav-btn date-nav-btn today-btn ${isCurrentActive ? 'active' : ''}" title="切換回本週（第 ${curSemWeek} 週）">本週</button>
           <button type="button" id="btn-st-conquer-cycle-next" class="conquer-nav-btn date-nav-btn" ${activeW >= 20 ? 'disabled' : ''} title="查看下一週（第 ${Math.min(20, activeW + 1)} 週）待攻克單字">下一週 ▶</button>
         </div>
       </div>

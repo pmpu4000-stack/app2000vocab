@@ -1160,59 +1160,65 @@
 
     /* 待攻克單字：週次導覽列現代化分段控制器 (Segmented Control) */
     .conquer-cycle-nav-bar {
-      display: flex !important;
-      align-items: center !important;
-      justify-content: space-between !important;
-      flex-wrap: wrap !important;
-      gap: 8px 12px !important;
-      padding: 8px 12px !important;
-      background: var(--bar-track, rgba(148, 163, 184, 0.08)) !important;
-      border: 1px solid var(--line, rgba(148, 163, 184, 0.2)) !important;
-      border-radius: 10px !important;
-      margin-bottom: 6px !important;
-    }
-    .conquer-cycle-selector-wrap {
-      display: flex !important;
-      align-items: center !important;
-      gap: 6px !important;
-      font-size: 12.5px !important;
-      font-weight: 750 !important;
-      color: var(--ink) !important;
-      white-space: nowrap !important;
-      flex-shrink: 0 !important;
-    }
-    .conquer-cycle-selector-wrap select {
-      font-size: 12px !important;
-      height: 28px !important;
-      min-height: 28px !important;
-      padding: 0 4px 0 8px !important;
-      border-radius: 7px !important;
-      border: 1.5px solid var(--line, rgba(148, 163, 184, 0.35)) !important;
-      background: var(--card, #FFFFFF) !important;
-      color: var(--ink) !important;
-      font-weight: 700 !important;
-      cursor: pointer !important;
-      outline: none !important;
-      transition: border-color .15s, box-shadow .15s !important;
-      box-sizing: border-box !important;
-      text-align: center !important;
-      min-width: 54px !important;
-      width: auto !important;
-    }
-    .conquer-cycle-selector-wrap select:focus {
-      border-color: var(--sky, #2D9CDB) !important;
-      box-shadow: 0 0 0 2px rgba(45, 156, 219, 0.2) !important;
-    }
-    .conquer-cycle-toggle-group {
-      display: inline-flex !important;
-      align-items: center !important;
+      display: grid !important;
+      grid-template-columns: 1.05fr 1fr 1fr 1fr !important;
       background: rgba(148, 163, 184, 0.14) !important;
       border: 1px solid var(--line, rgba(148, 163, 184, 0.22)) !important;
       border-radius: 8px !important;
       padding: 2px !important;
       gap: 2px !important;
-      flex: 0 0 auto !important;
+      width: 100% !important;
       box-sizing: border-box !important;
+      margin-bottom: 6px !important;
+    }
+    .conquer-cycle-selector-wrap {
+      position: relative !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 3px !important;
+      background: transparent !important;
+      border: none !important;
+      color: var(--ink2, #475569) !important;
+      padding: 0 4px !important;
+      height: 26px !important;
+      min-height: 26px !important;
+      max-height: 26px !important;
+      border-radius: 6px !important;
+      font-size: 12px !important;
+      font-weight: 650 !important;
+      line-height: 1 !important;
+      cursor: pointer !important;
+      transition: all .15s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      box-shadow: none !important;
+      white-space: nowrap !important;
+      user-select: none !important;
+      box-sizing: border-box !important;
+      overflow: hidden !important;
+    }
+    .conquer-cycle-selector-wrap:hover {
+      background: rgba(255, 255, 255, 0.85) !important;
+      color: var(--ink, #0F172A) !important;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+    }
+    .conquer-cycle-selector-wrap select {
+      position: absolute !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+      opacity: 0 !important;
+      cursor: pointer !important;
+      border: none !important;
+      outline: none !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      z-index: 2 !important;
+    }
+    .conquer-cycle-toggle-group {
+      display: contents !important;
     }
     .conquer-cycle-toggle-group .conquer-nav-btn,
     .conquer-cycle-toggle-group .date-nav-btn {
@@ -1220,20 +1226,22 @@
       align-items: center !important;
       justify-content: center !important;
       gap: 3px !important;
+      background: transparent !important;
+      border: none !important;
+      color: var(--ink2, #475569) !important;
+      padding: 0 4px !important;
       height: 26px !important;
       min-height: 26px !important;
-      padding: 0 10px !important;
-      border: none !important;
+      max-height: 26px !important;
       border-radius: 6px !important;
-      background: transparent !important;
-      color: var(--ink2, #475569) !important;
       font-size: 12px !important;
       font-weight: 650 !important;
       line-height: 1 !important;
-      white-space: nowrap !important;
       cursor: pointer !important;
       transition: all .15s cubic-bezier(0.4, 0, 0.2, 1) !important;
       box-shadow: none !important;
+      white-space: nowrap !important;
+      user-select: none !important;
       box-sizing: border-box !important;
     }
     .conquer-cycle-toggle-group .conquer-nav-btn:hover:not(:disabled),
