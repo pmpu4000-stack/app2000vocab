@@ -1425,4 +1425,38 @@
       box-shadow: none !important;
     }
 
+    /* 學習足跡去盒化：融入外層大卡片，消除邊框與嵌套底色，高度自適應 */
+    .summary-embedded .task-history-card {
+      background: transparent !important;
+      border: none !important;
+      border-radius: 0 !important;
+      padding: 0 !important;
+      margin-bottom: 12px !important;
+      box-shadow: none !important;
+    }
+    [data-theme="dark"] .summary-embedded .task-history-card {
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+    }
+    .summary-embedded .task-tab-card,
+    .daily-footprint-block .task-tab-card,
+    #export-web-preview-body .task-tab-card,
+    #task-record-details .task-tab-card,
+    #free-record-details .task-tab-card,
+    .task-single-record-block .task-tab-card {
+      height: auto !important;
+      min-height: 0 !important;
+      max-height: 220px !important;
+      overflow: visible !important;
+    }
+    .task-tab-pane .word-split-tags-grid {
+      flex: 1 1 auto;
+      overflow-y: auto !important;
+      max-height: 180px !important;
+      align-content: flex-start;
+      align-items: flex-start;
+      padding: 2px 0;
+    }
+
 </style>
