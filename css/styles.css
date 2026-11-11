@@ -957,7 +957,7 @@ body.daily-limit-reached .stat.user b {
   max-height: 138px !important;
   align-content: flex-start;
   align-items: flex-start;
-  padding: 2px 0;
+  padding: 2px 0 16px !important;
   scrollbar-width: none !important;
   -ms-overflow-style: none !important;
 }
