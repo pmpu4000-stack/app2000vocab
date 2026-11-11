@@ -1000,7 +1000,17 @@ body.daily-limit-reached .stat.user b {
 [data-theme="dark"] .task-tab-btn.is-active.tab-info {
   color: #FBBF24;
 }
-.date-navigator-card{background:linear-gradient(135deg,#F1EDFF,#F8F9FD);border:1.5px solid #E4DFFa;border-radius:12px;padding:8px 10px;margin:0 0 8px;display:flex;flex-direction:column;gap:7px;box-shadow:0 2px 8px rgba(108,76,224,.05)}
+.date-navigator-card {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  margin: 0 0 10px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  box-shadow: none !important;
+}
 
 /* 現代膠囊分段控制器 (Segmented Control)：日期導覽工具列 */
 .date-nav-toolbar-c {
@@ -1397,7 +1407,6 @@ body[data-theme="dark"],
 [data-theme="dark"] .banner .gate,
 [data-theme="dark"] .task-history-card,
 [data-theme="dark"] .task-score-item,
-[data-theme="dark"] .date-navigator-card,
 [data-theme="dark"] .date-picker-input,
 [data-theme="dark"] .date-nav-btn {
   background: #1C2234 !important;
@@ -2011,8 +2020,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   transform: scale(1.1);
 }
 [data-theme="dark"] .task-history-card,
-[data-theme="dark"] .task-score-item,
-[data-theme="dark"] .date-navigator-card {
+[data-theme="dark"] .task-score-item {
   background: #181C2A !important;
   border-color: #262C42 !important;
   color: #F0F3FA !important;
