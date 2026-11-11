@@ -2085,6 +2085,9 @@ export function renderSummary(d) {
         taskText = "指派: 缺席未受測";
       } else if (stat.statusType === "untested") {
         taskText = "指派: 未受測";
+      } else if (stat.statusType === "incomplete") {
+        const tTotal = stat.wordsCount || stat.a;
+        taskText = `指派: ${stat.c}/${tTotal} (受測未完成)`;
       } else {
         const tTotal = stat.wordsCount || stat.a;
         if (tTotal > 0) {
@@ -2132,6 +2135,9 @@ export function renderSummary(d) {
         taskBadge = `<span class="cdo-badge cdo-task-absent" title="當日缺席未登入受測">指派: 缺席未受測</span>`;
       } else if (stat.statusType === "untested") {
         taskBadge = `<span class="cdo-badge cdo-task-untested">指派: 未受測</span>`;
+      } else if (stat.statusType === "incomplete") {
+        const tTotal = stat.wordsCount || stat.a;
+        taskBadge = `<span class="cdo-badge cdo-task-incomplete" title="測驗作答未完成 (部分作答)">指派: ${stat.c}/${tTotal} <small>(未完成)</small></span>`;
       } else {
         const tTotal = stat.wordsCount || stat.a;
         if (tTotal > 0) {
@@ -2156,10 +2162,13 @@ export function renderSummary(d) {
     const hasAny = !!taskBadge || !!freeBadge;
 
     const displayDate = dateStr.replace(/-/g, "/");
+    const taskSlotHtml = taskBadge || `<span class="cdo-badge cdo-placeholder" aria-hidden="true"></span>`;
+    const freeSlotHtml = freeBadge || `<span class="cdo-badge cdo-placeholder" aria-hidden="true"></span>`;
+
     return `
       <div class="custom-date-option ${isSelected ? "is-selected" : ""}" data-val="${dateStr}" role="option" aria-selected="${isSelected}">
         <span class="cdo-date ${isToday ? "is-today-text" : ""}">${displayDate}</span>
-        ${hasAny ? `${taskBadge}${freeBadge}` : `<span class="cdo-none">(尚無作答紀錄)</span>`}
+        ${hasAny ? `${taskSlotHtml}${freeSlotHtml}` : `<span class="cdo-none">(尚無作答紀錄)</span>`}
       </div>
     `;
   };
@@ -2180,6 +2189,9 @@ export function renderSummary(d) {
         taskBadge = `<span class="cdo-badge cdo-task-absent" title="當日缺席未登入受測">指派: 缺席未受測</span>`;
       } else if (stat.statusType === "untested") {
         taskBadge = `<span class="cdo-badge cdo-task-untested">指派: 未受測</span>`;
+      } else if (stat.statusType === "incomplete") {
+        const tTotal = stat.wordsCount || stat.a;
+        taskBadge = `<span class="cdo-badge cdo-task-incomplete" title="測驗作答未完成 (部分作答)">指派: ${stat.c}/${tTotal} <small>(未完成)</small></span>`;
       } else {
         const tTotal = stat.wordsCount || stat.a;
         if (tTotal > 0) {
@@ -2203,10 +2215,13 @@ export function renderSummary(d) {
     const hasAny = !!taskBadge || !!freeBadge;
 
     const displayDate = dateStr.replace(/-/g, "/");
+    const taskSlotHtml = taskBadge || `<span class="cdo-badge cdo-placeholder" aria-hidden="true"></span>`;
+    const freeSlotHtml = freeBadge || `<span class="cdo-badge cdo-placeholder" aria-hidden="true"></span>`;
+
     return `
       <div class="custom-date-trigger-content">
         <span class="cdo-date ${isToday ? "is-today-text" : ""}">${displayDate}</span>
-        ${hasAny ? `${taskBadge}${freeBadge}` : `<span class="cdo-none">(尚無作答紀錄)</span>`}
+        ${hasAny ? `${taskSlotHtml}${freeSlotHtml}` : `<span class="cdo-none">(尚無作答紀錄)</span>`}
       </div>
     `;
   };
