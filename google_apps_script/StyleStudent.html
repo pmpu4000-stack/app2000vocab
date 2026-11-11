@@ -1285,27 +1285,19 @@
       padding: 0 !important;
       margin: 0 0 10px !important;
       display: flex !important;
-      align-items: center !important;
-      justify-content: space-between !important;
-      flex-wrap: wrap !important;
-      gap: 8px 12px !important;
+      flex-direction: column !important;
+      gap: 8px !important;
       box-shadow: none !important;
     }
-    .date-nav-summary-row {
-      flex: 1 1 240px !important;
-      min-width: 220px !important;
-      box-sizing: border-box !important;
-    }
     .date-nav-toolbar-c {
-      display: inline-flex !important;
-      align-items: center !important;
+      display: grid !important;
+      grid-template-columns: 1.05fr 1fr 1fr 1fr !important;
       background: rgba(148, 163, 184, 0.14) !important;
       border: 1px solid var(--line, rgba(148, 163, 184, 0.22)) !important;
       border-radius: 8px !important;
       padding: 2px !important;
       gap: 2px !important;
-      flex: 0 0 auto !important;
-      height: 30px !important;
+      width: 100% !important;
       box-sizing: border-box !important;
     }
     .date-nav-c-btn {
@@ -1316,21 +1308,12 @@
       background: transparent !important;
       border: none !important;
       color: var(--ink2, #475569) !important;
-      padding: 0 8px !important;
-      height: 24px !important;
-      min-height: 24px !important;
-      max-height: 24px !important;
+      padding: 0 4px !important;
+      height: 26px !important;
+      min-height: 26px !important;
+      max-height: 26px !important;
       border-radius: 6px !important;
       font-size: 12px !important;
-      font-weight: 650 !important;
-      line-height: 1 !important;
-      cursor: pointer !important;
-      transition: all .15s cubic-bezier(0.4, 0, 0.2, 1) !important;
-      box-shadow: none !important;
-      white-space: nowrap !important;
-      user-select: none !important;
-      box-sizing: border-box !important;
-    }
       font-weight: 650 !important;
       line-height: 1 !important;
       cursor: pointer !important;

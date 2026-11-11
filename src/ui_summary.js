@@ -2310,7 +2310,18 @@ export function renderSummary(d) {
 
     getSummaryEl().innerHTML = `
     <div class="date-navigator-card">
-      <!-- 左側：歷程紀錄摘要與自訂下拉選單 -->
+      <!-- 上排：四等分科技卡片風工具列 (指定日置左，前後天及今日) -->
+      <div class="date-nav-toolbar-c">
+        <label class="date-nav-c-btn cal-btn" for="record-date-picker" title="點擊選擇指定日期">
+          <span>📅 指定日</span>
+          <input type="date" id="record-date-picker" class="hidden-date-picker-input" value="${defaultSelectedDate}" max="${todayDash}">
+        </label>
+        <button type="button" id="btn-date-prev" class="date-nav-c-btn" title="查看前一天">◀ 前一天</button>
+        <button type="button" id="btn-date-today" class="date-nav-c-btn today-btn ${defaultSelectedDate === todayDash ? 'active' : ''}" title="切換回今日">今日</button>
+        <button type="button" id="btn-date-next" class="date-nav-c-btn" ${defaultSelectedDate >= todayDash ? 'disabled' : ''} title="查看後一天">後一天 ▶</button>
+      </div>
+
+      <!-- 下排：全寬歷程紀錄摘要與下拉選單 -->
       <div class="date-nav-summary-row">
         <div class="custom-date-select-wrap" id="custom-date-select-wrap">
           <button type="button" class="custom-date-trigger" id="custom-date-trigger" aria-haspopup="listbox" aria-expanded="false">
@@ -2325,17 +2336,6 @@ export function renderSummary(d) {
         <select id="record-quick-dates" class="task-date-selector" title="選擇有作答紀錄的日期" style="display:none;">
           ${quickDateOptionsHtml}
         </select>
-      </div>
-
-      <!-- 右側：現代膠囊分段導覽控制器 (前後天、今日與指定日) -->
-      <div class="date-nav-toolbar-c">
-        <button type="button" id="btn-date-prev" class="date-nav-c-btn" title="查看前一天">◀ 前一天</button>
-        <button type="button" id="btn-date-today" class="date-nav-c-btn today-btn ${defaultSelectedDate === todayDash ? 'active' : ''}" title="切換回今日">今日</button>
-        <button type="button" id="btn-date-next" class="date-nav-c-btn" ${defaultSelectedDate >= todayDash ? 'disabled' : ''} title="查看後一天">後一天 ▶</button>
-        <label class="date-nav-c-btn cal-btn" for="record-date-picker" title="點擊選擇指定日期">
-          <span>📅 指定日</span>
-          <input type="date" id="record-date-picker" class="hidden-date-picker-input" value="${defaultSelectedDate}" max="${todayDash}">
-        </label>
       </div>
     </div>
 
