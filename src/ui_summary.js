@@ -2099,6 +2099,10 @@ export function renderSummary(d) {
           taskText = `指派: ${stat.c}/${stat.a} (${stat.rate}%)`;
         }
       }
+    } else if (isWeekend(dateStr) && checkWeekHasCompletedTasksAndAllPerfect(dateStr)) {
+      taskText = "指派: 平日全對免測";
+    } else {
+      taskText = "指派: 未指派";
     }
 
     let freeText = "";
@@ -2107,15 +2111,17 @@ export function renderSummary(d) {
       freeText = `自由: ${freeCorrWords}/${freeTestedWords} (${freeRate}%)`;
     }
 
+    const hasRealRecord = (stat && stat.statusType !== "unassigned") || (freeTestedWords > 0) || (isWeekend(dateStr) && checkWeekHasCompletedTasksAndAllPerfect(dateStr));
+
     const parts = [];
     if (taskText) parts.push(taskText);
     if (freeText) parts.push(freeText);
 
     let desc = "";
-    if (parts.length > 0) {
+    if (hasRealRecord && parts.length > 0) {
       desc = ` [${parts.join(" · ")}]`;
     } else {
-      desc = " (尚無紀錄)";
+      desc = " (尚無作答紀錄)";
     }
 
     const displayDate = dateStr.replace(/-/g, "/");
@@ -2149,10 +2155,10 @@ export function renderSummary(d) {
           taskBadge = `<span class="cdo-badge cdo-task">指派: ${stat.c}/${stat.a} <small>(${stat.rate}%)</small></span>`;
         }
       }
-    } else if (isWeekend(dateStr)) {
-      if (checkWeekHasCompletedTasksAndAllPerfect(dateStr)) {
-        taskBadge = `<span class="cdo-badge cdo-task-perfect" title="平日指定測驗全對免測">🏆 平日全對免測</span>`;
-      }
+    } else if (isWeekend(dateStr) && checkWeekHasCompletedTasksAndAllPerfect(dateStr)) {
+      taskBadge = `<span class="cdo-badge cdo-task-perfect" title="平日指定測驗全對免測">🏆 平日全對免測</span>`;
+    } else {
+      taskBadge = `<span class="cdo-badge cdo-empty">指派: 未指派</span>`;
     }
 
     let freeBadge = "";
@@ -2162,7 +2168,7 @@ export function renderSummary(d) {
     }
 
     const isSelected = (dateStr === defaultSelectedDate);
-    const hasAny = !!taskBadge || !!freeBadge;
+    const hasRealRecord = (stat && stat.statusType !== "unassigned") || (freeTestedWords > 0) || (isWeekend(dateStr) && checkWeekHasCompletedTasksAndAllPerfect(dateStr));
 
     const displayDate = dateStr.replace(/-/g, "/");
     const taskSlotHtml = taskBadge || `<span class="cdo-badge cdo-placeholder" aria-hidden="true"></span>`;
@@ -2171,7 +2177,7 @@ export function renderSummary(d) {
     return `
       <div class="custom-date-option ${isSelected ? "is-selected" : ""}" data-val="${dateStr}" role="option" aria-selected="${isSelected}">
         <span class="cdo-date ${isToday ? "is-today-text" : ""}">${displayDate}</span>
-        ${hasAny ? `${taskSlotHtml}${freeSlotHtml}` : `<span class="cdo-none">(尚無作答紀錄)</span>`}
+        ${hasRealRecord ? `${taskSlotHtml}${freeSlotHtml}` : `<span class="cdo-none">(尚無作答紀錄)</span>`}
       </div>
     `;
   };
@@ -2203,10 +2209,10 @@ export function renderSummary(d) {
           taskBadge = `<span class="cdo-badge cdo-task">指派: ${stat.c}/${stat.a} <small>(${stat.rate}%)</small></span>`;
         }
       }
-    } else if (isWeekend(dateStr)) {
-      if (checkWeekHasCompletedTasksAndAllPerfect(dateStr)) {
-        taskBadge = `<span class="cdo-badge cdo-task-perfect" title="平日指定測驗全對免測">🏆 平日全對免測</span>`;
-      }
+    } else if (isWeekend(dateStr) && checkWeekHasCompletedTasksAndAllPerfect(dateStr)) {
+      taskBadge = `<span class="cdo-badge cdo-task-perfect" title="平日指定測驗全對免測">🏆 平日全對免測</span>`;
+    } else {
+      taskBadge = `<span class="cdo-badge cdo-empty">指派: 未指派</span>`;
     }
 
     let freeBadge = "";
@@ -2215,7 +2221,7 @@ export function renderSummary(d) {
       freeBadge = `<span class="cdo-badge cdo-free">自由: ${freeCorrWords}/${freeTestedWords} <small>(${freeRate}%)</small></span>`;
     }
 
-    const hasAny = !!taskBadge || !!freeBadge;
+    const hasRealRecord = (stat && stat.statusType !== "unassigned") || (freeTestedWords > 0) || (isWeekend(dateStr) && checkWeekHasCompletedTasksAndAllPerfect(dateStr));
 
     const displayDate = dateStr.replace(/-/g, "/");
     const taskSlotHtml = taskBadge || `<span class="cdo-badge cdo-placeholder" aria-hidden="true"></span>`;
@@ -2224,7 +2230,7 @@ export function renderSummary(d) {
     return `
       <div class="custom-date-trigger-content">
         <span class="cdo-date ${isToday ? "is-today-text" : ""}">${displayDate}</span>
-        ${hasAny ? `${taskSlotHtml}${freeSlotHtml}` : `<span class="cdo-none">(尚無作答紀錄)</span>`}
+        ${hasRealRecord ? `${taskSlotHtml}${freeSlotHtml}` : `<span class="cdo-none">(尚無作答紀錄)</span>`}
       </div>
     `;
   };
