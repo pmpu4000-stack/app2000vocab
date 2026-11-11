@@ -388,8 +388,11 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 .streakline{font-size:12.5px;font-weight:800;color:var(--ink2);margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px 10px;line-height:1.5}
 .streakline > span:first-child{white-space:nowrap;flex:0 1 auto;min-width:0;line-height:28px}
 .streakline b{color:var(--catD);font-variant-numeric:tabular-nums}
-.heat-day-info{display:inline-flex !important;align-items:center;justify-content:center;gap:4px;width:150px !important;min-width:150px !important;max-width:150px !important;height:28px;padding:0 8px;box-sizing:border-box;border-radius:8px;font-size:12px;font-weight:800;line-height:1;white-space:nowrap;flex-shrink:0;margin-left:auto;text-align:center;background:#ECFDF5;color:#065F46;border:2px solid #10B981;box-shadow:0 2px 6px rgba(16,185,129,.14);font-variant-numeric:tabular-nums}
+.heat-day-info{display:inline-grid !important;grid-template-columns:46px 14px 1fr !important;align-items:center !important;width:154px !important;min-width:154px !important;max-width:154px !important;height:28px;padding:0 8px;box-sizing:border-box;border-radius:8px;font-size:12px;font-weight:800;line-height:1;white-space:nowrap;flex-shrink:0;margin-left:auto;text-align:center;background:#ECFDF5;color:#065F46;border:2px solid #10B981;box-shadow:0 2px 6px rgba(16,185,129,.14);font-variant-numeric:tabular-nums}
 .heat-day-info b{font-weight:900}
+.heat-day-info .hdi-date{text-align:right;letter-spacing:-0.2px}
+.heat-day-info .hdi-divider{text-align:center;opacity:0.6;font-weight:400}
+.heat-day-info .hdi-rate{text-align:left;white-space:nowrap;letter-spacing:-0.2px}
 /* 1. 無作答紀錄：高對比清晰文字，絕不變淡 */
 .heat-day-info.tier-gray,.heat-day-info.empty{background:#F1F5F9 !important;color:#1E293B !important;border:2px solid #CBD5E1 !important;box-shadow:0 2px 5px rgba(100,116,139,.12) !important}
 .heat-day-info.tier-gray b,.heat-day-info.empty b{color:#0F172A !important}
@@ -418,7 +421,7 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
 @media(max-width:400px){
   .streakline{font-size:11px;gap:4px 6px}
   .streakline > span:first-child{white-space:nowrap}
-  .heat-day-info{width:142px !important;min-width:142px !important;max-width:142px !important;height:26px;font-size:11px}
+  .heat-day-info{grid-template-columns:40px 12px 1fr !important;width:142px !important;min-width:142px !important;max-width:142px !important;height:26px;font-size:11px;padding:0 6px}
 }
 /* 熱力圖：14 欄比例流暢自適應縮放，消除斷點跳動與大小突變 */
 .heatmap{display:grid !important;grid-template-columns:repeat(14,minmax(0, 1fr)) !important;justify-content:normal !important;gap:5px !important;width:100% !important;max-width:100% !important;margin:6px 0 8px !important}

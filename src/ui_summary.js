@@ -2375,9 +2375,9 @@ export function renderSummary(d) {
     const shortDate = String(dateKey).replace(/^\d{4}-/, '');
     taskHeatDayInfoEl.className = `heat-day-info ${stat.badgeTier}`;
     if (stat.statusType === "completed" || stat.hasUnanswered || stat.statusType === "incomplete") {
-      taskHeatDayInfoEl.innerHTML = `<b>${shortDate}</b> ｜ 正確率 <b>${stat.rate}%</b>`;
+      taskHeatDayInfoEl.innerHTML = `<span class="hdi-date">${shortDate}</span><span class="hdi-divider">｜</span><span class="hdi-rate">正確率 <b>${stat.rate}%</b></span>`;
     } else {
-      taskHeatDayInfoEl.innerHTML = `<b>${shortDate}</b> ｜ <b>${stat.statusLabel}</b>`;
+      taskHeatDayInfoEl.innerHTML = `<span class="hdi-date">${shortDate}</span><span class="hdi-divider">｜</span><span class="hdi-rate"><b>${stat.statusLabel}</b></span>`;
     }
     if (taskHeatGridEl) {
       if (curActiveTaskCell) curActiveTaskCell.classList.remove("hc-active");
@@ -2466,11 +2466,11 @@ export function renderSummary(d) {
     const shortDate = String(dateKey).replace(/^\d{4}-/, '');
     if (!att || att <= 0) {
       heatDayInfoEl.className = "heat-day-info tier-gray";
-      heatDayInfoEl.innerHTML = `<b>${shortDate}</b> ｜ 無練習紀錄`;
+      heatDayInfoEl.innerHTML = `<span class="hdi-date">${shortDate}</span><span class="hdi-divider">｜</span><span class="hdi-rate"><b>無練習紀錄</b></span>`;
     } else {
       const badgeTier = rate === 100 ? "tier-green-perfect" : (rate >= 80 ? "tier-green-high" : (rate >= 60 ? "tier-green-mid" : "tier-green-low"));
       heatDayInfoEl.className = `heat-day-info ${badgeTier}`;
-      heatDayInfoEl.innerHTML = `<b>${shortDate}</b> ｜ 正確率 <b>${rate}%</b>`;
+      heatDayInfoEl.innerHTML = `<span class="hdi-date">${shortDate}</span><span class="hdi-divider">｜</span><span class="hdi-rate">正確率 <b>${rate}%</b></span>`;
     }
     if (heatGridEl) {
       if (curActiveFreeCell) curActiveFreeCell.classList.remove("hc-active");
