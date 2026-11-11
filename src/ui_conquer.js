@@ -403,24 +403,20 @@ export function buildWeekPendingConquerHtml(words, d = null, cycleParam = _activ
 
   let weekOptionsHtml = "";
   for (let w = 1; w <= 20; w++) {
-    const isWCurrent = (w === curSemWeek);
-    const isWBoss = (w % 2 === 0);
     const val = "week_" + w;
     const selected = (activeW === w);
-    let label = `第 ${w} 週`;
-    if (isWCurrent) label += `（本週${isWBoss ? " · 雙週魔王週" : ""}）`;
-    else if (isWBoss) label += `（雙週大消滅）`;
-    weekOptionsHtml += `<option value="${val}" ${selected ? 'selected' : ''}>${label}</option>`;
+    weekOptionsHtml += `<option value="${val}" ${selected ? 'selected' : ''}>${w}</option>`;
   }
 
   const isCurrentActive = (activeW === curSemWeek);
   const cycleSelectBarHtml = `
     <div class="conquer-cycle-nav-bar">
       <div class="conquer-cycle-selector-wrap">
-        <span>📅 查看週次：</span>
-        <select id="conquer-cycle-select" class="task-date-selector" title="選擇查看待攻克學期週次">
+        <span>📅 第</span>
+        <select id="conquer-cycle-select" class="task-date-selector" title="選擇查看學期週次">
           ${weekOptionsHtml}
         </select>
+        <span>週</span>
       </div>
       <div class="conquer-cycle-toggle-group">
         <button type="button" id="btn-conquer-cycle-prev" class="conquer-nav-btn date-nav-btn" ${activeW <= 1 ? 'disabled' : ''} title="查看上一週（第 ${Math.max(1, activeW - 1)} 週）待攻克單字">◀ 上一週</button>
