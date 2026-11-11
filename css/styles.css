@@ -1075,8 +1075,6 @@ body.daily-limit-reached .stat.user b {
 [data-theme="dark"] .word-box-tab-btn.is-active{background:#252B42;color:#F0F3FA;box-shadow:none !important}
 [data-theme="dark"] .word-box-tab-btn.is-active.tab-wrong{color:#FBBF24}
 .card-icon-slot{width:18px !important;min-width:18px !important;max-width:18px !important;display:inline-flex !important;align-items:center !important;justify-content:center !important;flex-shrink:0 !important;text-align:center !important;line-height:1 !important}
-.icon-blue-check rect{fill:#1D4ED8;transition:fill .15s ease}
-[data-theme="dark"] .icon-blue-check rect{fill:#38BDF8}
 .word-split-title.correct-title{color:#0284C7}
 .word-split-title.wrong-title{color:#475569}
 .word-split-title.unanswered-title{color:#475569}

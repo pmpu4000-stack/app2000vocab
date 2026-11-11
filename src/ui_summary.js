@@ -1122,7 +1122,7 @@ function renderSingleTaskCardHtml(record, selectedDate, d, index = 0, totalCount
       <div class="task-tab-card">
         <div class="task-tab-nav">
           <button type="button" class="task-tab-btn is-active tab-correct" onclick="event.stopPropagation(); const p=this.closest('.task-tab-card'); p.querySelectorAll('.task-tab-btn').forEach(b=>b.classList.remove('is-active')); this.classList.add('is-active'); p.querySelectorAll('.task-tab-pane').forEach(el=>el.classList.remove('is-active')); p.querySelector('.pane-tab-correct').classList.add('is-active');">
-            <span class="card-icon-slot"><svg class="icon-blue-check" width="15" height="15" viewBox="0 0 20 20" fill="none" style="vertical-align:middle;display:inline-block;"><rect width="20" height="20" rx="5"/><path d="M5.5 10.5L8.5 13.5L14.5 7.5" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span> 答對 (${correctList.length})
+            <span class="card-icon-slot"><svg width="15" height="15" viewBox="0 0 20 20" style="vertical-align:middle;display:inline-block;flex-shrink:0;"><rect width="20" height="20" rx="5" fill="#2563EB"/><path d="M5.5 10.5L8.5 13.5L14.5 7.5" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span> 答對 (${correctList.length})
           </button>
           ${!isAllCorrect ? `
           <button type="button" class="task-tab-btn tab-wrong" onclick="event.stopPropagation(); const p=this.closest('.task-tab-card'); p.querySelectorAll('.task-tab-btn').forEach(b=>b.classList.remove('is-active')); this.classList.add('is-active'); p.querySelectorAll('.task-tab-pane').forEach(el=>el.classList.remove('is-active')); p.querySelector('.pane-tab-wrong').classList.add('is-active');">
@@ -1638,7 +1638,7 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
     <div class="task-tab-card">
       <div class="task-tab-nav">
         <button type="button" class="task-tab-btn is-active tab-correct" onclick="event.stopPropagation(); const p=this.closest('.task-tab-card'); p.querySelectorAll('.task-tab-btn').forEach(b=>b.classList.remove('is-active')); this.classList.add('is-active'); p.querySelectorAll('.task-tab-pane').forEach(el=>el.classList.remove('is-active')); p.querySelector('.pane-free-correct').classList.add('is-active');">
-          <span class="card-icon-slot"><svg class="icon-blue-check" width="15" height="15" viewBox="0 0 20 20" fill="none" style="vertical-align:middle;display:inline-block;"><rect width="20" height="20" rx="5"/><path d="M5.5 10.5L8.5 13.5L14.5 7.5" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span> 答對 (${displayCorrectBoxCount})
+          <span class="card-icon-slot"><svg width="15" height="15" viewBox="0 0 20 20" style="vertical-align:middle;display:inline-block;flex-shrink:0;"><rect width="20" height="20" rx="5" fill="#2563EB"/><path d="M5.5 10.5L8.5 13.5L14.5 7.5" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span> 答對 (${displayCorrectBoxCount})
         </button>
         ${!isAllCorrect ? `
         <button type="button" class="task-tab-btn tab-wrong" onclick="event.stopPropagation(); const p=this.closest('.task-tab-card'); p.querySelectorAll('.task-tab-btn').forEach(b=>b.classList.remove('is-active')); this.classList.add('is-active'); p.querySelectorAll('.task-tab-pane').forEach(el=>el.classList.remove('is-active')); p.querySelector('.pane-free-wrong').classList.add('is-active');">
