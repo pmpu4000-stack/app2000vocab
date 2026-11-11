@@ -415,17 +415,17 @@ export function buildWeekPendingConquerHtml(words, d = null, cycleParam = _activ
 
   const isCurrentActive = (activeW === curSemWeek);
   const cycleSelectBarHtml = `
-    <div class="conquer-cycle-nav-bar" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; padding:8px 12px; background:var(--bar-track, rgba(148,163,184,0.08)); border:1px solid rgba(148,163,184,0.18); border-radius:10px; margin-bottom:4px;">
-      <div style="display:flex; align-items:center; gap:6px; font-size:12.5px; font-weight:750; color:var(--ink);">
+    <div class="conquer-cycle-nav-bar">
+      <div class="conquer-cycle-selector-wrap">
         <span>📅 查看週次：</span>
-        <select id="conquer-cycle-select" class="task-date-selector" style="font-size:12px; padding:4px 9px; border-radius:6px; border:1.5px solid rgba(148,163,184,0.35); background:var(--card, #fff); color:var(--ink); font-weight:700; cursor:pointer;" title="選擇查看待攻克學期週次">
+        <select id="conquer-cycle-select" class="task-date-selector" title="選擇查看待攻克學期週次">
           ${weekOptionsHtml}
         </select>
       </div>
-      <div class="conquer-cycle-toggle-group date-nav-btn-group" style="display:inline-flex; align-items:center; gap:4px;">
-        <button type="button" id="btn-conquer-cycle-prev" class="date-nav-btn" ${activeW <= 1 ? 'disabled' : ''} style="font-size:11.5px; padding:3px 8px; border-radius:6px; height:auto; line-height:1.2;" title="查看上一週（第 ${Math.max(1, activeW - 1)} 週）待攻克單字">◀ 上一週</button>
-        <button type="button" id="btn-conquer-cycle-current" class="date-nav-btn today-btn ${isCurrentActive ? 'active' : ''}" style="font-size:11.5px; padding:3px 8px; border-radius:6px; height:auto; line-height:1.2;" title="切換回本週（第 ${curSemWeek} 週）">📍 本週</button>
-        <button type="button" id="btn-conquer-cycle-next" class="date-nav-btn" ${activeW >= 20 ? 'disabled' : ''} style="font-size:11.5px; padding:3px 8px; border-radius:6px; height:auto; line-height:1.2;" title="查看下一週（第 ${Math.min(20, activeW + 1)} 週）待攻克單字">下一週 ▶</button>
+      <div class="conquer-cycle-toggle-group">
+        <button type="button" id="btn-conquer-cycle-prev" class="conquer-nav-btn date-nav-btn" ${activeW <= 1 ? 'disabled' : ''} title="查看上一週（第 ${Math.max(1, activeW - 1)} 週）待攻克單字">◀ 上一週</button>
+        <button type="button" id="btn-conquer-cycle-current" class="conquer-nav-btn date-nav-btn today-btn ${isCurrentActive ? 'active' : ''}" title="切換回本週（第 ${curSemWeek} 週）">📍 本週</button>
+        <button type="button" id="btn-conquer-cycle-next" class="conquer-nav-btn date-nav-btn" ${activeW >= 20 ? 'disabled' : ''} title="查看下一週（第 ${Math.min(20, activeW + 1)} 週）待攻克單字">下一週 ▶</button>
       </div>
     </div>
   `;
