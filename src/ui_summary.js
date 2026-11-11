@@ -2317,8 +2317,8 @@ export function renderSummary(d) {
           <input type="date" id="record-date-picker" class="hidden-date-picker-input" value="${defaultSelectedDate}" max="${todayDash}">
         </label>
         <button type="button" id="btn-date-prev" class="date-nav-c-btn" title="查看前一天">◀ 前一天</button>
-        <button type="button" id="btn-date-today" class="date-nav-c-btn today-btn" title="切換回今日">今日</button>
-        <button type="button" id="btn-date-next" class="date-nav-c-btn" title="查看後一天">後一天 ▶</button>
+        <button type="button" id="btn-date-today" class="date-nav-c-btn today-btn ${defaultSelectedDate === todayDash ? 'active' : ''}" title="切換回今日">今日</button>
+        <button type="button" id="btn-date-next" class="date-nav-c-btn" ${defaultSelectedDate >= todayDash ? 'disabled' : ''} title="查看後一天">後一天 ▶</button>
       </div>
 
       <!-- 下排：全寬歷程紀錄摘要與下拉選單 -->
@@ -2584,6 +2584,16 @@ export function renderSummary(d) {
     const datePicker = $("#record-date-picker");
     if (datePicker && datePicker.value !== targetDate) {
       datePicker.value = targetDate;
+    }
+
+    // 更新今日按鈕與後一天按鈕狀態
+    const btnTodayEl = $("#btn-date-today");
+    if (btnTodayEl) {
+      btnTodayEl.classList.toggle("active", targetDate === todayDash);
+    }
+    const btnNextEl = $("#btn-date-next");
+    if (btnNextEl) {
+      btnNextEl.disabled = (targetDate >= todayDash);
     }
 
     // 更新快速跳轉選單（原生與自訂元件雙向同步）
