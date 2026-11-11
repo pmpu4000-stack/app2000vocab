@@ -1770,7 +1770,7 @@ body.is-logging-in {
   color: #94A3B8 !important;
 }
 [data-theme="dark"] .task-empty-notice-box {
-  background: rgba(148, 163, 184, 0.05) !important;
+  background: transparent !important;
   border: none !important;
 }
 [data-theme="dark"] .task-empty-notice-title {
@@ -3133,7 +3133,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 }
 
 [data-theme="dark"] .task-empty-notice-box {
-  background: rgba(148, 163, 184, 0.05) !important;
+  background: transparent !important;
   border: none !important;
 }
 
