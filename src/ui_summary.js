@@ -2335,7 +2335,17 @@ export function renderSummary(d) {
         </div>
         <div class="heatmap" id="heatmap-grid">${d.history.days.map((x, idx) =>
           `<i class="hc h${x.level}" role="button" tabindex="0" aria-label="${x.key}，正確率 ${x.rate || 0}%" data-idx="${idx}" data-key="${x.key}" data-a="${x.a || 0}" data-rate="${x.rate || 0}"></i>`).join("")}</div>
-        <p class="defs heat-legend" style="margin-top:8px;">熱力圖說明：<b>連續</b>＝目前不中斷練習天數 · <b>最佳</b>＝最長連續天天練習紀錄 · <b>累計</b>＝有練習的總天數 · <b>方格顏色</b>＝愈鮮豔當日正確率愈高（灰色代表未練習）</p>
+        <div class="heat-legend-bar" style="margin-top:8px; display:flex; align-items:center; justify-content:flex-end; gap:6px; font-size:11px; color:var(--ink3); font-weight:700;">
+          <span>未練習</span>
+          <span style="display:inline-flex; align-items:center; gap:2.5px;">
+            <i class="hc" style="width:11px; height:11px; display:inline-block; border-radius:2px; vertical-align:middle; cursor:default;"></i>
+            <i class="hc" style="width:11px; height:11px; display:inline-block; border-radius:2px; background:#ddf4ff; border-color:#54aeff; vertical-align:middle; cursor:default;"></i>
+            <i class="hc" style="width:11px; height:11px; display:inline-block; border-radius:2px; background:#b6e3ff; border-color:#218bff; vertical-align:middle; cursor:default;"></i>
+            <i class="hc" style="width:11px; height:11px; display:inline-block; border-radius:2px; background:#218bff; border-color:#0969da; vertical-align:middle; cursor:default;"></i>
+            <i class="hc" style="width:11px; height:11px; display:inline-block; border-radius:2px; background:#0969da; border-color:#0550ae; vertical-align:middle; cursor:default;"></i>
+          </span>
+          <span>100% 正確率</span>
+        </div>
       </div>
     </div>`;
 
