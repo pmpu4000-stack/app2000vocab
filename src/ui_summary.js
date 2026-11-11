@@ -2659,8 +2659,18 @@ export function renderSummary(d) {
     }
   };
 
-  // 綁定日期選擇器
+  // 綁定日期選擇器（支援點擊整個「指定日」方塊任一處皆能彈出日曆）
+  const calBtn = document.querySelector(".date-nav-c-btn.cal-btn");
   const datePicker = $("#record-date-picker");
+  if (calBtn && datePicker) {
+    calBtn.onclick = (e) => {
+      if (typeof datePicker.showPicker === "function") {
+        try {
+          datePicker.showPicker();
+        } catch (_) {}
+      }
+    };
+  }
   if (datePicker) {
     datePicker.onchange = (e) => switchRecordDate(e.target.value);
   }
