@@ -1436,7 +1436,10 @@ function buildTaskDetailsHtml(records, selectedDate, d, dayStat = null) {
       }, d);
     }
 
-    const unassignedTitle = "📝 指定單字測驗";
+    const isWeekendDay = isWeekend(selectedDate);
+    const unassignedTitle = isWeekendDay ? "🎯 週末待攻克測驗" : "📝 平日指定單字測驗";
+    const unassignedIcon = isWeekendDay ? "🎯" : "📝";
+    const unassignedNoticeTitle = isWeekendDay ? "本日無待攻克測驗" : "本日無指定單字測驗";
 
     return `
       <div class="task-single-record-block">
@@ -1447,12 +1450,12 @@ function buildTaskDetailsHtml(records, selectedDate, d, dayStat = null) {
         </div>
 
         <div class="task-empty-notice-box">
-          <div class="task-empty-notice-icon">☕</div>
-          <div class="task-empty-notice-title">本日無指定單字測驗</div>
+          <div class="task-empty-notice-icon">${unassignedIcon}</div>
+          <div class="task-empty-notice-title">${unassignedNoticeTitle}</div>
           <div class="task-empty-notice-desc">
             ${isSatClearedOnSunday 
               ? "本週待攻克單字已於週六全數消滅，今日無須再測驗！已全面開放自由闖關升級。" 
-              : "老師當天未安排全班指定隨堂測驗。"}
+              : (isWeekendDay ? "本週末無待攻克單字測驗，平日測驗皆已順利過關！" : "老師當天未安排全班指定隨堂測驗。")}
           </div>
         </div>
       </div>
@@ -1464,7 +1467,7 @@ function buildTaskDetailsHtml(records, selectedDate, d, dayStat = null) {
 
 function buildFreeDetailsHtml(record, selectedDate, d) {
   if (!record || !record.attempts) {
-    const emptyFreeTitle = "🎮 自由練習";
+    const emptyFreeTitle = "🎲 自由練習";
     return `
       <div>
         <div class="task-history-header">
@@ -1474,7 +1477,7 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
         </div>
 
         <div class="task-empty-notice-box">
-          <div class="task-empty-notice-icon">🎮</div>
+          <div class="task-empty-notice-icon">🎲</div>
           <div class="task-empty-notice-title">當日尚無自由練習紀錄</div>
           <div class="task-empty-notice-desc">
             尚未進行自由單字練習或複習。<br>每天動動手指挑戰 10~20 個單字，保持語感與連勝紀錄！
@@ -1484,7 +1487,7 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
     `;
   }
 
-  const freeTitleText = "🎮 自由練習成果";
+  const freeTitleText = "🎲 自由練習成果";
 
   const attempts = record.attempts || 0;
   const correct = record.correct || 0;
@@ -2350,7 +2353,7 @@ export function renderSummary(d) {
 
     <!-- 子標題 2：自由練習作答紀錄 -->
     <div class="subh" style="margin-top:14px;">
-      <span>🎮 自由練習作答紀錄</span>
+      <span>🎲 自由練習作答紀錄</span>
     </div>
     <div class="task-history-card">
       <div id="free-record-details">
