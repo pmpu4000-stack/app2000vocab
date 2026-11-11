@@ -1467,7 +1467,7 @@ function buildTaskDetailsHtml(records, selectedDate, d, dayStat = null) {
 
 function buildFreeDetailsHtml(record, selectedDate, d) {
   if (!record || !record.attempts) {
-    const emptyFreeTitle = "🎲 自由練習";
+    const emptyFreeTitle = "🧭 自由練習";
     return `
       <div>
         <div class="task-history-header">
@@ -1477,7 +1477,7 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
         </div>
 
         <div class="task-empty-notice-box">
-          <div class="task-empty-notice-icon">🎲</div>
+          <div class="task-empty-notice-icon">🧭</div>
           <div class="task-empty-notice-title">當日尚無自由練習紀錄</div>
           <div class="task-empty-notice-desc">
             尚未進行自由單字練習或複習。<br>每天動動手指挑戰 10~20 個單字，保持語感與連勝紀錄！
@@ -1487,7 +1487,7 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
     `;
   }
 
-  const freeTitleText = "🎲 自由練習成果";
+  const freeTitleText = "🧭 自由練習成果";
 
   const attempts = record.attempts || 0;
   const correct = record.correct || 0;
@@ -2353,7 +2353,7 @@ export function renderSummary(d) {
 
     <!-- 子標題 2：自由練習作答紀錄 -->
     <div class="subh" style="margin-top:14px;">
-      <span>🎲 自由練習作答紀錄</span>
+      <span>🧭 自由練習作答紀錄</span>
     </div>
     <div class="task-history-card">
       <div id="free-record-details">

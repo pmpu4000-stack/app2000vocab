@@ -1079,7 +1079,7 @@ function _buildReportHtml(payload) {
         <div class="task-history-card" style="height:auto !important; overflow:visible !important; margin-bottom:8px;">
           <div class="task-history-header">
             <div>
-              <span class="task-card-title task-title-free">🎲 自由練習成果</span>
+              <span class="task-card-title task-title-free">🧭 自由練習成果</span>
             </div>
           </div>
           <div class="task-score-grid">
@@ -1119,7 +1119,7 @@ function _buildReportHtml(payload) {
     } else {
       freeCardHtml = `
         <div class="task-empty-notice-box" style="margin-top:6px;">
-          <div class="task-empty-notice-icon" style="font-size:24px; margin-bottom:4px; line-height:1;">🎲</div>
+          <div class="task-empty-notice-icon" style="font-size:24px; margin-bottom:4px; line-height:1;">🧭</div>
           <div class="task-empty-notice-title" style="font-size:13px; font-weight:700; color:var(--ink2, #475569); margin-bottom:4px;">該指定日期尚無自由練習受測紀錄</div>
           <div class="task-empty-notice-desc" style="font-size:11.5px; margin-top:2px; color:var(--ink3, #94A3B8); max-width:380px; margin-left:auto; margin-right:auto; line-height:1.5;">學生當日未進行自由練習闖關</div>
         </div>
