@@ -68,7 +68,7 @@ button, .btn, .tile, .card, input, select, .choice, [role="button"], a {
 }
 html{-webkit-text-size-adjust:100%}
 body{
-  font-family:ui-rounded,"SF Pro Rounded","Hiragino Maru Gothic ProN","Nunito","PingFang TC",system-ui,sans-serif;
+  font-family:"Microsoft JhengHei UI","Microsoft JhengHei","PingFang TC","Helvetica Neue",Helvetica,Arial,sans-serif;
   background:
     radial-gradient(1200px 600px at 15% -10%, #ECE7FF 0%, transparent 55%),
     radial-gradient(1000px 500px at 100% 0%, #E4F6EF 0%, transparent 50%),
