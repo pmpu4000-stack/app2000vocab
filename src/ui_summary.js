@@ -2035,7 +2035,7 @@ export function renderSummary(d) {
       wordsCount: taskWordsCount,
       hasUnanswered: hasUnanswered,
       statusType: hasUnanswered ? "incomplete" : "completed",
-      statusLabel: hasUnanswered ? `全卷正確率 ${tRate}%` : `正確率 ${tRate}%`,
+      statusLabel: `正確率 ${tRate}%`,
       levelClass: `h${level}`,
       badgeTier: badgeTier
     };
@@ -2374,9 +2374,7 @@ export function renderSummary(d) {
     const stat = getTaskDayStat(dateKey);
     const shortDate = String(dateKey).replace(/^\d{4}-/, '');
     taskHeatDayInfoEl.className = `heat-day-info ${stat.badgeTier}`;
-    if (stat.hasUnanswered || stat.statusType === "incomplete") {
-      taskHeatDayInfoEl.innerHTML = `<b>${shortDate}</b> ｜ 全卷正確率 <b>${stat.rate}%</b>`;
-    } else if (stat.statusType === "completed") {
+    if (stat.statusType === "completed" || stat.hasUnanswered || stat.statusType === "incomplete") {
       taskHeatDayInfoEl.innerHTML = `<b>${shortDate}</b> ｜ 正確率 <b>${stat.rate}%</b>`;
     } else {
       taskHeatDayInfoEl.innerHTML = `<b>${shortDate}</b> ｜ <b>${stat.statusLabel}</b>`;
