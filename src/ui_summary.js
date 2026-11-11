@@ -1480,7 +1480,7 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
           <div class="task-empty-notice-icon">🧭</div>
           <div class="task-empty-notice-title">當日尚無自由練習紀錄</div>
           <div class="task-empty-notice-desc">
-            尚未進行自由單字練習或複習。<br>每天動動手指挑戰 10~20 個單字，保持語感與連勝紀錄！
+            每天動動手指挑戰 10~20 個單字，保持語感與連勝紀錄！
           </div>
         </div>
       </div>
