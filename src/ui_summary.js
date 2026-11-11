@@ -1840,6 +1840,58 @@ export function renderSummary(d) {
   const todayNow = new Date();
   const todayDash = todayNow.getFullYear() + "-" + String(todayNow.getMonth() + 1).padStart(2, "0") + "-" + String(todayNow.getDate()).padStart(2, "0");
 
+  // 建立有紀錄日期選項集合（1:1 比照學習歷程網站，僅納入有實質作答紀錄之日期與今日）
+  const dateSet = new Set();
+  dateSet.add(todayDash);
+  for (const [nd, arr] of taskByDateMap.entries()) {
+    if (arr.some(item => {
+      const st = String((item && item.status) || "");
+      const isExpUntested = st.includes("未受測") || st.includes("缺席") || st.includes("缺考") || st.includes("未作答");
+      return isExpUntested || !item.taskName || !String(item.taskName).includes("未指派");
+    })) {
+      dateSet.add(nd);
+    }
+  }
+  const candidateFreeDates = new Set([
+    ...Object.keys(dailyPracticeMap),
+    ...Object.keys(d.rawHistory || {}),
+    ...practiceDates
+  ]);
+  candidateFreeDates.forEach(dateStr => {
+    const nd = normalizeDateStr(dateStr);
+    if (nd) {
+      const recF = resolveDailyPracticeRecord(nd, d, historyList);
+      if (recF && recF.attempts > 0) dateSet.add(nd);
+    }
+  });
+
+  // 計算最近 28 天（4 週）之起始日期界線，選單嚴格與熱力圖 4 週跨度對齊
+  const limit28Dt = new Date(todayNow);
+  limit28Dt.setDate(limit28Dt.getDate() - 27);
+  const min28Dash = limit28Dt.getFullYear() + "-" + String(limit28Dt.getMonth() + 1).padStart(2, "0") + "-" + String(limit28Dt.getDate()).padStart(2, "0");
+
+  const sortedDates = Array.from(dateSet)
+    .filter(Boolean)
+    .filter(dt => dt >= min28Dash || dt === todayDash)
+    .sort((a, b) => b.localeCompare(a));
+
+  // 若使用者先前已選定特定日期，且面板重新渲染，優先保留使用者的選定日期不跳走
+  let defaultSelectedDate = (_activeRecordSelectedDate && normalizeDateStr(_activeRecordSelectedDate)) || "";
+  if (!defaultSelectedDate) {
+    defaultSelectedDate = todayDash;
+    const hasTodayTask = taskByDateMap.has(todayDash);
+    const todayFreeRec = resolveDailyPracticeRecord(todayDash, d, historyList);
+    const hasTodayFree = !!(todayFreeRec && todayFreeRec.attempts > 0);
+    if (!hasTodayTask && !hasTodayFree && sortedDates.length > 0) {
+      const latestActive = sortedDates.find(dt => {
+        const hTask = taskByDateMap.has(dt);
+        const rFree = resolveDailyPracticeRecord(dt, d, historyList);
+        return hTask || (rFree && rFree.attempts > 0);
+      });
+      if (latestActive) defaultSelectedDate = latestActive;
+    }
+  }
+
   const taskDayStatCache = new Map();
 
   // 計算「指定測驗作答紀錄」最近 4 週 (28 天) 熱力圖資料與連續/最佳/累計天數 (Memoized O(1))
@@ -2016,59 +2068,6 @@ export function renderSummary(d) {
     }
   };
 
-  // 建立有紀錄日期選項集合（嚴格僅納入有指派測驗/實質受測/自由練習之日期，以及今日）
-  const dateSet = new Set();
-  dateSet.add(todayDash);
-  for (const [nd, arr] of taskByDateMap.entries()) {
-    if (nd && nd.length >= 10) {
-      const stat = getTaskDayStat(nd);
-      if (stat && stat.statusType !== "unassigned") {
-        dateSet.add(nd);
-      }
-    }
-  }
-  const candidateFreeDates = new Set([
-    ...Object.keys(dailyPracticeMap),
-    ...Object.keys(d.rawHistory || {}),
-    ...practiceDates
-  ]);
-  candidateFreeDates.forEach(dateStr => {
-    const nd = normalizeDateStr(dateStr);
-    if (nd) {
-      const recF = resolveDailyPracticeRecord(nd, d, historyList);
-      if (recF && recF.attempts > 0) dateSet.add(nd);
-    }
-  });
-
-  // 計算最近 28 天（4 週）之起始日期界線，選單嚴格與熱力圖 4 週跨度對齊
-  const limit28Dt = new Date(todayNow);
-  limit28Dt.setDate(limit28Dt.getDate() - 27);
-  const min28Dash = limit28Dt.getFullYear() + "-" + String(limit28Dt.getMonth() + 1).padStart(2, "0") + "-" + String(limit28Dt.getDate()).padStart(2, "0");
-
-  const sortedDates = Array.from(dateSet)
-    .filter(Boolean)
-    .filter(dt => dt >= min28Dash || dt === todayDash)
-    .sort((a, b) => b.localeCompare(a));
-
-  // 若使用者先前已選定特定日期，且面板重新渲染，優先保留使用者的選定日期不跳走
-  let defaultSelectedDate = (_activeRecordSelectedDate && normalizeDateStr(_activeRecordSelectedDate)) || "";
-  if (!defaultSelectedDate) {
-    defaultSelectedDate = todayDash;
-    const todayStat = getTaskDayStat(todayDash);
-    const hasTodayTask = todayStat && todayStat.statusType !== "unassigned";
-    const todayFreeRec = resolveDailyPracticeRecord(todayDash, d, historyList);
-    const hasTodayFree = !!(todayFreeRec && todayFreeRec.attempts > 0);
-    if (!hasTodayTask && !hasTodayFree && sortedDates.length > 0) {
-      const latestActive = sortedDates.find(dt => {
-        const s = getTaskDayStat(dt);
-        const hTask = s && s.statusType !== "unassigned";
-        const rFree = resolveDailyPracticeRecord(dt, d, historyList);
-        return hTask || (rFree && rFree.attempts > 0);
-      });
-      if (latestActive) defaultSelectedDate = latestActive;
-    }
-  }
-
   const buildOptionLabel = (dateStr) => {
     const isToday = (dateStr === todayDash);
     const stat = getTaskDayStat(dateStr);
@@ -2077,13 +2076,9 @@ export function renderSummary(d) {
     const freeTestedWords = recFree ? (recFree.attempts || 0) : 0;
     const freeCorrWords = recFree ? (recFree.correct || 0) : 0;
 
-    let taskText = "";
+    let taskText = "指派: 無指派";
     if (stat && stat.statusType !== "unassigned") {
-      if (stat.statusType === "login_untested") {
-        taskText = "指派: 登入未受測";
-      } else if (stat.statusType === "absent_untested") {
-        taskText = "指派: 缺席未受測";
-      } else if (stat.statusType === "untested") {
+      if (stat.statusType === "untested") {
         taskText = "指派: 未受測";
       } else {
         const tTotal = stat.wordsCount || stat.a;
@@ -2124,13 +2119,9 @@ export function renderSummary(d) {
     const freeTestedWords = recFree ? (recFree.attempts || 0) : 0;
     const freeCorrWords = recFree ? (recFree.correct || 0) : 0;
 
-    let taskBadge = "";
+    let taskBadge = `<span class="cdo-badge cdo-empty">指派: 無指派</span>`;
     if (stat && stat.statusType !== "unassigned") {
-      if (stat.statusType === "login_untested") {
-        taskBadge = `<span class="cdo-badge cdo-task-untested" title="有登入系統但未完成指定單字測驗">指派: 登入未受測</span>`;
-      } else if (stat.statusType === "absent_untested") {
-        taskBadge = `<span class="cdo-badge cdo-task-absent" title="當日缺席未登入受測">指派: 缺席未受測</span>`;
-      } else if (stat.statusType === "untested") {
+      if (stat.statusType === "untested") {
         taskBadge = `<span class="cdo-badge cdo-task-untested">指派: 未受測</span>`;
       } else {
         const tTotal = stat.wordsCount || stat.a;
@@ -2146,14 +2137,14 @@ export function renderSummary(d) {
       }
     }
 
-    let freeBadge = "";
+    let freeBadge = `<span class="cdo-badge cdo-empty">自由: 無練習</span>`;
     if (freeTestedWords > 0) {
       const freeRate = Math.round((freeCorrWords / freeTestedWords) * 100);
       freeBadge = `<span class="cdo-badge cdo-free">自由: ${freeCorrWords}/${freeTestedWords} <small>(${freeRate}%)</small></span>`;
     }
 
     const isSelected = (dateStr === defaultSelectedDate);
-    const hasAny = !!taskBadge || !!freeBadge;
+    const hasAny = (stat && stat.statusType !== "unassigned") || (freeTestedWords > 0) || isWeekend(dateStr);
 
     const displayDate = dateStr.replace(/-/g, "/");
     return `
@@ -2172,13 +2163,9 @@ export function renderSummary(d) {
     const freeTestedWords = recFree ? (recFree.attempts || 0) : 0;
     const freeCorrWords = recFree ? (recFree.correct || 0) : 0;
 
-    let taskBadge = "";
+    let taskBadge = `<span class="cdo-badge cdo-empty">指派: 無指派</span>`;
     if (stat && stat.statusType !== "unassigned") {
-      if (stat.statusType === "login_untested") {
-        taskBadge = `<span class="cdo-badge cdo-task-untested" title="有登入系統但未完成指定單字測驗">指派: 登入未受測</span>`;
-      } else if (stat.statusType === "absent_untested") {
-        taskBadge = `<span class="cdo-badge cdo-task-absent" title="當日缺席未登入受測">指派: 缺席未受測</span>`;
-      } else if (stat.statusType === "untested") {
+      if (stat.statusType === "untested") {
         taskBadge = `<span class="cdo-badge cdo-task-untested">指派: 未受測</span>`;
       } else {
         const tTotal = stat.wordsCount || stat.a;
@@ -2194,13 +2181,13 @@ export function renderSummary(d) {
       }
     }
 
-    let freeBadge = "";
+    let freeBadge = `<span class="cdo-badge cdo-empty">自由: 無練習</span>`;
     if (freeTestedWords > 0) {
       const freeRate = Math.round((freeCorrWords / freeTestedWords) * 100);
       freeBadge = `<span class="cdo-badge cdo-free">自由: ${freeCorrWords}/${freeTestedWords} <small>(${freeRate}%)</small></span>`;
     }
 
-    const hasAny = !!taskBadge || !!freeBadge;
+    const hasAny = (stat && stat.statusType !== "unassigned") || (freeTestedWords > 0) || isWeekend(dateStr);
 
     const displayDate = dateStr.replace(/-/g, "/");
     return `
@@ -2348,17 +2335,7 @@ export function renderSummary(d) {
         </div>
         <div class="heatmap" id="heatmap-grid">${d.history.days.map((x, idx) =>
           `<i class="hc h${x.level}" role="button" tabindex="0" aria-label="${x.key}，正確率 ${x.rate || 0}%" data-idx="${idx}" data-key="${x.key}" data-a="${x.a || 0}" data-rate="${x.rate || 0}"></i>`).join("")}</div>
-        <div class="heat-legend-bar" style="margin-top:8px; display:flex; align-items:center; justify-content:flex-end; gap:6px; font-size:11px; color:var(--ink3); font-weight:700;">
-          <span>未練習</span>
-          <span style="display:inline-flex; align-items:center; gap:2.5px;">
-            <i class="hc" style="width:11px; height:11px; display:inline-block; border-radius:2px; vertical-align:middle; cursor:default;"></i>
-            <i class="hc" style="width:11px; height:11px; display:inline-block; border-radius:2px; background:#ddf4ff; border-color:#54aeff; vertical-align:middle; cursor:default;"></i>
-            <i class="hc" style="width:11px; height:11px; display:inline-block; border-radius:2px; background:#b6e3ff; border-color:#218bff; vertical-align:middle; cursor:default;"></i>
-            <i class="hc" style="width:11px; height:11px; display:inline-block; border-radius:2px; background:#218bff; border-color:#0969da; vertical-align:middle; cursor:default;"></i>
-            <i class="hc" style="width:11px; height:11px; display:inline-block; border-radius:2px; background:#0969da; border-color:#0550ae; vertical-align:middle; cursor:default;"></i>
-          </span>
-          <span>100% 正確率</span>
-        </div>
+        <p class="defs heat-legend" style="margin-top:8px;">熱力圖說明：<b>連續</b>＝目前不中斷練習天數 · <b>最佳</b>＝最長連續天天練習紀錄 · <b>累計</b>＝有練習的總天數 · <b>方格顏色</b>＝愈鮮豔當日正確率愈高（灰色代表未練習）</p>
       </div>
     </div>`;
 
@@ -2616,9 +2593,6 @@ export function renderSummary(d) {
     }
     const customMenu = $("#custom-date-menu");
     if (customMenu) {
-      customMenu.querySelectorAll(".custom-date-option[data-temp-unrecorded='1']").forEach(opt => {
-        if (opt.getAttribute("data-val") !== targetDate) opt.remove();
-      });
       const allOpts = customMenu.querySelectorAll(".custom-date-option");
       let matchedCustom = false;
       allOpts.forEach(opt => {
@@ -2628,13 +2602,8 @@ export function renderSummary(d) {
         if (isMatched) matchedCustom = true;
       });
       if (!matchedCustom) {
-        const tempDiv = document.createElement("div");
-        tempDiv.innerHTML = buildCustomOptionItem(targetDate).trim();
-        const tempEl = tempDiv.firstElementChild;
-        if (tempEl) {
-          tempEl.setAttribute("data-temp-unrecorded", "1");
-          customMenu.insertAdjacentElement("afterbegin", tempEl);
-        }
+        const tempOptHtml = buildCustomOptionItem(targetDate);
+        customMenu.insertAdjacentHTML("afterbegin", tempOptHtml);
       }
     }
 
