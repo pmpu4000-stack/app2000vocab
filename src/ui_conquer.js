@@ -201,6 +201,7 @@ export function _resolveConquerWordLevel(wordStr, d) {
 }
 
 let _activeConquerCycle = "current";
+let _activeConquerLevelFilter = "all";
 const _conquerActiveWordByLevel = { 1: null, 2: null, 3: null, 4: null, 5: null };
 const _conquerViewModeByLevel = { 1: "single", 2: "single", 3: "single", 4: "single", 5: "single" };
 
@@ -461,7 +462,31 @@ export function buildWeekPendingConquerHtml(words, d = null, cycleParam = _activ
     byLv[targetLv].push(w);
   });
 
-  const levelSectionsHtml = [1, 2, 3, 4, 5].map(lv => {
+  const levelFilterBarHtml = `
+    <div class="conquer-level-filter-bar">
+      <button type="button" class="conquer-level-tab-btn ${_activeConquerLevelFilter === 'all' ? 'is-active' : ''}" data-lv-filter="all">
+        <span class="cl-full-label">全部</span><span class="cl-short-label">全</span>
+        <span class="cl-badge-count">(${pendingWords.length})</span>
+      </button>
+      ${[1, 2, 3, 4, 5].map(lv => {
+        const cnt = (byLv[lv] || []).length;
+        const isDis = cnt === 0;
+        const isAct = (_activeConquerLevelFilter === String(lv));
+        return `
+          <button type="button" class="conquer-level-tab-btn ${isAct ? 'is-active' : ''}" data-lv-filter="${lv}" ${isDis ? 'disabled' : ''}>
+            <span class="cl-full-label">Level ${lv}</span><span class="cl-short-label">L${lv}</span>
+            <span class="cl-badge-count">(${cnt})</span>
+          </button>
+        `;
+      }).join("")}
+    </div>
+  `;
+
+  const filteredLevels = (_activeConquerLevelFilter === "all")
+    ? [1, 2, 3, 4, 5]
+    : [parseInt(_activeConquerLevelFilter, 10)];
+
+  const levelSectionsHtml = filteredLevels.map(lv => {
     const list = byLv[lv] || [];
     const lvDotColor = levelColor(lv);
     const lvTitle = `Level ${lv}「${levelName(lv)}」`;
@@ -526,6 +551,7 @@ export function buildWeekPendingConquerHtml(words, d = null, cycleParam = _activ
   return `
     <div class="week-conquer-wrap" style="display:flex; flex-direction:column; gap:8px;">
       ${cycleSelectBarHtml}
+      ${levelFilterBarHtml}
       <div class="conquer-level-groups">${levelSectionsHtml}</div>
       ${levelStandardDetailsHtml}
       <div class="week-conquer-tip" style="display:flex; align-items:flex-start; gap:8px; padding:6px 4px 2px; font-size:12px; line-height:1.55; color:var(--ink3, #64748B); border-top:1px dashed var(--line, rgba(148,163,184,0.25)); margin-top:2px;">
@@ -576,6 +602,17 @@ export function updateWeekConquerSection(cycleParam = _activeConquerCycle) {
     e.stopPropagation();
     updateWeekConquerSection("week_" + Math.min(20, getActiveW() + 1));
   };
+
+  detailsEl.querySelectorAll(".conquer-level-tab-btn:not(:disabled)").forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      const filter = btn.getAttribute("data-lv-filter");
+      if (filter) {
+        _activeConquerLevelFilter = filter;
+        updateWeekConquerSection(_activeConquerCycle);
+      }
+    };
+  });
 
   detailsEl.querySelectorAll(".conquer-word-tab").forEach(tab => {
     tab.onclick = (e) => {

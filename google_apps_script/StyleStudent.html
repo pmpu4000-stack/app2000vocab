@@ -1285,6 +1285,94 @@
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
     }
 
+    /* 待攻克單字：第二層關卡分段控制器 (Level Filter Segmented Control) */
+    .conquer-level-filter-bar {
+      display: flex !important;
+      align-items: center !important;
+      gap: 2px !important;
+      background: rgba(148, 163, 184, 0.12) !important;
+      border: 1px solid var(--line, rgba(148, 163, 184, 0.2)) !important;
+      border-radius: 8px !important;
+      padding: 2px !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+      margin-bottom: 8px !important;
+    }
+    .conquer-level-tab-btn {
+      flex: 1 1 0% !important;
+      min-width: 0 !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 4px !important;
+      height: 25px !important;
+      padding: 0 4px !important;
+      border: none !important;
+      border-radius: 6px !important;
+      background: transparent !important;
+      color: var(--ink2, #475569) !important;
+      font-size: 11.5px !important;
+      font-weight: 700 !important;
+      cursor: pointer !important;
+      transition: all .15s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      user-select: none !important;
+      white-space: nowrap !important;
+      box-sizing: border-box !important;
+    }
+    .conquer-level-tab-btn:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.85) !important;
+      color: var(--ink, #0F172A) !important;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+    }
+    .conquer-level-tab-btn.is-active {
+      background: var(--card, #FFFFFF) !important;
+      color: var(--sky, #0284C7) !important;
+      font-weight: 850 !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+    }
+    .conquer-level-tab-btn:disabled {
+      opacity: 0.35 !important;
+      cursor: not-allowed !important;
+      pointer-events: none !important;
+    }
+    .conquer-level-tab-btn .cl-full-label {
+      display: inline !important;
+    }
+    .conquer-level-tab-btn .cl-short-label {
+      display: none !important;
+    }
+    .conquer-level-tab-btn .cl-badge-count {
+      font-size: 10px !important;
+      opacity: 0.85 !important;
+      font-weight: 600 !important;
+    }
+
+    @media (max-width: 420px) {
+      .conquer-level-tab-btn .cl-full-label {
+        display: none !important;
+      }
+      .conquer-level-tab-btn .cl-short-label {
+        display: inline !important;
+      }
+    }
+
+    [data-theme="dark"] .conquer-level-filter-bar {
+      background: rgba(255, 255, 255, 0.06) !important;
+      border-color: rgba(255, 255, 255, 0.12) !important;
+    }
+    [data-theme="dark"] .conquer-level-tab-btn {
+      color: var(--ink2, #94A3B8) !important;
+    }
+    [data-theme="dark"] .conquer-level-tab-btn:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.1) !important;
+      color: #F8FAFC !important;
+    }
+    [data-theme="dark"] .conquer-level-tab-btn.is-active {
+      background: #1E293B !important;
+      color: #38BDF8 !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+    }
+
     /* 現代膠囊分段控制器 (Segmented Control)：日期導覽工具列 */
     .date-navigator-card {
       background: transparent !important;
