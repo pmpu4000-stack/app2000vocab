@@ -1127,6 +1127,37 @@ body.daily-limit-reached .stat.user b {
 .cdo-none{color:var(--ink3);font-size:11px;grid-column:span 2}
 .cdo-placeholder{visibility:hidden;pointer-events:none}
 
+/* 窄螢幕 (<390px) 響應式優化：日期置頂、膠囊並列滿版雙層佈局，避免文字截斷 */
+@media (max-width: 390px) {
+  .custom-date-trigger {
+    height: auto !important;
+    min-height: 52px !important;
+    padding: 6px 8px !important;
+  }
+  .custom-date-trigger-content,
+  .custom-date-option {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 4px 6px !important;
+  }
+  .cdo-date {
+    width: 100% !important;
+    font-size: 11.5px !important;
+    margin-bottom: 2px !important;
+  }
+  .cdo-badge {
+    flex: 1 1 calc(50% - 4px) !important;
+    height: 22px !important;
+    padding: 2px 4px !important;
+    font-size: 10.5px !important;
+  }
+  .cdo-none {
+    width: 100% !important;
+    grid-column: unset !important;
+  }
+}
+
 [data-theme="dark"] .date-nav-toolbar-c {
   background: rgba(255, 255, 255, 0.06) !important;
   border-color: rgba(255, 255, 255, 0.12) !important;
