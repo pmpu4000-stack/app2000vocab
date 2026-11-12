@@ -181,9 +181,9 @@
       display: none !important;
     }
 
-    /* 期末大挑戰單字表：學期中對學生隱藏，僅在寒暑假或教師/家長身分下顯示 */
-    body:not(.is-vacation):not(.role-teacher):not(.role-parent) #weak-words-section,
-    html:not(.is-vacation):not(.role-teacher):not(.role-parent) body #weak-words-section {
+    /* 期末大挑戰單字庫：僅限教師與家長身分查看，學生端一律隱藏 */
+    body:not(.role-teacher):not(.role-parent) #weak-words-section,
+    html:not(.role-teacher):not(.role-parent) body #weak-words-section {
       display: none !important;
     }
 

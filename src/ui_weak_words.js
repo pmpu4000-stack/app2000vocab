@@ -92,14 +92,18 @@ export function initWeakWordsCard() {
   const toggleBtn = document.getElementById("btn-toggle-weak-words-card");
   if (!sec || !toggleBtn) return;
 
-  // 期末大挑戰單字表：學期中對學生隱藏，寒暑假或教師/家長身分正常顯示
-  function syncWeakWordsVisibility() {
-    const vacInfo = (typeof getVacationInfo === "function") ? getVacationInfo() : { isVacation: false };
-    const isPrivileged = document.body.classList.contains("role-teacher") ||
-      document.body.classList.contains("role-parent") ||
-      document.documentElement.classList.contains("role-teacher") ||
+  // 期末大挑戰單字表：僅限教師與家長身分查看，學生端一律隱藏
+  function checkRoles() {
+    const isTeacher = document.body.classList.contains("role-teacher") ||
+      document.documentElement.classList.contains("role-teacher");
+    const isParent = document.body.classList.contains("role-parent") ||
       document.documentElement.classList.contains("role-parent");
-    if (!vacInfo.isVacation && !isPrivileged) {
+    return { isTeacher, isParent, isPrivileged: isTeacher || isParent };
+  }
+
+  function syncWeakWordsVisibility() {
+    const { isPrivileged } = checkRoles();
+    if (!isPrivileged) {
       sec.style.setProperty("display", "none", "important");
     } else {
       sec.style.removeProperty("display");
@@ -108,15 +112,50 @@ export function initWeakWordsCard() {
   syncWeakWordsVisibility();
   window.syncWeakWordsVisibility = syncWeakWordsVisibility;
 
-  let activeScope = "current"; // "current" (本學期) | "all" (全歷程封存)
+  // 家長身分固定只能看本學期 ("current")；教師預設可切換查看全歷程 ("all") 或本學期 ("current")
+  let activeScope = "current";
 
   function renderWeakWordsUI() {
+    const { isTeacher, isParent } = checkRoles();
+    if (isParent) {
+      activeScope = "current";
+    }
+
     const words = getBiweeklyFailedFinalBossWords(activeScope);
     const statText = document.getElementById("weak-words-stat-text");
     const grid = document.getElementById("weak-words-grid");
 
     if (statText) {
-      statText.innerHTML = "👾 期末大挑戰單字表";
+      const scopeLabel = activeScope === "all" ? "全歷程歷史" : "本學期";
+      let roleHtml = `<span style="font-size:13px; font-weight:700; color:var(--ink, #232A4D);">👾 期末大挑戰單字庫</span> <span style="font-size:12px; font-weight:normal; color:var(--ink3, #64748B);">（${scopeLabel}紀錄）</span>`;
+      
+      if (isTeacher) {
+        roleHtml += `
+          <span style="margin-left:8px; display:inline-flex; gap:4px; font-size:11px;">
+            <button type="button" id="btn-weak-scope-current" style="padding:2px 8px; border-radius:12px; border:1px solid #cbd5e1; cursor:pointer; background:${activeScope === "current" ? "var(--primary, #6366f1)" : "#fff"}; color:${activeScope === "current" ? "#fff" : "inherit"}; font-weight:${activeScope === "current" ? "bold" : "normal"};">本學期</button>
+            <button type="button" id="btn-weak-scope-all" style="padding:2px 8px; border-radius:12px; border:1px solid #cbd5e1; cursor:pointer; background:${activeScope === "all" ? "var(--primary, #6366f1)" : "#fff"}; color:${activeScope === "all" ? "#fff" : "inherit"}; font-weight:${activeScope === "all" ? "bold" : "normal"};">長久歷史</button>
+          </span>`;
+      }
+      statText.innerHTML = roleHtml;
+
+      if (isTeacher) {
+        const btnCurr = document.getElementById("btn-weak-scope-current");
+        const btnAll = document.getElementById("btn-weak-scope-all");
+        if (btnCurr) {
+          btnCurr.onclick = (e) => {
+            e.stopPropagation();
+            activeScope = "current";
+            renderWeakWordsUI();
+          };
+        }
+        if (btnAll) {
+          btnAll.onclick = (e) => {
+            e.stopPropagation();
+            activeScope = "all";
+            renderWeakWordsUI();
+          };
+        }
+      }
     }
 
     let activeWordWrap = document.getElementById("weak-words-active-card-wrap");
@@ -184,7 +223,7 @@ export function initWeakWordsCard() {
   const btnCopy = document.getElementById("btn-copy-weak-words");
   if (btnCopy) {
     btnCopy.onclick = () => {
-      const words = getBiweeklyFailedFinalBossWords();
+      const words = getBiweeklyFailedFinalBossWords(activeScope);
       if (words.length === 0) {
         alert("目前無期末大挑戰單字可複製。");
         return;
