@@ -12,6 +12,110 @@ if (typeof window !== "undefined") {
     say(s, 0.85, null, true);
   };
   window.__sayWord = (w) => sayWord(w);
+  window.__playPhonicsKaraoke = (word, elemId) => {
+    if (!word) return;
+    sayWord(word);
+    const container = document.getElementById(elemId);
+    if (!container) return;
+    const chunks = container.querySelectorAll(".syllable-chunk");
+    if (chunks.length <= 1) return;
+    const stepDuration = Math.min(360, Math.max(180, 850 / chunks.length));
+    chunks.forEach((c, idx) => {
+      setTimeout(() => {
+        c.classList.add("karaoke-active");
+        setTimeout(() => c.classList.remove("karaoke-active"), stepDuration + 60);
+      }, idx * stepDuration);
+    });
+  };
+  window.__toggleConquerRecall = (cardId) => {
+    const card = document.getElementById(cardId);
+    if (!card) return;
+    card.classList.toggle("recall-mode");
+  };
+}
+
+export function splitIntoPhonicsChunks(word) {
+  if (!word || typeof word !== "string") return [word || ""];
+  const clean = word.trim();
+  if (clean.length <= 3 || clean.includes(" ") || clean.includes("-")) return [clean];
+
+  const lower = clean.toLowerCase();
+  const prefixes = ["re", "un", "dis", "mis", "pre", "pro", "sub", "in", "im", "non", "anti", "auto", "de", "ex", "en", "em"];
+  const suffixes = ["ing", "tion", "sion", "ment", "ness", "ful", "less", "able", "ible", "ous", "tive", "ture", "ize", "ly", "est", "ist"];
+
+  const syllables = [];
+  let w = clean;
+  let prefixPart = "";
+  let suffixPart = "";
+
+  for (const p of prefixes) {
+    if (lower.startsWith(p) && lower.length > p.length + 2) {
+      prefixPart = clean.slice(0, p.length);
+      w = clean.slice(p.length);
+      break;
+    }
+  }
+
+  const wLower = w.toLowerCase();
+  for (const s of suffixes) {
+    if (wLower.endsWith(s) && wLower.length > s.length + 2) {
+      suffixPart = w.slice(w.length - s.length);
+      w = w.slice(0, w.length - s.length);
+      break;
+    }
+  }
+
+  const vowelGroupRegex = /([aeiouy]+)/gi;
+  const parts = [];
+  let lastIndex = 0;
+  let match;
+  const vowels = [];
+  while ((match = vowelGroupRegex.exec(w)) !== null) {
+    vowels.push({ start: match.index, end: match.index + match[0].length, text: match[0] });
+  }
+
+  if (vowels.length <= 1) {
+    parts.push(w);
+  } else {
+    let splitPoints = [];
+    for (let i = 0; i < vowels.length - 1; i++) {
+      const v1End = vowels[i].end;
+      const v2Start = vowels[i + 1].start;
+      const consonantCount = v2Start - v1End;
+
+      if (consonantCount <= 0) {
+        splitPoints.push(v1End);
+      } else if (consonantCount === 1) {
+        splitPoints.push(v1End);
+      } else if (consonantCount === 2) {
+        const dig = w.slice(v1End, v1End + 2).toLowerCase();
+        const digraphs = ["th", "sh", "ch", "ph", "wh", "ck", "ng", "qu"];
+        if (digraphs.includes(dig)) {
+          splitPoints.push(v1End);
+        } else {
+          splitPoints.push(v1End + 1);
+        }
+      } else {
+        splitPoints.push(v1End + Math.floor(consonantCount / 2));
+      }
+    }
+
+    let prev = 0;
+    for (const pt of splitPoints) {
+      if (pt > prev && pt < w.length) {
+        parts.push(w.slice(prev, pt));
+        prev = pt;
+      }
+    }
+    if (prev < w.length) parts.push(w.slice(prev));
+  }
+
+  const result = [];
+  if (prefixPart) result.push(prefixPart);
+  result.push(...parts.filter(Boolean));
+  if (suffixPart) result.push(suffixPart);
+
+  return result.length > 0 ? result : [clean];
 }
 
 const SVG_SPEAKER = '<svg class="icon-speaker" viewBox="0 0 24 24" width="17" height="17" fill="currentColor" style="vertical-align:middle;display:inline-block;"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>';
@@ -325,15 +429,35 @@ export function _renderConquerWordCard(wordStr, d) {
     </div>
   `;
 
+  const cardId = "cq-card-" + clean.replace(/[^a-zA-Z0-9_-]/g, "_") + "-" + Math.floor(Math.random() * 10000);
+  const chunks = splitIntoPhonicsChunks(wordDisplay);
+  const phonicsChunksHtml = chunks.map((chk, i) => {
+    return `<span class="syllable-chunk" data-chunk="${escapeHtml(chk)}" title="點擊聆聽此音節" onclick="event.stopPropagation(); if (typeof window.__sayWord === 'function') window.__sayWord('${escapeHtml(chk)}');">${escapeHtml(chk)}</span>`;
+  }).join('<span class="syllable-dot" aria-hidden="true">·</span>');
+
+  const clozeChunksHtml = chunks.map((chk, i) => {
+    if (i === 0 && chunks.length > 1) {
+      return `<span class="cloze-hint">${escapeHtml(chk.charAt(0))}${escapeHtml('_'.repeat(Math.max(1, chk.length - 1)))}</span>`;
+    }
+    return `<span class="cloze-mask">${escapeHtml('_'.repeat(chk.length))}</span>`;
+  }).join('<span class="syllable-dot" aria-hidden="true">·</span>');
+
   return `
-    <div class="conquer-word-card" style="width:100%; box-sizing:border-box; content-visibility:auto; contain-intrinsic-size:auto 92px; background:var(--card, #fff); border:1.5px solid var(--line, #e2e8f0); border-radius:12px; padding:10px 12px; margin-bottom:6px; box-shadow:0 1px 4px rgba(0,0,0,0.03);">
+    <div id="${cardId}" class="conquer-word-card" style="width:100%; box-sizing:border-box; content-visibility:auto; contain-intrinsic-size:auto 92px; background:var(--card, #fff); border:1.5px solid var(--line, #e2e8f0); border-radius:12px; padding:10px 12px; margin-bottom:6px; box-shadow:0 1px 4px rgba(0,0,0,0.03);">
       <div class="zh-row" style="margin-bottom:6px;">
-        <button type="button" class="word-speech-btn" data-word="${escapeHtml(clean)}" onclick="event.stopPropagation(); if (typeof window.__sayWord === 'function') window.__sayWord(this.getAttribute('data-word'));" aria-label="播放單字發音" title="播放單字發音">${SVG_SPEAKER}</button>
-        <div class="zh-text" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-          <span class="conquer-card-word task-title-free">${wordDisplay}</span>
+        <button type="button" class="word-speech-btn" data-word="${escapeHtml(clean)}" onclick="event.stopPropagation(); if (typeof window.__playPhonicsKaraoke === 'function') window.__playPhonicsKaraoke('${escapeHtml(clean)}', '${cardId}'); else if (typeof window.__sayWord === 'function') window.__sayWord(this.getAttribute('data-word'));" aria-label="播放音節節奏發音" title="播放音節節奏發音">${SVG_SPEAKER}</button>
+        <div class="zh-text" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; flex:1;">
+          <div class="conquer-phonics-wrap task-title-free" id="${cardId}-phonics">
+            <div class="phonics-display-row">${phonicsChunksHtml}</div>
+            <div class="cloze-display-row">${clozeChunksHtml}</div>
+          </div>
           ${phonHtml}
           ${defHtml}
           ${posHtml}
+          <button type="button" class="conquer-recall-toggle" onclick="event.stopPropagation(); if (typeof window.__toggleConquerRecall === 'function') window.__toggleConquerRecall('${cardId}');" title="切換自主抽測記憶提取" aria-label="自主記憶小測驗">
+            <span class="recall-label-normal">⚡ 抽測</span>
+            <span class="recall-label-active">👁 看答案</span>
+          </button>
         </div>
       </div>
       <div class="sents-vertical-list" style="margin:0;">

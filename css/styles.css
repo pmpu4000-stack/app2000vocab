@@ -3985,6 +3985,127 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
   font-size: 14px;
   border-radius: 8px;
 }
+/* 待攻克單字卡：自然發音音節拆解、卡拉OK動態節奏與自主記憶提取 (Active Recall) */
+.conquer-phonics-wrap {
+  display: inline-flex;
+  align-items: center;
+  font-family: inherit;
+  position: relative;
+}
+.phonics-display-row {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.cloze-display-row {
+  display: none;
+  align-items: center;
+  flex-wrap: wrap;
+  font-family: monospace, inherit;
+  letter-spacing: 1px;
+}
+.conquer-word-card.recall-mode .phonics-display-row {
+  display: none;
+}
+.conquer-word-card.recall-mode .cloze-display-row {
+  display: inline-flex;
+}
+.syllable-chunk {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--ink, #1e293b);
+  padding: 1px 4px;
+  border-radius: 6px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  position: relative;
+}
+.syllable-chunk:hover {
+  background: rgba(232, 137, 43, 0.12);
+  color: #D97706;
+  transform: translateY(-1px);
+}
+.syllable-chunk.karaoke-active {
+  background: #F59E0B !important;
+  color: #FFFFFF !important;
+  transform: scale(1.15) translateY(-2px);
+  box-shadow: 0 4px 10px rgba(245, 158, 11, 0.4);
+  z-index: 2;
+}
+.syllable-dot {
+  font-size: 15px;
+  font-weight: 800;
+  color: #F59E0B;
+  opacity: 0.65;
+  margin: 0 1px;
+  user-select: none;
+}
+.cloze-hint {
+  font-size: 17px;
+  font-weight: 800;
+  color: #D97706;
+}
+.cloze-mask {
+  font-size: 17px;
+  font-weight: 800;
+  color: #94A3B8;
+}
+.conquer-recall-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid #CBD5E1;
+  background: var(--card, #ffffff);
+  color: #64748B;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  margin-left: auto;
+}
+.conquer-recall-toggle:hover {
+  border-color: #F59E0B;
+  color: #D97706;
+  background: rgba(245, 158, 11, 0.08);
+}
+.recall-label-active {
+  display: none;
+}
+.conquer-word-card.recall-mode .conquer-recall-toggle {
+  border-color: #10B981;
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+}
+.conquer-word-card.recall-mode .recall-label-normal {
+  display: none;
+}
+.conquer-word-card.recall-mode .recall-label-active {
+  display: inline;
+}
+
+[data-theme="dark"] .syllable-chunk {
+  color: #F1F5F9;
+}
+[data-theme="dark"] .syllable-chunk:hover {
+  background: rgba(245, 158, 11, 0.25);
+  color: #FBBF24;
+}
+[data-theme="dark"] .conquer-recall-toggle {
+  background: rgba(30, 41, 59, 0.7);
+  border-color: #475569;
+  color: #94A3B8;
+}
+[data-theme="dark"] .conquer-recall-toggle:hover {
+  border-color: #F59E0B;
+  color: #FBBF24;
+  background: rgba(245, 158, 11, 0.18);
+}
+[data-theme="dark"] .cloze-mask {
+  color: #64748B;
+}
+
 .conquer-word-card .sent-en {
   font-size: 13px;
   line-height: 1.5;
