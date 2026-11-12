@@ -171,11 +171,18 @@ export function splitIntoPhonicsChunks(word) {
 
   const vowelGroupRegex = /([aeiouy]+)/gi;
   const parts = [];
-  let lastIndex = 0;
   let match;
-  const vowels = [];
+  let vowels = [];
   while ((match = vowelGroupRegex.exec(w)) !== null) {
     vowels.push({ start: match.index, end: match.index + match[0].length, text: match[0] });
+  }
+
+  // 處理英語發音關鍵規則：字尾不發音的 silent 'e'（如 make, time, plane, line, home, like, cute 等不是獨立音節，le 除外）
+  if (vowels.length > 1 && w.toLowerCase().endsWith('e') && !w.toLowerCase().endsWith('le') && !w.toLowerCase().endsWith('ee')) {
+    const lastV = vowels[vowels.length - 1];
+    if (lastV.text.toLowerCase() === 'e' && lastV.end === w.length) {
+      vowels.pop();
+    }
   }
 
   if (vowels.length <= 1) {
