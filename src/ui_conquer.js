@@ -84,6 +84,8 @@ if (typeof window !== "undefined") {
 // 劍橋辭典 (Cambridge Dictionary) 與韋氏標準權威音節常規對齊表
 const CAMBRIDGE_SYLLABLES = {
   factory: ["fac", "to", "ry"],
+  history: ["his", "to", "ry"],
+  memory: ["mem", "o", "ry"],
   table: ["ta", "ble"],
   people: ["peo", "ple"],
   restaurant: ["res", "tau", "rant"],
