@@ -277,7 +277,7 @@ export function stopAudio() {
   } catch (_) {}
 }
 
-function speakWithTTS(text, rate = 0.8, onEnd = null, token = currentSeqToken, targetVoice = null) {
+function speakWithTTS(text, rate = 0.8, onEnd = null, token = currentSeqToken, targetVoice = null, onBoundary = null) {
   if (!supported || !text) {
     if (onEnd) onEnd();
     return;
@@ -304,6 +304,12 @@ function speakWithTTS(text, rate = 0.8, onEnd = null, token = currentSeqToken, t
       u.rate = rate;
       u.pitch = 1.0;
       u.volume = 0.88; // 智慧音量平衡防爆音
+
+      if (typeof onBoundary === "function") {
+        u.onboundary = (evt) => {
+          if (token === currentSeqToken) onBoundary(evt);
+        };
+      }
 
       activeUtterances.add(u);
       u.onend = () => {
@@ -389,7 +395,7 @@ let _lastSayWordText = "";
 let _lastSayWordAt = 0;
 
 // 專供點擊「答對的單字 / 答錯的單字 / 精通單字」發音，永遠允許播放且防重複連點觸發兩次發音
-export function sayWord(word, rate = 0.8, onEnd = null) {
+export function sayWord(word, rate = 0.8, onEnd = null, onBoundary = null) {
   const clean = String(word || "").trim().toLowerCase();
   const now = Date.now();
   if (clean && clean === _lastSayWordText && (now - _lastSayWordAt) < 220) {
@@ -398,7 +404,8 @@ export function sayWord(word, rate = 0.8, onEnd = null) {
   _lastSayWordText = clean;
   _lastSayWordAt = now;
   stopAudio();
-  say(word, rate, onEnd, true);
+  const token = currentSeqToken;
+  speakWithTTS(word, rate, onEnd, token, null, onBoundary);
 }
 
 // 朗讀整個單字發音 (單字速度 0.8)

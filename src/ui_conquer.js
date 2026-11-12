@@ -14,17 +14,64 @@ if (typeof window !== "undefined") {
   window.__sayWord = (w) => sayWord(w);
   window.__playPhonicsKaraoke = (word, elemId) => {
     if (!word) return;
-    sayWord(word);
     const container = document.getElementById(elemId);
-    if (!container) return;
-    const chunks = container.querySelectorAll(".syllable-chunk");
-    if (chunks.length <= 1) return;
-    const stepDuration = Math.min(360, Math.max(180, 850 / chunks.length));
-    chunks.forEach((c, idx) => {
+    if (!container) {
+      sayWord(word);
+      return;
+    }
+    const chunks = Array.from(container.querySelectorAll(".syllable-chunk"));
+    if (chunks.length <= 1) {
+      sayWord(word);
+      return;
+    }
+
+    let charOffset = 0;
+    const chunkRanges = chunks.map((c) => {
+      const text = c.textContent || "";
+      const start = charOffset;
+      const end = charOffset + text.length;
+      charOffset = end;
+      return { element: c, start, end };
+    });
+
+    let currentActiveIdx = -1;
+    const activateChunk = (idx) => {
+      if (idx === currentActiveIdx) return;
+      chunks.forEach((c, i) => {
+        if (i === idx) {
+          c.classList.add("karaoke-active");
+        } else {
+          c.classList.remove("karaoke-active");
+        }
+      });
+      currentActiveIdx = idx;
+    };
+
+    const cleanup = () => {
       setTimeout(() => {
-        c.classList.add("karaoke-active");
-        setTimeout(() => c.classList.remove("karaoke-active"), stepDuration + 60);
-      }, idx * stepDuration);
+        chunks.forEach(c => c.classList.remove("karaoke-active"));
+      }, 250);
+    };
+
+    activateChunk(0);
+
+    sayWord(word, 0.8, cleanup, (evt) => {
+      const charIndex = (evt && typeof evt.charIndex === "number") ? evt.charIndex : -1;
+      if (charIndex >= 0) {
+        const targetIdx = chunkRanges.findIndex(r => charIndex >= r.start && charIndex < r.end);
+        if (targetIdx !== -1) {
+          activateChunk(targetIdx);
+        }
+      }
+    });
+
+    const fallbackStep = Math.min(360, Math.max(200, 850 / chunks.length));
+    chunkRanges.forEach((r, idx) => {
+      setTimeout(() => {
+        if (currentActiveIdx < idx) {
+          activateChunk(idx);
+        }
+      }, idx * fallbackStep);
     });
   };
   window.__toggleConquerRecall = (cardId) => {
