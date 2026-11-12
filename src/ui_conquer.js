@@ -21,7 +21,13 @@ if (typeof window !== "undefined") {
     }
     const chunks = Array.from(container.querySelectorAll(".syllable-chunk"));
     if (chunks.length <= 1) {
-      sayWord(word);
+      const flashSingle = (dur) => {
+        chunks[0].classList.add("karaoke-active");
+        setTimeout(() => chunks[0].classList.remove("karaoke-active"), dur);
+      };
+      flashSingle(650);
+      setTimeout(() => flashSingle(800), 950);
+      sayWord(word, 0.85, null, null, 2);
       return;
     }
 
@@ -92,7 +98,7 @@ if (typeof window !== "undefined") {
   };
 }
 
-// 劍橋辭典 (Cambridge Dictionary) 與韋氏標準權威音節常規對齊表
+// 劍橋辭典 (Cambridge Dictionary)、韋氏辭典 (Merriam-Webster) 與牛津辭典 (Oxford) 權威音節常規對齊表
 const CAMBRIDGE_SYLLABLES = {
   factory: ["fac", "to", "ry"],
   history: ["his", "to", "ry"],
@@ -137,8 +143,78 @@ const CAMBRIDGE_SYLLABLES = {
   sandwich: ["sand", "wich"],
   spaghetti: ["spa", "ghet", "ti"],
   strawberry: ["straw", "ber", "ry"],
-  watermelon: ["wa", "ter", "mel", "on"]
+  watermelon: ["wa", "ter", "mel", "on"],
+  airplane: ["air", "plane"],
+  airline: ["air", "line"],
+  airport: ["air", "port"],
+  baseball: ["base", "ball"],
+  bathroom: ["bath", "room"],
+  bedroom: ["bed", "room"],
+  blackboard: ["black", "board"],
+  bookcase: ["book", "case"],
+  bookstore: ["book", "store"],
+  classmate: ["class", "mate"],
+  classroom: ["class", "room"],
+  countryside: ["coun", "try", "side"],
+  earthquake: ["earth", "quake"],
+  everyone: ["ev", "ery", "one"],
+  everything: ["ev", "ery", "thing"],
+  everywhere: ["ev", "ery", "where"],
+  firefighter: ["fire", "fight", "er"],
+  football: ["foot", "ball"],
+  gentleman: ["gen", "tle", "man"],
+  granddaughter: ["grand", "daugh", "ter"],
+  grandfather: ["grand", "fa", "ther"],
+  grandmother: ["grand", "moth", "er"],
+  grandson: ["grand", "son"],
+  handkerchief: ["hand", "ker", "chief"],
+  headache: ["head", "ache"],
+  motorcycle: ["mo", "tor", "cy", "cle"],
+  newspaper: ["news", "pa", "per"],
+  nobody: ["no", "bod", "y"],
+  notebook: ["note", "book"],
+  outside: ["out", "side"],
+  playground: ["play", "ground"],
+  policeman: ["po", "lice", "man"],
+  postman: ["post", "man"],
+  railway: ["rail", "way"],
+  rainbow: ["rain", "bow"],
+  salesman: ["sales", "man"],
+  seafood: ["sea", "food"],
+  seashell: ["sea", "shell"],
+  seashore: ["sea", "shore"],
+  sidewalk: ["side", "walk"],
+  skateboard: ["skate", "board"],
+  snowman: ["snow", "man"],
+  someone: ["some", "one"],
+  something: ["some", "thing"],
+  sometimes: ["some", "times"],
+  somewhere: ["some", "where"],
+  sunflower: ["sun", "flow", "er"],
+  sunglasses: ["sun", "glas", "ses"],
+  sunlight: ["sun", "light"],
+  tablecloth: ["ta", "ble", "cloth"],
+  teammate: ["team", "mate"],
+  toothbrush: ["tooth", "brush"],
+  toothpaste: ["tooth", "paste"],
+  volleyball: ["vol", "ley", "ball"],
+  wheelchair: ["wheel", "chair"],
+  windsurfing: ["wind", "surf", "ing"],
+  besides: ["be", "sides"],
+  surprised: ["sur", "prised"],
+  married: ["mar", "ried"],
+  succeed: ["suc", "ceed"]
 };
+
+// 三大字典公認單音節字（Silent 'e' 或不獨立成音節之詞尾）
+const DICT_MONOSYLLABLES = new Set([
+  "glove", "love", "give", "live", "have", "make", "take", "time", "like", "home",
+  "hope", "life", "line", "name", "nice", "nose", "page", "plane", "ride", "safe",
+  "same", "save", "side", "size", "smoke", "tape", "use", "wave", "white", "wife",
+  "write", "file", "hole", "male", "mile", "pale", "pile", "role", "rule", "sale",
+  "smile", "style", "whale", "while", "whole", "bored", "pleased", "scared", "tired",
+  "clothes", "fries"
+]);
 
 export function splitIntoPhonicsChunks(word) {
   if (!word || typeof word !== "string") return [word || ""];
@@ -146,6 +222,9 @@ export function splitIntoPhonicsChunks(word) {
   if (clean.length <= 3 || clean.includes(" ") || clean.includes("-")) return [clean];
 
   const lower = clean.toLowerCase();
+  if (DICT_MONOSYLLABLES.has(lower)) {
+    return [clean];
+  }
   if (CAMBRIDGE_SYLLABLES[lower]) {
     // 依原字大小寫還原音節
     const ref = CAMBRIDGE_SYLLABLES[lower];
@@ -886,17 +965,12 @@ export function updateWeekConquerSection(cycleParam = _activeConquerCycle) {
     };
   });
 
-  detailsEl.querySelectorAll(".sent-row, .sent-speaker-btn, .word-speech-btn").forEach(elem => {
+  detailsEl.querySelectorAll(".sent-row, .sent-speaker-btn").forEach(elem => {
     elem.onclick = (e) => {
       e.stopPropagation();
       const sent = elem.getAttribute("data-sent");
       if (sent) {
         say(sent, 0.85, null, true);
-        return;
-      }
-      const w = elem.getAttribute("data-word");
-      if (w) {
-        sayWord(w);
         return;
       }
     };
