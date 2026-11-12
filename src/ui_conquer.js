@@ -53,9 +53,29 @@ if (typeof window !== "undefined") {
       }, 250);
     };
 
-    activateChunk(0);
+    const triggerPass = (stepDuration, isSecondPass = false, onPassDone = null) => {
+      currentActiveIdx = -1;
+      activateChunk(0);
+      const fallbackStep = Math.min(420, Math.max(220, stepDuration / chunks.length));
+      chunkRanges.forEach((r, idx) => {
+        setTimeout(() => {
+          if (currentActiveIdx < idx) {
+            activateChunk(idx);
+          }
+        }, idx * fallbackStep);
+      });
+      if (onPassDone) {
+        setTimeout(onPassDone, stepDuration);
+      }
+    };
 
-    sayWord(word, 0.8, cleanup, (evt) => {
+    triggerPass(850, false, () => {
+      setTimeout(() => {
+        triggerPass(1050, true);
+      }, 300);
+    });
+
+    sayWord(word, 0.85, cleanup, (evt) => {
       const charIndex = (evt && typeof evt.charIndex === "number") ? evt.charIndex : -1;
       if (charIndex >= 0) {
         const targetIdx = chunkRanges.findIndex(r => charIndex >= r.start && charIndex < r.end);
@@ -63,16 +83,7 @@ if (typeof window !== "undefined") {
           activateChunk(targetIdx);
         }
       }
-    });
-
-    const fallbackStep = Math.min(360, Math.max(200, 850 / chunks.length));
-    chunkRanges.forEach((r, idx) => {
-      setTimeout(() => {
-        if (currentActiveIdx < idx) {
-          activateChunk(idx);
-        }
-      }, idx * fallbackStep);
-    });
+    }, 2);
   };
   window.__toggleConquerRecall = (cardId) => {
     const card = document.getElementById(cardId);

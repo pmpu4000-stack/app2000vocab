@@ -5,7 +5,7 @@
 // 3. 單字庫與音檔永久快取
 // =====================================================================
 
-const CACHE_NAME = 'spelling-app-shell-v196';
+const CACHE_NAME = 'spelling-app-shell-v197';
 const MAX_CACHE_ENTRIES = 120;
 const STATIC_ASSETS = [
   './',

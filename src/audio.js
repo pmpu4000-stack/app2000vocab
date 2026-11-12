@@ -395,7 +395,8 @@ let _lastSayWordText = "";
 let _lastSayWordAt = 0;
 
 // 專供點擊「答對的單字 / 答錯的單字 / 精通單字」發音，永遠允許播放且防重複連點觸發兩次發音
-export function sayWord(word, rate = 0.8, onEnd = null, onBoundary = null) {
+// 預設磨耳雙播：第一次速度 0.85，間隔 0.3 秒，第二次速度 0.70
+export function sayWord(word, rate = 0.85, onEnd = null, onBoundary = null, repeatCount = 2) {
   const clean = String(word || "").trim().toLowerCase();
   const now = Date.now();
   if (clean && clean === _lastSayWordText && (now - _lastSayWordAt) < 220) {
@@ -405,7 +406,22 @@ export function sayWord(word, rate = 0.8, onEnd = null, onBoundary = null) {
   _lastSayWordAt = now;
   stopAudio();
   const token = currentSeqToken;
-  speakWithTTS(word, rate, onEnd, token, null, onBoundary);
+  const targetVoice = getRandomUSVoice();
+
+  if (repeatCount <= 1) {
+    speakWithTTS(clean, rate, onEnd, token, targetVoice, onBoundary);
+    return;
+  }
+
+  // 第一次 0.85 流暢語感
+  speakWithTTS(clean, 0.85, () => {
+    if (token !== currentSeqToken) return;
+    // 停頓 0.3 秒後進行第二次 0.70 慢速對比磨耳
+    currentSeqTimer = setTimeout(() => {
+      if (token !== currentSeqToken) return;
+      speakWithTTS(clean, 0.7, onEnd, token, targetVoice, onBoundary);
+    }, 300);
+  }, token, targetVoice, onBoundary);
 }
 
 // 朗讀整個單字發音 (單字速度 0.8)
