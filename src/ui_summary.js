@@ -1439,7 +1439,7 @@ function buildTaskDetailsHtml(records, selectedDate, d, dayStat = null) {
     const isWeekendDay = isWeekend(selectedDate);
     const unassignedTitle = isWeekendDay ? "🎯 週末待攻克測驗" : "📝 平日指定單字測驗";
     const unassignedIcon = isWeekendDay ? "🎯" : "📝";
-    const unassignedNoticeTitle = isWeekendDay ? "本日無待攻克測驗" : "本日無指定單字測驗";
+    const unassignedNoticeTitle = isWeekendDay ? "無待攻克測驗" : "無指定單字測驗";
 
     return `
       <div class="task-single-record-block">
@@ -1473,7 +1473,7 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
 
         <div class="task-empty-notice-box">
           <div class="task-empty-notice-icon">🧭</div>
-          <div class="task-empty-notice-title">當日尚無自由練習紀錄</div>
+          <div class="task-empty-notice-title">尚無自由練習紀錄</div>
         </div>
       </div>
     `;
