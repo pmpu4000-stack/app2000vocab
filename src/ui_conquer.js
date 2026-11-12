@@ -20,14 +20,30 @@ if (typeof window !== "undefined") {
       return;
     }
     const chunks = Array.from(container.querySelectorAll(".syllable-chunk"));
-    if (chunks.length <= 1) {
-      const flashSingle = (dur) => {
+    if (chunks.length === 0) {
+      sayWord(word);
+      return;
+    }
+
+    let activeTimers = [];
+    const clearKaraokeTimers = () => {
+      activeTimers.forEach(t => clearTimeout(t));
+      activeTimers = [];
+    };
+
+    const cleanup = () => {
+      clearKaraokeTimers();
+      chunks.forEach(c => c.classList.remove("karaoke-active"));
+    };
+
+    if (chunks.length === 1) {
+      sayWord(word, 0.85, cleanup, null, 2, (passNum, rate) => {
+        clearKaraokeTimers();
         chunks[0].classList.add("karaoke-active");
-        setTimeout(() => chunks[0].classList.remove("karaoke-active"), dur);
-      };
-      flashSingle(650);
-      setTimeout(() => flashSingle(800), 950);
-      sayWord(word, 0.85, null, null, 2);
+        const dur = (rate === 0.7) ? 800 : 650;
+        const t = setTimeout(() => chunks[0].classList.remove("karaoke-active"), dur);
+        activeTimers.push(t);
+      });
       return;
     }
 
@@ -37,10 +53,12 @@ if (typeof window !== "undefined") {
       const start = charOffset;
       const end = charOffset + text.length;
       charOffset = end;
-      return { element: c, start, end };
+      return { element: c, start, end, len: text.length };
     });
+    const totalChars = Math.max(1, charOffset);
 
     let currentActiveIdx = -1;
+    let hadBoundaryInPass = false;
     const activateChunk = (idx) => {
       if (idx === currentActiveIdx) return;
       chunks.forEach((c, i) => {
@@ -53,35 +71,40 @@ if (typeof window !== "undefined") {
       currentActiveIdx = idx;
     };
 
-    const cleanup = () => {
-      setTimeout(() => {
-        chunks.forEach(c => c.classList.remove("karaoke-active"));
-      }, 250);
-    };
-
-    const triggerPass = (stepDuration, isSecondPass = false, onPassDone = null) => {
+    const onPassStart = (passNum, rate) => {
+      clearKaraokeTimers();
       currentActiveIdx = -1;
+      hadBoundaryInPass = false;
       activateChunk(0);
-      const fallbackStep = Math.min(420, Math.max(220, stepDuration / chunks.length));
+
+      // 依發音語速與各音節長度精確按比例排程（Pass 1: 0.85 總長約 750ms；Pass 2: 0.70 總長約 950ms）
+      const estimatedTotalMs = (rate === 0.7) ? 950 : 750;
+      let accumTime = 0;
       chunkRanges.forEach((r, idx) => {
-        setTimeout(() => {
-          if (currentActiveIdx < idx) {
+        if (idx === 0) {
+          accumTime += Math.max(160, (r.len / totalChars) * estimatedTotalMs);
+          return;
+        }
+        const scheduleAt = accumTime;
+        accumTime += Math.max(160, (r.len / totalChars) * estimatedTotalMs);
+        const t = setTimeout(() => {
+          // 若語音合成引擎未觸發細部 onboundary，則由音節比例排程平滑接軌
+          if (!hadBoundaryInPass && currentActiveIdx < idx) {
             activateChunk(idx);
           }
-        }, idx * fallbackStep);
+        }, scheduleAt);
+        activeTimers.push(t);
       });
-      if (onPassDone) {
-        setTimeout(onPassDone, stepDuration);
-      }
+
+      // 該次朗讀結束淡出
+      const endTimer = setTimeout(() => {
+        chunks.forEach(c => c.classList.remove("karaoke-active"));
+      }, estimatedTotalMs + 100);
+      activeTimers.push(endTimer);
     };
 
-    triggerPass(850, false, () => {
-      setTimeout(() => {
-        triggerPass(1050, true);
-      }, 300);
-    });
-
     sayWord(word, 0.85, cleanup, (evt) => {
+      hadBoundaryInPass = true;
       const charIndex = (evt && typeof evt.charIndex === "number") ? evt.charIndex : -1;
       if (charIndex >= 0) {
         const targetIdx = chunkRanges.findIndex(r => charIndex >= r.start && charIndex < r.end);
@@ -89,7 +112,7 @@ if (typeof window !== "undefined") {
           activateChunk(targetIdx);
         }
       }
-    }, 2);
+    }, 2, onPassStart);
   };
   window.__toggleConquerRecall = (cardId) => {
     const card = document.getElementById(cardId);

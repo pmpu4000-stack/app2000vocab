@@ -277,7 +277,7 @@ export function stopAudio() {
   } catch (_) {}
 }
 
-function speakWithTTS(text, rate = 0.8, onEnd = null, token = currentSeqToken, targetVoice = null, onBoundary = null) {
+function speakWithTTS(text, rate = 0.8, onEnd = null, token = currentSeqToken, targetVoice = null, onBoundary = null, onStart = null) {
   if (!supported || !text) {
     if (onEnd) onEnd();
     return;
@@ -304,6 +304,12 @@ function speakWithTTS(text, rate = 0.8, onEnd = null, token = currentSeqToken, t
       u.rate = rate;
       u.pitch = 1.0;
       u.volume = 0.88; // 智慧音量平衡防爆音
+
+      u.onstart = () => {
+        if (token === currentSeqToken && typeof onStart === "function") {
+          onStart();
+        }
+      };
 
       if (typeof onBoundary === "function") {
         u.onboundary = (evt) => {
@@ -396,7 +402,7 @@ let _lastSayWordAt = 0;
 
 // 專供點擊「答對的單字 / 答錯的單字 / 精通單字」發音，永遠允許播放且防重複連點觸發兩次發音
 // 預設磨耳雙播：第一次速度 0.85，間隔 0.3 秒，第二次速度 0.70
-export function sayWord(word, rate = 0.85, onEnd = null, onBoundary = null, repeatCount = 2) {
+export function sayWord(word, rate = 0.85, onEnd = null, onBoundary = null, repeatCount = 2, onPassStart = null) {
   const clean = String(word || "").trim().toLowerCase();
   const now = Date.now();
   if (clean && clean === _lastSayWordText && (now - _lastSayWordAt) < 220) {
@@ -409,7 +415,9 @@ export function sayWord(word, rate = 0.85, onEnd = null, onBoundary = null, repe
   const targetVoice = getRandomUSVoice();
 
   if (repeatCount <= 1) {
-    speakWithTTS(clean, rate, onEnd, token, targetVoice, onBoundary);
+    speakWithTTS(clean, rate, onEnd, token, targetVoice, onBoundary, () => {
+      if (typeof onPassStart === "function") onPassStart(1, rate);
+    });
     return;
   }
 
@@ -419,9 +427,13 @@ export function sayWord(word, rate = 0.85, onEnd = null, onBoundary = null, repe
     // 停頓 0.3 秒後進行第二次 0.70 慢速對比磨耳
     currentSeqTimer = setTimeout(() => {
       if (token !== currentSeqToken) return;
-      speakWithTTS(clean, 0.7, onEnd, token, targetVoice, onBoundary);
+      speakWithTTS(clean, 0.7, onEnd, token, targetVoice, onBoundary, () => {
+        if (typeof onPassStart === "function") onPassStart(2, 0.7);
+      });
     }, 300);
-  }, token, targetVoice, onBoundary);
+  }, token, targetVoice, onBoundary, () => {
+    if (typeof onPassStart === "function") onPassStart(1, 0.85);
+  });
 }
 
 // 朗讀整個單字發音 (單字速度 0.8)
