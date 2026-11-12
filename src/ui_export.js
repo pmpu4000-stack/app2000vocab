@@ -1407,12 +1407,8 @@ export function initExportRecordsCard(getSummaryFn) {
     if (formatSelect && fmt) formatSelect.value = fmt;
     const chosenFmt = fmt || (formatSelect ? formatSelect.value : "pdf");
     const d = _latestSummaryGetter ? _latestSummaryGetter() : null;
-    const sDate = (currentMode === "single")
-      ? (inputSingle && inputSingle.value ? inputSingle.value : todayDash)
-      : (inputStart && inputStart.value ? inputStart.value : sevenDaysAgo);
-    const eDate = (currentMode === "single")
-      ? sDate
-      : (inputEnd && inputEnd.value ? inputEnd.value : todayDash);
+    const sDate = (inputStart && inputStart.value) ? inputStart.value : sevenDaysAgo;
+    const eDate = (inputEnd && inputEnd.value) ? inputEnd.value : todayDash;
 
     const payload = _buildExportPayload(d, currentMode, sDate, eDate);
 
@@ -1450,12 +1446,8 @@ export function initExportRecordsCard(getSummaryFn) {
   if (btnPreviewWeb) {
     btnPreviewWeb.onclick = () => {
       const d = _latestSummaryGetter ? _latestSummaryGetter() : null;
-      const sDate = (currentMode === "single")
-        ? (inputSingle && inputSingle.value ? inputSingle.value : todayDash)
-        : (inputStart && inputStart.value ? inputStart.value : sevenDaysAgo);
-      const eDate = (currentMode === "single")
-        ? sDate
-        : (inputEnd && inputEnd.value ? inputEnd.value : todayDash);
+      const sDate = (inputStart && inputStart.value) ? inputStart.value : sevenDaysAgo;
+      const eDate = (inputEnd && inputEnd.value) ? inputEnd.value : todayDash;
 
       const payload = _buildExportPayload(d, currentMode, sDate, eDate);
       if (previewBody) {
