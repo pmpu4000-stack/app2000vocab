@@ -148,7 +148,17 @@ export function getAvailableUSVoices() {
       return false;
     });
 
-    // 優先挑選知名高音質美語語音包（微軟 Edge/Windows 內建之 Azure 神經自然發音 Jenny / Guy / Aria，以及各大系統 Natural 語音）
+    const isIOS = typeof navigator !== "undefined" && (/iPad|iPhone|iPod/.test(navigator.userAgent || "") || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1));
+
+    if (isIOS) {
+      const iosPatterns = [/samantha|siri|alex|ava|allison|victoria/i];
+      const iosVoices = usOnly.filter(v => iosPatterns.some(p => p.test(v.name)));
+      const result = iosVoices.length > 0 ? iosVoices : (usOnly.length > 0 ? usOnly : all.filter(v => /^en/i.test(v.lang)));
+      cachedUSVoices = result;
+      return result;
+    }
+
+    // 非 iOS 裝置（Windows / Android / ChromeOS / macOS 等）優先使用 Azure 神經自然發音
     const azureNaturalPatterns = [
       /natural.*(jenny|guy|aria)|(jenny|guy|aria).*natural|microsoft jenny|microsoft guy|microsoft aria/i
     ];
