@@ -148,12 +148,17 @@ export function getAvailableUSVoices() {
       return false;
     });
 
-    // 優先挑選知名高音質美語語音包 (男女聲完整涵蓋，免費可商用)
+    // 優先挑選知名高音質美語語音包（微軟 Edge/Windows 內建之 Azure 神經自然發音 Jenny / Guy / Aria，以及各大系統 Natural 語音）
+    const azureNaturalPatterns = [
+      /natural.*(jenny|guy|aria)|(jenny|guy|aria).*natural|microsoft jenny|microsoft guy|microsoft aria/i
+    ];
+    const azureVoices = usOnly.filter(v => azureNaturalPatterns.some(p => p.test(v.name)));
+
     const preferredPatterns = [
-      /david|zira|mark|aria|jenny|guy|christopher|eric|michelle|samantha|alex|ava|allison|victoria|tom|susan|google us|natural/i
+      /jenny|guy|aria|david|zira|mark|christopher|eric|michelle|samantha|alex|ava|allison|victoria|tom|susan|google us|natural/i
     ];
     const preferred = usOnly.filter(v => preferredPatterns.some(p => p.test(v.name)));
-    const result = preferred.length > 0 ? preferred : (usOnly.length > 0 ? usOnly : all.filter(v => /^en/i.test(v.lang)));
+    const result = azureVoices.length > 0 ? azureVoices : (preferred.length > 0 ? preferred : (usOnly.length > 0 ? usOnly : all.filter(v => /^en/i.test(v.lang))));
     cachedUSVoices = result;
     return result;
   } catch (_) {
