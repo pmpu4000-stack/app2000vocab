@@ -58,7 +58,6 @@ if (typeof window !== "undefined") {
     const totalChars = Math.max(1, charOffset);
 
     let currentActiveIdx = -1;
-    let hadBoundaryInPass = false;
     const activateChunk = (idx) => {
       if (idx === currentActiveIdx) return;
       chunks.forEach((c, i) => {
@@ -74,24 +73,20 @@ if (typeof window !== "undefined") {
     const onPassStart = (passNum, rate) => {
       clearKaraokeTimers();
       currentActiveIdx = -1;
-      hadBoundaryInPass = false;
       activateChunk(0);
 
-      // 依發音語速與各音節長度精確按比例排程（Pass 1: 0.85 總長約 750ms；Pass 2: 0.70 總長約 950ms）
-      const estimatedTotalMs = (rate === 0.7) ? 950 : 750;
+      // 依發音語速與各音節長度精確按比例排程（Pass 1: 0.85 總長約 750ms；Pass 2: 0.70 總長約 1050ms）
+      const estimatedTotalMs = (rate === 0.7) ? 1050 : 750;
       let accumTime = 0;
       chunkRanges.forEach((r, idx) => {
         if (idx === 0) {
-          accumTime += Math.max(160, (r.len / totalChars) * estimatedTotalMs);
+          accumTime += Math.max(200, (r.len / totalChars) * estimatedTotalMs);
           return;
         }
         const scheduleAt = accumTime;
-        accumTime += Math.max(160, (r.len / totalChars) * estimatedTotalMs);
+        accumTime += Math.max(200, (r.len / totalChars) * estimatedTotalMs);
         const t = setTimeout(() => {
-          // 若語音合成引擎未觸發細部 onboundary，則由音節比例排程平滑接軌
-          if (!hadBoundaryInPass && currentActiveIdx < idx) {
-            activateChunk(idx);
-          }
+          activateChunk(idx);
         }, scheduleAt);
         activeTimers.push(t);
       });
@@ -104,9 +99,9 @@ if (typeof window !== "undefined") {
     };
 
     sayWord(word, 0.85, cleanup, (evt) => {
-      hadBoundaryInPass = true;
       const charIndex = (evt && typeof evt.charIndex === "number") ? evt.charIndex : -1;
-      if (charIndex >= 0) {
+      // 僅在 charIndex 大於 0 時依邊界更新，避免單字開頭單一 boundary 阻擋後續音節排程
+      if (charIndex > 0) {
         const targetIdx = chunkRanges.findIndex(r => charIndex >= r.start && charIndex < r.end);
         if (targetIdx !== -1) {
           activateChunk(targetIdx);
