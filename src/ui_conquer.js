@@ -81,12 +81,67 @@ if (typeof window !== "undefined") {
   };
 }
 
+// 劍橋辭典 (Cambridge Dictionary) 與韋氏標準權威音節常規對齊表
+const CAMBRIDGE_SYLLABLES = {
+  factory: ["fac", "to", "ry"],
+  restaurant: ["res", "tau", "rant"],
+  umbrella: ["um", "brel", "la"],
+  yesterday: ["yes", "ter", "day"],
+  tomorrow: ["to", "mor", "row"],
+  computer: ["com", "pu", "ter"],
+  hospital: ["hos", "pi", "tal"],
+  beautiful: ["beau", "ti", "ful"],
+  important: ["im", "por", "tant"],
+  different: ["dif", "fer", "ent"],
+  together: ["to", "geth", "er"],
+  remember: ["re", "mem", "ber"],
+  understand: ["un", "der", "stand"],
+  afternoon: ["af", "ter", "noon"],
+  evening: ["eve", "ning"],
+  morning: ["morn", "ing"],
+  breakfast: ["break", "fast"],
+  supermarket: ["su", "per", "mar", "ket"],
+  vegetable: ["veg", "e", "ta", "ble"],
+  chocolate: ["choc", "o", "late"],
+  favorite: ["fa", "vor", "ite"],
+  interesting: ["in", "ter", "est", "ing"],
+  difficult: ["dif", "fi", "cult"],
+  comfortable: ["com", "fort", "a", "ble"],
+  information: ["in", "for", "ma", "tion"],
+  exercise: ["ex", "er", "cise"],
+  basketball: ["bas", "ket", "ball"],
+  badminton: ["bad", "min", "ton"],
+  dinosaur: ["di", "no", "saur"],
+  telephone: ["tel", "e", "phone"],
+  dictionary: ["dic", "tion", "ar", "y"],
+  library: ["li", "brar", "y"],
+  elementary: ["el", "e", "men", "ta", "ry"],
+  helicopter: ["hel", "i", "cop", "ter"],
+  refrigerator: ["re", "frig", "er", "a", "tor"],
+  hamburger: ["ham", "bur", "ger"],
+  sandwich: ["sand", "wich"],
+  spaghetti: ["spa", "ghet", "ti"],
+  strawberry: ["straw", "ber", "ry"],
+  watermelon: ["wa", "ter", "mel", "on"]
+};
+
 export function splitIntoPhonicsChunks(word) {
   if (!word || typeof word !== "string") return [word || ""];
   const clean = word.trim();
   if (clean.length <= 3 || clean.includes(" ") || clean.includes("-")) return [clean];
 
   const lower = clean.toLowerCase();
+  if (CAMBRIDGE_SYLLABLES[lower]) {
+    // 依原字大小寫還原音節
+    const ref = CAMBRIDGE_SYLLABLES[lower];
+    let offset = 0;
+    return ref.map(part => {
+      const seg = clean.slice(offset, offset + part.length);
+      offset += part.length;
+      return seg || part;
+    });
+  }
+
   const prefixes = ["re", "un", "dis", "mis", "pre", "pro", "sub", "in", "im", "non", "anti", "auto", "de", "ex", "en", "em"];
   const suffixes = ["ing", "tion", "sion", "ment", "ness", "ful", "less", "able", "ible", "ous", "tive", "ture", "ize", "ly", "est", "ist", "ory", "ary"];
 
