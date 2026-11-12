@@ -1144,45 +1144,6 @@ function _buildReportHtml(payload) {
     `;
   }).join("");
 
-  // 👾 期末大挑戰單字庫
-  const bossWords = payload.finalBossWords || [];
-  let bossSectionHtml = "";
-  if (bossWords.length > 0) {
-    const bossTags = bossWords.map(w => {
-      const cleanW = esc(String(w).trim());
-      const escCall = cleanW.replace(/'/g, "\\'");
-      return `<span class="word-pill-tag wrong" onclick="event.stopPropagation(); if (typeof speakMasteredWord === 'function') speakMasteredWord('${escCall}');" style="cursor:pointer;" title="點擊聆聽發音">${cleanW}</span>`;
-    }).join("");
-
-    bossSectionHtml = `
-      <div class="subh" style="margin-top:16px; margin-bottom:6px;">
-        <span>👾 期末大挑戰單字庫</span>
-      </div>
-      <div class="task-history-card" style="border:1.5px solid rgba(224,86,123,0.35); background:#FFF5F5;">
-        <div style="font-size:13px; font-weight:800; color:#B91C1C; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
-          <span>👾 期末大挑戰單字表：共 <strong>${bossWords.length}</strong> 字</span>
-          <span style="font-size:11px; background:#FEE2E2; color:#991B1B; padding:2px 8px; border-radius:999px; font-weight:800;">雙週未消滅弱點滾動累積</span>
-        </div>
-        <div style="font-size:11.5px; color:#7F1D1D; margin-bottom:8px; line-height:1.4;">
-          以下為全學期各次雙週測驗累積、尚未全數答對消滅之重點弱點單字，已自動滾入學期末最終大挑戰魔王考卷：
-        </div>
-        <div style="display:flex; flex-wrap:wrap; gap:6px; padding:4px 0;">
-          ${bossTags}
-        </div>
-      </div>
-    `;
-  } else {
-    bossSectionHtml = `
-      <div class="subh" style="margin-top:16px; margin-bottom:6px;">
-        <span>👾 期末大挑戰單字庫</span>
-      </div>
-      <div class="task-history-card" style="border:1.5px solid rgba(47,180,124,0.3); background:#F0FDF4; text-align:center; padding:14px 10px;">
-        <div style="font-size:13px; font-weight:800; color:#166534; margin-bottom:4px;">✨ 雙週測驗全數答對，無期末大挑戰弱點單字！</div>
-        <div style="font-size:11.5px; color:#15803D;">所有雙週單字皆已全數消滅掌握，期末考卷無遺留弱點單字。</div>
-      </div>
-    `;
-  }
-
   return `
     <div id="pdf-export-paper" style="width:100%; max-width:720px; margin:0 auto; color:var(--ink, #232A4D); line-height:1.45; box-sizing:border-box;">
       <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid var(--line, #E7E9F5); padding-bottom:8px; margin-bottom:12px;">
@@ -1195,7 +1156,6 @@ function _buildReportHtml(payload) {
         </div>
       </div>
       ${dailyCardsHtml}
-      ${bossSectionHtml}
     </div>
   `;
 }
