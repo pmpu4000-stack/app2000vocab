@@ -102,8 +102,9 @@ export function initWeakWordsCard() {
   }
 
   function syncWeakWordsVisibility() {
+    const vacInfo = (typeof getVacationInfo === "function") ? getVacationInfo() : { isVacation: false };
     const { isPrivileged } = checkRoles();
-    if (!isPrivileged) {
+    if (!vacInfo.isVacation && !isPrivileged) {
       sec.style.setProperty("display", "none", "important");
     } else {
       sec.style.removeProperty("display");

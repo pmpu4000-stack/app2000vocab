@@ -298,11 +298,12 @@
 
     document.querySelectorAll("section.progress").forEach((sec) => {
       if (sec.id === "weak-words-section") {
+        const isVac = document.body.classList.contains("is-vacation") || document.documentElement.classList.contains("is-vacation");
         const isPrivileged = document.body.classList.contains("role-teacher") ||
           document.body.classList.contains("role-parent") ||
           document.documentElement.classList.contains("role-teacher") ||
           document.documentElement.classList.contains("role-parent");
-        if (!isPrivileged) {
+        if (!isVac && !isPrivileged) {
           sec.style.setProperty("display", "none", "important");
           return;
         }
