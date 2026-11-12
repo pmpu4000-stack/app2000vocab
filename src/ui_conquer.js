@@ -41,7 +41,7 @@ export function splitIntoPhonicsChunks(word) {
 
   const lower = clean.toLowerCase();
   const prefixes = ["re", "un", "dis", "mis", "pre", "pro", "sub", "in", "im", "non", "anti", "auto", "de", "ex", "en", "em"];
-  const suffixes = ["ing", "tion", "sion", "ment", "ness", "ful", "less", "able", "ible", "ous", "tive", "ture", "ize", "ly", "est", "ist"];
+  const suffixes = ["ing", "tion", "sion", "ment", "ness", "ful", "less", "able", "ible", "ous", "tive", "ture", "ize", "ly", "est", "ist", "ory", "ary"];
 
   const syllables = [];
   let w = clean;
@@ -432,7 +432,7 @@ export function _renderConquerWordCard(wordStr, d) {
   const cardId = "cq-card-" + clean.replace(/[^a-zA-Z0-9_-]/g, "_") + "-" + Math.floor(Math.random() * 10000);
   const chunks = splitIntoPhonicsChunks(wordDisplay);
   const phonicsChunksHtml = chunks.map((chk, i) => {
-    return `<span class="syllable-chunk" data-chunk="${escapeHtml(chk)}" title="點擊聆聽此音節" onclick="event.stopPropagation(); if (typeof window.__sayWord === 'function') window.__sayWord('${escapeHtml(chk)}');">${escapeHtml(chk)}</span>`;
+    return `<span class="syllable-chunk" data-chunk="${escapeHtml(chk)}" title="點擊聆聽整字發音" onclick="event.stopPropagation(); if (typeof window.__playPhonicsKaraoke === 'function') window.__playPhonicsKaraoke('${escapeHtml(clean)}', '${cardId}'); else if (typeof window.__sayWord === 'function') window.__sayWord('${escapeHtml(clean)}');">${escapeHtml(chk)}</span>`;
   }).join('<span class="syllable-dot" aria-hidden="true">·</span>');
 
   const clozeChunksHtml = chunks.map((chk, i) => {
