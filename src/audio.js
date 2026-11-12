@@ -401,7 +401,7 @@ let _lastSayWordText = "";
 let _lastSayWordAt = 0;
 
 // 專供點擊「答對的單字 / 答錯的單字 / 精通單字」發音，永遠允許播放且防重複連點觸發兩次發音
-// 預設磨耳雙播：第一次速度 0.85，間隔 0.5 秒，第二次速度 0.70
+// 預設磨耳雙播：第一次速度 0.85，間隔 1.0 秒，第二次速度 0.70
 export function sayWord(word, rate = 0.85, onEnd = null, onBoundary = null, repeatCount = 2, onPassStart = null) {
   const clean = String(word || "").trim().toLowerCase();
   const now = Date.now();
@@ -424,13 +424,13 @@ export function sayWord(word, rate = 0.85, onEnd = null, onBoundary = null, repe
   // 第一次 0.85 流暢語感
   speakWithTTS(clean, 0.85, () => {
     if (token !== currentSeqToken) return;
-    // 依音節節奏停頓 0.5 秒後進行第二次 0.70 慢速對比磨耳
+    // 依音節節奏停頓 1.0 秒後進行第二次 0.70 慢速對比磨耳
     currentSeqTimer = setTimeout(() => {
       if (token !== currentSeqToken) return;
       speakWithTTS(clean, 0.7, onEnd, token, targetVoice, onBoundary, () => {
         if (typeof onPassStart === "function") onPassStart(2, 0.7);
       });
-    }, 500);
+    }, 1000);
   }, token, targetVoice, onBoundary, () => {
     if (typeof onPassStart === "function") onPassStart(1, 0.85);
   });
