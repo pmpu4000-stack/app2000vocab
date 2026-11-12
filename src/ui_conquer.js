@@ -70,13 +70,22 @@ if (typeof window !== "undefined") {
       currentActiveIdx = idx;
     };
 
-    const onPassStart = (passNum, rate) => {
+    const chunkTexts = chunks.map(c => c.textContent || "");
+
+    const onPassStart = (passNum, rate, syllableIdx = 0) => {
       clearKaraokeTimers();
+
+      if (passNum === 2) {
+        // 第二次播放：依照音節單獨朗讀與逐一高亮
+        activateChunk(syllableIdx);
+        return;
+      }
+
+      // 第一次播放：全字連續朗讀，依音節長度比例平滑推進
       currentActiveIdx = -1;
       activateChunk(0);
 
-      // 依發音語速與各音節長度精確按比例排程（Pass 1: 0.85 總長約 750ms；Pass 2: 0.70 總長約 1050ms）
-      const estimatedTotalMs = (rate === 0.7) ? 1050 : 750;
+      const estimatedTotalMs = 750;
       let accumTime = 0;
       chunkRanges.forEach((r, idx) => {
         if (idx === 0) {
@@ -91,7 +100,6 @@ if (typeof window !== "undefined") {
         activeTimers.push(t);
       });
 
-      // 該次朗讀結束淡出
       const endTimer = setTimeout(() => {
         chunks.forEach(c => c.classList.remove("karaoke-active"));
       }, estimatedTotalMs + 100);
@@ -100,14 +108,13 @@ if (typeof window !== "undefined") {
 
     sayWord(word, 0.85, cleanup, (evt) => {
       const charIndex = (evt && typeof evt.charIndex === "number") ? evt.charIndex : -1;
-      // 僅在 charIndex 大於 0 時依邊界更新，避免單字開頭單一 boundary 阻擋後續音節排程
       if (charIndex > 0) {
         const targetIdx = chunkRanges.findIndex(r => charIndex >= r.start && charIndex < r.end);
         if (targetIdx !== -1) {
           activateChunk(targetIdx);
         }
       }
-    }, 2, onPassStart);
+    }, 2, onPassStart, chunkTexts);
   };
   window.__toggleConquerRecall = (cardId) => {
     const card = document.getElementById(cardId);

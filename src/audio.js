@@ -401,8 +401,8 @@ let _lastSayWordText = "";
 let _lastSayWordAt = 0;
 
 // 專供點擊「答對的單字 / 答錯的單字 / 精通單字」發音，永遠允許播放且防重複連點觸發兩次發音
-// 預設磨耳雙播：第一次速度 0.85，間隔 2.0 秒，第二次速度 0.70
-export function sayWord(word, rate = 0.85, onEnd = null, onBoundary = null, repeatCount = 2, onPassStart = null) {
+// 預設磨耳雙播：第一次速度 0.85，間隔 1.0 秒，第二次速度 0.70（若提供 chunks 則逐音節念出，音節間間隔 1.0 秒）
+export function sayWord(word, rate = 0.85, onEnd = null, onBoundary = null, repeatCount = 2, onPassStart = null, syllableChunks = null) {
   const clean = String(word || "").trim().toLowerCase();
   const now = Date.now();
   if (clean && clean === _lastSayWordText && (now - _lastSayWordAt) < 220) {
@@ -424,13 +424,43 @@ export function sayWord(word, rate = 0.85, onEnd = null, onBoundary = null, repe
   // 第一次 0.85 流暢語感
   speakWithTTS(clean, 0.85, () => {
     if (token !== currentSeqToken) return;
-    // 依音節節奏停頓 2.0 秒後進行第二次 0.70 慢速對比磨耳
+    // 第一次播放完畢後，間隔 1.0 秒進入第二次播放
     currentSeqTimer = setTimeout(() => {
       if (token !== currentSeqToken) return;
-      speakWithTTS(clean, 0.7, onEnd, token, targetVoice, onBoundary, () => {
-        if (typeof onPassStart === "function") onPassStart(2, 0.7);
-      });
-    }, 2000);
+
+      const chunks = (Array.isArray(syllableChunks) && syllableChunks.length > 1) ? syllableChunks : null;
+      if (chunks) {
+        // 第二次依照音節分段念出，音節與音節之間間隔 1.0 秒
+        let chunkIdx = 0;
+        const speakNextChunk = () => {
+          if (token !== currentSeqToken) return;
+          if (chunkIdx >= chunks.length) {
+            if (onEnd) onEnd();
+            return;
+          }
+          const chk = chunks[chunkIdx];
+          const currIdx = chunkIdx;
+          chunkIdx++;
+          if (typeof onPassStart === "function") onPassStart(2, 0.7, currIdx);
+          speakWithTTS(chk, 0.7, () => {
+            if (token !== currentSeqToken) return;
+            if (chunkIdx < chunks.length) {
+              currentSeqTimer = setTimeout(() => {
+                if (token !== currentSeqToken) return;
+                speakNextChunk();
+              }, 1000);
+            } else {
+              if (onEnd) onEnd();
+            }
+          }, token, targetVoice);
+        };
+        speakNextChunk();
+      } else {
+        speakWithTTS(clean, 0.7, onEnd, token, targetVoice, onBoundary, () => {
+          if (typeof onPassStart === "function") onPassStart(2, 0.7);
+        });
+      }
+    }, 1000);
   }, token, targetVoice, onBoundary, () => {
     if (typeof onPassStart === "function") onPassStart(1, 0.85);
   });
