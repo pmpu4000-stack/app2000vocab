@@ -2424,6 +2424,7 @@ function renderStudentDailyTaskAndFreeSections(resp) {
 // 待攻克單字卡渲染與例句對齊 (與拼字遊戲首頁 1:1 鏡像)
 // ════════════════════════════════════════
 window._conquerActiveWordByLevel = window._conquerActiveWordByLevel || { 1: null, 2: null, 3: null, 4: null, 5: null };
+window._conquerActiveLevelFilter = window._conquerActiveLevelFilter || "all";
 window._conquerViewModeByLevel = window._conquerViewModeByLevel || { 1: "single", 2: "single", 3: "single", 4: "single", 5: "single" };
 window.__sayWord = function(w) { speakMasteredWord(w); };
 window.__saySentence = function(s) { speakMasteredWord(s); };
@@ -2617,28 +2618,24 @@ window._renderConquerWordCard = _renderConquerWordCard;
     let weekOptionsHtml = "";
     for (let w = 1; w <= 20; w++) {
       const isWCurrent = (w === curSemWeek);
-      const isWBoss = (w % 2 === 0);
       const val = "week_" + w;
       const selected = (activeW === w);
-      let label = `第 ${w} 週`;
-      if (isWCurrent) label += `（本週${isWBoss ? " · 雙週魔王週" : ""}）`;
-      else if (isWBoss) label += `（雙週大消滅）`;
-      weekOptionsHtml += `<option value="${val}" ${selected ? 'selected' : ''}>${label}</option>`;
+      weekOptionsHtml += `<option value="${val}" ${selected ? 'selected' : ''}>${w}</option>`;
     }
 
     const isCurrentActive = (activeW === curSemWeek);
     const cycleSelectBarHtml = `
-      <div class="conquer-cycle-nav-bar" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; padding:0; background:transparent; border:none; margin-bottom:6px;">
-        <div style="display:flex; align-items:center; gap:6px; font-size:12.5px; font-weight:750; color:var(--ink); white-space:nowrap; flex-shrink:0;">
-          <span style="white-space:nowrap; flex-shrink:0;">📅 查看週次：</span>
-          <select id="st-conquer-cycle-select" class="task-date-selector" style="font-size:12px; height:30px; min-height:30px; padding:0 8px; border-radius:8px; border:1.5px solid rgba(148,163,184,0.35); background:var(--card, #fff); color:var(--ink); font-weight:700; cursor:pointer; width:auto !important; max-width:240px !important; min-width:130px !important; flex-shrink:0; box-sizing:border-box;" title="選擇查看待攻克學期週次">
+      <div class="conquer-cycle-nav-bar">
+        <label class="conquer-cycle-selector-wrap" for="st-conquer-cycle-select" title="點擊選擇學期週次">
+          <span>📅 第 ${activeW} 週</span>
+          <select id="st-conquer-cycle-select" class="task-date-selector" title="選擇查看學期週次">
             ${weekOptionsHtml}
           </select>
-        </div>
-        <div class="conquer-cycle-toggle-group" style="display:inline-flex; align-items:center; gap:6px; flex:0 0 auto;">
-          <button type="button" id="btn-st-conquer-cycle-prev" class="date-nav-btn" ${activeW <= 1 ? 'disabled' : ''} style="font-size:12px; height:30px; min-height:30px; padding:0 10px; border-radius:8px; cursor:${activeW <= 1 ? 'not-allowed' : 'pointer'}; opacity:${activeW <= 1 ? '0.45' : '1'}; flex:0 0 auto; box-sizing:border-box;" title="查看上一週（第 ${Math.max(1, activeW - 1)} 週）待攻克單字">◀ 上一週</button>
-          <button type="button" id="btn-st-conquer-cycle-current" class="date-nav-btn today-btn ${isCurrentActive ? 'active' : ''}" style="font-size:12px; height:30px; min-height:30px; padding:0 10px; border-radius:8px; cursor:pointer; flex:0 0 auto; box-sizing:border-box;" title="切換回本週（第 ${curSemWeek} 週）">📍 本週</button>
-          <button type="button" id="btn-st-conquer-cycle-next" class="date-nav-btn" ${activeW >= 20 ? 'disabled' : ''} style="font-size:12px; height:30px; min-height:30px; padding:0 10px; border-radius:8px; cursor:${activeW >= 20 ? 'not-allowed' : 'pointer'}; opacity:${activeW >= 20 ? '0.45' : '1'}; flex:0 0 auto; box-sizing:border-box;" title="查看下一週（第 ${Math.min(20, activeW + 1)} 週）待攻克單字">下一週 ▶</button>
+        </label>
+        <div class="conquer-cycle-toggle-group">
+          <button type="button" id="btn-st-conquer-cycle-prev" class="conquer-nav-btn date-nav-btn" ${activeW <= 1 ? 'disabled' : ''} title="查看上一週（第 ${Math.max(1, activeW - 1)} 週）待攻克單字">◀ 上一週</button>
+          <button type="button" id="btn-st-conquer-cycle-current" class="conquer-nav-btn date-nav-btn today-btn ${isCurrentActive ? 'active' : ''}" title="切換回本週（第 ${curSemWeek} 週）">本週</button>
+          <button type="button" id="btn-st-conquer-cycle-next" class="conquer-nav-btn date-nav-btn" ${activeW >= 20 ? 'disabled' : ''} title="查看下一週（第 ${Math.min(20, activeW + 1)} 週）待攻克單字">下一週 ▶</button>
         </div>
       </div>
     `;
@@ -2856,9 +2853,33 @@ window._renderConquerWordCard = _renderConquerWordCard;
         byLv[targetLv].push(cleanW);
       });
 
+      const levelFilterBarHtml = `
+        <div class="conquer-level-filter-bar">
+          <button type="button" class="conquer-level-tab-btn ${window._conquerActiveLevelFilter === 'all' ? 'is-active' : ''}" data-lv-filter="all">
+            <span class="cl-full-label">全部</span><span class="cl-short-label">全</span>
+            <span class="cl-badge-count">(${pendingWords.length})</span>
+          </button>
+          ${[1, 2, 3, 4, 5].map(lv => {
+            const cnt = (byLv[lv] || []).length;
+            const isDis = cnt === 0;
+            const isAct = (window._conquerActiveLevelFilter === String(lv));
+            return `
+              <button type="button" class="conquer-level-tab-btn ${isAct ? 'is-active' : ''}" data-lv-filter="${lv}" ${isDis ? 'disabled' : ''}>
+                <span class="cl-full-label">Level ${lv}</span><span class="cl-short-label">L${lv}</span>
+                <span class="cl-badge-count">(${cnt})</span>
+              </button>
+            `;
+          }).join("")}
+        </div>
+      `;
+
+      const filteredLevels = (window._conquerActiveLevelFilter === "all")
+        ? [1, 2, 3, 4, 5]
+        : [parseInt(window._conquerActiveLevelFilter, 10)];
+
       const lvNames  = ["入門", "基礎", "進階", "挑戰", "精熟"];
       const lvColors = ["#2FB47C", "#2D9CDB", "#6C4CE0", "#E8892B", "#E0567B"];
-      const levelSectionsHtml = [1, 2, 3, 4, 5].map(lv => {
+      const levelSectionsHtml = filteredLevels.map(lv => {
         const list = byLv[lv] || [];
         const lvDotColor = lvColors[lv - 1];
         const lvTitle = `Level ${lv}「${lvNames[lv - 1]}」`;
@@ -2952,6 +2973,7 @@ window._renderConquerWordCard = _renderConquerWordCard;
       conquerDetailsContainer.innerHTML = `
         <div class="week-conquer-wrap" style="display:flex; flex-direction:column; gap:8px;">
           ${cycleSelectBarHtml}
+          ${levelFilterBarHtml}
           <div class="week-conquer-tip" style="display:flex; align-items:flex-start; gap:8px; padding:4px 2px 4px; font-size:12.5px; line-height:1.55; color:var(--ink2);">
             <span style="font-size:15px; flex-shrink:0; line-height:1.3;">💡</span>
             <div style="flex:1; line-height:1.55;">
@@ -2965,6 +2987,18 @@ window._renderConquerWordCard = _renderConquerWordCard;
         </div>
       `;
     }
+
+    // 綁定關卡等級分段篩選按鈕
+    conquerDetailsContainer.querySelectorAll(".conquer-level-tab-btn:not(:disabled)").forEach(btn => {
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        const filter = btn.getAttribute("data-lv-filter");
+        if (filter) {
+          window._conquerActiveLevelFilter = filter;
+          window.renderTeacherStudentConquerSection(window._teacherActiveConquerCycle);
+        }
+      };
+    });
 
     // 綁定各關卡內的單字標籤點擊（即時就地切換卡片並朗讀）
     conquerDetailsContainer.querySelectorAll(".conquer-word-tab").forEach(tab => {

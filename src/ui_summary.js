@@ -2757,7 +2757,7 @@ export function toggleSummary(data) {
     if (sumBtn) sumBtn.innerHTML = "收合";
     try {
       renderSummary(data);
-      if (sec && (!window.__lastSummaryScrollTime || Date.now() - window.__lastSummaryScrollTime > 1200)) {
+      if (sec && (!window.__lastSummaryScrollTime || Date.now() - window.__lastSummaryScrollTime > 2000)) {
         window.__lastSummaryScrollTime = Date.now();
         sec.scrollIntoView({ behavior: "smooth", block: "start" });
       }

@@ -337,19 +337,10 @@
       progressSec.style.display = "block";
     }
 
-    // ★ 核心修復：時間截止時，立即呼叫 refreshChrome 刷新學習進度與頂部數值（答對字、答對率）！
+    // ★ 時間截止時，立即呼叫 refreshChrome 刷新學習進度與頂部數值（答對字、答對率）！
     if (typeof window.refreshChrome === "function") {
       window.refreshChrome();
     }
-
-    // ★ 業界標準體驗：時間截止時，自動預設展開「學習足跡 Records」以利成果回顧
-    try {
-      const summaryEl = document.getElementById("summary");
-      const sumBtn = document.getElementById("sumBtn");
-      if (summaryEl && summaryEl.hasAttribute("hidden") && sumBtn) {
-        sumBtn.click();
-      }
-    } catch (_) {}
 
     if (typeof window.uploadLocalStorageData === "function") {
       window.uploadLocalStorageData(true);

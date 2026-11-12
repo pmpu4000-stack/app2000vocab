@@ -1027,7 +1027,7 @@
   </style>
   <link rel="preconnect" href="https://script.google.com" crossorigin>
   <link rel="dns-prefetch" href="https://script.google.com">
-  <link rel="stylesheet" href="css/styles.css?v=202611120620">
+  <link rel="stylesheet" href="css/styles.css?v=202611120138">
   <link rel="modulepreload" href="src/app.js">
   <link rel="modulepreload" href="src/auth_sync.js">
   <link rel="modulepreload" href="src/wordbank.js">
@@ -1045,11 +1045,11 @@
   <script>
     if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=202611101135').catch(() => {});
+        navigator.serviceWorker.register('./sw.js?v=202611120138').catch(() => {});
       });
     }
   </script>
-  <script src="src/time_limits.js?v=202611081031" defer></script>
+  <script src="src/time_limits.js?v=202611120138" defer></script>
 </head>
 <body class="is-logging-in">
 
@@ -1614,7 +1614,7 @@
     </div>
   </div>
 
-  <script type="module" src="src/auth_sync.js?v=202611081031"></script>
+  <script type="module" src="src/auth_sync.js?v=202611120138"></script>
 
   <!-- ══════════════════════════════════════════
   <!-- 📝 教師管理專區彈窗 DOM 已改為按身分動態掛載 (src/teacher_portal.js)，學生首屏完全免載 -->

@@ -36,57 +36,57 @@
     {
       "name": "getAvailableUSVoices",
       "type": "function",
-      "line": 168
+      "line": 134
     },
     {
       "name": "getRandomUSVoice",
       "type": "function",
-      "line": 198
+      "line": 164
     },
     {
       "name": "getUSFemaleVoice",
       "type": "function",
-      "line": 207
+      "line": 173
     },
     {
       "name": "getUSMaleVoice",
       "type": "function",
-      "line": 217
+      "line": 183
     },
     {
       "name": "parseDialogue",
       "type": "function",
-      "line": 231
+      "line": 197
     },
     {
       "name": "getBestEnglishVoice",
       "type": "function",
-      "line": 245
+      "line": 211
     },
     {
       "name": "stopAudio",
       "type": "function",
-      "line": 261
+      "line": 227
     },
     {
       "name": "say",
       "type": "function",
-      "line": 455
+      "line": 359
     },
     {
       "name": "sayWord",
       "type": "function",
-      "line": 473
+      "line": 377
     },
     {
       "name": "spellOut",
       "type": "function",
-      "line": 486
+      "line": 390
     },
     {
       "name": "playContestSentence",
       "type": "function",
-      "line": 498
+      "line": 402
     }
   ],
   "auth.js": [],
@@ -535,89 +535,89 @@
     {
       "name": "renderProgressModeStats",
       "type": "function",
-      "line": 746
+      "line": 752
     },
     {
       "name": "renderSession",
       "type": "function",
-      "line": 763
+      "line": 769
     },
     {
       "name": "renderBanner",
       "type": "function",
-      "line": 772
+      "line": 778
     },
     {
       "name": "askPick",
       "type": "function",
-      "line": 804
+      "line": 810
     },
     {
       "name": "quizResult",
       "type": "function",
-      "line": 835
+      "line": 841
     },
     {
       "name": "onCheckClick",
       "type": "function",
-      "line": 850
+      "line": 856
     },
     {
       "name": "onReset",
       "type": "function",
-      "line": 851
+      "line": 857
     },
     {
       "name": "onSummary",
       "type": "function",
-      "line": 852
+      "line": 858
     },
     {
       "name": "onPlace",
       "type": "function",
-      "line": 853
+      "line": 859
     },
     {
       "name": "initProgressCard",
       "type": "function",
-      "line": 855
+      "line": 861
     }
   ],
   "ui_conquer.js": [
     {
       "name": "setConquerWordsRef",
       "type": "function",
-      "line": 12
+      "line": 20
     },
     {
       "name": "getWeekPendingConquerWords",
       "type": "function",
-      "line": 16
+      "line": 24
     },
     {
       "name": "_resolveConquerWordLevel",
       "type": "function",
-      "line": 161
+      "line": 169
     },
     {
       "name": "_renderConquerWordCard",
       "type": "function",
-      "line": 199
+      "line": 208
     },
     {
       "name": "buildWeekPendingConquerHtml",
       "type": "function",
-      "line": 339
+      "line": 348
     },
     {
       "name": "updateWeekConquerSection",
       "type": "function",
-      "line": 536
+      "line": 565
     },
     {
       "name": "initConquerCard",
       "type": "function",
-      "line": 602
+      "line": 658
     }
   ],
   "ui_export.js": [
@@ -646,42 +646,42 @@
     {
       "name": "formatRatePercentage",
       "type": "function",
-      "line": 387
+      "line": 389
     },
     {
       "name": "isValidEnglishWordStr",
       "type": "function",
-      "line": 410
+      "line": 412
     },
     {
       "name": "clearResolveWordsCache",
       "type": "function",
-      "line": 421
+      "line": 423
     },
     {
       "name": "resolveTaskWords",
       "type": "function",
-      "line": 437
+      "line": 439
     },
     {
       "name": "resolveDailyPracticeRecord",
       "type": "function",
-      "line": 1683
+      "line": 1680
     },
     {
       "name": "summaryHidden",
       "type": "function",
-      "line": 1805
+      "line": 1802
     },
     {
       "name": "renderSummary",
       "type": "function",
-      "line": 1806
+      "line": 1803
     },
     {
       "name": "toggleSummary",
       "type": "function",
-      "line": 2501
+      "line": 2751
     }
   ],
   "ui_weak_words.js": [
