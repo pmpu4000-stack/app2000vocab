@@ -1463,6 +1463,10 @@ function buildTaskDetailsHtml(records, selectedDate, d, dayStat = null) {
 function buildFreeDetailsHtml(record, selectedDate, d) {
   if (!record || !record.attempts) {
     const emptyFreeTitle = "🧭 自由練習";
+    const now = new Date();
+    const todayDash = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0") + "-" + String(now.getDate()).padStart(2, "0");
+    const isToday = (selectedDate === todayDash);
+    const noticeText = isToday ? "尚無自由練習紀錄" : "無自由練習紀錄";
     return `
       <div>
         <div class="task-history-header">
@@ -1473,7 +1477,7 @@ function buildFreeDetailsHtml(record, selectedDate, d) {
 
         <div class="task-empty-notice-box">
           <div class="task-empty-notice-icon">🧭</div>
-          <div class="task-empty-notice-title">尚無自由練習紀錄</div>
+          <div class="task-empty-notice-title">${noticeText}</div>
         </div>
       </div>
     `;
