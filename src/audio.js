@@ -383,7 +383,7 @@ function playSingleWordOrTTS(rawText, rate = 0.8, onEnd = null, token = currentS
 
 // Speak a word or sentence at the given rate (預設 0.8).
 // forcePlay = true 時不受每日練習時長到期鎖定限制（供點擊單字複習發音使用）
-export function say(text, rate = 0.75, onEnd = null, forcePlay = false) {
+export function say(text, rate = 0.8, onEnd = null, forcePlay = false) {
   if (!forcePlay && typeof window !== "undefined" && window.__dailyUsageTimeIsUp) {
     if (onEnd) onEnd();
     return;
@@ -421,8 +421,8 @@ export function sayWord(word, rate = 0.85, onEnd = null, onBoundary = null, repe
     return;
   }
 
-  // 第一次 0.85 流暢語感
-  speakWithTTS(clean, 0.85, () => {
+  // 第一次 0.8 流暢語感
+  speakWithTTS(clean, 0.8, () => {
     if (token !== currentSeqToken) return;
     // 第一次播放完畢後，間隔 1.0 秒進入第二次播放
     currentSeqTimer = setTimeout(() => {
@@ -441,7 +441,7 @@ export function sayWord(word, rate = 0.85, onEnd = null, onBoundary = null, repe
         chunks.forEach((chk, idx) => {
           const triggerAt = accSpeak + accPause;
           if (idx === 0) {
-            if (typeof onPassStart === "function") onPassStart(2, 0.85, 0);
+            if (typeof onPassStart === "function") onPassStart(2, 0.7, 0);
           } else {
             const tPause = setTimeout(() => {
               if (token !== currentSeqToken) return;
@@ -449,7 +449,7 @@ export function sayWord(word, rate = 0.85, onEnd = null, onBoundary = null, repe
             }, triggerAt);
             const tResume = setTimeout(() => {
               if (token !== currentSeqToken) return;
-              if (typeof onPassStart === "function") onPassStart(2, 0.85, idx);
+              if (typeof onPassStart === "function") onPassStart(2, 0.7, idx);
               try { if (window.speechSynthesis && window.speechSynthesis.paused) window.speechSynthesis.resume(); } catch (_) {}
             }, triggerAt + pauseMs);
             timers.push(tPause, tResume);
@@ -458,7 +458,7 @@ export function sayWord(word, rate = 0.85, onEnd = null, onBoundary = null, repe
           accSpeak += Math.round((chk.length / totalChars) * estSpeakMs);
         });
 
-        speakWithTTS(clean, 0.85, () => {
+        speakWithTTS(clean, 0.7, () => {
           timers.forEach(t => clearTimeout(t));
           try { if (window.speechSynthesis && window.speechSynthesis.paused) window.speechSynthesis.resume(); } catch (_) {}
           if (token !== currentSeqToken) return;
