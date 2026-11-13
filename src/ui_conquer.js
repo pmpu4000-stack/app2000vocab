@@ -896,7 +896,7 @@ export function _resolveConquerWordLevel(wordStr, d) {
 }
 
 let _activeConquerCycle = "current";
-let _activeConquerLevelFilter = "all";
+let _activeConquerLevelFilter = "1";
 const _conquerActiveWordByLevel = { 1: null, 2: null, 3: null, 4: null, 5: null };
 const _conquerViewModeByLevel = { 1: "single", 2: "single", 3: "single", 4: "single", 5: "single" };
 
@@ -1177,12 +1177,13 @@ export function buildWeekPendingConquerHtml(words, d = null, cycleParam = _activ
     byLv[targetLv].push(w);
   });
 
+  if (_activeConquerLevelFilter === "all" || !(byLv[parseInt(_activeConquerLevelFilter, 10)] || []).length) {
+    const firstNonEmpty = [1, 2, 3, 4, 5].find(lv => (byLv[lv] || []).length > 0);
+    _activeConquerLevelFilter = String(firstNonEmpty || 1);
+  }
+
   const levelFilterBarHtml = `
     <div class="conquer-level-filter-bar">
-      <button type="button" class="conquer-level-tab-btn ${_activeConquerLevelFilter === 'all' ? 'is-active' : ''}" data-lv-filter="all">
-        <span class="cl-full-label">全部</span><span class="cl-short-label">全</span>
-        <span class="cl-badge-count">(${pendingWords.length})</span>
-      </button>
       ${[1, 2, 3, 4, 5].map(lv => {
         const cnt = (byLv[lv] || []).length;
         const isDis = cnt === 0;
@@ -1197,19 +1198,15 @@ export function buildWeekPendingConquerHtml(words, d = null, cycleParam = _activ
     </div>
   `;
 
-  const filteredLevels = (_activeConquerLevelFilter === "all")
-    ? [1, 2, 3, 4, 5]
-    : [parseInt(_activeConquerLevelFilter, 10)];
+  const filteredLevels = [parseInt(_activeConquerLevelFilter, 10) || 1];
 
   const levelSectionsHtml = filteredLevels.map(lv => {
     const list = byLv[lv] || [];
     const lvDotColor = levelColor(lv);
     const lvTitle = `Level ${lv}「${levelName(lv)}」`;
     let contentHtml = "";
-    const isAllMode = (_conquerViewModeByLevel[lv] === "all");
-    const toggleBtnHtml = (list.length > 1)
-      ? `<button type="button" class="conquer-mode-toggle-btn" data-lv="${lv}" style="display:inline-flex; align-items:center; justify-content:center; text-align:center; min-width:44px; height:22px; padding:0 8px; line-height:1;" title="${isAllMode ? '收合單字卡' : '展開全部單字卡'}">${isAllMode ? '收合' : '展開'}</button>`
-      : "";
+    const isAllMode = true;
+    const toggleBtnHtml = "";
 
     if (list.length > 0) {
       if (!_conquerActiveWordByLevel[lv] || !list.includes(_conquerActiveWordByLevel[lv])) {
