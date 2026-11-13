@@ -1487,8 +1487,14 @@ function _buildCleanWordSummaryHtml(payload, d, sourceMode = "all") {
       };
       const cw = parseWordList(rec.correctWords);
       const ww = parseWordList(rec.wrongWords);
-      cw.forEach(w => addWord(w, true, true));
-      ww.forEach(w => addWord(w, false, true));
+      if (cw.length > 0 || ww.length > 0) {
+        cw.forEach(w => addWord(w, true, true));
+        ww.forEach(w => addWord(w, false, true));
+      } else {
+        const res = resolveTaskWords(rec, nd, d);
+        (res.correctList || []).forEach(w => addWord(w, true, true));
+        (res.wrongList || []).forEach(w => addWord(w, false, true));
+      }
     });
   }
 
@@ -1507,8 +1513,11 @@ function _buildCleanWordSummaryHtml(payload, d, sourceMode = "all") {
       if (dp && dp.words) {
         Object.keys(dp.words).forEach(w => {
           const st = dp.words[w];
-          if (st && st.c > 0) for (let i = 0; i < st.c; i++) addWord(w, true, false);
-          if (st && st.w > 0) for (let i = 0; i < st.w; i++) addWord(w, false, false);
+          if (!st) return;
+          const wCor = (st.correct !== undefined) ? st.correct : (st.c || 0);
+          const wWrg = (st.wrong !== undefined) ? st.wrong : (st.w !== undefined ? st.w : Math.max(0, (st.a || 0) - wCor));
+          for (let i = 0; i < wCor; i++) addWord(w, true, false);
+          for (let i = 0; i < wWrg; i++) addWord(w, false, false);
         });
       }
     });
