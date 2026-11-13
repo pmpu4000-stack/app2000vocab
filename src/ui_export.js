@@ -1423,7 +1423,32 @@ function _buildCleanWordSummaryHtml(payload, d) {
     (r.taskWrongWords || []).forEach(w => addWord(w, false));
     (r.freeCorrectWords || []).forEach(w => addWord(w, true));
     (r.freeWrongWords || []).forEach(w => addWord(w, false));
+    if ((!r.taskCorrectWords || r.taskCorrectWords.length === 0) && Array.isArray(r.taskCorrectDetails)) {
+      r.taskCorrectDetails.forEach(w => addWord(w, true));
+    }
+    if ((!r.taskWrongWords || r.taskWrongWords.length === 0) && Array.isArray(r.taskWrongDetails)) {
+      r.taskWrongDetails.forEach(w => addWord(w, false));
+    }
+    if ((!r.freeCorrectWords || r.freeCorrectWords.length === 0) && Array.isArray(r.freeCorrectDetails)) {
+      r.freeCorrectDetails.forEach(w => addWord(w, true));
+    }
+    if ((!r.freeWrongWords || r.freeWrongWords.length === 0) && Array.isArray(r.freeWrongDetails)) {
+      r.freeWrongDetails.forEach(w => addWord(w, false));
+    }
   });
+
+  if (wordMap.size === 0 && d && d.dailyPractice) {
+    Object.keys(d.dailyPractice).forEach(dt => {
+      const dp = d.dailyPractice[dt];
+      if (dp && dp.words) {
+        Object.keys(dp.words).forEach(w => {
+          const st = dp.words[w];
+          if (st && st.c > 0) for (let i = 0; i < st.c; i++) addWord(w, true);
+          if (st && st.w > 0) for (let i = 0; i < st.w; i++) addWord(w, false);
+        });
+      }
+    });
+  }
 
   const wordsRef = (d && d.words) ? d.words : (typeof window !== "undefined" ? window.__WORDS : null);
   const getZhDef = (w) => {
