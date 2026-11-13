@@ -1403,6 +1403,99 @@ export function initExportRecordsCard(getSummaryFn) {
   const previewContainer = document.getElementById("export-web-preview-container");
   const previewBody = document.getElementById("export-web-preview-body");
 
+function _buildCleanWordSummaryHtml(payload, d) {
+  const wordMap = new Map();
+  const addWord = (w, isCorrect) => {
+    const clean = String(w || "").trim().toLowerCase();
+    if (!clean) return;
+    if (!wordMap.has(clean)) {
+      wordMap.set(clean, { word: clean, correct: 0, wrong: 0 });
+    }
+    const entry = wordMap.get(clean);
+    if (isCorrect) entry.correct++;
+    else entry.wrong++;
+  };
+
+  const rows = Array.isArray(payload && payload.dailyRows) ? payload.dailyRows : [];
+  rows.forEach(r => {
+    (r.taskCorrectWords || []).forEach(w => addWord(w, true));
+    (r.taskWrongWords || []).forEach(w => addWord(w, false));
+    (r.freeCorrectWords || []).forEach(w => addWord(w, true));
+    (r.freeWrongWords || []).forEach(w => addWord(w, false));
+  });
+
+  const wordsRef = (d && d.words) ? d.words : (typeof window !== "undefined" ? window.__WORDS : null);
+  const getZhDef = (w) => {
+    let obj = null;
+    if (wordsRef) {
+      if (wordsRef._byWord && wordsRef._byWord.has(w)) obj = wordsRef._byWord.get(w);
+      else if (Array.isArray(wordsRef)) obj = wordsRef.find(x => x && x.word === w);
+    }
+    if (obj && obj.zh) return String(obj.zh).replace(/^[a-zA-Z\.\s\/]+?[\s\.\．]+/, "").trim();
+    return "—";
+  };
+
+  const list = Array.from(wordMap.values()).map(item => {
+    const total = item.correct + item.wrong;
+    const isWeak = item.wrong > 0 && item.wrong >= item.correct;
+    return { ...item, total, isWeak, zh: getZhDef(item.word) };
+  }).sort((a, b) => (b.wrong - a.wrong) || a.word.localeCompare(b.word));
+
+  const totalWords = list.length;
+  const totalCorrect = list.reduce((s, x) => s + x.correct, 0);
+  const totalAttempts = list.reduce((s, x) => s + x.total, 0);
+  const acc = totalAttempts > 0 ? ((totalCorrect / totalAttempts) * 100).toFixed(1) : "0.0";
+  const weakCount = list.filter(x => x.isWeak).length;
+
+  const rowsHtml = list.length === 0
+    ? `<tr><td colspan="4" style="text-align:center; padding:24px; color:var(--ink3); font-size:13px;">此日期區間尚無單字作答紀錄</td></tr>`
+    : list.map(x => `
+      <tr class="clean-vocab-row" data-word="${escapeHtml(x.word)}" data-weak="${x.isWeak ? '1' : '0'}" style="border-bottom:1px solid var(--line, #E7E9F5);">
+        <td style="padding:10px 8px; font-weight:700; color:var(--ink, #232A4D); font-size:13.5px;">${escapeHtml(x.word)}</td>
+        <td style="padding:10px 8px; color:var(--ink2, #475569); font-size:13px;">${escapeHtml(x.zh)}</td>
+        <td style="padding:10px 8px; font-variant-numeric:tabular-nums; font-size:13px; white-space:nowrap;">
+          <span style="color:var(--good, #10b981); font-weight:700;">${x.correct}✓</span>
+          <span style="color:var(--ink3, #94a3b8); margin:0 3px;">/</span>
+          <span style="color:var(--bad, #ef4444); font-weight:700;">${x.wrong}✗</span>
+        </td>
+        <td style="padding:10px 8px; white-space:nowrap;">
+          ${x.isWeak
+            ? `<span style="display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:700; color:#b45309; background:rgba(245,158,11,0.12); padding:2px 8px; border-radius:999px;"><span style="width:6px; height:6px; border-radius:50%; background:#f59e0b;"></span>待加強</span>`
+            : `<span style="display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:700; color:#047857; background:rgba(16,185,129,0.12); padding:2px 8px; border-radius:999px;"><span style="width:6px; height:6px; border-radius:50%; background:#10b981;"></span>已精通</span>`
+          }
+        </td>
+      </tr>
+    `).join("");
+
+  return `
+    <div class="clean-vocab-summary" style="background:var(--card, #fff); border-radius:12px; padding:12px; color:var(--ink, #232A4D);">
+      <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; padding-bottom:10px; border-bottom:1px solid var(--line, #E7E9F5); font-size:12.5px; color:var(--ink2, #475569); font-weight:700;">
+        <div>總練習字數 <span style="color:var(--ink, #232A4D); font-weight:800;">${totalWords}</span> &nbsp;·&nbsp; 整體正確率 <span style="color:var(--violet, #6C4CE0); font-weight:800;">${acc}%</span> &nbsp;·&nbsp; 待加強 <span style="color:var(--bad, #ef4444); font-weight:800;">${weakCount}</span></div>
+      </div>
+      <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; margin:10px 0;">
+        <input type="search" id="clean-vocab-search" placeholder="搜尋單字或釋義..." style="flex:1; min-width:160px; padding:6px 10px; border:1px solid var(--line, #E7E9F5); border-radius:8px; font-size:12.5px; background:var(--paper, #F6F7FB); color:var(--ink, #232A4D); outline:none;" />
+        <div style="display:flex; gap:6px;">
+          <button type="button" class="clean-vocab-tab active" data-filter="all" style="padding:5px 12px; border-radius:999px; border:1px solid var(--violet, #6C4CE0); background:var(--violet, #6C4CE0); color:#fff; font-size:12px; font-weight:700; cursor:pointer;">全部</button>
+          <button type="button" class="clean-vocab-tab" data-filter="weak" style="padding:5px 12px; border-radius:999px; border:1px solid var(--line, #E7E9F5); background:var(--paper, #F6F7FB); color:var(--ink2, #475569); font-size:12px; font-weight:700; cursor:pointer;">待加強</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table style="width:100%; border-collapse:collapse; text-align:left;">
+          <thead>
+            <tr style="border-bottom:1.5px solid var(--line, #E7E9F5); font-size:11.5px; color:var(--ink3, #64748b); font-weight:700;">
+              <th style="padding:8px;">單字</th>
+              <th style="padding:8px;">中文釋義</th>
+              <th style="padding:8px;">對 / 錯次數</th>
+              <th style="padding:8px;">狀態</th>
+            </tr>
+          </thead>
+          <tbody id="clean-vocab-tbody">${rowsHtml}</tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
   if (btnPreviewWeb) {
     btnPreviewWeb.onclick = () => {
       const d = _latestSummaryGetter ? _latestSummaryGetter() : null;
@@ -1411,7 +1504,31 @@ export function initExportRecordsCard(getSummaryFn) {
 
       const payload = _buildExportPayload(d, currentMode, sDate, eDate);
       if (previewBody) {
-        previewBody.innerHTML = _wrapReportPreviewPaper(_buildReportHtml(payload), payload);
+        previewBody.innerHTML = _buildCleanWordSummaryHtml(payload, d);
+        const searchEl = previewBody.querySelector("#clean-vocab-search");
+        const tabs = previewBody.querySelectorAll(".clean-vocab-tab");
+        let activeFilter = "all";
+        const applyFilter = () => {
+          const q = (searchEl ? searchEl.value : "").trim().toLowerCase();
+          previewBody.querySelectorAll(".clean-vocab-row").forEach(tr => {
+            const matchQ = !q || tr.textContent.toLowerCase().includes(q);
+            const matchF = activeFilter === "all" || tr.getAttribute("data-weak") === "1";
+            tr.style.display = (matchQ && matchF) ? "" : "none";
+          });
+        };
+        if (searchEl) searchEl.oninput = applyFilter;
+        tabs.forEach(btn => {
+          btn.onclick = () => {
+            activeFilter = btn.getAttribute("data-filter") || "all";
+            tabs.forEach(b => {
+              const isAct = b === btn;
+              b.style.background = isAct ? "var(--violet, #6C4CE0)" : "var(--paper, #F6F7FB)";
+              b.style.color = isAct ? "#fff" : "var(--ink2, #475569)";
+              b.style.borderColor = isAct ? "var(--violet, #6C4CE0)" : "var(--line, #E7E9F5)";
+            });
+            applyFilter();
+          };
+        });
       }
       if (previewContainer) {
         previewContainer.style.display = "block";
