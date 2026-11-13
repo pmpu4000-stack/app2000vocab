@@ -378,6 +378,7 @@ const CAMBRIDGE_SYLLABLES = {
   promise: ["prom", "ise"],
   pumpkin: ["pump", "kin"],
   punish: ["pun", "ish"],
+  quiet: ["qui", "et"],
   history: ["his", "to", "ry"],
   memory: ["mem", "o", "ry"],
   table: ["ta", "ble"],
