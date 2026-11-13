@@ -1417,8 +1417,10 @@ function _buildCleanWordSummaryHtml(payload, d) {
     else entry.wrong++;
   };
 
+  const seenDates = new Set();
   const rows = Array.isArray(payload && payload.dailyRows) ? payload.dailyRows : [];
   rows.forEach(r => {
+    if (r.date) seenDates.add(r.date);
     (r.taskCorrectWords || []).forEach(w => addWord(w, true));
     (r.taskWrongWords || []).forEach(w => addWord(w, false));
     (r.freeCorrectWords || []).forEach(w => addWord(w, true));
@@ -1437,8 +1439,14 @@ function _buildCleanWordSummaryHtml(payload, d) {
     }
   });
 
-  if (wordMap.size === 0 && d && d.dailyPractice) {
+  if (d && d.dailyPractice) {
+    const sBound = (payload && payload.startDate) ? payload.startDate : "";
+    const eBound = (payload && payload.endDate) ? payload.endDate : "";
     Object.keys(d.dailyPractice).forEach(dt => {
+      const nd = normalizeDateStr(dt);
+      if (!nd || seenDates.has(nd)) return;
+      if (sBound && nd < sBound) return;
+      if (eBound && nd > eBound) return;
       const dp = d.dailyPractice[dt];
       if (dp && dp.words) {
         Object.keys(dp.words).forEach(w => {
@@ -1501,7 +1509,8 @@ function _buildCleanWordSummaryHtml(payload, d) {
       <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; margin:10px 0;">
         <input type="search" id="clean-vocab-search" placeholder="搜尋單字或釋義..." style="flex:1; min-width:160px; padding:6px 10px; border:1px solid var(--line, #E7E9F5); border-radius:8px; font-size:12.5px; background:var(--paper, #F6F7FB); color:var(--ink, #232A4D); outline:none;" />
         <div style="display:flex; gap:6px;">
-          <button type="button" class="clean-vocab-tab active" data-filter="correct" style="padding:5px 12px; border-radius:999px; border:1px solid var(--violet, #6C4CE0); background:var(--violet, #6C4CE0); color:#fff; font-size:12px; font-weight:700; cursor:pointer;">答對</button>
+          <button type="button" class="clean-vocab-tab active" data-filter="all" style="padding:5px 12px; border-radius:999px; border:1px solid var(--violet, #6C4CE0); background:var(--violet, #6C4CE0); color:#fff; font-size:12px; font-weight:700; cursor:pointer;">全部</button>
+          <button type="button" class="clean-vocab-tab" data-filter="correct" style="padding:5px 12px; border-radius:999px; border:1px solid var(--line, #E7E9F5); background:var(--paper, #F6F7FB); color:var(--ink2, #475569); font-size:12px; font-weight:700; cursor:pointer;">答對</button>
           <button type="button" class="clean-vocab-tab" data-filter="weak" style="padding:5px 12px; border-radius:999px; border:1px solid var(--line, #E7E9F5); background:var(--paper, #F6F7FB); color:var(--ink2, #475569); font-size:12px; font-weight:700; cursor:pointer;">待加強</button>
         </div>
       </div>
@@ -1533,13 +1542,13 @@ function _buildCleanWordSummaryHtml(payload, d) {
         previewBody.innerHTML = _buildCleanWordSummaryHtml(payload, d);
         const searchEl = previewBody.querySelector("#clean-vocab-search");
         const tabs = previewBody.querySelectorAll(".clean-vocab-tab");
-        let activeFilter = "correct";
+        let activeFilter = "all";
         const applyFilter = () => {
           const q = (searchEl ? searchEl.value : "").trim().toLowerCase();
           previewBody.querySelectorAll(".clean-vocab-row").forEach(tr => {
             const matchQ = !q || tr.textContent.toLowerCase().includes(q);
             const isWeak = tr.getAttribute("data-weak") === "1";
-            const matchF = activeFilter === "weak" ? isWeak : !isWeak;
+            const matchF = activeFilter === "all" ? true : (activeFilter === "weak" ? isWeak : !isWeak);
             tr.style.display = (matchQ && matchF) ? "" : "none";
           });
         };
