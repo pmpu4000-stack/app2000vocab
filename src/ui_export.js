@@ -1406,7 +1406,8 @@ export function initExportRecordsCard(getSummaryFn) {
 function _buildCleanWordSummaryHtml(payload, d) {
   const wordMap = new Map();
   const addWord = (w, isCorrect) => {
-    const clean = String(w || "").trim().toLowerCase();
+    const rawW = (w && typeof w === "object") ? (w.word || w.w || "") : w;
+    const clean = String(rawW || "").trim().toLowerCase();
     if (!clean) return;
     if (!wordMap.has(clean)) {
       wordMap.set(clean, { word: clean, correct: 0, wrong: 0 });
@@ -1475,7 +1476,7 @@ function _buildCleanWordSummaryHtml(payload, d) {
       <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; margin:10px 0;">
         <input type="search" id="clean-vocab-search" placeholder="搜尋單字或釋義..." style="flex:1; min-width:160px; padding:6px 10px; border:1px solid var(--line, #E7E9F5); border-radius:8px; font-size:12.5px; background:var(--paper, #F6F7FB); color:var(--ink, #232A4D); outline:none;" />
         <div style="display:flex; gap:6px;">
-          <button type="button" class="clean-vocab-tab active" data-filter="all" style="padding:5px 12px; border-radius:999px; border:1px solid var(--violet, #6C4CE0); background:var(--violet, #6C4CE0); color:#fff; font-size:12px; font-weight:700; cursor:pointer;">全部</button>
+          <button type="button" class="clean-vocab-tab active" data-filter="correct" style="padding:5px 12px; border-radius:999px; border:1px solid var(--violet, #6C4CE0); background:var(--violet, #6C4CE0); color:#fff; font-size:12px; font-weight:700; cursor:pointer;">答對</button>
           <button type="button" class="clean-vocab-tab" data-filter="weak" style="padding:5px 12px; border-radius:999px; border:1px solid var(--line, #E7E9F5); background:var(--paper, #F6F7FB); color:var(--ink2, #475569); font-size:12px; font-weight:700; cursor:pointer;">待加強</button>
         </div>
       </div>
@@ -1507,15 +1508,17 @@ function _buildCleanWordSummaryHtml(payload, d) {
         previewBody.innerHTML = _buildCleanWordSummaryHtml(payload, d);
         const searchEl = previewBody.querySelector("#clean-vocab-search");
         const tabs = previewBody.querySelectorAll(".clean-vocab-tab");
-        let activeFilter = "all";
+        let activeFilter = "correct";
         const applyFilter = () => {
           const q = (searchEl ? searchEl.value : "").trim().toLowerCase();
           previewBody.querySelectorAll(".clean-vocab-row").forEach(tr => {
             const matchQ = !q || tr.textContent.toLowerCase().includes(q);
-            const matchF = activeFilter === "all" || tr.getAttribute("data-weak") === "1";
+            const isWeak = tr.getAttribute("data-weak") === "1";
+            const matchF = activeFilter === "weak" ? isWeak : !isWeak;
             tr.style.display = (matchQ && matchF) ? "" : "none";
           });
         };
+        applyFilter();
         if (searchEl) searchEl.oninput = applyFilter;
         tabs.forEach(btn => {
           btn.onclick = () => {
@@ -1539,6 +1542,8 @@ function _buildCleanWordSummaryHtml(payload, d) {
   if (btnCloseWeb && previewContainer) {
     btnCloseWeb.onclick = () => {
       previewContainer.style.display = "none";
+      const parentDetails = previewContainer.closest("details");
+      if (parentDetails) parentDetails.open = false;
     };
   }
 }
