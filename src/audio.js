@@ -414,9 +414,76 @@ export function sayWord(word, rate = 0.85, onEnd = null, onBoundary = null, repe
   const token = currentSeqToken;
   const targetVoice = getRandomUSVoice();
 
+  // 優先嘗試本地 Azure TTS MP3 音檔（支援精準 audio.pause()/play() 音節暫停），失敗自動 fallback 至 Web Speech API
+  const mp3Url = `audio/words/${encodeURIComponent(clean)}.mp3`;
+  const playLocalWordMp3 = (playRate, chunks, onDone, onFallback) => {
+    try {
+      const audio = new Audio(mp3Url);
+      audio.playbackRate = playRate;
+      let settled = false;
+      let timers = [];
+      const cleanup = () => {
+        timers.forEach(t => clearTimeout(t));
+        timers = [];
+      };
+      audio.onerror = () => {
+        if (settled) return;
+        settled = true;
+        cleanup();
+        onFallback();
+      };
+      audio.onended = () => {
+        if (settled) return;
+        settled = true;
+        cleanup();
+        if (token !== currentSeqToken) return;
+        if (onDone) onDone();
+      };
+      audio.onloadedmetadata = () => {
+        if (settled || token !== currentSeqToken) return;
+        if (chunks && chunks.length > 1 && isFinite(audio.duration) && audio.duration > 0) {
+          const totalChars = chunks.reduce((sum, c) => sum + c.length, 0) || 1;
+          const totalMs = (audio.duration / playRate) * 1000;
+          const pauseMs = 1000;
+          let accSpeak = 0;
+          let accPause = 0;
+          chunks.forEach((chk, idx) => {
+            const triggerAt = accSpeak + accPause;
+            if (idx === 0) {
+              if (typeof onPassStart === "function") onPassStart(2, playRate, 0);
+            } else {
+              timers.push(setTimeout(() => {
+                if (token !== currentSeqToken || settled) return;
+                try { audio.pause(); } catch (_) {}
+              }, triggerAt));
+              timers.push(setTimeout(() => {
+                if (token !== currentSeqToken || settled) return;
+                if (typeof onPassStart === "function") onPassStart(2, playRate, idx);
+                try { audio.play().catch(() => {}); } catch (_) {}
+              }, triggerAt + pauseMs));
+              accPause += pauseMs;
+            }
+            accSpeak += Math.round((chk.length / totalChars) * totalMs);
+          });
+        }
+      };
+      audio.play().catch(() => {
+        if (!settled) {
+          settled = true;
+          cleanup();
+          onFallback();
+        }
+      });
+    } catch (_) {
+      onFallback();
+    }
+  };
+
   if (repeatCount <= 1) {
-    speakWithTTS(clean, rate, onEnd, token, targetVoice, onBoundary, () => {
-      if (typeof onPassStart === "function") onPassStart(1, rate);
+    playLocalWordMp3(rate, null, onEnd, () => {
+      speakWithTTS(clean, rate, onEnd, token, targetVoice, onBoundary, () => {
+        if (typeof onPassStart === "function") onPassStart(1, rate);
+      });
     });
     return;
   }
