@@ -412,6 +412,12 @@ function translateErrorForHuman(action, rawMsg, details) {
     friendlyAction = "📦 讀取歷史進度";
   } else if (a.includes("cleanup")) {
     friendlyAction = "🧹 試算表清理分頁";
+  } else if (a.includes("client") || a.includes("網頁端")) {
+    friendlyAction = "🌐 網頁端畫面異常";
+  } else if (a.includes("tamper") || a.includes("竄改")) {
+    friendlyAction = "🛡️ 成績防竄改偵測";
+  } else if (a.includes("dogetdata") || a.includes("getdata")) {
+    friendlyAction = "🔑 學生/教師登入";
   } else {
     friendlyAction = `⚙️ ${action}`;
   }
@@ -441,6 +447,12 @@ function translateErrorForHuman(action, rawMsg, details) {
   } else if (m.includes("無權限")) {
     friendlyMsg = "帳號權限不足";
     suggestion = "🔒 學生帳號無法操作教師後台功能，屬正常防護。";
+  } else if (m.includes("簽名不符") || m.includes("F12")) {
+    friendlyMsg = "本機學習紀錄與伺服器驗證不符（疑似快取異常或手動修改）";
+    suggestion = "🛡️ 系統已自動攔截異常紀錄。請學生重新整理網頁並重新登入即可恢復正常。";
+  } else if (m.includes("ReferenceError") || m.includes("is not defined") || m.includes("TypeError")) {
+    friendlyMsg = "網頁功能載入不完整（系統剛更新或瀏覽器保留了舊版快取）";
+    suggestion = "🔄 請使用者按 Ctrl+F5（或清除快取後重新整理頁面）再試一次；若仍持續發生請通知管理員。";
   } else {
     friendlyMsg = m.length > 100 ? m.substring(0, 100) + "..." : m;
     suggestion = d ? `技術細節：${d.substring(0, 200)}` : "系統一般運行日誌。";
