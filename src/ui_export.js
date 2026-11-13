@@ -1529,6 +1529,19 @@ function _buildCleanWordSummaryHtml(payload, d, sourceMode = "all") {
     });
   }
 
+  if (sourceMode === "all" && d && d.words && typeof d.words === "object") {
+    const entries = Array.isArray(d.words) ? d.words : Object.values(d.words);
+    entries.forEach(st => {
+      if (!st || !st.word) return;
+      const clean = String(st.word).trim().toLowerCase();
+      if (!clean || wordMap.has(clean)) return;
+      const { correct: wCor, wrong: wWrg } = _normalizeWordStat(st);
+      if (wCor > 0 || wWrg > 0) {
+        wordMap.set(clean, { word: clean, correct: wCor, wrong: wWrg });
+      }
+    });
+  }
+
   const wordsRef = (d && d.words) ? d.words : (typeof window !== "undefined" ? window.__WORDS : null);
   const getZhDef = (w) => {
     let obj = null;
