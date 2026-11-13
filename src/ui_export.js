@@ -1403,12 +1403,14 @@ export function initExportRecordsCard(getSummaryFn) {
   const previewContainer = document.getElementById("export-web-preview-container");
   const previewBody = document.getElementById("export-web-preview-body");
 
-function _buildCleanWordSummaryHtml(payload, d) {
+function _buildCleanWordSummaryHtml(payload, d, sourceMode = "all") {
   const wordMap = new Map();
-  const addWord = (w, isCorrect) => {
+  const addWord = (w, isCorrect, isTask = true) => {
     const rawW = (w && typeof w === "object") ? (w.word || w.w || "") : w;
     const clean = String(rawW || "").trim().toLowerCase();
     if (!clean) return;
+    if (sourceMode === "task" && !isTask) return;
+    if (sourceMode === "free" && isTask) return;
     if (!wordMap.has(clean)) {
       wordMap.set(clean, { word: clean, correct: 0, wrong: 0 });
     }
@@ -1421,21 +1423,21 @@ function _buildCleanWordSummaryHtml(payload, d) {
   const rows = Array.isArray(payload && payload.dailyRows) ? payload.dailyRows : [];
   rows.forEach(r => {
     if (r.date) seenDates.add(r.date);
-    (r.taskCorrectWords || []).forEach(w => addWord(w, true));
-    (r.taskWrongWords || []).forEach(w => addWord(w, false));
-    (r.freeCorrectWords || []).forEach(w => addWord(w, true));
-    (r.freeWrongWords || []).forEach(w => addWord(w, false));
+    (r.taskCorrectWords || []).forEach(w => addWord(w, true, true));
+    (r.taskWrongWords || []).forEach(w => addWord(w, false, true));
+    (r.freeCorrectWords || []).forEach(w => addWord(w, true, false));
+    (r.freeWrongWords || []).forEach(w => addWord(w, false, false));
     if ((!r.taskCorrectWords || r.taskCorrectWords.length === 0) && Array.isArray(r.taskCorrectDetails)) {
-      r.taskCorrectDetails.forEach(w => addWord(w, true));
+      r.taskCorrectDetails.forEach(w => addWord(w, true, true));
     }
     if ((!r.taskWrongWords || r.taskWrongWords.length === 0) && Array.isArray(r.taskWrongDetails)) {
-      r.taskWrongDetails.forEach(w => addWord(w, false));
+      r.taskWrongDetails.forEach(w => addWord(w, false, true));
     }
     if ((!r.freeCorrectWords || r.freeCorrectWords.length === 0) && Array.isArray(r.freeCorrectDetails)) {
-      r.freeCorrectDetails.forEach(w => addWord(w, true));
+      r.freeCorrectDetails.forEach(w => addWord(w, true, false));
     }
     if ((!r.freeWrongWords || r.freeWrongWords.length === 0) && Array.isArray(r.freeWrongDetails)) {
-      r.freeWrongDetails.forEach(w => addWord(w, false));
+      r.freeWrongDetails.forEach(w => addWord(w, false, false));
     }
   });
 
@@ -1451,8 +1453,8 @@ function _buildCleanWordSummaryHtml(payload, d) {
       if (dp && dp.words) {
         Object.keys(dp.words).forEach(w => {
           const st = dp.words[w];
-          if (st && st.c > 0) for (let i = 0; i < st.c; i++) addWord(w, true);
-          if (st && st.w > 0) for (let i = 0; i < st.w; i++) addWord(w, false);
+          if (st && st.c > 0) for (let i = 0; i < st.c; i++) addWord(w, true, false);
+          if (st && st.w > 0) for (let i = 0; i < st.w; i++) addWord(w, false, false);
         });
       }
     });
@@ -1501,10 +1503,20 @@ function _buildCleanWordSummaryHtml(payload, d) {
       </tr>
     `).join("");
 
+  const srcBtnStyle = (m) => {
+    const isAct = sourceMode === m;
+    return `padding:3px 10px; border-radius:999px; border:1px solid ${isAct ? "var(--violet, #6C4CE0)" : "var(--line, #E7E9F5)"}; background:${isAct ? "var(--violet, #6C4CE0)" : "var(--paper, #F6F7FB)"}; color:${isAct ? "#fff" : "var(--ink2, #475569)"}; font-size:11.5px; font-weight:700; cursor:pointer;`;
+  };
+
   return `
     <div class="clean-vocab-summary" style="background:var(--card, #fff); border-radius:12px; padding:12px; color:var(--ink, #232A4D);">
       <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; padding-bottom:10px; border-bottom:1px solid var(--line, #E7E9F5); font-size:12.5px; color:var(--ink2, #475569); font-weight:700;">
         <div>總練習字數 <span style="color:var(--ink, #232A4D); font-weight:800;">${totalWords}</span> &nbsp;·&nbsp; 整體正確率 <span style="color:var(--violet, #6C4CE0); font-weight:800;">${acc}%</span> &nbsp;·&nbsp; 待加強 <span style="color:var(--bad, #ef4444); font-weight:800;">${weakCount}</span></div>
+        <div style="display:flex; gap:5px; align-items:center;">
+          <button type="button" class="clean-source-tab" data-source="all" style="${srcBtnStyle("all")}">全部</button>
+          <button type="button" class="clean-source-tab" data-source="task" style="${srcBtnStyle("task")}">指定</button>
+          <button type="button" class="clean-source-tab" data-source="free" style="${srcBtnStyle("free")}">自由</button>
+        </div>
       </div>
       <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; margin:10px 0;">
         <input type="search" id="clean-vocab-search" placeholder="搜尋單字或釋義..." style="flex:1; min-width:160px; padding:6px 10px; border:1px solid var(--line, #E7E9F5); border-radius:8px; font-size:12.5px; background:var(--paper, #F6F7FB); color:var(--ink, #232A4D); outline:none;" />
@@ -1539,33 +1551,44 @@ function _buildCleanWordSummaryHtml(payload, d) {
 
       const payload = _buildExportPayload(d, currentMode, sDate, eDate);
       if (previewBody) {
-        previewBody.innerHTML = _buildCleanWordSummaryHtml(payload, d);
-        const searchEl = previewBody.querySelector("#clean-vocab-search");
-        const tabs = previewBody.querySelectorAll(".clean-vocab-tab");
-        let activeFilter = "all";
-        const applyFilter = () => {
-          const q = (searchEl ? searchEl.value : "").trim().toLowerCase();
-          previewBody.querySelectorAll(".clean-vocab-row").forEach(tr => {
-            const matchQ = !q || tr.textContent.toLowerCase().includes(q);
-            const isWeak = tr.getAttribute("data-weak") === "1";
-            const matchF = activeFilter === "all" ? true : (activeFilter === "weak" ? isWeak : !isWeak);
-            tr.style.display = (matchQ && matchF) ? "" : "none";
+        let currentSourceMode = "all";
+        const renderCleanPreview = () => {
+          previewBody.innerHTML = _buildCleanWordSummaryHtml(payload, d, currentSourceMode);
+          const searchEl = previewBody.querySelector("#clean-vocab-search");
+          const tabs = previewBody.querySelectorAll(".clean-vocab-tab");
+          const sourceTabs = previewBody.querySelectorAll(".clean-source-tab");
+          let activeFilter = "all";
+          const applyFilter = () => {
+            const q = (searchEl ? searchEl.value : "").trim().toLowerCase();
+            previewBody.querySelectorAll(".clean-vocab-row").forEach(tr => {
+              const matchQ = !q || tr.textContent.toLowerCase().includes(q);
+              const isWeak = tr.getAttribute("data-weak") === "1";
+              const matchF = activeFilter === "all" ? true : (activeFilter === "weak" ? isWeak : !isWeak);
+              tr.style.display = (matchQ && matchF) ? "" : "none";
+            });
+          };
+          applyFilter();
+          if (searchEl) searchEl.oninput = applyFilter;
+          tabs.forEach(btn => {
+            btn.onclick = () => {
+              activeFilter = btn.getAttribute("data-filter") || "all";
+              tabs.forEach(b => {
+                const isAct = b === btn;
+                b.style.background = isAct ? "var(--violet, #6C4CE0)" : "var(--paper, #F6F7FB)";
+                b.style.color = isAct ? "#fff" : "var(--ink2, #475569)";
+                b.style.borderColor = isAct ? "var(--violet, #6C4CE0)" : "var(--line, #E7E9F5)";
+              });
+              applyFilter();
+            };
+          });
+          sourceTabs.forEach(btn => {
+            btn.onclick = () => {
+              currentSourceMode = btn.getAttribute("data-source") || "all";
+              renderCleanPreview();
+            };
           });
         };
-        applyFilter();
-        if (searchEl) searchEl.oninput = applyFilter;
-        tabs.forEach(btn => {
-          btn.onclick = () => {
-            activeFilter = btn.getAttribute("data-filter") || "all";
-            tabs.forEach(b => {
-              const isAct = b === btn;
-              b.style.background = isAct ? "var(--violet, #6C4CE0)" : "var(--paper, #F6F7FB)";
-              b.style.color = isAct ? "#fff" : "var(--ink2, #475569)";
-              b.style.borderColor = isAct ? "var(--violet, #6C4CE0)" : "var(--line, #E7E9F5)";
-            });
-            applyFilter();
-          };
-        });
+        renderCleanPreview();
       }
       if (previewContainer) {
         previewContainer.style.display = "block";
