@@ -1479,8 +1479,13 @@ function _buildCleanWordSummaryHtml(payload, d, sourceMode = "all") {
         const tName = String(rec.taskName || "");
         const tStat = String(rec.status || "");
         if (tName.includes("未指派") || tStat.includes("未指派") || tName.includes("自主練習") || tName.includes("自由練習")) return;
-        const cw = Array.isArray(rec.correctWords) ? rec.correctWords : [];
-        const ww = Array.isArray(rec.wrongWords) ? rec.wrongWords : [];
+        const parseWordList = (val) => {
+          if (Array.isArray(val)) return val;
+          if (typeof val === "string" && val.trim()) return val.split(/[,，\s]+/).filter(Boolean);
+          return [];
+        };
+        const cw = parseWordList(rec.correctWords);
+        const ww = parseWordList(rec.wrongWords);
         cw.forEach(w => addWord(w, true, true));
         ww.forEach(w => addWord(w, false, true));
       });
@@ -1490,9 +1495,12 @@ function _buildCleanWordSummaryHtml(payload, d, sourceMode = "all") {
   if (d && d.dailyPractice) {
     const sBound = (payload && payload.startDate) ? payload.startDate : "";
     const eBound = (payload && payload.endDate) ? payload.endDate : "";
+    const datesWithFreeWords = new Set(
+      rows.filter(r => (r.freeCorrectWords && r.freeCorrectWords.length > 0) || (r.freeWrongWords && r.freeWrongWords.length > 0)).map(r => r.date)
+    );
     Object.keys(d.dailyPractice).forEach(dt => {
       const nd = normalizeDateStr(dt);
-      if (!nd || seenDates.has(nd)) return;
+      if (!nd || datesWithFreeWords.has(nd)) return;
       if (sBound && nd < sBound) return;
       if (eBound && nd > eBound) return;
       const dp = d.dailyPractice[dt];
