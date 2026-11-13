@@ -125,6 +125,22 @@ if (typeof window !== "undefined") {
 
 // 劍橋辭典 (Cambridge Dictionary)、韋氏辭典 (Merriam-Webster) 與牛津辭典 (Oxford) 權威音節常規對齊表
 const CAMBRIDGE_SYLLABLES = {
+  highway: ["high", "way"],
+  able: ["a", "ble"],
+  abroad: ["a", "broad"],
+  across: ["a", "cross"],
+  agree: ["a", "gree"],
+  angel: ["an", "gel"],
+  anger: ["an", "ger"],
+  anyone: ["an", "y", "one"],
+  anything: ["an", "y", "thing"],
+  anywhere: ["an", "y", "where"],
+  apologize: ["a", "pol", "o", "gize"],
+  appreciate: ["ap", "pre", "ci", "ate"],
+  april: ["A", "pril"],
+  area: ["ar", "e", "a"],
+  asleep: ["a", "sleep"],
+  available: ["a", "vail", "a", "ble"],
   factory: ["fac", "to", "ry"],
   history: ["his", "to", "ry"],
   memory: ["mem", "o", "ry"],
