@@ -488,6 +488,7 @@ const CAMBRIDGE_SYLLABLES = {
   worker: ["work", "er"],
   writer: ["writ", "er"],
   yourselves: ["your", "selves"],
+  zebra: ["ze", "bra"],
   history: ["his", "to", "ry"],
   memory: ["mem", "o", "ry"],
   table: ["ta", "ble"],
