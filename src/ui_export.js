@@ -1426,6 +1426,15 @@ export function initExportRecordsCard(getSummaryFn) {
   const previewContainer = document.getElementById("export-web-preview-container");
   const previewBody = document.getElementById("export-web-preview-body");
 
+function _normalizeWordStat(st) {
+  if (!st || typeof st !== "object") return { correct: 0, wrong: 0 };
+  const correct = (st.correct !== undefined) ? (Number(st.correct) || 0) : (Number(st.c) || 0);
+  const wrong = (st.wrong !== undefined)
+    ? (Number(st.wrong) || 0)
+    : (st.w !== undefined ? (Number(st.w) || 0) : Math.max(0, (Number(st.a) || 0) - correct));
+  return { correct, wrong };
+}
+
 function _buildCleanWordSummaryHtml(payload, d, sourceMode = "all") {
   const wordMap = new Map();
   const addWord = (w, isCorrect, isTask = true) => {
@@ -1512,10 +1521,7 @@ function _buildCleanWordSummaryHtml(payload, d, sourceMode = "all") {
       const dp = d.dailyPractice[dt];
       if (dp && dp.words) {
         Object.keys(dp.words).forEach(w => {
-          const st = dp.words[w];
-          if (!st) return;
-          const wCor = (st.correct !== undefined) ? st.correct : (st.c || 0);
-          const wWrg = (st.wrong !== undefined) ? st.wrong : (st.w !== undefined ? st.w : Math.max(0, (st.a || 0) - wCor));
+          const { correct: wCor, wrong: wWrg } = _normalizeWordStat(dp.words[w]);
           for (let i = 0; i < wCor; i++) addWord(w, true, false);
           for (let i = 0; i < wWrg; i++) addWord(w, false, false);
         });
