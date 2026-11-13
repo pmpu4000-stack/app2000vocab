@@ -5352,12 +5352,12 @@ function initStudentExportRecordsCard(resp) {
       setExportMode("range");
       const rData = _latestStudentExportResp || window.cachedStudentExportResp || {};
       const ag = rData.agentData || window.cachedStudentAgentData || {};
-      let earliest = thirtyDaysAgo;
+      let earliest = "";
       const checkKey = (k) => {
         const parts = String(k || "").trim().split(" ")[0].replace(/\//g, "-").split("-");
         if (parts.length === 3) {
           const nd = `${parts[0]}-${String(parts[1]).padStart(2, "0")}-${String(parts[2]).padStart(2, "0")}`;
-          if (/^\d{4}-\d{2}-\d{2}$/.test(nd) && nd < earliest) earliest = nd;
+          if (/^\d{4}-\d{2}-\d{2}$/.test(nd) && (!earliest || nd < earliest)) earliest = nd;
         }
       };
       if (Array.isArray(rData.dailyTaskHistory)) rData.dailyTaskHistory.forEach(h => h && checkKey(h.date));
@@ -5365,7 +5365,7 @@ function initStudentExportRecordsCard(resp) {
       if (ag.history) Object.keys(ag.history).forEach(checkKey);
       if (Array.isArray(rData.data)) rData.data.forEach(row => row && checkKey(row[0]));
       if (Array.isArray(window.fullProcessedData)) window.fullProcessedData.forEach(row => row && checkKey(row.date));
-      if (inputStart) inputStart.value = earliest;
+      if (inputStart) inputStart.value = earliest || todayDash;
       if (inputEnd) inputEnd.value = todayDash;
     };
   }
