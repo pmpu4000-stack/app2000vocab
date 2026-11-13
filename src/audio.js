@@ -430,31 +430,24 @@ export function sayWord(word, rate = 0.85, onEnd = null, onBoundary = null, repe
 
       const chunks = (Array.isArray(syllableChunks) && syllableChunks.length > 1) ? syllableChunks : null;
       if (chunks) {
-        // 第二次依照音節分段念出，音節與音節之間間隔 1.0 秒
-        let chunkIdx = 0;
-        const speakNextChunk = () => {
-          if (token !== currentSeqToken) return;
-          if (chunkIdx >= chunks.length) {
-            if (onEnd) onEnd();
-            return;
-          }
-          const chk = chunks[chunkIdx];
-          const currIdx = chunkIdx;
-          chunkIdx++;
-          if (typeof onPassStart === "function") onPassStart(2, 0.7, currIdx);
-          speakWithTTS(chk, 0.7, () => {
+        // 第二次以慢速完整單字發音（避免獨立音節如 ly 被 TTS 誤讀為 lie），並依音節比例同步高亮
+        const totalChars = chunks.reduce((sum, c) => sum + c.length, 0) || 1;
+        const estMs = Math.max(850, totalChars * 115);
+        let elapsed = 0;
+        const timers = [];
+        chunks.forEach((chk, idx) => {
+          const t = setTimeout(() => {
             if (token !== currentSeqToken) return;
-            if (chunkIdx < chunks.length) {
-              currentSeqTimer = setTimeout(() => {
-                if (token !== currentSeqToken) return;
-                speakNextChunk();
-              }, 1000);
-            } else {
-              if (onEnd) onEnd();
-            }
-          }, token, targetVoice);
-        };
-        speakNextChunk();
+            if (typeof onPassStart === "function") onPassStart(2, 0.55, idx);
+          }, elapsed);
+          timers.push(t);
+          elapsed += Math.round((chk.length / totalChars) * estMs);
+        });
+        speakWithTTS(clean, 0.55, () => {
+          timers.forEach(t => clearTimeout(t));
+          if (token !== currentSeqToken) return;
+          if (onEnd) onEnd();
+        }, token, targetVoice);
       } else {
         speakWithTTS(clean, 0.7, onEnd, token, targetVoice, onBoundary, () => {
           if (typeof onPassStart === "function") onPassStart(2, 0.7);
