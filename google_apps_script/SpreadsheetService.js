@@ -2790,11 +2790,15 @@ function cpPadRow_(r) {
 /**
  * 取得或建立【學生歷程總庫】工作表
  */
-function getCentralPortfolioSheet(ss, autoCreate) {
+function getCentralPortfolioSheet(ss, autoCreate, cohort) {
   if (!ss) return null;
-  let s = ss.getSheetByName(CP_SHEET_NAME);
+  const targetName = cohort ? (CP_SHEET_NAME + "_" + String(cohort).trim()) : CP_SHEET_NAME;
+  let s = ss.getSheetByName(targetName);
+  if (!s && cohort && !autoCreate) {
+    s = ss.getSheetByName(CP_SHEET_NAME);
+  }
   if (!s && autoCreate) {
-    s = ss.insertSheet(CP_SHEET_NAME);
+    s = ss.insertSheet(targetName);
   }
   if (s) {
     ensureCentralPortfolioColumns(s);
