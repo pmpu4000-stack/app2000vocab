@@ -33,7 +33,7 @@ async def main() -> None:
             items = json.loads(jf.read_text(encoding="utf-8"))
             if isinstance(items, list):
                 for item in items:
-                    w = str(item.get("word") or item.get("en") or "").strip().lower()
+                    w = str(item.get("w") or item.get("word") or item.get("en") or "").strip().lower()
                     if w:
                         words.add(w)
         except Exception:
