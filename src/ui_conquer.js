@@ -1217,7 +1217,7 @@ export function buildWeekPendingConquerHtml(words, d = null, cycleParam = _activ
       if (list.length === 1) {
         contentHtml = `<div style="margin-top:6px;">${_renderConquerWordCard(list[0], d)}</div>`;
       } else if (isAllMode) {
-        contentHtml = `<div class="conquer-all-cards-wrap" style="display:flex; flex-direction:column; gap:6px; margin-top:6px;">${list.map(w => _renderConquerWordCard(w, d)).join("")}</div>`;
+        contentHtml = `<div class="conquer-all-cards-wrap" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap:10px; margin-top:6px;">${list.map(w => _renderConquerWordCard(w, d)).join("")}</div>`;
       } else {
         contentHtml = `
           <div class="conquer-active-card-wrap" data-lv="${lv}" style="margin-top:6px;">
