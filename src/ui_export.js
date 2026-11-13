@@ -1346,7 +1346,30 @@ export function initExportRecordsCard(getSummaryFn) {
         const nd = item && item.date ? normalizeDateStr(item.date) : "";
         if (nd && nd < earliest) earliest = nd;
       });
-      if (d && d.dailyPractice) {
+      if (sourceMode !== "free") {
+    const sBound = (payload && payload.startDate) ? payload.startDate : "";
+    const eBound = (payload && payload.endDate) ? payload.endDate : "";
+    const hasAnyTaskWords = rows.some(r => (r.taskCorrectWords && r.taskCorrectWords.length > 0) || (r.taskWrongWords && r.taskWrongWords.length > 0));
+    if (!hasAnyTaskWords) {
+      const hist = getCombinedTaskHistory();
+      hist.forEach(rec => {
+        if (!rec || !rec.date) return;
+        const nd = normalizeDateStr(rec.date);
+        if (!nd) return;
+        if (sBound && nd < sBound) return;
+        if (eBound && nd > eBound) return;
+        const tName = String(rec.taskName || "");
+        const tStat = String(rec.status || "");
+        if (tName.includes("未指派") || tStat.includes("未指派") || tName.includes("自主練習") || tName.includes("自由練習")) return;
+        const cw = Array.isArray(rec.correctWords) ? rec.correctWords : [];
+        const ww = Array.isArray(rec.wrongWords) ? rec.wrongWords : [];
+        cw.forEach(w => addWord(w, true, true));
+        ww.forEach(w => addWord(w, false, true));
+      });
+    }
+  }
+
+  if (d && d.dailyPractice) {
         Object.keys(d.dailyPractice).forEach(k => {
           const nd = normalizeDateStr(k);
           if (nd && nd < earliest) earliest = nd;
@@ -1440,6 +1463,29 @@ function _buildCleanWordSummaryHtml(payload, d, sourceMode = "all") {
       r.freeWrongDetails.forEach(w => addWord(w, false, false));
     }
   });
+
+  if (sourceMode !== "free") {
+    const sBound = (payload && payload.startDate) ? payload.startDate : "";
+    const eBound = (payload && payload.endDate) ? payload.endDate : "";
+    const hasAnyTaskWords = rows.some(r => (r.taskCorrectWords && r.taskCorrectWords.length > 0) || (r.taskWrongWords && r.taskWrongWords.length > 0));
+    if (!hasAnyTaskWords) {
+      const hist = getCombinedTaskHistory();
+      hist.forEach(rec => {
+        if (!rec || !rec.date) return;
+        const nd = normalizeDateStr(rec.date);
+        if (!nd) return;
+        if (sBound && nd < sBound) return;
+        if (eBound && nd > eBound) return;
+        const tName = String(rec.taskName || "");
+        const tStat = String(rec.status || "");
+        if (tName.includes("未指派") || tStat.includes("未指派") || tName.includes("自主練習") || tName.includes("自由練習")) return;
+        const cw = Array.isArray(rec.correctWords) ? rec.correctWords : [];
+        const ww = Array.isArray(rec.wrongWords) ? rec.wrongWords : [];
+        cw.forEach(w => addWord(w, true, true));
+        ww.forEach(w => addWord(w, false, true));
+      });
+    }
+  }
 
   if (d && d.dailyPractice) {
     const sBound = (payload && payload.startDate) ? payload.startDate : "";
