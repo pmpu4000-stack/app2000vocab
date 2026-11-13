@@ -3866,9 +3866,9 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover,
 
 /* 本週待攻克單字清單：超過 4 行時上下滑動瀏覽 */
 .conquer-word-list {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  gap: 8px !important;
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)) !important;
+  gap: 10px !important;
   padding: 2px 4px 2px 0 !important;
   max-height: 148px !important;
   overflow-y: auto !important;
