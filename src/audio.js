@@ -430,37 +430,23 @@ export function sayWord(word, rate = 0.85, onEnd = null, onBoundary = null, repe
 
       const chunks = (Array.isArray(syllableChunks) && syllableChunks.length > 1) ? syllableChunks : null;
       if (chunks) {
-        // 第二次以慢速完整單字發音，並在音節切分處呼叫 speechSynthesis.pause() 暫停、時間到再 resume()
+        // 第二次以慢速完整單字發音（不呼叫 pause/resume 以免瀏覽器語音卡死中斷），並依音節比例同步高亮
         const totalChars = chunks.reduce((sum, c) => sum + c.length, 0) || 1;
         const estSpeakMs = Math.max(850, totalChars * 115);
-        const pauseMs = 500;
         const timers = [];
-        let accSpeak = 0;
-        let accPause = 0;
+        let elapsed = 0;
 
         chunks.forEach((chk, idx) => {
-          const triggerAt = accSpeak + accPause;
-          if (idx === 0) {
-            if (typeof onPassStart === "function") onPassStart(2, 0.55, 0);
-          } else {
-            const tPause = setTimeout(() => {
-              if (token !== currentSeqToken) return;
-              try { if (window.speechSynthesis && window.speechSynthesis.speaking) window.speechSynthesis.pause(); } catch (_) {}
-            }, triggerAt);
-            const tResume = setTimeout(() => {
-              if (token !== currentSeqToken) return;
-              if (typeof onPassStart === "function") onPassStart(2, 0.55, idx);
-              try { if (window.speechSynthesis && window.speechSynthesis.paused) window.speechSynthesis.resume(); } catch (_) {}
-            }, triggerAt + pauseMs);
-            timers.push(tPause, tResume);
-            accPause += pauseMs;
-          }
-          accSpeak += Math.round((chk.length / totalChars) * estSpeakMs);
+          const t = setTimeout(() => {
+            if (token !== currentSeqToken) return;
+            if (typeof onPassStart === "function") onPassStart(2, 0.55, idx);
+          }, elapsed);
+          timers.push(t);
+          elapsed += Math.round((chk.length / totalChars) * estSpeakMs);
         });
 
         speakWithTTS(clean, 0.55, () => {
           timers.forEach(t => clearTimeout(t));
-          try { if (window.speechSynthesis && window.speechSynthesis.paused) window.speechSynthesis.resume(); } catch (_) {}
           if (token !== currentSeqToken) return;
           if (onEnd) onEnd();
         }, token, targetVoice);
