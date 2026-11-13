@@ -383,7 +383,7 @@ function playSingleWordOrTTS(rawText, rate = 0.8, onEnd = null, token = currentS
 
 // Speak a word or sentence at the given rate (預設 0.8).
 // forcePlay = true 時不受每日練習時長到期鎖定限制（供點擊單字複習發音使用）
-export function say(text, rate = 0.8, onEnd = null, forcePlay = false) {
+export function say(text, rate = 0.75, onEnd = null, forcePlay = false) {
   if (!forcePlay && typeof window !== "undefined" && window.__dailyUsageTimeIsUp) {
     if (onEnd) onEnd();
     return;
