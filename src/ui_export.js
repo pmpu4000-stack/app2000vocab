@@ -1467,29 +1467,29 @@ function _buildCleanWordSummaryHtml(payload, d, sourceMode = "all") {
   if (sourceMode !== "free") {
     const sBound = (payload && payload.startDate) ? payload.startDate : "";
     const eBound = (payload && payload.endDate) ? payload.endDate : "";
-    const hasAnyTaskWords = rows.some(r => (r.taskCorrectWords && r.taskCorrectWords.length > 0) || (r.taskWrongWords && r.taskWrongWords.length > 0));
-    if (!hasAnyTaskWords) {
-      const hist = getCombinedTaskHistory();
-      hist.forEach(rec => {
-        if (!rec || !rec.date) return;
-        const nd = normalizeDateStr(rec.date);
-        if (!nd) return;
-        if (sBound && nd < sBound) return;
-        if (eBound && nd > eBound) return;
-        const tName = String(rec.taskName || "");
-        const tStat = String(rec.status || "");
-        if (tName.includes("未指派") || tStat.includes("未指派") || tName.includes("自主練習") || tName.includes("自由練習")) return;
-        const parseWordList = (val) => {
-          if (Array.isArray(val)) return val;
-          if (typeof val === "string" && val.trim()) return val.split(/[,，\s]+/).filter(Boolean);
-          return [];
-        };
-        const cw = parseWordList(rec.correctWords);
-        const ww = parseWordList(rec.wrongWords);
-        cw.forEach(w => addWord(w, true, true));
-        ww.forEach(w => addWord(w, false, true));
-      });
-    }
+    const datesWithTaskWords = new Set(
+      rows.filter(r => (r.taskCorrectWords && r.taskCorrectWords.length > 0) || (r.taskWrongWords && r.taskWrongWords.length > 0)).map(r => r.date)
+    );
+    const hist = getCombinedTaskHistory();
+    hist.forEach(rec => {
+      if (!rec || !rec.date) return;
+      const nd = normalizeDateStr(rec.date);
+      if (!nd || datesWithTaskWords.has(nd)) return;
+      if (sBound && nd < sBound) return;
+      if (eBound && nd > eBound) return;
+      const tName = String(rec.taskName || "");
+      const tStat = String(rec.status || "");
+      if (tName.includes("未指派") || tStat.includes("未指派") || tName.includes("自主練習") || tName.includes("自由練習")) return;
+      const parseWordList = (val) => {
+        if (Array.isArray(val)) return val;
+        if (typeof val === "string" && val.trim()) return val.split(/[,，\s]+/).filter(Boolean);
+        return [];
+      };
+      const cw = parseWordList(rec.correctWords);
+      const ww = parseWordList(rec.wrongWords);
+      cw.forEach(w => addWord(w, true, true));
+      ww.forEach(w => addWord(w, false, true));
+    });
   }
 
   if (d && d.dailyPractice) {
