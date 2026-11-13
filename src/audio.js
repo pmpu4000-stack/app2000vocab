@@ -394,6 +394,22 @@ export function say(text, rate = 0.8, onEnd = null, forcePlay = false) {
   }
   stopAudio();
   const token = currentSeqToken;
+  const cleanText = String(text || "").trim();
+  if (typeof crypto !== "undefined" && crypto.subtle && cleanText.includes(" ")) {
+    crypto.subtle.digest("SHA-1", new TextEncoder().encode(cleanText)).then(buf => {
+      if (token !== currentSeqToken) return;
+      const hex = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("").slice(0, 16);
+      const audio = new Audio(`audio/examples/${hex}.mp3`);
+      audio.playbackRate = rate;
+      let settled = false;
+      audio.onerror = () => { if (!settled) { settled = true; playSingleWordOrTTS(text, rate, onEnd, token); } };
+      audio.onended = () => { if (!settled) { settled = true; if (token === currentSeqToken && onEnd) onEnd(); } };
+      audio.play().catch(() => { if (!settled) { settled = true; playSingleWordOrTTS(text, rate, onEnd, token); } });
+    }).catch(() => {
+      if (token === currentSeqToken) playSingleWordOrTTS(text, rate, onEnd, token);
+    });
+    return;
+  }
   playSingleWordOrTTS(text, rate, onEnd, token);
 }
 
