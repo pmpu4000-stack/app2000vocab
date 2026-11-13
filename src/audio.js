@@ -430,10 +430,10 @@ export function sayWord(word, rate = 0.85, onEnd = null, onBoundary = null, repe
 
       const chunks = (Array.isArray(syllableChunks) && syllableChunks.length > 1) ? syllableChunks : null;
       if (chunks) {
-        // 第二次以正常語速 0.85 播放完整單字，並在音節切分處呼叫 pause() 暫停 500ms，時間到 resume() 繼續
+        // 第二次以 0.7 語速播放完整單字，並在音節切分處呼叫 pause() 暫停 1 秒，時間到 resume() 繼續
         const totalChars = chunks.reduce((sum, c) => sum + c.length, 0) || 1;
-        const estSpeakMs = Math.max(550, totalChars * 75);
-        const pauseMs = 500;
+        const estSpeakMs = Math.max(700, totalChars * 95);
+        const pauseMs = 1000;
         const timers = [];
         let accSpeak = 0;
         let accPause = 0;

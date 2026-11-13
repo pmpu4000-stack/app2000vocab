@@ -1340,48 +1340,35 @@ export function initExportRecordsCard(getSummaryFn) {
     btnPresetAll.onclick = () => {
       setActivePresetBtn(btnPresetAll);
       const d = _latestSummaryGetter ? _latestSummaryGetter() : null;
+      let earliest = todayDash;
+      const considerDate = (dtStr) => {
+        const nd = normalizeDateStr(dtStr);
+        if (nd && /^\d{4}-\d{2}-\d{2}$/.test(nd)) {
+          if (!earliest || nd < earliest) earliest = nd;
+        }
+      };
       const hist = getCombinedTaskHistory();
-      let earliest = thirtyDaysAgo;
-      hist.forEach(item => {
-        const nd = item && item.date ? normalizeDateStr(item.date) : "";
-        if (nd && nd < earliest) earliest = nd;
-      });
-      if (sourceMode !== "free") {
-    const sBound = (payload && payload.startDate) ? payload.startDate : "";
-    const eBound = (payload && payload.endDate) ? payload.endDate : "";
-    const hasAnyTaskWords = rows.some(r => (r.taskCorrectWords && r.taskCorrectWords.length > 0) || (r.taskWrongWords && r.taskWrongWords.length > 0));
-    if (!hasAnyTaskWords) {
-      const hist = getCombinedTaskHistory();
-      hist.forEach(rec => {
-        if (!rec || !rec.date) return;
-        const nd = normalizeDateStr(rec.date);
-        if (!nd) return;
-        if (sBound && nd < sBound) return;
-        if (eBound && nd > eBound) return;
-        const tName = String(rec.taskName || "");
-        const tStat = String(rec.status || "");
-        if (tName.includes("未指派") || tStat.includes("未指派") || tName.includes("自主練習") || tName.includes("自由練習")) return;
-        const cw = Array.isArray(rec.correctWords) ? rec.correctWords : [];
-        const ww = Array.isArray(rec.wrongWords) ? rec.wrongWords : [];
-        cw.forEach(w => addWord(w, true, true));
-        ww.forEach(w => addWord(w, false, true));
-      });
-    }
-  }
+      if (Array.isArray(hist)) hist.forEach(item => item && considerDate(item.date));
+      if (Array.isArray(window.cachedBackupTaskHistory)) window.cachedBackupTaskHistory.forEach(item => item && considerDate(item.date));
+      if (d && d.dailyPractice) Object.keys(d.dailyPractice).forEach(considerDate);
+      if (d && d.rawHistory) Object.keys(d.rawHistory).forEach(considerDate);
+      try {
+        const u = localStorage.getItem("current_user");
+        if (u) {
+          const uHist = localStorage.getItem(`history_${u}`);
+          if (uHist) {
+            const parsed = JSON.parse(uHist);
+            if (parsed && typeof parsed === "object") Object.keys(parsed).forEach(considerDate);
+          }
+          const uDp = localStorage.getItem(`daily_practice_${u}`);
+          if (uDp) {
+            const parsedDp = JSON.parse(uDp);
+            if (parsedDp && typeof parsedDp === "object") Object.keys(parsedDp).forEach(considerDate);
+          }
+        }
+      } catch (_) {}
 
-  if (d && d.dailyPractice) {
-        Object.keys(d.dailyPractice).forEach(k => {
-          const nd = normalizeDateStr(k);
-          if (nd && nd < earliest) earliest = nd;
-        });
-      }
-      if (d && d.rawHistory) {
-        Object.keys(d.rawHistory).forEach(k => {
-          const nd = normalizeDateStr(k);
-          if (nd && nd < earliest) earliest = nd;
-        });
-      }
-      if (inputStart) inputStart.value = earliest;
+      if (inputStart) inputStart.value = earliest || todayDash;
       if (inputEnd) inputEnd.value = todayDash;
     };
   }
