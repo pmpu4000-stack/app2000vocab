@@ -326,6 +326,7 @@ function scheduleAutoNext() {
 }
 
 function newRound() {
+  if (typeof window !== "undefined") window.__triggerNewRound = newRound;
   stopAudio();
   clearAutoNextTimer();
   if (typeof window !== "undefined" && window.__dailyUsageTimeIsUp === true) {
