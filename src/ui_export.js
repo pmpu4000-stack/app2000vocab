@@ -1569,19 +1569,18 @@ function _buildCleanWordSummaryHtml(payload, d, sourceMode = "all") {
     if (st === "mastered") return `<span style="display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:700; color:#047857; background:rgba(16,185,129,0.12); padding:2px 8px; border-radius:999px;"><span style="width:6px; height:6px; border-radius:50%; background:#10b981;"></span>精通</span>`;
     if (st === "practicing") return `<span style="display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:700; color:#1d4ed8; background:rgba(59,130,246,0.12); padding:2px 8px; border-radius:999px;"><span style="width:6px; height:6px; border-radius:50%; background:#3b82f6;"></span>練習中</span>`;
     if (st === "learning") return `<span style="display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:700; color:#6d28d9; background:rgba(139,92,246,0.12); padding:2px 8px; border-radius:999px;"><span style="width:6px; height:6px; border-radius:50%; background:#8b5cf6;"></span>學習中</span>`;
-    return `<span style="display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:700; color:#dc2626; background:rgba(239,68,68,0.12); padding:2px 8px; border-radius:999px;"><span style="width:6px; height:6px; border-radius:50%; background:#ef4444;"></span>答錯</span>`;
+    return `<span style="display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:700; color:#dc2626; background:rgba(239,68,68,0.12); padding:2px 8px; border-radius:999px;"><span style="width:6px; height:6px; border-radius:50%; background:#ef4444;"></span>待加強</span>`;
   };
 
   const rowsHtml = list.length === 0
-    ? `<tr><td colspan="4" style="text-align:center; padding:24px; color:var(--ink3); font-size:13px;">此日期區間尚無單字作答紀錄</td></tr>`
+    ? `<tr><td colspan="3" style="text-align:center; padding:24px; color:var(--ink3); font-size:13px;">此日期區間尚無單字作答紀錄</td></tr>`
     : list.map(x => `
       <tr class="clean-vocab-row" data-word="${escapeHtml(x.word)}" data-weak="${x.isWeak ? '1' : '0'}" style="border-bottom:1px solid var(--line, #E7E9F5);">
         <td style="padding:10px 8px; font-weight:700; color:var(--ink, #232A4D); font-size:13.5px;">${escapeHtml(x.word)}</td>
-        <td style="padding:10px 8px; color:var(--ink2, #475569); font-size:13px;">${escapeHtml(x.zh)}</td>
         <td style="padding:10px 8px; font-variant-numeric:tabular-nums; font-size:13px; white-space:nowrap;">
-          <span style="color:var(--good, #10b981); font-weight:700;">${x.correct}✓</span>
+          <span style="color:var(--good, #10b981); font-weight:700;">${x.correct}</span>
           <span style="color:var(--ink3, #94a3b8); margin:0 3px;">/</span>
-          <span style="color:var(--bad, #ef4444); font-weight:700;">${x.wrong}✗</span>
+          <span style="color:var(--bad, #ef4444); font-weight:700;">${x.wrong}</span>
         </td>
         <td style="padding:10px 8px; white-space:nowrap;">
           ${statusBadge(x.status)}
@@ -1597,7 +1596,7 @@ function _buildCleanWordSummaryHtml(payload, d, sourceMode = "all") {
   return `
     <div class="clean-vocab-summary" style="background:var(--card, #fff); border-radius:12px; padding:12px; color:var(--ink, #232A4D);">
       <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; padding-bottom:10px; border-bottom:1px solid var(--line, #E7E9F5); font-size:12.5px; color:var(--ink2, #475569); font-weight:700;">
-        <div>精通 <span style="color:#047857; font-weight:800;">${masteredCount}</span> &nbsp;·&nbsp; 練習中 <span style="color:#1d4ed8; font-weight:800;">${practicingCount}</span> &nbsp;·&nbsp; 學習中 <span style="color:#6d28d9; font-weight:800;">${learningCount}</span> &nbsp;·&nbsp; 答錯 <span style="color:#dc2626; font-weight:800;">${wrongCount}</span> &nbsp;·&nbsp; 正確率 <span style="color:var(--violet, #6C4CE0); font-weight:800;">${acc}%</span></div>
+        <div>精通 <span style="color:#047857; font-weight:800;">${masteredCount}</span> &nbsp;·&nbsp; 練習中 <span style="color:#1d4ed8; font-weight:800;">${practicingCount}</span> &nbsp;·&nbsp; 學習中 <span style="color:#6d28d9; font-weight:800;">${learningCount}</span> &nbsp;·&nbsp; 待加強 <span style="color:#dc2626; font-weight:800;">${wrongCount}</span> &nbsp;·&nbsp; 正確率 <span style="color:var(--violet, #6C4CE0); font-weight:800;">${acc}%</span></div>
         <div style="display:flex; gap:5px; align-items:center;">
           <button type="button" class="clean-source-tab" data-source="all" style="${srcBtnStyle("all")}">全部</button>
           <button type="button" class="clean-source-tab" data-source="task" style="${srcBtnStyle("task")}">指定</button>
@@ -1605,7 +1604,7 @@ function _buildCleanWordSummaryHtml(payload, d, sourceMode = "all") {
         </div>
       </div>
       <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; margin:10px 0;">
-        <input type="search" id="clean-vocab-search" placeholder="搜尋單字或釋義..." style="flex:1; min-width:160px; padding:6px 10px; border:1px solid var(--line, #E7E9F5); border-radius:8px; font-size:12.5px; background:var(--paper, #F6F7FB); color:var(--ink, #232A4D); outline:none;" />
+        <input type="search" id="clean-vocab-search" placeholder="搜尋單字..." style="flex:1; min-width:160px; padding:6px 10px; border:1px solid var(--line, #E7E9F5); border-radius:8px; font-size:12.5px; background:var(--paper, #F6F7FB); color:var(--ink, #232A4D); outline:none;" />
         <div style="display:flex; gap:6px;">
           <button type="button" class="clean-vocab-tab active" data-filter="all" style="padding:5px 12px; border-radius:999px; border:1px solid var(--violet, #6C4CE0); background:var(--violet, #6C4CE0); color:#fff; font-size:12px; font-weight:700; cursor:pointer;">全部</button>
           <button type="button" class="clean-vocab-tab" data-filter="correct" style="padding:5px 12px; border-radius:999px; border:1px solid var(--line, #E7E9F5); background:var(--paper, #F6F7FB); color:var(--ink2, #475569); font-size:12px; font-weight:700; cursor:pointer;">答對</button>
@@ -1617,7 +1616,6 @@ function _buildCleanWordSummaryHtml(payload, d, sourceMode = "all") {
           <thead>
             <tr style="border-bottom:1.5px solid var(--line, #E7E9F5); font-size:11.5px; color:var(--ink3, #64748b); font-weight:700;">
               <th style="padding:8px;">單字</th>
-              <th style="padding:8px;">中文釋義</th>
               <th style="padding:8px;">對 / 錯次數</th>
               <th style="padding:8px;">狀態</th>
             </tr>
