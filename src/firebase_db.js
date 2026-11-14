@@ -160,28 +160,28 @@ export async function saveTimeSettingsToFirestore(docKey = "global", settingsObj
 
 export async function createAccountInFirebase(username, password, profile = {}) {
   const u = String(username || "").trim().toLowerCase();
-  if (!u || !password) return { ok: false, error: "帳號或密碼不可為空" };
-  const email = `${u}@vocab.app`;
-  const pwd = String(password).length < 6 ? `${password}_v26app` : String(password);
+  if (!u) return { ok: false, error: "帳號不可為空" };
   try {
-    const secApp = getApps().find(a => a.name === "accountCreator") || initializeApp(firebaseConfig, "accountCreator");
-    const secAuth = getAuth(secApp);
-    try {
-      await createUserWithEmailAndPassword(secAuth, email, pwd);
-    } catch (e) {
-      if (e?.code !== "auth/email-already-in-use") {
-        return { ok: false, error: e?.message || "建立 Auth 失敗" };
+    if (password) {
+      const email = `${u}@vocab.app`;
+      const pwd = String(password).length < 6 ? `${password}_v26app` : String(password);
+      const secApp = getApps().find(a => a.name === "accountCreator") || initializeApp(firebaseConfig, "accountCreator");
+      const secAuth = getAuth(secApp);
+      try {
+        await createUserWithEmailAndPassword(secAuth, email, pwd);
+      } catch (e) {
+        if (e?.code !== "auth/email-already-in-use") {
+          return { ok: false, error: e?.message || "建立 Auth 失敗" };
+        }
+      } finally {
+        await signOut(secAuth).catch(() => {});
       }
-    } finally {
-      await signOut(secAuth).catch(() => {});
     }
-    await setDoc(doc(db, "users", u), {
-      username: u,
-      role: profile.role || "student",
-      realName: profile.realName || u,
-      className: profile.className || "",
-      updatedAt: new Date().toISOString()
-    }, { merge: true });
+    const updateData = { username: u, updatedAt: new Date().toISOString() };
+    if (profile.role) updateData.role = profile.role;
+    if (profile.realName) updateData.realName = profile.realName;
+    if (profile.className !== undefined && profile.className !== "") updateData.className = profile.className;
+    await setDoc(doc(db, "users", u), updateData, { merge: true });
     return { ok: true };
   } catch (e) {
     return { ok: false, error: e?.message || "寫入失敗" };

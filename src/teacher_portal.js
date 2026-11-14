@@ -2313,12 +2313,12 @@
     const role = document.getElementById("tp-acc-role")?.value || "student";
     const user = document.getElementById("tp-acc-user")?.value.trim();
     const pass = document.getElementById("tp-acc-pass")?.value.trim();
-    const realName = document.getElementById("tp-acc-name")?.value.trim() || user;
+    const realName = document.getElementById("tp-acc-name")?.value.trim() || "";
     const className = document.getElementById("tp-acc-class")?.value.trim() || "";
-    if (!user || !pass) { if (statusEl) statusEl.textContent = "❌ 請輸入帳號與密碼"; return; }
-    if (statusEl) statusEl.textContent = "⏳ 建立中...";
+    if (!user) { if (statusEl) statusEl.textContent = "❌ 請輸入帳號"; return; }
+    if (statusEl) statusEl.textContent = "⏳ 處理中...";
     const res = await window.FirebaseDB?.createAccountInFirebase?.(user, pass, { role, realName, className });
-    if (statusEl) statusEl.textContent = res?.ok ? `✅ 已建立帳號：${user} (${role})` : `❌ 失敗：${res?.error || "未知錯誤"}`;
+    if (statusEl) statusEl.textContent = res?.ok ? `✅ 已儲存帳號設定：${user} (${role})` : `❌ 失敗：${res?.error || "未知錯誤"}`;
   };
 
   window.tpBatchImportAccounts = async function() {
