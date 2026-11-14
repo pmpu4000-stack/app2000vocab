@@ -1542,7 +1542,6 @@ function _buildCleanWordSummaryHtml(payload, d, sourceMode = "all") {
     return "—";
   };
 
-  const boxMap = (d && d.box) ? d.box : (typeof box === "function" ? box() : {});
   const wordToId = new Map();
   if (Array.isArray(wordsRef)) {
     for (let i = 0; i < wordsRef.length; i++) {
@@ -1550,11 +1549,21 @@ function _buildCleanWordSummaryHtml(payload, d, sourceMode = "all") {
       if (w && w.word && w.id) wordToId.set(String(w.word).trim().toLowerCase(), w.id);
     }
   }
+  const getBoxLevel = (wId, wStr) => {
+    if (d && d.box && typeof d.box === "object") {
+      const v = (wId && d.box[wId]) || d.box[wStr];
+      if (v !== undefined) return Number(v) || 0;
+    }
+    if (typeof box === "function") {
+      return Number((wId && box(wId)) || box(wStr) || 0);
+    }
+    return 0;
+  };
   const list = Array.from(wordMap.values()).map(item => {
     const total = item.correct + item.wrong;
     const isWeak = item.wrong > 0 && item.wrong >= item.correct;
     const wId = wordToId.get(item.word) || (wordsRef && wordsRef._byWord && wordsRef._byWord.get(item.word)?.id);
-    const b = Number((wId && boxMap[wId]) || boxMap[item.word] || 0);
+    const b = getBoxLevel(wId, item.word);
     let status = "wrong";
     if (b >= 3) status = "mastered";
     else if (b === 2) status = "practicing";
