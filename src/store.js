@@ -283,6 +283,8 @@ function load() {
 }
 
 let DB = load();
+export function getRawStat() { return (DB && DB.stat) ? DB.stat : {}; }
+export function getRawBox() { return (DB && DB.box) ? DB.box : {}; }
 export function reload() { DB = load(); return DB; }
 let _saveTimer = null;
 export function flushSave() {

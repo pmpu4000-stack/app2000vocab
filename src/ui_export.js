@@ -2,7 +2,7 @@
 // ui_export.js — 底部作答歷程紀錄匯出下載模組 (Excel / PDF / A4 報表)
 // =====================================================================
 import { escapeHtml } from "./wordbank.js";
-import { normalizeDateStr, formatDateYMD, box } from "./store.js";
+import { normalizeDateStr, formatDateYMD, box, getRawStat, getRawBox } from "./store.js";
 import { levelColor, levelName } from "./levels.js";
 import { diagnoseWordMistake } from "./diagnostics.js";
 import { getBiweeklyFailedFinalBossWords } from "./ui_weak_words.js";
@@ -1516,7 +1516,7 @@ function _buildCleanWordSummaryHtml(payload, d, sourceMode = "all") {
     });
   }
 
-  const statObj = (d && d.stat) ? d.stat : (typeof window !== "undefined" && window.DB && window.DB.stat) ? window.DB.stat : null;
+  const statObj = (d && d.stat) ? d.stat : (typeof getRawStat === "function" ? getRawStat() : {});
   if (sourceMode === "all" && statObj && typeof statObj === "object") {
     Object.keys(statObj).forEach(k => {
       const st = statObj[k];
@@ -1549,15 +1549,11 @@ function _buildCleanWordSummaryHtml(payload, d, sourceMode = "all") {
       if (w && w.word && w.id) wordToId.set(String(w.word).trim().toLowerCase(), w.id);
     }
   }
+  const rawBoxObj = (d && d.box && typeof d.box === "object") ? d.box : (typeof getRawBox === "function" ? getRawBox() : {});
   const getBoxLevel = (wId, wStr) => {
-    if (d && d.box && typeof d.box === "object") {
-      const v = (wId && d.box[wId]) || d.box[wStr];
-      if (v !== undefined) return Number(v) || 0;
-    }
-    if (typeof box === "function") {
-      return Number((wId && box(wId)) || box(wStr) || 0);
-    }
-    return 0;
+    const v = (wId && rawBoxObj[wId]) || rawBoxObj[wStr];
+    if (v !== undefined) return Number(v) || 0;
+    return (typeof box === "function") ? Number((wId && box(wId)) || box(wStr) || 0) : 0;
   };
   const list = Array.from(wordMap.values()).map(item => {
     const total = item.correct + item.wrong;
