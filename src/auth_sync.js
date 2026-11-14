@@ -1352,6 +1352,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined") {
       setLoginStatus(`正在載入${targetHint}資料...`, "loading-data");
 
       try {
+        import("./firebase_db.js").then(m => m?.loginWithFirebaseAuth?.(user, pass)).catch(() => {});
         let response = null;
         let lastError = null;
         const loginPassPayload = await sha256HexClient(pass);
