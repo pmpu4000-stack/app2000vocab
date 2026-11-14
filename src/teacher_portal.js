@@ -1066,29 +1066,15 @@
       if (studentListEl) studentListEl.innerHTML = `<div style="text-align:center; padding:15px; color:#64748b; font-size:13px;">讀取中...</div>`;
 
       try {
-        let data;
-        if (window.FirebaseDB && typeof window.FirebaseDB.getTimeSettingsFromFirestore === "function") {
-          const fbDoc = (await window.FirebaseDB.getTimeSettingsFromFirestore("time_restrictions")) || {};
-          data = {
-            status: "success",
-            currentStatus: fbDoc.currentStatus || {},
-            globalTime: fbDoc.globalTime || { startTime: "07:30", endTime: "22:00" },
-            studentRules: fbDoc.studentRules || [],
-            dateRules: fbDoc.dateRules || [],
-            studentList: fbDoc.studentList || []
-          };
-        } else {
-          const res = await fetch(scriptUrl, {
-            method: "POST",
-            headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify({
-              action: "getTimeRestrictions",
-              username: currentUser,
-              password: currentPass
-            })
-          });
-          data = await res.json();
-        }
+        const fbDoc = (await window.FirebaseDB?.getTimeSettingsFromFirestore?.("time_restrictions")) || {};
+        const data = {
+          status: "success",
+          currentStatus: fbDoc.currentStatus || {},
+          globalTime: fbDoc.globalTime || { startTime: "07:30", endTime: "22:00" },
+          studentRules: fbDoc.studentRules || [],
+          dateRules: fbDoc.dateRules || [],
+          studentList: fbDoc.studentList || []
+        };
         if (data.status === "success") {
           currentTimeStatus = data.currentStatus || {};
           timeGlobalData = data.globalTime || { startTime: "07:30", endTime: "22:00" };
@@ -1512,25 +1498,10 @@
           saveGlobalBtn.disabled = true;
 
           try {
-            let d;
-            if (window.FirebaseDB && typeof window.FirebaseDB.saveTimeSettingsToFirestore === "function") {
-              const ok = await window.FirebaseDB.saveTimeSettingsToFirestore("time_restrictions", {
-                globalTime: { startTime: sTime, endTime: eTime, teacher: currentUser || "教師", updatedAt: new Date().toLocaleString("zh-TW") }
-              });
-              d = ok ? { status: "success", message: "全校預設作答時間已儲存！" } : { status: "error", message: "Firestore 寫入失敗" };
-            } else {
-              const res = await fetch(scriptUrl, {
-                method: "POST",
-                headers: { "Content-Type": "text/plain;charset=utf-8" },
-                body: JSON.stringify({
-                  action: "saveGlobalTimeSetting",
-                  username: currentUser,
-                  password: currentPass,
-                  timeData: { startTime: sTime, endTime: eTime }
-                })
-              });
-              d = await res.json();
-            }
+            const ok = await window.FirebaseDB?.saveTimeSettingsToFirestore?.("time_restrictions", {
+              globalTime: { startTime: sTime, endTime: eTime, teacher: currentUser || "教師", updatedAt: new Date().toLocaleString("zh-TW") }
+            });
+            const d = ok ? { status: "success", message: "全校預設作答時間已儲存！" } : { status: "error", message: "Firestore 寫入失敗" };
             if (d.status === "success") {
               alert(d.message || "全校預設作答時間已儲存！");
               loadTimeRestrictions();
@@ -1575,31 +1546,10 @@
           saveStudentBtn.disabled = true;
 
           try {
-            let d;
-            if (window.FirebaseDB && typeof window.FirebaseDB.saveTimeSettingsToFirestore === "function") {
-              const nextRules = (timeStudentRules || []).filter(r => r.username !== username);
-              nextRules.push({ username, studentInfo, startTime: sTime, endTime: eTime, remark, updatedAt: new Date().toLocaleString("zh-TW") });
-              const ok = await window.FirebaseDB.saveTimeSettingsToFirestore("time_restrictions", { studentRules: nextRules });
-              d = ok ? { status: "success", message: "學生專屬作答時間已成功設定！" } : { status: "error", message: "Firestore 寫入失敗" };
-            } else {
-              const res = await fetch(scriptUrl, {
-                method: "POST",
-                headers: { "Content-Type": "text/plain;charset=utf-8" },
-                body: JSON.stringify({
-                  action: "saveStudentTimeSetting",
-                  username: currentUser,
-                  password: currentPass,
-                  studentData: {
-                    username: username,
-                    studentInfo: studentInfo,
-                    startTime: sTime,
-                    endTime: eTime,
-                    remark: remark
-                  }
-                })
-              });
-              d = await res.json();
-            }
+            const nextRules = (timeStudentRules || []).filter(r => r.username !== username);
+            nextRules.push({ username, studentInfo, startTime: sTime, endTime: eTime, remark, updatedAt: new Date().toLocaleString("zh-TW") });
+            const ok = await window.FirebaseDB?.saveTimeSettingsToFirestore?.("time_restrictions", { studentRules: nextRules });
+            const d = ok ? { status: "success", message: "學生專屬作答時間已成功設定！" } : { status: "error", message: "Firestore 寫入失敗" };
             if (d.status === "success") {
               alert(d.message || "學生專屬作答時間已成功設定！");
               loadTimeRestrictions();
@@ -1680,31 +1630,10 @@
           if (msgEl) msgEl.textContent = "正在寫入試算表...";
 
           try {
-            let d;
-            if (window.FirebaseDB && typeof window.FirebaseDB.saveTimeSettingsToFirestore === "function") {
-              const nextDateRules = (timeDateRules || []).filter(r => r.name !== name);
-              nextDateRules.push({ name, startDate, endDate, enabled: true, remark: "教師自訂特別日期" });
-              const ok = await window.FirebaseDB.saveTimeSettingsToFirestore("time_restrictions", { dateRules: nextDateRules });
-              d = ok ? { status: "success" } : { status: "error", message: "Firestore 寫入失敗" };
-            } else {
-              const res = await fetch(scriptUrl, {
-                method: "POST",
-                headers: { "Content-Type": "text/plain;charset=utf-8" },
-                body: JSON.stringify({
-                  action: "saveTimeRestriction",
-                  username: currentUser,
-                  password: currentPass,
-                  ruleData: {
-                    name: name,
-                    startDate: startDate,
-                    endDate: endDate,
-                    enabled: true,
-                    remark: "教師自訂特別日期"
-                  }
-                })
-              });
-              d = await res.json();
-            }
+            const nextDateRules = (timeDateRules || []).filter(r => r.name !== name);
+            nextDateRules.push({ name, startDate, endDate, enabled: true, remark: "教師自訂特別日期" });
+            const ok = await window.FirebaseDB?.saveTimeSettingsToFirestore?.("time_restrictions", { dateRules: nextDateRules });
+            const d = ok ? { status: "success" } : { status: "error", message: "Firestore 寫入失敗" };
             if (d.status === "success") {
               alert(`✅ 設定成功！\n名稱：${name}\n解除區間：${startDate} ～ ${endDate}\n學生於該期間全天皆可使用。`);
               if (nInp) nInp.value = "";
