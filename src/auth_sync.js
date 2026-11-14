@@ -1355,19 +1355,6 @@ if (typeof window !== "undefined" && typeof document !== "undefined") {
 
         // 停用舊版 SWR 離線快照秒進，直接走即時雲端與 Firebase Auth 驗證
         let optimisticLoaded = false;
-        if (false) {
-          const cachedSnapRaw = localStorage.getItem("swr_user_snapshot_" + user.toLowerCase());
-          if (cachedSnapRaw) {
-            const cachedSnap = JSON.parse(cachedSnapRaw);
-            if (cachedSnap && cachedSnap.passHash === loginPassPayload && cachedSnap.result) {
-              console.log("⚡ [SWR] 命中離線快照，0 毫秒極速樂觀載入進入系統！");
-              applyLoginPayload(user, pass, loginPassPayload, cachedSnap.result, true);
-              optimisticLoaded = true;
-            }
-          }
-        } catch(swrErr) {
-          console.warn("[SWR] 快照解析略過:", swrErr);
-        }
 
         // 健全重試機制：處理 GAS 冷啟動或暫時性網路抖動 (最多嘗試 3 次)
         for (let attempt = 1; attempt <= 3; attempt++) {
