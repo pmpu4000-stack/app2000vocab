@@ -2,6 +2,7 @@
 // firebase_db.js — Cloud Firestore 高速單一真實資料源模組
 // =====================================================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 import {
   getFirestore,
   doc,
@@ -21,6 +22,15 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
+const auth = getAuth(app);
+let _authReady = null;
+function ensureAuth() {
+  if (auth.currentUser) return Promise.resolve(auth.currentUser);
+  if (!_authReady) {
+    _authReady = signInAnonymously(auth).catch(() => null);
+  }
+  return _authReady;
+}
 
 /**
  * 從 Firestore 讀取學生完整學習紀錄
@@ -30,6 +40,7 @@ export async function loadStudentFromFirestore(username) {
   const u = String(username || "").trim().toLowerCase();
   if (!u) return null;
   try {
+    await ensureAuth();
     const snap = await getDoc(doc(db, "students", u));
     return snap.exists() ? snap.data() : null;
   } catch (e) {
@@ -47,6 +58,7 @@ export async function saveStudentToFirestore(username, payload) {
   const u = String(username || "").trim().toLowerCase();
   if (!u || !payload) return false;
   try {
+    await ensureAuth();
     await setDoc(doc(db, "students", u), {
       ...payload,
       updatedAt: new Date().toISOString()
