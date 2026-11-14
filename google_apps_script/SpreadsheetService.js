@@ -3235,3 +3235,7 @@ function normalizeAllStudentPortfolios() {
   if (updated > 0) range.setValues(vals);
   return { ok: true, updated };
 }
+
+function 標準化所有學生歷程資料() {
+  return normalizeAllStudentPortfolios();
+}
