@@ -1714,6 +1714,7 @@ function onOpen(e) {
       .createMenu("🎯 系統維護")
       .addItem("🚀 一鍵遷移所有學生至【學生歷程總庫】","migrateAllStudentsToCentralPortfolioUi")
       .addItem("🧹 標準化所有學生歷程資料 (YYYY-MM-DD)","標準化所有學生歷程資料")
+      .addItem("🧪 生成 d 帳號 60 天完整測試資料","生成d帳號60天測試資料")
       .addItem("🎨 比照學生分頁美化【學生歷程總庫】欄位與色彩","applyCentralPortfolioStyleUi")
       .addItem("📊 一鍵整理所有學生分頁欄位與數值 (單字數)","migrateAllSheetsToVocabBasedUi")
       .addItem("📋 重新產生全班學習總覽","generateClassDashboardSheetUi")
@@ -3239,4 +3240,133 @@ function normalizeAllStudentPortfolios() {
 
 function 標準化所有學生歷程資料() {
   return normalizeAllStudentPortfolios();
+}
+
+function 生成d帳號60天測試資料() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const s = getCentralPortfolioSheet(ss, false);
+  if (!s) {
+    SpreadsheetApp.getUi().alert("⚠️ 找不到【學生歷程總庫】工作表！");
+    return;
+  }
+
+  const sampleWords = [
+    "apple","banana","cat","dog","egg","fish","grape","hat","ice","juice",
+    "kite","lion","moon","nose","orange","pen","queen","rain","sun","tree",
+    "umbrella","van","water","box","yellow","zebra","book","chair","desk","door",
+    "window","school","teacher","student","friend","family","mother","father","sister","brother",
+    "happy","sad","angry","tired","hungry","thirsty","fast","slow","big","small",
+    "tall","short","long","hot","cold","warm","cool","good","bad","new",
+    "old","young","clean","dirty","easy","hard","early","late","morning","night",
+    "today","tomorrow","yesterday","week","month","year","spring","summer","autumn","winter",
+    "red","blue","green","black","white","brown","pink","purple","gray","gold",
+    "run","walk","jump","swim","fly","read","write","listen","speak","sing",
+    "dance","play","work","study","sleep","eat","drink","cook","wash","drive",
+    "factory","highway","hospital","library","museum","station","airport","market","garden","bridge"
+  ];
+
+  const today = new Date();
+  const fmt = (d) => Utilities.formatDate(d, "Asia/Taipei", "yyyy-MM-dd");
+  const box = {};
+  const stat = {};
+  const dailyPractice = {};
+  const history = {};
+  const taskHistory = [];
+
+  for (let offset = 59; offset >= 0; offset--) {
+    const dObj = new Date(today.getTime() - offset * 86400000);
+    const ds = fmt(dObj);
+    const dow = dObj.getDay();
+
+    // 模擬每隔約 12 天休息/缺席 1 天
+    if (offset % 13 === 5) continue;
+
+    // 自由練習單字（每天抽 6~12 字）
+    const dpWords = {};
+    let dpAtt = 0, dpCor = 0, dpWrg = 0;
+    const count = 6 + (offset % 7);
+    for (let j = 0; j < count; j++) {
+      const w = sampleWords[(offset * 3 + j) % sampleWords.length];
+      const isOk = ((offset + j) % 5 !== 0); // 約 80% 正確率
+      dpAtt++;
+      if (isOk) dpCor++; else dpWrg++;
+      if (!dpWords[w]) dpWords[w] = { word: w, attempts: 0, correct: 0, wrong: 0, passed: false, hadCorrectThenWrong: false, lastResult: "" };
+      dpWords[w].attempts++;
+      if (isOk) {
+        dpWords[w].correct++;
+        dpWords[w].passed = true;
+        dpWords[w].lastResult = "correct";
+      } else {
+        dpWords[w].wrong++;
+        if (dpWords[w].correct > 0) dpWords[w].hadCorrectThenWrong = true;
+        dpWords[w].lastResult = "wrong";
+      }
+
+      if (!stat[w]) stat[w] = { a: 0, c: 0, ew: 0 };
+      stat[w].a++;
+      if (isOk) {
+        stat[w].c++;
+        box[w] = Math.min(3, (box[w] || 0) + 1);
+      } else {
+        stat[w].ew = 1;
+        box[w] = 0;
+      }
+    }
+    dailyPractice[ds] = { date: ds, attempts: dpAtt, correct: dpCor, wrong: dpWrg, words: dpWords };
+    history[ds] = { a: dpAtt, c: dpCor, w: dpWrg, words: dpWords };
+
+    // 平日與週末指定測驗（模擬全對、部分錯、未完成、週末補強）
+    if (offset % 4 !== 3) {
+      const tWords = sampleWords.slice((offset * 2) % 80, ((offset * 2) % 80) + 5);
+      const cw = [], ww = [];
+      tWords.forEach((w, idx) => {
+        if ((offset + idx) % 4 === 0) ww.push(w); else cw.push(w);
+      });
+      const isWeekend = (dow === 0 || dow === 6);
+      taskHistory.push({
+        date: ds,
+        taskName: isWeekend ? "週末待攻克消滅戰" : `${ds.slice(5).replace("-", "")}指定單字測驗`,
+        total: tWords.length,
+        correct: cw.length,
+        score: Math.round((cw.length / tWords.length) * 100),
+        status: ww.length === 0 ? "已完成(全對)" : "已完成",
+        correctWords: cw,
+        wrongWords: ww
+      });
+    }
+  }
+
+  const payload = {
+    level: { current: 3, unlocked: 3 },
+    points: 12850,
+    streak: 14,
+    bestStreak: 21,
+    streakFreezes: 2,
+    box,
+    stat,
+    dailyPractice,
+    history,
+    taskHistory,
+    mwords: { listen: stat, pick: {}, scramble: {}, trap: {} }
+  };
+
+  const nowStr = Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy/MM/dd HH:mm:ss");
+  const lastRow = s.getLastRow();
+  let targetRow = -1;
+  if (lastRow >= 2) {
+    const colA = s.getRange(2, 1, lastRow - 1, 1).getValues();
+    for (let i = colA.length - 1; i >= 0; i--) {
+      if (String(colA[i][0] || "").trim().toLowerCase() === "d") {
+        targetRow = i + 2;
+        break;
+      }
+    }
+  }
+  const jsonStr = JSON.stringify(payload);
+  if (targetRow > 0) {
+    s.getRange(targetRow, 2, 1, 2).setValues([[nowStr, jsonStr]]);
+  } else {
+    s.appendRow(["d", nowStr, jsonStr]);
+  }
+  SpreadsheetApp.getUi().alert("✅ 完成", "已為 d 帳號生成 60 天完整標準化測試資料！", SpreadsheetApp.getUi().ButtonSet.OK);
 }
