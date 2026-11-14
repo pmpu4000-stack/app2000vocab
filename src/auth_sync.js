@@ -1127,7 +1127,20 @@ if (typeof window !== "undefined" && typeof document !== "undefined") {
       localStorage.removeItem("current_pass");
       if (result.sessionToken) {
         localStorage.setItem("session_token", result.sessionToken);
-        try { import("./firebase_db.js").then(m => m && m.loginWithFirebaseAuth && m.loginWithFirebaseAuth(u, p)).catch(() => {}); } catch(_) {}
+        try {
+          import("./firebase_db.js").then(m => {
+            if (!m) return;
+            if (m.loginWithFirebaseAuth) m.loginWithFirebaseAuth(u, p);
+            if (m.saveUserProfileToFirestore) {
+              m.saveUserProfileToFirestore(u, {
+                username: u,
+                role: result.role || "student",
+                className: result.className || "",
+                studentName: result.studentName || ""
+              });
+            }
+          }).catch(() => {});
+        } catch(_) {}
       }
 
       if (hasCloudRecords) {
@@ -1533,7 +1546,20 @@ if (typeof window !== "undefined" && typeof document !== "undefined") {
           localStorage.removeItem("current_pass");
           if (result.sessionToken) {
             localStorage.setItem("session_token", result.sessionToken);
-        try { import("./firebase_db.js").then(m => m && m.loginWithFirebaseAuth && m.loginWithFirebaseAuth(u, p)).catch(() => {}); } catch(_) {}
+        try {
+          import("./firebase_db.js").then(m => {
+            if (!m) return;
+            if (m.loginWithFirebaseAuth) m.loginWithFirebaseAuth(u, p);
+            if (m.saveUserProfileToFirestore) {
+              m.saveUserProfileToFirestore(u, {
+                username: u,
+                role: result.role || "student",
+                className: result.className || "",
+                studentName: result.studentName || ""
+              });
+            }
+          }).catch(() => {});
+        } catch(_) {}
           }
 
           if (hasCloudRecords) {
