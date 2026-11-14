@@ -1713,6 +1713,7 @@ function onOpen(e) {
     SpreadsheetApp.getUi()
       .createMenu("🎯 系統維護")
       .addItem("🚀 一鍵遷移所有學生至【學生歷程總庫】","migrateAllStudentsToCentralPortfolioUi")
+      .addItem("🧹 標準化所有學生歷程資料 (YYYY-MM-DD)","標準化所有學生歷程資料")
       .addItem("🎨 比照學生分頁美化【學生歷程總庫】欄位與色彩","applyCentralPortfolioStyleUi")
       .addItem("📊 一鍵整理所有學生分頁欄位與數值 (單字數)","migrateAllSheetsToVocabBasedUi")
       .addItem("📋 重新產生全班學習總覽","generateClassDashboardSheetUi")
