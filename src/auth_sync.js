@@ -1128,9 +1128,20 @@ if (typeof window !== "undefined" && typeof document !== "undefined") {
       if (result.sessionToken) {
         localStorage.setItem("session_token", result.sessionToken);
         try {
-          import("./firebase_db.js").then(m => {
-            if (!m) return;
-            if (m.loginWithFirebaseAuth) m.loginWithFirebaseAuth(u, p);
+          const m = await import("./firebase_db.js");
+          if (m) {
+            if (m.loginWithFirebaseAuth) await m.loginWithFirebaseAuth(u, p);
+            if (m.loadStudentFromFirestore) {
+              const fbDoc = await m.loadStudentFromFirestore(u);
+              if (fbDoc && fbDoc.records && typeof fbDoc.records === "object") {
+                Object.keys(fbDoc.records).forEach(k => {
+                  const val = fbDoc.records[k];
+                  if (val !== undefined && val !== null) {
+                    localStorage.setItem(k, typeof val === "string" ? val : JSON.stringify(val));
+                  }
+                });
+              }
+            }
             if (m.saveUserProfileToFirestore) {
               m.saveUserProfileToFirestore(u, {
                 username: u,
@@ -1139,7 +1150,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined") {
                 studentName: result.studentName || ""
               });
             }
-          }).catch(() => {});
+          }
         } catch(_) {}
       }
 
@@ -1547,9 +1558,20 @@ if (typeof window !== "undefined" && typeof document !== "undefined") {
           if (result.sessionToken) {
             localStorage.setItem("session_token", result.sessionToken);
         try {
-          import("./firebase_db.js").then(m => {
-            if (!m) return;
-            if (m.loginWithFirebaseAuth) m.loginWithFirebaseAuth(u, p);
+          const m = await import("./firebase_db.js");
+          if (m) {
+            if (m.loginWithFirebaseAuth) await m.loginWithFirebaseAuth(u, p);
+            if (m.loadStudentFromFirestore) {
+              const fbDoc = await m.loadStudentFromFirestore(u);
+              if (fbDoc && fbDoc.records && typeof fbDoc.records === "object") {
+                Object.keys(fbDoc.records).forEach(k => {
+                  const val = fbDoc.records[k];
+                  if (val !== undefined && val !== null) {
+                    localStorage.setItem(k, typeof val === "string" ? val : JSON.stringify(val));
+                  }
+                });
+              }
+            }
             if (m.saveUserProfileToFirestore) {
               m.saveUserProfileToFirestore(u, {
                 username: u,
@@ -1558,7 +1580,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined") {
                 studentName: result.studentName || ""
               });
             }
-          }).catch(() => {});
+          }
         } catch(_) {}
           }
 
