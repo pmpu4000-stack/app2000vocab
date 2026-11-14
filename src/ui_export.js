@@ -1516,12 +1516,14 @@ function _buildCleanWordSummaryHtml(payload, d, sourceMode = "all") {
     });
   }
 
-  if (sourceMode === "all" && d && d.words && typeof d.words === "object") {
-    const entries = Array.isArray(d.words) ? d.words : Object.values(d.words);
-    entries.forEach(st => {
-      if (!st || !st.word) return;
-      const clean = String(st.word).trim().toLowerCase();
-      if (!clean || wordMap.has(clean)) return;
+  const statObj = (d && d.stat) ? d.stat : (typeof window !== "undefined" && window.DB && window.DB.stat) ? window.DB.stat : null;
+  if (sourceMode === "all" && statObj && typeof statObj === "object") {
+    Object.keys(statObj).forEach(k => {
+      const st = statObj[k];
+      if (!st) return;
+      const resolved = resolveWordStr(k, d);
+      const clean = String(resolved || "").trim().toLowerCase();
+      if (!clean || !isValidEnglishWordStr(clean) || wordMap.has(clean)) return;
       const { correct: wCor, wrong: wWrg } = _normalizeWordStat(st);
       if (wCor > 0 || wWrg > 0) {
         wordMap.set(clean, { word: clean, correct: wCor, wrong: wWrg });
