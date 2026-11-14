@@ -3363,10 +3363,18 @@ function 生成d帳號60天測試資料() {
     }
   }
   const jsonStr = JSON.stringify(payload);
+  const boxVals = Object.values(box);
+  const cLearn = boxVals.filter(v => v === 1).length;
+  const cPrac = boxVals.filter(v => v === 2).length;
+  const cMast = boxVals.filter(v => v >= 3).length;
+  const cTotal = cLearn + cPrac + cMast;
+  const cTested = Object.keys(stat).length;
+  const cRate = cTested > 0 ? Math.round((cTotal / cTested) * 100) + "%" : "0%";
+  const rowArr = ["d", nowStr, jsonStr, 3, 12850, 14, 21, cLearn, cPrac, cMast, cTotal, cTested, cRate];
   if (targetRow > 0) {
-    s.getRange(targetRow, 2, 1, 2).setValues([[nowStr, jsonStr]]);
+    s.getRange(targetRow, 1, 1, rowArr.length).setValues([rowArr]);
   } else {
-    s.appendRow(["d", nowStr, jsonStr]);
+    s.appendRow(rowArr);
   }
   SpreadsheetApp.getUi().alert("✅ 完成", "已為 d 帳號生成 60 天完整標準化測試資料！", SpreadsheetApp.getUi().ButtonSet.OK);
 }
