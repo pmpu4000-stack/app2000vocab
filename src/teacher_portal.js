@@ -2345,16 +2345,31 @@
     const fb = window.FirebaseDB || await import("./firebase_db.js");
     const users = await (fb?.listUsersFromFirestore?.() || Promise.resolve([]));
     if (!users.length) { listEl.innerHTML = "<div style='font-size:13px; opacity:0.7;'>目前尚無帳號資料</div>"; return; }
-    listEl.innerHTML = users.map(u => {
+    const renderRow = u => {
       const id = u.username || u.id || "";
       const role = u.role || "student";
       const name = u.realName || id;
       const cls = u.className || "";
       return `<div style="display:flex; justify-content:space-between; align-items:center; padding:6px 10px; border-bottom:1px solid var(--line); font-size:13px;">
-        <span><b>${id}</b> (${role}) — ${name} ${cls ? `[${cls}]` : ""}</span>
+        <span><b>${id}</b> — ${name} ${cls ? `[${cls}]` : ""}</span>
         <button type="button" onclick="document.getElementById('tp-acc-user').value='${id}';document.getElementById('tp-acc-role').value='${role}';document.getElementById('tp-acc-name').value='${name}';document.getElementById('tp-acc-class').value='${cls}';document.getElementById('tp-acc-pass').value='';" style="padding:4px 10px; border-radius:6px; border:1px solid var(--line); background:var(--card); color:var(--ink); cursor:pointer;">✏️ 編輯</button>
       </div>`;
-    }).join("");
+    };
+    const teachers = users.filter(u => u.role === "teacher" || u.role === "admin");
+    const parents = users.filter(u => u.role === "parent");
+    const students = users.filter(u => !u.role || u.role === "student");
+    const byClass = {};
+    students.forEach(s => {
+      const c = s.className || "未分班";
+      (byClass[c] = byClass[c] || []).push(s);
+    });
+    let html = "";
+    if (teachers.length) html += `<div style="font-weight:800; margin:8px 0 4px;">👩‍🏫 教師／管理員 (${teachers.length})</div>` + teachers.map(renderRow).join("");
+    if (parents.length) html += `<div style="font-weight:800; margin:10px 0 4px;">👨‍👩‍👧 家長帳號 (${parents.length})</div>` + parents.map(renderRow).join("");
+    Object.keys(byClass).sort().forEach(cls => {
+      html += `<div style="font-weight:800; margin:10px 0 4px;">🎓 ${cls} 班學生 (${byClass[cls].length})</div>` + byClass[cls].map(renderRow).join("");
+    });
+    listEl.innerHTML = html;
   };
   window.initTimeManagementEvents = initTimeManagementEvents;
 
