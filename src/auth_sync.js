@@ -1956,6 +1956,19 @@ if (typeof window !== "undefined" && typeof document !== "undefined") {
           }
         } catch(_) {}
 
+        // 🚀 同步雙寫至 Cloud Firestore（毫秒級即時備份）
+        try {
+          import("./firebase_db.js").then(m => {
+            if (m && typeof m.saveStudentToFirestore === "function") {
+              m.saveStudentToFirestore(currentUser, {
+                records: localData,
+                todayTaskSummary: todayTaskSummary || null,
+                summary: precomputedSummary || null
+              });
+            }
+          }).catch(() => {});
+        } catch(_) {}
+
         const payloadStr = JSON.stringify({ 
           action           : "saveRecord", 
           username         : currentUser, 
