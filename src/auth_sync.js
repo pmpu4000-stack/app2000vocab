@@ -1956,20 +1956,25 @@ if (typeof window !== "undefined" && typeof document !== "undefined") {
           }
         } catch(_) {}
 
-        // 🚀 同步雙寫至 Cloud Firestore（毫秒級即時備份）
+        // 🚀 純 Firebase Firestore 高速儲存（已停用 GAS saveRecord 雙寫）
+        let fbOk = false;
         try {
-          import("./firebase_db.js").then(m => {
-            if (m && typeof m.saveStudentToFirestore === "function") {
-              m.saveStudentToFirestore(currentUser, {
-                records: localData,
-                todayTaskSummary: todayTaskSummary || null,
-                summary: precomputedSummary || null
-              });
-            }
-          }).catch(() => {});
+          const m = await import("./firebase_db.js");
+          if (m && typeof m.saveStudentToFirestore === "function") {
+            fbOk = await m.saveStudentToFirestore(currentUser, {
+              records: localData,
+              todayTaskSummary: todayTaskSummary || null,
+              summary: precomputedSummary || null
+            });
+          }
         } catch(_) {}
+        return { status: fbOk ? "success" : "error", source: "firestore" };
+      } catch(e) { return { status: "error", message: e.message }; }
+    }
 
-        const payloadStr = JSON.stringify({ 
+    /* ── 以下舊版 GAS saveRecord 雙寫已停用 ── */
+    async function _legacyGasUploadDisabled() {
+      const payloadStr = JSON.stringify({ 
           action           : "saveRecord", 
           username         : currentUser, 
           password         : currentPass, 
