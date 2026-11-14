@@ -1127,6 +1127,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined") {
       localStorage.removeItem("current_pass");
       if (result.sessionToken) {
         localStorage.setItem("session_token", result.sessionToken);
+        try { import("./firebase_db.js").then(m => m && m.loginWithFirebaseAuth && m.loginWithFirebaseAuth(u, p)).catch(() => {}); } catch(_) {}
       }
 
       if (hasCloudRecords) {
@@ -1532,6 +1533,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined") {
           localStorage.removeItem("current_pass");
           if (result.sessionToken) {
             localStorage.setItem("session_token", result.sessionToken);
+        try { import("./firebase_db.js").then(m => m && m.loginWithFirebaseAuth && m.loginWithFirebaseAuth(u, p)).catch(() => {}); } catch(_) {}
           }
 
           if (hasCloudRecords) {
