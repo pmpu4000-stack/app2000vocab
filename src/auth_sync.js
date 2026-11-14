@@ -2002,6 +2002,7 @@ if (typeof window !== "undefined" && typeof document !== "undefined") {
 
     /* ── 以下舊版 GAS saveRecord 雙寫已停用 ── */
     async function _legacyGasUploadDisabled() {
+      try {
       const payloadStr = JSON.stringify({ 
           action           : "saveRecord", 
           username         : currentUser, 
