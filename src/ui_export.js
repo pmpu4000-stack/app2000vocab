@@ -1540,17 +1540,37 @@ function _buildCleanWordSummaryHtml(payload, d, sourceMode = "all") {
     return "—";
   };
 
+  const boxMap = (d && d.box) ? d.box : (typeof window !== "undefined" && window.DB && window.DB.box) ? window.DB.box : {};
   const list = Array.from(wordMap.values()).map(item => {
     const total = item.correct + item.wrong;
     const isWeak = item.wrong > 0 && item.wrong >= item.correct;
-    return { ...item, total, isWeak, zh: getZhDef(item.word) };
-  }).sort((a, b) => (b.wrong - a.wrong) || a.word.localeCompare(b.word));
+    const wObj = wordsRef && (wordsRef._byWord ? wordsRef._byWord.get(item.word) : (Array.isArray(wordsRef) ? wordsRef.find(x => x && x.word === item.word) : null));
+    const b = Number((wObj && wObj.id && boxMap[wObj.id]) || boxMap[item.word] || 0);
+    let status = "wrong";
+    if (b >= 3) status = "mastered";
+    else if (b === 2) status = "practicing";
+    else if (b === 1 || item.correct > 0) status = "learning";
+    if (item.correct === 0 && item.wrong > 0) status = "wrong";
+    return { ...item, total, isWeak, status, zh: getZhDef(item.word) };
+  }).sort((a, b) => {
+    const order = { wrong: 0, learning: 1, practicing: 2, mastered: 3 };
+    return (order[a.status] - order[b.status]) || (b.wrong - a.wrong) || a.word.localeCompare(b.word);
+  });
 
-  const totalWords = list.length;
+  const masteredCount = list.filter(x => x.status === "mastered").length;
+  const practicingCount = list.filter(x => x.status === "practicing").length;
+  const learningCount = list.filter(x => x.status === "learning").length;
+  const wrongCount = list.filter(x => x.status === "wrong").length;
   const totalCorrect = list.reduce((s, x) => s + x.correct, 0);
   const totalAttempts = list.reduce((s, x) => s + x.total, 0);
   const acc = totalAttempts > 0 ? ((totalCorrect / totalAttempts) * 100).toFixed(1) : "0.0";
-  const weakCount = list.filter(x => x.isWeak).length;
+
+  const statusBadge = (st) => {
+    if (st === "mastered") return `<span style="display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:700; color:#047857; background:rgba(16,185,129,0.12); padding:2px 8px; border-radius:999px;"><span style="width:6px; height:6px; border-radius:50%; background:#10b981;"></span>精通</span>`;
+    if (st === "practicing") return `<span style="display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:700; color:#1d4ed8; background:rgba(59,130,246,0.12); padding:2px 8px; border-radius:999px;"><span style="width:6px; height:6px; border-radius:50%; background:#3b82f6;"></span>練習中</span>`;
+    if (st === "learning") return `<span style="display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:700; color:#6d28d9; background:rgba(139,92,246,0.12); padding:2px 8px; border-radius:999px;"><span style="width:6px; height:6px; border-radius:50%; background:#8b5cf6;"></span>學習中</span>`;
+    return `<span style="display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:700; color:#dc2626; background:rgba(239,68,68,0.12); padding:2px 8px; border-radius:999px;"><span style="width:6px; height:6px; border-radius:50%; background:#ef4444;"></span>答錯</span>`;
+  };
 
   const rowsHtml = list.length === 0
     ? `<tr><td colspan="4" style="text-align:center; padding:24px; color:var(--ink3); font-size:13px;">此日期區間尚無單字作答紀錄</td></tr>`
@@ -1564,10 +1584,7 @@ function _buildCleanWordSummaryHtml(payload, d, sourceMode = "all") {
           <span style="color:var(--bad, #ef4444); font-weight:700;">${x.wrong}✗</span>
         </td>
         <td style="padding:10px 8px; white-space:nowrap;">
-          ${x.isWeak
-            ? `<span style="display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:700; color:#b45309; background:rgba(245,158,11,0.12); padding:2px 8px; border-radius:999px;"><span style="width:6px; height:6px; border-radius:50%; background:#f59e0b;"></span>待加強</span>`
-            : `<span style="display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:700; color:#047857; background:rgba(16,185,129,0.12); padding:2px 8px; border-radius:999px;"><span style="width:6px; height:6px; border-radius:50%; background:#10b981;"></span>已精通</span>`
-          }
+          ${statusBadge(x.status)}
         </td>
       </tr>
     `).join("");
@@ -1580,7 +1597,7 @@ function _buildCleanWordSummaryHtml(payload, d, sourceMode = "all") {
   return `
     <div class="clean-vocab-summary" style="background:var(--card, #fff); border-radius:12px; padding:12px; color:var(--ink, #232A4D);">
       <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; padding-bottom:10px; border-bottom:1px solid var(--line, #E7E9F5); font-size:12.5px; color:var(--ink2, #475569); font-weight:700;">
-        <div>總練習字數 <span style="color:var(--ink, #232A4D); font-weight:800;">${totalWords}</span> &nbsp;·&nbsp; 整體正確率 <span style="color:var(--violet, #6C4CE0); font-weight:800;">${acc}%</span> &nbsp;·&nbsp; 待加強 <span style="color:var(--bad, #ef4444); font-weight:800;">${weakCount}</span></div>
+        <div>精通 <span style="color:#047857; font-weight:800;">${masteredCount}</span> &nbsp;·&nbsp; 練習中 <span style="color:#1d4ed8; font-weight:800;">${practicingCount}</span> &nbsp;·&nbsp; 學習中 <span style="color:#6d28d9; font-weight:800;">${learningCount}</span> &nbsp;·&nbsp; 答錯 <span style="color:#dc2626; font-weight:800;">${wrongCount}</span> &nbsp;·&nbsp; 正確率 <span style="color:var(--violet, #6C4CE0); font-weight:800;">${acc}%</span></div>
         <div style="display:flex; gap:5px; align-items:center;">
           <button type="button" class="clean-source-tab" data-source="all" style="${srcBtnStyle("all")}">全部</button>
           <button type="button" class="clean-source-tab" data-source="task" style="${srcBtnStyle("task")}">指定</button>
