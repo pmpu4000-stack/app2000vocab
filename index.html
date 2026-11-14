@@ -1334,7 +1334,9 @@
             <div style="font-size:13px; font-weight:700; color:var(--ink); margin-bottom:6px;">📋 批次匯入（每行一筆：帳號,密碼,姓名,班級）</div>
             <textarea id="tp-acc-batch" rows="4" placeholder="s70201,1234,王小明,702&#10;s70202,1234,李小華,702" style="width:100%; box-sizing:border-box; padding:8px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--ink); font-family:monospace; margin-bottom:8px;"></textarea>
             <button type="button" onclick="window.tpBatchImportAccounts && window.tpBatchImportAccounts()" style="padding:8px 16px; border-radius:8px; border:none; background:#0ea5e9; color:#fff; font-weight:700; cursor:pointer;">📥 批次匯入帳號</button>
+            <button type="button" onclick="window.tpLoadAccountsList && window.tpLoadAccountsList()" style="padding:8px 16px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--ink); font-weight:700; cursor:pointer; margin-left:6px;">🔄 載入帳號列表</button>
             <div id="tp-acc-status" style="margin-top:8px; font-size:13px; font-weight:600; color:var(--ink);"></div>
+            <div id="tp-acc-list" style="margin-top:10px; max-height:220px; overflow-y:auto;"></div>
           </div>
 
           <!-- 區塊 3: 個別學生區間歷程調閱選單列 -->

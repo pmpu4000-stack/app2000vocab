@@ -12,7 +12,9 @@ import {
   getFirestore,
   doc,
   getDoc,
-  setDoc
+  setDoc,
+  collection,
+  getDocs
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -188,6 +190,14 @@ export async function createAccountInFirebase(username, password, profile = {}) 
   }
 }
 
+export async function listUsersFromFirestore() {
+  try {
+    await ensureAuth();
+    const snap = await getDocs(collection(db, "users"));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch (_) { return []; }
+}
+
 if (typeof window !== "undefined") {
   window.FirebaseDB = Object.assign(window.FirebaseDB || {}, {
     loginWithFirebaseAuth,
@@ -199,6 +209,7 @@ if (typeof window !== "undefined") {
     saveDailyTaskToFirestore,
     getTimeSettingsFromFirestore,
     saveTimeSettingsToFirestore,
-    createAccountInFirebase
+    createAccountInFirebase,
+    listUsersFromFirestore
   });
 }
