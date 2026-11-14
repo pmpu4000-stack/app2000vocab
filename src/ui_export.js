@@ -1543,17 +1543,18 @@ function _buildCleanWordSummaryHtml(payload, d, sourceMode = "all") {
   };
 
   const boxMap = (d && d.box) ? d.box : (typeof box === "function" ? box() : {});
+  const wordsByWord = wordsRef && wordsRef._byWord;
   const list = Array.from(wordMap.values()).map(item => {
     const total = item.correct + item.wrong;
     const isWeak = item.wrong > 0 && item.wrong >= item.correct;
-    const wObj = wordsRef && (wordsRef._byWord ? wordsRef._byWord.get(item.word) : (Array.isArray(wordsRef) ? wordsRef.find(x => x && x.word === item.word) : null));
-    const b = Number((wObj && wObj.id && boxMap[wObj.id]) || boxMap[item.word] || 0);
+    const wObj = wordsByWord ? wordsByWord.get(item.word) : (Array.isArray(wordsRef) ? wordsRef.find(x => x && x.word === item.word) : null);
+    const b = Number((wObj && wObj.id && boxMap[wObj.id]) || boxMap[item.word] || boxMap[item.word.toLowerCase()] || 0);
     let status = "wrong";
     if (b >= 3) status = "mastered";
     else if (b === 2) status = "practicing";
     else if (b === 1 || item.correct > 0) status = "learning";
     if (item.correct === 0 && item.wrong > 0) status = "wrong";
-    return { ...item, total, isWeak, status, zh: getZhDef(item.word) };
+    return { ...item, total, isWeak, status };
   }).sort((a, b) => {
     const order = { wrong: 0, learning: 1, practicing: 2, mastered: 3 };
     return (order[a.status] - order[b.status]) || (b.wrong - a.wrong) || a.word.localeCompare(b.word);
@@ -1594,21 +1595,24 @@ function _buildCleanWordSummaryHtml(payload, d, sourceMode = "all") {
     const isAct = sourceMode === m;
     return `padding:4px 11px; border-radius:999px; border:1px solid ${isAct ? "var(--violet, #6C4CE0)" : "var(--line, #E7E9F5)"}; background:${isAct ? "var(--violet, #6C4CE0)" : "var(--paper, #F6F7FB)"}; color:${isAct ? "#fff" : "var(--ink2, #475569)"}; font-size:12px; font-weight:700; cursor:pointer;`;
   };
-  const pillStyle = (color, bg) => `display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:999px; border:1px solid transparent; background:${bg}; color:${color}; font-size:12px; font-weight:700; cursor:pointer; transition:all 0.15s;`;
+  const segBtn = (st, label, count, color) => {
+    const isZero = st !== "all" && count === 0;
+    const isAct = st === "all";
+    const base = "flex:1 1 auto; min-width:fit-content; padding:7px 10px; border-radius:9px; border:none; font-size:12.5px; font-weight:700; transition:all 0.15s; text-align:center; white-space:nowrap;";
+    const actStyle = isAct ? `background:var(--card, #fff); color:${color}; box-shadow:0 2px 6px rgba(15,23,42,0.08);` : `background:transparent; color:${isZero ? "var(--ink3, #94a3b8)" : "var(--ink2, #475569)"}; opacity:${isZero ? "0.45" : "1"};`;
+    return `<button type="button" class="clean-status-pill${isAct ? " active" : ""}" data-status="${st}" data-color="${color}" ${isZero ? "disabled" : ""} style="${base} ${actStyle} cursor:${isZero ? "not-allowed" : "pointer"};">${label} <span style="font-weight:600; opacity:0.85;">(${count})</span></button>`;
+  };
 
   return `
     <div class="clean-vocab-summary" style="background:var(--card, #fff); border-radius:12px; padding:12px; color:var(--ink, #232A4D);">
-      <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; padding-bottom:10px; border-bottom:1px solid var(--line, #E7E9F5);">
-        <div style="display:flex; flex-wrap:wrap; align-items:center; gap:6px;">
-          <button type="button" class="clean-status-pill active" data-status="all" style="${pillStyle("#fff", "var(--violet, #6C4CE0)")}">全部 ${list.length}</button>
-          <button type="button" class="clean-status-pill" data-status="wrong" style="${pillStyle("#dc2626", "rgba(239,68,68,0.1)")}">待加強 ${wrongCount}</button>
-          <button type="button" class="clean-status-pill" data-status="learning" style="${pillStyle("#6d28d9", "rgba(139,92,246,0.1)")}">學習中 ${learningCount}</button>
-          <button type="button" class="clean-status-pill" data-status="practicing" style="${pillStyle("#1d4ed8", "rgba(59,130,246,0.1)")}">練習中 ${practicingCount}</button>
-          <button type="button" class="clean-status-pill" data-status="mastered" style="${pillStyle("#047857", "rgba(16,185,129,0.1)")}">精通 ${masteredCount}</button>
-          <span style="font-size:12px; color:var(--ink3, #64748b); font-weight:700; margin-left:4px;">正確率 <b style="color:var(--violet, #6C4CE0);">${acc}%</b></span>
-        </div>
+      <div style="display:flex; flex-wrap:wrap; align-items:center; gap:4px; padding:4px; border-radius:12px; background:var(--paper, #F1F5F9); border:1px solid var(--line, #E2E8F0); margin-bottom:10px;">
+        ${segBtn("all", "全部", list.length, "var(--violet, #6C4CE0)")}
+        ${segBtn("wrong", "待加強", wrongCount, "#dc2626")}
+        ${segBtn("learning", "學習中", learningCount, "#6366f1")}
+        ${segBtn("practicing", "練習中", practicingCount, "#0284c7")}
+        ${segBtn("mastered", "精通", masteredCount, "#059669")}
       </div>
-      <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; margin:10px 0;">
+      <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; margin:0 0 10px;">
         <input type="search" id="clean-vocab-search" placeholder="搜尋單字..." style="flex:1; min-width:160px; padding:6px 10px; border:1px solid var(--line, #E7E9F5); border-radius:8px; font-size:12.5px; background:var(--paper, #F6F7FB); color:var(--ink, #232A4D); outline:none;" />
         <div style="display:flex; gap:5px; align-items:center;">
           <button type="button" class="clean-source-tab" data-source="all" style="${srcBtnStyle("all")}">全部來源</button>
@@ -1660,11 +1664,14 @@ function _buildCleanWordSummaryHtml(payload, d, sourceMode = "all") {
           if (searchEl) searchEl.oninput = applyFilter;
           statusPills.forEach(btn => {
             btn.onclick = () => {
+              if (btn.disabled) return;
               activeStatus = btn.getAttribute("data-status") || "all";
               statusPills.forEach(b => {
                 const isAct = b === btn;
-                b.style.boxShadow = isAct ? "0 0 0 2px var(--violet, #6C4CE0)" : "none";
-                b.style.transform = isAct ? "scale(1.03)" : "none";
+                const col = b.getAttribute("data-color") || "var(--violet, #6C4CE0)";
+                b.style.background = isAct ? "var(--card, #fff)" : "transparent";
+                b.style.color = isAct ? col : (b.disabled ? "var(--ink3, #94a3b8)" : "var(--ink2, #475569)");
+                b.style.boxShadow = isAct ? "0 2px 6px rgba(15,23,42,0.08)" : "none";
               });
               applyFilter();
             };
