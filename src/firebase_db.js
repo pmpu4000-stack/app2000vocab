@@ -30,7 +30,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 const auth = getAuth(app);
-let _authReady = null;
 export async function loginWithFirebaseAuth(username, password) {
   const u = String(username || "").trim().toLowerCase();
   if (!u || !password) return null;
