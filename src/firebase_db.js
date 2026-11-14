@@ -41,7 +41,11 @@ export async function loginWithFirebaseAuth(username, password) {
       try {
         const cred = await createUserWithEmailAndPassword(auth, email, pwd);
         return cred.user;
-      } catch (_) {}
+      } catch (e2) {
+        console.warn("[FirebaseAuth] createUser error:", e2?.code, e2?.message);
+      }
+    } else {
+      console.warn("[FirebaseAuth] signIn error:", e?.code, e?.message);
     }
     return null;
   }
