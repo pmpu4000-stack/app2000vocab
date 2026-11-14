@@ -1353,9 +1353,9 @@ if (typeof window !== "undefined" && typeof document !== "undefined") {
         let lastError = null;
         const loginPassPayload = await sha256HexClient(pass);
 
-        // 🚀 業界最高標準 SWR (Stale-While-Revalidate)：本機秒開快照
+        // 停用舊版 SWR 離線快照秒進，直接走即時雲端與 Firebase Auth 驗證
         let optimisticLoaded = false;
-        try {
+        if (false) {
           const cachedSnapRaw = localStorage.getItem("swr_user_snapshot_" + user.toLowerCase());
           if (cachedSnapRaw) {
             const cachedSnap = JSON.parse(cachedSnapRaw);
