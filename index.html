@@ -1336,7 +1336,19 @@
             <button type="button" onclick="window.tpBatchImportAccounts && window.tpBatchImportAccounts()" style="padding:8px 16px; border-radius:8px; border:none; background:#0ea5e9; color:#fff; font-weight:700; cursor:pointer;">📥 批次匯入帳號</button>
             <button type="button" onclick="window.tpLoadAccountsList && window.tpLoadAccountsList()" style="padding:8px 16px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--ink); font-weight:700; cursor:pointer; margin-left:6px;">🔄 載入帳號列表</button>
             <div id="tp-acc-status" style="margin-top:8px; font-size:13px; font-weight:600; color:var(--ink);"></div>
-            <div id="tp-acc-list" style="margin-top:10px; max-height:220px; overflow-y:auto;"></div>
+            <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-top:10px;">
+              <select id="tp-acc-filter-role" onchange="window.tpRenderAccountsList && window.tpRenderAccountsList()" style="padding:6px 8px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--ink); font-size:13px;">
+                <option value="all">全部身分</option>
+                <option value="teacher">👩‍🏫 教師/管理員</option>
+                <option value="parent">👨‍👩‍👧 家長</option>
+                <option value="student">🎓 學生</option>
+              </select>
+              <select id="tp-acc-filter-class" onchange="window.tpRenderAccountsList && window.tpRenderAccountsList()" style="padding:6px 8px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--ink); font-size:13px;">
+                <option value="all">全部班級</option>
+              </select>
+              <input id="tp-acc-search" type="text" oninput="window.tpRenderAccountsList && window.tpRenderAccountsList()" placeholder="🔍 搜尋帳號或姓名..." style="flex:1; min-width:120px; padding:6px 10px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--ink); font-size:13px;">
+            </div>
+            <div id="tp-acc-list" style="margin-top:8px; max-height:240px; overflow-y:auto;"></div>
           </div>
 
           <!-- 區塊 3: 個別學生區間歷程調閱選單列 -->

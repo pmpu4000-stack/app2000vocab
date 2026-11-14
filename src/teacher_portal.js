@@ -2338,38 +2338,45 @@
     if (statusEl) statusEl.textContent = `✅ 匯入完成：成功 ${okCount} 筆，失敗 ${failCount} 筆`;
   };
 
-  window.tpLoadAccountsList = async function() {
+  let _tpCachedAccounts = [];
+  window.tpRenderAccountsList = function() {
     const listEl = document.getElementById("tp-acc-list");
     if (!listEl) return;
-    listEl.innerHTML = "<div style='font-size:13px; opacity:0.7;'>載入中...</div>";
-    const fb = window.FirebaseDB || await import("./firebase_db.js");
-    const users = await (fb?.listUsersFromFirestore?.() || Promise.resolve([]));
-    if (!users.length) { listEl.innerHTML = "<div style='font-size:13px; opacity:0.7;'>目前尚無帳號資料</div>"; return; }
-    const renderRow = u => {
+    const roleFilter = document.getElementById("tp-acc-filter-role")?.value || "all";
+    const classFilter = document.getElementById("tp-acc-filter-class")?.value || "all";
+    const kw = (document.getElementById("tp-acc-search")?.value || "").trim().toLowerCase();
+    const filtered = _tpCachedAccounts.filter(u => {
+      const r = u.role || "student";
+      const matchRole = roleFilter === "all" || (roleFilter === "teacher" ? (r === "teacher" || r === "admin") : r === roleFilter);
+      const matchClass = classFilter === "all" || (u.className || "未分班") === classFilter;
+      const matchKw = !kw || (u.username || u.id || "").toLowerCase().includes(kw) || (u.realName || "").toLowerCase().includes(kw);
+      return matchRole && matchClass && matchKw;
+    });
+    if (!filtered.length) { listEl.innerHTML = "<div style='font-size:13px; opacity:0.7; padding:8px;'>無符合條件的帳號</div>"; return; }
+    listEl.innerHTML = filtered.map(u => {
       const id = u.username || u.id || "";
       const role = u.role || "student";
       const name = u.realName || id;
       const cls = u.className || "";
       return `<div style="display:flex; justify-content:space-between; align-items:center; padding:6px 10px; border-bottom:1px solid var(--line); font-size:13px;">
-        <span><b>${id}</b> — ${name} ${cls ? `[${cls}]` : ""}</span>
+        <span><b>${id}</b> (${role}) — ${name} ${cls ? `[${cls}]` : ""}</span>
         <button type="button" onclick="document.getElementById('tp-acc-user').value='${id}';document.getElementById('tp-acc-role').value='${role}';document.getElementById('tp-acc-name').value='${name}';document.getElementById('tp-acc-class').value='${cls}';document.getElementById('tp-acc-pass').value='';" style="padding:4px 10px; border-radius:6px; border:1px solid var(--line); background:var(--card); color:var(--ink); cursor:pointer;">✏️ 編輯</button>
       </div>`;
-    };
-    const teachers = users.filter(u => u.role === "teacher" || u.role === "admin");
-    const parents = users.filter(u => u.role === "parent");
-    const students = users.filter(u => !u.role || u.role === "student");
-    const byClass = {};
-    students.forEach(s => {
-      const c = s.className || "未分班";
-      (byClass[c] = byClass[c] || []).push(s);
-    });
-    let html = "";
-    if (teachers.length) html += `<div style="font-weight:800; margin:8px 0 4px;">👩‍🏫 教師／管理員 (${teachers.length})</div>` + teachers.map(renderRow).join("");
-    if (parents.length) html += `<div style="font-weight:800; margin:10px 0 4px;">👨‍👩‍👧 家長帳號 (${parents.length})</div>` + parents.map(renderRow).join("");
-    Object.keys(byClass).sort().forEach(cls => {
-      html += `<div style="font-weight:800; margin:10px 0 4px;">🎓 ${cls} 班學生 (${byClass[cls].length})</div>` + byClass[cls].map(renderRow).join("");
-    });
-    listEl.innerHTML = html;
+    }).join("");
+  };
+
+  window.tpLoadAccountsList = async function() {
+    const listEl = document.getElementById("tp-acc-list");
+    if (!listEl) return;
+    listEl.innerHTML = "<div style='font-size:13px; opacity:0.7;'>載入中...</div>";
+    const fb = window.FirebaseDB || await import("./firebase_db.js");
+    _tpCachedAccounts = await (fb?.listUsersFromFirestore?.() || Promise.resolve([]));
+    const clsSel = document.getElementById("tp-acc-filter-class");
+    if (clsSel) {
+      const classes = [...new Set(_tpCachedAccounts.map(u => u.className || "未分班"))].sort();
+      clsSel.innerHTML = `<option value="all">全部班級</option>` + classes.map(c => `<option value="${c}">${c}</option>`).join("");
+    }
+    window.tpRenderAccountsList();
   };
   window.initTimeManagementEvents = initTimeManagementEvents;
 
