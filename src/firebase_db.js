@@ -4,9 +4,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 import {
-  initializeFirestore,
-  persistentLocalCache,
-  persistentMultipleTabManager,
+  getFirestore,
   doc,
   getDoc,
   setDoc
@@ -23,9 +21,7 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-export const db = initializeFirestore(app, {
-  localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
-});
+export const db = getFirestore(app);
 const auth = getAuth(app);
 let _authReady = null;
 function ensureAuth() {
