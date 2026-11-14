@@ -1593,7 +1593,7 @@ function _buildCleanWordSummaryHtml(payload, d, sourceMode = "all") {
 
   const srcBtnStyle = (m) => {
     const isAct = sourceMode === m;
-    return `padding:4px 11px; border-radius:999px; border:1px solid ${isAct ? "var(--violet, #6C4CE0)" : "var(--line, #E7E9F5)"}; background:${isAct ? "var(--violet, #6C4CE0)" : "var(--paper, #F6F7FB)"}; color:${isAct ? "#fff" : "var(--ink2, #475569)"}; font-size:12px; font-weight:700; cursor:pointer;`;
+    return `padding:5px 11px; border-radius:8px; border:none; background:${isAct ? "var(--card, #fff)" : "transparent"}; color:${isAct ? "var(--violet, #6C4CE0)" : "var(--ink2, #475569)"}; box-shadow:${isAct ? "0 1px 4px rgba(15,23,42,0.08)" : "none"}; font-size:12px; font-weight:700; cursor:pointer; transition:all 0.15s; white-space:nowrap;`;
   };
   const segBtn = (st, label, count, color) => {
     const isZero = st !== "all" && count === 0;
@@ -1614,7 +1614,7 @@ function _buildCleanWordSummaryHtml(payload, d, sourceMode = "all") {
       </div>
       <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; margin:0 0 10px;">
         <input type="search" id="clean-vocab-search" placeholder="搜尋單字..." style="flex:1; min-width:160px; padding:6px 10px; border:1px solid var(--line, #E7E9F5); border-radius:8px; font-size:12.5px; background:var(--paper, #F6F7FB); color:var(--ink, #232A4D); outline:none;" />
-        <div style="display:flex; gap:5px; align-items:center;">
+        <div style="display:flex; gap:3px; align-items:center; padding:3px; border-radius:10px; background:var(--paper, #F1F5F9); border:1px solid var(--line, #E2E8F0);">
           <button type="button" class="clean-source-tab" data-source="all" style="${srcBtnStyle("all")}">全部來源</button>
           <button type="button" class="clean-source-tab" data-source="task" style="${srcBtnStyle("task")}">指定</button>
           <button type="button" class="clean-source-tab" data-source="free" style="${srcBtnStyle("free")}">自由</button>
