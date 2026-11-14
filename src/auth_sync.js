@@ -1125,12 +1125,15 @@ if (typeof window !== "undefined" && typeof document !== "undefined") {
       }
       sessionStorage.setItem("current_pass", hashedPass);
       localStorage.removeItem("current_pass");
+      try {
+        const m = await import("./firebase_db.js");
+        if (m && m.loginWithFirebaseAuth) await m.loginWithFirebaseAuth(u, p);
+      } catch (_) {}
       if (result.sessionToken) {
         localStorage.setItem("session_token", result.sessionToken);
         try {
           const m = await import("./firebase_db.js");
           if (m) {
-            if (m.loginWithFirebaseAuth) await m.loginWithFirebaseAuth(u, p);
             if (m.loadStudentFromFirestore) {
               const fbDoc = await m.loadStudentFromFirestore(u);
               if (fbDoc && fbDoc.records && typeof fbDoc.records === "object") {
