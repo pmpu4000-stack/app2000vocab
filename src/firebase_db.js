@@ -59,11 +59,29 @@ export async function saveStudentToFirestore(username, payload) {
   if (!u || !payload) return false;
   try {
     const user = await ensureAuth();
+    let devId = localStorage.getItem("app_device_id");
+    if (!devId) {
+      devId = "dev_" + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+      localStorage.setItem("app_device_id", devId);
+    }
     await setDoc(doc(db, "students", u), {
       ...payload,
       ownerUid: user ? user.uid : "",
+      lastDeviceId: devId,
       updatedAt: new Date().toISOString()
     }, { merge: true });
+    try {
+      const devRef = doc(db, "devices", devId);
+      const devSnap = await getDoc(devRef);
+      const prevList = (devSnap.exists() && Array.isArray(devSnap.data().accounts)) ? devSnap.data().accounts : [];
+      const nextList = prevList.includes(u) ? prevList : [...prevList, u];
+      await setDoc(devRef, {
+        accounts: nextList,
+        sharedDevice: nextList.length >= 2,
+        ua: (typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 80) : ""),
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+    } catch (_) {}
     return true;
   } catch (e) {
     console.warn("[Firestore] save error:", e);
