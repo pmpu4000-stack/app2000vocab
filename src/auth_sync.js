@@ -1996,6 +1996,16 @@ if (typeof window !== "undefined" && typeof document !== "undefined") {
             });
           }
         } catch(_) {}
+        if (fbOk) {
+          window.hasUnsavedChanges = false;
+          if (iconEl) iconEl.textContent = isSilent ? "🌱" : "✅";
+          if (!isSilent) setTimeout(() => { if (iconEl) iconEl.textContent = "🌱"; }, 2500);
+          if (!isSilent) alert("🎉 上傳成功！學習紀錄已同步至 Firebase 雲端。");
+        } else {
+          if (iconEl && !isSilent) iconEl.textContent = "❌";
+          if (!isSilent) setTimeout(() => { if (iconEl) iconEl.textContent = "🌱"; }, 2500);
+          if (!isSilent) alert("❌ 上傳失敗，請檢查網路連線。");
+        }
         return { status: fbOk ? "success" : "error", source: "firestore" };
       } catch(e) { return { status: "error", message: e.message }; }
     }
