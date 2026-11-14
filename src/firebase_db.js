@@ -4,7 +4,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
 import {
   getAuth,
-  signInAnonymously,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
@@ -49,14 +48,7 @@ export async function loginWithFirebaseAuth(username, password) {
 }
 
 function ensureAuth() {
-  if (auth.currentUser) return Promise.resolve(auth.currentUser);
-  if (!_authReady) {
-    _authReady = Promise.race([
-      signInAnonymously(auth).catch(() => null),
-      new Promise(r => setTimeout(() => r(null), 2500))
-    ]);
-  }
-  return _authReady;
+  return Promise.resolve(auth.currentUser || null);
 }
 
 /**
