@@ -284,6 +284,12 @@
     if (session && session.style.display !== "none") session.style.display = "none";
 
     const limitCard = document.getElementById("daily-limit-reached-card");
+    try {
+      const stageEl = document.getElementById("stage");
+      if (stageEl && !stageEl.children.length && typeof window.__triggerNewRound === "function") {
+        window.__triggerNewRound();
+      }
+    } catch (_) {}
     if (limitCard && limitCard.style.display !== "block") limitCard.style.display = "block";
 
     // 今日練習時間已結束：一併隱藏 LEVEL 1~5 關卡小方塊，留下乾淨清爽的畫面
@@ -327,6 +333,12 @@
     }
 
     const limitCard = document.getElementById("daily-limit-reached-card");
+    try {
+      const stageEl = document.getElementById("stage");
+      if (stageEl && !stageEl.children.length && typeof window.__triggerNewRound === "function") {
+        window.__triggerNewRound();
+      }
+    } catch (_) {}
     if (limitCard) {
       limitCard.style.display = "block";
       const minText = document.getElementById("limit-minutes-display-text");
@@ -373,6 +385,12 @@
     } catch (_) {}
 
     const limitCard = document.getElementById("daily-limit-reached-card");
+    try {
+      const stageEl = document.getElementById("stage");
+      if (stageEl && !stageEl.children.length && typeof window.__triggerNewRound === "function") {
+        window.__triggerNewRound();
+      }
+    } catch (_) {}
     if (limitCard) limitCard.style.display = "none";
 
     const card = document.getElementById("card");
