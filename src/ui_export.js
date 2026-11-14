@@ -1543,12 +1543,18 @@ function _buildCleanWordSummaryHtml(payload, d, sourceMode = "all") {
   };
 
   const boxMap = (d && d.box) ? d.box : (typeof box === "function" ? box() : {});
-  const wordsByWord = wordsRef && wordsRef._byWord;
+  const wordToId = new Map();
+  if (Array.isArray(wordsRef)) {
+    for (let i = 0; i < wordsRef.length; i++) {
+      const w = wordsRef[i];
+      if (w && w.word && w.id) wordToId.set(String(w.word).trim().toLowerCase(), w.id);
+    }
+  }
   const list = Array.from(wordMap.values()).map(item => {
     const total = item.correct + item.wrong;
     const isWeak = item.wrong > 0 && item.wrong >= item.correct;
-    const wObj = wordsByWord ? wordsByWord.get(item.word) : (Array.isArray(wordsRef) ? wordsRef.find(x => x && x.word === item.word) : null);
-    const b = Number((wObj && wObj.id && boxMap[wObj.id]) || boxMap[item.word] || boxMap[item.word.toLowerCase()] || 0);
+    const wId = wordToId.get(item.word) || (wordsRef && wordsRef._byWord && wordsRef._byWord.get(item.word)?.id);
+    const b = Number((wId && boxMap[wId]) || boxMap[item.word] || 0);
     let status = "wrong";
     if (b >= 3) status = "mastered";
     else if (b === 2) status = "practicing";
