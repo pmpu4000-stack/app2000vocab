@@ -2,7 +2,7 @@
 // ui_export.js — 底部作答歷程紀錄匯出下載模組 (Excel / PDF / A4 報表)
 // =====================================================================
 import { escapeHtml } from "./wordbank.js";
-import { normalizeDateStr, formatDateYMD, box, stat as storeStat } from "./store.js";
+import { normalizeDateStr, formatDateYMD, box } from "./store.js";
 import { levelColor, levelName } from "./levels.js";
 import { diagnoseWordMistake } from "./diagnostics.js";
 import { getBiweeklyFailedFinalBossWords } from "./ui_weak_words.js";
@@ -1516,7 +1516,7 @@ function _buildCleanWordSummaryHtml(payload, d, sourceMode = "all") {
     });
   }
 
-  const statObj = (d && d.stat) ? d.stat : (typeof storeStat === "function" ? storeStat() : null);
+  const statObj = (d && d.stat) ? d.stat : (typeof window !== "undefined" && window.DB && window.DB.stat) ? window.DB.stat : null;
   if (sourceMode === "all" && statObj && typeof statObj === "object") {
     Object.keys(statObj).forEach(k => {
       const st = statObj[k];
