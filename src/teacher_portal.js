@@ -2317,7 +2317,8 @@
     const className = document.getElementById("tp-acc-class")?.value.trim() || "";
     if (!user) { if (statusEl) statusEl.textContent = "❌ 請輸入帳號"; return; }
     if (statusEl) statusEl.textContent = "⏳ 處理中...";
-    const res = await window.FirebaseDB?.createAccountInFirebase?.(user, pass, { role, realName, className });
+    const fb = window.FirebaseDB || await import("./firebase_db.js");
+    const res = await fb?.createAccountInFirebase?.(user, pass, { role, realName, className });
     if (statusEl) statusEl.textContent = res?.ok ? `✅ 已儲存帳號設定：${user} (${role})` : `❌ 失敗：${res?.error || "未知錯誤"}`;
   };
 
@@ -2341,7 +2342,8 @@
     const listEl = document.getElementById("tp-acc-list");
     if (!listEl) return;
     listEl.innerHTML = "<div style='font-size:13px; opacity:0.7;'>載入中...</div>";
-    const users = await (window.FirebaseDB?.listUsersFromFirestore?.() || Promise.resolve([]));
+    const fb = window.FirebaseDB || await import("./firebase_db.js");
+    const users = await (fb?.listUsersFromFirestore?.() || Promise.resolve([]));
     if (!users.length) { listEl.innerHTML = "<div style='font-size:13px; opacity:0.7;'>目前尚無帳號資料</div>"; return; }
     listEl.innerHTML = users.map(u => {
       const id = u.username || u.id || "";
