@@ -2103,7 +2103,7 @@
     }
 
     window.switchTeacherTab = function(tabName) {
-      const tabs = ["task", "time", "student", "class"];
+      const tabs = ["task", "time", "student", "class", "accounts"];
       tabs.forEach(t => {
         const nav = document.getElementById("tp-nav-" + t);
         const panel = document.getElementById("tp-panel-" + t);
