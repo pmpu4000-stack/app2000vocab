@@ -51,7 +51,10 @@ export async function loginWithFirebaseAuth(username, password) {
 function ensureAuth() {
   if (auth.currentUser) return Promise.resolve(auth.currentUser);
   if (!_authReady) {
-    _authReady = signInAnonymously(auth).catch(() => null);
+    _authReady = Promise.race([
+      signInAnonymously(auth).catch(() => null),
+      new Promise(r => setTimeout(() => r(null), 2500))
+    ]);
   }
   return _authReady;
 }
