@@ -58,9 +58,10 @@ export async function saveStudentToFirestore(username, payload) {
   const u = String(username || "").trim().toLowerCase();
   if (!u || !payload) return false;
   try {
-    await ensureAuth();
+    const user = await ensureAuth();
     await setDoc(doc(db, "students", u), {
       ...payload,
+      ownerUid: user ? user.uid : "",
       updatedAt: new Date().toISOString()
     }, { merge: true });
     return true;
