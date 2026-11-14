@@ -1577,7 +1577,7 @@ function _buildCleanWordSummaryHtml(payload, d, sourceMode = "all") {
   const rowsHtml = list.length === 0
     ? `<tr><td colspan="3" style="text-align:center; padding:24px; color:var(--ink3); font-size:13px;">此日期區間尚無單字作答紀錄</td></tr>`
     : list.map(x => `
-      <tr class="clean-vocab-row" data-word="${escapeHtml(x.word)}" data-weak="${x.isWeak ? '1' : '0'}" style="border-bottom:1px solid var(--line, #E7E9F5);">
+      <tr class="clean-vocab-row" data-word="${escapeHtml(x.word)}" data-status="${x.status}" style="border-bottom:1px solid var(--line, #E7E9F5);">
         <td style="padding:10px 8px; font-weight:700; color:var(--ink, #232A4D); font-size:13.5px;">${escapeHtml(x.word)}</td>
         <td style="padding:10px 8px; font-variant-numeric:tabular-nums; font-size:13px; white-space:nowrap;">
           <span style="color:var(--good, #10b981); font-weight:700;">${x.correct}</span>
@@ -1592,25 +1592,28 @@ function _buildCleanWordSummaryHtml(payload, d, sourceMode = "all") {
 
   const srcBtnStyle = (m) => {
     const isAct = sourceMode === m;
-    return `padding:3px 10px; border-radius:999px; border:1px solid ${isAct ? "var(--violet, #6C4CE0)" : "var(--line, #E7E9F5)"}; background:${isAct ? "var(--violet, #6C4CE0)" : "var(--paper, #F6F7FB)"}; color:${isAct ? "#fff" : "var(--ink2, #475569)"}; font-size:11.5px; font-weight:700; cursor:pointer;`;
+    return `padding:4px 11px; border-radius:999px; border:1px solid ${isAct ? "var(--violet, #6C4CE0)" : "var(--line, #E7E9F5)"}; background:${isAct ? "var(--violet, #6C4CE0)" : "var(--paper, #F6F7FB)"}; color:${isAct ? "#fff" : "var(--ink2, #475569)"}; font-size:12px; font-weight:700; cursor:pointer;`;
   };
+  const pillStyle = (color, bg) => `display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:999px; border:1px solid transparent; background:${bg}; color:${color}; font-size:12px; font-weight:700; cursor:pointer; transition:all 0.15s;`;
 
   return `
     <div class="clean-vocab-summary" style="background:var(--card, #fff); border-radius:12px; padding:12px; color:var(--ink, #232A4D);">
-      <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; padding-bottom:10px; border-bottom:1px solid var(--line, #E7E9F5); font-size:12.5px; color:var(--ink2, #475569); font-weight:700;">
-        <div>精通 <span style="color:#047857; font-weight:800;">${masteredCount}</span> &nbsp;·&nbsp; 練習中 <span style="color:#1d4ed8; font-weight:800;">${practicingCount}</span> &nbsp;·&nbsp; 學習中 <span style="color:#6d28d9; font-weight:800;">${learningCount}</span> &nbsp;·&nbsp; 待加強 <span style="color:#dc2626; font-weight:800;">${wrongCount}</span> &nbsp;·&nbsp; 正確率 <span style="color:var(--violet, #6C4CE0); font-weight:800;">${acc}%</span></div>
-        <div style="display:flex; gap:5px; align-items:center;">
-          <button type="button" class="clean-source-tab" data-source="all" style="${srcBtnStyle("all")}">全部</button>
-          <button type="button" class="clean-source-tab" data-source="task" style="${srcBtnStyle("task")}">指定</button>
-          <button type="button" class="clean-source-tab" data-source="free" style="${srcBtnStyle("free")}">自由</button>
+      <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; padding-bottom:10px; border-bottom:1px solid var(--line, #E7E9F5);">
+        <div style="display:flex; flex-wrap:wrap; align-items:center; gap:6px;">
+          <button type="button" class="clean-status-pill active" data-status="all" style="${pillStyle("#fff", "var(--violet, #6C4CE0)")}">全部 ${list.length}</button>
+          <button type="button" class="clean-status-pill" data-status="wrong" style="${pillStyle("#dc2626", "rgba(239,68,68,0.1)")}">待加強 ${wrongCount}</button>
+          <button type="button" class="clean-status-pill" data-status="learning" style="${pillStyle("#6d28d9", "rgba(139,92,246,0.1)")}">學習中 ${learningCount}</button>
+          <button type="button" class="clean-status-pill" data-status="practicing" style="${pillStyle("#1d4ed8", "rgba(59,130,246,0.1)")}">練習中 ${practicingCount}</button>
+          <button type="button" class="clean-status-pill" data-status="mastered" style="${pillStyle("#047857", "rgba(16,185,129,0.1)")}">精通 ${masteredCount}</button>
+          <span style="font-size:12px; color:var(--ink3, #64748b); font-weight:700; margin-left:4px;">正確率 <b style="color:var(--violet, #6C4CE0);">${acc}%</b></span>
         </div>
       </div>
       <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; margin:10px 0;">
         <input type="search" id="clean-vocab-search" placeholder="搜尋單字..." style="flex:1; min-width:160px; padding:6px 10px; border:1px solid var(--line, #E7E9F5); border-radius:8px; font-size:12.5px; background:var(--paper, #F6F7FB); color:var(--ink, #232A4D); outline:none;" />
-        <div style="display:flex; gap:6px;">
-          <button type="button" class="clean-vocab-tab active" data-filter="all" style="padding:5px 12px; border-radius:999px; border:1px solid var(--violet, #6C4CE0); background:var(--violet, #6C4CE0); color:#fff; font-size:12px; font-weight:700; cursor:pointer;">全部</button>
-          <button type="button" class="clean-vocab-tab" data-filter="correct" style="padding:5px 12px; border-radius:999px; border:1px solid var(--line, #E7E9F5); background:var(--paper, #F6F7FB); color:var(--ink2, #475569); font-size:12px; font-weight:700; cursor:pointer;">答對</button>
-          <button type="button" class="clean-vocab-tab" data-filter="weak" style="padding:5px 12px; border-radius:999px; border:1px solid var(--line, #E7E9F5); background:var(--paper, #F6F7FB); color:var(--ink2, #475569); font-size:12px; font-weight:700; cursor:pointer;">待加強</button>
+        <div style="display:flex; gap:5px; align-items:center;">
+          <button type="button" class="clean-source-tab" data-source="all" style="${srcBtnStyle("all")}">全部來源</button>
+          <button type="button" class="clean-source-tab" data-source="task" style="${srcBtnStyle("task")}">指定</button>
+          <button type="button" class="clean-source-tab" data-source="free" style="${srcBtnStyle("free")}">自由</button>
         </div>
       </div>
       <div style="overflow-x:auto;">
@@ -1641,28 +1644,27 @@ function _buildCleanWordSummaryHtml(payload, d, sourceMode = "all") {
         const renderCleanPreview = () => {
           previewBody.innerHTML = _buildCleanWordSummaryHtml(payload, d, currentSourceMode);
           const searchEl = previewBody.querySelector("#clean-vocab-search");
-          const tabs = previewBody.querySelectorAll(".clean-vocab-tab");
+          const statusPills = previewBody.querySelectorAll(".clean-status-pill");
           const sourceTabs = previewBody.querySelectorAll(".clean-source-tab");
-          let activeFilter = "all";
+          let activeStatus = "all";
           const applyFilter = () => {
             const q = (searchEl ? searchEl.value : "").trim().toLowerCase();
             previewBody.querySelectorAll(".clean-vocab-row").forEach(tr => {
               const matchQ = !q || tr.textContent.toLowerCase().includes(q);
-              const isWeak = tr.getAttribute("data-weak") === "1";
-              const matchF = activeFilter === "all" ? true : (activeFilter === "weak" ? isWeak : !isWeak);
+              const st = tr.getAttribute("data-status") || "";
+              const matchF = activeStatus === "all" || st === activeStatus;
               tr.style.display = (matchQ && matchF) ? "" : "none";
             });
           };
           applyFilter();
           if (searchEl) searchEl.oninput = applyFilter;
-          tabs.forEach(btn => {
+          statusPills.forEach(btn => {
             btn.onclick = () => {
-              activeFilter = btn.getAttribute("data-filter") || "all";
-              tabs.forEach(b => {
+              activeStatus = btn.getAttribute("data-status") || "all";
+              statusPills.forEach(b => {
                 const isAct = b === btn;
-                b.style.background = isAct ? "var(--violet, #6C4CE0)" : "var(--paper, #F6F7FB)";
-                b.style.color = isAct ? "#fff" : "var(--ink2, #475569)";
-                b.style.borderColor = isAct ? "var(--violet, #6C4CE0)" : "var(--line, #E7E9F5)";
+                b.style.boxShadow = isAct ? "0 0 0 2px var(--violet, #6C4CE0)" : "none";
+                b.style.transform = isAct ? "scale(1.03)" : "none";
               });
               applyFilter();
             };
