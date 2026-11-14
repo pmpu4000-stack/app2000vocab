@@ -2,7 +2,12 @@
 // firebase_db.js — Cloud Firestore 高速單一真實資料源模組
 // =====================================================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import {
+  getAuth,
+  signInAnonymously,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword
+} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 import {
   getFirestore,
   doc,
@@ -24,6 +29,25 @@ const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 const auth = getAuth(app);
 let _authReady = null;
+export async function loginWithFirebaseAuth(username, password) {
+  const u = String(username || "").trim().toLowerCase();
+  if (!u || !password) return null;
+  const email = `${u}@vocab.app`;
+  const pwd = String(password).length < 6 ? `${password}_v26app` : String(password);
+  try {
+    const cred = await signInWithEmailAndPassword(auth, email, pwd);
+    return cred.user;
+  } catch (e) {
+    if (e && (e.code === "auth/user-not-found" || e.code === "auth/invalid-credential")) {
+      try {
+        const cred = await createUserWithEmailAndPassword(auth, email, pwd);
+        return cred.user;
+      } catch (_) {}
+    }
+    return null;
+  }
+}
+
 function ensureAuth() {
   if (auth.currentUser) return Promise.resolve(auth.currentUser);
   if (!_authReady) {
