@@ -3179,3 +3179,59 @@ function applyCentralPortfolioStyleUi() {
   applyCentralPortfolioHeaderStyle_(s);
   ui.alert("🎨 美化完成", "✅【學生歷程總庫】表頭欄位名稱與顏色安排已完美比照使用者分頁！", ui.ButtonSet.OK);
 }
+
+/**
+ * 一次性標準化轉換【學生歷程總庫】所有紀錄的完整JSON：
+ * 1. 日期鍵值統一為 YYYY-MM-DD
+ * 2. 確保 dailyPractice / history / stat 結構乾淨一致
+ */
+function normalizeAllStudentPortfolios() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const s = getCentralPortfolioSheet(ss, false);
+  if (!s) return { ok: false, msg: "找不到學生歷程總庫" };
+  const lastRow = s.getLastRow();
+  if (lastRow < 2) return { ok: true, updated: 0 };
+
+  const normDate = (d) => {
+    const m = String(d || "").trim().split(/[T\s]/)[0].replace(/\//g, "-").match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+    return m ? `${m[1]}-${m[2].padStart(2, "0")}-${m[3].padStart(2, "0")}` : "";
+  };
+
+  const range = s.getRange(2, 3, lastRow - 1, 1);
+  const vals = range.getValues();
+  let updated = 0;
+  for (let i = 0; i < vals.length; i++) {
+    const raw = vals[i][0];
+    if (!raw || typeof raw !== "string" || raw[0] !== "{") continue;
+    try {
+      const obj = JSON.parse(raw);
+      let changed = false;
+      if (obj.dailyPractice && typeof obj.dailyPractice === "object") {
+        const cleanDp = {};
+        Object.keys(obj.dailyPractice).forEach(k => {
+          const nd = normDate(k);
+          if (!nd) return;
+          if (nd !== k) changed = true;
+          cleanDp[nd] = obj.dailyPractice[k];
+        });
+        obj.dailyPractice = cleanDp;
+      }
+      if (obj.history && typeof obj.history === "object") {
+        const cleanH = {};
+        Object.keys(obj.history).forEach(k => {
+          const nd = normDate(k);
+          if (!nd) return;
+          if (nd !== k) changed = true;
+          cleanH[nd] = obj.history[k];
+        });
+        obj.history = cleanH;
+      }
+      if (changed) {
+        vals[i][0] = JSON.stringify(obj);
+        updated++;
+      }
+    } catch (_) {}
+  }
+  if (updated > 0) range.setValues(vals);
+  return { ok: true, updated };
+}
