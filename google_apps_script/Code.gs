@@ -810,7 +810,7 @@ function getStudentMetaFromUserList_(ss, studentUser) {
 
     if (action === "saveGlobalTimeSetting") {
       const auth = authenticateUser(ss, params.username, params.password);
-      if (!auth.success || auth.role !== "teacher" || !auth.isAdmin) return jsonResponse({ status: "error", message: "僅管理員可修改全校預設作答時間" });
+      if (!auth.success || auth.role !== "teacher") return jsonResponse({ status: "error", message: "無教師權限" });
       return jsonResponse(saveGlobalTimeSetting(ss, auth.realName || auth.username, params.timeData || {}));
     }
 
@@ -830,19 +830,19 @@ function getStudentMetaFromUserList_(ss, studentUser) {
 
     if (action === "saveTimeRestriction") {
       const auth = authenticateUser(ss, params.username, params.password);
-      if (!auth.success || auth.role !== "teacher" || !auth.isAdmin) return jsonResponse({ status: "error", message: "僅管理員可設定全校特別日期解除限制" });
+      if (!auth.success || auth.role !== "teacher") return jsonResponse({ status: "error", message: "無教師權限" });
       return jsonResponse(saveTimeRestriction(ss, auth.realName || auth.username, params.ruleData || {}));
     }
 
     if (action === "deleteTimeRestriction") {
       const auth = authenticateUser(ss, params.username, params.password);
-      if (!auth.success || auth.role !== "teacher" || !auth.isAdmin) return jsonResponse({ status: "error", message: "僅管理員可刪除全校特別日期解除限制" });
+      if (!auth.success || auth.role !== "teacher") return jsonResponse({ status: "error", message: "無教師權限" });
       return jsonResponse(deleteTimeRestriction(ss, params.ruleData || {}));
     }
 
     if (action === "quickToggleTodayUnlock") {
       const auth = authenticateUser(ss, params.username, params.password);
-      if (!auth.success || auth.role !== "teacher" || !auth.isAdmin) return jsonResponse({ status: "error", message: "僅管理員可切換全校今日解除限制" });
+      if (!auth.success || auth.role !== "teacher") return jsonResponse({ status: "error", message: "無教師權限" });
       return jsonResponse(quickToggleTodayUnlock(ss, auth.realName || auth.username));
     }
 
