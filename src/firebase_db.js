@@ -112,3 +112,57 @@ export async function saveStudentToFirestore(username, payload) {
     return false;
   }
 }
+
+export async function getUserProfileFromFirestore(username) {
+  const u = String(username || "").trim().toLowerCase();
+  if (!u) return null;
+  try {
+    await ensureAuth();
+    const snap = await getDoc(doc(db, "users", u));
+    return snap.exists() ? snap.data() : null;
+  } catch (_) { return null; }
+}
+
+export async function saveUserProfileToFirestore(username, profile) {
+  const u = String(username || "").trim().toLowerCase();
+  if (!u || !profile) return false;
+  try {
+    await ensureAuth();
+    await setDoc(doc(db, "users", u), { ...profile, updatedAt: new Date().toISOString() }, { merge: true });
+    return true;
+  } catch (_) { return false; }
+}
+
+export async function getDailyTaskFromFirestore(classKey) {
+  const k = String(classKey || "default").trim();
+  try {
+    await ensureAuth();
+    const snap = await getDoc(doc(db, "tasks", k));
+    return snap.exists() ? snap.data() : null;
+  } catch (_) { return null; }
+}
+
+export async function saveDailyTaskToFirestore(classKey, taskObj) {
+  const k = String(classKey || "default").trim();
+  try {
+    await ensureAuth();
+    await setDoc(doc(db, "tasks", k), { ...taskObj, updatedAt: new Date().toISOString() }, { merge: true });
+    return true;
+  } catch (_) { return false; }
+}
+
+export async function getTimeSettingsFromFirestore(docKey = "global") {
+  try {
+    await ensureAuth();
+    const snap = await getDoc(doc(db, "settings", docKey));
+    return snap.exists() ? snap.data() : null;
+  } catch (_) { return null; }
+}
+
+export async function saveTimeSettingsToFirestore(docKey = "global", settingsObj) {
+  try {
+    await ensureAuth();
+    await setDoc(doc(db, "settings", docKey), { ...settingsObj, updatedAt: new Date().toISOString() }, { merge: true });
+    return true;
+  } catch (_) { return false; }
+}
