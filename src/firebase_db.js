@@ -1,11 +1,12 @@
 // =====================================================================
 // firebase_db.js — Cloud Firestore 高速單一真實資料源模組
 // =====================================================================
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
 import {
   getAuth,
   signInWithEmailAndPassword,
-  createUserWithEmailAndPassword
+  createUserWithEmailAndPassword,
+  signOut
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 import {
   getFirestore,
@@ -155,4 +156,49 @@ export async function saveTimeSettingsToFirestore(docKey = "global", settingsObj
     await setDoc(doc(db, "settings", docKey), { ...settingsObj, updatedAt: new Date().toISOString() }, { merge: true });
     return true;
   } catch (_) { return false; }
+}
+
+export async function createAccountInFirebase(username, password, profile = {}) {
+  const u = String(username || "").trim().toLowerCase();
+  if (!u || !password) return { ok: false, error: "帳號或密碼不可為空" };
+  const email = `${u}@vocab.app`;
+  const pwd = String(password).length < 6 ? `${password}_v26app` : String(password);
+  try {
+    const secApp = getApps().find(a => a.name === "accountCreator") || initializeApp(firebaseConfig, "accountCreator");
+    const secAuth = getAuth(secApp);
+    try {
+      await createUserWithEmailAndPassword(secAuth, email, pwd);
+    } catch (e) {
+      if (e?.code !== "auth/email-already-in-use") {
+        return { ok: false, error: e?.message || "建立 Auth 失敗" };
+      }
+    } finally {
+      await signOut(secAuth).catch(() => {});
+    }
+    await setDoc(doc(db, "users", u), {
+      username: u,
+      role: profile.role || "student",
+      realName: profile.realName || u,
+      className: profile.className || "",
+      updatedAt: new Date().toISOString()
+    }, { merge: true });
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e?.message || "寫入失敗" };
+  }
+}
+
+if (typeof window !== "undefined") {
+  window.FirebaseDB = Object.assign(window.FirebaseDB || {}, {
+    loginWithFirebaseAuth,
+    loadStudentFromFirestore,
+    saveStudentToFirestore,
+    getUserProfileFromFirestore,
+    saveUserProfileToFirestore,
+    getDailyTaskFromFirestore,
+    saveDailyTaskToFirestore,
+    getTimeSettingsFromFirestore,
+    saveTimeSettingsToFirestore,
+    createAccountInFirebase
+  });
 }

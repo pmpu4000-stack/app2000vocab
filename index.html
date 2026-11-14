@@ -1302,6 +1302,10 @@
             <span class="tp-nav-icon">👥</span>
             <span class="tp-nav-label">全班<br>紀錄</span>
           </div>
+          <div id="tp-nav-accounts" class="tp-nav-card" onclick="switchTeacherTab('accounts')">
+            <span class="tp-nav-icon">🔑</span>
+            <span class="tp-nav-label">帳號<br>管理</span>
+          </div>
         </div>
 
         <!-- 主工作區容器：原位呈現所選功能，隱藏其餘無關介面 -->
@@ -1311,6 +1315,27 @@
 
           <!-- 區塊 2: 學生使用時間管理 (原位顯示) -->
           <div id="tp-panel-time" class="tp-view-panel" style="display:none;"></div>
+
+          <!-- 區塊 5: 帳號管理 (新增 / 批次匯入) -->
+          <div id="tp-panel-accounts" class="tp-view-panel" style="display:none; padding:12px;">
+            <div style="font-size:16px; font-weight:800; color:var(--ink); margin-bottom:10px;">🔑 帳號新增與批次匯入</div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:8px; margin-bottom:10px;">
+              <select id="tp-acc-role" style="padding:8px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--ink);">
+                <option value="student">學生 (student)</option>
+                <option value="parent">家長 (parent)</option>
+                <option value="teacher">教師 (teacher，限管理員)</option>
+              </select>
+              <input id="tp-acc-user" type="text" placeholder="帳號 (例: s70201)" style="padding:8px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--ink);">
+              <input id="tp-acc-pass" type="text" placeholder="密碼" style="padding:8px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--ink);">
+              <input id="tp-acc-name" type="text" placeholder="姓名" style="padding:8px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--ink);">
+              <input id="tp-acc-class" type="text" placeholder="班級 (例: 702)" style="padding:8px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--ink);">
+            </div>
+            <button type="button" onclick="window.tpCreateSingleAccount && window.tpCreateSingleAccount()" style="padding:8px 16px; border-radius:8px; border:none; background:#4f46e5; color:#fff; font-weight:700; cursor:pointer; margin-bottom:14px;">➕ 建立單一帳號</button>
+            <div style="font-size:13px; font-weight:700; color:var(--ink); margin-bottom:6px;">📋 批次匯入（每行一筆：帳號,密碼,姓名,班級）</div>
+            <textarea id="tp-acc-batch" rows="4" placeholder="s70201,1234,王小明,702&#10;s70202,1234,李小華,702" style="width:100%; box-sizing:border-box; padding:8px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--ink); font-family:monospace; margin-bottom:8px;"></textarea>
+            <button type="button" onclick="window.tpBatchImportAccounts && window.tpBatchImportAccounts()" style="padding:8px 16px; border-radius:8px; border:none; background:#0ea5e9; color:#fff; font-weight:700; cursor:pointer;">📥 批次匯入帳號</button>
+            <div id="tp-acc-status" style="margin-top:8px; font-size:13px; font-weight:600; color:var(--ink);"></div>
+          </div>
 
           <!-- 區塊 3: 個別學生區間歷程調閱選單列 -->
           <div id="tp-panel-student" class="tp-view-panel" style="display:none; background:var(--paper, rgba(0,0,0,0.03)); border:1px solid var(--line); border-radius:12px; padding:8px; width:100%; box-sizing:border-box;">

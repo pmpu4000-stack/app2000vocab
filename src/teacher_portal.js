@@ -2307,6 +2307,35 @@
   window.openTimeManagementModal = openTimeModal;
   window.closeTimeManagementModal = closeTimeModal;
   window.loadTimeRestrictions = loadTimeRestrictions;
+
+  window.tpCreateSingleAccount = async function() {
+    const statusEl = document.getElementById("tp-acc-status");
+    const role = document.getElementById("tp-acc-role")?.value || "student";
+    const user = document.getElementById("tp-acc-user")?.value.trim();
+    const pass = document.getElementById("tp-acc-pass")?.value.trim();
+    const realName = document.getElementById("tp-acc-name")?.value.trim() || user;
+    const className = document.getElementById("tp-acc-class")?.value.trim() || "";
+    if (!user || !pass) { if (statusEl) statusEl.textContent = "❌ 請輸入帳號與密碼"; return; }
+    if (statusEl) statusEl.textContent = "⏳ 建立中...";
+    const res = await window.FirebaseDB?.createAccountInFirebase?.(user, pass, { role, realName, className });
+    if (statusEl) statusEl.textContent = res?.ok ? `✅ 已建立帳號：${user} (${role})` : `❌ 失敗：${res?.error || "未知錯誤"}`;
+  };
+
+  window.tpBatchImportAccounts = async function() {
+    const statusEl = document.getElementById("tp-acc-status");
+    const role = document.getElementById("tp-acc-role")?.value || "student";
+    const lines = (document.getElementById("tp-acc-batch")?.value || "").split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+    if (!lines.length) { if (statusEl) statusEl.textContent = "❌ 請貼上要匯入的帳號資料"; return; }
+    let okCount = 0, failCount = 0;
+    if (statusEl) statusEl.textContent = `⏳ 正在匯入 ${lines.length} 筆...`;
+    for (const line of lines) {
+      const [u, p, n, c] = line.split(",").map(s => (s || "").trim());
+      if (!u || !p) { failCount++; continue; }
+      const r = await window.FirebaseDB?.createAccountInFirebase?.(u, p, { role, realName: n || u, className: c || "" });
+      if (r?.ok) okCount++; else failCount++;
+    }
+    if (statusEl) statusEl.textContent = `✅ 匯入完成：成功 ${okCount} 筆，失敗 ${failCount} 筆`;
+  };
   window.initTimeManagementEvents = initTimeManagementEvents;
 
   window.initTeacherPortalInspector = initTeacherPortalInspector;
